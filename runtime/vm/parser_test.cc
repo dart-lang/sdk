@@ -261,21 +261,21 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
   EXPECT_STREQ(
       // function f uses one ctx var at (0); doesn't save ctx.
       "main.f\n"
-      " 0 ContextLevel  level=0   begin=0   end=12\n"
+      " 0 ContextLevel  level=0   begin=0   end=56\n"
       " 1 ContextVar    level=0   begin=14  end=28  name=value\n"
       " 2 StackVar      scope=1   begin=16  end=28  name=param\n"
       " 3 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // function main uses one ctx var at (1); saves caller ctx.
       "main\n"
-      " 0 ContextLevel  level=0   begin=0   end=6\n"
-      " 1 ContextLevel  level=1   begin=8   end=16\n"
+      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 1 ContextLevel  level=1   begin=12  end=20\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 3 ContextVar    level=1   begin=10  end=38  name=value\n"
       " 4 StackVar      scope=2   begin=12  end=38  name=f\n",
@@ -302,28 +302,28 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       // Innermost function uses captured variable 'value' from middle
       // function.
       "a.b.c\n"
-      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 0 ContextLevel  level=0   begin=0   end=54\n"
       " 1 ContextVar    level=0   begin=20  end=30  name=value\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       // Middle function saves the entry context.  Notice that this
       // happens here and not in the outermost function.  We always
       // save the entry context at the last possible moment.
       "a.b\n"
-      " 0 ContextLevel  level=0   begin=0   end=6\n"
-      " 1 ContextLevel  level=1   begin=8   end=16\n"
+      " 0 ContextLevel  level=0   begin=0   end=50\n"
+      " 1 ContextLevel  level=1   begin=52  end=60\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 3 ContextVar    level=1   begin=16  end=38  name=value\n"
       " 4 StackVar      scope=2   begin=18  end=38  name=c\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
@@ -331,7 +331,7 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       // don't save the entry context if the function has no captured
       // variables.
       "a\n"
-      " 0 ContextLevel  level=0   begin=0   end=14\n"
+      " 0 ContextLevel  level=0   begin=0   end=18\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 2 StackVar      scope=2   begin=6   end=46  name=b\n",
       vars);
@@ -361,14 +361,14 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
   EXPECT_STREQ(
       // bb captures only value2 from aa.  No others.
       "a.b.aa.bb\n"
-      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 0 ContextLevel  level=0   begin=0   end=54\n"
       " 1 ContextVar    level=0   begin=35  end=46  name=value2\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -377,22 +377,22 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       // of chaining from b.  This keeps us from holding onto closures
       // that we would never access.
       "a.b.aa\n"
-      " 0 ContextLevel  level=0   begin=0   end=6\n"
-      " 1 ContextLevel  level=1   begin=8   end=16\n"
+      " 0 ContextLevel  level=0   begin=0   end=50\n"
+      " 1 ContextLevel  level=1   begin=52  end=60\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 3 ContextVar    level=1   begin=30  end=55  name=value2\n"
       " 4 StackVar      scope=2   begin=32  end=55  name=bb\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
       // b captures value1 from a.
       "a.b\n"
-      " 0 ContextLevel  level=0   begin=0   end=16\n"
+      " 0 ContextLevel  level=0   begin=0   end=60\n"
       " 1 ContextVar    level=0   begin=14  end=65  name=value1\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -400,15 +400,15 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
       // a shares value1, saves entry ctx.
       "a\n"
-      " 0 ContextLevel  level=0   begin=0   end=6\n"
-      " 1 ContextLevel  level=1   begin=8   end=16\n"
+      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 1 ContextLevel  level=1   begin=12  end=20\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
       " 3 ContextVar    level=1   begin=10  end=73  name=value1\n"
@@ -450,24 +450,24 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       // This frame saves the entry context instead of chaining.  Good.
       "doIt.<anonymous closure>\n"
       " 0 ContextLevel  level=0   begin=0   end=0\n"
-      " 1 ContextLevel  level=1   begin=4   end=12\n"
+      " 1 ContextLevel  level=1   begin=48  end=56\n"
       " 2 ContextVar    level=1   begin=44  end=67  name=y\n"
       " 3 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       "X.onX\n"
-      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 0 ContextLevel  level=0   begin=0   end=14\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // No context is saved here since no vars are captured.
       "doIt\n"
-      " 0 ContextLevel  level=0   begin=0   end=18\n"
+      " 0 ContextLevel  level=0   begin=0   end=22\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 2 StackVar      scope=2   begin=36  end=83  name=x\n",
       vars);
@@ -496,22 +496,22 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
   EXPECT_STREQ(
       // inner function captures variable value.  That's fine.
       "outer.inner\n"
-      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 0 ContextLevel  level=0   begin=0   end=54\n"
       " 1 ContextVar    level=0   begin=34  end=44  name=value\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // The outer function saves the entry context, even though the
       // captured variable is in a loop.  Good.
       "outer\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
-      " 1 ContextLevel  level=1   begin=10  end=18\n"
-      " 2 ContextLevel  level=0   begin=20  end=34\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
+      " 1 ContextLevel  level=1   begin=14  end=22\n"
+      " 2 ContextLevel  level=0   begin=24  end=38\n"
       " 3 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 4 StackVar      scope=3   begin=12  end=53  name=i\n"
       " 5 ContextVar    level=1   begin=29  end=53  name=value\n"
@@ -542,20 +542,20 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
   char* vars = CaptureVarsAtLine(lib, "a", 10);
   EXPECT_STREQ(
       "a.b.c\n"
-      " 0 ContextLevel  level=0   begin=0   end=12\n"
+      " 0 ContextLevel  level=0   begin=0   end=56\n"
       " 1 ContextVar    level=0   begin=52  end=65  name=x\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Doesn't save the entry context.  Chains to parent instead.
       "a.b\n"
-      " 0 ContextLevel  level=0   begin=0   end=6\n"
-      " 1 ContextLevel  level=1   begin=8   end=32\n"
-      " 2 ContextLevel  level=0   begin=34  end=40\n"
+      " 0 ContextLevel  level=0   begin=0   end=50\n"
+      " 1 ContextLevel  level=1   begin=52  end=76\n"
+      " 2 ContextLevel  level=0   begin=78  end=84\n"
       " 3 ContextVar    level=0   begin=12  end=74  name=x\n"
       " 4 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 5 StackVar      scope=2   begin=49  end=74  name=c\n"
@@ -563,13 +563,13 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 7 StackVar      scope=4   begin=34  end=49  name=d\n"
 
       "_Closure.call\n"
-      " 0 ContextLevel  level=0   begin=0   end=8\n"
+      " 0 ContextLevel  level=0   begin=0   end=12\n"
       " 1 StackVar      scope=1   begin=-1  end=0   name=this\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       "a\n"
-      " 0 ContextLevel  level=0   begin=0   end=6\n"
-      " 1 ContextLevel  level=1   begin=8   end=16\n"
+      " 0 ContextLevel  level=0   begin=0   end=10\n"
+      " 1 ContextLevel  level=1   begin=12  end=20\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
       " 3 ContextVar    level=1   begin=9   end=82  name=x\n"
       " 4 StackVar      scope=2   begin=11  end=82  name=b\n",

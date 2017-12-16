@@ -20,7 +20,7 @@ import 'dart:convert' show JSON;
 import 'dart:io' show File;
 
 export 'package:testing/testing.dart' show Chain, runMe;
-import 'package:front_end/compiler_options.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';

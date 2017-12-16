@@ -229,6 +229,8 @@ void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) {}
 
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {}
 
+void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
+
 void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {}
 
 void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
@@ -321,6 +323,8 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
     }
   }
 }
+
+void ConstantPropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
@@ -625,6 +629,15 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
 
 void ConstantPropagator::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
   // TODO(zerny): Implement constant propagation.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitStoreIndexedUnsafe(
+    StoreIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

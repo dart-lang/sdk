@@ -40,14 +40,14 @@ OSThread::OSThread()
   // Try to get accurate stack bounds from pthreads, etc.
   if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
     // Fall back to a guess based on the stack pointer.
-    RefineStackBoundsFromSP(Thread::GetCurrentStackPointer());
+    RefineStackBoundsFromSP(GetCurrentStackPointer());
   }
 
   ASSERT(stack_base_ != 0);
   ASSERT(stack_limit_ != 0);
   ASSERT(stack_base_ > stack_limit_);
-  ASSERT(stack_base_ > Thread::GetCurrentStackPointer());
-  ASSERT(stack_limit_ < Thread::GetCurrentStackPointer());
+  ASSERT(stack_base_ > GetCurrentStackPointer());
+  ASSERT(stack_limit_ < GetCurrentStackPointer());
 }
 
 OSThread* OSThread::CreateOSThread() {
@@ -83,6 +83,17 @@ void OSThread::SetName(const char* name) {
     name_ = NULL;
   }
   set_name(name);
+}
+
+// Disable AdressSanitizer and SafeStack transformation on this function. In
+// particular, taking the address of a local gives an address on the stack
+// instead of an address in the shadow memory (AddressSanitizer) or the safe
+// stack (SafeStack).
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+uword OSThread::GetCurrentStackPointer() {
+  uword stack_allocated_local = reinterpret_cast<uword>(&stack_allocated_local);
+  return stack_allocated_local;
 }
 
 void OSThread::DisableThreadInterrupts() {

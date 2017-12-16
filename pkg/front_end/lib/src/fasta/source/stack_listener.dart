@@ -14,8 +14,6 @@ import '../fasta_codes.dart'
         messageNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
 
-import '../messages.dart' as messages;
-
 import '../parser.dart' show Listener, MemberKind;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
@@ -311,6 +309,11 @@ abstract class StackListener extends Listener {
     debugEvent("RecoverExpression");
   }
 
+  @override
+  void handleDirectivesOnly() {
+    pop(); // Discard the metadata.
+  }
+
   void handleExtraneousExpression(Token token, Message message) {
     debugEvent("ExtraneousExpression");
     pop(); // Discard the extraneous expression.
@@ -338,20 +341,16 @@ abstract class StackListener extends Listener {
     addCompileTimeError(message, offset, endToken.end - offset);
   }
 
-  void addCompileTimeError(Message message, int offset, int length);
-
   @override
   Token handleUnrecoverableError(Token token, Message message) {
     throw deprecated_inputError(uri, token.charOffset, message.message);
   }
 
-  void nit(Message message, int charOffset) {
-    messages.nit(message, charOffset, uri);
-  }
+  void addCompileTimeError(Message message, int charOffset, int length);
 
-  void warning(Message message, int offset, int length) {
-    messages.warning(message, offset, uri);
-  }
+  void addWarning(Message message, int charOffset, int length);
+
+  void addNit(Message message, int charOffset);
 }
 
 class Stack {
@@ -398,6 +397,7 @@ class Stack {
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];
       tailList[i] = value is NullValue ? null : value;
+      table[startIndex + i] = null;
     }
     arrayLength -= count;
 

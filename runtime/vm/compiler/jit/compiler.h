@@ -161,21 +161,49 @@ class Compiler : public AllStatic {
 // Current implementation: one task per isolate, it dies with the owning
 // isolate.
 // No OSR compilation in the background compiler.
-class BackgroundCompiler : public ThreadPool::Task {
+class BackgroundCompiler {
  public:
+  explicit BackgroundCompiler(Isolate* isolate);
   virtual ~BackgroundCompiler();
 
-  static void EnsureInit(Thread* thread);
-
-  // Stops background compiler of the given isolate.
-  // TODO(turnidge): Give Stop and Disable more distinct names.
-  static void Stop(Isolate* isolate);
-
-  static void Disable();
-
-  static void Enable();
-
-  static bool IsDisabled();
+  static void Start(Isolate* isolate) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    if (isolate->background_compiler() != NULL) {
+      isolate->background_compiler()->Start();
+    }
+  }
+  static void Stop(Isolate* isolate) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    if (isolate->background_compiler() != NULL) {
+      isolate->background_compiler()->Stop();
+    }
+  }
+  static void Enable(Isolate* isolate) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    if (isolate->background_compiler() != NULL) {
+      isolate->background_compiler()->Enable();
+    }
+  }
+  static void Disable(Isolate* isolate) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    if (isolate->background_compiler() != NULL) {
+      isolate->background_compiler()->Disable();
+    }
+  }
+  static bool IsDisabled(Isolate* isolate) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    if (isolate->background_compiler() != NULL) {
+      return isolate->background_compiler()->IsDisabled();
+    }
+    return false;
+  }
+  static bool IsRunning(Isolate* isolate) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    if (isolate->background_compiler() != NULL) {
+      return isolate->background_compiler()->IsRunning();
+    }
+    return false;
+  }
 
   // Call to optimize a function in the background, enters the function in the
   // compilation queue.
@@ -186,18 +214,26 @@ class BackgroundCompiler : public ThreadPool::Task {
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
   bool is_running() const { return running_; }
 
- private:
-  explicit BackgroundCompiler(Isolate* isolate);
+  void Run();
 
-  virtual void Run();
+ private:
+  void Start();
+  void Stop();
+  void Enable();
+  void Disable();
+  bool IsDisabled();
+  bool IsRunning() { return !done_; }
 
   Isolate* isolate_;
-  bool running_;            // While true, will try to read queue and compile.
-  bool* done_;              // True if the thread is done.
-  Monitor* queue_monitor_;  // Controls access to the queue.
-  Monitor* done_monitor_;   // Notify/wait that the thread is done.
 
+  Monitor* queue_monitor_;  // Controls access to the queue.
   BackgroundCompilationQueue* function_queue_;
+
+  Monitor* done_monitor_;   // Notify/wait that the thread is done.
+  bool running_;            // While true, will try to read queue and compile.
+  bool done_;               // True if the thread is done.
+
+  int16_t disabled_depth_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };

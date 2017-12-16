@@ -7,9 +7,11 @@ library entered_left_view_test;
 import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
+
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
-import '../utils.dart';
+
+import 'utils.dart';
 
 var invocations = [];
 

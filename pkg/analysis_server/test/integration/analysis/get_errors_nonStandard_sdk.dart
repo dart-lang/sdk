@@ -17,6 +17,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainGetErrorsTest);
+    defineReflectiveTests(AnalysisDomainGetErrorsTest_PreviewDart2);
   });
 }
 
@@ -96,4 +97,11 @@ import 'dart:fake';
     expect(errors, hasLength(1));
     expect(errors[0].code, 'unused_import');
   }
+}
+
+@reflectiveTest
+class AnalysisDomainGetErrorsTest_PreviewDart2
+    extends AnalysisDomainGetErrorsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

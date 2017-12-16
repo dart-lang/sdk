@@ -64,7 +64,8 @@ import 'dart:_js_helper'
         findDispatchTagForInterceptorClass,
         setNativeSubclassDispatchRecord,
         makeLeafDispatchRecord,
-        registerGlobalObject;
+        registerGlobalObject,
+        applyExtension;
 import 'dart:_interceptors'
     show
         Interceptor,
@@ -9745,6 +9746,7 @@ class DirectoryEntry extends Entry {
   Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
     __getFile(path, options: options, successCallback: (value) {
+      applyExtension('FileEntry', value);
       completer.complete(value);
     }, errorCallback: (error) {
       completer.completeError(error);
@@ -10722,9 +10724,8 @@ class Document extends Node {
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element/*=T*/ > querySelectorAll/*<T extends Element>*/(
-          String selectors) =>
-      new _FrozenElementList/*<T>*/ ._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+      new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -10742,8 +10743,7 @@ class Document extends Node {
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList<Element/*=T*/ > queryAll/*<T extends Element>*/(
-          String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
@@ -10865,9 +10865,8 @@ class DocumentFragment extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element/*=T*/ > querySelectorAll/*<T extends Element>*/(
-          String selectors) =>
-      new _FrozenElementList/*<T>*/ ._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+      new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new DivElement();
@@ -10922,8 +10921,7 @@ class DocumentFragment extends Node
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element/*=T*/ > queryAll/*<T extends Element>*/(
-          String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() {
@@ -11671,11 +11669,11 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
         another.y <= top + height;
   }
 
-  Point get topLeft => new Point/*<num>*/(this.left, this.top);
-  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
+  Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
   Point get bottomRight =>
-      new Point/*<num>*/(this.left + this.width, this.top + this.height);
-  Point get bottomLeft => new Point/*<num>*/(this.left, this.top + this.height);
+      new Point(this.left + this.width, this.top + this.height);
+  Point get bottomLeft => new Point(this.left, this.top + this.height);
 
   // To suppress missing implicit constructor warnings.
   factory DomRectReadOnly._() {
@@ -13464,9 +13462,8 @@ class Element extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList<Element/*=T*/ > querySelectorAll/*<T extends Element>*/(
-          String selectors) =>
-      new _FrozenElementList/*<T>*/ ._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+      new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -13484,8 +13481,7 @@ class Element extends Node
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList<Element/*=T*/ > queryAll/*<T extends Element>*/(
-          String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
@@ -14101,14 +14097,13 @@ class Element extends Node
     bool sameAsParent = identical(current, parent);
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
-      if (foundAsParent) return new Point/*<num>*/(0, 0);
+      if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
-    return new Point/*<num>*/(
-        p.x + current.offsetLeft, p.y + current.offsetTop);
+    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
   static HtmlDocument _parseDocument;
@@ -17241,6 +17236,7 @@ class FileEntry extends Entry {
   Future<FileWriter> createWriter() {
     var completer = new Completer<FileWriter>();
     _createWriter((value) {
+      applyExtension('FileWriter', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -17260,6 +17256,7 @@ class FileEntry extends Entry {
   Future<Blob> file() {
     var completer = new Completer<Blob>();
     _file((value) {
+      applyExtension('Blob', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -24436,7 +24433,7 @@ class MessageEvent extends Event {
       String origin,
       String lastEventId,
       Window source,
-      List<MessagePort> messagePorts}) {
+      List<MessagePort> messagePorts: const []}) {
     if (source == null) {
       source = window;
     }
@@ -25347,14 +25344,14 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
-  Point get client => new Point/*<num>*/(_clientX, _clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point/*<num>*/(_movementX, _movementY);
+  Point get movement => new Point(_movementX, _movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -25367,7 +25364,7 @@ class MouseEvent extends UIEvent {
     if (JS('bool', '!!#.offsetX', this)) {
       var x = JS('int', '#.offsetX', this);
       var y = JS('int', '#.offsetY', this);
-      return new Point/*<num>*/(x, y);
+      return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
       if (!(this.target is Element)) {
@@ -25375,21 +25372,21 @@ class MouseEvent extends UIEvent {
       }
       Element target = this.target;
       var point = (this.client - target.getBoundingClientRect().topLeft);
-      return new Point/*<num>*/(point.x.toInt(), point.y.toInt());
+      return new Point(point.x.toInt(), point.y.toInt());
     }
   }
 
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
-  Point get screen => new Point/*<num>*/(_screenX, _screenY);
+  Point get screen => new Point(_screenX, _screenY);
 
   @DomName('MouseEvent.layerX')
   @DomName('MouseEvent.layerY')
-  Point get layer => new Point/*<num>*/(_layerX, _layerY);
+  Point get layer => new Point(_layerX, _layerY);
 
   @DomName('MouseEvent.pageX')
   @DomName('MouseEvent.pageY')
-  Point get page => new Point/*<num>*/(_pageX, _pageY);
+  Point get page => new Point(_pageX, _pageY);
 
   @DomName('MouseEvent.dataTransfer')
   DataTransfer get dataTransfer =>
@@ -31010,7 +31007,7 @@ class SelectElement extends HtmlElement {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = this.querySelectorAll<OptionElement>('option');
+    dynamic options = this.querySelectorAll<OptionElement>('option');
     return new UnmodifiableListView(options.toList());
   }
 
@@ -34833,15 +34830,15 @@ class Touch extends Interceptor {
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point/*<num>*/(__clientX, __clientY);
+  Point get client => new Point(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point/*<num>*/(__pageX, __pageY);
+  Point get page => new Point(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point/*<num>*/(__screenX, __screenY);
+  Point get screen => new Point(__screenX, __screenY);
 
   @DomName('Touch.radiusX')
   @DocsEditable()
@@ -38409,6 +38406,8 @@ class Window extends EventTarget
   Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
     __requestFileSystem(type, size, (value) {
+      applyExtension('DOMFileSystem', value);
+      applyExtension('DirectoryEntry', value.root);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -39010,7 +39009,7 @@ class _BeforeUnloadEventStreamProvider
         e, _eventType, useCapture);
   }
 
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
+  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {
     // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementListEventStreamImpl<BeforeUnloadEvent>(
@@ -40025,11 +40024,11 @@ class _ClientRect extends Interceptor implements Rectangle {
         another.y <= top + height;
   }
 
-  Point get topLeft => new Point/*<num>*/(this.left, this.top);
-  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
+  Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
   Point get bottomRight =>
-      new Point/*<num>*/(this.left + this.width, this.top + this.height);
-  Point get bottomLeft => new Point/*<num>*/(this.left, this.top + this.height);
+      new Point(this.left + this.width, this.top + this.height);
+  Point get bottomLeft => new Point(this.left, this.top + this.height);
 
   // To suppress missing implicit constructor warnings.
   factory _ClientRect._() {
@@ -42005,7 +42004,8 @@ class _ContentCssRect extends CssRect {
    */
   set height(dynamic newHeight) {
     if (newHeight is Dimension) {
-      if (newHeight.value < 0) newHeight = new Dimension.px(0);
+      Dimension newHeightAsDimension = newHeight;
+      if (newHeightAsDimension.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
     } else if (newHeight is num) {
       if (newHeight < 0) newHeight = 0;
@@ -42025,7 +42025,8 @@ class _ContentCssRect extends CssRect {
    */
   set width(dynamic newWidth) {
     if (newWidth is Dimension) {
-      if (newWidth.value < 0) newWidth = new Dimension.px(0);
+      Dimension newWidthAsDimension = newWidth;
+      if (newWidthAsDimension.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
     } else if (newWidth is num) {
       if (newWidth < 0) newWidth = 0;
@@ -42766,7 +42767,8 @@ class EventStreamProvider<T extends Event> {
    *
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -43124,7 +43126,8 @@ class _CustomEventStreamProvider<T extends Event>
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(
         e, _eventTypeGetter(e), useCapture);
   }
@@ -45073,9 +45076,9 @@ class NodeValidatorBuilder implements NodeValidator {
       Iterable<String> uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
-        ?.map/*<String>*/((name) => '$tagNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
     var uriAttrs = uriAttributes
-        ?.map/*<String>*/((name) => '$tagNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -45099,9 +45102,9 @@ class NodeValidatorBuilder implements NodeValidator {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
-        ?.map/*<String>*/((name) => '$baseNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$baseNameUpper::${name.toLowerCase()}');
     var uriAttrs = uriAttributes
-        ?.map/*<String>*/((name) => '$baseNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$baseNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -45486,7 +45489,6 @@ class _WrappedIterator<E extends Node> implements Iterator<E> {
 
   E get current => _iterator.current;
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -46056,61 +46058,41 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     }
 
     var eventObj;
-    // In these two branches we create an underlying native KeyboardEvent, but
-    // we set it with our specified values. Because we are doing custom setting
-    // of certain values (charCode/keyCode, etc) only in this class (as opposed
-    // to KeyboardEvent) and the way we set these custom values depends on the
-    // type of underlying JS object, we do all the construction for the
-    // underlying KeyboardEvent here.
-    if (canUseDispatchEvent) {
-      // Currently works in everything but Internet Explorer.
-      eventObj = new Event.eventType('Event', type,
-          canBubble: canBubble, cancelable: cancelable);
 
-      JS('void', '#.keyCode = #', eventObj, keyCode);
-      JS('void', '#.which = #', eventObj, keyCode);
-      JS('void', '#.charCode = #', eventObj, charCode);
+    // Currently this works on everything but Safari. Safari throws an
+    // "Attempting to change access mechanism for an unconfigurable property"
+    // TypeError when trying to do the Object.defineProperty hack, so we avoid
+    // this branch if possible.
+    // Also, if we want this branch to work in FF, we also need to modify
+    // _initKeyboardEvent to also take charCode and keyCode values to
+    // initialize initKeyEvent.
 
-      JS('void', '#.location = #', eventObj, location);
-      JS('void', '#.ctrlKey = #', eventObj, ctrlKey);
-      JS('void', '#.altKey = #', eventObj, altKey);
-      JS('void', '#.shiftKey = #', eventObj, shiftKey);
-      JS('void', '#.metaKey = #', eventObj, metaKey);
-    } else {
-      // Currently this works on everything but Safari. Safari throws an
-      // "Attempting to change access mechanism for an unconfigurable property"
-      // TypeError when trying to do the Object.defineProperty hack, so we avoid
-      // this branch if possible.
-      // Also, if we want this branch to work in FF, we also need to modify
-      // _initKeyboardEvent to also take charCode and keyCode values to
-      // initialize initKeyEvent.
+    eventObj = new Event.eventType('KeyboardEvent', type,
+        canBubble: canBubble, cancelable: cancelable);
 
-      eventObj = new Event.eventType('KeyboardEvent', type,
-          canBubble: canBubble, cancelable: cancelable);
+    // Chromium Hack
+    JS(
+        'void',
+        "Object.defineProperty(#, 'keyCode', {"
+        "  get : function() { return this.keyCodeVal; } })",
+        eventObj);
+    JS(
+        'void',
+        "Object.defineProperty(#, 'which', {"
+        "  get : function() { return this.keyCodeVal; } })",
+        eventObj);
+    JS(
+        'void',
+        "Object.defineProperty(#, 'charCode', {"
+        "  get : function() { return this.charCodeVal; } })",
+        eventObj);
 
-      // Chromium Hack
-      JS(
-          'void',
-          "Object.defineProperty(#, 'keyCode', {"
-          "  get : function() { return this.keyCodeVal; } })",
-          eventObj);
-      JS(
-          'void',
-          "Object.defineProperty(#, 'which', {"
-          "  get : function() { return this.keyCodeVal; } })",
-          eventObj);
-      JS(
-          'void',
-          "Object.defineProperty(#, 'charCode', {"
-          "  get : function() { return this.charCodeVal; } })",
-          eventObj);
+    var keyIdentifier = _convertToHexString(charCode, keyCode);
+    eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
+        keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey);
+    JS('void', '#.keyCodeVal = #', eventObj, keyCode);
+    JS('void', '#.charCodeVal = #', eventObj, charCode);
 
-      var keyIdentifier = _convertToHexString(charCode, keyCode);
-      eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
-          keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey);
-      JS('void', '#.keyCodeVal = #', eventObj, keyCode);
-      JS('void', '#.charCodeVal = #', eventObj, charCode);
-    }
     // Tell dart2js that it smells like a KeyboardEvent!
     setDispatchProperty(eventObj, _keyboardEventDispatchRecord);
 

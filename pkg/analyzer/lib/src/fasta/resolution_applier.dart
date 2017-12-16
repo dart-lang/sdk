@@ -9,27 +9,42 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
+import 'package:front_end/src/scanner/token.dart';
+import 'package:kernel/kernel.dart' as kernel;
 
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
 class ResolutionApplier extends GeneralizingAstVisitor {
+  final TypeContext _typeContext;
+
   final List<Element> _declaredElements;
   int _declaredElementIndex = 0;
 
   final List<Element> _referencedElements;
   int _referencedElementIndex = 0;
 
-  final List<DartType> _types;
+  final List<kernel.DartType> _types;
   int _typeIndex = 0;
 
-  /// The [ExecutableElementImpl] inside of which resolution is being applied.
-  ExecutableElementImpl enclosingExecutable;
+  /// Indicates whether we are applying resolution to an annotation.
+  ///
+  /// When this field is `true`, [PropertyInducingElement]s should be replaced
+  /// with corresponding getters.
+  bool _inAnnotation = false;
 
-  ResolutionApplier(
-      this._declaredElements, this._referencedElements, this._types);
+  ResolutionApplier(this._typeContext, this._declaredElements,
+      this._referencedElements, this._types);
+
+  /// Apply resolution to annotations of the given [node].
+  void applyToAnnotations(AnnotatedNode node) {
+    _inAnnotation = true;
+    node.metadata.accept(this);
+    _inAnnotation = false;
+  }
 
   /// Verifies that all types passed to the constructor have been applied.
   void checkDone() {
@@ -48,33 +63,133 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    node.strings.accept(this);
+    node.staticType = _typeContext.stringType;
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    node.expression.accept(this);
+    applyToTypeAnnotation(_getTypeFor(node.asOperator), node.type);
+    node.staticType = _getTypeFor(node.asOperator);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     node.leftHandSide.accept(this);
     node.rightHandSide.accept(this);
-    node.staticType = node.rightHandSide.staticType;
 
-    // TODO(scheglov) Support for compound assignment.
+    SyntacticEntity entity = _getAssignmentEntity(node.leftHandSide);
+    node.staticElement = _getReferenceFor(entity);
+    node.staticType = _getTypeFor(entity);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand.accept(this);
 
-    node.staticElement = _getReferenceFor(node.operator);
-
-    // Skip the function type of the operator.
-    _getTypeFor(node.operator);
-
-    node.rightOperand.accept(this);
+    TokenType operatorType = node.operator.type;
+    if (operatorType != TokenType.QUESTION_QUESTION &&
+        operatorType != TokenType.AMPERSAND_AMPERSAND &&
+        operatorType != TokenType.BAR_BAR) {
+      node.staticElement = _getReferenceFor(node.operator);
+      _getTypeFor(node.operator); // function type of the operator
+    }
 
     // Record the return type of the expression.
     node.staticType = _getTypeFor(node.operator);
+
+    node.rightOperand.accept(this);
+
+    // Skip the synthetic Not for `!=`.
+    if (operatorType == TokenType.BANG_EQ) {
+      _getTypeFor(null, synthetic: true);
+    }
+  }
+
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    visitNode(node);
+    node.staticType = node.target.staticType;
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    DartType guardType = _getTypeFor(node.onKeyword ?? node.catchKeyword);
+    if (node.exceptionType != null) {
+      applyToTypeAnnotation(guardType, node.exceptionType);
+    }
+
+    SimpleIdentifier exception = node.exceptionParameter;
+    if (exception != null) {
+      LocalVariableElementImpl element = _getDeclarationFor(exception);
+      DartType type = _getTypeFor(exception);
+      element.type = type;
+      exception.staticElement = element;
+      exception.staticType = type;
+    }
+
+    SimpleIdentifier stackTrace = node.stackTraceParameter;
+    if (stackTrace != null) {
+      LocalVariableElementImpl element = _getDeclarationFor(stackTrace);
+      DartType type = _getTypeFor(stackTrace);
+      element.type = type;
+      stackTrace.staticElement = element;
+      stackTrace.staticType = type;
+    }
+
+    node.body.accept(this);
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.condition.accept(this);
+    node.thenExpression.accept(this);
+    node.elseExpression.accept(this);
+    node.staticType = _getTypeFor(node.question);
+  }
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    FieldElement fieldElement = _getReferenceFor(node.equals);
+    node.fieldName.staticElement = fieldElement;
+    node.fieldName.staticType = fieldElement.type;
+
+    node.expression.accept(this);
   }
 
   @override
   void visitExpression(Expression node) {
     visitNode(node);
     node.staticType = _getTypeFor(node);
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable != null) {
+      SimpleIdentifier identifier = loopVariable.identifier;
+
+      DartType type = _getTypeFor(identifier);
+      identifier.staticType = type;
+
+      if (loopVariable.type != null) {
+        applyToTypeAnnotation(type, loopVariable.type);
+      }
+
+      VariableElementImpl element = _getDeclarationFor(identifier);
+      if (element != null) {
+        _typeContext.encloseVariable(element);
+        identifier.staticElement = element;
+        element.type = type;
+      }
+    } else {
+      node.identifier.staticElement = _getReferenceFor(node.identifier);
+      node.identifier.staticType = _getTypeFor(node.identifier);
+    }
+    node.iterable.accept(this);
+    node.body.accept(this);
   }
 
   @override
@@ -85,7 +200,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
           // Consume the Null type, for the implicit default value.
           _getTypeFor(null, synthetic: true);
         } else {
-          throw new UnimplementedError();
+          parameter.defaultValue.accept(this);
         }
       }
     }
@@ -96,29 +211,60 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     FunctionExpression functionExpression = node.functionExpression;
     FormalParameterList parameterList = functionExpression.parameters;
 
-    // Apply resolution to default values of formal parameters.
+    // Apply resolution to default values.
     parameterList.accept(this);
 
-    DartType returnType = _getTypeFor(node);
-    if (node.returnType != null) {
-      applyToTypeAnnotation(returnType, node.returnType);
+    FunctionElementImpl element = _getDeclarationFor(node);
+    _typeContext.enterLocalFunction(element);
+
+    if (node.returnType != null && element != null) {
+      applyToTypeAnnotation(element.returnType, node.returnType);
     }
 
     // Associate the elements with the nodes.
-    FunctionElementImpl element = _getDeclarationFor(node);
-    if (element != null && enclosingExecutable != null) {
-      enclosingExecutable.encloseElement(element);
+    if (element != null) {
+      functionExpression.element = element;
 
       node.name.staticElement = element;
       node.name.staticType = element.type;
 
-      _applyParameters(element.parameters, parameterList.parameters);
+      TypeParameterList typeParameterList = functionExpression.typeParameters;
+      if (typeParameterList != null) {
+        List<TypeParameter> typeParameters = typeParameterList.typeParameters;
+        for (var i = 0; i < typeParameters.length; i++) {
+          TypeParameter typeParameter = typeParameters[i];
+          assert(typeParameter.bound == null);
+          typeParameter.name.staticElement = element.typeParameters[i];
+          typeParameter.name.staticType = _typeContext.typeType;
+        }
+      }
+
+      applyParameters(element.parameters, parameterList);
     }
 
-    // Visit components of the FunctionExpression.
-    functionExpression.element = element;
-    functionExpression.typeParameters?.accept(this);
     functionExpression.body?.accept(this);
+    _typeContext.exitLocalFunction(element);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    FormalParameterList parameterList = node.parameters;
+
+    FunctionElementImpl element = _getDeclarationFor(node);
+    _typeContext.enterLocalFunction(element);
+
+    // Associate the elements with the nodes.
+    if (element != null) {
+      node.element = element;
+      node.staticType = element.type;
+      applyParameters(element.parameters, parameterList);
+    }
+
+    // Apply resolution to default values.
+    parameterList.accept(this);
+
+    node.body.accept(this);
+    _typeContext.exitLocalFunction(element);
   }
 
   @override
@@ -130,45 +276,54 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.argumentList?.accept(this);
+  void visitIndexExpression(IndexExpression node) {
+    node.target.accept(this);
 
+    DartType targetType = node.target.staticType;
+    MethodElement element = _getReferenceFor(node.leftBracket);
+
+    // Convert the raw element into a member.
+    if (targetType is InterfaceType) {
+      MethodElement member = MethodMember.from(element, targetType);
+      node.staticElement = member;
+    }
+
+    // We cannot use the detached FunctionType of `[]` or `[]=`.
+    _getTypeFor(node.leftBracket);
+
+    node.staticType = _getTypeFor(node.leftBracket);
+
+    node.index.accept(this);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructorName = node.constructorName;
 
     DartType type = _getTypeFor(constructorName);
     ConstructorElement element = _getReferenceFor(constructorName);
-    ClassElement classElement = element?.enclosingElement;
 
     node.staticElement = element;
     node.staticType = type;
 
-    Identifier typeIdentifier = constructorName.type.name;
-    if (typeIdentifier is SimpleIdentifier) {
-      applyToTypeAnnotation(type, constructorName.type);
-      if (constructorName.name != null) {
-        constructorName.name.staticElement = element;
-      }
-    } else if (typeIdentifier is PrefixedIdentifier) {
-      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
-      // TODO(scheglov) Add support for `new prefix.Type()`.
-      // TODO(scheglov) Add support for `new prefix.Type.name()`.
-      assert(constructorName.name == null);
-      constructorName.period = typeIdentifier.period;
-      constructorName.name = typeIdentifier.identifier;
-      SimpleIdentifier classNode = typeIdentifier.prefix;
-      constructorName.type = astFactory.typeName(classNode, null);
-      classNode.staticElement = classElement;
-      classNode.staticType = type;
-      constructorName.name.staticElement = element;
-    }
+    applyConstructorElement(type, element, constructorName);
 
-    _associateArgumentsWithParameters(element, node.argumentList);
+    ArgumentList argumentList = node.argumentList;
+    _associateArgumentsWithParameters(element?.parameters, argumentList);
+    _applyResolutionToArguments(argumentList);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    node.expression.accept(this);
+    applyToTypeAnnotation(_getTypeFor(node.isOperator), node.type);
+    node.staticType = _getTypeFor(node.isOperator);
   }
 
   @override
   void visitListLiteral(ListLiteral node) {
     node.elements.accept(this);
-    DartType type = _getTypeFor(node);
+    DartType type = _getTypeFor(node.constKeyword ?? node.leftBracket);
     node.staticType = type;
     if (node.typeArguments != null) {
       _applyTypeArgumentsToList(type, node.typeArguments.arguments);
@@ -178,7 +333,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitMapLiteral(MapLiteral node) {
     node.entries.accept(this);
-    DartType type = _getTypeFor(node);
+    DartType type = _getTypeFor(node.constKeyword ?? node.leftBracket);
     node.staticType = type;
     if (node.typeArguments != null) {
       _applyTypeArgumentsToList(type, node.typeArguments.arguments);
@@ -189,28 +344,30 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
 
-    ExecutableElement calleeElement = _getReferenceFor(node.methodName);
-    DartType invokeType = _getTypeFor(node.methodName);
-
-    node.staticInvokeType = invokeType;
-    node.methodName.staticType = invokeType;
-    // TODO(paulberry): store resolution of node.typeArguments.
-
-    // Apply resolution to arguments.
-    // Skip names of named arguments.
     ArgumentList argumentList = node.argumentList;
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument.expression.accept(this);
-      } else {
-        argument.accept(this);
-      }
+
+    Element invokeElement = _getReferenceFor(node.methodName);
+    DartType invokeType = _getTypeFor(node.methodName);
+    DartType resultType = _getTypeFor(argumentList);
+
+    if (invokeElement is PropertyInducingElement) {
+      PropertyInducingElement property = invokeElement;
+      invokeElement = property.getter;
     }
 
-    node.methodName.staticElement = calleeElement;
-    node.staticType = _getTypeFor(argumentList);
+    node.staticInvokeType = invokeType;
+    node.staticType = resultType;
+    node.methodName.staticElement = invokeElement;
+    node.methodName.staticType = invokeType;
 
-    _associateArgumentsWithParameters(calleeElement, argumentList);
+    if (invokeType is FunctionType) {
+      if (node.typeArguments != null) {
+        _applyTypeArgumentsToList(invokeType, node.typeArguments.arguments);
+      }
+      _associateArgumentsWithParameters(invokeType.parameters, argumentList);
+    }
+
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -225,10 +382,41 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitPostfixExpression(PostfixExpression node) {
+    node.operand.accept(this);
+    SyntacticEntity entity = _getAssignmentEntity(node.operand);
+    node.staticElement = _getReferenceFor(entity);
+    node.staticType = _getTypeFor(entity);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.prefix.accept(this);
     node.identifier.accept(this);
     node.staticType = node.identifier.staticType;
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    node.operand.accept(this);
+    TokenType tokenType = node.operator.type;
+    if (tokenType.isIncrementOperator) {
+      // ++v;
+      // This is an assignment, it is associated with the operand.
+      SyntacticEntity entity = _getAssignmentEntity(node.operand);
+      node.staticElement = _getReferenceFor(entity);
+      node.staticType = _getTypeFor(entity);
+    } else if (tokenType == TokenType.BANG) {
+      // !boolExpression;
+      node.staticType = _getTypeFor(node);
+    } else {
+      // ~v;
+      // This is a method invocation, it is associated with the operator.
+      SyntacticEntity entity = node.operator;
+      node.staticElement = _getReferenceFor(entity);
+      _getTypeFor(entity); // The function type of the operator.
+      node.staticType = _getTypeFor(entity);
+    }
   }
 
   @override
@@ -239,9 +427,63 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+
+    ConstructorElement element = _getReferenceFor(constructorName ?? node);
+    node.staticElement = element;
+    constructorName?.staticElement = element;
+
+    ArgumentList argumentList = node.argumentList;
+    _associateArgumentsWithParameters(element?.parameters, argumentList);
+    _applyResolutionToArguments(argumentList);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     node.staticElement = _getReferenceFor(node);
     super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    for (var element in node.elements) {
+      if (element is InterpolationString) {
+        if (element.value.isNotEmpty) {
+          _getTypeFor(element);
+        }
+      } else if (element is InterpolationExpression) {
+        element.expression.accept(this);
+      }
+    }
+    node.staticType = _typeContext.stringType;
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+    var superElement = _typeContext.enclosingClassElement.supertype.element;
+    if (constructorName == null) {
+      node.staticElement = superElement.unnamedConstructor;
+    } else {
+      String name = constructorName.name;
+      var superConstructor = superElement.getNamedConstructor(name);
+      node.staticElement = superConstructor;
+      constructorName.staticElement = superConstructor;
+    }
+
+    node.argumentList.accept(this);
+  }
+
+  @override
+  void visitSuperExpression(SuperExpression node) {
+    node.staticType = _typeContext.enclosingClassElement?.type;
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    node.staticType = _typeContext.enclosingClassElement?.type;
   }
 
   @override
@@ -261,10 +503,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.name.staticType = type;
 
       VariableElementImpl element = _getDeclarationFor(node.name);
-      if (element != null && enclosingExecutable != null) {
+      if (element != null) {
+        _typeContext.encloseVariable(element);
         node.name.staticElement = element;
         element.type = type;
-        enclosingExecutable.encloseElement(element);
       }
     }
     node.initializer?.accept(this);
@@ -275,10 +517,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (node.parent is TopLevelVariableDeclaration) {
       node.variables.accept(this);
     } else {
-      if (node.variables.length != 1) {
-        // TODO(paulberry): handle this case
-        throw new UnimplementedError('Multiple variables in one declaration');
-      }
       if (node.metadata.isNotEmpty) {
         // TODO(paulberry): handle this case
         throw new UnimplementedError('Metadata on a variable declaration list');
@@ -294,18 +532,28 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
-  /// Associate arguments of the [argumentList] with parameters of the
-  /// given [executable].
+  /// Apply resolution to arguments of the [argumentList].
+  void _applyResolutionToArguments(ArgumentList argumentList) {
+    for (var argument in argumentList.arguments) {
+      if (argument is NamedExpression) {
+        argument.expression.accept(this);
+      } else {
+        argument.accept(this);
+      }
+    }
+  }
+
+  /// Associate arguments of the [argumentList] with the [parameters].
   void _associateArgumentsWithParameters(
-      ExecutableElement executable, ArgumentList argumentList) {
-    if (executable != null) {
+      List<ParameterElement> parameters, ArgumentList argumentList) {
+    if (parameters != null) {
       List<Expression> arguments = argumentList.arguments;
       var correspondingParameters =
           new List<ParameterElement>(arguments.length);
       for (int i = 0; i < arguments.length; i++) {
         var argument = arguments[i];
         if (argument is NamedExpression) {
-          for (var parameter in executable.parameters) {
+          for (var parameter in parameters) {
             SimpleIdentifier label = argument.name.label;
             if (parameter.parameterKind == ParameterKind.NAMED &&
                 parameter.name == label.name) {
@@ -315,10 +563,27 @@ class ResolutionApplier extends GeneralizingAstVisitor {
             }
           }
         } else {
-          correspondingParameters[i] = executable.parameters[i];
+          correspondingParameters[i] = parameters[i];
         }
       }
       argumentList.correspondingStaticParameters = correspondingParameters;
+    }
+  }
+
+  /// Return the [SyntacticEntity] with which the front-end associates
+  /// assignment to the given [leftHandSide].
+  SyntacticEntity _getAssignmentEntity(Expression leftHandSide) {
+    if (leftHandSide is SimpleIdentifier) {
+      return leftHandSide;
+    } else if (leftHandSide is PrefixedIdentifier) {
+      return leftHandSide.identifier;
+    } else if (leftHandSide is PropertyAccess) {
+      return leftHandSide.propertyName;
+    } else if (leftHandSide is IndexExpressionImpl) {
+      return leftHandSide.leftBracket;
+    } else {
+      throw new StateError(
+          'Unexpected LHS (${leftHandSide.runtimeType}) $leftHandSide');
     }
   }
 
@@ -331,7 +596,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// Return the element associated with the reference represented by the
   /// given [entity].
   Element _getReferenceFor(SyntacticEntity entity) {
-    return _referencedElements[_referencedElementIndex++];
+    Element element = _referencedElements[_referencedElementIndex++];
+    if (_inAnnotation && element is PropertyInducingElement) {
+      return element.getter;
+    }
+    return element;
   }
 
   /// Return the type associated with the given [entity].
@@ -341,7 +610,97 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// optional parameter (i.e. [Null]).
   DartType _getTypeFor(SyntacticEntity entity, {bool synthetic: false}) {
     assert(!synthetic || entity == null);
-    return _types[_typeIndex++];
+    kernel.DartType kernelType = _types[_typeIndex++];
+    return _typeContext.translateType(kernelType);
+  }
+
+  /// Apply the [type] that is created by the [constructorName] and the
+  /// [constructorElement] it references.
+  static void applyConstructorElement(DartType type,
+      ConstructorElement constructorElement, ConstructorName constructorName) {
+    ClassElement classElement = constructorElement?.enclosingElement;
+
+    Identifier typeIdentifier = constructorName.type.name;
+    if (typeIdentifier is SimpleIdentifier) {
+      applyToTypeAnnotation(type, constructorName.type);
+      if (constructorName.name != null) {
+        constructorName.name.staticElement = constructorElement;
+      }
+    } else if (typeIdentifier is PrefixedIdentifier) {
+      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
+      // TODO(scheglov) Add support for `new prefix.Type()`.
+      // TODO(scheglov) Add support for `new prefix.Type.name()`.
+      assert(constructorName.name == null);
+      constructorName.period = typeIdentifier.period;
+      constructorName.name = typeIdentifier.identifier;
+
+      SimpleIdentifier classNode = typeIdentifier.prefix;
+      classNode.staticElement = classElement;
+      classNode.staticType = type;
+
+      constructorName.type = astFactory.typeName(classNode, null);
+      constructorName.type.type = type;
+      constructorName.name.staticElement = constructorElement;
+    }
+  }
+
+  /// Apply the types of the [parameterElements] to the [parameterList] that
+  /// have an explicit type annotation.
+  static void applyParameters(List<ParameterElement> parameterElements,
+      FormalParameterList parameterList) {
+    List<FormalParameter> parameters = parameterList.parameters;
+
+    int length = parameterElements.length;
+    if (parameters.length != length) {
+      throw new StateError('Parameter counts do not match');
+    }
+    for (int i = 0; i < length; i++) {
+      ParameterElementImpl element = parameterElements[i];
+      FormalParameter parameter = parameters[i];
+
+      NormalFormalParameter normalParameter;
+      if (parameter is NormalFormalParameter) {
+        normalParameter = parameter;
+      } else if (parameter is DefaultFormalParameter) {
+        normalParameter = parameter.parameter;
+      }
+      assert(normalParameter != null);
+
+      if (normalParameter is SimpleFormalParameterImpl) {
+        normalParameter.element = element;
+      }
+
+      if (normalParameter.identifier != null) {
+        element.nameOffset = normalParameter.identifier.offset;
+        normalParameter.identifier.staticElement = element;
+        normalParameter.identifier.staticType = element.type;
+      }
+
+      // Apply the type or the return type, if a function typed parameter.
+      TypeAnnotation functionReturnType;
+      FormalParameterList functionParameterList;
+      if (normalParameter is SimpleFormalParameter) {
+        applyToTypeAnnotation(element.type, normalParameter.type);
+      } else if (normalParameter is FunctionTypedFormalParameter) {
+        functionReturnType = normalParameter.returnType;
+        functionParameterList = normalParameter.parameters;
+      } else if (normalParameter is FieldFormalParameter) {
+        if (normalParameter.parameters == null) {
+          applyToTypeAnnotation(element.type, normalParameter.type);
+        } else {
+          functionReturnType = normalParameter.type;
+          functionParameterList = normalParameter.parameters;
+        }
+      }
+
+      if (functionParameterList != null) {
+        FunctionType elementType = element.type;
+        if (functionReturnType != null) {
+          applyToTypeAnnotation(elementType.returnType, functionReturnType);
+        }
+        applyParameters(elementType.parameters, functionParameterList);
+      }
+    }
   }
 
   /// Apply the [type] to the [typeAnnotation] by setting the type of the
@@ -369,12 +728,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       FunctionType functionType = type;
       typeAnnotation.type = type;
       applyToTypeAnnotation(functionType.returnType, typeAnnotation.returnType);
-      _applyParameters(
-          functionType.parameters, typeAnnotation.parameters.parameters);
+      applyParameters(functionType.parameters, typeAnnotation.parameters);
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
       SimpleIdentifier name = nameForElement(typeAnnotation.name);
-      name.staticElement = type.element;
+
+      Element typeElement = type.element;
+      if (typeElement is GenericFunctionTypeElement &&
+          typeElement.enclosingElement is GenericTypeAliasElement) {
+        typeElement = typeElement.enclosingElement;
+      }
+      name.staticElement = typeElement;
+
       name.staticType = type;
     }
     if (typeAnnotation is NamedType) {
@@ -385,47 +750,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
-  /// Apply the types of the [parameterElements] to the [parameters] that have
-  /// an explicit type annotation.
-  static void _applyParameters(List<ParameterElement> parameterElements,
-      List<FormalParameter> parameters) {
-    int length = parameterElements.length;
-    if (parameters.length != length) {
-      throw new StateError('Parameter counts do not match');
-    }
-    for (int i = 0; i < length; i++) {
-      ParameterElement element = parameterElements[i];
-      FormalParameter parameter = parameters[i];
-
-      NormalFormalParameter normalParameter;
-      if (parameter is NormalFormalParameter) {
-        normalParameter = parameter;
-      } else if (parameter is DefaultFormalParameter) {
-        normalParameter = parameter.parameter;
-      }
-
-      TypeAnnotation typeAnnotation = null;
-      if (normalParameter is SimpleFormalParameter) {
-        typeAnnotation = normalParameter.type;
-      }
-      if (typeAnnotation != null) {
-        applyToTypeAnnotation(element.type, typeAnnotation);
-      }
-
-      if (normalParameter is SimpleFormalParameterImpl) {
-        normalParameter.element = element;
-      }
-      if (normalParameter.identifier != null) {
-        normalParameter.identifier.staticElement = element;
-      }
-    }
-  }
-
   /// Recursively apply each of the type arguments of the [type] to the
-  /// corresponding type arguments of the [typeAnnotation].
+  /// corresponding type arguments of the [typeArguments].
   static void _applyTypeArgumentsToList(
-      DartType type, NodeList<TypeAnnotation> typeArguments) {
-    if (type is InterfaceType) {
+      DartType type, List<TypeAnnotation> typeArguments) {
+    if (type != null && type.isUndefined) {
+      for (TypeAnnotation argument in typeArguments) {
+        applyToTypeAnnotation(type, argument);
+      }
+    } else if (type is ParameterizedType) {
       List<DartType> argumentTypes = type.typeArguments;
       int argumentCount = argumentTypes.length;
       if (argumentCount != typeArguments.length) {
@@ -435,14 +768,34 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       for (int i = 0; i < argumentCount; i++) {
         applyToTypeAnnotation(argumentTypes[i], typeArguments[i]);
       }
-    } else if (type is FunctionType) {
-      // TODO(brianwilkerson) Add support for function types.
-      throw new StateError('Support for function types is not yet implemented');
     } else {
-      throw new StateError('Attempting to apply a non-interface type '
+      throw new StateError('Attempting to apply a non-parameterized type '
           '(${type.runtimeType}) to type arguments');
     }
   }
+}
+
+/// Context for translating types.
+abstract class TypeContext {
+  /// The enclosing [ClassElement], or `null` if not in a class.
+  ClassElement get enclosingClassElement;
+
+  DartType get stringType;
+
+  DartType get typeType;
+
+  /// Attach the variable [element] to the current executable.
+  void encloseVariable(ElementImpl element);
+
+  /// Finalize the given function [element] - set all types for it.
+  /// Then make it the current executable.
+  void enterLocalFunction(FunctionElementImpl element);
+
+  /// Restore the current executable that was before the [element].
+  void exitLocalFunction(FunctionElementImpl element);
+
+  /// Return the Analyzer [DartType] for the given [kernelType].
+  DartType translateType(kernel.DartType kernelType);
 }
 
 /// Visitor that applies resolution data from the front end (obtained via
@@ -457,13 +810,14 @@ class ValidatingResolutionApplier extends ResolutionApplier {
   final List<int> _typeOffsets;
 
   ValidatingResolutionApplier(
+      TypeContext typeContext,
       List<Element> declaredElements,
       List<Element> referencedElements,
-      List<DartType> types,
+      List<kernel.DartType> types,
       this._declaredElementOffsets,
       this._referencedElementOffsets,
       this._typeOffsets)
-      : super(declaredElements, referencedElements, types);
+      : super(typeContext, declaredElements, referencedElements, types);
 
   @override
   void checkDone() {

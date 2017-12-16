@@ -450,26 +450,6 @@ class Isolate : public BaseIsolate {
   BackgroundCompiler* background_compiler() const {
     return background_compiler_;
   }
-  void set_background_compiler(BackgroundCompiler* value) {
-    // Do not overwrite a background compiler (memory leak).
-    ASSERT((value == NULL) || (background_compiler_ == NULL));
-    background_compiler_ = value;
-  }
-
-  void enable_background_compiler() {
-    background_compiler_disabled_depth_--;
-    if (background_compiler_disabled_depth_ < 0) {
-      FATAL(
-          "Mismatched number of calls to disable_background_compiler and "
-          "enable_background_compiler.");
-    }
-  }
-
-  void disable_background_compiler() { background_compiler_disabled_depth_++; }
-
-  bool is_background_compiler_disabled() const {
-    return background_compiler_disabled_depth_ > 0;
-  }
 
 #if !defined(PRODUCT)
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
@@ -754,8 +734,6 @@ class Isolate : public BaseIsolate {
   static bool IsolateCreationEnabled();
   static bool IsVMInternalIsolate(Isolate* isolate);
 
-  void StopBackgroundCompiler();
-
 #if !defined(PRODUCT)
   intptr_t reload_every_n_stack_overflow_checks() const {
     return reload_every_n_stack_overflow_checks_;
@@ -769,6 +747,8 @@ class Isolate : public BaseIsolate {
   }
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
+
+  static void NotifyLowMemory();
 
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
@@ -877,7 +857,6 @@ class Isolate : public BaseIsolate {
   uint32_t isolate_flags_;
 
   // Background compilation.
-  int16_t background_compiler_disabled_depth_;
   BackgroundCompiler* background_compiler_;
 
 // Fields that aren't needed in a product build go here with boolean flags at

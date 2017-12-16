@@ -959,7 +959,7 @@ ASSEMBLER_TEST_RUN(SignedDivide, test) {
   EXPECT_DISASSEMBLY(
       "movl rax,-0x........\n"
       "movl rdx,0x7b\n"
-      "cdql\n"
+      "cdq\n"
       "movl rcx,0x2a\n"
       "idivl (rax,rdx),rcx\n"
       "ret\n");
@@ -1004,7 +1004,7 @@ ASSEMBLER_TEST_RUN(SignedDivideLong, test) {
   EXPECT_DISASSEMBLY(
       "movq rax,0x................\n"
       "movl rdx,0x7b\n"
-      "cdqq\n"
+      "cqo\n"
       "movl rcx,0x2a\n"
       "idivq (rax,rdx),rcx\n"
       "ret\n");
@@ -1201,6 +1201,60 @@ ASSEMBLER_TEST_RUN(MoveWord, test) {
       "movw [rax],rcx\n"
       "movzxwq rax,[rax]\n"
       "addq rsp,8\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(WordOps, assembler) {
+  __ movq(RAX, Immediate(0x0102030405060708));
+  __ pushq(RAX);
+  __ addw(Address(RSP, 0), Immediate(-0x201));
+  __ subw(Address(RSP, 2), Immediate(0x201));
+  __ xorw(Address(RSP, 4), Immediate(0x201));
+  __ andw(Address(RSP, 6), Immediate(0x301));
+  __ andw(Address(RSP, 0), Immediate(-1));
+  __ popq(RAX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(WordOps, test) {
+  typedef int64_t (*WordOps)();
+  EXPECT_EQ(0x0100010503050507, reinterpret_cast<WordOps>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movq rax,0x................\n"
+      "push rax\n"
+      "addw [rsp],0x....\n"
+      "subw [rsp+0x2],0x...\n"
+      "xorw [rsp+0x4],0x...\n"
+      "andw [rsp+0x6],0x...\n"
+      "andw [rsp],-1\n"
+      "pop rax\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(ByteOps, assembler) {
+  __ movq(RAX, Immediate(0x0102030405060708));
+  __ pushq(RAX);
+  __ addb(Address(RSP, 0), Immediate(0xff));
+  __ subb(Address(RSP, 2), Immediate(1));
+  __ xorb(Address(RSP, 4), Immediate(1));
+  __ andb(Address(RSP, 6), Immediate(1));
+  __ andb(Address(RSP, 0), Immediate(-1));
+  __ popq(RAX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(ByteOps, test) {
+  typedef int64_t (*ByteOps)();
+  EXPECT_EQ(0x0100030505050707, reinterpret_cast<ByteOps>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movq rax,0x................\n"
+      "push rax\n"
+      "addb [rsp],-1\n"
+      "subb [rsp+0x2],1\n"
+      "xorb [rsp+0x4],1\n"
+      "andb [rsp+0x6],1\n"
+      "andb [rsp],-1\n"
+      "pop rax\n"
       "ret\n");
 }
 
@@ -3161,7 +3215,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
   EnterTestFrame(assembler);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
-  __ negatepd(XMM10);
+  __ negatepd(XMM10, XMM10);
   __ movaps(XMM0, XMM10);
   LeaveTestFrame(assembler);
   __ ret();
@@ -3191,8 +3245,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
   EnterTestFrame(assembler);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
-  __ abspd(XMM10);
-  __ movaps(XMM0, XMM10);
+  __ abspd(XMM0, XMM10);
   LeaveTestFrame(assembler);
   __ ret();
 }
@@ -3203,8 +3256,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
   EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(
       "movups xmm10,[rax]\n"
       "movq r11,[thr+0x...]\n"
-      "andpd xmm10,[r11]\n"
-      "movaps xmm0,xmm10\n"
+      "movups xmm0,[r11]\n"
+      "andpd xmm0,xmm10\n"
       "pop thr\n"
       "pop pp\n"
       "pop r12\n"
@@ -3278,7 +3331,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleSqrt, assembler) {
   } constant0 = {16.0, 2.0};
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
-  __ sqrtpd(XMM10);
+  __ sqrtpd(XMM10, XMM10);
   __ movaps(XMM0, XMM10);
   __ ret();
 }
@@ -3423,7 +3476,7 @@ ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
   EXPECT_DISASSEMBLY_ENDS_WITH(
       "movups xmm11,[rax]\n"
-      "cvtsd2ss xmm10,xmm11\n"
+      "cvtps2pd xmm10,xmm11\n"
       "movaps xmm0,xmm10\n"
       "ret\n");
 }
@@ -3604,9 +3657,9 @@ ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
   __ shufps(XMM0, XMM0, Immediate(0x0));
 
   __ movaps(XMM11, XMM0);                  // Copy XMM0
-  __ reciprocalps(XMM11);                  // 0.25
-  __ sqrtps(XMM11);                        // 0.5
-  __ rsqrtps(XMM0);                        // ~0.5
+  __ rcpps(XMM11, XMM11);                  // 0.25
+  __ sqrtps(XMM11, XMM11);                 // 0.5
+  __ rsqrtps(XMM0, XMM0);                  // ~0.5
   __ subps(XMM0, XMM11);                   // ~0.0
   __ shufps(XMM0, XMM0, Immediate(0x00));  // Copy second lane into all 4 lanes.
   __ ret();
@@ -3650,10 +3703,41 @@ ASSEMBLER_TEST_RUN(PackedCompareEQ, test) {
       "movl rax,0x........\n"
       "movd xmm1,rax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [0]\n"
+      "cmpps xmm0,xmm1 [eq]\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(XmmAlu, assembler) {
+  // Test the disassembler.
+  __ addss(XMM0, XMM0);
+  __ addsd(XMM0, XMM0);
+  __ addps(XMM0, XMM0);
+  __ addpd(XMM0, XMM0);
+  __ cvtss2sd(XMM0, XMM0);
+  __ cvtsd2ss(XMM0, XMM0);
+  __ cvtps2pd(XMM0, XMM0);
+  __ cvtpd2ps(XMM0, XMM0);
+  __ movl(RAX, Immediate(0));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(XmmAlu, test) {
+  typedef intptr_t (*XmmAluTest)();
+  intptr_t res = reinterpret_cast<XmmAluTest>(test->entry())();
+  EXPECT_EQ(res, 0);
+  EXPECT_DISASSEMBLY(
+      "addss xmm0,xmm0\n"
+      "addsd xmm0,xmm0\n"
+      "addps xmm0,xmm0\n"
+      "addpd xmm0,xmm0\n"
+      "cvtss2sd xmm0,xmm0\n"
+      "cvtsd2ss xmm0,xmm0\n"
+      "cvtps2pd xmm0,xmm0\n"
+      "cvtpd2ps xmm0,xmm0\n"
+      "movl rax,0\n"
       "ret\n");
 }
 
@@ -3678,7 +3762,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNEQ, test) {
       "movl rax,0x........\n"
       "movd xmm1,rax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [4]\n"
+      "cmpps xmm0,xmm1 [neq]\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
@@ -3706,7 +3790,7 @@ ASSEMBLER_TEST_RUN(PackedCompareLT, test) {
       "movl rax,0x........\n"
       "movd xmm1,rax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [1]\n"
+      "cmpps xmm0,xmm1 [lt]\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
@@ -3734,7 +3818,7 @@ ASSEMBLER_TEST_RUN(PackedCompareLE, test) {
       "movl rax,0x........\n"
       "movd xmm1,rax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [2]\n"
+      "cmpps xmm0,xmm1 [le]\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
@@ -3762,7 +3846,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNLT, test) {
       "movl rax,0x........\n"
       "movd xmm1,rax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [5]\n"
+      "cmpps xmm0,xmm1 [nlt]\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
@@ -3790,7 +3874,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
       "movl rax,0x........\n"
       "movd xmm1,rax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [6]\n"
+      "cmpps xmm0,xmm1 [nle]\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
@@ -3802,7 +3886,7 @@ ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
-  __ negateps(XMM0);
+  __ negateps(XMM0, XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
   LeaveTestFrame(assembler);
   __ ret();
@@ -3839,7 +3923,7 @@ ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
-  __ absps(XMM0);
+  __ absps(XMM0, XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
   LeaveTestFrame(assembler);
   __ ret();
@@ -3874,7 +3958,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
   EnterTestFrame(assembler);
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
-  __ zerowps(XMM0);
+  __ zerowps(XMM0, XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
   LeaveTestFrame(assembler);
   __ ret();
@@ -4032,8 +4116,7 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   EnterTestFrame(assembler);
   __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM9, Address(RAX, 0));
-  __ notps(XMM9);
-  __ movaps(XMM0, XMM9);
+  __ notps(XMM0, XMM9);
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM0);
   __ popq(RAX);
@@ -4047,8 +4130,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(
       "movups xmm9,[rax]\n"
       "movq r11,[thr+0x...]\n"
-      "xorps xmm9,[r11]\n"
-      "movaps xmm0,xmm9\n"
+      "movups xmm0,[r11]\n"
+      "xorps xmm0,xmm9\n"
       "push rax\n"
       "movss [rsp],xmm0\n"
       "pop rax\n"
@@ -4624,20 +4707,20 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
       "movq r12,[rdi+0x8]\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x17]\n"
-      "movq rax,[pp+0x17]\n"
-      "cmpq rax,[pp+0x17]\n"
+      "movq rax,[pp+0xf]\n"
+      "cmpq rax,[pp+0xf]\n"
       "jnz 0x................\n"
-      "movq rcx,[pp+0x17]\n"
-      "cmpq rcx,[pp+0x17]\n"
+      "movq rcx,[pp+0xf]\n"
+      "cmpq rcx,[pp+0xf]\n"
       "jnz 0x................\n"
       "movl rcx,0x1e\n"
       "cmpq rcx,0x1e\n"
       "jnz 0x................\n"
       "push rax\n"
-      "movq r11,[pp+0x17]\n"
+      "movq r11,[pp+0xf]\n"
       "movq [rsp],r11\n"
       "pop rcx\n"
-      "cmpq rcx,[pp+0x17]\n"
+      "cmpq rcx,[pp+0xf]\n"
       "jnz 0x................\n"
       "push rax\n"
       "movq [rsp],0x1e\n"
@@ -5036,12 +5119,11 @@ ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
 #if defined(HOST_OS_WINDOWS)
   // First argument is code object, second argument is thread. MSVC passes
   // third argument in XMM2.
-  __ DoubleAbs(XMM2);
-  __ movaps(XMM0, XMM2);
+  __ DoubleAbs(XMM0, XMM2);
 #else
   // SysV ABI allocates integral and double registers for arguments
   // independently.
-  __ DoubleAbs(XMM0);
+  __ DoubleAbs(XMM0, XMM0);
 #endif
   LeaveTestFrame(assembler);
   __ ret();
@@ -5221,7 +5303,7 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
       "movq rsi,[rsp+0x10]\n"
       "movq rdi,[rsp+0x8]\n"
       "movq rcx,[rsp]\n"
-      "rep movsl\n"
+      "rep movsb\n"
       "pop rax\n"
       "pop rax\n"
       "pop rax\n"
@@ -5234,7 +5316,7 @@ ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
   __ cmpq(CallingConventions::kArg1Reg, CallingConventions::kArg2Reg);
   __ movq(RDX, Immediate(1));   // Greater equal.
   __ movq(RCX, Immediate(-1));  // Less
-  __ cmovlessq(RAX, RCX);
+  __ cmovlq(RAX, RCX);
   __ cmovgeq(RAX, RDX);
   __ ret();
 }

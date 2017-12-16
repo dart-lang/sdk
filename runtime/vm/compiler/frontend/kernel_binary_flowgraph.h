@@ -106,6 +106,7 @@ class VariableDeclarationHelper {
   enum Flag {
     kFinal = 1 << 0,
     kConst = 1 << 1,
+    kCovariant = 1 << 3,
     kIsGenericCovariantImpl = 1 << 5,
     kIsGenericCovariantInterface = 1 << 6
   };
@@ -126,6 +127,7 @@ class VariableDeclarationHelper {
 
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsFinal() { return (flags_ & kFinal) != 0; }
+  bool IsCovariant() { return (flags_ & kCovariant) != 0; }
 
   bool IsGenericCovariantInterface() {
     return (flags_ & kIsGenericCovariantInterface) != 0;
@@ -310,6 +312,7 @@ class ConstructorHelper {
     kEndPosition,
     kFlags,
     kName,
+    kSourceUriIndex,
     kAnnotations,
     kFunction,
     kInitializers,
@@ -342,6 +345,7 @@ class ConstructorHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
+  intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
  private:
@@ -839,7 +843,7 @@ class StreamingConstantEvaluator {
   TranslationHelper& translation_helper_;
   StreamingDartTypeTranslator& type_translator_;
 
-  Script& script_;
+  const Script& script_;
   Instance& result_;
 };
 
@@ -852,7 +856,7 @@ class StreamingFlowGraphBuilder {
         translation_helper_(flow_graph_builder->translation_helper_),
         zone_(flow_graph_builder->zone_),
         reader_(new Reader(data)),
-        script_(parsed_function()->function().script()),
+        script_(Script::Handle(zone_, parsed_function()->function().script())),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         data_program_offset_(data_program_offset),
@@ -872,7 +876,7 @@ class StreamingFlowGraphBuilder {
         translation_helper_(*translation_helper),
         zone_(zone),
         reader_(new Reader(data_buffer, buffer_length)),
-        script_(Script::null()),
+        script_(Script::Handle(zone_)),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         data_program_offset_(data_program_offset),
@@ -884,7 +888,7 @@ class StreamingFlowGraphBuilder {
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
-                            RawScript* script,
+                            const Script& script,
                             Zone* zone,
                             const TypedData& data,
                             intptr_t data_program_offset)
@@ -921,6 +925,8 @@ class StreamingFlowGraphBuilder {
   String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
+  void ReadUntilFunctionNode();
+  intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
 
@@ -934,7 +940,6 @@ class StreamingFlowGraphBuilder {
                                  const Function& function,
                                  Function* outermost_function);
 
-  void ReadUntilFunctionNode();
   StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
                                              const Function& function);
 
@@ -961,7 +966,6 @@ class StreamingFlowGraphBuilder {
   uint32_t ReadUInt32();
   uint32_t PeekUInt();
   uint32_t PeekListLength();
-  intptr_t ReadListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
   StringIndex ReadNameAsStringIndex();
@@ -1031,8 +1035,6 @@ class StreamingFlowGraphBuilder {
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
 
-  LocalVariable* LookupParameterDirect(intptr_t kernel_offset,
-                                       intptr_t parameter_index);
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
   RawFunction* LookupMethodByMember(NameIndex target,
@@ -1139,6 +1141,9 @@ class StreamingFlowGraphBuilder {
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
   Fragment CheckArgumentType(intptr_t variable_kernel_position);
+  Fragment CheckTypeArgumentBound(const AbstractType& parameter,
+                                  const AbstractType& bound,
+                                  const String& dst_name);
   Fragment CheckVariableTypeInCheckedMode(intptr_t variable_kernel_position);
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
@@ -1253,7 +1258,7 @@ class StreamingFlowGraphBuilder {
       intptr_t* argument_bits,
       intptr_t* type_argument_bits);
 
-  RawScript* Script();
+  const Script& script() { return script_; }
 
   // Scan through metadata mappings section and cache offsets for recognized
   // metadata kinds.
@@ -1263,7 +1268,7 @@ class StreamingFlowGraphBuilder {
   TranslationHelper& translation_helper_;
   Zone* zone_;
   Reader* reader_;
-  RawScript* script_;
+  const Script& script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
   // Some items like variables are specified in the kernel binary as

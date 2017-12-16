@@ -932,6 +932,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleDirectivesOnly() {
+    listener?.handleDirectivesOnly();
+  }
+
+  @override
   void handleDottedName(int count, Token firstIdentifier) {
     listener?.handleDottedName(count, firstIdentifier);
   }
@@ -990,6 +995,11 @@ class ForwardingListener implements Listener {
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
     listener?.handleIndexedExpression(openSquareBracket, closeSquareBracket);
+  }
+
+  @override
+  void handleInterpolationExpression(Token leftBracket, Token rightBracket) {
+    listener?.handleInterpolationExpression(leftBracket, rightBracket);
   }
 
   @override

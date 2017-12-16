@@ -313,7 +313,7 @@ class _BeforeUnloadEventStreamProvider implements
     return new _ElementEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);
   }
 
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
+  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {
     // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementListEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);

@@ -42,7 +42,7 @@ class BinaryBuilder {
   final List<int> _bytes;
   int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
-  final List<String> _sourceUriTable = <String>[];
+  final List<Uri> _sourceUriTable = <Uri>[];
   List<Constant> _constantTable;
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
@@ -228,7 +228,7 @@ class BinaryBuilder {
     return constant;
   }
 
-  String readUriReference() {
+  Uri readUriReference() {
     return _sourceUriTable[readUInt()];
   }
 
@@ -463,7 +463,7 @@ class BinaryBuilder {
     _disableLazyReading = _readMetadataSection(program) || _disableLazyReading;
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<String, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -484,15 +484,15 @@ class BinaryBuilder {
     _byteOffset = _programStartOffset + programFileSize;
   }
 
-  Map<String, Source> readUriToSource() {
+  Map<Uri, Source> readUriToSource() {
     int length = readUint32();
 
     // Read data.
     _sourceUriTable.length = length;
-    Map<String, Source> uriToSource = <String, Source>{};
+    Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       List<int> uriBytes = readByteList();
-      String uri = const Utf8Decoder().convert(uriBytes);
+      Uri uri = Uri.parse(const Utf8Decoder().convert(uriBytes));
       _sourceUriTable[i] = uri;
       List<int> sourceCode = readByteList();
       int lineCount = readUInt();
@@ -613,7 +613,7 @@ class BinaryBuilder {
     String name = readStringOrNullIfEmpty();
 
     // TODO(jensj): We currently save (almost the same) uri twice.
-    String fileUri = readUriReference();
+    Uri fileUri = readUriReference();
 
     if (shouldWriteData) {
       library.isExternal = isExternal;
@@ -713,7 +713,7 @@ class BinaryBuilder {
 
   LibraryPart readLibraryPart(Library library) {
     var annotations = readExpressionList();
-    var fileUri = readStringOrNullIfEmpty();
+    var fileUri = readUriReference();
     return new LibraryPart(annotations, fileUri)..parent = library;
   }
 
@@ -727,7 +727,7 @@ class BinaryBuilder {
     }
     int fileOffset = readOffset();
     String name = readStringReference();
-    String fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
@@ -877,6 +877,7 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
+    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     assert(((_) => true)(debugPath.add(node.name?.name ?? 'constructor')));
     var function = readFunctionNode(false, -1);
@@ -895,6 +896,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
+      node.fileUri = fileUri;
       node.annotations = annotations;
       node.function = function..parent = node;
       node.transformerFlags = transformerFlags;
@@ -939,7 +941,7 @@ class BinaryBuilder {
       node.annotations = annotations;
       node.function = function;
       function?.parent = node;
-      node.transformerFlags = transformerFlags;
+      node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     }
     _byteOffset = endOffset;
     return node;
@@ -959,6 +961,7 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
+    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
     var targetReference = readMemberReference();
@@ -978,6 +981,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
+      node.fileUri = fileUri;
       node.annotations = annotations;
       node.targetReference = targetReference;
       node.typeArguments.addAll(typeArguments);
@@ -1010,6 +1014,8 @@ class BinaryBuilder {
             readMemberReference(), readArguments());
       case Tag.LocalInitializer:
         return new LocalInitializer(readAndPushVariableDeclaration());
+      case Tag.AssertInitializer:
+        return new AssertInitializer(readStatement());
       default:
         throw fail('Invalid initializer tag: $tag');
     }
@@ -1356,6 +1362,10 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
+      case Tag.Instantiation:
+        var expression = readExpression();
+        var typeArguments = readDartTypeList();
+        return new Instantiation(expression, typeArguments);
       case Tag.VectorCreation:
         var length = readUInt();
         return new VectorCreation(length);
@@ -1557,12 +1567,14 @@ class BinaryBuilder {
 
   Catch readCatch() {
     int variableStackHeight = variableStack.length;
+    var offset = readOffset();
     var guard = readDartType();
     var exception = readAndPushVariableDeclarationOption();
     var stackTrace = readAndPushVariableDeclarationOption();
     var body = readStatement();
     variableStack.length = variableStackHeight;
-    return new Catch(exception, body, guard: guard, stackTrace: stackTrace);
+    return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
+      ..fileOffset = offset;
   }
 
   Block readBlock() {

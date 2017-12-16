@@ -717,6 +717,12 @@ class TypeEquivalence
       covariant ResolutionTypedefType other) {
     return visitGenericType(type, other);
   }
+
+  @override
+  bool visitFunctionTypeVariable(
+      FunctionTypeVariable type, ResolutionDartType other) {
+    throw new UnsupportedError("Function type variables are not supported.");
+  }
 }
 
 /// Visitor that checks for structural equivalence of [ConstantExpression]s.

@@ -14,6 +14,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -31,6 +32,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -81,7 +83,6 @@ DEFINE_FLAG(bool,
             "Remove script timestamps to allow for deterministic testing.");
 
 DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(bool, strong);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -2790,6 +2791,36 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   return result.raw();
 }
 
+bool AbstractType::InstantiateAndTestSubtype(
+    AbstractType* subtype,
+    AbstractType* supertype,
+    Error* bound_error,
+    const TypeArguments& instantiator_type_args,
+    const TypeArguments& function_type_args) {
+  if (!subtype->IsInstantiated()) {
+    *subtype =
+        subtype->InstantiateFrom(instantiator_type_args, function_type_args,
+                                 kAllFree, bound_error, NULL, NULL, Heap::kOld);
+  }
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  if (!supertype->IsInstantiated()) {
+    *supertype = supertype->InstantiateFrom(
+        instantiator_type_args, function_type_args, kAllFree, bound_error, NULL,
+        NULL, Heap::kOld);
+  }
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  bool is_subtype_of =
+      subtype->IsSubtypeOf(*supertype, bound_error, NULL, Heap::kOld);
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  return is_subtype_of;
+}
+
 RawArray* Class::invocation_dispatcher_cache() const {
   return raw_ptr()->invocation_dispatcher_cache_;
 }
@@ -3767,6 +3798,16 @@ bool Class::IsDartFunctionClass() const {
   return raw() == Type::Handle(Type::DartFunctionType()).type_class();
 }
 
+bool Class::IsFutureClass() const {
+  return (library() == Library::AsyncLibrary()) &&
+         (Name() == Symbols::Future().raw());
+}
+
+bool Class::IsFutureOrClass() const {
+  return (library() == Library::AsyncLibrary()) &&
+         (Name() == Symbols::FutureOr().raw());
+}
+
 // If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
 // If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
 // Type S is specified by this class parameterized with 'type_arguments', and
@@ -3781,12 +3822,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) {
-  // Use the thsi object as if it was the receiver of this method, but instead
-  // of recursing reset it to the super class and loop.
+  // Use the 'this_class' object as if it was the receiver of this method, but
+  // instead of recursing, reset it to the super class and loop.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Class& thsi = Class::Handle(zone, cls.raw());
+  Class& this_class = Class::Handle(zone, cls.raw());
   while (true) {
     // Check for DynamicType.
     // Each occurrence of DynamicType in type T is interpreted as the dynamic
@@ -3796,14 +3837,25 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Check for NullType, which, as of Dart 1.5, is a subtype of (and is more
     // specific than) any type. Note that the null instance is not handled here.
-    if (thsi.IsNullClass()) {
+    if (this_class.IsNullClass()) {
+      return true;
+    }
+    // Class FutureOr is mapped to dynamic in non-strong mode.
+    // Detect snapshots compiled in strong mode and run in non-strong mode.
+    ASSERT(isolate->strong() || !other.IsFutureOrClass());
+    // In strong mode, check if 'other' is 'FutureOr'.
+    // If so, apply additional subtyping rules.
+    if (isolate->strong() &&
+        this_class.FutureOrTypeTest(zone, type_arguments, other,
+                                    other_type_arguments, bound_error,
+                                    bound_trail, space)) {
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
     // is interpreted as the bottom type, a subtype of all types, but not in
     // strong mode.
     // However, DynamicType is not more specific than any type.
-    if (thsi.IsDynamicClass()) {
+    if (this_class.IsDynamicClass()) {
       return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
@@ -3813,16 +3865,16 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // If other is neither Object, dynamic or void, then ObjectType/VoidType
     // can't be a subtype of other.
-    if (thsi.IsObjectClass() || thsi.IsVoidClass()) {
+    if (this_class.IsObjectClass() || this_class.IsVoidClass()) {
       return false;
     }
     // Check for reflexivity.
-    if (thsi.raw() == other.raw()) {
-      const intptr_t num_type_params = thsi.NumTypeParameters();
+    if (this_class.raw() == other.raw()) {
+      const intptr_t num_type_params = this_class.NumTypeParameters();
       if (num_type_params == 0) {
         return true;
       }
-      const intptr_t num_type_args = thsi.NumTypeArguments();
+      const intptr_t num_type_args = this_class.NumTypeArguments();
       const intptr_t from_index = num_type_args - num_type_params;
       // Since we do not truncate the type argument vector of a subclass (see
       // below), we only check a subvector of the proper length.
@@ -3845,14 +3897,14 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     if (other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
-          Function::Handle(zone, thsi.LookupCallFunctionForTypeTest());
+          Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
       if (!call_function.IsNull()) {
         return true;
       }
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
-    Array& interfaces = Array::Handle(zone, thsi.interfaces());
+    Array& interfaces = Array::Handle(zone, this_class.interfaces());
     AbstractType& interface = AbstractType::Handle(zone);
     Class& interface_class = Class::Handle(zone);
     TypeArguments& interface_args = TypeArguments::Handle(zone);
@@ -3868,7 +3920,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
           // runtime if this type test returns false at compile time.
           continue;
         }
-        ClassFinalizer::FinalizeType(thsi, interface);
+        ClassFinalizer::FinalizeType(this_class, interface);
         interfaces.SetAt(i, interface);
       }
       if (interface.IsMalbounded()) {
@@ -3908,8 +3960,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       }
     }
     // "Recurse" up the class hierarchy until we have reached the top.
-    thsi = thsi.SuperClass();
-    if (thsi.IsNull()) {
+    this_class = this_class.SuperClass();
+    if (this_class.IsNull()) {
       return false;
     }
   }
@@ -3933,6 +3985,41 @@ bool Class::TypeTest(TypeTestKind test_kind,
   return TypeTestNonRecursive(*this, test_kind, type_arguments, other,
                               other_type_arguments, bound_error, bound_trail,
                               space);
+}
+
+bool Class::FutureOrTypeTest(Zone* zone,
+                             const TypeArguments& type_arguments,
+                             const Class& other,
+                             const TypeArguments& other_type_arguments,
+                             Error* bound_error,
+                             TrailPtr bound_trail,
+                             Heap::Space space) const {
+  // In strong mode, there is no difference between 'is subtype of' and
+  // 'is more specific than'.
+  ASSERT(Isolate::Current()->strong());
+  if (other.IsFutureOrClass()) {
+    if (other_type_arguments.IsNull()) {
+      return true;
+    }
+    const AbstractType& other_type_arg =
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (!type_arguments.IsNull() && IsFutureClass()) {
+      const AbstractType& type_arg =
+          AbstractType::Handle(zone, type_arguments.TypeAt(0));
+      if (type_arg.TypeTest(Class::kIsSubtypeOf, other_type_arg, bound_error,
+                            bound_trail, space)) {
+        return true;
+      }
+    }
+    if (other_type_arg.IsType() &&
+        TypeTest(Class::kIsSubtypeOf, type_arguments,
+                 Class::Handle(zone, other_type_arg.type_class()),
+                 TypeArguments::Handle(other_type_arg.arguments()), bound_error,
+                 bound_trail, space)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Class::IsTopLevel() const {
@@ -6483,8 +6570,9 @@ RawFunction* Function::InstantiateSignatureFrom(
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
 // parameter of this function is more specific than the type of the specified
 // parameter of the other function.
-// Note that for kIsMoreSpecificThan, we do not apply contravariance of
-// parameter types, but covariance of both parameter types and result type.
+// Note that for kIsMoreSpecificThan (non-strong mode only), we do not apply
+// contravariance of parameter types, but covariance of both parameter types and
+// result type.
 bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t parameter_position,
                                  intptr_t other_parameter_position,
@@ -6492,10 +6580,20 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
-  Isolate* isolate = Isolate::Current();
+  if (Isolate::Current()->strong()) {
+    const AbstractType& param_type =
+        AbstractType::Handle(ParameterTypeAt(parameter_position));
+    if (param_type.IsDynamicType()) {
+      return true;
+    }
+    const AbstractType& other_param_type =
+        AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
+    return other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                        space);
+  }
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (!isolate->strong() && other_param_type.IsDynamicType()) {
+  if (other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6504,21 +6602,14 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!((!isolate->strong() &&
-           param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
-                                  space)) ||
-          other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                       space))) {
-      return false;
-    }
-  } else {
-    ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error,
-                                       bound_trail, space)) {
-      return false;
-    }
+    return param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                  space) ||
+           other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                        space);
   }
-  return true;
+  ASSERT(test_kind == kIsMoreSpecificThan);
+  return param_type.IsMoreSpecificThan(other_param_type, bound_error,
+                                       bound_trail, space);
 }
 
 bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
@@ -6594,22 +6685,28 @@ bool Function::TypeTest(TypeTestKind test_kind,
       AbstractType::Handle(zone, other.result_type());
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-    if (res_type.IsVoidType()) {
-      return false;
-    }
-    if (test_kind == kIsSubtypeOf) {
-      if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                 space) ||
-            (!isolate->strong() &&
-             other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
-                                        space)))) {
+    if (isolate->strong()) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                space)) {
         return false;
       }
     } else {
-      ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error, bound_trail,
-                                       space)) {
+      if (res_type.IsVoidType()) {
         return false;
+      }
+      if (test_kind == kIsSubtypeOf) {
+        if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                  space) &&
+            !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                        space)) {
+          return false;
+        }
+      } else {
+        ASSERT(test_kind == kIsMoreSpecificThan);
+        if (!res_type.IsMoreSpecificThan(other_res_type, bound_error,
+                                         bound_trail, space)) {
+          return false;
+        }
       }
     }
   }
@@ -6893,6 +6990,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   if (implicit_closure_function() != Function::null()) {
     return implicit_closure_function();
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // In AOT mode all implicit closures are pre-created.
+  UNREACHABLE();
+  return Function::null();
+#else
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -6954,6 +7056,50 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   closure_function.set_kernel_offset(kernel_offset());
 
+  // In strong mode, change covariant parameter types to Object in the implicit
+  // closure of a method compiled by kernel.
+  // The VM's parser erases covariant types immediately in strong mode.
+  if (thread->isolate()->strong() && !is_static() && (kernel_offset() > 0)) {
+    const Script& function_script = Script::Handle(zone, script());
+    kernel::TranslationHelper translation_helper(thread);
+    kernel::StreamingFlowGraphBuilder builder(
+        &translation_helper, function_script, zone,
+        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+    translation_helper.InitFromScript(function_script);
+    builder.SetOffset(kernel_offset());
+
+    builder.ReadUntilFunctionNode();
+    kernel::FunctionNodeHelper fn_helper(&builder);
+
+    // Check the positional parameters, including the optional positional ones.
+    fn_helper.ReadUntilExcluding(
+        kernel::FunctionNodeHelper::kPositionalParameters);
+    intptr_t num_pos_params = builder.ReadListLength();
+    ASSERT(num_pos_params ==
+           num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
+    const Type& object_type = Type::Handle(zone, Type::ObjectType());
+    for (intptr_t i = 0; i < num_pos_params; ++i) {
+      kernel::VariableDeclarationHelper var_helper(&builder);
+      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
+      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
+        closure_function.SetParameterTypeAt(i + 1, object_type);
+      }
+    }
+    fn_helper.SetJustRead(kernel::FunctionNodeHelper::kPositionalParameters);
+
+    // Check the optional named parameters.
+    fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
+    intptr_t num_named_params = builder.ReadListLength();
+    ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
+    for (intptr_t i = 0; i < num_named_params; ++i) {
+      kernel::VariableDeclarationHelper var_helper(&builder);
+      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
+      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
+        closure_function.SetParameterTypeAt(num_pos_params + 1 + i,
+                                            object_type);
+      }
+    }
+  }
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
@@ -6962,6 +7108,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::DropUncompiledImplicitClosureFunction() const {
@@ -7035,7 +7182,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // and take the rest of the arguments from the invocation.
 //
 // Converted closure functions in VM follow same discipline as implicit closure
-// functions, because they are similar in many ways. For further deatils, please
+// functions, because they are similar in many ways. For further details, please
 // refer to the following methods:
 //   -> Function::ConvertedClosureFunction
 //   -> StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction
@@ -7046,9 +7193,6 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 //
 // Function::ConvertedClosureFunction method follows the logic of
 // Function::ImplicitClosureFunction method.
-//
-// TODO(29181): Adjust the method to correctly pass type parameters after they
-// are enabled in closure conversion.
 RawFunction* Function::ConvertedClosureFunction() const {
   // Return the existing converted closure function if any.
   if (converted_closure_function() != Function::null()) {
@@ -9224,18 +9368,21 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
       info.Add(line_separator);  // New line.
       return info.raw();
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
     intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;
 
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    intptr_t previous_start = 0;
     for (int line_index = 0; line_index < line_count; ++line_index) {
-      intptr_t start = line_starts_data.GetInt32(line_index * 4);
+      intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
       // Output the rest of the tokens if we have no next line.
       intptr_t end = TokenPosition::kMaxSourcePos;
       if (line_index + 1 < line_count) {
-        end = line_starts_data.GetInt32((line_index + 1) * 4);
+        end = start + line_starts_reader.DeltaAt(line_index + 1);
       }
       bool first = true;
       while (token_index < token_count) {
@@ -9256,7 +9403,9 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
         info.Add(value);
         ++token_index;
       }
+      previous_start = start;
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return info.raw();
   }
 
@@ -9490,22 +9639,31 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     set_line_starts(line_starts_data);
   }
 
-  ASSERT(line_starts_data.Length() > 0);
-  intptr_t offset = target_token_pos.Pos();
-  intptr_t min = 0;
-  intptr_t max = line_starts_data.Length() - 1;
+  if (kind() == RawScript::kKernelTag) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    return line_starts_reader.LineNumberForPosition(target_token_pos.value());
+#else
+    return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    ASSERT(line_starts_data.Length() > 0);
+    intptr_t offset = target_token_pos.Pos();
+    intptr_t min = 0;
+    intptr_t max = line_starts_data.Length() - 1;
 
-  // Binary search to find the line containing this offset.
-  while (min < max) {
-    int midpoint = (max - min + 1) / 2 + min;
-    int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
-    if (token_pos > offset) {
-      max = midpoint - 1;
-    } else {
-      min = midpoint;
+    // Binary search to find the line containing this offset.
+    while (min < max) {
+      int midpoint = (max - min + 1) / 2 + min;
+      int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
+      if (token_pos > offset) {
+        max = midpoint - 1;
+      } else {
+        min = midpoint;
+      }
     }
+    return min + 1;  // Line numbers start at 1.
   }
-  return min + 1;  // Line numbers start at 1.
 }
 
 void Script::GetTokenLocation(TokenPosition token_pos,
@@ -9528,31 +9686,15 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       }
       return;
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(line_starts_data.Length() > 0);
-    intptr_t offset = token_pos.value();
-    intptr_t min = 0;
-    intptr_t max = line_starts_data.Length() - 1;
-
-    // Binary search to find the line containing this offset.
-    while (min < max) {
-      intptr_t midpoint = (max - min + 1) / 2 + min;
-
-      int32_t value = line_starts_data.GetInt32(midpoint * 4);
-      if (value > offset) {
-        max = midpoint - 1;
-      } else {
-        min = midpoint;
-      }
-    }
-    *line = min + 1;  // Line numbers start at 1.
-    int32_t min_value = line_starts_data.GetInt32(min * 4);
-    if (column != NULL) {
-      *column = offset - min_value + 1;
-    }
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    line_starts_reader.LocationForPosition(token_pos.value(), line, column);
     if (token_len != NULL) {
       // We don't explicitly save this data: Load the source
       // and find it from there.
       const String& source = String::Handle(zone, Source());
+      intptr_t offset = token_pos.value();
       *token_len = 1;
       if (offset < source.Length() &&
           Scanner::IsIdentStartChar(source.CharAt(offset))) {
@@ -9563,6 +9705,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
         }
       }
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
 
@@ -9626,16 +9769,13 @@ void Script::TokenRangeAtLine(intptr_t line_number,
       *last_token_index = TokenPosition::kNoSource;
       return;
     }
-    ASSERT(line_starts_data.Length() >= line_number);
-    int32_t value = line_starts_data.GetInt32((line_number - 1) * 4);
-    *first_token_index = TokenPosition(value);
-    if (line_starts_data.Length() > line_number) {
-      value = line_starts_data.GetInt32(line_number * 4);
-      *last_token_index = TokenPosition(value - 1);
-    } else {
-      // Length of source is last possible token in this script.
-      *last_token_index = TokenPosition(String::Handle(Source()).Length());
-    }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::KernelLineStartsReader line_starts_reader(
+        line_starts_data, Thread::Current()->zone());
+    line_starts_reader.TokenRangeAtLine(String::Handle(Source()).Length(),
+                                        line_number, first_token_index,
+                                        last_token_index);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
 
@@ -12254,23 +12394,12 @@ RawObjectPool* ObjectPool::New(intptr_t len) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
+    for (intptr_t i = 0; i < len; i++) {
+      result.SetTypeAt(i, ObjectPool::kImmediate);
+    }
   }
 
-  // TODO(fschneider): Compress info array to just use just enough bits for
-  // the entry type enum.
-  const TypedData& info_array = TypedData::Handle(
-      TypedData::New(kTypedDataInt8ArrayCid, len, Heap::kOld));
-  result.set_info_array(info_array);
   return result.raw();
-}
-
-void ObjectPool::set_info_array(const TypedData& info_array) const {
-  StorePointer(&raw_ptr()->info_array_, info_array.raw());
-}
-
-ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
-  ObjectPoolInfo pool_info(*this);
-  return pool_info.InfoAt(index);
 }
 
 const char* ObjectPool::ToCString() const {
@@ -12283,11 +12412,11 @@ void ObjectPool::DebugPrint() const {
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
     THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
-    if (InfoAt(i) == kTaggedObject) {
+    if (TypeAt(i) == kTaggedObject) {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
-    } else if (InfoAt(i) == kNativeEntry) {
+    } else if (TypeAt(i) == kNativeEntry) {
       THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
@@ -15599,7 +15728,9 @@ bool Instance::IsInstanceOf(
   if (other.IsVoidType()) {
     return true;
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsObjectType() || other.IsDartFunctionType() ||
@@ -15625,6 +15756,10 @@ bool Instance::IsInstanceOf(
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
+    }
+    if (isolate->strong() &&
+        IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
+      return true;
     }
     if (!instantiated_other.IsFunctionType()) {
       return false;
@@ -15715,10 +15850,48 @@ bool Instance::IsInstanceOf(
     ASSERT(cls.IsNullClass());
     // As of Dart 1.5, the null instance and Null type are handled differently.
     // We already checked other for dynamic and void.
+    if (isolate->strong() &&
+        IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
+      return true;
+    }
     return other_class.IsNullClass() || other_class.IsObjectClass();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
                          bound_error, NULL, Heap::kOld);
+}
+
+bool Instance::IsFutureOrInstanceOf(Zone* zone,
+                                    const AbstractType& other,
+                                    Error* bound_error) const {
+  ASSERT(Isolate::Current()->strong());
+  if (other.IsType() &&
+      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+    if (other.arguments() == TypeArguments::null()) {
+      return true;
+    }
+    const TypeArguments& other_type_arguments =
+        TypeArguments::Handle(zone, other.arguments());
+    const AbstractType& other_type_arg =
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (Class::Handle(zone, clazz()).IsFutureClass()) {
+      const TypeArguments& type_arguments =
+          TypeArguments::Handle(zone, GetTypeArguments());
+      if (!type_arguments.IsNull()) {
+        const AbstractType& type_arg =
+            AbstractType::Handle(zone, type_arguments.TypeAt(0));
+        if (type_arg.IsSubtypeOf(other_type_arg, bound_error, NULL,
+                                 Heap::kOld)) {
+          return true;
+        }
+      }
+    }
+    // Retry the IsInstanceOf function after unwrapping type arg of FutureOr.
+    if (IsInstanceOf(other_type_arg, Object::null_type_arguments(),
+                     Object::null_type_arguments(), bound_error)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Instance::OperatorEquals(const Instance& other) const {
@@ -16381,7 +16554,9 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       IsNullType()) {
     return true;
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
       return true;
@@ -16459,6 +16634,12 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     if (bound.IsMoreSpecificThan(other, bound_error, NULL, space)) {
       return true;
     }
+    // In strong mode, check if 'other' is 'FutureOr'.
+    // If so, apply additional subtyping rules.
+    if (isolate->strong() &&
+        FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
+      return true;
+    }
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   if (other.IsTypeParameter()) {
@@ -16500,12 +16681,48 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
   }
   if (IsFunctionType()) {
+    // In strong mode, check if 'other' is 'FutureOr'.
+    // If so, apply additional subtyping rules.
+    if (isolate->strong() &&
+        FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
+      return true;
+    }
     return false;
   }
   return type_cls.TypeTest(test_kind, TypeArguments::Handle(zone, arguments()),
                            Class::Handle(zone, other.type_class()),
                            TypeArguments::Handle(zone, other.arguments()),
                            bound_error, bound_trail, space);
+}
+
+bool AbstractType::FutureOrTypeTest(Zone* zone,
+                                    const AbstractType& other,
+                                    Error* bound_error,
+                                    TrailPtr bound_trail,
+                                    Heap::Space space) const {
+  // In strong mode, there is no difference between 'is subtype of' and
+  // 'is more specific than'.
+  ASSERT(Isolate::Current()->strong());
+  if (other.IsType() &&
+      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+    if (other.arguments() == TypeArguments::null()) {
+      return true;
+    }
+    // This function is only called with a receiver that is void type, a
+    // function type, or an uninstantiated type parameter, therefore, it cannot
+    // be of class Future and we can spare the check.
+    ASSERT(IsVoidType() || IsFunctionType() || IsTypeParameter());
+    const TypeArguments& other_type_arguments =
+        TypeArguments::Handle(zone, other.arguments());
+    const AbstractType& other_type_arg =
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    // Retry the TypeTest function after unwrapping type arg of FutureOr.
+    if (TypeTest(Class::kIsSubtypeOf, other_type_arg, bound_error, bound_trail,
+                 space)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 intptr_t AbstractType::Hash() const {
@@ -18376,6 +18593,8 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
+    // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
+    // are only supported through the Kernel FE.
     if (FLAG_limit_ints_to_64_bits) {
       if (strcmp(cstr, kMaxInt64Plus1) == 0) {
         // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
@@ -18401,6 +18620,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
+    // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
+    // are only supported through the Kernel FE.
     if (FLAG_limit_ints_to_64_bits) {
       if (strcmp(cstr, kMaxInt64Plus1) == 0) {
         // Allow MAX_INT64 + 1 integer literal as it can be used as an argument

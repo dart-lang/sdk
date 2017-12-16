@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatusTest);
+    defineReflectiveTests(StatusTest_PreviewDart2);
   });
 }
 
@@ -47,4 +48,10 @@ main() {
       return analysisFinished.future;
     });
   }
+}
+
+@reflectiveTest
+class StatusTest_PreviewDart2 extends StatusTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

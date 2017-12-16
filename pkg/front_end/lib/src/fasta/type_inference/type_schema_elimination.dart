@@ -85,7 +85,8 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
           newReturnType ?? node.returnType,
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: node.typeParameters,
-          requiredParameterCount: node.requiredParameterCount);
+          requiredParameterCount: node.requiredParameterCount,
+          typedefReference: node.typedefReference);
     }
   }
 

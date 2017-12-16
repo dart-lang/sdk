@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:io';
 import 'cache_new.dart';
 import 'logdog_rpc.dart';
-import 'results/util.dart';
-
 import 'util.dart';
 
 import 'buildbot_structures.dart';

@@ -48,7 +48,6 @@ void test(List<String> arguments,
         if (result.missingCodePointsMap.isNotEmpty) {
           errorsFound =
               result.printMissingCodePoints(whiteListFunction(config, file));
-          true;
         }
         if (result.multipleNodesMap.isNotEmpty) {
           result.printMultipleNodes();

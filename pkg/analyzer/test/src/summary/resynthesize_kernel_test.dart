@@ -14,9 +14,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -436,7 +436,8 @@ class C {
       ..logger = new PerformanceLog(null)
       ..fileSystem = new _FileSystemAdaptor(resourceProvider)
       ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(options, uriTranslator,
+    var driver = new KernelDriver(
+        options, uriTranslator, new KernelErrorListener(),
         metadataFactory: new AnalyzerMetadataFactory());
 
     KernelResult kernelResult = await driver.getKernel(testUri);
@@ -451,7 +452,7 @@ class C {
     }
 
     kernelResult.dependencies.forEach(addLibrary);
-    addLibrary(kernelResult.library);
+    addLibrary(kernelResult.libraryResult.library);
 
     if (DEBUG) {
       String testUriStr = testUri.toString();

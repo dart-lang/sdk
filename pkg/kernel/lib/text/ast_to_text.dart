@@ -931,8 +931,7 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
-    writeModifier(node.isSyntheticDefault, 'default');
-    writeWord('factory');
+    writeWord('redirecting_factory');
 
     if (node.name != null) {
       writeName(node.name);
@@ -1223,6 +1222,13 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
+  visitInstantiation(Instantiation node) {
+    writeExpression(node.expression);
+    writeSymbol('<');
+    writeList(node.typeArguments, writeType);
+    writeSymbol('>');
+  }
+
   visitLoadLibrary(LoadLibrary node) {
     writeWord('LoadLibrary');
     writeSymbol('(');
@@ -1425,8 +1431,10 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitAssertStatement(AssertStatement node) {
-    writeIndentation();
+  visitAssertStatement(AssertStatement node, {bool asExpr = false}) {
+    if (asExpr != true) {
+      writeIndentation();
+    }
     writeWord('assert');
     writeSymbol('(');
     writeExpression(node.condition);
@@ -1434,7 +1442,11 @@ class Printer extends Visitor<Null> {
       writeComma();
       writeExpression(node.message);
     }
-    endLine(');');
+    if (asExpr != true) {
+      endLine(');');
+    } else {
+      writeSymbol(')');
+    }
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -1704,6 +1716,10 @@ class Printer extends Visitor<Null> {
 
   visitLocalInitializer(LocalInitializer node) {
     writeVariableDeclaration(node.variable);
+  }
+
+  visitAssertInitializer(AssertInitializer node) {
+    visitAssertStatement(node.statement, asExpr: true);
   }
 
   defaultInitializer(Initializer node) {

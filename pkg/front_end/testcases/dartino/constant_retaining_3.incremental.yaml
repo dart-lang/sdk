@@ -1,0 +1,35 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Similiar to constant_retaining_2, but tests that constant handling is still
+  // correct even if an unrelated constant is introduced and removed again.
+  var constant;
+
+  class Foo {
+    const Foo();
+  }
+
+  class Bar {
+    const Bar();
+  }
+
+  class C {
+    foo() {
+  <<<< ["v1", "true"]
+      print("v1");
+      constant = const Foo();
+  ==== ["v2", "false", "true"]
+      print("v2");
+      print(constant == const Bar());
+  ==== ["v3", "true"]
+      print("v3");
+  >>>>
+      print(constant == const Foo());
+    }
+  }
+
+  main() {
+    new C().foo();
+  }

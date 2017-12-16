@@ -39,7 +39,7 @@ import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
-import 'package:front_end/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
@@ -252,7 +252,7 @@ class Driver implements CommandLineStarter {
 
     // Create a context, or re-use the previous one.
     try {
-      _createAnalysisContext(options);
+      _createContextAndAnalyze(options);
     } on _DriverError catch (error) {
       outSink.writeln(error.msg);
       return ErrorSeverity.ERROR;
@@ -567,7 +567,7 @@ class Driver implements CommandLineStarter {
 
   /// Create an analysis context that is prepared to analyze sources according
   /// to the given [options], and store it in [_context].
-  void _createAnalysisContext(CommandLineOptions options) {
+  void _createContextAndAnalyze(CommandLineOptions options) {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
@@ -699,7 +699,8 @@ class Driver implements CommandLineStarter {
         a.lint == b.lint &&
         AnalysisOptionsImpl.compareLints(a.lintRules, b.lintRules) &&
         a.preserveComments == b.preserveComments &&
-        a.strongMode == b.strongMode;
+        a.strongMode == b.strongMode &&
+        a.useFastaParser == b.useFastaParser;
   }
 
   _PackageInfo _findPackages(CommandLineOptions options) {
@@ -977,12 +978,14 @@ class Driver implements CommandLineStarter {
 
 class _DriverError implements Exception {
   String msg;
+
   _DriverError(this.msg);
 }
 
 class _PackageInfo {
   Packages packages;
   Map<String, List<file_system.Folder>> packageMap;
+
   _PackageInfo(this.packages, this.packageMap);
 }
 

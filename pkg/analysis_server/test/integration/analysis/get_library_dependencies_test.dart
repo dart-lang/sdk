@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetLibraryDependenciesTest);
+    defineReflectiveTests(GetLibraryDependenciesTest_PreviewDart2);
   });
 }
 
@@ -44,4 +45,11 @@ class Bar {
     Map<String, List<String>> map = packageMaps[packageMaps.keys.first];
     expect(map.keys, isEmpty);
   }
+}
+
+@reflectiveTest
+class GetLibraryDependenciesTest_PreviewDart2
+    extends GetLibraryDependenciesTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

@@ -16,4 +16,5 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference_new/field_inference_circularity.dart:12:69: Error: Can't infer the type of 'x': circularity found during type inference.\nSpecify the type explicitly.\n  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>\n                                                                    ^", "pkg/front_end/testcases/inference_new/field_inference_circularity.dart:19:69: Error: Can't infer the type of 'x': circularity found during type inference.\nSpecify the type explicitly.\n  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x;\n                                                                    ^"]/* from null */;
 static method main() → dynamic {}

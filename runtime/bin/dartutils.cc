@@ -20,6 +20,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
+#include "platform/utils.h"
 
 // Return the error from the containing function if handle is in error handle.
 #define RETURN_IF_ERROR(handle)                                                \
@@ -49,13 +50,7 @@ const char* const DartUtils::kUriLibURL = "dart:uri";
 const char* const DartUtils::kHttpScheme = "http:";
 const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
-struct MagicNumberData {
-  static const intptr_t kMaxLength = 4;
-
-  intptr_t length;
-  const uint8_t bytes[kMaxLength];
-};
-
+MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
 MagicNumberData snapshot_magic_number = {4, {0xf5, 0xf5, 0xdc, 0xdc}};
 MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
 MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
@@ -356,14 +351,47 @@ static bool CheckMagicNumber(const uint8_t* buffer,
   return false;
 }
 
+DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
+  MagicNumber magic_number = DartUtils::kUnknownMagicNumber;
+  if (File::GetType(NULL, filename, true) == File::kIsFile) {
+    File* file = File::Open(NULL, filename, File::kRead);
+    if (file != NULL) {
+      intptr_t max_magic_length = 0;
+      max_magic_length =
+          Utils::Maximum(max_magic_length, snapshot_magic_number.length);
+      max_magic_length =
+          Utils::Maximum(max_magic_length, appjit_magic_number.length);
+      max_magic_length =
+          Utils::Maximum(max_magic_length, kernel_magic_number.length);
+      max_magic_length =
+          Utils::Maximum(max_magic_length, gzip_magic_number.length);
+      ASSERT(max_magic_length <= 8);
+      uint8_t header[8];
+      if (file->ReadFully(&header, max_magic_length)) {
+        magic_number = DartUtils::SniffForMagicNumber(header, sizeof(header));
+      }
+      file->Close();
+    }
+  }
+  return magic_number;
+}
+
 DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
                                                       intptr_t buffer_length) {
   if (CheckMagicNumber(buffer, buffer_length, snapshot_magic_number)) {
     return kSnapshotMagicNumber;
   }
 
+  if (CheckMagicNumber(buffer, buffer_length, appjit_magic_number)) {
+    return kAppJITMagicNumber;
+  }
+
   if (CheckMagicNumber(buffer, buffer_length, kernel_magic_number)) {
     return kKernelMagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {
+    return kGzipMagicNumber;
   }
 
   if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {

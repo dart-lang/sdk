@@ -408,6 +408,13 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   return dst_type().raw() == other_assert->dst_type().raw();
 }
 
+bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
+  AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
+  ASSERT(other_assert != NULL);
+  return super_type().raw() == other_assert->super_type().raw() &&
+         sub_type().raw() == other_assert->sub_type().raw();
+}
+
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
@@ -2723,23 +2730,24 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
 
 UnboxInstr* UnboxInstr::Create(Representation to,
                                Value* value,
-                               intptr_t deopt_id) {
+                               intptr_t deopt_id,
+                               SpeculativeMode speculative_mode) {
   switch (to) {
     case kUnboxedInt32:
       return new UnboxInt32Instr(UnboxInt32Instr::kNoTruncation, value,
-                                 deopt_id);
+                                 deopt_id, speculative_mode);
 
     case kUnboxedUint32:
-      return new UnboxUint32Instr(value, deopt_id);
+      return new UnboxUint32Instr(value, deopt_id, speculative_mode);
 
     case kUnboxedInt64:
-      return new UnboxInt64Instr(value, deopt_id);
+      return new UnboxInt64Instr(value, deopt_id, speculative_mode);
 
     case kUnboxedDouble:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
-      return new UnboxInstr(to, value, deopt_id);
+      return new UnboxInstr(to, value, deopt_id, speculative_mode);
 
     default:
       UNREACHABLE();
@@ -2911,6 +2919,9 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
+    if (Assembler::EmittingComments()) {
+      compiler->EmitComment(parallel_move());
+    }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
@@ -3511,6 +3522,27 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
+void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_DBC)
+  ASSERT(sub_type().IsFinalized());
+  ASSERT(super_type().IsFinalized());
+
+  __ PushObject(sub_type());
+  __ PushObject(super_type());
+  __ PushRegister(locs()->in(0).reg());
+  __ PushRegister(locs()->in(1).reg());
+  __ PushObject(dst_name());
+
+  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
+                                kSubtypeCheckRuntimeEntry, 5, locs());
+
+  __ Drop(5);
+#else
+  // TODO(sjindel): Support strong mode in DBC
+  UNREACHABLE();
+#endif
+}
+
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
@@ -3717,24 +3749,43 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 }
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t box_cid = BoxCid();
+  if (speculative_mode() == kNotSpeculative) {
+    switch (representation()) {
+      case kUnboxedDouble:
+        EmitLoadFromBox(compiler);
+        break;
 
-  if (value_cid == box_cid) {
-    EmitLoadFromBox(compiler);
-  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
-    EmitSmiConversion(compiler);
-  } else if (FLAG_experimental_strong_mode &&
-             (representation() == kUnboxedDouble) &&
-             value()->Type()->IsNullableDouble()) {
-    EmitLoadFromBox(compiler);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             (representation() == kUnboxedInt64) &&
-             value()->Type()->IsNullableInt()) {
-    EmitLoadInt64FromBoxOrSmi(compiler);
+      case kUnboxedInt64: {
+        ASSERT(FLAG_limit_ints_to_64_bits);
+        EmitLoadInt64FromBoxOrSmi(compiler);
+        break;
+      }
+
+      default:
+        UNREACHABLE();
+        break;
+    }
   } else {
-    ASSERT(CanDeoptimize());
-    EmitLoadFromBoxWithDeopt(compiler);
+    ASSERT(speculative_mode() == kGuardInputs);
+    const intptr_t value_cid = value()->Type()->ToCid();
+    const intptr_t box_cid = BoxCid();
+
+    if (value_cid == box_cid) {
+      EmitLoadFromBox(compiler);
+    } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+      EmitSmiConversion(compiler);
+    } else if (FLAG_experimental_strong_mode &&
+               (representation() == kUnboxedDouble) &&
+               value()->Type()->IsNullableDouble()) {
+      EmitLoadFromBox(compiler);
+    } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+               (representation() == kUnboxedInt64) &&
+               value()->Type()->IsNullableInt()) {
+      EmitLoadInt64FromBoxOrSmi(compiler);
+    } else {
+      ASSERT(CanDeoptimize());
+      EmitLoadFromBoxWithDeopt(compiler);
+    }
   }
 }
 
@@ -3844,7 +3895,7 @@ ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
                                                         Value* new_right) {
   return new RelationalOpInstr(token_pos(), kind(), new_left, new_right,
-                               operation_cid(), deopt_id());
+                               operation_cid(), deopt_id(), speculative_mode());
 }
 
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,

@@ -312,7 +312,8 @@ class ArgListContributor extends DartCompletionContributor {
     Token token =
         entity is AstNode ? entity.endToken : entity is Token ? entity : null;
     return (token != containingNode?.endToken) &&
-        token?.next?.type == TokenType.COMMA;
+        token?.next?.type == TokenType.COMMA &&
+        !token.next.isSynthetic;
   }
 
   bool _isInFlutterCreation(DartCompletionRequest request) {

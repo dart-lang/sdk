@@ -270,7 +270,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS);
         removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
-        removeCode(StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
       }

@@ -716,110 +716,110 @@ f() {
     verify([source]);
   }
 
-  test_assignmentToFinal_localVariable() async {
+  test_assignmentToFinalLocal_localVariable() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x = 1;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_localVariable_plusEq() async {
+  test_assignmentToFinalLocal_localVariable_plusEq() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x += 1;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_parameter() async {
+  test_assignmentToFinalLocal_parameter() async {
     Source source = addSource(r'''
 f(final x) {
   x = 1;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_postfixMinusMinus() async {
+  test_assignmentToFinalLocal_postfixMinusMinus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x--;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_postfixPlusPlus() async {
+  test_assignmentToFinalLocal_postfixPlusPlus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x++;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_prefixMinusMinus() async {
+  test_assignmentToFinalLocal_prefixMinusMinus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   --x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_prefixPlusPlus() async {
+  test_assignmentToFinalLocal_prefixPlusPlus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   ++x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_suffixMinusMinus() async {
+  test_assignmentToFinalLocal_suffixMinusMinus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x--;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_suffixPlusPlus() async {
+  test_assignmentToFinalLocal_suffixPlusPlus() async {
     Source source = addSource(r'''
 f() {
   final x = 0;
   x++;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
-  test_assignmentToFinal_topLevelVariable() async {
+  test_assignmentToFinalLocal_topLevelVariable() async {
     Source source = addSource(r'''
 final x = 0;
 f() { x = 1; }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     verify([source]);
   }
 
@@ -3387,45 +3387,6 @@ a.A v;'''
     ], <ErrorCode>[
       StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS
     ]);
-  }
-
-  test_typeAnnotationGenericFunctionParameter_localFunction() async {
-    Source source = addSource(r'''
-class A {
-  void method() {
-    T local<T>(Object t) {
-      return (t is T) ? t : null;
-    }
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
-    verify([source]);
-  }
-
-  test_typeAnnotationGenericFunctionParameter_method() async {
-    Source source = addSource(r'''
-class A {
-  T method<T>(Object t) {
-    return (t is T) ? t : null;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
-    verify([source]);
-  }
-
-  test_typeAnnotationGenericFunctionParameter_topLevelFunction() async {
-    Source source = addSource(r'''
-T function<T>(Object t) {
-  return (t is T) ? t : null;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
-    verify([source]);
   }
 
   test_typeParameterReferencedByStatic_field() async {

@@ -326,6 +326,7 @@ type Constructor extends Member {
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
+  UriReference fileUri;
   List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
@@ -364,6 +365,7 @@ type RedirectingFactoryConstructor extends Member {
   FileOffset fileEndOffset;
   Byte flags;
   Name name;
+  UriReference fileUri;
   List<Expression> annotations;
   List<DartType> typeArguments;
   MemberReference targetReference;
@@ -406,6 +408,12 @@ type LocalInitializer extends Initializer {
   Byte tag = 11;
   Byte isSynthetic;
   VariableDeclaration variable;
+}
+
+type AssertInitializer extends Initializer {
+  Byte tag = 12;
+  Byte isSynthetic;
+  AssertStatement statement;
 }
 
 /*
@@ -796,6 +804,12 @@ type Let extends Expression {
   Expression body;
 }
 
+type Instantiation extends Expression {
+  Byte tag = 54;
+  Expression expression;
+  List<DartType> typeArguments;
+}
+
 type LoadLibrary extends Expression {
   Byte tag = 14;
   LibraryDependencyReference deferredImport;
@@ -1030,6 +1044,7 @@ type TryCatch extends Statement {
 }
 
 type Catch {
+  FileOffset fileOffset;
   DartType guard;
   Option<VariableDeclaration> exception;
   Option<VariableDeclaration> stackTrace;

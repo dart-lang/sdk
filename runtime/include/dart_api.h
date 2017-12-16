@@ -943,6 +943,13 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
 /**
+ * Notifies the VM that the system is running low on memory.
+ *
+ * Does not require a current isolate. Only valid after calling Dart_Initialize.
+ */
+DART_EXPORT void Dart_NotifyLowMemory();
+
+/**
  * Notifies the VM that the current thread should not be profiled until a
  * matching call to Dart_ThreadEnableProfiling is made.
  *

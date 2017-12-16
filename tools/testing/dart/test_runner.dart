@@ -790,6 +790,7 @@ class BatchRunnerProcess {
   bool _dictEquals(Map a, Map b) {
     if (a == null) return b == null;
     if (b == null) return false;
+    if (a.length != b.length) return false;
     for (var key in a.keys) {
       if (a[key] != b[key]) return false;
     }
@@ -1145,10 +1146,10 @@ class CommandExecutorImpl implements CommandExecutor {
   Future<CommandOutput> _runCommand(Command command, int timeout) {
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
-    } else if (command is KernelCompilationCommand) {
-      // For now, we always run dartk in batch mode.
+    } else if (command is VMKernelCompilationCommand) {
+      // For now, we always run vm_compile_to_kernel in batch mode.
       var name = command.displayName;
-      assert(name == 'dartk');
+      assert(name == 'vm_compile_to_kernel');
       return _getBatchRunner(name)
           .runCommand(name, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
@@ -1331,7 +1332,7 @@ bool shouldRetryCommand(CommandOutput output) {
 
     // The dartk batch compiler sometimes runs out of memory. In such a case we
     // will retry running it.
-    if (command is KernelCompilationCommand) {
+    if (command is VMKernelCompilationCommand) {
       if (output.hasCrashed) {
         bool containsOutOfMemoryMessage(String line) {
           return line.contains('Exhausted heap space, trying to allocat');

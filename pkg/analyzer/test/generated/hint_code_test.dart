@@ -31,20 +31,21 @@ class HintCodeTest extends ResolverTestCase {
         r'''
 library meta;
 
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
 const _Factory factory = const _Factory();
 const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _Protected protected = const _Protected();
 const Required required = const Required();
-class Required {
-  final String reason;
-  const Required([this.reason]);
-}
+const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
 
 class Immutable {
   final String reason;
   const Immutable([this.reason]);
+}
+class _AlwaysThrows {
+  const _AlwaysThrows();
 }
 class _Factory {
   const _Factory();
@@ -58,9 +59,12 @@ class _MustCallSuper {
 class _Protected {
   const _Protected();
 }
-class _Required {
+class Required {
   final String reason;
-  const _Required([this.reason]);
+  const Required([this.reason]);
+}
+class _VisibleForTesting {
+  const _VisibleForTesting();
 }
 '''
       ],
@@ -712,6 +716,68 @@ f() {
 f() {
   var one = 1;
   throw 'Stop here';
+  var two = 2;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_deadCode_statementAfterAlwaysThrowsFunction() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+@alwaysThrows
+void a() {
+  throw 'msg';
+}
+
+f() {
+  var one = 1;
+  a();
+  var two = 2;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_deadCode_statementAfterAlwaysThrowsMethod() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @alwaysThrows
+  void a() {
+    throw 'msg';
+  }
+}
+
+f() {
+  var one = 1;
+  new C().a();
+  var two = 2;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_deadCode_statementAfterAlwaysThrowsGetter() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @alwaysThrows
+  int get a {
+    throw 'msg';
+  }
+}
+
+f() {
+  var one = 1;
+  new C().a;
   var two = 2;
 }''');
     await computeAnalysisResult(source);
@@ -1855,6 +1921,141 @@ main() {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  test_invalidUseOfVisibleForTestingMember_method() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+class B {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTestingMember_method_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/test/test1.dart', r'''
+import '../lib1.dart';
+
+class B {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTesting_method_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+class B extends A {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTestingMember_propertyAccess() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  int get a => 7;
+
+  @visibleForTesting
+  set b(_) => 7;
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A().a;
+  new A().b = 6;
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [
+      HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+      HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER
+    ]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTestingMember_constructor() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  int _x;
+
+  @visibleForTesting
+  A.forTesting(this._x);
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A.forTesting(0);
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTestingMember_topLevelFunction() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  fn0();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
+    verify([source, source2]);
   }
 
   test_isDouble() async {

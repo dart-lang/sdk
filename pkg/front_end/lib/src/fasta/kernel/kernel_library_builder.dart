@@ -10,8 +10,6 @@ import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/clone.dart' show CloneVisitor;
-
 import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart'
@@ -43,8 +41,6 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
     show DeclarationBuilder, SourceLibraryBuilder;
-
-import '../util/relativize.dart' show relativizeUri;
 
 import 'kernel_builder.dart'
     show
@@ -79,6 +75,7 @@ import 'kernel_builder.dart'
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
+        VoidTypeBuilder,
         compareProcedures,
         toKernelCombinators;
 
@@ -92,8 +89,6 @@ class KernelLibraryBuilder
 
   final Map<String, SourceClassBuilder> mixinApplicationClasses =
       <String, SourceClassBuilder>{};
-
-  final List<List> argumentsWithMissingDefaultValues = <List>[];
 
   final List<KernelFunctionBuilder> nativeMethods = <KernelFunctionBuilder>[];
 
@@ -112,8 +107,7 @@ class KernelLibraryBuilder
   Map<String, String> unserializableExports;
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin)
-      : library = actualOrigin?.library ??
-            new Library(uri, fileUri: relativizeUri(fileUri)),
+      : library = actualOrigin?.library ?? new Library(uri, fileUri: fileUri),
         super(loader, fileUri);
 
   @override
@@ -136,7 +130,8 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder addVoidType(int charOffset) {
-    return addNamedType("void", null, charOffset);
+    return addNamedType("void", null, charOffset)
+      ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
   }
 
   void addClass(
@@ -846,7 +841,7 @@ class KernelLibraryBuilder
     }
 
     for (KernelLibraryBuilder part in parts) {
-      library.addPart(new LibraryPart(<Expression>[], part.relativeFileUri));
+      library.addPart(new LibraryPart(<Expression>[], part.fileUri));
       part.addDependencies(library, seen);
     }
   }
@@ -966,45 +961,6 @@ class KernelLibraryBuilder
       }
     }
     return total;
-  }
-
-  int finishStaticInvocations() {
-    CloneVisitor cloner;
-    for (var list in argumentsWithMissingDefaultValues) {
-      final Arguments arguments = list[0];
-      final FunctionNode function = list[1];
-
-      Expression defaultArgumentFrom(Expression expression) {
-        if (expression == null) {
-          return new NullLiteral();
-        }
-        cloner ??= new CloneVisitor();
-        return cloner.clone(expression);
-      }
-
-      for (int i = function.requiredParameterCount;
-          i < function.positionalParameters.length;
-          i++) {
-        arguments.positional[i] ??=
-            defaultArgumentFrom(function.positionalParameters[i].initializer)
-              ..parent = arguments;
-      }
-      Map<String, VariableDeclaration> names;
-      for (NamedExpression expression in arguments.named) {
-        if (expression.value == null) {
-          if (names == null) {
-            names = <String, VariableDeclaration>{};
-            for (VariableDeclaration parameter in function.namedParameters) {
-              names[parameter.name] = parameter;
-            }
-          }
-          expression.value =
-              defaultArgumentFrom(names[expression.name].initializer)
-                ..parent = expression;
-        }
-      }
-    }
-    return argumentsWithMissingDefaultValues.length;
   }
 
   void addNativeMethod(KernelFunctionBuilder method) {

@@ -79,8 +79,6 @@ RawCode* StubCode::Generate(const char* name,
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-void StubCode::Init(Isolate* isolate) {}
-
 void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
 bool StubCode::HasBeenInitialized() {

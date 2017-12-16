@@ -2,20 +2,21 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
-async/future_or_strong_test: RuntimeError
-isolate/compile_time_error_test/01: Skip # Issue 12587
-isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
-isolate/ping_pause_test: Skip     # Resolve test issues
-isolate/ping_test: Skip           # Resolve test issues
-mirrors/symbol_validation_test: RuntimeError # Issue 13596
-async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
-
 [ $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 html/*: SkipByDesign # dart:html not supported on AOT.
 mirrors/*: SkipByDesign # Mirrors not supported on AOT.
+
+[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
+async/future_or_strong_test: RuntimeError
+async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
+async/timer_regress22626_test: Pass, RuntimeError # Issue 28254
+isolate/compile_time_error_test/01: Skip # Issue 12587
+isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
+isolate/ping_pause_test: Skip # Resolve test issues
+isolate/ping_test: Skip # Resolve test issues
+mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 [ $compiler == precompiler || $runtime == flutter ]
 isolate/count_test: SkipByDesign
@@ -38,6 +39,5 @@ isolate/static_function_test: SkipByDesign
 isolate/unresolved_ports_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
 
-[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) ]
-async/timer_regress22626_test: Pass, RuntimeError # Issue 28254

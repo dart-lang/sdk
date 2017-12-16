@@ -303,6 +303,16 @@ class HintCode extends ErrorCode {
       "The member '{0}' can only be used within instance members of subclasses "
       "of '{1}'.");
 
+  /// This hint is generated anywhere where a member annotated with
+  /// `@visibleForTesting` is used outside the defining library, or a test.
+  ///
+  /// Parameters:
+  /// 0: the name of the member
+  /// 1: the name of the defining class
+  static const HintCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER =
+      const HintCode('INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
+          "The member '{0}' can only be used within '{1}' or a test.");
+
   /**
    * Hint for the `x is double` type checks.
    */

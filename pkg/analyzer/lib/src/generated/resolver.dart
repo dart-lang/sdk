@@ -32,6 +32,7 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
@@ -47,6 +48,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   static String _NULL_TYPE_NAME = "Null";
 
   static String _TO_INT_METHOD_NAME = "toInt";
+
+  static final _testDir = '${path.separator}test${path.separator}';
 
   /**
    * The class containing the AST nodes being visited, or `null` if we are not in the scope of
@@ -353,7 +356,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
-    _checkForInvalidProtectedMemberAccess(node);
+    _checkForInvalidAccess(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -633,7 +636,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param element some element to check for deprecated use of
    * @param node the node use for the location of the error
-   * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   void _checkForDeprecatedMemberUse(Element element, AstNode node) {
@@ -903,11 +905,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         decl.name, [decl.name.toString()]);
   }
 
-  /**
-   * Produces a hint if the given identifier is a protected closure, field or
-   * getter/setter, method closure or invocation accessed outside a subclass.
-   */
-  void _checkForInvalidProtectedMemberAccess(SimpleIdentifier identifier) {
+  /// Produces a hint if [identifier] is accessed from an invalid location. In
+  /// particular:
+  ///
+  /// * if the given identifier is a protected closure, field or
+  ///   getter/setter, method closure or invocation accessed outside a subclass,
+  ///   or accessed outside the library wherein the identifier is declared, or
+  /// * if the given identifier is a closure, field, getter, setter, method
+  ///   closure or invocation which is annotated with `visibleForTesting`, and
+  ///   is accessed outside of the defining library, and the current library
+  ///   does not have the word 'test' in its name.
+  void _checkForInvalidAccess(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return;
     }
@@ -926,6 +934,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
 
+    bool isVisibleForTesting(Element element) {
+      if (element == null) {
+        return false;
+      }
+      if (element.isVisibleForTesting) {
+        return true;
+      }
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          element.variable.isVisibleForTesting) {
+        return true;
+      }
+      return false;
+    }
+
     bool inCommentReference(SimpleIdentifier identifier) =>
         identifier.getAncestor((AstNode node) => node is CommentReference) !=
         null;
@@ -933,20 +956,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     bool inCurrentLibrary(Element element) =>
         element.library == _currentLibrary;
 
+    bool inTestDirectory(LibraryElement library) =>
+        library.definingCompilationUnit.source.fullName.contains(_testDir);
+
     Element element = identifier.bestElement;
-    if (isProtected(element) &&
-        !inCurrentLibrary(element) &&
-        !inCommentReference(identifier)) {
+    if (isProtected(element)) {
+      if (inCurrentLibrary(element) || inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked
+        // `visibleForTesting`, the "visibilities" are unioned.
+        return;
+      }
       ClassElement definingClass = element.enclosingElement;
       ClassDeclaration accessingClass =
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
-      if (accessingClass == null ||
-          !_hasTypeOrSuperType(accessingClass.element, definingClass.type)) {
+      if (_hasTypeOrSuperType(accessingClass?.element, definingClass.type)) {
+        return;
+      } else {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             identifier,
             [identifier.name.toString(), definingClass.name]);
       }
+    }
+    if (isVisibleForTesting(element) &&
+        !inCurrentLibrary(element) &&
+        !inTestDirectory(_currentLibrary) &&
+        !inCommentReference(identifier)) {
+      Element definingClass = element.enclosingElement;
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
     }
   }
 
@@ -3268,6 +3308,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (node.operator.type == TokenType.QUESTION_PERIOD) {
         return false;
       }
+    }
+    Element element = node.methodName.staticElement;
+    if (element != null && element.isAlwaysThrows) {
+      return true;
     }
     return _nodeExits(node.argumentList);
   }

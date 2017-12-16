@@ -8,11 +8,11 @@ library test;
 class B {
   Object _x;
   void f([num x = 10]) {
-    _x = x;
+    /*@callKind=this*/ _x = x;
   }
 
   void g({num x = 20}) {
-    _x = x;
+    /*@callKind=this*/ _x = x;
   }
 
   void check(Object expectedValue) {

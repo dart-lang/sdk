@@ -95,9 +95,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   // Constant in product mode.
   FLAG_background_compilation = true;
 #endif
-  BackgroundCompiler::EnsureInit(thread);
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate->background_compiler() != NULL);
+  BackgroundCompiler::Start(isolate);
   isolate->background_compiler()->CompileOptimized(func);
   Monitor* m = new Monitor();
   {

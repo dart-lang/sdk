@@ -413,14 +413,6 @@ abstract class KernelToLocalsMap {
   /// The member currently being built.
   MemberEntity get currentMember;
 
-  // TODO(johnniwinther): Make these return the [KernelToLocalsMap] to use from
-  // now on.
-  /// Call to notify that [member] is currently being inlined.
-  void enterInlinedMember(covariant MemberEntity member);
-
-  /// Call to notify that [member] is no longer being inlined.
-  void leaveInlinedMember(covariant MemberEntity member);
-
   /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
 
@@ -496,7 +488,7 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
   while (node != null) {
     if (node.fileOffset != ir.TreeNode.noOffset) {
       offset = node.fileOffset;
-      uri = Uri.parse(node.location.file);
+      uri = node.location.file;
       break;
     }
     node = node.parent;
@@ -505,4 +497,56 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
     return new SourceSpan(uri, offset, offset + 1);
   }
   return null;
+}
+
+/// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
+/// is not a constructor, method or local function.
+ir.FunctionNode getFunctionNode(
+    KernelToElementMapForBuilding elementMap, MemberEntity member) {
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  switch (definition.kind) {
+    case MemberKind.regular:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        return node.function;
+      }
+      break;
+    case MemberKind.constructor:
+    case MemberKind.constructorBody:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        return node.function;
+      } else if (node is ir.Constructor) {
+        return node.function;
+      }
+      break;
+    case MemberKind.closureCall:
+      ir.Node node = definition.node;
+      if (node is ir.FunctionDeclaration) {
+        return node.function;
+      } else if (node is ir.FunctionExpression) {
+        return node.function;
+      }
+      break;
+    default:
+  }
+  return null;
+}
+
+/// Returns the `AsyncMarker` corresponding to `node.asyncMarker`.
+AsyncMarker getAsyncMarker(ir.FunctionNode node) {
+  switch (node.asyncMarker) {
+    case ir.AsyncMarker.Async:
+      return AsyncMarker.ASYNC;
+    case ir.AsyncMarker.AsyncStar:
+      return AsyncMarker.ASYNC_STAR;
+    case ir.AsyncMarker.Sync:
+      return AsyncMarker.SYNC;
+    case ir.AsyncMarker.SyncStar:
+      return AsyncMarker.SYNC_STAR;
+    case ir.AsyncMarker.SyncYielding:
+    default:
+      throw new UnsupportedError(
+          "Async marker ${node.asyncMarker} is not supported.");
+  }
 }

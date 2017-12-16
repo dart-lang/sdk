@@ -84,9 +84,6 @@ static void DeterministicModeHandler(bool value) {
   if (value) {
     FLAG_background_compilation = false;
     FLAG_collect_code = false;
-    // Parallel marking doesn't introduce non-determinism in the object
-    // iteration order.
-    FLAG_concurrent_sweep = false;
     FLAG_random_seed = 0x44617274;  // "Dart"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     FLAG_load_deferred_eagerly = true;
@@ -234,7 +231,7 @@ void Isolate::ValidateConstants() {
   }
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
-  StopBackgroundCompiler();
+  BackgroundCompiler::Stop(this);
   heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
@@ -503,8 +500,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #ifndef PRODUCT
-  TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                            "HandleMessage");
+  TimelineDurationScope tds(
+      thread, Timeline::GetIsolateStream(),
+      message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 #endif
@@ -880,7 +878,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       class_table_(),
       single_step_(false),
       isolate_flags_(0),
-      background_compiler_disabled_depth_(0),
       background_compiler_(NULL),
 #if !defined(PRODUCT)
       debugger_(NULL),
@@ -928,7 +925,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       message_handler_(NULL),
       spawn_state_(NULL),
       defer_finalization_count_(0),
-      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>),
+      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       deopt_context_(NULL),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
@@ -959,14 +956,20 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
         "which violates the Dart standard.\n"
         "         See dartbug.com/30524 for more information.\n");
   }
+
+  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
+  delete background_compiler_;
+  background_compiler_ = NULL;
+
 #if !defined(PRODUCT)
   delete debugger_;
+  debugger_ = NULL;
   if (FLAG_support_service) {
     delete object_id_ring_;
   }
@@ -1198,7 +1201,8 @@ bool Isolate::CanReload() const {
   return !ServiceIsolate::IsServiceIsolateDescendant(this) && is_runnable() &&
          !IsReloading() &&
          (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
-         IsolateCreationEnabled();
+         IsolateCreationEnabled() &&
+         OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
 bool Isolate::ReloadSources(JSONStream* js,
@@ -1694,6 +1698,25 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
+// static
+void Isolate::NotifyLowMemory() {
+  MonitorLocker ml(isolates_list_monitor_);
+  if (!creation_enabled_) {
+    return;  // VM is shutting down
+  }
+  for (Isolate* isolate = isolates_list_head_; isolate != NULL;
+       isolate = isolate->next_) {
+    if (isolate == Dart::vm_isolate()) {
+      // Nothing to compact / isolate structure not completely initialized.
+    } else if (isolate == Isolate::Current()) {
+      isolate->heap()->NotifyLowMemory();
+    } else {
+      MutexLocker ml(isolate->mutex_);
+      isolate->heap()->NotifyLowMemory();
+    }
+  }
+}
+
 void Isolate::LowLevelShutdown() {
   // Ensure we have a zone and handle scope so that we can call VM functions,
   // but we no longer allocate new heap objects.
@@ -1766,13 +1789,6 @@ void Isolate::LowLevelShutdown() {
 #endif  // !defined(PRODUCT)
 }
 
-void Isolate::StopBackgroundCompiler() {
-  // Wait until all background compilation has finished.
-  if (background_compiler_ != NULL) {
-    BackgroundCompiler::Stop(this);
-  }
-}
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
@@ -1791,7 +1807,9 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  StopBackgroundCompiler();
+  BackgroundCompiler::Stop(this);
+  delete background_compiler_;
+  background_compiler_ = NULL;
 
 #if defined(DEBUG)
   if (heap_ != NULL && FLAG_verify_on_transition) {
@@ -1828,8 +1846,9 @@ void Isolate::Shutdown() {
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
     PageSpace* old_space = heap_->old_space();
     MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
+    while (old_space->sweeper_tasks() > 0 ||
+           old_space->low_memory_tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread);
     }
   }
 
@@ -1852,7 +1871,8 @@ void Isolate::Shutdown() {
   if (heap_ != NULL) {
     PageSpace* old_space = heap_->old_space();
     MonitorLocker ml(old_space->tasks_lock());
-    ASSERT(old_space->tasks() == 0);
+    ASSERT(old_space->sweeper_tasks() == 0);
+    ASSERT(old_space->low_memory_tasks() == 0);
   }
 #endif
 

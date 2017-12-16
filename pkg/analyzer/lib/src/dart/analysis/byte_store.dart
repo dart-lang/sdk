@@ -5,5 +5,5 @@
 // This library re-exports the parts of front_end's byte_store.dart whose API is
 // stable enough to be relied upon by clients.
 
-export 'package:front_end/byte_store.dart'
+export 'package:front_end/src/api_prototype/byte_store.dart'
     show ByteStore, MemoryByteStore, MemoryCachingByteStore;

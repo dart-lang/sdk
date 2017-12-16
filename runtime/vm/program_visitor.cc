@@ -20,6 +20,8 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Class& cls = Class::Handle(zone);
+  Object& entry = Object::Handle(zone);
+  GrowableObjectArray& patches = GrowableObjectArray::Handle(zone);
 
   for (intptr_t i = 0; i < libraries.Length(); i++) {
     lib ^= libraries.At(i);
@@ -31,64 +33,82 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       }
       visitor->Visit(cls);
     }
+    patches = lib.patch_classes();
+    for (intptr_t j = 0; j < patches.Length(); j++) {
+      entry = patches.At(j);
+      if (entry.IsClass()) {
+        visitor->Visit(Class::Cast(entry));
+      }
+    }
   }
 }
+
+class ClassFunctionVisitor : public ClassVisitor {
+ public:
+  ClassFunctionVisitor(Zone* zone, FunctionVisitor* visitor)
+      : visitor_(visitor),
+        functions_(Array::Handle(zone)),
+        function_(Function::Handle(zone)),
+        object_(Object::Handle(zone)),
+        fields_(Array::Handle(zone)),
+        field_(Field::Handle(zone)) {}
+
+  void Visit(const Class& cls) {
+    if (cls.IsDynamicClass()) {
+      return;  // class 'dynamic' is in the read-only VM isolate.
+    }
+
+    functions_ = cls.functions();
+    for (intptr_t j = 0; j < functions_.Length(); j++) {
+      function_ ^= functions_.At(j);
+      visitor_->Visit(function_);
+      if (function_.HasImplicitClosureFunction()) {
+        function_ = function_.ImplicitClosureFunction();
+        visitor_->Visit(function_);
+      }
+    }
+
+    functions_ = cls.invocation_dispatcher_cache();
+    for (intptr_t j = 0; j < functions_.Length(); j++) {
+      object_ = functions_.At(j);
+      if (object_.IsFunction()) {
+        function_ ^= functions_.At(j);
+        visitor_->Visit(function_);
+      }
+    }
+
+    fields_ = cls.fields();
+    for (intptr_t j = 0; j < fields_.Length(); j++) {
+      field_ ^= fields_.At(j);
+      if (field_.is_static() && field_.HasPrecompiledInitializer()) {
+        function_ ^= field_.PrecompiledInitializer();
+        visitor_->Visit(function_);
+      }
+    }
+  }
+
+ private:
+  FunctionVisitor* visitor_;
+  Array& functions_;
+  Function& function_;
+  Object& object_;
+  Array& fields_;
+  Field& field_;
+};
 
 void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
-  Library& lib = Library::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  Array& functions = Array::Handle(zone);
-  Array& fields = Array::Handle(zone);
-  Field& field = Field::Handle(zone);
-  Object& object = Object::Handle(zone);
+
+  ClassFunctionVisitor class_visitor(zone, visitor);
+  VisitClasses(&class_visitor);
+
   Function& function = Function::Handle(zone);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
-
-  for (intptr_t i = 0; i < libraries.Length(); i++) {
-    lib ^= libraries.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
-      functions = cls.functions();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        function ^= functions.At(j);
-        visitor->Visit(function);
-        if (function.HasImplicitClosureFunction()) {
-          function = function.ImplicitClosureFunction();
-          visitor->Visit(function);
-        }
-      }
-
-      functions = cls.invocation_dispatcher_cache();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        object = functions.At(j);
-        if (object.IsFunction()) {
-          function ^= functions.At(j);
-          visitor->Visit(function);
-        }
-      }
-      fields = cls.fields();
-      for (intptr_t j = 0; j < fields.Length(); j++) {
-        field ^= fields.At(j);
-        if (field.is_static() && field.HasPrecompiledInitializer()) {
-          function ^= field.PrecompiledInitializer();
-          visitor->Visit(function);
-        }
-      }
-    }
-  }
-  closures = isolate->object_store()->closure_functions();
-  for (intptr_t j = 0; j < closures.Length(); j++) {
-    function ^= closures.At(j);
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      zone, isolate->object_store()->closure_functions());
+  for (intptr_t i = 0; i < closures.Length(); i++) {
+    function ^= closures.At(i);
     visitor->Visit(function);
     ASSERT(!function.HasImplicitClosureFunction());
   }

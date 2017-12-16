@@ -94,7 +94,7 @@ class LazyJSType extends TypeRep {
     var raw = _rawJSType();
     if (raw != null) return raw;
     _warn('Cannot find native JavaScript type ($_dartName) for type check');
-    return _dynamic;
+    return JS('', '#.Object', global_);
   }
 
   @JSExportName('is')
@@ -1102,4 +1102,87 @@ isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
   // We found no definite supertypes and no indefinite supertypes, so we
   // can return false.
   return false;
+})()''');
+
+Object extractTypeArguments<T>(T instance, Function f) {
+  if (instance == null) {
+    throw new ArgumentError('Cannot extract type of null instance.');
+  }
+  var type = unwrapType(T);
+  if (type is AbstractFunctionType) {
+    throw new ArgumentError('Cannot extract from non-class type ($type).');
+  }
+  List typeArgs = _extractTypes(getReifiedType(instance), type);
+  return _checkAndCall(
+      f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, [], 'call');
+}
+
+// Let t2 = T<T1, ..., Tn>
+// If t1 </: T<T1, ..., Tn>
+// - return null
+// If t1 <: T<T1, ..., Tn>
+// - return [S1, ..., Sn] such that there exists no Ri where
+//   Ri != Si && Ri <: Si && t1 <: T<S1, ..., Ri, ..., Sn>
+//
+// Note: In Dart 1, there isn't necessarily a unique solution to the above -
+// t1 <: Foo<int> and t1 <: Foo<String> could both be true.  Dart 2 will
+// statically disallow.  Until then, this could return either [int] or
+// [String] depending on which it hits first.
+//
+// TODO(vsm): Consider merging with similar isClassSubType logic.
+List _extractTypes(Type t1, Type t2) => JS('', '''(() => {
+  let typeArguments2 = $getGenericArgs($t2);
+  if ($t1 == $t2) return typeArguments2;
+
+  if ($t1 == $Object) return null;
+
+  // If t1 is a JS Object, we may not hit core.Object.
+  if ($t1 == null) return null;
+
+  // Check if t1 and t2 have the same raw type.  If so, check covariance on
+  // type parameters.
+  let raw1 = $getGenericClass($t1);
+  let raw2 = $getGenericClass($t2);
+  if (raw1 != null && raw1 == raw2) {
+    let typeArguments1 = $getGenericArgs($t1);
+    let length = typeArguments1.length;
+    if (typeArguments2.length == 0) {
+      // t2 is the raw form of t1
+      return typeArguments1;
+    } else if (length == 0) {
+      // t1 is raw, but t2 is not
+      if (typeArguments2.every($_isTop)) return typeArguments2;
+      return null;
+    }
+    if (length != typeArguments2.length) $assertFailed();
+    for (let i = 0; i < length; ++i) {
+      let result =
+          $_isSubtype(typeArguments1[i], typeArguments2[i], true);
+      if (!result) {
+        return null;
+      }
+    }
+    return typeArguments1;
+  }
+
+  var result = $_extractTypes($t1.__proto__, $t2);
+  if (result) return result;
+
+  // Check mixin.
+  let m1 = $getMixin($t1);
+  if (m1 != null) {
+    result = $_extractTypes(m1, $t2);
+    if (result) return result;
+  }
+
+  // Check interfaces.
+  let getInterfaces = $getImplements($t1);
+  if (getInterfaces) {
+    for (let i1 of getInterfaces()) {
+      result = $_extractTypes(i1, $t2);
+      if (result) return result;
+    }
+  }
+
+  return null;
 })()''');

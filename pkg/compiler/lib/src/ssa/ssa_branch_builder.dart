@@ -149,7 +149,9 @@ class SsaBranchBuilder {
   ///       t1 = boolify(y);
   ///     }
   ///     result = phi(t1, true);
-  void handleLogicalBinary(void left(), void right(), {bool isAnd}) {
+  void handleLogicalBinary(
+      void left(), void right(), SourceInformation sourceInformation,
+      {bool isAnd}) {
     HInstruction boolifiedLeft;
     HInstruction boolifiedRight;
 
@@ -158,7 +160,8 @@ class SsaBranchBuilder {
       boolifiedLeft = builder.popBoolified();
       builder.stack.add(boolifiedLeft);
       if (!isAnd) {
-        builder.push(new HNot(builder.pop(), builder.commonMasks.boolType));
+        builder.push(new HNot(builder.pop(), builder.commonMasks.boolType)
+          ..sourceInformation = sourceInformation);
       }
     }
 
@@ -167,13 +170,15 @@ class SsaBranchBuilder {
       boolifiedRight = builder.popBoolified();
     }
 
-    handleIf(visitCondition, visitThen, null);
+    handleIf(visitCondition, visitThen, null,
+        sourceInformation: sourceInformation);
     HConstant notIsAnd =
         builder.graph.addConstantBool(!isAnd, builder.closedWorld);
     HPhi result = new HPhi.manyInputs(
         null,
         <HInstruction>[boolifiedRight, notIsAnd],
-        builder.commonMasks.dynamicType);
+        builder.commonMasks.dynamicType)
+      ..sourceInformation = sourceInformation;
     builder.current.addPhi(result);
     builder.stack.add(result);
   }

@@ -1240,7 +1240,7 @@ class GCTestHelper : public AllStatic {
     Thread* thread = Thread::Current();
     PageSpace* old_space = thread->isolate()->heap()->old_space();
     MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
+    while (old_space->sweeper_tasks() > 0) {
       ml.WaitWithSafepointCheck(thread);
     }
   }
@@ -9086,8 +9086,6 @@ void NotifyIdleNative(Dart_NativeArguments args) {
 static Dart_NativeFunction NotifyIdle_native_lookup(Dart_Handle name,
                                                     int argument_count,
                                                     bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = true;
   return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleNative);
 }
 
@@ -9107,13 +9105,39 @@ TEST_CASE(DartAPI_NotifyIdle) {
       "}\n";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyIdle_native_lookup);
-  Dart_Handle result;
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
 
-  // Use Dart_PropagateError to propagate the error.
-  use_throw_exception = false;
-  use_set_return = false;
+void NotifyLowMemoryNative(Dart_NativeArguments args) {
+  Dart_NotifyLowMemory();
+}
 
-  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+static Dart_NativeFunction NotifyLowMemory_native_lookup(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  return reinterpret_cast<Dart_NativeFunction>(&NotifyLowMemoryNative);
+}
+
+TEST_CASE(DartAPI_NotifyLowMemory) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void notifyLowMemory() native 'Test_nativeFunc';\n"
+      "void main() {\n"
+      "  var v;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "    var t = new List();\n"
+      "    for (var j = 0; j < 10000; j++) {\n"
+      "      t.add(new List(100));\n"
+      "    }\n"
+      "    v = t;\n"
+      "    notifyLowMemory();\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &NotifyLowMemory_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
 

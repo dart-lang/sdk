@@ -20,16 +20,16 @@
 ///
 library runtime.tools.kernel_service;
 
-import 'dart:async' show Future;
-import 'dart:io' show Platform hide FileSystemEntity;
+import 'dart:async' show Future, ZoneSpecification, runZoned;
+import 'dart:io' show Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/file_system.dart';
-import 'package:front_end/front_end.dart';
-import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
@@ -77,7 +77,11 @@ abstract class Compiler {
       };
   }
 
-  Future<Program> compile(Uri script);
+  Future<Program> compile(Uri script) {
+    return runWithPrintToStderr(() => compileInternal(script));
+  }
+
+  Future<Program> compileInternal(Uri script);
 }
 
 class IncrementalCompiler extends Compiler {
@@ -88,7 +92,7 @@ class IncrementalCompiler extends Compiler {
       : super(fileSystem, platformKernel, strongMode: strongMode);
 
   @override
-  Future<Program> compile(Uri script) async {
+  Future<Program> compileInternal(Uri script) async {
     if (generator == null) {
       generator = await IncrementalKernelGenerator.newInstance(options, script);
     }
@@ -111,7 +115,7 @@ class SingleShotCompiler extends Compiler {
       : super(fileSystem, platformKernel, strongMode: strongMode);
 
   @override
-  Future<Program> compile(Uri script) async {
+  Future<Program> compileInternal(Uri script) async {
     return requireMain
         ? kernelForProgram(script, options)
         : kernelForBuildUnit([script], options..chaseDependencies = true);
@@ -246,7 +250,7 @@ FileSystem _buildFileSystem(List namedSources) {
   return new HybridFileSystem(fileSystem);
 }
 
-train(String scriptUri) {
+train(String scriptUri, String platformKernel) {
   // TODO(28532): Enable on Windows.
   if (Platform.isWindows) return;
 
@@ -267,7 +271,7 @@ train(String scriptUri) {
     tag,
     responsePort.sendPort,
     scriptUri,
-    null /* platformKernel */,
+    platformKernel,
     false /* incremental */,
     false /* strong */,
     1 /* isolateId chosen randomly */,
@@ -277,10 +281,10 @@ train(String scriptUri) {
 }
 
 main([args]) {
-  if (args?.length == 2 && args[0] == '--train') {
+  if ((args?.length ?? 0) > 1 && args[0] == '--train') {
     // This entry point is used when creating an app snapshot. The argument
     // provides a script to compile to warm-up generated code.
-    train(args[1]);
+    train(args[1], args.length > 2 ? args[2] : null);
   } else {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;
@@ -370,4 +374,10 @@ class _CompilationCrash extends _CompilationFail {
   String get errorString => "${exception}\n${stack}";
 
   String toString() => "_CompilationCrash(${errorString})";
+}
+
+Future<T> runWithPrintToStderr<T>(Future<T> f()) {
+  return runZoned(() => new Future<T>(f),
+      zoneSpecification: new ZoneSpecification(
+          print: (_1, _2, _3, String line) => stderr.writeln(line)));
 }

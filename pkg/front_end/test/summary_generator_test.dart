@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
@@ -16,7 +16,7 @@ main() {
 
     // Note: the kernel representation always has an empty '' key in the map,
     // but otherwise no other data is included here.
-    expect(program.uriToSource.keys.single, '');
+    expect(program.uriToSource.keys.single, Uri.parse(""));
   });
 
   test('summary includes declarations, but no method bodies', () async {
@@ -108,27 +108,6 @@ main() {
     errors.clear();
 
     await summarize(['a.dart', 'b.dart'], allSources, options: options);
-    expect(errors, isEmpty);
-  });
-
-  test('summarization with multi-roots can work hermetically', () async {
-    var errors = [];
-    var options = new CompilerOptions()
-      ..onError = ((e) => errors.add(e))
-      ..multiRoots = [toTestUri('rootA/'), toTestUri('rootB/')];
-
-    var multiRootSources = <String, String>{
-      'rootA/a.dart': allSources['a.dart'],
-      'rootB/b.dart': allSources['b.dart'],
-    };
-
-    await summarize(['multi-root:/b.dart'], multiRootSources, options: options);
-    expect(errors.first.toString(), contains('Invalid access'));
-    errors.clear();
-
-    await summarize(
-        ['multi-root:/a.dart', 'multi-root:/b.dart'], multiRootSources,
-        options: options);
     expect(errors, isEmpty);
   });
 

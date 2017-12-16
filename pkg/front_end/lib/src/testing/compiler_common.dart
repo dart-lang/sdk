@@ -9,8 +9,8 @@ import 'dart:async';
 
 import 'dart:io' show Platform;
 
-import 'package:front_end/front_end.dart';
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/ast.dart';
 

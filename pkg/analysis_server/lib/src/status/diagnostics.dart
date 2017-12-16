@@ -186,8 +186,8 @@ class AstPage extends DiagnosticPageWithNav {
     AnalysisResult result = await driver.getResult(path);
     if (result == null) {
       p(
-          'An AST could not be produced for the file <code>${escape(
-          path)}</code>.',
+          'An AST could not be produced for the file '
+          '<code>${escape(path)}</code>.',
           raw: true);
       return;
     }
@@ -764,8 +764,8 @@ class ElementModelPage extends DiagnosticPageWithNav {
     AnalysisResult result = await driver.getResult(path);
     if (result == null) {
       p(
-          'An element model could not be produced for the file <code>${escape(
-          path)}</code>.',
+          'An element model could not be produced for the file '
+          '<code>${escape(path)}</code>.',
           raw: true);
       return;
     }
@@ -1161,10 +1161,14 @@ class StatusPage extends DiagnosticPageWithNav {
 
   @override
   void generateContent(Map<String, String> params) {
+    DiagnosticsSite diagnosticsSite = site;
+
     buf.writeln('<div class="columns">');
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
+    buf.writeln(writeOption('Preview-dart-2',
+        diagnosticsSite.socketServer.analysisServerOptions.previewDart2));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
     buf.writeln(writeOption('Server process ID', pid));

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -34,7 +36,10 @@ class FieldInitializerInferenceNode extends InferenceNode {
   /// The field whose type should be inferred.
   final ShadowField field;
 
-  FieldInitializerInferenceNode(this._typeInferenceEngine, this.field);
+  final LibraryBuilder _library;
+
+  FieldInitializerInferenceNode(
+      this._typeInferenceEngine, this.field, this._library);
 
   @override
   void resolveInternal() {
@@ -47,7 +52,12 @@ class FieldInitializerInferenceNode extends InferenceNode {
         var inferredType = typeInferrer.inferDeclarationType(
             typeInferrer.inferFieldTopLevel(field, null, true));
         if (isCircular) {
-          // TODO(paulberry): report the appropriate error.
+          // Report the appropriate error.
+          _library.addCompileTimeError(
+              templateCantInferTypeDueToCircularity
+                  .withArguments(field.name.name),
+              field.fileOffset,
+              field.fileUri);
           inferredType = const DynamicType();
         }
         field.setInferredType(
@@ -227,7 +237,8 @@ abstract class TypeInferenceEngine {
   void recordInitializingFormal(ShadowVariableDeclaration formal);
 
   /// Records that the given static [field] will need top level type inference.
-  void recordStaticFieldInferenceCandidate(ShadowField field);
+  void recordStaticFieldInferenceCandidate(
+      ShadowField field, LibraryBuilder library);
 }
 
 /// Derived class containing generic implementations of
@@ -276,7 +287,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         if (location == null) {
           rethrow;
         } else {
-          throw new Crash(Uri.parse(location.file), formal.fileOffset, e, s);
+          throw new Crash(location.file, formal.fileOffset, e, s);
         }
       }
     }
@@ -299,8 +310,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     initializingFormals.add(formal);
   }
 
-  void recordStaticFieldInferenceCandidate(ShadowField field) {
-    var node = new FieldInitializerInferenceNode(this, field);
+  void recordStaticFieldInferenceCandidate(
+      ShadowField field, LibraryBuilder library) {
+    var node = new FieldInitializerInferenceNode(this, field, library);
     ShadowField.setInferenceNode(field, node);
     staticInferenceNodes.add(node);
   }

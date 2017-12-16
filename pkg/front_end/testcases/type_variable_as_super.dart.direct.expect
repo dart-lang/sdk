@@ -17,7 +17,7 @@ class C<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
 }
-const field dynamic #errors = const <dynamic>["Error: The type variable 'T' can't be used as supertype.", "Error: The type variable 'T' can't be used as supertype.", "Error: The type variable 'T' can't be used as supertype."]/* from null */;
+static const field dynamic #errors = const <dynamic>["Error: The type variable 'T' can't be used as supertype.", "Error: The type variable 'T' can't be used as supertype.", "Error: The type variable 'T' can't be used as supertype."]/* from null */;
 static method main() → dynamic {
   throw new core::AbstractClassInstantiationError::•("A");
   throw new core::AbstractClassInstantiationError::•("B");

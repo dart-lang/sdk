@@ -8,8 +8,7 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../../base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueLiteral;
+import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../scanner/token.dart' show Token;
 
@@ -42,9 +41,6 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
-        Message,
-        codeTypeNotFound,
         messageExpectedUri,
         messagePartOfSelf,
         messageMemberWithSameNameAsClass,
@@ -610,7 +606,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> original);
 
   @override
-  String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
+  String get fullNameForErrors {
+    // TODO(ahe): Consider if we should use relativizeUri here. The downside to
+    // doing that is that this URI may be used in an error message. Ideally, we
+    // should create a class that represents qualified names that we can
+    // relativize when printing a message, but still store the full URI in
+    // .dill files.
+    return name ?? "<library '$fileUri'>";
+  }
 
   @override
   void prepareTopLevelInference(
@@ -629,41 +632,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     forEach((String name, Builder member) {
       member.instrumentTopLevelInference(instrumentation);
     });
-  }
-
-  @override
-  void addWarning(Message message, int charOffset, Uri uri,
-      {bool silent: false, LocatedMessage context}) {
-    super
-        .addWarning(message, charOffset, uri, silent: silent, context: context);
-    if (!silent) {
-      // TODO(ahe): All warnings should have a charOffset, but currently, some
-      // unresolved type warnings lack them.
-      if (message.code != codeTypeNotFound && charOffset != -1) {
-        // TODO(ahe): Should I add a value for messages?
-        loader.instrumentation?.record(uri, charOffset, "warning",
-            new InstrumentationValueLiteral(message.code.name));
-        if (context != null) {
-          loader.instrumentation?.record(context.uri, context.charOffset,
-              "context", new InstrumentationValueLiteral(context.code.name));
-        }
-      }
-    }
-  }
-
-  @override
-  void addError(Message message, int charOffset, Uri uri,
-      {bool silent: false, LocatedMessage context}) {
-    super.addError(message, charOffset, uri, silent: silent, context: context);
-    if (!silent) {
-      // TODO(ahe): Should I add a value for messages?
-      loader.instrumentation?.record(uri, charOffset, "error",
-          new InstrumentationValueLiteral(message.code.name));
-      if (context != null) {
-        loader.instrumentation?.record(context.uri, context.charOffset,
-            "context", new InstrumentationValueLiteral(context.code.name));
-      }
-    }
   }
 }
 

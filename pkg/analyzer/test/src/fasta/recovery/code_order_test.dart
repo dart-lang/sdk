@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(ClassDeclarationTest);
     defineReflectiveTests(CompilationUnitMemberTest);
     defineReflectiveTests(ImportDirectiveTest);
+    defineReflectiveTests(MisplacedMetadataTest);
     defineReflectiveTests(TryStatementTest);
   });
 }
@@ -306,6 +307,34 @@ import 'b.dart';
 import 'bar.dart' deferred s as p;
 ''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 import 'bar.dart' deferred as p;
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when metadata appears in invalid places.
+ */
+@reflectiveTest
+class MisplacedMetadataTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_field_afterType() {
+    // This test fails because `findMemberName` doesn't recognize that the `@`
+    // isn't a valid token in the stream leading up to a member name. That
+    // causes `parseMethod` to attempt to parse from the `x` as a function body.
+    testRecovery('''
+class A {
+  const A([x]);
+}
+class B {
+  dynamic @A(const A()) x;
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+class A {
+  const A([x]);
+}
+class B {
+  @A(const A()) dynamic x;
+}
 ''');
   }
 }

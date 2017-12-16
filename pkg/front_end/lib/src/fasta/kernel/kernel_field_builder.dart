@@ -49,7 +49,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.initializerTokenForInference,
       this.hasInitializer)
       : field = new ShadowField(null, type == null,
-            fileUri: compilationUnit?.relativeFileUri)
+            fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
@@ -81,7 +81,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         isEligibleForInference &&
         !isInstanceMember) {
       library.loader.typeInferenceEngine
-          .recordStaticFieldInferenceCandidate(field);
+          .recordStaticFieldInferenceCandidate(field, library);
     }
     return field;
   }
@@ -111,7 +111,10 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
             library.fileUri,
             typeInferrer);
         Parser parser = new Parser(bodyBuilder);
-        Token token = parser.parseExpression(initializerTokenForInference).next;
+        Token token = parser
+            .parseExpression(
+                parser.syntheticPreviousToken(initializerTokenForInference))
+            .next;
         Expression expression = bodyBuilder.popForValue();
         bodyBuilder.checkEmpty(token.charOffset);
         initializer = expression;
@@ -122,8 +125,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
     if (isEligibleForInference) {
-      instrumentation.record(Uri.parse(field.fileUri), field.fileOffset,
-          'topType', new InstrumentationValueForType(field.type));
+      instrumentation.record(field.fileUri, field.fileOffset, 'topType',
+          new InstrumentationValueForType(field.type));
     }
   }
 

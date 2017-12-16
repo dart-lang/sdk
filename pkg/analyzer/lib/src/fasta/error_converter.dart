@@ -5,6 +5,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
@@ -17,12 +18,8 @@ class FastaErrorReporter {
   /// [errorReporter].
   FastaErrorReporter(this.errorReporter);
 
-  /// Report an error based on the given [message] whose range is described by
-  /// the given [offset] and [length].
-  void reportMessage(Message message, int offset, int length) {
-    Code code = message.code;
-    Map<String, dynamic> arguments = message.arguments;
-
+  void reportByCode(String analyzerCode, int offset, int length,
+      Map<String, dynamic> arguments) {
     String stringOrTokenLexeme() {
       var text = arguments['string'];
       if (text == null) {
@@ -34,7 +31,7 @@ class FastaErrorReporter {
       return text;
     }
 
-    switch (code.analyzerCode) {
+    switch (analyzerCode) {
       case "ABSTRACT_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
@@ -150,6 +147,10 @@ class FastaErrorReporter {
             ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
             offset,
             length);
+        return;
+      case "EXPECTED_CLASS_MEMBER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_CLASS_MEMBER, offset, length);
         return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
@@ -267,6 +268,30 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "INVALID_CAST_FUNCTION":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_FUNCTION, offset, length);
+        return;
+      case "INVALID_CAST_FUNCTION_EXPR":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_FUNCTION_EXPR, offset, length);
+        return;
+      case "INVALID_CAST_LITERAL_LIST":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_LITERAL_LIST, offset, length);
+        return;
+      case "INVALID_CAST_LITERAL_MAP":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_LITERAL_MAP, offset, length);
+        return;
+      case "INVALID_CAST_METHOD":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_METHOD, offset, length);
+        return;
+      case "INVALID_CAST_NEW_EXPR":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
+        return;
       case "INVALID_MODIFIER_ON_SETTER":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
@@ -360,6 +385,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
         return;
+      case "NAMED_PARAMETER_OUTSIDE_GROUP":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, offset, length);
+        return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);
@@ -375,6 +404,12 @@ class FastaErrorReporter {
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
+        return;
+      case "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+            offset,
+            length);
         return;
       case "RETURN_IN_GENERATOR":
         errorReporter?.reportErrorForOffset(
@@ -403,6 +438,18 @@ class FastaErrorReporter {
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
+        return;
+      case "UNDEFINED_GETTER":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_GETTER, offset, length);
+        return;
+      case "UNDEFINED_METHOD":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_METHOD, offset, length);
+        return;
+      case "UNDEFINED_SETTER":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
@@ -457,5 +504,41 @@ class FastaErrorReporter {
       default:
       // fall through
     }
+  }
+
+  void reportCompilationMessage(CompilationMessage message) {
+    // TODO(mfairhurst) Disable this once the codes are already analyzer
+    // format (#31644)
+    final analyzerCode =
+        message.code.runes.fold<List<String>>(<String>[], (words, charcode) {
+      final char = new String.fromCharCode(charcode);
+      if (char.toUpperCase() == char) {
+        words.add(char);
+      } else {
+        words[words.length - 1] = words.last + char.toUpperCase();
+      }
+      return words;
+    }).join('_');
+
+    final code = errorCodeByUniqueName(analyzerCode);
+    if (code != null) {
+      errorReporter.reportError(new AnalysisError.forValues(
+          errorReporter.source,
+          message.span.start.offset,
+          message.span.length,
+          code,
+          message.message,
+          message.tip));
+    } else {
+      // TODO(mfairhurst) throw here, and fail all tests that trip this.
+    }
+  }
+
+  /// Report an error based on the given [message] whose range is described by
+  /// the given [offset] and [length].
+  void reportMessage(Message message, int offset, int length) {
+    Code code = message.code;
+
+    reportByCode(code.analyzerCode, offset, length, message.arguments);
   }
 }

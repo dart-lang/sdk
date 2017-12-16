@@ -1549,15 +1549,15 @@ class _Socket extends Stream<List<int>> implements Socket {
 
   void add(List<int> bytes) => _sink.add(bytes);
 
-  Future<Socket> addStream(Stream<List<int>> stream) {
+  Future addStream(Stream<List<int>> stream) {
     return _sink.addStream(stream);
   }
 
-  Future<Socket> flush() => _sink.flush();
+  Future flush() => _sink.flush();
 
-  Future<Socket> close() => _sink.close();
+  Future close() => _sink.close();
 
-  Future<Socket> get done => _sink.done;
+  Future get done => _sink.done;
 
   void destroy() {
     // Destroy can always be called to get rid of a socket.

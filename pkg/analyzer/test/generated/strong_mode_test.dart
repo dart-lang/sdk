@@ -2747,50 +2747,6 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
     expect(invocation.staticInvokeType.toString(), type);
   }
 
-  fail_futureOr_promotion4() async {
-    // Test that promotion from FutureOr<T> to T works for type
-    // parameters T
-    // TODO(leafp): When the restriction on is checks for generic methods
-    // goes away this should pass.
-    String code = r'''
-    import "dart:async";
-    dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&
-                                                  (x.abs() == 0);
-   ''';
-    await resolveTestUnit(code);
-  }
-
-  fail_genericMethod_tearoff_instantiated() async {
-    await resolveTestUnit(r'''
-class C<E> {
-  T f<T>(E e) => null;
-  static T g<T>(T e) => null;
-  static final h = g;
-}
-
-T topF<T>(T e) => null;
-var topG = topF;
-void test<S>(T pf<T>(T e)) {
-  var c = new C<int>();
-  T lf<T>(T e) => null;
-  var methodTearOffInst = c.f<int>;
-  var staticTearOffInst = C.g<int>;
-  var staticFieldTearOffInst = C.h<int>;
-  var topFunTearOffInst = topF<int>;
-  var topFieldTearOffInst = topG<int>;
-  var localTearOffInst = lf<int>;
-  var paramTearOffInst = pf<int>;
-}
-''');
-    expectIdentifierType('methodTearOffInst', "(int) → int");
-    expectIdentifierType('staticTearOffInst', "(int) → int");
-    expectIdentifierType('staticFieldTearOffInst', "(int) → int");
-    expectIdentifierType('topFunTearOffInst', "(int) → int");
-    expectIdentifierType('topFieldTearOffInst', "(int) → int");
-    expectIdentifierType('localTearOffInst', "(int) → int");
-    expectIdentifierType('paramTearOffInst', "(int) → int");
-  }
-
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -2836,6 +2792,17 @@ main() {
     import "dart:async";
     dynamic test(FutureOr<int> x) => (x is Future<int>) &&
                                      (x.then((x) => x) == null);
+   ''';
+    await resolveTestUnit(code);
+  }
+
+  test_futureOr_promotion3() async {
+    // Test that promotion from FutureOr<T> to T works for type
+    // parameters T
+    String code = r'''
+    import "dart:async";
+    dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&
+                                                  (x.abs() == 0);
    ''';
     await resolveTestUnit(code);
   }
@@ -3387,6 +3354,22 @@ class D extends C {
     verify([source]);
   }
 
+  test_genericMethod_partiallyAppliedErrorWithBound() async {
+    await resolveTestUnit(r'''
+void f<X extends List, Y>() => null;
+
+void test() {
+  f<int>();
+}
+''', noErrors: false);
+    assertErrors(testSource, [
+      // Make sure to catch both the missing parameter:
+      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+      // And the incorrect parameter:
+      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+    ]);
+  }
+
   test_genericMethod_propagatedType_promotion() async {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/25340
@@ -3439,6 +3422,38 @@ void test<S>(T pf<T>(T e)) {
     expectIdentifierType('topFieldTearOff', "<T>(T) → T");
     expectIdentifierType('localTearOff', "<T>(T) → T");
     expectIdentifierType('paramTearOff', "<T>(T) → T");
+  }
+
+  @failingTest
+  test_genericMethod_tearoff_instantiated() async {
+    await resolveTestUnit(r'''
+class C<E> {
+  T f<T>(E e) => null;
+  static T g<T>(T e) => null;
+  static final h = g;
+}
+
+T topF<T>(T e) => null;
+var topG = topF;
+void test<S>(T pf<T>(T e)) {
+  var c = new C<int>();
+  T lf<T>(T e) => null;
+  var methodTearOffInst = c.f<int>;
+  var staticTearOffInst = C.g<int>;
+  var staticFieldTearOffInst = C.h<int>;
+  var topFunTearOffInst = topF<int>;
+  var topFieldTearOffInst = topG<int>;
+  var localTearOffInst = lf<int>;
+  var paramTearOffInst = pf<int>;
+}
+''');
+    expectIdentifierType('methodTearOffInst', "(int) → int");
+    expectIdentifierType('staticTearOffInst', "(int) → int");
+    expectIdentifierType('staticFieldTearOffInst', "(int) → int");
+    expectIdentifierType('topFunTearOffInst', "(int) → int");
+    expectIdentifierType('topFieldTearOffInst', "(int) → int");
+    expectIdentifierType('localTearOffInst', "(int) → int");
+    expectIdentifierType('paramTearOffInst', "(int) → int");
   }
 
   test_genericMethod_then() async {

@@ -43,14 +43,12 @@ class GlobalLocalsMap {
 }
 
 class KernelToLocalsMapImpl implements KernelToLocalsMap {
-  final List<MemberEntity> _members = <MemberEntity>[];
+  final MemberEntity currentMember;
   final EntityDataMap<JLocal, LocalData> _locals =
       new EntityDataMap<JLocal, LocalData>();
   Map<ir.VariableDeclaration, JLocal> _map = <ir.VariableDeclaration, JLocal>{};
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Set<ir.BreakStatement> _breaksAsContinue;
-
-  MemberEntity get currentMember => _members.last;
 
   // TODO(johnniwinther): Compute this eagerly from the root of the member.
   void _ensureJumpMap(ir.TreeNode node) {
@@ -68,20 +66,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     }
   }
 
-  KernelToLocalsMapImpl(MemberEntity member) {
-    _members.add(member);
-  }
-
-  @override
-  void enterInlinedMember(MemberEntity member) {
-    _members.add(member);
-  }
-
-  @override
-  void leaveInlinedMember(MemberEntity member) {
-    assert(member == currentMember);
-    _members.removeLast();
-  }
+  KernelToLocalsMapImpl(this.currentMember);
 
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
@@ -455,7 +440,10 @@ void forEachOrderedParameter(
     for (ir.VariableDeclaration variable in node.positionalParameters) {
       f(localsMap.getLocalVariable(variable));
     }
-    for (ir.VariableDeclaration variable in node.namedParameters) {
+    List<ir.VariableDeclaration> namedParameters =
+        new List<ir.VariableDeclaration>.from(node.namedParameters);
+    namedParameters.sort(namedOrdering);
+    for (ir.VariableDeclaration variable in namedParameters) {
       f(localsMap.getLocalVariable(variable));
     }
   }

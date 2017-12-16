@@ -191,6 +191,12 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) => this;
 
   @override
+  FunctionType substitute4(
+      List<TypeParameterElement> typeParameters, List<DartType> typeArguments) {
+    return this;
+  }
+
+  @override
   void _forEachParameterType(
       ParameterKind kind, callback(String name, DartType type)) {
     // There are no parameters.
@@ -1014,6 +1020,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
+
+  /**
+   * Perform simple substitution of [typeParameters] with [typeArguments].
+   */
+  FunctionType substitute4(
+      List<TypeParameterElement> typeParameters, List<DartType> typeArguments) {
+    if (typeArguments.length != typeParameters.length) {
+      throw new ArgumentError(
+          "typeArguments.length (${typeArguments.length}) != '"
+          "'typeParameters.length (${typeParameters.length})");
+    }
+    return new FunctionTypeImpl._(element, name, [], typeArguments,
+        typeParameters, _returnType, _parameters, true);
+  }
 
   /**
    * Invokes [callback] for each parameter of [kind] with the parameter's [name]

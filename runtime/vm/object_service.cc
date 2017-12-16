@@ -646,7 +646,7 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
     for (intptr_t i = 0; i < Length(); i++) {
       JSONObject jsentry(stream);
       jsentry.AddProperty("offset", OffsetFromIndex(i));
-      switch (InfoAt(i)) {
+      switch (TypeAt(i)) {
         case ObjectPool::kTaggedObject:
           obj = ObjectAt(i);
           jsentry.AddProperty("kind", "Object");

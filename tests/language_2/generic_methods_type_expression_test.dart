@@ -54,10 +54,9 @@ main() {
   Expect.equals(f8<int>(), new TypeValue<List<int>>().value);
 
   Expect.isTrue(f9<int>(<int, String>{}));
-  Expect
-      .isTrue(f9<int>(<bool, String>{})); // `is Map<dynamic, String>` is true.
+  Expect.isFalse(f9<int>(<bool, String>{}));
   Expect.isFalse(f9<int>(<int, int>{}));
 
   Expect.isTrue(new IsMap<int>().check<String>(<int, String>{}));
-  Expect.isTrue(new IsMap<int>().check<int>(<int, String>{}));
+  Expect.isFalse(new IsMap<int>().check<int>(<int, String>{}));
 }

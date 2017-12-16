@@ -10,11 +10,11 @@ class A {
 
 test(int i, String s, A a) {
   i = 1;
-  /*@error=InvalidAssignment*/ i = s;
+  i = /*@error=InvalidAssignment*/ s;
   i ??= 1;
-  /*@error=InvalidAssignment*/ i ??= s;
+  i ??= /*@error=InvalidAssignment*/ s;
   a = new A();
-  /*@error=InvalidAssignment*/ a += 1;
+  a /*@error=InvalidAssignment*/ += 1;
 }
 
 main() {}

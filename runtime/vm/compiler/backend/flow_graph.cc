@@ -26,14 +26,16 @@ DECLARE_FLAG(bool, verify_compiler);
 
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
-                     intptr_t max_block_id)
+                     intptr_t max_block_id,
+                     PrologueInfo prologue_info)
     : thread_(Thread::Current()),
       parent_(),
       current_ssa_temp_index_(0),
       max_block_id_(max_block_id),
       parsed_function_(parsed_function),
-      num_copied_params_(parsed_function.num_copied_params()),
-      num_non_copied_params_(parsed_function.num_non_copied_params()),
+      num_direct_parameters_(parsed_function.function().HasOptionalParameters()
+                                 ? 0
+                                 : parsed_function.function().NumParameters()),
       graph_entry_(graph_entry),
       preorder_(),
       postorder_(),
@@ -41,8 +43,8 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       optimized_block_order_(),
       constant_null_(NULL),
       constant_dead_(NULL),
-      constant_empty_context_(NULL),
       licm_allowed_(true),
+      prologue_info_(prologue_info),
       loop_headers_(NULL),
       loop_invariant_loads_(NULL),
       deferred_prefixes_(parsed_function.deferred_prefixes()),
@@ -609,7 +611,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   explicit VariableLivenessAnalysis(FlowGraph* flow_graph)
       : LivenessAnalysis(flow_graph->variable_count(), flow_graph->postorder()),
         flow_graph_(flow_graph),
-        num_non_copied_params_(flow_graph->num_non_copied_params()),
+        num_direct_parameters_(flow_graph->num_direct_parameters()),
         assigned_vars_() {}
 
   // For every block (in preorder) compute and return set of variables that
@@ -654,7 +656,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
       return false;
     }
     if (store->is_last()) {
-      const intptr_t index = store->local().BitIndexIn(num_non_copied_params_);
+      const intptr_t index = store->local().BitIndexIn(num_direct_parameters_);
       return GetLiveOutSet(block)->Contains(index);
     }
 
@@ -667,7 +669,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
     if (load->local().Equals(*flow_graph_->CurrentContextVar())) {
       return false;
     }
-    const intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+    const intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
     return load->is_last() && !GetLiveOutSet(block)->Contains(index);
   }
 
@@ -675,7 +677,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   virtual void ComputeInitialSets();
 
   const FlowGraph* flow_graph_;
-  const intptr_t num_non_copied_params_;
+  const intptr_t num_direct_parameters_;
   GrowableArray<BitVector*> assigned_vars_;
 };
 
@@ -707,7 +709,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
 
       LoadLocalInstr* load = current->AsLoadLocal();
       if (load != NULL) {
-        const intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+        const intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
         if (index >= live_in->length()) continue;  // Skip tmp_locals.
         live_in->Add(index);
         if (!last_loads->Contains(index)) {
@@ -720,7 +722,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
       StoreLocalInstr* store = current->AsStoreLocal();
       if (store != NULL) {
         const intptr_t index =
-            store->local().BitIndexIn(num_non_copied_params_);
+            store->local().BitIndexIn(num_direct_parameters_);
         if (index >= live_in->length()) continue;  // Skip tmp_locals.
         if (kill->Contains(index)) {
           if (!live_in->Contains(index)) {
@@ -944,13 +946,9 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
   GraphEntryInstr* entry = graph_entry();
 
-  // Initial renaming environment.
-  GrowableArray<Definition*> env(variable_count());
-
   // Add global constants to the initial definitions.
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
-  constant_empty_context_ = GetConstant(Object::empty_context());
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
@@ -959,66 +957,73 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
           ? 1
           : 0;
 
-  // Add parameters to the initial definitions and renaming environment.
-  if (inlining_parameters != NULL) {
-    // Use known parameters.
-    ASSERT(inlined_type_args_param + parameter_count() ==
-           inlining_parameters->length());
-    for (intptr_t i = 0; i < parameter_count(); ++i) {
-      // If inlined_type_args_param == 1, then (*inlining_parameters)[0]
-      // is the passed-in type args. We do not add it to env[0] but to
-      // env[parameter_count()] below.
-      Definition* defn = (*inlining_parameters)[inlined_type_args_param + i];
-      AllocateSSAIndexes(defn);
-      AddToInitialDefinitions(defn);
-      env.Add(defn);
-    }
-  } else {
-    // Create new parameters.  For functions compiled for OSR, the locals
-    // are unknown and so treated like parameters.
-    intptr_t count = IsCompiledForOsr() ? variable_count() : parameter_count();
-    for (intptr_t i = 0; i < count; ++i) {
+  // Initial renaming environment.
+  GrowableArray<Definition*> env(variable_count());
+  {
+    const intptr_t parameter_count =
+        IsCompiledForOsr() ? variable_count() : num_direct_parameters_;
+    for (intptr_t i = 0; i < parameter_count; i++) {
       ParameterInstr* param = new (zone()) ParameterInstr(i, entry);
-      param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+      param->set_ssa_temp_index(alloc_ssa_temp_index());
       AddToInitialDefinitions(param);
       env.Add(param);
     }
+    ASSERT(env.length() == parameter_count);
+
+    // Fill in all local variables with `null` (for osr the stack locals have
+    // already been been handled above).
+    if (!IsCompiledForOsr()) {
+      ASSERT(env.length() == num_direct_parameters_);
+      env.FillWith(constant_null(), num_direct_parameters_, num_stack_locals());
+    }
   }
 
-  // Initialize all locals in the renaming environment  For OSR, the locals have
-  // already been handled as parameters.
-  if (!IsCompiledForOsr()) {
-    intptr_t i = parameter_count();
-    if (isolate()->reify_generic_functions() && function().IsGeneric()) {
-      // The first local is the slot holding the copied passed-in type args.
-      // TODO(regis): Do we need the SpecialParameterInstr if the type_args_var
-      // is not needed? Add an assert for now:
-      ASSERT(parsed_function().function_type_arguments() != NULL);
-      Definition* defn;
-      if (inlining_parameters == NULL) {
-        defn = new SpecialParameterInstr(SpecialParameterInstr::kTypeArgs,
-                                         Thread::kNoDeoptId);
-      } else {
-        defn = (*inlining_parameters)[0];
+  // Override the entries in the renaming environment which are special (i.e.
+  // inlining arguments, type parameter, args descriptor, context, ...)
+  {
+    // Replace parameter slots with inlining definitions coming in.
+    if (inlining_parameters != NULL) {
+      for (intptr_t i = 0; i < function().NumParameters(); ++i) {
+        Definition* defn = (*inlining_parameters)[inlined_type_args_param + i];
+        AllocateSSAIndexes(defn);
+        AddToInitialDefinitions(defn);
+
+        intptr_t index = parsed_function_.RawParameterVariable(i)->BitIndexIn(
+            num_direct_parameters_);
+        env[index] = defn;
       }
-      AllocateSSAIndexes(defn);
-      AddToInitialDefinitions(defn);
-      env.Add(defn);
-      ++i;
     }
-    for (; i < variable_count(); ++i) {
-      if (i == CurrentContextEnvIndex()) {
-        if (function().IsClosureFunction()) {
-          SpecialParameterInstr* context = new SpecialParameterInstr(
-              SpecialParameterInstr::kContext, Thread::kNoDeoptId);
-          context->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-          AddToInitialDefinitions(context);
-          env.Add(context);
+
+    if (!IsCompiledForOsr()) {
+      const bool reify_generic_argument =
+          function().IsGeneric() && isolate()->reify_generic_functions();
+
+      // Replace the type arguments slot with a special parameter.
+      if (reify_generic_argument) {
+        ASSERT(parsed_function().function_type_arguments() != NULL);
+
+        Definition* defn;
+        if (inlining_parameters == NULL) {
+          // Note: If we are not inlining, then the prologue builder will
+          // take care of checking that we got the correct reified type
+          // arguments.  This includes checking the argument descriptor in order
+          // to even find out if the parameter was passed or not.
+          defn = constant_dead();
         } else {
-          env.Add(constant_empty_context());
+          defn = (*inlining_parameters)[0];
         }
-      } else {
-        env.Add(constant_null());
+        AllocateSSAIndexes(defn);
+        AddToInitialDefinitions(defn);
+        env[RawTypeArgumentEnvIndex()] = defn;
+      }
+
+      // Replace the argument descriptor slot with a special parameter.
+      if (parsed_function().has_arg_desc_var()) {
+        Definition* defn = new SpecialParameterInstr(
+            SpecialParameterInstr::kArgDescriptor, Thread::kNoDeoptId);
+        AllocateSSAIndexes(defn);
+        AddToInitialDefinitions(defn);
+        env[ArgumentDescriptorEnvIndex()] = defn;
       }
     }
   }
@@ -1027,7 +1032,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     // Functions with try-catch have a fixed area of stack slots reserved
     // so that all local variables are stored at a known location when
     // on entry to the catch.
-    entry->set_fixed_slot_count(num_stack_locals() + num_copied_params());
+    entry->set_fixed_slot_count(num_stack_locals());
   }
   RenameRecursive(entry, &env, live_phis, variable_liveness);
 }
@@ -1035,7 +1040,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
-      Environment::From(zone(), *env, num_non_copied_params_, parsed_function_);
+      Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
   if (instr->IsClosureCall()) {
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount());
@@ -1149,7 +1154,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         Definition* result = NULL;
         if (store != NULL) {
           // Update renaming environment.
-          intptr_t index = store->local().BitIndexIn(num_non_copied_params_);
+          intptr_t index = store->local().BitIndexIn(num_direct_parameters_);
           result = store->value()->definition();
 
           if (!FLAG_prune_dead_locals ||
@@ -1162,7 +1167,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(definition->HasTemp());
-          intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+          intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
           result = (*env)[index];
 
           PhiInstr* phi = result->AsPhi();
@@ -1179,7 +1184,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           // Record captured parameters so that they can be skipped when
           // emitting sync code inside optimized try-blocks.
           if (load->local().is_captured_parameter()) {
-            intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+            intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
             captured_parameters_->Add(index);
           }
 
@@ -1410,8 +1415,16 @@ intptr_t FlowGraph::InstructionCount() const {
   intptr_t size = 0;
   // Iterate each block, skipping the graph entry.
   for (intptr_t i = 1; i < preorder_.length(); ++i) {
-    for (ForwardInstructionIterator it(preorder_[i]); !it.Done();
-         it.Advance()) {
+    BlockEntryInstr* block = preorder_[i];
+
+    // Skip any blocks from the prologue to make them not count towards the
+    // inlining instruction budget.
+    const intptr_t block_id = block->block_id();
+    if (prologue_info_.Contains(block_id)) {
+      continue;
+    }
+
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       ++size;
     }
   }
@@ -1484,7 +1497,8 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
                                   : Thread::kNoDeoptId;
-    converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
+    converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id,
+                                   use->instruction()->speculative_mode());
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
   } else {

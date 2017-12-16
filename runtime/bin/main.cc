@@ -385,6 +385,11 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, NULL, dfe.kernel_platform(), flags, isolate_data, error);
     skip_library_load = true;
+  } else if (dfe.application_kernel_binary() != NULL) {
+    isolate = Dart_CreateIsolateFromKernel(script_uri, NULL,
+                                           dfe.application_kernel_binary(),
+                                           flags, isolate_data, error);
+    skip_library_load = true;
   } else {
     isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
                                  isolate_snapshot_instructions, flags,
@@ -756,6 +761,12 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   Dart_EnterScope();
 
   if (Options::gen_snapshot_kind() == kScript) {
+    if (vm_run_app_snapshot) {
+      Log::PrintErr("Cannot create a script snapshot from an app snapshot.\n");
+      // The snapshot would contain references to the app snapshot instead of
+      // the core snapshot.
+      Platform::Exit(kErrorExitCode);
+    }
     Snapshot::GenerateScript(Options::snapshot_filename());
   } else {
     // Lookup the library of the root script.
@@ -1064,6 +1075,12 @@ void main(int argc, char** argv) {
       Platform::Exit(kErrorExitCode);
     }
     dfe.set_kernel_platform(kernel_platform);
+  } else {
+    void* application_kernel_binary = dfe.ReadScript(script_name);
+    if (application_kernel_binary != NULL) {
+      dfe.set_application_kernel_binary(application_kernel_binary);
+      dfe.set_kernel_file_specified(true);
+    }
   }
 #endif
 

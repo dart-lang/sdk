@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
@@ -79,14 +78,29 @@ main() {
   var timesOne = new RegExp(r"\* 1");
   var oneTimes = new RegExp(r"1 \*");
 
-  asyncTest(() => Future.wait([
-        compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero),
-        compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus),
-        compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero),
-        compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus),
-        compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne),
-        compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes),
-        compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne),
-        compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes),
-      ]));
+  test(CompileMode compileMode) async {
+    await compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero,
+        compileMode: compileMode);
+    await compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus,
+        compileMode: compileMode);
+    await compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero,
+        compileMode: compileMode);
+    await compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus,
+        compileMode: compileMode);
+    await compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne,
+        compileMode: compileMode);
+    await compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes,
+        compileMode: compileMode);
+    await compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne,
+        compileMode: compileMode);
+    await compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes,
+        compileMode: compileMode);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await test(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await test(CompileMode.kernel);
+  });
 }

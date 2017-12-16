@@ -3,6 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// -----------------------------------------------------------------------
+///                          WHEN CHANGING THIS FILE:
+/// -----------------------------------------------------------------------
+///
+/// If you are adding/removing/modifying fields/classes of the AST, you must
+/// also update the following files:
+///
+///   - binary/ast_to_binary.dart
+///   - binary/ast_from_binary.dart
+///   - text/ast_to_text.dart
+///   - clone.dart
+///   - binary.md
+///   - type_checker.dart (if relevant)
+///
+/// -----------------------------------------------------------------------
 ///                           ERROR HANDLING
 /// -----------------------------------------------------------------------
 ///
@@ -175,7 +189,7 @@ abstract class NamedNode extends TreeNode {
 
 abstract class FileUriNode extends TreeNode {
   /// The uri of the source file this node was loaded from.
-  String get fileUri;
+  Uri get fileUri;
 }
 
 /// Indirection between a reference and its definition.
@@ -262,7 +276,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Uri importUri;
 
   /// The uri of the source file this library was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   /// If true, the library is part of another build unit and its contents
   /// are only partially loaded.
@@ -511,9 +525,9 @@ class LibraryDependency extends TreeNode {
 /// optionally with metadata.
 class LibraryPart extends TreeNode implements FileUriNode {
   final List<Expression> annotations;
-  final String fileUri;
+  final Uri fileUri;
 
-  LibraryPart(List<Expression> annotations, String fileUri)
+  LibraryPart(List<Expression> annotations, Uri fileUri)
       : this.byReference(annotations, fileUri);
 
   LibraryPart.byReference(this.annotations, this.fileUri) {
@@ -562,7 +576,7 @@ class Combinator extends TreeNode {
 /// Declaration of a type alias.
 class Typedef extends NamedNode implements FileUriNode {
   /// The uri of the source file that contains the declaration of this typedef.
-  String fileUri;
+  Uri fileUri;
   List<Expression> annotations = const <Expression>[];
   String name;
   final List<TypeParameter> typeParameters;
@@ -704,7 +718,7 @@ class Class extends NamedNode implements FileUriNode {
   bool isSyntheticMixinImplementation;
 
   /// The uri of the source file this class was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   final List<TypeParameter> typeParameters;
 
@@ -1027,7 +1041,7 @@ class Field extends Member implements FileUriNode {
   Expression initializer; // May be null.
 
   /// The uri of the source file this field was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   Field(Name name,
       {this.type: const DynamicType(),
@@ -1208,10 +1222,13 @@ class Field extends Member implements FileUriNode {
 /// invocation should be matched with the type parameters declared in the class.
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
-class Constructor extends Member {
+class Constructor extends Member implements FileUriNode {
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
+
+  /// The uri of the source file this field was loaded from.
+  Uri fileUri;
 
   Constructor(this.function,
       {Name name,
@@ -1220,6 +1237,7 @@ class Constructor extends Member {
       bool isSyntheticDefault: false,
       List<Initializer> initializers,
       int transformerFlags: 0,
+      this.fileUri,
       Reference reference})
       : this.initializers = initializers ?? <Initializer>[],
         super(name, reference) {
@@ -1283,6 +1301,10 @@ class Constructor extends Member {
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+  }
 }
 
 /// Residue of a redirecting factory constructor for the linking phase.
@@ -1304,14 +1326,13 @@ class Constructor extends Member {
 /// linking and are treated as non-runnable members of classes that merely serve
 /// as containers for that information.
 ///
-/// Existing transformers may easily ignore [RedirectingFactoryConstructor]s,
-/// because the class is implemented as a subclass of [Member], and not as a
-/// subclass of, for example, [Constructor] or [Procedure].
-///
 /// Redirecting factory constructors can be unnamed.  In this case, the name is
 /// an empty string (in a [Name]).
-class RedirectingFactoryConstructor extends Member {
+class RedirectingFactoryConstructor extends Member implements FileUriNode {
   int flags = 0;
+
+  /// The uri of the source file this field was loaded from.
+  Uri fileUri;
 
   /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
   /// of instantiated generic types, that is, generic types with supplied type
@@ -1349,6 +1370,7 @@ class RedirectingFactoryConstructor extends Member {
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
+      this.fileUri,
       Reference reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -1363,7 +1385,6 @@ class RedirectingFactoryConstructor extends Member {
     setParents(this.namedParameters, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
-    this.isSyntheticDefault = isSyntheticDefault;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1374,22 +1395,12 @@ class RedirectingFactoryConstructor extends Member {
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
 
-  /// True if this is a synthetic default constructor inserted in a class that
-  /// does not otherwise declare any constructors.
-  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
-
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
   void set isExternal(bool value) {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
-  }
-
-  void set isSyntheticDefault(bool value) {
-    flags = value
-        ? (flags | FlagSyntheticDefault)
-        : (flags & ~FlagSyntheticDefault);
   }
 
   bool get isInstanceMember => false;
@@ -1425,6 +1436,10 @@ class RedirectingFactoryConstructor extends Member {
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+  }
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -1446,12 +1461,34 @@ class RedirectingFactoryConstructor extends Member {
 class Procedure extends Member implements FileUriNode {
   ProcedureKind kind;
   int flags = 0;
-  // function is null if and only if abstract, external,
-  // or builder (below) is set.
+  // function is null if and only if abstract, external.
   FunctionNode function;
 
+  // The function node's body might be lazily loaded, meaning that this value
+  // might not be set correctly yet. Make sure the body is loaded before
+  // returning anything.
+  int get transformerFlags {
+    function?.body;
+    return super.transformerFlags;
+  }
+
+  // The function node's body might be lazily loaded, meaning that this value
+  // might get overwritten later (when the body is read). To avoid that read the
+  // body now and only set the value afterwards.
+  void set transformerFlags(int newValue) {
+    function?.body;
+    super.transformerFlags = newValue;
+  }
+
+  // This function will set the transformer flags without loading the body.
+  // Used when reading the binary. For other cases one should probably use
+  // `transformerFlags = value;`.
+  void setTransformerFlagsWithoutLazyLoading(int newValue) {
+    super.transformerFlags = newValue;
+  }
+
   /// The uri of the source file this procedure was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
@@ -1742,6 +1779,25 @@ class LocalInitializer extends Initializer {
       variable = variable.accept(v);
       variable?.parent = this;
     }
+  }
+}
+
+class AssertInitializer extends Initializer {
+  AssertStatement statement;
+
+  AssertInitializer(this.statement) {
+    statement.parent = this;
+  }
+
+  accept(InitializerVisitor v) => v.visitAssertInitializer(this);
+
+  visitChildren(Visitor v) {
+    statement.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    statement = statement.accept(v);
+    statement.parent = this;
   }
 }
 
@@ -2855,6 +2911,39 @@ class ConstructorInvocation extends InvocationExpression {
     return arguments.types.isEmpty
         ? target.enclosingClass.rawType
         : new InterfaceType(target.enclosingClass, arguments.types);
+  }
+}
+
+/// An explicit type instantiation of a generic function.
+class Instantiation extends Expression {
+  Expression expression;
+  final List<DartType> typeArguments;
+
+  Instantiation(this.expression, this.typeArguments) {
+    expression?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    FunctionType type = expression.getStaticType(types);
+    return Substitution
+        .fromPairs(type.typeParameters, typeArguments)
+        .substituteType(type.withoutTypeParameters);
+  }
+
+  accept(ExpressionVisitor v) => v.visitInstantiation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInstantiation(this, arg);
+
+  visitChildren(Visitor v) {
+    expression?.accept(v);
+    visitList(typeArguments, v);
+  }
+
+  transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept(v);
+      expression?.parent = this;
+    }
+    transformTypeList(typeArguments, v);
   }
 }
 
@@ -4824,7 +4913,8 @@ class FunctionType extends DartType {
     if (typeParameters.isEmpty) return this;
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
-        namedParameters: namedParameters);
+        namedParameters: namedParameters,
+        typedefReference: typedefReference);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -5402,7 +5492,7 @@ class Program extends TreeNode {
   /// Map from a source file uri to a line-starts table and source code.
   /// Given a source file uri and a offset in that file one can translate
   /// it to a line:column position in that file.
-  final Map<String, Source> uriToSource;
+  final Map<Uri, Source> uriToSource;
 
   /// Mapping between string tags and [MetadataRepository] corresponding to
   /// those tags.
@@ -5415,10 +5505,10 @@ class Program extends TreeNode {
   Program(
       {CanonicalName nameRoot,
       List<Library> libraries,
-      Map<String, Source> uriToSource})
+      Map<Uri, Source> uriToSource})
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
-        uriToSource = uriToSource ?? <String, Source>{} {
+        uriToSource = uriToSource ?? <Uri, Source>{} {
     if (libraries != null) {
       for (int i = 0; i < libraries.length; ++i) {
         // The libraries are owned by this program, and so are their canonical
@@ -5464,7 +5554,7 @@ class Program extends TreeNode {
   Program get enclosingProgram => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location getLocation(String file, int offset) {
+  Location getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
@@ -5476,7 +5566,7 @@ class Program extends TreeNode {
 /// A tuple with file, line, and column number, for displaying human-readable
 /// locations.
 class Location {
-  final String file;
+  final Uri file;
   final int line; // 1-based.
   final int column; // 1-based.
 
@@ -5670,7 +5760,7 @@ class Source {
   }
 
   /// Translates an offset to line and column numbers in the given file.
-  Location getLocation(String file, int offset) {
+  Location getLocation(Uri file, int offset) {
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
@@ -5784,7 +5874,7 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 /// static analysis and runtime behavior of the library are unaffected.
 const informative = null;
 
-Location _getLocationInProgram(Program program, String fileUri, int offset) {
+Location _getLocationInProgram(Program program, Uri fileUri, int offset) {
   if (program != null) {
     return program.getLocation(fileUri, offset);
   } else {

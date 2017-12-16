@@ -261,6 +261,12 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
     case kName:
       builder_->SkipName();  // read name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -727,13 +733,12 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
       needs_expr_temp_(false),
       builder_(new StreamingFlowGraphBuilder(
           &translation_helper_,
-          parsed_function->function().script(),
+          Script::Handle(Z, parsed_function->function().script()),
           zone_,
           TypedData::Handle(Z, parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset())),
       type_translator_(builder_, /*finalize=*/true) {
-  Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.InitFromScript(script);
+  H.InitFromScript(builder_->script());
   type_translator_.active_class_ = &active_class_;
 }
 
@@ -776,6 +781,11 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
     scope_->AddVariable(type_args_var);
     parsed_function_->set_function_type_arguments(type_args_var);
+  }
+
+  if (parsed_function_->has_arg_desc_var()) {
+    needs_expr_temp_ = true;
+    scope_->AddVariable(parsed_function_->arg_desc_var());
   }
 
   LocalVariable* context_var = parsed_function_->current_context_var();
@@ -1125,6 +1135,9 @@ void StreamingScopeBuilder::VisitInitializer() {
       return;
     case kLocalInitializer:
       VisitVariableDeclaration();  // read variable.
+      return;
+    case kAssertInitializer:
+      VisitStatement();
       return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
@@ -1607,6 +1620,7 @@ void StreamingScopeBuilder::VisitStatement() {
 
         EnterScope(offset);
 
+        builder_->ReadPosition();   // read position.
         VisitDartType();            // Read the guard.
         tag = builder_->ReadTag();  // read first part of exception.
         if (tag == kSomething) {
@@ -2505,7 +2519,7 @@ StreamingConstantEvaluator::StreamingConstantEvaluator(
       zone_(builder_->zone_),
       translation_helper_(builder_->translation_helper_),
       type_translator_(builder_->type_translator_),
-      script_(Script::Handle(zone_, builder_->Script())),
+      script_(builder_->script()),
       result_(Instance::Handle(zone_)) {}
 
 bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
@@ -2514,6 +2528,7 @@ bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
 
 Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                          bool reset_position) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (!GetCachedConstant(offset, &result_)) {
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
@@ -2732,7 +2747,7 @@ void StreamingConstantEvaluator::EvaluateGetStringLength(
   EvaluateExpression(expression_offset);
   if (result_.IsString()) {
     const String& str = String::Handle(Z, String::RawCast(result_.raw()));
-    result_ = Integer::New(str.Length());
+    result_ = Integer::New(str.Length(), H.allocation_space());
   } else {
     H.ReportError(
         script_, position,
@@ -2781,12 +2796,16 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
   NameIndex target =
       builder_->ReadCanonicalNameReference();  // read target_reference.
 
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
+
   if (H.IsField(target)) {
     const Field& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
     if (!field.is_const()) {
       H.ReportError(script_, position, "Not a constant field.");
     }
     if (field.StaticValue() == Object::transition_sentinel().raw()) {
+      builder_->InlineBailout(
+          "kernel::StreamingConstantEvaluator::EvaluateStaticGet::Cyclic");
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
@@ -3034,7 +3053,8 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
   intptr_t length = builder_->ReadListLength();  // read list length.
 
   bool all_string = true;
-  const Array& strings = Array::Handle(Z, Array::New(length));
+  const Array& strings =
+      Array::Handle(Z, Array::New(length, H.allocation_space()));
   for (intptr_t i = 0; i < length; ++i) {
     EvaluateExpression(builder_->ReaderOffset(),
                        false);  // read ith expression.
@@ -3219,8 +3239,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
       (receiver != NULL ? 1 : 0) + (type_args != NULL ? 1 : 0);
 
   // Build up arguments.
-  const Array& arguments =
-      Array::ZoneHandle(Z, Array::New(extra_arguments + argument_count));
+  const Array& arguments = Array::ZoneHandle(
+      Z, Array::New(extra_arguments + argument_count, H.allocation_space()));
   intptr_t pos = 0;
   if (receiver != NULL) {
     arguments.SetAt(pos++, *receiver);
@@ -3239,7 +3259,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
 
   // List of named.
   list_length = builder_->ReadListLength();  // read list length.
-  const Array& names = Array::ZoneHandle(Z, Array::New(list_length));
+  const Array& names =
+      Array::ZoneHandle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name =
         H.DartSymbol(builder_->ReadStringReference());  // read ith name index.
@@ -3258,7 +3279,8 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
   // We do not support generic methods yet.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names,
+                                  H.allocation_space()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
@@ -3483,9 +3505,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfStaticFieldInitializer() {
   }
   body += Return(TokenPosition::kNoSource);
 
+  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
@@ -3541,9 +3564,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
   }
   body += Return(TokenPosition::kNoSource);
 
+  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
@@ -3626,6 +3650,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 
 Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     NameIndex canonical_name) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   Field& field =
       Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
@@ -3643,6 +3668,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
 
 Fragment StreamingFlowGraphBuilder::BuildInitializers(
     const Class& parent_class) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   Fragment instructions;
 
   // Start by getting the position of the constructors initializer.
@@ -3718,6 +3744,10 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           NameIndex canonical_name =
               ReadCanonicalNameReference();  // read field_reference.
           instructions += BuildFieldInitializer(canonical_name);  // read value.
+          break;
+        }
+        case kAssertInitializer: {
+          instructions += BuildStatement();
           break;
         }
         case kSuperInitializer: {
@@ -3819,15 +3849,29 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
   const Function& target = Function::ZoneHandle(Z, function.parent_function());
 
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
   flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
       *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
-  SetupDefaultParameterValues();
 
-  Fragment body(normal_entry);
+  Fragment body(instruction_cursor);
   body += flow_graph_builder_->CheckStackOverflowInPrologue();
+
+  intptr_t type_args_len = 0;
+  if (I->reify_generic_functions() && function.IsGeneric()) {
+    type_args_len = target.NumTypeParameters();
+    ASSERT(parsed_function()->function_type_arguments() != NULL);
+    body += LoadLocal(parsed_function()->function_type_arguments());
+    body += PushArgument();
+  }
 
   // Load all the arguments.
   if (!target.is_static()) {
@@ -3855,7 +3899,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t named_argument_count = ReadListLength();
   Array& argument_names = Array::ZoneHandle(Z);
   if (named_argument_count > 0) {
-    argument_names = Array::New(named_argument_count);
+    argument_names = Array::New(named_argument_count, H.allocation_space());
     for (intptr_t i = 0; i < named_argument_count; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
@@ -3873,35 +3917,28 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t argument_count = positional_argument_count + named_argument_count;
   if (!target.is_static()) ++argument_count;
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names, ICData::kNoRebind);
+                     argument_names, ICData::kNoRebind, type_args_len);
 
   // Return the result.
   body += Return(function_node_helper.end_position_);
 
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
-}
-
-LocalVariable* StreamingFlowGraphBuilder::LookupParameterDirect(
-    intptr_t kernel_offset,
-    intptr_t parameter_index) {
-  LocalVariable* var = LookupVariable(kernel_offset);
-  LocalVariable* parameter =
-      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                            Symbols::TempParam(), var->type());
-  parameter->set_index(parameter_index);
-  if (var->is_captured()) parameter->set_is_captured_parameter(true);
-  return parameter;
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
   const Function& dart_function = parsed_function()->function();
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
   flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
       *parsed_function(), normal_entry, flow_graph_builder_->osr_id_);
-
-  SetupDefaultParameterValues();
 
   Fragment body;
 
@@ -3970,29 +4007,29 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     intptr_t parameter_count = dart_function.NumParameters();
     intptr_t parameter_index = parsed_function()->first_parameter_index();
 
+    const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
+    const Function& function = pf.function();
+
     for (intptr_t i = 0; i < parameter_count; ++i, --parameter_index) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
-        // There is no LocalVariable describing the on-stack parameter so
-        // create one directly and use the same type.
-        LocalVariable* parameter = new (Z)
-            LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                          Symbols::TempParam(), variable->type());
-        parameter->set_index(parameter_index);
-        // Mark the stack variable so it will be ignored by the code for
-        // try/catch.
-        parameter->set_is_captured_parameter(true);
+        LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
+        ASSERT((function.HasOptionalParameters() &&
+                raw_parameter.owner() == scope) ||
+               (!function.HasOptionalParameters() &&
+                raw_parameter.owner() == NULL));
+        ASSERT(!raw_parameter.is_captured());
 
         // Copy the parameter from the stack to the context.  Overwrite it
         // with a null constant on the stack so the original value is
         // eligible for garbage collection.
         body += LoadLocal(context);
-        body += LoadLocal(parameter);
+        body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
             Context::variable_offset(variable->index()));
         body += NullConstant();
-        body += StoreLocal(TokenPosition::kNoSource, parameter);
+        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();
       }
     }
@@ -4006,6 +4043,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   }
 
   FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  intptr_t type_parameters_offset = ReaderOffset();
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
   intptr_t first_parameter_offset = -1;
@@ -4053,8 +4092,40 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // If we run in checked mode or strong mode, we have to check the type of the
   // passed arguments.
   if (I->argument_type_checks()) {
-    // Positional.
+    AlternativeReadingScope _(reader_);
+    SetOffset(type_parameters_offset);
+
+    // Type parameters
     intptr_t list_length = ReadListLength();
+    for (intptr_t i = 0; i < list_length; ++i) {
+      ReadFlags();                                         // skip flags
+      SkipListOfExpressions();                             // skip annotations
+      String& name = H.DartSymbol(ReadStringReference());  // read name
+      const AbstractType& bound = T.BuildType();           // read bound
+
+      if (I->strong() && !bound.IsObjectType() &&
+          (I->reify_generic_functions() || dart_function.IsFactory())) {
+        ASSERT(!bound.IsDynamicType());
+        TypeParameter& param = TypeParameter::Handle(Z);
+        if (dart_function.IsFactory()) {
+          param ^= TypeArguments::Handle(
+                       Class::Handle(dart_function.Owner()).type_parameters())
+                       .TypeAt(i);
+        } else {
+          param ^=
+              TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
+        }
+        ASSERT(param.IsFinalized());
+        body += CheckTypeArgumentBound(param, bound, name);
+      }
+    }
+
+    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
+    function_node_helper.ReadUntilExcluding(
+        FunctionNodeHelper::kPositionalParameters);
+
+    // Positional.
+    list_length = ReadListLength();
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
@@ -4073,7 +4144,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
       SkipVariableDeclaration();  // read ith variable.
     }
 
-    function_node_helper.SetJustRead(FunctionNodeHelper::kNamedParameters);
+    function_node_helper.SetNext(FunctionNodeHelper::kPositionalParameters);
   }
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
@@ -4225,7 +4296,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     flow_graph_builder_->context_depth_ = current_context_depth;
   }
 
-  normal_entry->LinkTo(body.entry);
+  instruction_cursor->LinkTo(body.entry);
 
   GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_;
   // When compiling for OSR, use a depth first search to find the OSR
@@ -4233,13 +4304,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (flow_graph_builder_->osr_id_ != Compiler::kNoOSRDeoptId) {
-    graph_entry->RelinkToOsrEntry(Z, flow_graph_builder_->next_block_id_);
+    graph_entry->RelinkToOsrEntry(Z,
+                                  flow_graph_builder_->last_used_block_id_ + 1);
   }
-  return new (Z) FlowGraph(*parsed_function(), graph_entry,
-                           flow_graph_builder_->next_block_id_ - 1);
+  return new (Z)
+      FlowGraph(*parsed_function(), graph_entry,
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   const Function& function = parsed_function()->function();
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
@@ -4727,6 +4801,9 @@ void StreamingFlowGraphBuilder::SkipInitializer() {
     case kLocalInitializer:
       SkipVariableDeclaration();  // read variable.
       return;
+    case kAssertInitializer:
+      SkipStatement();
+      return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -5065,6 +5142,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       ReadBool();       // read any_catch_needs_stack_trace.
       intptr_t catch_count = ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
+        ReadPosition();   // read position.
         SkipDartType();   // read guard.
         tag = ReadTag();  // read first part of exception.
         if (tag == kSomething) {
@@ -5156,7 +5234,7 @@ void StreamingFlowGraphBuilder::SkipLibraryDependency() {
 
 void StreamingFlowGraphBuilder::SkipLibraryPart() {
   SkipListOfExpressions();  // Read annotations.
-  ReadStringReference();    // read uri_index.
+  ReadUInt();               // Read source_uri_index.
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryTypedef() {
@@ -5682,6 +5760,14 @@ Fragment StreamingFlowGraphBuilder::CheckArgumentType(
                                               variable->name());
 }
 
+Fragment StreamingFlowGraphBuilder::CheckTypeArgumentBound(
+    const AbstractType& parameter,
+    const AbstractType& bound,
+    const String& dst_name) {
+  return flow_graph_builder_->AssertSubtype(TokenPosition::kNoSource, parameter,
+                                            bound, dst_name);
+}
+
 Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(
     intptr_t variable_kernel_position) {
   if (I->type_checks()) {
@@ -5867,7 +5953,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+  if (I->strong() && !H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
@@ -5931,7 +6017,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+  if (I->strong() && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
     ASSERT(setter_name.raw() == interface_target->name());
@@ -6267,6 +6353,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   TokenPosition position = ReadPosition();  // read position.
@@ -6368,7 +6455,9 @@ intptr_t StreamingFlowGraphBuilder::ArgumentCheckBitsForSetter(
       // All bits are 0.
       break;
     case Interface: {
-      if (!interface_target.IsImplicitGetterOrSetter()) {
+      // TODO(sjindel): Revise checking interface target for null.
+      if (interface_target.IsNull() ||
+          !interface_target.IsImplicitGetterOrSetter()) {
         intptr_t type_argument_check_bits_unused;
         ArgumentCheckBitsForInvocation(
             1, 0, 1, Array::null_array(), interface_target, category,
@@ -6384,8 +6473,7 @@ intptr_t StreamingFlowGraphBuilder::ArgumentCheckBitsForSetter(
       AlternativeReadingScope r(reader_, &kernel_data,
                                 target_field.kernel_offset());
       AlternativeScriptScope s(&translation_helper_,
-                               Script::Handle(target_field.Script()),
-                               Script::Handle(Script()));
+                               Script::Handle(target_field.Script()), script());
 
       FieldHelper helper(this);
       helper.ReadUntilIncluding(FieldHelper::kFlags);
@@ -6436,7 +6524,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
           Utils::SignedNBitMask(strong_checked_type_arguments);
       break;
     case Interface: {
-      ASSERT(!interface_target.IsNull() || !FLAG_experimental_strong_mode);
+      ASSERT(!interface_target.IsNull() || !I->strong());
       if (interface_target.IsNull()) {
         argument_check_bits =
             Utils::SignedNBitMask(strong_checked_arguments + 1);
@@ -6452,7 +6540,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
                                  interface_target.kernel_offset());
       AlternativeScriptScope _s(&translation_helper_,
                                 Script::Handle(interface_target.script()),
-                                Script::Handle(Script()));
+                                script());
       ReadUntilFunctionNode();
 
       FunctionNodeHelper fn_helper(this);
@@ -6472,6 +6560,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
         }
       }
 
+      fn_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
       fn_helper.ReadUntilExcluding(FunctionNodeHelper::kPositionalParameters);
       intptr_t num_interface_pos_params = ReadListLength();
       ASSERT(num_interface_pos_params >= positional_argument_count);
@@ -6651,8 +6740,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
-      !H.IsField(itarget_name)) {
+  if (I->strong() && !H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
@@ -6809,7 +6897,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     SkipListOfExpressions();
     intptr_t named_list_length = ReadListLength();
-    argument_names ^= Array::New(named_list_length);
+    argument_names ^= Array::New(named_list_length, H.allocation_space());
     for (intptr_t i = 0; i < named_list_length; i++) {
       const String& arg_name = H.DartSymbol(ReadStringReference());
       argument_names.SetAt(i, arg_name);
@@ -8384,8 +8472,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       CatchBlockEntry(handler_types, try_handler_index, needs_stacktrace);
   // Fill in the body of the catch.
   for (intptr_t i = 0; i < catch_count; ++i) {
-    intptr_t catch_offset = ReaderOffset();  // Catch has no tag.
-    Tag tag = PeekTag();                     // peek guard type.
+    intptr_t catch_offset = ReaderOffset();   // Catch has no tag.
+    TokenPosition position = ReadPosition();  // read position.
+    Tag tag = PeekTag();                      // peek guard type.
     AbstractType* type_guard = NULL;
     if (tag != kDynamicType) {
       type_guard = &T.BuildType();  // read guard.
@@ -8453,8 +8542,8 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
         catch_body += Constant(*type_guard);
         catch_body += PushArgument();  // guard type
         catch_body += InstanceCall(
-            TokenPosition::kNoSource,
-            Library::PrivateCoreLibName(Symbols::_instanceOf()), Token::kIS, 4);
+            position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
+            Token::kIS, 4);
 
         TargetEntryInstr* catch_entry;
         TargetEntryInstr* next_catch_entry;
@@ -8829,10 +8918,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   return instructions;
 }
 
-RawScript* StreamingFlowGraphBuilder::Script() {
-  return script_;
-}
-
 void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
     ActiveClass* active_class,
     const Object& set_on,
@@ -9080,7 +9165,8 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
   }
 
   intptr_t list_length = ReadListLength();  // read list length.
-  const Array& metadata_values = Array::Handle(Z, Array::New(list_length));
+  const Array& metadata_values =
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     // this will (potentially) read the expression, but reset the position.
     Instance& value = constant_evaluator_.EvaluateExpression(ReaderOffset());
@@ -9174,19 +9260,51 @@ String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
 }
 
 RawTypedData* StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
+  // Line starts are delta encoded. So get the max delta first so that we
+  // can store them as tighly as possible.
   AlternativeReadingScope alt(reader_);
   SetOffset(GetOffsetForSourceInfo(index));
-  SkipBytes(ReadUInt());       // skip uri.
-  SkipBytes(ReadUInt());       // skip source.
-  intptr_t size = ReadUInt();  // read line starts length.
+  SkipBytes(ReadUInt());                         // skip uri.
+  SkipBytes(ReadUInt());                         // skip source.
+  const intptr_t line_start_count = ReadUInt();  // read number of line start
+                                                 // entries.
+  MallocGrowableArray<int32_t> line_starts_array;
 
-  TypedData& line_starts_data = TypedData::Handle(
-      Z, TypedData::New(kTypedDataInt32ArrayCid, size, Heap::kOld));
-  intptr_t previous_line_start = 0;
-  for (intptr_t j = 0; j < size; ++j) {
-    intptr_t line_start = ReadUInt() + previous_line_start;
-    line_starts_data.SetInt32(j * 4, line_start);
-    previous_line_start = line_start;
+  intptr_t max_delta = 0;
+  for (intptr_t i = 0; i < line_start_count; ++i) {
+    int32_t delta = ReadUInt();
+    line_starts_array.Add(delta);
+    if (delta > max_delta) {
+      max_delta = delta;
+    }
+  }
+
+  intptr_t cid;
+  if (max_delta <= kMaxInt8) {
+    cid = kTypedDataInt8ArrayCid;
+  } else if (max_delta <= kMaxInt16) {
+    cid = kTypedDataInt16ArrayCid;
+  } else {
+    cid = kTypedDataInt32ArrayCid;
+  }
+
+  TypedData& line_starts_data =
+      TypedData::Handle(Z, TypedData::New(cid, line_start_count, Heap::kOld));
+  for (intptr_t j = 0; j < line_start_count; ++j) {
+    int32_t line_start = line_starts_array[j];
+    switch (cid) {
+      case kTypedDataInt8ArrayCid:
+        line_starts_data.SetInt8(j, static_cast<int8_t>(line_start));
+        break;
+      case kTypedDataInt16ArrayCid:
+        line_starts_data.SetInt16(j << 1, static_cast<int16_t>(line_start));
+        break;
+      case kTypedDataInt32ArrayCid:
+        line_starts_data.SetInt32(j << 2, line_start);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
   return line_starts_data.raw();
 }

@@ -135,6 +135,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     fail(buffer.toString());
   }
 
+  @failingTest
   test_translatedMessageCoverage() {
     String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
     String astBuilderPath =
@@ -180,8 +181,8 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         buffer.write('  ');
         buffer.writeln(code);
       }
-      buffer.write(
-          'Remove the cases for these codes from FastaErrorReporter.reportError.');
+      buffer.write('Remove the cases for these codes from '
+          'FastaErrorReporter.reportMessage.');
     }
     if (buffer.isNotEmpty) {
       fail(buffer.toString());

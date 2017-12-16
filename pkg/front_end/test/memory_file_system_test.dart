@@ -8,8 +8,9 @@ library front_end.test.memory_file_system_test;
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:front_end/file_system.dart' show FileSystemException;
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart'
+    show FileSystemException;
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

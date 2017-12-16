@@ -5,34 +5,31 @@
 import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
-import 'package:front_end/compilation_message.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:kernel/kernel.dart';
+import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/core_types.dart';
-
+import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
-
 import 'package:source_maps/source_maps.dart';
 
-import '../compiler/module_builder.dart';
 import '../compiler/js_names.dart' as JS;
+import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as JS;
 import 'compiler.dart';
 import 'native_types.dart';
 import 'source_map_printer.dart';
 
-const _binaryName = 'dartdevc';
+const _binaryName = 'dartdevk';
 
 /// Invoke the compiler with [args].
 ///
 /// Returns `true` if the program compiled without any fatal errors.
-Future<bool> compile(List<String> args) async {
+Future<CompilerResult> compile(List<String> args,
+    {fe.InitializedCompilerState compilerState}) async {
   try {
-    return await _compile(args);
+    return await _compile(args, compilerState: compilerState);
   } catch (error) {
     print('''
 We're sorry, you've found a bug in our compiler.
@@ -48,9 +45,42 @@ any other information that may help us track it down. Thanks!
   }
 }
 
-Future<bool> _compile(List<String> args) async {
+String _usageMessage(ArgParser ddcArgParser) =>
+    'The Dart Development Compiler compiles Dart sources into a JavaScript '
+    'module.\n\n'
+    'Usage: $_binaryName [options...] <sources...>\n\n'
+    '${ddcArgParser.usage}';
+
+Uri stringToUri(String s, {bool windows}) {
+  windows ??= Platform.isWindows;
+  if (windows) {
+    s = s.replaceAll("\\", "/");
+  }
+
+  Uri result = Uri.base.resolve(s);
+  if (windows && result.scheme.length == 1) {
+    // Assume c: or similar --- interpret as file path.
+    return new Uri.file(s, windows: true);
+  }
+  return result;
+}
+
+class CompilerResult {
+  final fe.InitializedCompilerState compilerState;
+  final bool result;
+
+  CompilerResult(this.compilerState, this.result);
+
+  CompilerResult.noState(this.result) : compilerState = null;
+}
+
+Future<CompilerResult> _compile(List<String> args,
+    {fe.InitializedCompilerState compilerState}) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
+    ..addFlag('help',
+        abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
+    ..addOption('packages', help: 'The package spec file to use.')
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
     ..addOption('summary',
@@ -60,82 +90,73 @@ Future<bool> _compile(List<String> args) async {
   addModuleFormatOptions(argParser, singleOutFile: false);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
-
   var argResults = argParser.parse(args);
+
+  if (argResults['help'] || args.isEmpty) {
+    print(_usageMessage(argParser));
+    return new CompilerResult.noState(true);
+  }
 
   var moduleFormat = parseModuleFormatOption(argResults).first;
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
 
   var summaryUris =
-      (argResults['summary'] as List<String>).map(Uri.parse).toList();
+      (argResults['summary'] as List<String>).map(stringToUri).toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
       path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
 
+  var packageFile =
+      argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
+
+  var inputs = argResults.rest.map(stringToUri).toList();
+
   var succeeded = true;
-  void errorHandler(CompilationMessage error) {
+  void errorHandler(fe.CompilationMessage error) {
     // TODO(jmesserly): front end warning levels do not seem to follow the
     // Strong Mode/Dart 2 spec. So for now, we treat all warnings as
     // compile time errors.
-    if (error.severity == Severity.error ||
-        error.severity == Severity.warning) {
+    if (error.severity == fe.Severity.error ||
+        error.severity == fe.Severity.warning) {
       succeeded = false;
     }
   }
 
-  var options = new CompilerOptions()
-    ..sdkSummary = path.toUri(sdkSummaryPath)
-    ..packagesFileUri =
-        path.toUri(path.absolute(ddcPath, '..', '..', '.packages'))
-    ..inputSummaries = summaryUris
-    ..target = new DevCompilerTarget()
-    ..onError = errorHandler
-    ..chaseDependencies = true
-    ..reportMessages = true;
-
-  var inputs = argResults.rest
-      .map((a) => a.startsWith('package:') || a.startsWith('dart:')
-          ? Uri.parse(a)
-          : path.toUri(path.absolute(a)))
-      .toList();
-  String output = argResults['out'];
-
-  //var program = await kernelForBuildUnit(inputs, options);
-  // TODO(jmesserly): use public APIs. For now we need this to access processed
-  // options, which has info needed to compute library -> module mapping without
-  // re-parsing inputs.
-  var processedOpts = new ProcessedOptions(options, true, inputs);
-  var compilerResult = await generateKernel(processedOpts);
-  var program = compilerResult?.program;
-
-  var sdkSummary = await processedOpts.loadSdkSummary(null);
-  var nameRoot = sdkSummary?.root ?? new CanonicalName.root();
-  var summaries = await processedOpts.loadInputSummaries(nameRoot);
-
-  if (succeeded) {
-    var file = new File(output);
-    if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-    // Useful for debugging:
-    writeProgramToText(program, path: output + '.txt');
-
-    // TODO(jmesserly): Save .dill file so other modules can link in this one.
-    //await writeProgramToBinary(program, output);
-    var jsModule =
-        compileToJSModule(program, summaries, summaryUris, declaredVariables);
-    var jsCode = jsProgramToCode(jsModule, moduleFormat,
-        buildSourceMap: argResults['source-map'],
-        jsUrl: path.toUri(output).toString(),
-        mapUrl: path.toUri(output + '.map').toString());
-    file.writeAsStringSync(jsCode.code);
-
-    if (jsCode.sourceMap != null) {
-      file = new File(output + '.map');
-      if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-      file.writeAsStringSync(JSON.encode(jsCode.sourceMap));
-    }
+  compilerState = await fe.initializeCompiler(
+      compilerState,
+      path.toUri(sdkSummaryPath),
+      path.toUri(packageFile),
+      summaryUris,
+      new DevCompilerTarget());
+  fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
+  if (result == null || !succeeded) {
+    return new CompilerResult(compilerState, false);
   }
 
-  return succeeded;
+  String output = argResults['out'];
+  var file = new File(output);
+  if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+
+  // Useful for debugging:
+  writeProgramToText(result.program, path: output + '.txt');
+
+  // TODO(jmesserly): Save .dill file so other modules can link in this one.
+  //await writeProgramToBinary(program, output);
+  var jsModule = compileToJSModule(
+      result.program, result.inputSummaries, summaryUris, declaredVariables);
+  var jsCode = jsProgramToCode(jsModule, moduleFormat,
+      buildSourceMap: argResults['source-map'],
+      jsUrl: path.toUri(output).toString(),
+      mapUrl: path.toUri(output + '.map').toString());
+  file.writeAsStringSync(jsCode.code);
+
+  if (jsCode.sourceMap != null) {
+    file = new File(output + '.map');
+    if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+    file.writeAsStringSync(JSON.encode(jsCode.sourceMap));
+  }
+
+  return new CompilerResult(compilerState, true);
 }
 
 JS.Program compileToJSModule(Program p, List<Program> summaries,

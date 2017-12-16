@@ -27,7 +27,8 @@ FunctionType substituteTypeParams(
               named.name, substitution.substituteType(named.type)))
           .toList(),
       typeParameters: newTypeParameters,
-      requiredParameterCount: type.requiredParameterCount);
+      requiredParameterCount: type.requiredParameterCount,
+      typedefReference: type.typedefReference);
 }
 
 /// Given a [FunctionType], gets the type of the named parameter with the given

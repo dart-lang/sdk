@@ -220,7 +220,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   SimpleIdentifier parseSimpleIdentifier(String code);
 
-  Statement parseStatement(String source, [bool enableLazyAssignmentOperators]);
+  Statement parseStatement(String source,
+      {bool enableLazyAssignmentOperators, int expectedEndOffset});
 
   Expression parseStringLiteral(String code);
 
@@ -2375,10 +2376,12 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('class A = abstract B with C;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 10, 8)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0)
+          ]);
   }
 
   void test_colonInPlaceOfIn() {
@@ -4458,11 +4461,15 @@ class Wrong<T> {
     createParser('(a, b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, 4, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 6, 1)]
+        : [
+            expectedError(
+                ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, 4, 1)
+          ]);
     expect(list.parameters[0].kind, ParameterKind.REQUIRED);
-    expect(list.parameters[1].kind, ParameterKind.POSITIONAL);
+    expect(list.parameters[1].kind,
+        usingFastaParser ? ParameterKind.NAMED : ParameterKind.POSITIONAL);
   }
 
   void test_redirectingConstructorWithBody_named() {
@@ -4943,8 +4950,16 @@ void main() {
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
-    var identifier = expression as SimpleIdentifier;
-    expect(identifier.isSynthetic, isTrue);
+    if (usingFastaParser) {
+      BinaryExpression binaryExpression = expression;
+      expect(binaryExpression.leftOperand.isSynthetic, isTrue);
+      expect(binaryExpression.rightOperand.isSynthetic, isFalse);
+      SimpleIdentifier identifier = binaryExpression.rightOperand;
+      expect(identifier.name, 'x');
+    } else {
+      var identifier = expression as SimpleIdentifier;
+      expect(identifier.isSynthetic, isTrue);
+    }
   }
 
   void test_varAndType_field() {
@@ -7222,7 +7237,9 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(
         interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
     InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.leftBracket.lexeme, '\$');
     expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(element1.rightBracket, isNull);
     expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
     InterpolationString element2 = interpolation.elements[2];
     expect(element2.value, '');
@@ -7241,6 +7258,10 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(elements[2] is InterpolationString, isTrue);
     expect(elements[3] is InterpolationExpression, isTrue);
     expect(elements[4] is InterpolationString, isTrue);
+    expect((elements[1] as InterpolationExpression).leftBracket.lexeme, '\${');
+    expect((elements[1] as InterpolationExpression).rightBracket.lexeme, '}');
+    expect((elements[3] as InterpolationExpression).leftBracket.lexeme, '\$');
+    expect((elements[3] as InterpolationExpression).rightBracket, isNull);
   }
 
   void test_parseStringLiteral_multiline_encodedSpace() {
@@ -9445,7 +9466,7 @@ class ParserTestCase extends EngineTestCase
    * is `true`, then lazy assignment operators should be enabled.
    */
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
     listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
@@ -9899,6 +9920,13 @@ class A {}
 class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_combinator_missingIdentifier() {
+    createParser('import "/testB.dart" show ;');
+    parser.parseCompilationUnit2();
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)]);
+  }
+
   void test_conditionalExpression_missingElse() {
     Expression expression =
         parseExpression('x ? y :', codes: [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -9970,13 +9998,24 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    BinaryExpression expression = parseExpression("is ==", codes: [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+    // Fasta recovers differently. It takes the `is` to be an identifier and
+    // assumes that the right operand of `==` is the only missing identifier.
+    BinaryExpression expression = parseExpression("is ==",
+        codes: usingFastaParser
+            ? [
+                //ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ]);
+    if (!usingFastaParser) {
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+    }
   }
 
   void test_equalityExpression_precedence_relational_right() {
@@ -10059,6 +10098,16 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_functionExpression_named() {
     parseExpression("m(f() => 0);", codes: [ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_ifStatement_noElse_statement() {
+    parseStatement('if (x v) f(x);');
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 1)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
+          ]);
   }
 
   void test_importDirectivePartial_as() {
@@ -10269,6 +10318,34 @@ class C {
     expect(field.name.isSynthetic, isTrue);
   }
 
+  void test_incompleteField_type() {
+    CompilationUnit unit = parseCompilationUnit(r'''
+class C {
+  A
+}''', codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    CompilationUnitMember unitMember = declarations[0];
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
+    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    expect(members, hasLength(1));
+    ClassMember classMember = members[0];
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
+    VariableDeclarationList fieldList =
+        (classMember as FieldDeclaration).fields;
+    TypeName type = fieldList.type;
+    expect(type.name.name, 'A');
+    NodeList<VariableDeclaration> fields = fieldList.variables;
+    expect(fields, hasLength(1));
+    VariableDeclaration field = fields[0];
+    expect(field.name.isSynthetic, isTrue);
+  }
+
   void test_incompleteField_var() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
@@ -10311,15 +10388,26 @@ class C {
   }
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
-    Statement statement = parseStatement('String v }');
+    Statement statement = parseStatement('String v }', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
 
+  void test_incompleteLocalVariable_atTheEndOfBlock_modifierOnly() {
+    Statement statement = parseStatement('final }', expectedEndOffset: 6);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
+    ]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'final ;');
+  }
+
   void test_incompleteLocalVariable_beforeIdentifier() {
-    Statement statement = parseStatement('String v String v2;');
+    Statement statement =
+        parseStatement('String v String v2;', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10327,7 +10415,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeKeyword() {
-    Statement statement = parseStatement('String v if (true) {}');
+    Statement statement =
+        parseStatement('String v if (true) {}', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 2)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10335,7 +10424,7 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeNextBlock() {
-    Statement statement = parseStatement('String v {}');
+    Statement statement = parseStatement('String v {}', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10343,7 +10432,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_parameterizedType() {
-    Statement statement = parseStatement('List<String> v {}');
+    Statement statement =
+        parseStatement('List<String> v {}', expectedEndOffset: 15);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10381,7 +10471,24 @@ class C {
   void test_incompleteTypeParameters() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C<K {
-}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // validate the type parameters
+    TypeParameterList typeParameters = classDecl.typeParameters;
+    expect(typeParameters.typeParameters, hasLength(1));
+    // synthetic '>'
+    Token token = typeParameters.endToken;
+    expect(token.type, TokenType.GT);
+    expect(token.isSynthetic, isTrue);
+  }
+
+  void test_incompleteTypeParameters2() {
+    CompilationUnit unit = parseCompilationUnit(r'''
+class C<K extends L<T> {
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1)]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -10398,6 +10505,38 @@ class C<K {
   void test_invalidFunctionBodyModifier() {
     parseCompilationUnit("f() sync {}",
         codes: [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
+  }
+
+  void test_invalidTypeParameters() {
+    CompilationUnit unit = parseCompilationUnit(r'''
+class C {
+  G<int double> g;
+}''',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6),
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 18, 6)
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 24, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 24, 1),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 26, 1)
+              ]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // validate members
+    if (usingFastaParser) {
+      expect(classDecl.members, hasLength(1));
+      FieldDeclaration fields = classDecl.members.first;
+      expect(fields.fields.variables, hasLength(1));
+      VariableDeclaration field = fields.fields.variables.first;
+      expect(field.name.name, 'g');
+    }
   }
 
   void test_isExpression_noType() {
@@ -10529,19 +10668,32 @@ class C<K {
         BinaryExpression, expression.rightOperand);
   }
 
+  void test_method_missingBody() {
+    parseCompilationUnit("class C { b() }",
+        errors: [expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 14, 1)]);
+  }
+
   void test_missing_commaInArgumentList() {
-    parseExpression("f(x: 1 y: 2)",
+    MethodInvocation expression = parseExpression("f(x: 1 y: 2)",
         codes: usingFastaParser
             ? [ParserErrorCode.UNEXPECTED_TOKEN]
             : [ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<Expression> arguments = expression.argumentList.arguments;
+    expect(arguments, hasLength(2));
   }
 
   void test_missingComma_beforeNamedArgument() {
     createParser('(a b: c)');
     ArgumentList argumentList = parser.parseArgumentList();
     expectNotNullIfNoErrors(argumentList);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1)]);
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.UNEXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
+          3,
+          1)
+    ]);
     expect(argumentList.arguments, hasLength(2));
   }
 
@@ -10677,6 +10829,23 @@ class C {
         BinaryExpression, expression.leftOperand);
   }
 
+  void test_namedParameterOutsideGroup() {
+    CompilationUnit unit =
+        parseCompilationUnit('class A { b(c: 0, Foo d: 0, e){} }', errors: [
+      expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 13, 1),
+      expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 23, 1)
+    ]);
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration classA = unit.declarations[0];
+    expect(classA.members, hasLength(1));
+    MethodDeclaration method = classA.members[0];
+    NodeList<FormalParameter> parameters = method.parameters.parameters;
+    expect(parameters, hasLength(3));
+    expect(parameters[0].kind, ParameterKind.NAMED);
+    expect(parameters[1].kind, ParameterKind.NAMED);
+    expect(parameters[2].kind, ParameterKind.REQUIRED);
+  }
+
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit("import dart:io; class C {}",
         codes: [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);
@@ -10697,6 +10866,25 @@ class C {
     listener
         .assertErrors([expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 0, 1)]);
     expect(expression, new isInstanceOf<SimpleIdentifier>());
+  }
+
+  void test_propertyAccess_missing_LHS_RHS() {
+    Expression result = parseExpression(".", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+    if (usingFastaParser) {
+      PrefixedIdentifier expression = result;
+      expect(expression.prefix.isSynthetic, isTrue);
+      expect(expression.period.lexeme, '.');
+      expect(expression.identifier.isSynthetic, isTrue);
+    } else {
+      PropertyAccess expression = result;
+      SimpleIdentifier target = expression.target;
+      expect(target.isSynthetic, isTrue);
+      expect(expression.operator.lexeme, '.');
+      expect(expression.propertyName.isSynthetic, isTrue);
+    }
   }
 
   void test_relationalExpression_missing_LHS() {
@@ -12551,9 +12739,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_block() {
-    createParser('/** */ class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/** */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -12562,9 +12750,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    createParser('/** [a] */ class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/** [a] */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -12578,9 +12766,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    createParser('/// \n/// \n class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/// \n/// \n class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -14395,51 +14583,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 }
 
 @reflectiveTest
-class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {
-  void test_parseDirectives_complete() {
-    CompilationUnit unit =
-        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_empty() {
-    CompilationUnit unit = parseDirectives("");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_mixed() {
-    CompilationUnit unit =
-        parseDirectives("library l; class A {} part 'foo.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_multiple() {
-    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(2));
-  }
-
-  void test_parseDirectives_script() {
-    CompilationUnit unit = parseDirectives("#! /bin/dart");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_single() {
-    CompilationUnit unit = parseDirectives("library l;");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = parseDirectives("class A {}");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-}
+class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
 
 /**
  * Tests which exercise the parser using a complete compilation unit or
@@ -15532,6 +15676,50 @@ Function(int, String) v;
     expect(partOfDirective.semicolon, isNotNull);
   }
 
+  void test_parseDirectives_complete() {
+    CompilationUnit unit =
+        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_empty() {
+    CompilationUnit unit = parseDirectives("");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_mixed() {
+    CompilationUnit unit =
+        parseDirectives("library l; class A {} part 'foo.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_multiple() {
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(2));
+  }
+
+  void test_parseDirectives_script() {
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_single() {
+    CompilationUnit unit = parseDirectives("library l;");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_topLevelDeclaration() {
+    CompilationUnit unit = parseDirectives("class A {}");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
   void test_parseEnumDeclaration_one() {
     createParser("enum E {ONE}");
     EnumDeclaration declaration = parseFullCompilationUnitMember();
@@ -15764,6 +15952,68 @@ enum E {
     expect(functionExpression.typeParameters, isNotNull);
     expect(functionExpression.parameters, isNotNull);
     expect(functionExpression.body, isNotNull);
+  }
+
+  void test_parseFunctionDeclaration_metadata() {
+    createParser(
+        'T f(@A a, @B(2) Foo b, {@C.foo(3) c : 0, @d.E.bar(4, 5) x:0}) {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.documentationComment, isNull);
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    NodeList<FormalParameter> parameters = expression.parameters.parameters;
+    expect(parameters, hasLength(4));
+    expect(declaration.propertyKeyword, isNull);
+
+    {
+      var annotation = parameters[0].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<SimpleIdentifier>());
+      expect(annotation.name.name, 'A');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNull);
+    }
+
+    {
+      var annotation = parameters[1].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<SimpleIdentifier>());
+      expect(annotation.name.name, 'B');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(1));
+    }
+
+    {
+      var annotation = parameters[2].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<PrefixedIdentifier>());
+      expect(annotation.name.name, 'C.foo');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(1));
+    }
+
+    {
+      var annotation = parameters[3].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<PrefixedIdentifier>());
+      expect(annotation.name.name, 'd.E');
+      expect(annotation.period, isNotNull);
+      expect(annotation.constructorName, isNotNull);
+      expect(annotation.constructorName.name, 'bar');
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(2));
+    }
   }
 
   void test_parseFunctionDeclaration_setter() {

@@ -261,6 +261,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
   HintCode.INVALID_REQUIRED_PARAM,
   HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+  HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
   HintCode.IS_DOUBLE,
   HintCode.IS_INT,
   HintCode.IS_NOT_DOUBLE,
@@ -532,6 +533,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.ASSIGNMENT_TO_CONST,
   StaticWarningCode.ASSIGNMENT_TO_FINAL,
+  StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL,
   StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
   StaticWarningCode.ASSIGNMENT_TO_FUNCTION,
   StaticWarningCode.ASSIGNMENT_TO_METHOD,
@@ -608,7 +610,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
   StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
   StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
-  StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER,
   StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
   StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
   StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
@@ -666,7 +667,6 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
   StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
   StrongModeCode.TOP_LEVEL_UNSUPPORTED,
-  StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
   TodoCode.TODO,
 ];
 

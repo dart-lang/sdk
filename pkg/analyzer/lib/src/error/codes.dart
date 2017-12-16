@@ -3325,6 +3325,17 @@ class StaticWarningCode extends ErrorCode {
    * a NoSuchMethodError to be thrown, because no setter is defined for it. The
    * assignment will also give rise to a static warning for the same reason.
    */
+  static const StaticWarningCode ASSIGNMENT_TO_FINAL_LOCAL =
+      const StaticWarningCode(
+          'ASSIGNMENT_TO_FINAL_LOCAL',
+          "'{0}', a final variable, can only be set once.",
+          "Try making '{0}' non-final.");
+
+  /**
+   * 5 Variables: Attempting to assign to a final variable elsewhere will cause
+   * a NoSuchMethodError to be thrown, because no setter is defined for it. The
+   * assignment will also give rise to a static warning for the same reason.
+   */
   static const StaticWarningCode ASSIGNMENT_TO_FINAL_NO_SETTER =
       const StaticWarningCode(
           'ASSIGNMENT_TO_FINAL_NO_SETTER',
@@ -4523,19 +4534,6 @@ class StaticWarningCode extends ErrorCode {
           "changing the import to not be deferred.");
 
   /**
-   * Not yet spec'd.
-   *
-   * Parameters:
-   * 0: the name of the generic function's type parameter that is being used in
-   *    an `is` expression
-   */
-  static const StaticWarningCode TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER =
-      const StaticWarningCode(
-          'TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER',
-          "The type parameter '{0}' can't be used in a type test.",
-          "Try using a different type.");
-
-  /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
    * available in the current lexical scope.
    */
@@ -5037,12 +5035,6 @@ class StrongModeCode extends ErrorCode {
       'TOP_LEVEL_UNSUPPORTED',
       "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
       "Try adding an explicit type for '{0}'.");
-
-  static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
-      ErrorType.STATIC_WARNING,
-      'UNSAFE_BLOCK_CLOSURE_INFERENCE',
-      "Unsafe use of a block closure in a type-inferred variable outside a function body.",
-      "Try adding a type annotation for '{0}'. See dartbug.com/26947.");
 
   @override
   final ErrorType type;

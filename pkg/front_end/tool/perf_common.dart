@@ -7,8 +7,12 @@ library front_end.tool.perf_common;
 
 import 'dart:io';
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:kernel/target/flutter.dart' show FlutterTarget;
+import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+import 'package:kernel/target/vm.dart' show VmTarget;
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
@@ -22,14 +26,62 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 /// from this set.
 final whitelistMessageCode = new Set<String>.from(<String>[
   // Code names in this list should match the key used in messages.yaml
-  codeInvalidAssignment.name
+  codeInvalidAssignment.name,
+
+  // The following errors are not covered by unit tests in the SDK repo because
+  // they are only seen today in the flutter-gallery benchmark (external to
+  // this repo).
+  codeInvalidCastFunctionExpr.name,
+  codeInvalidCastTopLevelFunction.name,
+  codeUndefinedGetter.name,
+  codeUndefinedMethod.name,
 ]);
 
-onErrorHandler(bool isStrong) => (CompilationMessage m) {
-      if (m.severity == Severity.internalProblem ||
-          m.severity == Severity.error) {
-        if (!isStrong || !whitelistMessageCode.contains(m.code)) {
-          exitCode = 1;
-        }
+onErrorHandler(bool isStrong) {
+  bool messageReported = false;
+  return (CompilationMessage m) {
+    if (m.severity == Severity.internalProblem ||
+        m.severity == Severity.error) {
+      if (!isStrong || !whitelistMessageCode.contains(m.code)) {
+        var uri = m.span.start.sourceUrl;
+        var offset = m.span.start.offset;
+        stderr.writeln('$uri:$offset: '
+            '${severityName(m.severity, capitalized: true)}: ${m.message}');
+        exitCode = 1;
+      } else if (!messageReported) {
+        messageReported = true;
+        stderr.writeln('Whitelisted error messages omitted');
       }
-    };
+    }
+  };
+}
+
+/// Creates a [VmTarget] or [FlutterTarget] with strong-mode enabled or
+/// disabled.
+// TODO(sigmund): delete as soon as the disableTypeInference flag and the
+// strongMode flag get merged, and we have a single way of specifying the
+// strong-mode flag to the FE.
+Target createTarget({bool isFlutter: false, bool strongMode: true}) {
+  var flags = new TargetFlags(strongMode: strongMode);
+  if (isFlutter) {
+    return strongMode
+        ? new FlutterTarget(flags)
+        : new LegacyFlutterTarget(flags);
+  } else {
+    return strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags);
+  }
+}
+
+class LegacyVmTarget extends VmTarget {
+  LegacyVmTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool get disableTypeInference => true;
+}
+
+class LegacyFlutterTarget extends FlutterTarget {
+  LegacyFlutterTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool get disableTypeInference => true;
+}

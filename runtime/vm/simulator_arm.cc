@@ -1393,7 +1393,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             (redirection->call_kind() == kBootstrapNativeCall) ||
             (redirection->call_kind() == kNativeCall)) {
           // Set the top_exit_frame_info of this simulator to the native stack.
-          set_top_exit_frame_info(Thread::GetCurrentStackPointer());
+          set_top_exit_frame_info(OSThread::GetCurrentStackPointer());
         }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;

@@ -140,7 +140,6 @@ ExpectedButGot:
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
-  tip: DONT_KNOW_HOW_TO_FIX,
   analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: MISSING_TOKEN_BEFORE_THIS
   script:
@@ -214,6 +213,11 @@ ExpectedDeclaration:
   analyzerCode: EXPECTED_EXECUTABLE
   dart2jsCode: "*fatal*"
 
+ExpectedClassMember:
+  template: "Expected a class member, but got '#lexeme'."
+  analyzerCode: EXPECTED_CLASS_MEMBER
+  dart2jsCode: "*fatal*"
+
 ExpectedFunctionBody:
   template: "Expected a function body, but got '#lexeme'."
   analyzerCode: MISSING_FUNCTION_BODY
@@ -232,7 +236,7 @@ ExpectedHexDigit:
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  dart2jsCode: EXPECTED_IDENTIFIER
+  dart2jsCode: "*fatal*"
   script: "do() {} main() {}"
 
 EqualityCannotBeEqualityOperand:
@@ -256,7 +260,7 @@ ExpectedString:
 ExpectedToken:
   template: "Expected to find '#string'."
   analyzerCode: EXPECTED_TOKEN
-  dart2jsCode: GENERIC
+  dart2jsCode: "*fatal*"
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
@@ -599,6 +603,7 @@ PositionalParameterWithEquals:
 RequiredParameterWithDefault:
   template: "Non-optional parameters can't have a default value."
   tip: "Try removing the default value or making the parameter optional."
+  analyzerCode: NAMED_PARAMETER_OUTSIDE_GROUP
   dart2jsCode: REQUIRED_PARAMETER_WITH_DEFAULT
   script:
     - >
@@ -656,6 +661,7 @@ UnmatchedToken:
 UnsupportedPrefixPlus:
   template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
+  analyzerCode: MISSING_IDENTIFIER
   dart2jsCode: UNSUPPORTED_PREFIX_PLUS
   script: "main() => +2;  // No longer a valid way to write '2'"
 
@@ -1142,6 +1148,9 @@ IllegalMixin:
 OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
 
+OverriddenMethodCause:
+  template: "This is the overriden method ('#name')."
+
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
 
@@ -1284,6 +1293,14 @@ FactoryTopLevelDeclaration:
   dart2jsCode: "*ignored*"
   script:
     - "factory class C {}"
+
+RedirectionInNonFactory:
+  template: "Only factory constructor can specify '=' redirection."
+  tip: "Try making this a factory constructor, or remove the redirection."
+  analyzerCode: REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C() = D; }"
 
 TopLevelOperator:
   template: "Operators must be declared within a class."
@@ -1562,3 +1579,105 @@ PatchNonExternal:
   template: "Can't apply this patch as its origin declaration isn't external."
   tip: "Try adding 'external' to the origin declaration."
 
+InvalidCastFunctionExpr:
+  template: "The function expression type '#type' isn't of expected type '#type2'."
+  tip: "Change the type of the function expression or the context in which it is used."
+  analyzerCode: INVALID_CAST_FUNCTION_EXPR
+  dart2jsCode: "*ignored*"
+
+InvalidCastLiteralList:
+  template: "The list literal type '#type' isn't of expected type '#type2'."
+  tip: "Change the type of the list literal or the context in which it is used."
+  analyzerCode: INVALID_CAST_LITERAL_LIST
+  dart2jsCode: "*ignored*"
+
+InvalidCastLiteralMap:
+  template: "The map literal type '#type' isn't of expected type '#type2'."
+  tip: "Change the type of the map literal or the context in which it is used."
+  analyzerCode: INVALID_CAST_LITERAL_MAP
+  dart2jsCode: "*ignored*"
+
+InvalidCastLocalFunction:
+  template: "The local function has type '#type' that isn't of expected type '#type2'."
+  tip: "Change the type of the function or the context in which it is used."
+  analyzerCode: INVALID_CAST_FUNCTION
+  dart2jsCode: "*ignored*"
+
+InvalidCastNewExpr:
+  template: "The constructor returns type '#type' that isn't of expected type '#type2'."
+  tip: "Change the type of the object being constructed or the context in which it is used."
+  analyzerCode: INVALID_CAST_NEW_EXPR
+  dart2jsCode: "*ignored*"
+
+InvalidCastStaticMethod:
+  template: "The static method has type '#type' that isn't of expected type '#type2'."
+  tip: "Change the type of the method or the context in which it is used."
+  analyzerCode: INVALID_CAST_METHOD
+  dart2jsCode: "*ignored*"
+
+InvalidCastTopLevelFunction:
+  template: "The top level function has type '#type' that isn't of expected type '#type2'."
+  tip: "Change the type of the function or the context in which it is used."
+  analyzerCode: INVALID_CAST_FUNCTION
+  dart2jsCode: "*ignored*"
+
+UndefinedGetter:
+  template: "The getter '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
+  analyzerCode: UNDEFINED_GETTER
+  dart2jsCode: "*ignored*"
+  script: >
+    class C {}
+    main() {
+      C c;
+      print(c.foo);
+    }
+
+UndefinedSetter:
+  template: "The setter '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
+  analyzerCode: UNDEFINED_SETTER
+  dart2jsCode: "*ignored*"
+  script: >
+    class C {}
+    main() {
+      C c;
+      c.foo = 0;
+    }
+
+UndefinedMethod:
+  template: "The method '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
+  analyzerCode: UNDEFINED_METHOD
+  dart2jsCode: "*ignored*"
+  script: >
+    class C {}
+    main() {
+      C c;
+      c.foo();
+    }
+SourceOutlineSummary:
+  template: |
+    Built outlines for #count compilation units (#count2 bytes) in #string, that is,
+    #string2 bytes/ms, and
+    #string3 ms/compilation unit.
+
+SourceBodySummary:
+  template: |
+    Built bodies for #count compilation units (#count2 bytes) in #string, that is,
+    #string2 bytes/ms, and
+    #string3 ms/compilation unit.
+
+DillOutlineSummary:
+  template: |
+    Indexed #count libraries (#count2 bytes) in #string, that is,
+    #string2 bytes/ms, and
+    #string3 ms/libraries.
+
+CantInferTypeDueToInconsistentOverrides:
+  template: "Can't infer the type of '#string': overridden members must all have the same type."
+  tip: "Specify the type explicitly."
+
+CantInferTypeDueToCircularity:
+  template: "Can't infer the type of '#string': circularity found during type inference."
+  tip: "Specify the type explicitly."

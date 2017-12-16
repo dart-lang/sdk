@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
+    defineReflectiveTests(FormatTest_PreviewDart2);
   });
 }
 
@@ -77,4 +78,10 @@ class Class1 {
       expect(message.error['code'], 'FORMAT_WITH_ERRORS');
     }
   }
+}
+
+@reflectiveTest
+class FormatTest_PreviewDart2 extends FormatTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

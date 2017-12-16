@@ -8,8 +8,8 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;

@@ -52,11 +52,7 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->movq(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
-void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->argument_type_checks()) {
-    return;
-  }
-
+void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler) {
   Label fall_through;
   __ movq(RDX, Address(RSP, +1 * kWordSize));  // Value.
   __ movq(RCX, Address(RSP, +2 * kWordSize));  // Index.

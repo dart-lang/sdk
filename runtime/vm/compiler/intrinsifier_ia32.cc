@@ -52,52 +52,9 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
-static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls =
-      Class::Handle(core_lib.LookupClassAllowPrivate(Symbols::_List()));
-  ASSERT(!cls.IsNull());
-  ASSERT(cls.NumTypeArguments() == 1);
-  const intptr_t field_offset = cls.type_arguments_field_offset();
-  ASSERT(field_offset != Class::kNoTypeArguments);
-  return field_offset;
-}
-
-// Intrinsify only for Smi value and index. Non-smi values need a store buffer
-// update. Array length is always a Smi.
-void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
+// Intrinsify only for Smi index.
+void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler) {
   Label fall_through;
-  if (Isolate::Current()->argument_type_checks()) {
-    const intptr_t type_args_field_offset =
-        ComputeObjectArrayTypeArgumentsOffset();
-    // Inline simple tests (Smi, null), fallthrough if not positive.
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    Label checked_ok;
-    __ movl(EDI, Address(ESP, +1 * kWordSize));  // Value.
-    // Null value is valid for any type.
-    __ cmpl(EDI, raw_null);
-    __ j(EQUAL, &checked_ok, Assembler::kNearJump);
-
-    __ movl(EBX, Address(ESP, +3 * kWordSize));  // Array.
-    __ movl(EBX, FieldAddress(EBX, type_args_field_offset));
-    // EBX: Type arguments of array.
-    __ cmpl(EBX, raw_null);
-    __ j(EQUAL, &checked_ok, Assembler::kNearJump);
-    // Check if it's dynamic.
-    // Get type at index 0.
-    __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
-    __ CompareObject(EAX, Object::dynamic_type());
-    __ j(EQUAL, &checked_ok, Assembler::kNearJump);
-    // Check for int and num.
-    __ testl(EDI, Immediate(kSmiTagMask));  // Value is Smi?
-    __ j(NOT_ZERO, &fall_through);          // Non-smi value.
-    __ CompareObject(EAX, Type::ZoneHandle(Type::IntType()));
-    __ j(EQUAL, &checked_ok, Assembler::kNearJump);
-    __ CompareObject(EAX, Type::ZoneHandle(Type::Number()));
-    __ j(NOT_EQUAL, &fall_through);
-    __ Bind(&checked_ok);
-  }
   __ movl(EBX, Address(ESP, +2 * kWordSize));  // Index.
   __ testl(EBX, Immediate(kSmiTagMask));
   // Index not Smi.
@@ -125,6 +82,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // EAX, EBX
   // and the newly allocated object is returned in EAX.
   const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
+
   const intptr_t kArrayOffset = 1 * kWordSize;
   Label fall_through;
 

@@ -77,7 +77,7 @@ abstract class _StructuredClone {
   cleanupSlots() {} // Will be needed if we mark objects with a property.
   bool cloneNotRequired(object);
   newJsMap();
-  newJsList(length);
+  List newJsList(length);
   void putIntoMap(map, key, value);
 
   // Returns the input, or a clone of the input.
@@ -128,7 +128,7 @@ abstract class _StructuredClone {
       // non-native properties or methods from interceptors and such, e.g.
       // an immutability marker. So we  had to stop doing that.
       var slot = findSlot(e);
-      var copy = readSlot(slot);
+      var copy = JS('List|Null', '#', readSlot(slot));
       if (copy != null) return copy;
       copy = copyList(e, slot);
       return copy;
@@ -137,7 +137,7 @@ abstract class _StructuredClone {
     throw new UnimplementedError('structured clone of other type');
   }
 
-  copyList(List e, int slot) {
+  List copyList(List e, int slot) {
     int i = 0;
     int length = e.length;
     var copy = newJsList(length);
@@ -198,11 +198,11 @@ abstract class _AcceptStructuredClone {
   }
 
   /// Iterate over the JS properties.
-  forEachJsField(object, action);
+  forEachJsField(object, action(key, value));
 
   /// Create a new Dart list of the given length. May create a native List or
   /// a JsArray, depending if we're in Dartium or dart2js.
-  newDartList(length);
+  List newDartList(length);
 
   walk(e) {
     if (e == null) return e;
@@ -237,18 +237,19 @@ abstract class _AcceptStructuredClone {
     }
 
     if (isJavaScriptArray(e)) {
-      var slot = findSlot(e);
-      var copy = readSlot(slot);
+      var l = JS('List', '#', e);
+      var slot = findSlot(l);
+      var copy = JS('List|Null', '#', readSlot(slot));
       if (copy != null) return copy;
 
-      int length = e.length;
+      int length = l.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? newDartList(length) : e;
+      copy = mustCopy ? newDartList(length) : l;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
-        copy[i] = walk(e[i]);
+        copy[i] = walk(l[i]);
       }
       return copy;
     }

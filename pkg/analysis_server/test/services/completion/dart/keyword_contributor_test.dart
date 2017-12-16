@@ -279,35 +279,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     return new KeywordContributor();
   }
 
-  fail_import_partial() async {
-    addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
-  fail_import_partial4() async {
-    addTestSource('^ imp import "package:foo/foo.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
-  fail_import_partial5() async {
-    addTestSource('library libA; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
-  fail_import_partial6() async {
-    addTestSource(
-        'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
   test_after_class() async {
     addTestSource('class A {} ^');
     await computeSuggestions();

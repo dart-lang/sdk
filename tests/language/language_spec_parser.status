@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == spec_parser ]
+conditional_import_string_test: Fail # Not yet supported.
+conditional_import_test: Fail # Not yet supported.
+config_import_corelib_test: Fail # Not yet supported.
+config_import_test: Fail # Not yet supported.
+const_native_factory_test/01: Fail # Uses `native`.
+deep_nesting1_negative_test: Skip # Stack overflow.
+deep_nesting2_negative_test: Skip # Stack overflow.
 factory3_negative_test: Fail # Negative, puts `default` in class header.
 field3_negative_test: Fail # Negative, uses `final var a`.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
@@ -11,6 +18,7 @@ interface_injection2_negative_test: Fail # Negative, uses interface injection.
 is_not_class1_negative_test: Fail # Negative, uses `a is "A"`.
 is_not_class4_negative_test: Fail # Negative, uses `a is A is A`.
 issue1578_negative_test: Fail # Negative, is line noise.
+issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
 label8_negative_test: Fail # Negative, uses misplaced label.
 list_literal_negative_test: Fail # Negative, uses `new List<int>[1, 2]`.
 map_literal_negative_test: Fail # Negative, uses `new Map<int>{..}`.
@@ -27,15 +35,5 @@ switch1_negative_test: Fail # Negative, `default` clause not last.
 test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 unhandled_exception_negative_test: Fail # Negative, defaults required parameter.
-
 vm/debug_break_enabled_vm_test: Fail # Uses debug break.
-const_native_factory_test/01: Fail # Uses `native`.
 
-conditional_import_string_test: Fail # Not yet supported.
-conditional_import_test: Fail # Not yet supported.
-config_import_corelib_test: Fail # Not yet supported.
-config_import_test: Fail # Not yet supported.
-
-deep_nesting1_negative_test: Skip # Stack overflow.
-deep_nesting2_negative_test: Skip # Stack overflow.
-issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.

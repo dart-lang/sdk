@@ -294,11 +294,10 @@ RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
     return Object::empty_object_pool().raw();
   }
   const ObjectPool& result = ObjectPool::Handle(ObjectPool::New(len));
-  ObjectPoolInfo pool_info(result);
   for (intptr_t i = 0; i < len; ++i) {
-    ObjectPool::EntryType info = object_pool_[i].type_;
-    pool_info.SetInfoAt(i, info);
-    if (info == ObjectPool::kTaggedObject) {
+    ObjectPool::EntryType type = object_pool_[i].type_;
+    result.SetTypeAt(i, type);
+    if (type == ObjectPool::kTaggedObject) {
       result.SetObjectAt(i, *object_pool_[i].obj_);
     } else {
       result.SetRawValueAt(i, object_pool_[i].raw_value_);

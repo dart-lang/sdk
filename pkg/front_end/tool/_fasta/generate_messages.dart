@@ -36,6 +36,9 @@ part of fasta.codes;
       description = yaml[description];
     }
     Map map = description;
+    if (map == null) {
+      throw "No 'template:' in key $name.";
+    }
     sb.writeln(compileTemplate(name, map['template'], map['tip'],
         map['analyzerCode'], map['dart2jsCode']));
   }
@@ -113,14 +116,30 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'string2': string2");
         break;
 
+      case "#string3":
+        parameters.add("String string3");
+        arguments.add("'string3': string3");
+        break;
+
       case "#type":
-        parameters.add("DartType type");
-        arguments.add("'type': type");
+        parameters.add("DartType _type");
+        conversions.add(r"""
+NameSystem nameSystem = new NameSystem();
+StringBuffer buffer = new StringBuffer();
+new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+String type = '$buffer';
+""");
+        arguments.add("'type': _type");
         break;
 
       case "#type2":
-        parameters.add("DartType type2");
-        arguments.add("'type2': type2");
+        parameters.add("DartType _type2");
+        conversions.add(r"""
+buffer = new StringBuffer();
+new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+String type2 = '$buffer';
+""");
+        arguments.add("'type2': _type2");
         break;
 
       case "#uri":
@@ -139,6 +158,16 @@ String compileTemplate(String name, String template, String tip,
         parameters.add("Uri uri3_");
         conversions.add("String uri3 = relativizeUri(uri3_);");
         arguments.add("'uri3': uri3_");
+        break;
+
+      case "#count":
+        parameters.add("int count");
+        arguments.add("'count': count");
+        break;
+
+      case "#count2":
+        parameters.add("int count2");
+        arguments.add("'count2': count2");
         break;
 
       default:

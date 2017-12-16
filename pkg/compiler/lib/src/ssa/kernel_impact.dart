@@ -43,7 +43,7 @@ class KernelImpactBuilder extends ir.Visitor {
   KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember.name}') {
-    this.classEnsurer = new _ClassEnsurer(this);
+    this.classEnsurer = new _ClassEnsurer(this, this.elementMap.types);
   }
 
   CommonElements get commonElements => elementMap.commonElements;
@@ -656,10 +656,13 @@ class KernelImpactBuilder extends ir.Visitor {
 
 class _ClassEnsurer extends BaseDartTypeVisitor<dynamic, Null> {
   final KernelImpactBuilder builder;
+  final DartTypes types;
+  final seenTypes = new Set<InterfaceType>();
 
-  _ClassEnsurer(this.builder);
+  _ClassEnsurer(this.builder, this.types);
 
   void ensureClassesInType(DartType type) {
+    seenTypes.clear();
     type.accept(this, null);
   }
 
@@ -682,10 +685,15 @@ class _ClassEnsurer extends BaseDartTypeVisitor<dynamic, Null> {
 
   @override
   visitInterfaceType(InterfaceType type, _) {
+    if (!seenTypes.add(type)) {
+      return;
+    }
     builder.impactBuilder.registerSeenClass(type.element);
     type.typeArguments.forEach((t) {
       t.accept(this, null);
     });
+    var supertype = types.getSupertype(type.element);
+    supertype?.accept(this, null);
   }
 
   @override

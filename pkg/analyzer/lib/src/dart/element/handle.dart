@@ -348,6 +348,9 @@ abstract class ElementHandle implements Element {
   int get hashCode => _location.hashCode;
 
   @override
+  bool get isAlwaysThrows => actualElement.isAlwaysThrows;
+
+  @override
   bool get isDeprecated => actualElement.isDeprecated;
 
   @override
@@ -373,6 +376,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get isSynthetic => actualElement.isSynthetic;
+
+  @override
+  bool get isVisibleForTesting => actualElement.isVisibleForTesting;
 
   @override
   LibraryElement get library =>

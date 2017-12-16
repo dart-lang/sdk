@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:front_end/kernel_generator.dart';
-import 'package:front_end/compiler_options.dart';
+import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show Program;
 

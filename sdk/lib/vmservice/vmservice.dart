@@ -531,14 +531,7 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
-  static responseAsJson(portResponse) {
-    if (portResponse is String) {
-      return json.decode(portResponse);
-    } else {
-      var cstring = portResponse[0];
-      return json.fuse(utf8).decode(cstring);
-    }
-  }
+  static _responseAsJson(String response) => json.decode(response);
 
   // TODO(johnmccutchan): Turn this into a command line tool that uses the
   // service library.
@@ -563,12 +556,12 @@ class VMService extends MessageRouter {
     // Request VM.
     var getVM = Uri.parse('getVM');
     var getVmResponse =
-        responseAsJson(await new Message.fromUri(client, getVM).sendToVM());
+        _responseAsJson(await new Message.fromUri(client, getVM).sendToVM());
     responses[getVM.toString()] = getVmResponse['result'];
 
     // Request command line flags.
     var getFlagList = Uri.parse('getFlagList');
-    var getFlagListResponse = responseAsJson(
+    var getFlagListResponse = _responseAsJson(
         await new Message.fromUri(client, getFlagList).sendToVM());
     responses[getFlagList.toString()] = getFlagListResponse['result'];
 
@@ -578,13 +571,13 @@ class VMService extends MessageRouter {
         var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
-        var response = responseAsJson(await isolate.routeRequest(message));
+        var response = _responseAsJson(await isolate.routeRequest(message));
         responses[message.toUri().toString()] = response['result'];
       }
       // Dump the object id ring requests.
       var message =
           new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = responseAsJson(await isolate.routeRequest(message));
+      var response = _responseAsJson(await isolate.routeRequest(message));
       // Insert getObject requests into responses map.
       for (var object in response['result']['objects']) {
         final requestUri =
@@ -597,7 +590,7 @@ class VMService extends MessageRouter {
     return encodeResult(message, responses);
   }
 
-  Future routeRequest(Message message) async {
+  Future<String> routeRequest(Message message) async {
     try {
       if (message.completed) {
         return await message.response;

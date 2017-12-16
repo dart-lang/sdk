@@ -21,6 +21,7 @@
 ///
 /// Eventually, it would be good to refactor those tests to use the expect
 /// package directly and remove this.
+import 'dart:async';
 
 import 'package:expect/expect.dart';
 
@@ -77,7 +78,10 @@ void group(String description, body()) {
   _groups.add(new _Group());
 
   try {
-    body();
+    var result = body();
+    if (result is Future) {
+      Expect.testError("group() does not support asynchronous functions.");
+    }
   } finally {
     _groups.removeLast();
   }
@@ -86,15 +90,29 @@ void group(String description, body()) {
 void test(String description, body()) {
   // TODO(rnystrom): Do something useful with the description.
   for (var group in _groups) {
-    if (group.setUpFunction != null) group.setUpFunction();
+    if (group.setUpFunction != null) {
+      var result = group.setUpFunction();
+      if (result is Future) {
+        Expect.testError("setUp() does not support asynchronous functions.");
+      }
+    }
   }
 
   try {
-    body();
+    var result = body();
+    if (result is Future) {
+      Expect.testError("test() does not support asynchronous functions.");
+    }
   } finally {
     for (var i = _groups.length - 1; i >= 0; i--) {
       var group = _groups[i];
-      if (group.tearDownFunction != null) group.tearDownFunction();
+      if (group.tearDownFunction != null) {
+        var result = group.tearDownFunction();
+        if (result is Future) {
+          Expect
+              .testError("tearDown() does not support asynchronous functions.");
+        }
+      }
     }
   }
 }
@@ -137,10 +155,9 @@ Object unorderedEquals(Object value) => new _Expectation((actual) {
       Expect.setEquals(value, actual);
     });
 
-// TODO(bob): Do something useful with the description.
 Object predicate(bool fn(Object value), [String description]) =>
     new _Expectation((actual) {
-      Expect.isTrue(fn(actual));
+      Expect.isTrue(fn(actual), description);
     });
 
 Object inInclusiveRange(num min, num max) => new _Expectation((actual) {

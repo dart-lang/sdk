@@ -6,7 +6,8 @@ import "package:async_helper/async_helper.dart" show asyncTest;
 
 import "package:front_end/src/testing/compiler_common.dart" show compileUnit;
 
-import "package:front_end/front_end.dart" show CompilerOptions;
+import "package:front_end/src/api_prototype/front_end.dart"
+    show CompilerOptions;
 
 main() {
   asyncTest(() async {

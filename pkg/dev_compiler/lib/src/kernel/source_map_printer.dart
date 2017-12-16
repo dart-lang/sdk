@@ -54,10 +54,11 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
       if (srcInfo is FileUriNode) {
         parentsStack.add(srcInfo);
-        if (srcInfo is Procedure || srcInfo is Class) mark = false;
-      } else if (srcInfo is Constructor) {
-        parentsStack.add(srcInfo.parent);
-        mark = false;
+        if (srcInfo is Procedure ||
+            srcInfo is Class ||
+            srcInfo is Constructor) {
+          mark = false;
+        }
       }
       if (mark && srcInfo is Block) mark = false;
     } else {
@@ -94,13 +95,12 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
     if (srcInfo is FileUriNode) {
       parentsStack.removeLast();
-    } else if (srcInfo is Constructor) {
-      parentsStack.removeLast();
     }
   }
 
   void _mark(int offset, bool adjustColumn) {
     int adjustedColumn = _column - (adjustColumn ? 1 : 0);
+    if (adjustedColumn < 0) return;
     if ((_previousColumn == _column || _previousColumn == adjustedColumn) &&
         _previousLine == _line) return;
 
@@ -111,9 +111,15 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
     FileUriNode fileParent = parentsStack.last;
     Program p = fileParent.enclosingProgram;
-    String fileUri = fileParent.fileUri;
+    Uri fileUri = fileParent.fileUri;
+    while (fileUri == null && fileParent.parent is FileUriNode) {
+      fileParent = fileParent.parent;
+      fileUri = fileParent.fileUri;
+    }
+    if (fileUri == null) return;
 
     var loc = p.getLocation(fileUri, offset);
+    if (loc == null) return;
     _previousLine = _line;
     _previousColumn = adjustedColumn;
     sourceMap.addLocation(

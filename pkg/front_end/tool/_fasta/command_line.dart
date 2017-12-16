@@ -6,7 +6,8 @@ library fasta.tool.command_line;
 
 import 'dart:io' show exit;
 
-import 'package:front_end/compiler_options.dart' show CompilerOptions;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -30,9 +31,6 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
-
-import 'package:kernel/target/implementation_option.dart'
-    show ImplementationOption, implementationOptions;
 
 class CommandLineProblem {
   final Message message;
@@ -189,7 +187,6 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--platform": Uri,
   "--libraries-json": Uri,
   "--target": String,
-  "--target-options": ",",
   "-t": String,
 };
 
@@ -233,16 +230,7 @@ ProcessedOptions analyzeCommandLine(
 
   final String targetName = options["-t"] ?? options["--target"] ?? "vm";
 
-  final List<ImplementationOption> targetOptions =
-      (options["--target-options"] ?? <String>[])
-          .map((String name) =>
-              implementationOptions[name] ??
-              (throw new CommandLineProblem.deprecated(
-                  "--target-options argument not recognized: '$name'.")))
-          .toList();
-
-  final TargetFlags flags = new TargetFlags(
-      strongMode: strongMode, implementationOptions: targetOptions);
+  final TargetFlags flags = new TargetFlags(strongMode: strongMode);
   final Target target = getTarget(targetName, flags);
   if (target == null) {
     return throw new CommandLineProblem.deprecated(

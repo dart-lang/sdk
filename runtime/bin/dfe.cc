@@ -20,6 +20,7 @@ DFE::DFE()
       kernel_binaries_path_(NULL),
       platform_binary_filename_(NULL),
       kernel_platform_(NULL),
+      application_kernel_binary_(NULL),
       kernel_file_specified_(false) {}
 
 DFE::~DFE() {
@@ -31,10 +32,11 @@ DFE::~DFE() {
   free(platform_binary_filename_);
   platform_binary_filename_ = NULL;
 
-  if (kernel_platform_ != NULL) {
-    delete reinterpret_cast<kernel::Program*>(kernel_platform_);
-    kernel_platform_ = NULL;
-  }
+  delete reinterpret_cast<kernel::Program*>(kernel_platform_);
+  kernel_platform_ = NULL;
+
+  delete reinterpret_cast<kernel::Program*>(application_kernel_binary_);
+  application_kernel_binary_ = NULL;
 }
 
 void DFE::SetKernelBinaries(const char* name) {

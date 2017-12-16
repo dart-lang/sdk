@@ -63,7 +63,7 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset) {
 
     if (uri != null) {
       String path = relativizeUri(uri);
-      Location location = offset == -1 ? null : getLocation(path, offset);
+      Location location = offset == -1 ? null : getLocation(uri, offset);
       String sourceLine = getSourceLine(location);
       if (sourceLine == null) {
         sourceLine = "";
@@ -74,8 +74,9 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset) {
         sourceLine = "\n$sourceLine\n"
             "${' ' * (location.column - 1)}^";
       }
-      String position = location?.toString() ?? path;
-      return "$position: $text$sourceLine";
+      String position =
+          location == null ? "" : ":${location.line}:${location.column}";
+      return "$path$position: $text$sourceLine";
     } else {
       return text;
     }

@@ -11,10 +11,7 @@ import '../transformations/mixin_full_resolution.dart' as transformMixins
     show transformLibraries;
 import '../transformations/continuation.dart' as transformAsync
     show transformLibraries;
-import '../transformations/precompiler.dart' as transformPrecompiler
-    show transformProgram;
 
-import 'implementation_option.dart' show VmOptions;
 import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
@@ -25,12 +22,6 @@ class VmTarget extends Target {
 
   @override
   bool get strongMode => flags.strongMode;
-
-  /// The VM patch files are not strong mode clean, so we adopt a hybrid mode
-  /// where the SDK is internally unchecked, but trusted to satisfy the types
-  /// declared on its interface.
-  @override
-  bool get strongModeSdk => false;
 
   @override
   String get name => 'vm';
@@ -75,13 +66,7 @@ class VmTarget extends Target {
 
   @override
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
-      {void logger(String msg)}) {
-    if (strongMode &&
-        (flags.implementationOptions != null) &&
-        flags.implementationOptions.contains(VmOptions.strongAOT)) {
-      transformPrecompiler.transformProgram(coreTypes, program);
-    }
-  }
+      {void logger(String msg)}) {}
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

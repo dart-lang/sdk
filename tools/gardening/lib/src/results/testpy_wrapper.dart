@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:async';
 import 'package:path/path.dart' as path;
-import 'result_models.dart';
-import 'util.dart';
+import 'result_json_models.dart';
 import '../util.dart';
 
 /// Calls test.py with arguments gathered from a specific [configuration] and

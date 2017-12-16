@@ -37,6 +37,34 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
+DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
+  ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  __ movl(out, Address(instr->base_reg(), index, TIMES_2, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(StoreIndexedUnsafe,
+               (NoLocation, Register index, Register value)) {
+  ASSERT(instr->RequiredInputRepresentation(
+             StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
+  __ movl(Address(instr->base_reg(), index, TIMES_2, instr->offset()), value);
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(TailCall,
+               (NoLocation,
+                Fixed<Register, ARGS_DESC_REG>,
+                Temp<Register> temp)) {
+  __ LoadObject(CODE_REG, instr->code());
+  __ LeaveFrame();  // The arguments are still on the stack.
+  __ movl(temp, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ jmp(temp);
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -207,6 +235,17 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(1, Location::RegisterLocation(EDX));  // Instant. type args.
   summary->set_in(2, Location::RegisterLocation(ECX));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(EAX));
+  return summary;
+}
+
+LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EDX));  // Instant. type args.
+  summary->set_in(1, Location::RegisterLocation(ECX));  // Function type args.
   return summary;
 }
 
@@ -737,16 +776,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
+  // All arguments are already @ESP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in EAX.
-  if (!function().HasOptionalParameters()) {
-    __ leal(EAX,
-            Address(EBP, (kParamEndSlotFromFp + function().NumParameters()) *
-                             kWordSize));
-  } else {
-    __ leal(EAX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
-  }
+  __ leal(EAX, Address(ESP, ArgumentCount() * kWordSize));
+
   __ movl(EDX, Immediate(argc_tag));
 
   const StubEntry* stub_entry;
@@ -766,6 +804,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          locs());
 
   __ popl(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {

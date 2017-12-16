@@ -144,13 +144,28 @@ def UseSanitizer(args):
 def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
   return (target_os == 'win'
-         # TODO(zra): Experiment with using clang for the arm cross-builds.
-         or (target_os == 'linux' and target_cpu.startswith('arm'))
-         # TODO(zra): Only use clang when a sanitizer build is specified until
-         # clang bugs in tcmalloc inline assembly for ia32 are fixed.
+         # TODO(zra): After we roll our clang toolchain to pick up the fix for
+         # https://reviews.llvm.org/D34691 we should be able to use clang for
+         # arm as well.
          or (target_os == 'linux'
-             and host_cpu == 'x86'
+             and target_cpu.startswith('arm')
+             and target_cpu != 'arm64'
              and not UseSanitizer(args)))
+
+
+def UseWheezySysroot(args, gn_args):
+  # Don't try to use a Linux sysroot if we aren't on Linux.
+  if gn_args['target_os'] != 'linux':
+    return False
+  # Use the wheezy sysroot if explicitly asked to do so.
+  if args.wheezy:
+    return True
+  # Don't use the wheezy sysroot if we're given another sysroot.
+  if TargetSysroot(args):
+    return False
+  # The clang toolchain we pull from Fuchsia doesn't have arm and arm64
+  # sysroots, so use the wheezy/jesse ones.
+  return gn_args['is_clang'] and gn_args['target_cpu'].startswith('arm')
 
 
 def ToGnArgs(args, mode, arch, target_os):
@@ -165,7 +180,6 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['host_cpu'] = HostCpuForArch(arch)
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
-  crossbuild = gn_args['target_cpu'] != gn_args['host_cpu']
 
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
@@ -228,7 +242,7 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
 
   # Setup the user-defined sysroot.
-  if gn_args['target_os'] == 'linux' and args.wheezy and not crossbuild:
+  if UseWheezySysroot(args, gn_args):
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
     sysroot = TargetSysroot(args)

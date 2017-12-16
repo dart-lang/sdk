@@ -113,14 +113,14 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    List<SearchMatch> allDeclarations = [];
+    Set<Element> allElements = new Set<Element>();
     RegExp regExp = new RegExp(pattern);
     List<AnalysisDriver> drivers = _drivers.toList();
     for (AnalysisDriver driver in drivers) {
       List<Element> elements = await driver.search.topLevelElements(regExp);
-      allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
+      allElements.addAll(elements);
     }
-    return allDeclarations;
+    return allElements.map(SearchMatchImpl.forElement).toList();
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {

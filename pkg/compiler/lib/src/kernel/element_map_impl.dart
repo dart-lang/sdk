@@ -87,8 +87,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       new EntityDataEnvMap<IndexedClass, ClassData, ClassEnv>();
   final EntityDataMap<IndexedMember, MemberData> _members =
       new EntityDataMap<IndexedMember, MemberData>();
-  final EntityMap<IndexedTypeVariable> _typeVariables =
-      new EntityMap<IndexedTypeVariable>();
+  final EntityDataMap<IndexedTypeVariable, TypeVariableData> _typeVariables =
+      new EntityDataMap<IndexedTypeVariable, TypeVariableData>();
   final EntityDataMap<IndexedTypedef, TypedefData> _typedefs =
       new EntityDataMap<IndexedTypedef, TypedefData>();
 
@@ -437,8 +437,32 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getDartType(variable.type));
     }
+    List<FunctionTypeVariable> typeVariables;
+    if (node.typeParameters.isNotEmpty &&
+        DartTypeConverter.enableFunctionTypeVariables) {
+      List<DartType> typeParameters = <DartType>[];
+      for (ir.TypeParameter typeParameter in node.typeParameters) {
+        typeParameters
+            .add(getDartType(new ir.TypeParameterType(typeParameter)));
+      }
+      typeVariables = new List<FunctionTypeVariable>.generate(
+          node.typeParameters.length,
+          (int index) => new FunctionTypeVariable(
+              index, getDartType(node.typeParameters[index].bound)));
+
+      DartType subst(DartType type) {
+        return type.subst(typeVariables, typeParameters);
+      }
+
+      parameterTypes = parameterTypes.map(subst).toList();
+      optionalParameterTypes = optionalParameterTypes.map(subst).toList();
+      namedParameterTypes = namedParameterTypes.map(subst).toList();
+    } else {
+      typeVariables = const <FunctionTypeVariable>[];
+    }
+
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes);
+        namedParameters, namedParameterTypes, typeVariables);
   }
 
   @override
@@ -569,7 +593,9 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
           List<DartType> namedParameterTypes =
               new List.filled(namedParameters.length, dynamic);
           data.callType = new FunctionType(dynamic, requiredParameterTypes,
-              optionalParameterTypes, namedParameters, namedParameterTypes);
+              optionalParameterTypes, namedParameters, namedParameterTypes,
+              // TODO(johnniwinther): Generate existential types here.
+              const <FunctionTypeVariable>[]);
         } else {
           // The function type is not valid.
           data.callType = const DynamicType();
@@ -618,6 +644,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     assert(checkFamily(field));
     FieldData data = _members.getData(field);
     return data.getFieldType(this);
+  }
+
+  DartType _getTypeVariableBound(IndexedTypeVariable typeVariable) {
+    assert(checkFamily(typeVariable));
+    TypeVariableData data = _typeVariables.getData(typeVariable);
+    return data.getBound(this);
   }
 
   ClassEntity _getAppliedMixin(IndexedClass cls) {
@@ -763,7 +795,7 @@ abstract class ElementCreatorMixin {
   EntityDataEnvMap<IndexedLibrary, LibraryData, LibraryEnv> get _libraries;
   EntityDataEnvMap<IndexedClass, ClassData, ClassEnv> get _classes;
   EntityDataMap<IndexedMember, MemberData> get _members;
-  EntityMap<IndexedTypeVariable> get _typeVariables;
+  EntityDataMap<IndexedTypeVariable, TypeVariableData> get _typeVariables;
   EntityDataMap<IndexedTypedef, TypedefData> get _typedefs;
 
   Map<ir.Library, IndexedLibrary> _libraryMap = <ir.Library, IndexedLibrary>{};
@@ -838,8 +870,9 @@ abstract class ElementCreatorMixin {
       if (node.parent is ir.Class) {
         ir.Class cls = node.parent;
         int index = cls.typeParameters.indexOf(node);
-        return _typeVariables
-            .register(createTypeVariable(_getClass(cls), node.name, index));
+        return _typeVariables.register(
+            createTypeVariable(_getClass(cls), node.name, index),
+            new TypeVariableData(node));
       }
       if (node.parent is ir.FunctionNode) {
         ir.FunctionNode func = node.parent;
@@ -856,7 +889,8 @@ abstract class ElementCreatorMixin {
             return _getTypeVariable(cls.typeParameters[index]);
           } else {
             return _typeVariables.register(
-                createTypeVariable(_getMethod(procedure), node.name, index));
+                createTypeVariable(_getMethod(procedure), node.name, index),
+                new TypeVariableData(node));
           }
         }
       }
@@ -901,23 +935,6 @@ abstract class ElementCreatorMixin {
     });
   }
 
-  AsyncMarker _getAsyncMarker(ir.FunctionNode node) {
-    switch (node.asyncMarker) {
-      case ir.AsyncMarker.Async:
-        return AsyncMarker.ASYNC;
-      case ir.AsyncMarker.AsyncStar:
-        return AsyncMarker.ASYNC_STAR;
-      case ir.AsyncMarker.Sync:
-        return AsyncMarker.SYNC;
-      case ir.AsyncMarker.SyncStar:
-        return AsyncMarker.SYNC_STAR;
-      case ir.AsyncMarker.SyncYielding:
-      default:
-        throw new UnsupportedError(
-            "Async marker ${node.asyncMarker} is not supported.");
-    }
-  }
-
   FunctionEntity _getMethod(ir.Procedure node) {
     return _methodMap.putIfAbsent(node, () {
       LibraryEntity library;
@@ -933,7 +950,7 @@ abstract class ElementCreatorMixin {
       bool isExternal = node.isExternal;
       // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
       bool isAbstract = node.isAbstract && !node.isExternal;
-      AsyncMarker asyncMarker = _getAsyncMarker(node.function);
+      AsyncMarker asyncMarker = getAsyncMarker(node.function);
       IndexedFunction function;
       switch (node.kind) {
         case ir.ProcedureKind.Factory:
@@ -992,10 +1009,14 @@ abstract class ElementCreatorMixin {
     // TODO(johnniwinther): Cache the computed function type.
     int requiredParameters = node.requiredParameterCount;
     int positionalParameters = node.positionalParameters.length;
+    int typeParameters = node.typeParameters.length;
     List<String> namedParameters =
         node.namedParameters.map((p) => p.name).toList()..sort();
     return new ParameterStructure(
-        requiredParameters, positionalParameters, namedParameters);
+        requiredParameters,
+        positionalParameters,
+        namedParameters,
+        DartTypeConverter.enableFunctionTypeVariables ? typeParameters : 0);
   }
 
   IndexedLibrary createLibrary(String name, Uri canonicalUri);
@@ -1294,8 +1315,7 @@ class KernelElementEnvironment extends ElementEnvironment {
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
-    throw new UnimplementedError(
-        'KernelElementEnvironment.getTypeVariableBound');
+    return elementMap._getTypeVariableBound(typeVariable);
   }
 
   @override
@@ -1514,9 +1534,11 @@ class KernelElementEnvironment extends ElementEnvironment {
 
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
+  static bool enableFunctionTypeVariables = false;
+
   final KernelToElementMapBase elementMap;
-  final Set<ir.TypeParameter> currentFunctionTypeParameters =
-      new Set<ir.TypeParameter>();
+  final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
+      <ir.TypeParameter, DartType>{};
   bool topLevel = true;
 
   DartTypeConverter(this.elementMap);
@@ -1545,17 +1567,41 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitTypeParameterType(ir.TypeParameterType node) {
-    if (currentFunctionTypeParameters.contains(node.parameter)) {
-      // TODO(johnniwinther): Map function type parameters to a new
-      // [FunctionTypeParameter] type.
-      return const DynamicType();
+    DartType typeParameter = currentFunctionTypeParameters[node.parameter];
+    if (typeParameter != null) {
+      return typeParameter;
+    }
+    if (node.parameter.parent is ir.FunctionNode &&
+        node.parameter.parent.parent is ir.Procedure) {
+      // Special case for Dart 1 compatibility in checked mode.
+      ir.Procedure typeParameterParent = node.parameter.parent.parent;
+      if (typeParameterParent.kind != ir.ProcedureKind.Factory) {
+        return new Dart1MethodTypeVariableType(
+            elementMap.getTypeVariable(node.parameter));
+      }
     }
     return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
   }
 
   @override
   DartType visitFunctionType(ir.FunctionType node) {
-    currentFunctionTypeParameters.addAll(node.typeParameters);
+    int index = 0;
+    List<FunctionTypeVariable> typeVariables;
+    for (ir.TypeParameter typeParameter in node.typeParameters) {
+      if (enableFunctionTypeVariables) {
+        // TODO(johnniwinther): Support recursive type variable bounds, like
+        // `void Function<T extends Foo<T>>(T t)` when #31531 is fixed.
+        DartType bound = typeParameter.bound.accept(this);
+        FunctionTypeVariable typeVariable =
+            new FunctionTypeVariable(index, bound);
+        currentFunctionTypeParameters[typeParameter] = typeVariable;
+        typeVariables ??= <FunctionTypeVariable>[];
+        typeVariables.add(typeVariable);
+      } else {
+        currentFunctionTypeParameters[typeParameter] = const DynamicType();
+      }
+      index++;
+    }
     FunctionType type = new FunctionType(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
@@ -1565,14 +1611,23 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .skip(node.requiredParameterCount)
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
-        node.namedParameters.map((n) => visitType(n.type)).toList());
-    currentFunctionTypeParameters.removeAll(node.typeParameters);
+        node.namedParameters.map((n) => visitType(n.type)).toList(),
+        typeVariables ?? const <FunctionTypeVariable>[]);
+    for (ir.TypeParameter typeParameter in node.typeParameters) {
+      currentFunctionTypeParameters.remove(typeParameter);
+    }
     return type;
   }
 
   @override
   DartType visitInterfaceType(ir.InterfaceType node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
+    // TODO(johnniwinther): We currently encode 'FutureOr' as a dynamic type.
+    // Update the subtyping implementations to handle 'FutureOr' correctly.
+    if (cls.name == 'FutureOr' &&
+        cls.library == elementMap.commonElements.asyncLibrary) {
+      return const DynamicType();
+    }
     return new InterfaceType(cls, visitTypes(node.typeArguments));
   }
 
@@ -2048,6 +2103,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         typeVariableIndex++) {
       IndexedTypeVariable oldTypeVariable =
           _elementMap._typeVariables.getEntity(typeVariableIndex);
+      TypeVariableData oldTypeVariableData =
+          _elementMap._typeVariables.getData(oldTypeVariable);
       Entity newTypeDeclaration;
       if (oldTypeVariable.typeDeclaration is ClassEntity) {
         IndexedClass cls = oldTypeVariable.typeDeclaration;
@@ -2058,7 +2115,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       }
       IndexedTypeVariable newTypeVariable = createTypeVariable(
           newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
-      _typeVariables.register<IndexedTypeVariable>(newTypeVariable);
+      _typeVariables.register<IndexedTypeVariable, TypeVariableData>(
+          newTypeVariable, oldTypeVariableData.copy());
       assert(newTypeVariable.typeVariableIndex ==
           oldTypeVariable.typeVariableIndex);
     }
@@ -2324,7 +2382,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         recordFieldsVisibleInScope, memberMap);
 
     FunctionEntity callMethod = new JClosureCallMethod(
-        cls, _getParameterStructure(node), _getAsyncMarker(node));
+        cls, _getParameterStructure(node), getAsyncMarker(node));
     _members.register<IndexedFunction, FunctionData>(
         callMethod,
         new ClosureFunctionData(

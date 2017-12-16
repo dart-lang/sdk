@@ -140,6 +140,14 @@ class Listener {
 
   void beginCompilationUnit(Token token) {}
 
+  /// This method exists for analyzer compatibility only
+  /// and will be removed once analyzer/fasta integration is complete.
+  ///
+  /// This is called when [parseDirectives] has parsed all directives
+  /// and is skipping the remainder of the file.  Substructures:
+  /// - metadata
+  void handleDirectivesOnly() {}
+
   void endCompilationUnit(int count, Token token) {
     logEvent("CompilationUnit");
   }
@@ -600,6 +608,8 @@ class Listener {
   }
 
   void beginLiteralString(Token token) {}
+
+  void handleInterpolationExpression(Token leftBracket, Token rightBracket) {}
 
   void endLiteralString(int interpolationCount, Token endToken) {
     logEvent("LiteralString");

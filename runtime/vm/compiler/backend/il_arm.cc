@@ -37,6 +37,42 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
+DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
+  ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  __ add(out, instr->base_reg(), Operand(index, LSL, 1));
+  __ ldr(out, Address(out, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(StoreIndexedUnsafe,
+               (NoLocation, Register index, Register value)) {
+  ASSERT(instr->RequiredInputRepresentation(
+             StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
+  __ add(TMP, instr->base_reg(), Operand(index, LSL, 1));
+  __ str(value, Address(TMP, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(TailCall,
+               (NoLocation,
+                Fixed<Register, ARGS_DESC_REG>,
+                Temp<Register> temp)) {
+  __ LoadObject(CODE_REG, instr->code());
+  __ LeaveDartFrame();  // The arguments are still on the stack.
+  __ ldr(temp, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ bx(temp);
+
+  // Even though the TailCallInstr will be the last instruction in a basic
+  // block, the flow graph compiler will emit native code for other blocks after
+  // the one containing this instruction and needs to be able to use the pool.
+  // (The `LeaveDartFrame` above disables usages of the pool.)
+  __ set_constant_pool_allowed(true);
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -340,6 +376,17 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(1, Location::RegisterLocation(R2));  // Instant. type args.
   summary->set_in(2, Location::RegisterLocation(R1));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(R0));
+  return summary;
+}
+
+LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(R2));  // Instant. type args.
+  summary->set_in(1, Location::RegisterLocation(R1));  // Function type args.
   return summary;
 }
 
@@ -805,15 +852,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SetupNative();
   const Register result = locs()->out(0).reg();
 
+  // All arguments are already @SP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in R2.
-  if (!function().HasOptionalParameters()) {
-    __ AddImmediate(
-        R2, FP, (kParamEndSlotFromFp + function().NumParameters()) * kWordSize);
-  } else {
-    __ AddImmediate(R2, FP, kFirstLocalSlotFromFp * kWordSize);
-  }
+  __ add(R2, SP, Operand(ArgumentCount() * kWordSize));
+
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
@@ -854,6 +901,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            locs());
   }
   __ Pop(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(

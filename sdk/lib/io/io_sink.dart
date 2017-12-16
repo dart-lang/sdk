@@ -180,19 +180,19 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     if (_isBound) {
       throw new StateError("StreamSink is already bound to a stream");
     }
-    _isBound = true;
     if (_hasError) return done;
-    // Wait for any sync operations to complete.
-    Future targetAddStream() {
-      return _target.addStream(stream).whenComplete(() {
-        _isBound = false;
-      });
-    }
 
-    if (_controllerInstance == null) return targetAddStream();
-    var future = _controllerCompleter.future;
-    _controllerInstance.close();
-    return future.then((_) => targetAddStream());
+    _isBound = true;
+    var future = _controllerCompleter == null
+        ? _target.addStream(stream)
+        : _controllerCompleter.future.then((_) => _target.addStream(stream));
+    _controllerInstance?.close();
+
+    // Wait for any pending events in [_controller] to be dispatched before
+    // adding [stream].
+    return future.whenComplete(() {
+      _isBound = false;
+    });
   }
 
   Future flush() {

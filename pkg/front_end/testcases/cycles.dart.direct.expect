@@ -22,7 +22,7 @@ class D extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/cycles.dart:7:7: Error: 'B' is a supertype of itself via 'A', 'C', 'B'.\nclass B extends A {}\n      ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/cycles.dart:5:7: Error: 'A' is a supertype of itself via 'B', 'C'.\nclass A implements C {}\n      ^", "pkg/front_end/testcases/cycles.dart:7:7: Error: 'B' is a supertype of itself via 'A', 'C'.\nclass B extends A {}\n      ^", "pkg/front_end/testcases/cycles.dart:9:7: Error: 'C' is a supertype of itself via 'A', 'B'.\nclass C extends B implements D {}\n      ^"]/* from null */;
 static method main() → dynamic {
   core::print(new self::A::•());
   core::print(new self::B::•());

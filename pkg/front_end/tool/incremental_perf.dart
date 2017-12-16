@@ -47,18 +47,16 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/file_system.dart' show FileSystemEntity;
-import 'package:front_end/front_end.dart';
-import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/file_system.dart'
+    show FileSystemEntity;
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:kernel/target/flutter.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart';
 
 import 'perf_common.dart';
 
@@ -76,16 +74,13 @@ main(List<String> args) async {
       parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
 
   var overlayFs = new OverlayFileSystem();
-  var targetFlags = new TargetFlags(strongMode: options['mode'] == 'strong');
+  bool strongMode = options['mode'] == 'strong';
   var compilerOptions = new CompilerOptions()
     ..fileSystem = overlayFs
-    ..strongMode = (options['mode'] == 'strong')
-    ..reportMessages = true
-    ..onError = onErrorHandler(options['mode'] == 'strong')
-    ..target = options['target'] == 'flutter'
-        ? new FlutterTarget(targetFlags)
-        : new VmTarget(targetFlags);
-
+    ..strongMode = strongMode
+    ..onError = onErrorHandler(strongMode)
+    ..target = createTarget(
+        isFlutter: options['target'] == 'flutter', strongMode: strongMode);
   if (options['sdk-summary'] != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
   }
@@ -111,6 +106,9 @@ main(List<String> args) async {
   timer1.stop();
   print("Libraries changed: ${delta.newProgram.libraries.length}");
   print("Initial compilation took: ${timer1.elapsedMilliseconds}ms");
+  if (delta.newProgram.libraries.length < 1) {
+    throw "No libraries were changed";
+  }
 
   for (final ChangeSet changeSet in changeSets) {
     await applyEdits(changeSet.edits, overlayFs, generator, uriTranslator);
@@ -122,6 +120,9 @@ main(List<String> args) async {
         "Libraries changed: ${delta.newProgram.libraries.length}");
     print("Change '${changeSet.name}' - "
         "Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
+    if (delta.newProgram.libraries.length < 1) {
+      throw "No libraries were changed";
+    }
   }
 
   dir.deleteSync(recursive: true);
@@ -244,7 +245,7 @@ class Edit {
   final String replacement;
 
   Edit(String uriString, this.original, this.replacement)
-      : uri = Uri.base.resolve(uriString);
+      : uri = _resolveOverlayUri(uriString);
 
   String toString() => 'Edit($uri, "$original" -> "$replacement")';
 }
@@ -259,8 +260,12 @@ class ChangeSet {
   String toString() => 'ChangeSet($name, $edits)';
 }
 
-_resolveOverlayUri(String uriString) =>
-    Uri.base.resolve(uriString).replace(scheme: 'org-dartlang-overlay');
+_resolveOverlayUri(String uriString) {
+  Uri result = Uri.base.resolve(uriString);
+  return result.isScheme("file")
+      ? result.replace(scheme: 'org-dartlang-overlay')
+      : result;
+}
 
 ArgParser argParser = new ArgParser()
   ..addOption('target',

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 typedef Future<Null> Task();
 
@@ -65,8 +66,12 @@ Future<String> world() async {
   return 'world';
 }
 
-Future main() async {
-  var r2 = await world();
-  Expect.equals('hello', r1);
-  Expect.equals('world', r2);
+void main() {
+  asyncStart();
+  () async {
+    var r2 = await world();
+    Expect.equals('hello', r1);
+    Expect.equals('world', r2);
+    asyncEnd();
+  }();
 }

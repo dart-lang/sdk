@@ -30,6 +30,8 @@ test(String constantInitializer, [String expectedOutput]) {
 """, expectNoWarningsOrErrors: true).then((env) {
         dynamic element = env.getElement('constant');
         Expect.isNotNull(element, "Element 'constant' not found.");
+
+        /// ignore: undefined_getter
         var constant = element.constant;
         var value = env.compiler.constants.getConstantValue(constant);
         Expect.isNotNull(constant, "No constant computed for '$element'.");

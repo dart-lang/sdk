@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
+    defineReflectiveTests(SetAnalysisRootsTest_PreviewDart2);
   });
 }
 
@@ -76,4 +77,10 @@ f() {}
       expect(found, isTrue);
     });
   }
+}
+
+@reflectiveTest
+class SetAnalysisRootsTest_PreviewDart2 extends SetAnalysisRootsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

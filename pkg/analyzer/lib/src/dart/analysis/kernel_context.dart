@@ -18,9 +18,9 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -84,14 +84,16 @@ KernelDriver createKernelDriver(
 
   var uriTranslator = new UriTranslatorImpl(
       new TargetLibrariesSpecification('none', dartLibraries), packages);
+  var errorListener = new KernelErrorListener();
   var options = new ProcessedOptions(new CompilerOptions()
     ..target = new _AnalysisTarget(
         new TargetFlags(strongMode: analysisOptions.strongMode))
     ..reportMessages = false
     ..logger = logger
     ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
-    ..byteStore = byteStore);
-  return new KernelDriver(options, uriTranslator,
+    ..byteStore = byteStore
+    ..onError = errorListener.onError);
+  return new KernelDriver(options, uriTranslator, errorListener,
       metadataFactory: new AnalyzerMetadataFactory(),
       sdkOutlineBytes: sdkOutlineBytes);
 }
@@ -171,7 +173,7 @@ class KernelContext {
       }
 
       kernelResult.dependencies.forEach(addLibrary);
-      addLibrary(kernelResult.library);
+      addLibrary(kernelResult.libraryResult.library);
 
       if (DEBUG) {
         print('----------- ${targetLibrary.uriStr}');

@@ -394,6 +394,9 @@ abstract class Member implements Element {
   int get id => _baseElement.id;
 
   @override
+  bool get isAlwaysThrows => _baseElement.isAlwaysThrows;
+
+  @override
   bool get isDeprecated => _baseElement.isDeprecated;
 
   @override
@@ -419,6 +422,9 @@ abstract class Member implements Element {
 
   @override
   bool get isSynthetic => _baseElement.isSynthetic;
+
+  @override
+  bool get isVisibleForTesting => _baseElement.isVisibleForTesting;
 
   @override
   ElementKind get kind => _baseElement.kind;

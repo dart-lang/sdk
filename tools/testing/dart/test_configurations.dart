@@ -43,7 +43,6 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/language'),
   new Path('tests/language_2'),
   new Path('tests/lib'),
-  new Path('tests/lib_strong'),
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
   new Path('tests/standalone_2'),
@@ -230,6 +229,9 @@ Future testConfigurations(List<Configuration> configurations) async {
       // into '@@@'-annotated sections.
       var printFailureSummary = progressIndicator != Progress.buildbot;
       eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
+    }
+    if (firstConf.printPassingStdout) {
+      eventListener.add(new PassingStdoutPrinter(formatter));
     }
     eventListener.add(ProgressIndicator.fromProgress(
         progressIndicator, startTime, formatter));

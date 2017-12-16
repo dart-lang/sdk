@@ -165,6 +165,9 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
 bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                                    FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
+  ASSERT(!parsed_function.function().HasOptionalParameters());
+  PrologueInfo prologue_info(-1, -1);
+
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new ZoneGrowableArray<const ICData*>();
   FlowGraphBuilder builder(parsed_function, *ic_data_array,
@@ -177,7 +180,8 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                            Thread::Current()->GetNextDeoptId());
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
       parsed_function, normal_entry, Compiler::kNoOSRDeoptId);
-  FlowGraph* graph = new FlowGraph(parsed_function, graph_entry, block_id);
+  FlowGraph* graph =
+      new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();
   switch (function.recognized_kind()) {
 #define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
@@ -898,11 +902,24 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
+void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
+  if (Isolate::Current()->argument_type_checks()) {
+    return;
+  }
+
+  ObjectArraySetIndexedUnchecked(assembler);
+}
+
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
   if (Isolate::Current()->argument_type_checks()) {
     return false;
   }
 
+  return Build_GrowableArraySetIndexedUnchecked(flow_graph);
+}
+
+bool Intrinsifier::Build_GrowableArraySetIndexedUnchecked(
+    FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);

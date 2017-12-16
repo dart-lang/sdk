@@ -43,10 +43,40 @@ class LocalVariableTest extends PartialCodeTest {
               allFailing: true),
           new TestDescriptor('constName', 'const a',
               [ParserErrorCode.EXPECTED_TOKEN], "const a;",
-              allFailing: true),
+              failing: <String>[
+                'assert',
+                'break',
+                'continue',
+                'do',
+                'if',
+                'for',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'localVariable',
+                'switch',
+                'try',
+                'return',
+                'while'
+              ]),
           new TestDescriptor('constTypeName', 'const int a',
               [ParserErrorCode.EXPECTED_TOKEN], "const int a;",
-              allFailing: true),
+              failing: <String>[
+                'assert',
+                'break',
+                'continue',
+                'do',
+                'if',
+                'for',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'localVariable',
+                'switch',
+                'try',
+                'return',
+                'while'
+              ]),
           new TestDescriptor(
               'constNameComma',
               'const a,',
@@ -56,7 +86,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const a, _s_;",
               failing: <String>[
-                'eof',
                 'assert',
                 'block',
                 'break',
@@ -76,7 +105,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const int a, _s_;",
               failing: [
-                'eof',
                 'assert',
                 'block',
                 'break',
@@ -100,7 +128,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "final _s_;",
               failing: [
-                'eof',
                 'assert',
                 'block',
                 'break',
@@ -131,7 +158,22 @@ class LocalVariableTest extends PartialCodeTest {
               allFailing: true),
           new TestDescriptor(
               'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;",
-              allFailing: true),
+              failing: [
+                'assert',
+                'break',
+                'continue',
+                'do',
+                'if',
+                'for',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'localVariable',
+                'switch',
+                'try',
+                'return',
+                'while'
+              ]),
           new TestDescriptor(
               'var',
               'var',
@@ -141,7 +183,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "var _s_;",
               failing: [
-                'eof',
                 'assert',
                 'block',
                 'break',

@@ -127,6 +127,17 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     }
   }
 
+  @override
+  void collectConstantsFromMetadata(
+      covariant AstElement element, Set<ConstantValue> constants) {
+    for (MetadataAnnotation metadata in element.metadata) {
+      ConstantValue constant =
+          backend.constants.getConstantValueForMetadata(metadata);
+      if (constant != null) constants.add(constant);
+    }
+  }
+
+  @override
   void collectConstantsInBody(
       covariant AstElement element, Set<ConstantValue> constants) {
     if (element.resolvedAst.kind != ResolvedAstKind.PARSED) return;

@@ -9,7 +9,11 @@ class _List<E> extends FixedLengthListBase<E> {
 
   E operator [](int index) native "List_getIndexed";
 
-  void operator []=(int index, E value) native "List_setIndexed";
+  void operator []=(int index, E value) {
+    _setIndexed(index, value);
+  }
+
+  void _setIndexed(int index, E value) native "List_setIndexed";
 
   int get length native "List_getLength";
 

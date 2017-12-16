@@ -4,15 +4,15 @@
 
 import 'dart:async';
 
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/summary_generator.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
-import 'package:front_end/summary_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/target/targets.dart';
@@ -63,7 +63,7 @@ var c2 = b;
       KernelResult result = await driver.getKernel(cUri);
       _assertKernelResult(result, cUri,
           includes: [aUri, bUri, Uri.parse('dart:core')]);
-      expect(_getLibraryText(result.library), r'''
+      expect(_getLibraryText(result.libraryResult.library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -85,7 +85,7 @@ var b = 1.2;
       KernelResult result = await driver.getKernel(cUri);
       _assertKernelResult(result, cUri,
           includes: [aUri, bUri, Uri.parse('dart:core')]);
-      expect(_getLibraryText(result.library), r'''
+      expect(_getLibraryText(result.libraryResult.library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -122,7 +122,7 @@ var c2 = b1;
       // We still get c.dart as the library, and b.dart in dependencies.
       _assertKernelResult(result, cUri,
           includes: [aUri, bUri, Uri.parse('dart:core')]);
-      expect(_getLibraryText(result.library), r'''
+      expect(_getLibraryText(result.libraryResult.library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -143,7 +143,7 @@ var a = 1.2;
       KernelResult result = await driver.getKernel(cUri);
       _assertKernelResult(result, cUri,
           includes: [aUri, bUri, Uri.parse('dart:core')]);
-      expect(_getLibraryText(result.library), r'''
+      expect(_getLibraryText(result.libraryResult.library), r'''
 library;
 import self as self;
 import "dart:core" as core;
@@ -550,7 +550,7 @@ int getValue() {
       driver.invalidate(aUri);
       var kernelResult = await driver.getKernelSequence(bUri);
       var allLibraries = kernelResult.results
-          .map((c) => c.kernelLibraries)
+          .map((c) => c.libraryResults.map((result) => result.library))
           .expand((libs) => libs)
           .toList();
 
@@ -571,6 +571,22 @@ int getValue() {
           new Program(nameRoot: kernelResult.nameRoot, libraries: allLibraries);
       serializeProgram(program,
           filter: (library) => !library.importUri.isScheme('dart'));
+    }
+
+    // Ask dart:core, should be served from the outline.
+    {
+      var dartCoreUri = Uri.parse('dart:core');
+      var kernelResult = await driver.getKernelSequence(dartCoreUri);
+      bool hasDartCore = false;
+      for (var libraryResult in kernelResult.results) {
+        for (var libResult in libraryResult.libraryResults) {
+          if (libResult.library.importUri == dartCoreUri) {
+            hasDartCore = true;
+            break;
+          }
+        }
+      }
+      expect(hasDartCore, isTrue);
     }
   }
 
@@ -907,7 +923,7 @@ import 'b.dart';
 
   List<Library> _allLibraries(KernelSequenceResult result) {
     return result.results
-        .map((cycle) => cycle.kernelLibraries)
+        .map((cycle) => cycle.libraryResults.map((result) => result.library))
         .expand((libraries) => libraries)
         .toList();
   }
@@ -929,8 +945,8 @@ import 'b.dart';
 
   void _assertKernelResult(KernelResult result, Uri libraryUri,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
-    expect(result.library, isNotNull);
-    expect(result.library.importUri, libraryUri);
+    expect(result.libraryResult?.library, isNotNull);
+    expect(result.libraryResult.library.importUri, libraryUri);
 
     List<Uri> dependencyUris = [];
     for (var library in result.dependencies) {
@@ -946,12 +962,12 @@ import 'b.dart';
 
   void _assertLibraryUris(KernelSequenceResult result,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
-    Map<String, Source> uriToSource = {};
+    Map<Uri, Source> uriToSource = {};
     List<Uri> libraryUris = [];
     for (LibraryCycleResult cycleResult in result.results) {
       uriToSource.addAll(cycleResult.uriToSource);
-      for (var library in cycleResult.kernelLibraries) {
-        libraryUris.add(library.importUri);
+      for (var result in cycleResult.libraryResults) {
+        libraryUris.add(result.library.importUri);
       }
     }
     for (var shouldInclude in includes) {
@@ -993,14 +1009,15 @@ import 'b.dart';
       ..strongMode = true
       ..target = new NoneTarget(new TargetFlags(strongMode: true));
 
-    driver = new KernelDriver(new ProcessedOptions(options), uriTranslator,
+    driver = new KernelDriver(
+        new ProcessedOptions(options), uriTranslator, new KernelErrorListener(),
         sdkOutlineBytes: sdkOutlineBytes, fileAddedFn: fileAddedFn);
   }
 
   Library _getLibrary(KernelSequenceResult result, Uri uri) {
     for (var cycleResult in result.results) {
-      for (var library in cycleResult.kernelLibraries) {
-        if (library.importUri == uri) return library;
+      for (var result in cycleResult.libraryResults) {
+        if (result.library.importUri == uri) return result.library;
       }
     }
     throw fail('No library found with URI "$uri"');
@@ -1022,10 +1039,10 @@ import 'b.dart';
 
   /// Resolve the given `dart` or `package` [inputUri] into the corresponding
   /// file URI, or return the same URI if it is already a file URI.
-  String _resolveUriToFileUri(Uri inputUri) {
+  Uri _resolveUriToFileUri(Uri inputUri) {
     var translator = driver.uriTranslator;
     var outputUri = translator.translate(inputUri) ?? inputUri;
-    return outputUri.toString();
+    return outputUri;
   }
 
   /// Return the [Uri] for the given Posix [path].

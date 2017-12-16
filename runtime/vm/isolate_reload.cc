@@ -624,7 +624,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   become_enum_mappings_ = GrowableObjectArray::New(Heap::kOld);
 
   // Disable the background compiler while we are performing the reload.
-  BackgroundCompiler::Disable();
+  BackgroundCompiler::Disable(I);
 
   // Ensure all functions on the stack have unoptimized code.
   EnsuredUnoptimizedCodeForStack();
@@ -682,7 +682,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   // WEIRD CONTROL FLOW ENDS.
 
   // Re-enable the background compiler. Do this before propagating any errors.
-  BackgroundCompiler::Enable();
+  BackgroundCompiler::Enable(I);
 
   if (result.IsUnwindError()) {
     if (thread->top_exit_frame_info() == 0) {

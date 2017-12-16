@@ -14,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
+    defineReflectiveTests(AnalysisGetHoverIntegrationTest_PreviewDart2);
   });
 }
 
@@ -185,5 +186,19 @@ main() {
       tests.add(checkNoHover('comment'));
       return Future.wait(tests);
     });
+  }
+}
+
+@reflectiveTest
+class AnalysisGetHoverIntegrationTest_PreviewDart2
+    extends AnalysisGetHoverIntegrationTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  test_getHover() {
+    // TODO(devoncarew): NoSuchMethodError: The getter 'canonicalName' was called on null.
+    return super.test_getHover();
   }
 }

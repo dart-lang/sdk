@@ -85,7 +85,7 @@ void Code::ResetICDatas(Zone* zone) const {
   Object& object = Object::Handle(zone);
   ASSERT(!pool.IsNull());
   for (intptr_t i = 0; i < pool.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool.InfoAt(i);
+    ObjectPool::EntryType entry_type = pool.TypeAt(i);
     if (entry_type != ObjectPool::kTaggedObject) {
       continue;
     }

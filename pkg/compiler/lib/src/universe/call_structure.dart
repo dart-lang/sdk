@@ -28,13 +28,18 @@ class CallStructure {
   /// The number of positional argument of the call.
   int get positionalArgumentCount => argumentCount;
 
-  const CallStructure.unnamed(this.argumentCount);
+  /// The number of type argument of the call.
+  final int typeArgumentCount;
 
-  factory CallStructure(int argumentCount, [List<String> namedArguments]) {
+  const CallStructure.unnamed(this.argumentCount, [this.typeArgumentCount = 0]);
+
+  factory CallStructure(int argumentCount,
+      [List<String> namedArguments, int typeArgumentCount = 0]) {
     if (namedArguments == null || namedArguments.isEmpty) {
-      return new CallStructure.unnamed(argumentCount);
+      return new CallStructure.unnamed(argumentCount, typeArgumentCount);
     }
-    return new NamedCallStructure(argumentCount, namedArguments);
+    return new NamedCallStructure(
+        argumentCount, namedArguments, typeArgumentCount);
   }
 
   /// `true` if this call has named arguments.
@@ -50,7 +55,14 @@ class CallStructure {
   List<String> getOrderedNamedArguments() => const <String>[];
 
   /// A description of the argument structure.
-  String structureToString() => 'arity=$argumentCount';
+  String structureToString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('arity=$argumentCount');
+    if (typeArgumentCount != 0) {
+      sb.write(', types=$typeArgumentCount');
+    }
+    return sb.toString();
+  }
 
   String toString() => 'CallStructure(${structureToString()})';
 
@@ -60,13 +72,16 @@ class CallStructure {
     if (identical(this, other)) return true;
     return this.argumentCount == other.argumentCount &&
         this.namedArgumentCount == other.namedArgumentCount &&
+        this.typeArgumentCount == other.typeArgumentCount &&
         sameNames(this.namedArguments, other.namedArguments);
   }
 
   // TODO(johnniwinther): Cache hash code?
   int get hashCode {
-    return Hashing.listHash(namedArguments,
-        Hashing.objectHash(argumentCount, namedArguments.length));
+    return Hashing.listHash(
+        namedArguments,
+        Hashing.objectHash(argumentCount,
+            Hashing.objectHash(typeArgumentCount, namedArguments.length)));
   }
 
   bool operator ==(other) {
@@ -80,6 +95,9 @@ class CallStructure {
     int parameterCount = requiredParameterCount + optionalParameterCount;
     if (argumentCount > parameterCount) return false;
     if (positionalArgumentCount < requiredParameterCount) return false;
+    if (typeArgumentCount != 0) {
+      if (typeArgumentCount != parameters.typeParameters) return false;
+    }
 
     if (parameters.namedParameters.isEmpty) {
       // We have already checked that the number of arguments are
@@ -124,8 +142,9 @@ class NamedCallStructure extends CallStructure {
   final List<String> namedArguments;
   final List<String> _orderedNamedArguments = <String>[];
 
-  NamedCallStructure(int argumentCount, this.namedArguments)
-      : super.unnamed(argumentCount) {
+  NamedCallStructure(
+      int argumentCount, this.namedArguments, int typeArgumentCount)
+      : super.unnamed(argumentCount, typeArgumentCount) {
     assert(namedArguments.isNotEmpty);
   }
 
@@ -154,6 +173,11 @@ class NamedCallStructure extends CallStructure {
 
   @override
   String structureToString() {
-    return 'arity=$argumentCount, named=[${namedArguments.join(', ')}]';
+    StringBuffer sb = new StringBuffer();
+    sb.write('arity=$argumentCount, named=[${namedArguments.join(', ')}]');
+    if (typeArgumentCount != 0) {
+      sb.write(', types=$typeArgumentCount');
+    }
+    return sb.toString();
   }
 }

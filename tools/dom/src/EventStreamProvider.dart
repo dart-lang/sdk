@@ -75,7 +75,8 @@ class EventStreamProvider<T extends Event> {
    *
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -433,7 +434,8 @@ class _CustomEventStreamProvider<T extends Event>
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(
         e, _eventTypeGetter(e), useCapture);
   }

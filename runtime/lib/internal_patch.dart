@@ -24,6 +24,15 @@ List<T> makeListFixedLength<T>(List<T> growableList)
 List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
     native "Internal_makeFixedListUnmodifiable";
 
+@patch
+Object extractTypeArguments<T>(T instance, Function extract) {
+  // TODO(31371): Implement this correctly for Dart 2.0.
+  // In Dart 1.0, instantiating the generic with dynamic (which this does),
+  // gives you an object that can be used anywhere a more specific type is
+  // expected, so this works for now.
+  return extract();
+}
+
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
   static var timerFactory;

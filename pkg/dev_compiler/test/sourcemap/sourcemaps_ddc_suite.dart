@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:dev_compiler/src/analyzer/command.dart';
 import 'package:testing/testing.dart';
 
 import 'common.dart';
@@ -38,54 +38,50 @@ class RunDdc implements DdcRunner {
 
   const RunDdc([this.debugging = false]);
 
-  ProcessResult runDDC(String ddcDir, String inputFile, String outputFile,
-      String outWrapperPath) {
-    var outDir = path.dirname(outWrapperPath);
-    var outFileRelative = new File(path.relative(outputFile, from: outDir)).uri;
+  Future<Null> runDDC(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
+    Uri outDir = outputFile.resolve(".");
+    String outputFilename = outputFile.pathSegments.last;
 
     File sdkJsFile = findInOutDir("gen/utils/dartdevc/js/es6/dart_sdk.js");
-    var jsSdkPath = new File(path.relative(sdkJsFile.path, from: outDir)).uri;
+    var jsSdkPath = sdkJsFile.uri;
 
     File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/ddc_sdk.sum");
 
-    var ddc = path.join(ddcDir, "bin/dartdevc.dart");
-    if (!new File(ddc).existsSync()) throw "Couldn't find 'bin/dartdevc.dart'";
+    var ddc = getDdcDir().uri.resolve("bin/dartdevc.dart");
 
-    var args = [
-      ddc,
+    List<String> args = <String>[
       "--modules=es6",
       "--dart-sdk-summary=${ddcSdkSummary.path}",
       "--library-root",
-      "$outDir",
+      outDir.toFilePath(),
       "--module-root",
-      "$outDir",
+      outDir.toFilePath(),
       "-o",
-      "$outputFile",
-      "$inputFile"
+      outputFile.toFilePath(),
+      inputFile.toFilePath()
     ];
-    ProcessResult runResult = Process.runSync(dartExecutable, args);
-    if (runResult.exitCode != 0) {
-      print(runResult.stderr);
-      print(runResult.stdout);
-      throw "Exit code: ${runResult.exitCode} from ddc when running "
-          "$dartExecutable "
+
+    var exitCode = compile(args);
+    if (exitCode != 0) {
+      throw "Exit code: $exitCode from ddc when running something like "
+          "$dartExecutable ${ddc.toFilePath()} "
           "${args.reduce((value, element) => '$value "$element"')}";
     }
 
-    var jsContent = new File(outputFile).readAsStringSync();
-    new File(outputFile).writeAsStringSync(
-        jsContent.replaceFirst("from 'dart_sdk'", "from '$jsSdkPath'"));
+    var jsContent = new File.fromUri(outputFile).readAsStringSync();
+    new File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
+        "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
       createHtmlWrapper(
-          ddcDir, sdkJsFile, outputFile, jsContent, outFileRelative, outDir);
+          sdkJsFile, outputFile, jsContent, outputFilename, outDir);
     }
 
-    var inputFileName = path.basenameWithoutExtension(inputFile);
-    new File(outWrapperPath).writeAsStringSync(
-        getWrapperContent(jsSdkPath, inputFileName, outFileRelative));
-
-    return runResult;
+    var inputFileName = inputFile.pathSegments.last;
+    var inputFileNameNoExt =
+        inputFileName.substring(0, inputFileName.lastIndexOf("."));
+    new File.fromUri(outWrapperFile).writeAsStringSync(
+        getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
   }
 }
 

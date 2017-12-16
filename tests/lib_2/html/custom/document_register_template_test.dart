@@ -2,7 +2,7 @@ import 'dart:html';
 
 import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 main() {
   setUp(() => customElementsReady);

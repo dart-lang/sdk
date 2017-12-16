@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetPostfixCompletionTest);
+    defineReflectiveTests(GetPostfixCompletionTest_PreviewDart2);
   });
 }
 
@@ -49,4 +50,10 @@ void foo() { }
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
+}
+
+@reflectiveTest
+class GetPostfixCompletionTest_PreviewDart2 extends GetPostfixCompletionTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

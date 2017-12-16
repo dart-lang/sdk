@@ -8,6 +8,7 @@ import 'dart:_js_helper';
 /*element: main:[]*/
 main() {
   forceInlineDynamic();
+  forceInlineOptional();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,4 +29,24 @@ class Class1 {
 @NoInline()
 forceInlineDynamic() {
   new Class1().method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Force inline a instance method with optional argument.
+////////////////////////////////////////////////////////////////////////////////
+
+class Class2 {
+  /*element: Class2.:[]*/
+  @NoInline()
+  Class2();
+
+  /*element: Class2.method:[forceInlineOptional]*/
+  @ForceInline()
+  method([x]) {}
+}
+
+/*element: forceInlineOptional:[]*/
+@NoInline()
+forceInlineOptional() {
+  new Class2().method();
 }

@@ -13,9 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'driver_test.dart';
 
 main() {
-  // TODO(pq): fix tests to run safely on the bots
-  // https://github.com/dart-lang/sdk/issues/25001
-//  defineReflectiveTests(StrongModeTest);
+  defineReflectiveTests(StrongModeTest);
 }
 
 /// End-to-end test for --strong checking.

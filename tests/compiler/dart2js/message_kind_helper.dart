@@ -112,7 +112,10 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       Expect.isTrue(
           messageFound,
           '${template.kind}} does not match any in\n '
-          '${messages.join('\n ')}');
+          '${messages.join('\n ')}\n'
+          'Consider searching for ${template.kind} in\n'
+          '  pkg/compiler/lib/src/diagnostics/messages.dart\n'
+          'and removing the associated example');
       dynamic reporter = compiler.reporter;
       Expect.isFalse(reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {

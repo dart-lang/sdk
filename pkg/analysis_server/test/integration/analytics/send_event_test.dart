@@ -10,6 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SendEventTest);
+    defineReflectiveTests(SendEventTest_PreviewDart2);
   });
 }
 
@@ -28,4 +29,10 @@ class SendEventTest extends AbstractAnalysisServerIntegrationTest {
     // Restore the original value.
     await sendAnalyticsEnable(result1.enabled);
   }
+}
+
+@reflectiveTest
+class SendEventTest_PreviewDart2 extends SendEventTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

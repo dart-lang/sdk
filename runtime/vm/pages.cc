@@ -113,7 +113,8 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kCompactorTask));
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -182,7 +183,8 @@ PageSpace::PageSpace(Heap* heap,
       max_capacity_in_words_(max_capacity_in_words),
       max_external_in_words_(max_external_in_words),
       tasks_lock_(new Monitor()),
-      tasks_(0),
+      sweeper_tasks_(0),
+      low_memory_tasks_(0),
 #if defined(DEBUG)
       iterating_thread_(NULL),
 #endif
@@ -201,7 +203,7 @@ PageSpace::PageSpace(Heap* heap,
 PageSpace::~PageSpace() {
   {
     MonitorLocker ml(tasks_lock());
-    while (tasks() > 0) {
+    while (sweeper_tasks() > 0) {
       ml.Wait();
     }
   }
@@ -247,11 +249,11 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
+      if (FLAG_write_protect_code) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
+      if (FLAG_write_protect_code) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -825,14 +827,12 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      if (!page->is_image_page()) {
-        page->WriteProtect(read_only);
-      }
+      page->WriteProtect(read_only);
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable && !page->is_image_page()) {
+      if (page->type() == HeapPage::kExecutable) {
         page->WriteProtect(read_only);
       }
       page = page->next();
@@ -851,7 +851,7 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
 
   {
     MonitorLocker locker(tasks_lock());
-    if (tasks() > 0) {
+    if (sweeper_tasks() > 0) {
       // A concurrent sweeper is running. If we start a mark sweep now
       // we'll have to wait for it, and this wait time is not included in
       // mark_sweep_words_per_micro_.
@@ -865,7 +865,7 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
   return estimated_mark_completion <= deadline;
 }
 
-void PageSpace::MarkSweep() {
+void PageSpace::CollectGarbage(bool compact) {
   Thread* thread = Thread::Current();
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate == Isolate::Current());
@@ -875,10 +875,10 @@ void PageSpace::MarkSweep() {
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
-    while (tasks() > 0) {
+    while (sweeper_tasks() > 0) {
       locker.WaitWithSafepointCheck(thread);
     }
-    set_tasks(1);
+    set_sweeper_tasks(1);
   }
 
   const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
@@ -892,6 +892,7 @@ void PageSpace::MarkSweep() {
 
     const int64_t start = OS::GetCurrentMonotonicMicros();
 
+    NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
     // Perform various cleanup that relies on no tasks interfering.
     isolate->class_table()->FreeOldTables();
 
@@ -983,14 +984,14 @@ void PageSpace::MarkSweep() {
       }
 
       mid3 = OS::GetCurrentMonotonicMicros();
+    }
 
-      if (FLAG_use_compactor) {
-        Compact(thread);
-      } else if (FLAG_concurrent_sweep) {
-        ConcurrentSweep(isolate);
-      } else {
-        BlockingSweep();
-      }
+    if (compact) {
+      Compact(thread);
+    } else if (FLAG_concurrent_sweep) {
+      ConcurrentSweep(isolate);
+    } else {
+      BlockingSweep();
     }
 
     // Make code pages read-only.
@@ -1035,18 +1036,23 @@ void PageSpace::MarkSweep() {
   // Done, reset the task count.
   {
     MonitorLocker ml(tasks_lock());
-    set_tasks(tasks() - 1);
+    set_sweeper_tasks(sweeper_tasks() - 1);
     ml.NotifyAll();
   }
 
-  if (FLAG_use_compactor) {
+  if (compact) {
     // Const object tables are hashed by address: rehash.
     SafepointOperationScope safepoint(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     thread->isolate()->RehashConstants();
   }
 }
 
 void PageSpace::BlockingSweep() {
+  MutexLocker mld(freelist_[HeapPage::kData].mutex());
+  MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
+
   // Sweep all regular sized pages now.
   GCSweeper sweeper;
   HeapPage* prev_page = NULL;
@@ -1079,7 +1085,7 @@ void PageSpace::ConcurrentSweep(Isolate* isolate) {
 void PageSpace::Compact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  compactor.CompactBySliding(pages_, &freelist_[HeapPage::kData], pages_lock_);
+  compactor.Compact(pages_, &freelist_[HeapPage::kData], pages_lock_);
   thread->isolate()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {

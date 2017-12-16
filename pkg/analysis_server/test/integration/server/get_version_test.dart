@@ -9,6 +9,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetVersionTest);
+    defineReflectiveTests(GetVersionTest_PreviewDart2);
   });
 }
 
@@ -17,4 +18,10 @@ class GetVersionTest extends AbstractAnalysisServerIntegrationTest {
   test_getVersion() {
     return sendServerGetVersion();
   }
+}
+
+@reflectiveTest
+class GetVersionTest_PreviewDart2 extends GetVersionTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

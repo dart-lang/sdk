@@ -15,7 +15,7 @@ import 'package:compiler/src/library_loader.dart' show ScriptLoader;
 import 'package:compiler/src/script.dart' show Script;
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import "package:expect/expect.dart";
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeProgram;
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;

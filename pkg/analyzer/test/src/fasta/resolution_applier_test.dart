@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:kernel/kernel.dart' as kernel;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,10 +42,11 @@ class ResolutionApplierTest extends FastaParserTestCase {
     expect(unit.declarations, hasLength(1));
     FunctionDeclaration function = unit.declarations[0];
     FunctionBody body = function.functionExpression.body;
-    ResolutionApplier applier =
-        new ResolutionApplier(declaredElements, referencedElements, types);
-    applier.enclosingExecutable =
-        new FunctionElementImpl(function.name.name, function.name.offset);
+    ResolutionApplier applier = new ResolutionApplier(
+        new _TestTypeContext(),
+        declaredElements,
+        referencedElements,
+        types.map((type) => new _KernelWrapperOfType(type)).toList());
 
     body.accept(applier);
     applier.checkDone();
@@ -244,7 +246,6 @@ f(String s) {
     ]);
   }
 
-  @failingTest
   void test_methodInvocation_method() {
     applyTypes(r'''
 f(String s) {
@@ -304,5 +305,40 @@ f() {
         new TypeParameterTypeImpl(typeParameter);
     typeParameter.type = typeParameterType;
     return typeParameter;
+  }
+}
+
+/// Kernel wrapper around the Analyzer [type].
+class _KernelWrapperOfType implements kernel.DartType {
+  final DartType type;
+
+  _KernelWrapperOfType(this.type);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Test implementation of [TypeContext].
+class _TestTypeContext implements TypeContext {
+  @override
+  ClassElement get enclosingClassElement => null;
+
+  @override
+  DartType get stringType => null;
+
+  @override
+  DartType get typeType => null;
+
+  @override
+  void encloseVariable(ElementImpl element) {}
+
+  @override
+  void enterLocalFunction(FunctionElementImpl element) {}
+
+  @override
+  void exitLocalFunction(FunctionElementImpl element) {}
+
+  @override
+  DartType translateType(kernel.DartType kernelType) {
+    return (kernelType as _KernelWrapperOfType).type;
   }
 }

@@ -51,8 +51,11 @@ class Location : public ValueObject {
  private:
   enum {
     // Number of bits required to encode Kind value.
-    kBitsForKind = 4,
-    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind,
+    kKindBitsPos = 0,
+    kKindBitsSize = 5,
+
+    kPayloadBitsPos = kKindBitsPos + kKindBitsSize,
+    kPayloadBitsSize = kBitsPerWord - kPayloadBitsPos,
   };
 
   static const uword kInvalidLocation = 0;
@@ -94,6 +97,12 @@ class Location : public ValueObject {
     // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
     kFpuRegister = 12,
+
+#ifdef TARGET_ARCH_DBC
+    // We use this to signify a special `Location` where the arguments
+    // descriptor can be found on DBC.
+    kArgsDescRegister = 15,
+#endif
   };
 
   Location() : value_(kInvalidLocation) {
@@ -119,6 +128,11 @@ class Location : public ValueObject {
 
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kConstantTag);
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kPairLocationTag);
+
+#ifdef TARGET_ARCH_DBC
+    COMPILE_ASSERT((kArgsDescRegister & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kArgsDescRegister & kLocationTagMask) != kPairLocationTag);
+#endif
 
     // Verify tags and tagmask.
     COMPILE_ASSERT((kConstantTag & kLocationTagMask) == kConstantTag);
@@ -232,6 +246,14 @@ class Location : public ValueObject {
   }
 
   bool IsFpuRegister() const { return kind() == kFpuRegister; }
+
+#ifdef TARGET_ARCH_DBC
+  static Location ArgumentsDescriptorLocation() {
+    return Location(kArgsDescRegister, 0);
+  }
+
+  bool IsArgsDescRegister() const { return kind() == kArgsDescRegister; }
+#endif
 
   FpuRegister fpu_reg() const {
     ASSERT(IsFpuRegister());
@@ -356,9 +378,10 @@ class Location : public ValueObject {
 
   uword payload() const { return PayloadField::decode(value_); }
 
-  class KindField : public BitField<uword, Kind, 0, kBitsForKind> {};
+  class KindField : public BitField<uword, Kind, kKindBitsPos, kKindBitsSize> {
+  };
   class PayloadField
-      : public BitField<uword, uword, kBitsForKind, kBitsForPayload> {};
+      : public BitField<uword, uword, kPayloadBitsPos, kPayloadBitsSize> {};
 
   // Layout for kUnallocated locations payload.
   typedef BitField<uword, Policy, 0, 3> PolicyField;
@@ -369,7 +392,7 @@ class Location : public ValueObject {
 #else
   static const intptr_t kBitsForBaseReg = 5;
 #endif
-  static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
+  static const intptr_t kBitsForStackIndex = kPayloadBitsSize - kBitsForBaseReg;
   class StackSlotBaseField
       : public BitField<uword, Register, 0, kBitsForBaseReg> {};
   class StackIndexField

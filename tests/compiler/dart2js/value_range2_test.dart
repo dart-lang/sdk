@@ -9,8 +9,8 @@ import "package:compiler/src/js_backend/constant_system_javascript.dart";
 
 ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 
-Value instructionValue = info.newInstructionValue(new HBreak(null));
-Value lengthValue = info.newPositiveValue(new HBreak(null));
+Value instructionValue = info.newInstructionValue(new HBreak(null, null));
+Value lengthValue = info.newPositiveValue(new HBreak(null, null));
 
 Range createSingleRange(Value value) => info.newNormalizedRange(value, value);
 

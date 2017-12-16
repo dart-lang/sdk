@@ -10,6 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
+    defineReflectiveTests(SetAnalysisRootsTest_PreviewDart2);
   });
 }
 
@@ -29,4 +30,10 @@ class Foo {
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
+}
+
+@reflectiveTest
+class SetAnalysisRootsTest_PreviewDart2 extends SetAnalysisRootsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

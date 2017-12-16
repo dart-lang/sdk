@@ -7,7 +7,7 @@
 # strong mode enabled, AOT specific Kernel-to-Kernel transformations and
 # Dart VM precompiler with strong mode semantics and reified generics.
 
-# Parse incomming arguments and extract the value of --packages option if any
+# Parse incoming arguments and extract the value of --packages option if any
 # was passed. Split options (--xyz) and non-options into two separate arrays.
 # All options will be passed to dart_bootstrap, while --packages will be
 # passed to Fasta.
@@ -55,21 +55,21 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 # Handle the case where dart-sdk/bin has been symlinked to.
 CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
+SDK_DIR="$CUR_DIR/../../.."
+
 if [[ `uname` == 'Darwin' ]]; then
-  OUT_DIR="$CUR_DIR"/../../../xcodebuild/
+  OUT_DIR="$SDK_DIR/xcodebuild"
 else
-  OUT_DIR="$CUR_DIR"/../../../out/
+  OUT_DIR="$SDK_DIR/out"
 fi
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
+BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 # Step 1: Generate Kernel binary from the input Dart source.
-"$BIN_DIR"/dart pkg/front_end/tool/_fasta/compile.dart                         \
-     --strong-mode                                                             \
-     --platform "${BIN_DIR}"/vm_platform_strong.dill                           \
-     --target vm                                                               \
-     --target-options=strong-aot                                               \
+"$BIN_DIR"/dart "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                        \
+     --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
+     --aot                                                                     \
      $PACKAGES                                                                 \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"
@@ -78,7 +78,6 @@ BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 exec "$BIN_DIR"/dart_bootstrap                                                 \
      --strong                                                                  \
      --reify-generic-functions                                                 \
-     --kernel-binaries="${BIN_DIR}"                                            \
      --snapshot-kind=app-aot                                                   \
      --use-blobs                                                               \
      --snapshot="$SNAPSHOT_FILE"                                               \

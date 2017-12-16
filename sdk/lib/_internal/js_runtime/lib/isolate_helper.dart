@@ -120,11 +120,11 @@ void startRootIsolate(entry, args) {
   _globalState.currentContext = rootContext;
   if (entry is _MainFunctionArgs) {
     rootContext.eval(() {
-      entry(args);
+      (entry as dynamic)(args);
     });
   } else if (entry is _MainFunctionArgsMessage) {
     rootContext.eval(() {
-      entry(args, null);
+      (entry as dynamic)(args, null);
     });
   } else {
     rootContext.eval(entry);
@@ -949,7 +949,7 @@ class IsolateNatives {
   }
 
   static Future<List> spawnFunction(
-      void topLevelFunction(message), var message, bool startPaused) {
+      void topLevelFunction(Null message), var message, bool startPaused) {
     IsolateNatives.enableSpawnWorker = true;
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {

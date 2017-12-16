@@ -2,6 +2,48 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $arch == ia32 && $mode == debug && $runtime == vm && $system == windows ]
+convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
+
+[ $arch != ia32 && $arch != simarm && $arch != simarmv5te && $arch != simarmv6 && $arch != x64 && $mode == debug && $runtime == vm ]
+convert/streamed_conversion_json_utf8_decode_test: Skip # Verification not yet implemented.
+
+[ $arch == simarm64 && $runtime == vm ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
+
+[ $compiler != dartk && $runtime == vm ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+html/*: SkipByDesign # dart:html not supported on VM.
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
+mirrors/deferred_type_test: CompileTimeError
+mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
+mirrors/generic_bounded_test/01: MissingCompileTimeError
+mirrors/generic_bounded_test/02: MissingCompileTimeError
+mirrors/generic_interface_test/01: MissingCompileTimeError
+mirrors/generics_test/01: MissingCompileTimeError
+mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
+mirrors/native_class_test: SkipByDesign # Imports dart:html
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+
+[ $compiler != dartk && $runtime == vm && !$checked ]
+mirrors/inference_and_no_such_method_test: RuntimeError
+
+[ $compiler != dartk && $runtime == vm && $strong ]
+async/future_or_only_in_async_test/00: MissingCompileTimeError
+
+[ $compiler != dartk && $runtime == vm && !$strong ]
+mirrors/reflect_class_test/01: MissingCompileTimeError
+mirrors/reflect_class_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/01: MissingCompileTimeError
+mirrors/reflected_type_classes_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/03: MissingCompileTimeError
+mirrors/reflected_type_test/01: MissingCompileTimeError
+mirrors/reflected_type_test/02: MissingCompileTimeError
+mirrors/reflected_type_test/03: MissingCompileTimeError
+
 [ $runtime == vm && $system == fuchsia ]
 async/first_regression_test: RuntimeError
 async/future_timeout_test: RuntimeError
@@ -20,20 +62,20 @@ async/stream_periodic4_test: RuntimeError
 async/stream_periodic5_test: RuntimeError
 async/stream_periodic6_test: RuntimeError
 async/stream_periodic_test: RuntimeError
-async/stream_transform_test: RuntimeError
-async/stream_transformation_broadcast_test: RuntimeError
-async/stream_state_test: RuntimeError
-async/stream_state_nonzero_timer_test: RuntimeError
 async/stream_single_test: RuntimeError
 async/stream_single_to_multi_subscriber_test: RuntimeError
+async/stream_state_nonzero_timer_test: RuntimeError
+async/stream_state_test: RuntimeError
 async/stream_subscription_as_future_test: RuntimeError
 async/stream_subscription_cancel_test: RuntimeError
-async/timer_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
 async/timer_cancel1_test: RuntimeError
 async/timer_cancel2_test: RuntimeError
 async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
+async/timer_test: RuntimeError
 convert/json_lib_test: RuntimeError
 math/point_test: RuntimeError
 math/rectangle_test: RuntimeError
@@ -41,53 +83,12 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 
-[ $strong && $runtime == vm && $compiler != dartk ]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
-
-[ $runtime == vm && $compiler != dartk ]
-convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
-html/*: SkipByDesign # dart:html not supported on VM.
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
-mirrors/deferred_type_test: CompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
-mirrors/generic_bounded_test/01: MissingCompileTimeError
-mirrors/generic_bounded_test/02: MissingCompileTimeError
-mirrors/generic_interface_test/01: MissingCompileTimeError
-mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
-mirrors/native_class_test: SkipByDesign # Imports dart:html
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
-
-[ $runtime == vm && $compiler != dartk && !$checked ]
-mirrors/inference_and_no_such_method_test: RuntimeError
-
-[ $runtime == vm && $compiler != dartk && !$strong ]
-mirrors/reflect_class_test/01: MissingCompileTimeError
-mirrors/reflect_class_test/02: MissingCompileTimeError
-mirrors/reflected_type_classes_test/01: MissingCompileTimeError
-mirrors/reflected_type_classes_test/02: MissingCompileTimeError
-mirrors/reflected_type_classes_test/03: MissingCompileTimeError
-mirrors/reflected_type_test/01: MissingCompileTimeError
-mirrors/reflected_type_test/02: MissingCompileTimeError
-mirrors/reflected_type_test/03: MissingCompileTimeError
-
-[ $runtime == vm && !$strong && !$checked ]
+[ $runtime == vm && !$checked && !$strong ]
 mirrors/regress_16321_test/01: MissingCompileTimeError
 
-[ $runtime == vm && $mode == debug && $arch == ia32 && $system == windows ]
-convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
+[ $runtime == vm && ($arch == simarm || $arch == simarmv5te || $arch == simarmv6) ]
+convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
-[ $runtime == vm && $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
-convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
+[ $arch == simarmv5te || $arch == simarmv6 || $arch == simarm && $runtime == vm ]
+convert/chunked_conversion_utf88_test: Skip # Pass, Slow Issue 12644.
 
-[ $runtime == vm && $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
-convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
-
-[ $runtime == vm && ( $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ) ]
-convert/utf85_test: Skip  # Pass, Slow Issue 12644.
-
-[ $runtime == vm && $arch == simarm64 ]
-convert/utf85_test: Skip # Pass, Slow Issue 20111.
-
-[ $runtime == vm && $compiler != dartk ]
-mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21

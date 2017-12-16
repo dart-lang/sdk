@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsEnabledTest);
+    defineReflectiveTests(IsEnabledTest_PreviewDart2);
   });
 }
 
@@ -23,4 +24,10 @@ class IsEnabledTest extends AbstractAnalysisServerIntegrationTest {
     // Very lightweight validation of the returned data.
     expect(result, isNotNull);
   }
+}
+
+@reflectiveTest
+class IsEnabledTest_PreviewDart2 extends IsEnabledTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

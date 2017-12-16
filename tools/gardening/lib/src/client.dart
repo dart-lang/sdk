@@ -112,8 +112,9 @@ class LogdogBuildbotClient implements BuildbotClient {
         buildNumberIndex =
             getBuildNumberIndex(absoluteBuildNumbers, buildUri.buildNumber);
         if (buildNumberIndex == null) return null;
+        buildNumberIndex++;
         if (buildNumberIndex >= absoluteBuildNumbers.length) return null;
-        int buildNumber = absoluteBuildNumbers[buildNumberIndex + 1];
+        int buildNumber = absoluteBuildNumbers[buildNumberIndex];
         log('Skip build number ${buildUri.buildNumber} -> ${buildNumber}');
         buildUri = buildUri.withBuildNumber(buildNumber);
       }

@@ -3152,7 +3152,7 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
   // at the catch-entry with this constant.
   const GrowableArray<CatchBlockEntryInstr*>& catch_entries =
       flow_graph->graph_entry()->catch_entries();
-  intptr_t base = kFirstLocalSlotFromFp + flow_graph->num_non_copied_params();
+
   for (intptr_t catch_idx = 0; catch_idx < catch_entries.length();
        ++catch_idx) {
     CatchBlockEntryInstr* catch_entry = catch_entries[catch_idx];
@@ -3169,11 +3169,13 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     // exception_var and stacktrace_var are never constant.  In asynchronous or
     // generator functions they may be context-allocated in which case they are
     // not tracked in the environment anyway.
+
+    const intptr_t parameter_count = flow_graph->num_direct_parameters();
     if (!catch_entry->exception_var().is_captured()) {
-      cdefs[base - catch_entry->exception_var().index()] = NULL;
+      cdefs[catch_entry->exception_var().BitIndexIn(parameter_count)] = NULL;
     }
     if (!catch_entry->stacktrace_var().is_captured()) {
-      cdefs[base - catch_entry->stacktrace_var().index()] = NULL;
+      cdefs[catch_entry->stacktrace_var().BitIndexIn(parameter_count)] = NULL;
     }
 
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
@@ -3297,6 +3299,38 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
         join->phis_->TruncateTo(to_index);
       }
     }
+  }
+}
+
+void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
+  CheckStackOverflowInstr* first_stack_overflow_instr = NULL;
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* entry = block_it.Current();
+
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+
+      if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
+        if (first_stack_overflow_instr == NULL) {
+          first_stack_overflow_instr = instr;
+          ASSERT(!first_stack_overflow_instr->in_loop());
+        }
+        continue;
+      }
+
+      if (current->IsBranch()) {
+        current = current->AsBranch()->comparison();
+      }
+
+      if (current->HasUnknownSideEffects()) {
+        return;
+      }
+    }
+  }
+
+  if (first_stack_overflow_instr != NULL) {
+    first_stack_overflow_instr->RemoveFromGraph();
   }
 }
 

@@ -270,8 +270,8 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
                   node, element.messageKind, element.messageArguments);
             } else {
               assert(elementType is MethodTypeVariableType);
-              reporter.reportErrorMessage(
-                  node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+              // Used to `reportErrorMessage` here, but with Dart 2 upcoming
+              // very soon we do not emit this message any more.
             }
           } else {
             // We need to throw an exception at runtime.

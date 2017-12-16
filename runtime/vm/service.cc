@@ -3439,17 +3439,17 @@ static const MethodParameter* get_heap_map_params[] = {
 
 static bool GetHeapMap(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
-  bool should_collect = false;
   if (js->HasParam("gc")) {
-    if (js->ParamIs("gc", "full")) {
-      should_collect = true;
+    if (js->ParamIs("gc", "scavenge")) {
+      isolate->heap()->CollectGarbage(Heap::kNew);
+    } else if (js->ParamIs("gc", "mark-sweep")) {
+      isolate->heap()->CollectGarbage(Heap::kOld, Heap::kOldSpace);
+    } else if (js->ParamIs("gc", "mark-compact")) {
+      isolate->heap()->CollectGarbage(Heap::kOld, Heap::kCompaction);
     } else {
       PrintInvalidParamError(js, "gc");
       return true;
     }
-  }
-  if (should_collect) {
-    isolate->heap()->CollectAllGarbage();
   }
   isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
   return true;

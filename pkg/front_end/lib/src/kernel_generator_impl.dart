@@ -21,8 +21,9 @@ import 'fasta/kernel/utils.dart';
 import 'fasta/kernel/verifier.dart';
 import 'fasta/uri_translator.dart' show UriTranslator;
 
-/// Implementation for the `package:front_end/kernel_generator.dart` and
-/// `package:front_end/summary_generator.dart` APIs.
+/// Implementation for the
+/// `package:front_end/src/api_prototype/kernel_generator.dart` and
+/// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
 Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
     bool buildProgram: true,
@@ -63,8 +64,8 @@ Future<CompilerResult> generateKernelInternal(
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
       var excluded = externalLibs(sdkSummary);
-      dillTarget.loader
-          .appendLibraries(sdkSummary, (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(sdkSummary,
+          filter: (uri) => !excluded.contains(uri));
     }
 
     // TODO(sigmund): provide better error reporting if input summaries or
@@ -72,12 +73,13 @@ Future<CompilerResult> generateKernelInternal(
     // sort them).
     for (var inputSummary in await options.loadInputSummaries(nameRoot)) {
       var excluded = externalLibs(inputSummary);
-      dillTarget.loader
-          .appendLibraries(inputSummary, (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(inputSummary,
+          filter: (uri) => !excluded.contains(uri));
     }
 
     // All summaries are considered external and shouldn't include source-info.
     dillTarget.loader.libraries.forEach((lib) {
+      // TODO(ahe): Don't do this, and remove [external_state_snapshot.dart].
       lib.isExternal = true;
       lib.dependencies.clear();
     });
@@ -86,8 +88,8 @@ Future<CompilerResult> generateKernelInternal(
     // marked external.
     for (var dependency in await options.loadLinkDependencies(nameRoot)) {
       var excluded = externalLibs(dependency);
-      dillTarget.loader
-          .appendLibraries(dependency, (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(dependency,
+          filter: (uri) => !excluded.contains(uri));
     }
 
     await dillTarget.buildOutlines();
@@ -136,14 +138,6 @@ Future<CompilerResult> generateKernelInternal(
         printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
       }
       options.ticker.logMs("Generated program");
-    }
-
-    if (kernelTarget.errors.isNotEmpty) {
-      // TODO(sigmund): remove duplicate error reporting. Currently
-      // kernelTarget.errors contains recoverable and unrecoverable errors. We
-      // are reporting unrecoverable errors twice.
-      kernelTarget.errors.forEach((e) => options.report(e, Severity.error));
-      return null;
     }
 
     return new CompilerResult(

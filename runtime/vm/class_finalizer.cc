@@ -506,9 +506,8 @@ void ClassFinalizer::ResolveTypeClass(const Class& cls, const Type& type) {
   ASSERT(!type_class.IsTypedefClass() ||
          (type.signature() != Function::null()));
 
-  // Replace FutureOr<T> type of async library with dynamic.
-  if ((type_class.library() == Library::AsyncLibrary()) &&
-      (type_class.Name() == Symbols::FutureOr().raw())) {
+  // In non-strong mode, replace FutureOr<T> type of async library with dynamic.
+  if (type_class.IsFutureOrClass() && !Isolate::Current()->strong()) {
     Type::Cast(type).set_type_class(Class::Handle(Object::dynamic_class()));
     type.set_arguments(Object::null_type_arguments());
   }

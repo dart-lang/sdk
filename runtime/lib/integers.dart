@@ -124,7 +124,7 @@ abstract class _IntegerImplementation implements int {
   bool _greaterThanFromInteger(int other)
       native "Integer_greaterThanFromInteger";
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is num) {
       return other._equalToInteger(this);
     }

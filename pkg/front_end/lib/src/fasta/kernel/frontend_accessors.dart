@@ -669,18 +669,28 @@ class SuperIndexAccessor extends Accessor {
 }
 
 class StaticAccessor extends Accessor {
+  /// If [targetClass] is not `null`, the offset at which the explicit
+  /// reference to it is; otherwise `-1`.
+  int targetOffset;
+
+  /// The [Class] that was explicitly referenced to get the [readTarget] or
+  /// the [writeTarget], or `null` if the class is implicit, and targets were
+  /// get from the scope.
+  Class targetClass;
+
   Member readTarget;
   Member writeTarget;
 
-  StaticAccessor(
-      BuilderHelper helper, this.readTarget, this.writeTarget, Token token)
+  StaticAccessor(BuilderHelper helper, this.targetOffset, this.targetClass,
+      this.readTarget, this.writeTarget, Token token)
       : super(helper, token);
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (readTarget == null) {
       return makeInvalidRead();
     } else {
-      var read = helper.makeStaticGet(readTarget, token);
+      var read = helper.makeStaticGet(readTarget, token,
+          targetOffset: targetOffset, targetClass: targetClass);
       complexAssignment?.read = read;
       return read;
     }
@@ -744,6 +754,23 @@ class ReadOnlyAccessor extends Accessor {
   Expression _finish(
           Expression body, ShadowComplexAssignment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
+}
+
+abstract class DelayedErrorAccessor extends Accessor {
+  DelayedErrorAccessor(BuilderHelper helper, Token token)
+      : super(helper, token);
+
+  Expression buildError();
+
+  Expression _makeSimpleRead() => buildError();
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+          ShadowComplexAssignment complexAssignment) =>
+      buildError();
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) =>
+      buildError();
+  Expression _makeWrite(Expression value, bool voidContext,
+          ShadowComplexAssignment complexAssignment) =>
+      buildError();
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

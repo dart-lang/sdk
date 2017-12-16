@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateOptionsTest);
+    defineReflectiveTests(UpdateOptionsTest_PreviewDart2);
   });
 }
 
@@ -44,4 +45,10 @@ class Foo {
     await analysisFinished;
     expect(getErrors(pathname), hasLength(1));
   }
+}
+
+@reflectiveTest
+class UpdateOptionsTest_PreviewDart2 extends UpdateOptionsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

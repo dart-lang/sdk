@@ -338,7 +338,9 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out("else");
       if (elsePart is If) {
         pendingSpace = true;
+        context.enterNode(elsePart);
         ifOut(elsePart, false);
+        context.exitNode(elsePart);
       } else {
         blockBody(elsePart, needsSeparation: true, needsNewline: true);
       }

@@ -671,7 +671,7 @@ class RawObject {
   friend class Serializer;        // GetClassId
   friend class Array;
   friend class Become;  // GetClassId
-  friend class GCCompactor;  // GetClassId
+  friend class CompactorTask;  // GetClassId
   friend class Bigint;
   friend class ByteBuffer;
   friend class CidRewriteVisitor;
@@ -1276,10 +1276,6 @@ class RawObjectPool : public RawObject {
 
   intptr_t length_;
 
-  VISIT_FROM(RawObject*, info_array_);
-  RawTypedData* info_array_;
-  VISIT_TO(RawObject*, info_array_);
-
   struct Entry {
     union {
       RawObject* raw_obj_;
@@ -1289,7 +1285,14 @@ class RawObjectPool : public RawObject {
   Entry* data() { OPEN_ARRAY_START(Entry, Entry); }
   Entry const* data() const { OPEN_ARRAY_START(Entry, Entry); }
 
-  Entry* first_entry() { return &ptr()->data()[0]; }
+  // The entry types are located after the last entry. They are interpreted
+  // as ObjectPool::EntryType.
+  uint8_t* entry_types() {
+    return reinterpret_cast<uint8_t*>(&data()[length_]);
+  }
+  uint8_t const* entry_types() const {
+    return reinterpret_cast<uint8_t const*>(&data()[length_]);
+  }
 
   friend class Object;
 };

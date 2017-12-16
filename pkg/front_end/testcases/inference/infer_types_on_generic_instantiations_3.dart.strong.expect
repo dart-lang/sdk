@@ -16,10 +16,10 @@ class B extends core::Object implements self::A<core::int> {
   get x() → core::int
     return 3;
   get w() → core::int
-    return "hello" as{TypeError} core::int;
+    return let final dynamic #t1 = "hello" in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:15:62: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  get /*@topType=int*/ w => /*error:RETURN_OF_INVALID_TYPE*/ \"hello\";\n                                                             ^"));
 }
 static method foo() → dynamic {
-  core::String y = new self::B::•().{self::B::x} as{TypeError} core::String;
+  core::String y = let final dynamic #t2 = new self::B::•().{self::B::x} in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;\n                                                                    ^"));
   core::int z = new self::B::•().{self::B::x};
 }
 static method main() → dynamic {}

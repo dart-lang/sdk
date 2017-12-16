@@ -10,7 +10,7 @@ import 'dart:async';
 Future<int> make(int x) => (new /*@typeArgs=int*/ Future(
     /*@returnType=int*/ () => x));
 
-main() {
+test() {
   Iterable<Future<int>> list = <int>[1, 2, 3]
       . /*@typeArgs=Future<int>*/ /*@target=Iterable::map*/ map(make);
   Future<List<int>> results = Future. /*@typeArgs=int*/ wait(list);
@@ -44,3 +44,5 @@ main() {
                       x /*@target=String::+*/ +
                       y. /*@target=int::toString*/ toString()));
 }
+
+main() {}

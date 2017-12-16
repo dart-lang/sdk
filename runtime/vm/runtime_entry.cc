@@ -356,6 +356,45 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   arguments.SetReturn(type_arguments);
 }
 
+// Instantiate type.
+// Arg0: type to be a subtype of the other
+// Arg1: type to be a supertype of the other
+// Arg2: instantiator type arguments
+// Arg3: function type arguments
+// Arg4: variable name of the subtype parameter
+// No return value.
+DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
+  AbstractType& subtype = AbstractType::CheckedHandle(zone, arguments.ArgAt(0));
+  AbstractType& supertype =
+      AbstractType::CheckedHandle(zone, arguments.ArgAt(1));
+  const TypeArguments& instantiator_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
+  const TypeArguments& function_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
+  const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
+
+  ASSERT(!subtype.IsNull() && !subtype.IsMalformedOrMalbounded());
+  ASSERT(!supertype.IsNull() && !supertype.IsMalformedOrMalbounded());
+
+  // The supertype or subtype may not be instantiated.
+  Error& bound_error = Error::Handle(zone);
+  if (AbstractType::InstantiateAndTestSubtype(
+          &subtype, &supertype, &bound_error, instantiator_type_args,
+          function_type_args)) {
+    return;
+  }
+
+  // Throw a dynamic type error.
+  const TokenPosition location = GetCallerLocation();
+  String& bound_error_message = String::Handle(zone);
+  if (!bound_error.IsNull()) {
+    bound_error_message = String::New(bound_error.ToErrorCString());
+  }
+  Exceptions::CreateAndThrowTypeError(location, subtype, supertype, dst_name,
+                                      bound_error_message);
+  UNREACHABLE();
+}
+
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.
@@ -1564,6 +1603,7 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   // name of the closurized function so that exception contains more
   // relevant information.
   const Function& function = Function::Handle(receiver.function());
+  ASSERT(!function.IsNull());
   const String& original_function_name =
       String::Handle(function.QualifiedUserVisibleName());
   const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
@@ -1572,32 +1612,13 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   arguments.SetReturn(result);
 }
 
-DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
-#if defined(USING_SIMULATOR)
-  uword stack_pos = Simulator::Current()->get_sp();
-#else
-  uword stack_pos = Thread::GetCurrentStackPointer();
-#endif
-  // Always clear the stack overflow flags.  They are meant for this
-  // particular stack overflow runtime call and are not meant to
-  // persist.
-  uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
-
-  // If an interrupt happens at the same time as a stack overflow, we
-  // process the stack overflow now and leave the interrupt for next
-  // time.
-  if (IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
-    // Use the preallocated stack overflow exception to avoid calling
-    // into dart code.
-    const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
-    Exceptions::Throw(thread, exception);
-    UNREACHABLE();
-  }
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // The following code is used to stress test deoptimization and
-  // debugger stack tracing.
+// The following code is used to stress test
+//  - deoptimization
+//  - debugger stack tracing
+//  - hot reload
+static void HandleStackOverflowTestCases(Thread* thread) {
+  Isolate* isolate = thread->isolate();
   bool do_deopt = false;
   bool do_stacktrace = false;
   bool do_reload = false;
@@ -1705,70 +1726,113 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
+}
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static void HandleOSRRequest(Thread* thread) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate->use_osr());
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != NULL);
+  const Code& code = Code::ZoneHandle(frame->LookupDartCode());
+  ASSERT(!code.IsNull());
+  ASSERT(!code.is_optimized());
+  const Function& function = Function::Handle(code.function());
+  ASSERT(!function.IsNull());
+
+  // If the code of the frame does not match the function's unoptimized code,
+  // we bail out since the code was reset by an isolate reload.
+  if (code.raw() != function.unoptimized_code()) {
+    return;
+  }
+
+  // Since the code is referenced from the frame and the ZoneHandle,
+  // it cannot have been removed from the function.
+  ASSERT(function.HasCode());
+  // Don't do OSR on intrinsified functions: The intrinsic code expects to be
+  // called like a regular function and can't be entered via OSR.
+  if (!Compiler::CanOptimizeFunction(thread, function) ||
+      function.is_intrinsic()) {
+    return;
+  }
+
+  // The unoptimized code is on the stack and should never be detached from
+  // the function at this point.
+  ASSERT(function.unoptimized_code() != Object::null());
+  intptr_t osr_id =
+      Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
+  ASSERT(osr_id != Compiler::kNoOSRDeoptId);
+  if (FLAG_trace_osr) {
+    OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
+              function.ToFullyQualifiedCString(), osr_id,
+              function.usage_counter());
+  }
+
+  // Since the code is referenced from the frame and the ZoneHandle,
+  // it cannot have been removed from the function.
+  const Object& result = Object::Handle(
+      Compiler::CompileOptimizedFunction(thread, function, osr_id));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+
+  if (!result.IsNull()) {
+    const Code& code = Code::Cast(result);
+    uword optimized_entry =
+        Instructions::UncheckedEntryPoint(code.instructions());
+    frame->set_pc(optimized_entry);
+    frame->set_pc_marker(code.raw());
+  }
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
+#if defined(USING_SIMULATOR)
+  uword stack_pos = Simulator::Current()->get_sp();
+#else
+  uword stack_pos = OSThread::GetCurrentStackPointer();
+#endif
+  // Always clear the stack overflow flags.  They are meant for this
+  // particular stack overflow runtime call and are not meant to
+  // persist.
+  uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
+
+  // If an interrupt happens at the same time as a stack overflow, we
+  // process the stack overflow now and leave the interrupt for next
+  // time.
+  if (IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
+    // Use the preallocated stack overflow exception to avoid calling
+    // into dart code.
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->stack_overflow());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  HandleStackOverflowTestCases(thread);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  // Handle interrupts:
+  //  - store buffer overflow
+  //  - OOB message (vm-service or dart:isolate)
+  //  - Dart_InterruptIsolate
   const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if ((stack_overflow_flags & Thread::kOsrRequest) != 0) {
-    ASSERT(isolate->use_osr());
-    DartFrameIterator iterator(thread,
-                               StackFrameIterator::kNoCrossThreadIteration);
-    StackFrame* frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
-    const Code& code = Code::ZoneHandle(frame->LookupDartCode());
-    ASSERT(!code.IsNull());
-    ASSERT(!code.is_optimized());
-    const Function& function = Function::Handle(code.function());
-    ASSERT(!function.IsNull());
-
-    // If the code of the frame does not match the function's unoptimized code,
-    // we bail out since the code was reset by an isolate reload.
-    if (code.raw() != function.unoptimized_code()) {
-      return;
-    }
-
-    // Since the code is referenced from the frame and the ZoneHandle,
-    // it cannot have been removed from the function.
-    ASSERT(function.HasCode());
-    // Don't do OSR on intrinsified functions: The intrinsic code expects to be
-    // called like a regular function and can't be entered via OSR.
-    if (!Compiler::CanOptimizeFunction(thread, function) ||
-        function.is_intrinsic()) {
-      return;
-    }
-
-    // The unoptimized code is on the stack and should never be detached from
-    // the function at this point.
-    ASSERT(function.unoptimized_code() != Object::null());
-    intptr_t osr_id =
-        Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
-    ASSERT(osr_id != Compiler::kNoOSRDeoptId);
-    if (FLAG_trace_osr) {
-      OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
-                function.ToFullyQualifiedCString(), osr_id,
-                function.usage_counter());
-    }
-
-    // Since the code is referenced from the frame and the ZoneHandle,
-    // it cannot have been removed from the function.
-    const Object& result = Object::Handle(
-        Compiler::CompileOptimizedFunction(thread, function, osr_id));
-    if (result.IsError()) {
-      Exceptions::PropagateError(Error::Cast(result));
-    }
-
-    if (!result.IsNull()) {
-      const Code& code = Code::Cast(result);
-      uword optimized_entry =
-          Instructions::UncheckedEntryPoint(code.instructions());
-      frame->set_pc(optimized_entry);
-      frame->set_pc_marker(code.raw());
-    }
+    HandleOSRRequest(thread);
   }
+#else
+  ASSERT((stack_overflow_flags & Thread::kOsrRequest) == 0);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
@@ -1811,7 +1875,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }
-      if (!BackgroundCompiler::IsDisabled()) {
+      if (!BackgroundCompiler::IsDisabled(isolate)) {
         if (FLAG_background_compilation_stop_alot) {
           BackgroundCompiler::Stop(isolate);
         }
@@ -1820,8 +1884,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // takes long time to trigger optimization.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT_MIN);
-        BackgroundCompiler::EnsureInit(thread);
-        ASSERT(isolate->background_compiler() != NULL);
+        BackgroundCompiler::Start(isolate);
         isolate->background_compiler()->CompileOptimized(function);
         // Continue in the same code.
         arguments.SetReturn(function);

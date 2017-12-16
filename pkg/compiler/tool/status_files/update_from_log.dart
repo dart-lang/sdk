@@ -21,7 +21,7 @@
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+///     [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
 library compiler.status_files.update_from_log;
 
 import 'dart:io';
@@ -36,7 +36,7 @@ final dart2jsConfigurations = {
   'fast-startup':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
   'checked-mode':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $checked ]',
+      r'[ $compiler == dart2js && $checked && $dart2js_with_kernel ]',
 };
 
 final dart2jsStatusFiles = {
@@ -247,7 +247,26 @@ class ConfigurationInSuiteSection {
     }
     int begin = contents.indexOf('\n', sectionDeclaration) + 1;
     assert(begin != 0);
-    int end = contents.indexOf('\n[', begin + 1);
+    int newlinePos = contents.indexOf('\n', begin + 1);
+    int end = newlinePos;
+    while (true) {
+      if (newlinePos == -1) break;
+      if (newlinePos + 1 < contents.length) {
+        if (contents[newlinePos + 1] == '[') {
+          // We've found the end of the section
+          break;
+        } else if (contents[newlinePos + 1] == '#') {
+          // We've found a commented out line.  This line might belong to the
+          // next section.
+          newlinePos = contents.indexOf('\n', newlinePos + 1);
+          continue;
+        }
+      }
+      // We've found an ordinary line.  It's part of this section, so update
+      // end.
+      newlinePos = contents.indexOf('\n', newlinePos + 1);
+      end = newlinePos;
+    }
     end = end == -1 ? contents.length : end + 1;
     return new ConfigurationInSuiteSection(
         suite, statusFile, contents, begin, end);

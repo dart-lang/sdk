@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/dependency_grapher.dart';
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/dependency_grapher.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -5,6 +5,7 @@
 // VMOptions=---optimization-counter-threshold=10
 
 import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 import 'dart:async';
 
@@ -89,9 +90,6 @@ instanceMembers() async {
   Expect.equals(e, 5);
 }
 
-await() => 4;
-nonAsyncFunction() => await();
-
 others() async {
   var a = "${globalVariable} ${await dummy()} " + await "someString";
   Expect.equals(a, "1 1 someString");
@@ -103,7 +101,6 @@ others() async {
   Expect.equals(b[cnt], 1);
   var e = b[0] + await dummy();
   Expect.equals(e, 2);
-  Expect.equals(nonAsyncFunction(), 4);
 }
 
 conditionals() async {
@@ -120,12 +117,124 @@ conditionals() async {
   } catch (e) {}
 }
 
-main() {
-  for (int i = 0; i < 10; i++) {
-    staticMembers();
-    topLevelMembers();
-    instanceMembers();
-    conditionals();
-    others();
+asserts() async {
+  for (final FutureOr<T> Function<T>(T) func in <Function>[id, future]) {
+    assert(await func(true));
+    assert(id(true), await func("message"));
+    assert(await func(true), await (func("message")));
+    bool success = true;
+    try {
+      assert(await func(false), await (func("message")));
+      if (assertStatementsEnabled) Expect.fail("Didn't throw");
+    } on AssertionError catch (e) {
+      Expect.equals("message", e.message);
+    }
   }
+}
+
+controlFlow() async {
+  for (final FutureOr<T> Function<T>(T) func in <Function>[id, future]) {
+    // For.
+    var c = 0;
+    for (var i = await (func(0)); await func(i < 5); await func(i++)) {
+      c++;
+    }
+    Expect.equals(5, c);
+    // While.
+    c = 0;
+    while (await func(c < 5)) c++;
+    Expect.equals(5, c);
+    // Do-while.
+    c = 0;
+    do {
+      c++;
+    } while (await func(c < 5));
+    Expect.equals(5, c);
+    // If.
+    if (await func(c == 5)) {
+      Expect.equals(5, c);
+    } else {
+      Expect.fail("unreachable");
+    }
+    // Throw.
+    try {
+      throw await func("string");
+    } on String {
+      // OK.
+    }
+
+    try {
+      await (throw "string");
+    } on String {
+      // OK.
+    }
+    // Try/catch/finally
+    try {
+      try {
+        throw "string";
+      } catch (e) {
+        Expect.equals("string", e);
+        Expect.equals(0, await func(0));
+        rethrow;
+      } finally {
+        Expect.equals(0, await func(0));
+      }
+    } catch (e) {
+      Expect.equals(0, await func(0));
+      Expect.equals("string", e);
+    } finally {
+      Expect.equals(0, await func(0));
+    }
+    // Switch
+    switch (await func(2)) {
+      case 2:
+        break;
+      default:
+        Expect.fail("unreachable");
+    }
+    // Return.
+    Expect.equals(
+        42,
+        await () async {
+          return await func(42);
+        }());
+    Expect.equals(
+        42,
+        await () async {
+          return func(42);
+        }());
+    // Yield.
+    Stream<int> testStream1() async* {
+      yield await func(42);
+    }
+
+    Expect.listEquals([42], await testStream1().toList());
+    // Yield*
+    Stream<int> testStream2() async* {
+      yield* await func(intStream());
+    }
+
+    Expect.listEquals([42], await testStream2().toList());
+  }
+}
+
+FutureOr<T> future<T>(T value) async => value;
+FutureOr<T> id<T>(T value) => value;
+
+Stream<int> intStream() async* {
+  yield 42;
+}
+
+main() {
+  asyncStart();
+  for (int i = 0; i < 11; i++) {
+    asyncTest(staticMembers);
+    asyncTest(topLevelMembers);
+    asyncTest(instanceMembers);
+    asyncTest(conditionals);
+    asyncTest(others);
+    asyncTest(asserts);
+    asyncTest(controlFlow);
+  }
+  asyncEnd();
 }

@@ -183,6 +183,11 @@ DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable,
                              Location::SameAsFirstInput(),
                              LocationSummary::kCall);
 
+DEFINE_MAKE_LOCATION_SUMMARY(AssertSubtype,
+                             2,
+                             Location::NoLocation(),
+                             LocationSummary::kCall);
+
 EMIT_NATIVE_CODE(AssertBoolean,
                  1,
                  Location::SameAsFirstInput(),
@@ -246,6 +251,52 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
                                  instance_call()->token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   __ PopLocal(locs()->out(0).reg());
+}
+
+EMIT_NATIVE_CODE(LoadIndexedUnsafe, 1, Location::RegisterLocation(0)) {
+  ASSERT(base_reg() == FPREG);
+  ASSERT(Utils::IsInt(8, offset_));
+
+  ASSERT(offset_ % kWordSize == 0);
+  const intptr_t slot_offset = offset_ / kWordSize;
+  ASSERT(-128 <= slot_offset && slot_offset < 128);
+
+  if (compiler->is_optimizing()) {
+    const Register index = locs()->in(0).reg();
+    const Register result = locs()->out(0).reg();
+    __ LoadFpRelativeSlotOpt(result, index, slot_offset);
+  } else {
+    __ LoadFpRelativeSlot(slot_offset);
+  }
+}
+
+EMIT_NATIVE_CODE(StoreIndexedUnsafe, 2, Location::RegisterLocation(0)) {
+  ASSERT(base_reg() == FPREG);
+  ASSERT(Utils::IsInt(8, offset_));
+
+  if (compiler->is_optimizing()) {
+    const Register index = locs()->in(kIndexPos).reg();
+    const Register value = locs()->in(kValuePos).reg();
+    __ StoreFpRelativeSlotOpt(value, index, offset_ / kWordSize);
+  } else {
+    __ StoreFpRelativeSlot(offset_ / kWordSize);
+  }
+}
+
+EMIT_NATIVE_CODE(TailCall,
+                 1,
+                 Location::NoLocation(),
+                 LocationSummary::kNoCall,
+                 1) {
+  if (compiler->is_optimizing()) {
+    const Register arg_desc = locs()->in(0).reg();
+    const Register temp = locs()->temp(0).reg();
+    __ LoadConstant(temp, code());
+    __ TailCallOpt(arg_desc, temp);
+  } else {
+    __ PushConstant(code());
+    __ TailCall();
+  }
 }
 
 EMIT_NATIVE_CODE(Stop, 0) {
@@ -746,110 +797,123 @@ EMIT_NATIVE_CODE(LoadIndexed,
                  Location::RequiresRegister(),
                  LocationSummary::kNoCall,
                  1) {
-  ASSERT(compiler->is_optimizing());
-  const Register array = locs()->in(0).reg();
-  const Register index = locs()->in(1).reg();
-  const Register temp = locs()->temp(0).reg();
-  const Register result = locs()->out(0).reg();
-  switch (class_id()) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      __ LoadIndexed(result, array, index);
-      break;
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalOneByteStringCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      ASSERT(index_scale() == 1);
-      if (IsExternal()) {
-        __ LoadIndexedExternalUint8(result, array, index);
-      } else {
-        __ LoadIndexedUint8(result, array, index);
-      }
-      break;
-    case kTypedDataInt8ArrayCid:
-      ASSERT(index_scale() == 1);
-      if (IsExternal()) {
-        __ LoadIndexedExternalInt8(result, array, index);
-      } else {
-        __ LoadIndexedInt8(result, array, index);
-      }
-      break;
-    case kOneByteStringCid:
-      ASSERT(index_scale() == 1);
-      __ LoadIndexedOneByteString(result, array, index);
-      break;
-    case kTwoByteStringCid:
-      if (index_scale() != 2) {
-        // TODO(zra): Fix-up index.
+  if (compiler->is_optimizing()) {
+    ASSERT(compiler->is_optimizing());
+    const Register array = locs()->in(0).reg();
+    const Register index = locs()->in(1).reg();
+    const Register temp = locs()->temp(0).reg();
+    const Register result = locs()->out(0).reg();
+    switch (class_id()) {
+      case kArrayCid:
+      case kImmutableArrayCid:
+        __ LoadIndexed(result, array, index);
+        break;
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kExternalOneByteStringCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+        ASSERT(index_scale() == 1);
+        if (IsExternal()) {
+          __ LoadIndexedExternalUint8(result, array, index);
+        } else {
+          __ LoadIndexedUint8(result, array, index);
+        }
+        break;
+      case kTypedDataInt8ArrayCid:
+        ASSERT(index_scale() == 1);
+        if (IsExternal()) {
+          __ LoadIndexedExternalInt8(result, array, index);
+        } else {
+          __ LoadIndexedInt8(result, array, index);
+        }
+        break;
+      case kOneByteStringCid:
+        ASSERT(index_scale() == 1);
+        __ LoadIndexedOneByteString(result, array, index);
+        break;
+      case kTwoByteStringCid:
+        if (index_scale() != 2) {
+          // TODO(zra): Fix-up index.
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        if (IsExternal()) {
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        __ LoadIndexedTwoByteString(result, array, index);
+        break;
+      case kTypedDataInt32ArrayCid:
+        ASSERT(representation() == kUnboxedInt32);
+        if (IsExternal()) {
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        if (index_scale() == 1) {
+          __ LoadIndexedInt32(result, array, index);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ LoadIndexedInt32(result, array, temp);
+        }
+        break;
+      case kTypedDataUint32ArrayCid:
+        ASSERT(representation() == kUnboxedUint32);
+        if (IsExternal()) {
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        if (index_scale() == 1) {
+          __ LoadIndexedUint32(result, array, index);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ LoadIndexedUint32(result, array, temp);
+        }
+        break;
+      case kTypedDataFloat32ArrayCid:
+        if (IsExternal()) {
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        if (index_scale() == 1) {
+          __ LoadIndexedFloat32(result, array, index);
+        } else if (index_scale() == 4) {
+          __ LoadIndexed4Float32(result, array, index);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ LoadIndexedFloat32(result, array, temp);
+        }
+        break;
+      case kTypedDataFloat64ArrayCid:
+        if (IsExternal()) {
+          Unsupported(compiler);
+          UNREACHABLE();
+        }
+        if (index_scale() == 1) {
+          __ LoadIndexedFloat64(result, array, index);
+        } else if (index_scale() == 8) {
+          __ LoadIndexed8Float64(result, array, index);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ LoadIndexedFloat64(result, array, temp);
+        }
+        break;
+      default:
         Unsupported(compiler);
         UNREACHABLE();
-      }
-      if (IsExternal()) {
+        break;
+    }
+  } else {
+    switch (class_id()) {
+      case kArrayCid:
+      case kImmutableArrayCid:
+        __ LoadIndexedTOS();
+        break;
+      default:
         Unsupported(compiler);
         UNREACHABLE();
-      }
-      __ LoadIndexedTwoByteString(result, array, index);
-      break;
-    case kTypedDataInt32ArrayCid:
-      ASSERT(representation() == kUnboxedInt32);
-      if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ LoadIndexedInt32(result, array, index);
-      } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ LoadIndexedInt32(result, array, temp);
-      }
-      break;
-    case kTypedDataUint32ArrayCid:
-      ASSERT(representation() == kUnboxedUint32);
-      if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ LoadIndexedUint32(result, array, index);
-      } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ LoadIndexedUint32(result, array, temp);
-      }
-      break;
-    case kTypedDataFloat32ArrayCid:
-      if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ LoadIndexedFloat32(result, array, index);
-      } else if (index_scale() == 4) {
-        __ LoadIndexed4Float32(result, array, index);
-      } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ LoadIndexedFloat32(result, array, temp);
-      }
-      break;
-    case kTypedDataFloat64ArrayCid:
-      if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ LoadIndexedFloat64(result, array, index);
-      } else if (index_scale() == 8) {
-        __ LoadIndexed8Float64(result, array, index);
-      } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ LoadIndexedFloat64(result, array, temp);
-      }
-      break;
-    default:
-      Unsupported(compiler);
-      UNREACHABLE();
-      break;
+        break;
+    }
   }
 }
 
@@ -1476,59 +1540,75 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
 }
 
 EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
-  const Register left = locs()->in(0).reg();
-  const Register right = locs()->in(1).reg();
-  const Register out = locs()->out(0).reg();
-  const bool can_deopt = CanDeoptimize();
-  bool needs_nop = false;
-  switch (op_kind()) {
-    case Token::kADD:
-      __ Add(out, left, right);
-      needs_nop = true;
-      break;
-    case Token::kSUB:
-      __ Sub(out, left, right);
-      needs_nop = true;
-      break;
-    case Token::kMUL:
-      __ Mul(out, left, right);
-      needs_nop = true;
-      break;
-    case Token::kTRUNCDIV:
-      ASSERT(can_deopt);
-      __ Div(out, left, right);
-      break;
-    case Token::kBIT_AND:
-      ASSERT(!can_deopt);
-      __ BitAnd(out, left, right);
-      break;
-    case Token::kBIT_OR:
-      ASSERT(!can_deopt);
-      __ BitOr(out, left, right);
-      break;
-    case Token::kBIT_XOR:
-      ASSERT(!can_deopt);
-      __ BitXor(out, left, right);
-      break;
-    case Token::kMOD:
-      __ Mod(out, left, right);
-      needs_nop = true;
-      break;
-    case Token::kSHR:
-      __ Shr(out, left, right);
-      needs_nop = true;
-      break;
-    case Token::kSHL:
-      __ Shl(out, left, right);
-      needs_nop = true;
-      break;
-    default:
-      UNREACHABLE();
-  }
-  if (can_deopt) {
-    compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinarySmiOp);
-  } else if (needs_nop) {
-    __ Nop(0);
+  if (compiler->is_optimizing()) {
+    const Register left = locs()->in(0).reg();
+    const Register right = locs()->in(1).reg();
+    const Register out = locs()->out(0).reg();
+    const bool can_deopt = CanDeoptimize();
+    bool needs_nop = false;
+    switch (op_kind()) {
+      case Token::kADD:
+        __ Add(out, left, right);
+        needs_nop = true;
+        break;
+      case Token::kSUB:
+        __ Sub(out, left, right);
+        needs_nop = true;
+        break;
+      case Token::kMUL:
+        __ Mul(out, left, right);
+        needs_nop = true;
+        break;
+      case Token::kTRUNCDIV:
+        ASSERT(can_deopt);
+        __ Div(out, left, right);
+        break;
+      case Token::kBIT_AND:
+        ASSERT(!can_deopt);
+        __ BitAnd(out, left, right);
+        break;
+      case Token::kBIT_OR:
+        ASSERT(!can_deopt);
+        __ BitOr(out, left, right);
+        break;
+      case Token::kBIT_XOR:
+        ASSERT(!can_deopt);
+        __ BitXor(out, left, right);
+        break;
+      case Token::kMOD:
+        __ Mod(out, left, right);
+        needs_nop = true;
+        break;
+      case Token::kSHR:
+        __ Shr(out, left, right);
+        needs_nop = true;
+        break;
+      case Token::kSHL:
+        __ Shl(out, left, right);
+        needs_nop = true;
+        break;
+      default:
+        UNREACHABLE();
+    }
+    if (can_deopt) {
+      compiler->EmitDeopt(deopt_id(), ICData::kDeoptBinarySmiOp);
+    } else if (needs_nop) {
+      __ Nop(0);
+    }
+  } else {
+    switch (op_kind()) {
+      case Token::kADD:
+        __ SmiAddTOS();
+        break;
+      case Token::kSUB:
+        __ SmiSubTOS();
+        break;
+      case Token::kMUL:
+        __ SmiMulTOS();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
   }
 }
 
@@ -1846,8 +1926,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      LocationSummary* locs,
                                      Token::Kind kind,
                                      BranchLabels labels) {
-  const Register left = locs->in(0).reg();
-  const Register right = locs->in(1).reg();
   Token::Kind comparison = kind;
   Condition condition = NEXT_IS_TRUE;
   if (labels.fall_through != labels.false_label) {
@@ -1859,8 +1937,36 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     condition = NEXT_IS_FALSE;
     comparison = FlipCondition(kind);
   }
-  __ Emit(Bytecode::Encode(OpcodeForSmiCondition(comparison), left, right));
-  return condition;
+  if (compiler->is_optimizing()) {
+    const Register left = locs->in(0).reg();
+    const Register right = locs->in(1).reg();
+    __ Emit(Bytecode::Encode(OpcodeForSmiCondition(comparison), left, right));
+    return condition;
+  } else {
+    switch (kind) {
+      case Token::kEQ:
+        __ IfEqStrictTOS();
+        break;
+      case Token::kNE:
+        __ IfNeStrictTOS();
+        break;
+      case Token::kLT:
+        __ IfSmiLtTOS();
+        break;
+      case Token::kLTE:
+        __ IfSmiLeTOS();
+        break;
+      case Token::kGT:
+        __ IfSmiGtTOS();
+        break;
+      case Token::kGTE:
+        __ IfSmiGeTOS();
+        break;
+      default:
+        UNIMPLEMENTED();
+    }
+    return condition;
+  }
 }
 
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,

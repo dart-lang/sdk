@@ -462,6 +462,16 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(")");
 }
 
+void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, %s, '%s',", sub_type().ToCString(), super_type().ToCString(),
+           dst_name().ToCString());
+  f->Print(" instantiator_type_args(");
+  instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
+  f->Print(")");
+}
+
 void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }
@@ -947,6 +957,17 @@ void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd, index());
 }
 
+void SpecialParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", KindToCString(kind()));
+}
+
+const char* SpecialParameterInstr::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
 void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (in_loop()) f->Print("depth %" Pd, loop_depth());
 }
@@ -982,6 +1003,33 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
     }
     f->Print("\n}");
   }
+}
+
+void LoadIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s[", Assembler::RegisterName(base_reg()));
+  index()->PrintTo(f);
+  f->Print(" + %" Pd "]", offset());
+}
+
+void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s[", Assembler::RegisterName(base_reg()));
+  index()->PrintTo(f);
+  f->Print(" + %" Pd "], ", offset());
+  value()->PrintTo(f);
+}
+
+void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const char* name = "<unknown code>";
+  if (code_.IsStubCode()) {
+    name = StubCode::NameOfStub(code_.UncheckedEntryPoint());
+  } else {
+    const Object& owner = Object::Handle(code_.owner());
+    if (owner.IsFunction()) {
+      name = Function::Handle(Function::RawCast(owner.raw()))
+                 .ToFullyQualifiedCString();
+    }
+  }
+  f->Print("%s", name);
 }
 
 void PushArgumentInstr::PrintOperandsTo(BufferFormatter* f) const {

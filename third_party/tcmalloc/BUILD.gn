@@ -9,6 +9,7 @@ config("internal_config") {
   cflags = [
     "-Wall",
     "-Wextra",
+    "-Wno-format",
     "-Wno-missing-field-initializers",
     "-Wno-sign-compare",
     "-Wno-type-limits",
@@ -49,7 +50,10 @@ config("link_config") {
 }
 
 source_set("dynamic_annotations") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs -= [
+    "//build/config/compiler:chromium_code",
+    "//build/config/compiler:clang_stackrealign",
+  ]
   configs += [ ":internal_config" ]
 
   include_dirs = [
@@ -65,7 +69,10 @@ source_set("dynamic_annotations") {
 }
 
 source_set("tcmalloc") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs -= [
+    "//build/config/compiler:chromium_code",
+    "//build/config/compiler:clang_stackrealign",
+  ]
   configs += [ ":internal_config" ]
 
   # Thumb mode disabled due to bug in clang integrated assembler

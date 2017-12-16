@@ -308,7 +308,6 @@ RawArray* Symbols::UnifiedSymbolTable() {
   Zone* zone = thread->zone();
 
   ASSERT(thread->IsMutatorThread());
-  ASSERT(isolate->background_compiler() == NULL);
 
   SymbolTable vm_table(zone,
                        Dart::vm_isolate()->object_store()->symbol_table());

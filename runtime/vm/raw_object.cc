@@ -527,20 +527,17 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 
 intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  const intptr_t len = raw_obj->ptr()->length_;
-  RawTypedData* info_array = raw_obj->ptr()->info_array_;
-  ASSERT(!info_array->IsForwardingCorpse());
-
-  Entry* first = raw_obj->first_entry();
-  for (intptr_t i = 0; i < len; ++i) {
+  const intptr_t length = raw_obj->ptr()->length_;
+  RawObjectPool::Entry* entries = raw_obj->ptr()->data();
+  uint8_t* entry_types = raw_obj->ptr()->entry_types();
+  for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(info_array->ptr()->data()[i]);
+        static_cast<ObjectPool::EntryType>(entry_types[i]);
     if (entry_type == ObjectPool::kTaggedObject) {
-      visitor->VisitPointer(&(first + i)->raw_obj_);
+      visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }
-  return ObjectPool::InstanceSize(raw_obj->ptr()->length_);
+  return ObjectPool::InstanceSize(length);
 }
 
 bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {

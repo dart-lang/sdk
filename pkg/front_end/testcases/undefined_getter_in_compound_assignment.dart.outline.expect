@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  default constructor •() → void
+    ;
+  abstract set x(dynamic value) → void;
+}
+static method test(self::C c) → void
+  ;
+static method main() → dynamic
+  ;

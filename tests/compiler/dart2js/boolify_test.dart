@@ -17,7 +17,17 @@ foo() {
 """;
 
 main() {
-  asyncTest(() => compile(TEST, entry: 'foo', check: (String generated) {
-        Expect.isTrue(generated.contains('foo() !== true)'));
-      }));
+  test(CompileMode compileMode) async {
+    await compile(TEST, entry: 'foo', compileMode: compileMode,
+        check: (String generated) {
+      Expect.isTrue(generated.contains('foo() !== true)'));
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await test(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await test(CompileMode.kernel);
+  });
 }

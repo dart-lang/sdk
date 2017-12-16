@@ -162,6 +162,18 @@ abstract class ParserAdapter implements Parser {
   Expression parseConstExpression() => parseExpression2();
 
   @override
+  CompilationUnit parseDirectives(Token token) {
+    currentToken = token;
+    return parseDirectives2();
+  }
+
+  @override
+  CompilationUnit parseDirectives2() {
+    currentToken = fastaParser.parseDirectives(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
   DottedName parseDottedName() {
     currentToken = fastaParser
         .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
@@ -174,7 +186,9 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Expression parseExpression2() {
-    currentToken = fastaParser.parseExpression(currentToken).next;
+    currentToken = fastaParser
+        .parseExpression(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
@@ -338,17 +352,21 @@ class _Parser2 extends ParserAdapter {
   @override
   bool enableNnbd = false;
 
-  factory _Parser2(Source source, AnalysisErrorListener errorListener) {
+  factory _Parser2(Source source, AnalysisErrorListener errorListener,
+      {bool allowNativeClause: false}) {
     var errorReporter = new ErrorReporter(errorListener, source);
     var library = new _KernelLibraryBuilder(source.uri);
     var member = new _Builder();
     var scope = new Scope.top(isModifiable: true);
-    return new _Parser2._(source, errorReporter, library, member, scope);
+    return new _Parser2._(source, errorReporter, library, member, scope,
+        allowNativeClause: allowNativeClause);
   }
 
   _Parser2._(this._source, ErrorReporter errorReporter,
-      KernelLibraryBuilder library, Builder member, Scope scope)
-      : super(null, errorReporter, library, member, scope);
+      KernelLibraryBuilder library, Builder member, Scope scope,
+      {bool allowNativeClause: false})
+      : super(null, errorReporter, library, member, scope,
+            allowNativeClause: allowNativeClause);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

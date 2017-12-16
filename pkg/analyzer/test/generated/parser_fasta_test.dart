@@ -72,22 +72,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_annotationOnEnumConstant_first() {
-    // TODO(brianwilkerson) Fix highlight region.
-    // This is highlighting the '@', but should highlight the whole annotation.
-    super.test_annotationOnEnumConstant_first();
-  }
-
-  @override
-  @failingTest
-  void test_annotationOnEnumConstant_middle() {
-    // TODO(brianwilkerson) Fix highlight region.
-    // This is highlighting the '@', but should highlight the whole annotation.
-    super.test_annotationOnEnumConstant_middle();
-  }
-
-  @override
-  @failingTest
   void test_breakOutsideOfLoop_breakInIfStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
@@ -100,13 +84,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
     super.test_breakOutsideOfLoop_functionExpression_inALoop();
-  }
-
-  @override
-  @failingTest
-  void test_classTypeAlias_abstractAfterEq() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_classTypeAlias_abstractAfterEq();
   }
 
   @override
@@ -1377,14 +1354,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_namedParameterOutsideGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, found 0
-    super.test_namedParameterOutsideGroup();
-  }
-
-  @override
-  @failingTest
   void test_nonConstructorFactory_field() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
@@ -1478,14 +1447,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_positionalParameterOutsideGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, found 0
-    super.test_positionalParameterOutsideGroup();
-  }
-
-  @override
-  @failingTest
   void test_redirectingConstructorWithBody_named() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, found 0
@@ -1498,22 +1459,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, found 0
     super.test_redirectingConstructorWithBody_unnamed();
-  }
-
-  @override
-  @failingTest
-  void test_redirectionInNonFactoryConstructor() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type '_RedirectingFactoryBody' is not a subtype of type 'FunctionBody' of 'body' where
-    //   _RedirectingFactoryBody is from package:analyzer/src/fasta/ast_builder.dart
-    //   FunctionBody is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1613:25                AstBuilder.endMethod
-    //   test/generated/parser_fasta_listener.dart 926:14                   ForwardingTestListener.endMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2433:14             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3766:39                      ParserProxy._run
-    super.test_redirectionInNonFactoryConstructor();
   }
 
   @override
@@ -1730,14 +1675,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
     //   test/generated/parser_fasta_test.dart 3371:35                      FastaParserTestCase.parseCompilationUnit
     super.test_unexpectedToken_semicolonBetweenCompilationUnitMembers();
-  }
-
-  @override
-  @failingTest
-  void test_useOfUnaryPlusOperator() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_useOfUnaryPlusOperator();
   }
 
   @override
@@ -2066,12 +2003,13 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    // TODO(paulberry,ahe,danrubel): analyzer parser has the ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    throw 'fasta parser does not have a method that just parses directives'
-        ' and stops when it finds the first declaration or EOF.';
+    createParser(source);
+    CompilationUnit unit =
+        _parserProxy.parseDirectives(_parserProxy.currentToken);
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(0));
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
   }
 
   @override
@@ -2258,8 +2196,8 @@ class FastaParserTestCase extends Object
 
   @override
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
-    createParser(source);
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+    createParser(source, expectedEndOffset: expectedEndOffset);
     Statement statement = _parserProxy.parseStatement2();
     assertErrors(codes: NO_ERROR_COMPARISON);
     return statement;
@@ -2610,59 +2548,9 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
   @override
   @failingTest
-  void test_additiveExpression_missing_LHS() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_precedence_multiplicative_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_additiveExpression_precedence_multiplicative_left();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_precedence_multiplicative_right() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_precedence_multiplicative_right();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_super() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_classTypeAlias_withBody() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_classTypeAlias_withBody();
-  }
-
-  @override
-  void test_equalityExpression_precedence_relational_left() {
-    // Fasta recovers differently. It takes the `is` to be an identifier and
-    // assumes that the right operand of the `==` is the only missing identifier.
-    parseExpression("is ==", codes: [
-//      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
   }
 
   @override
@@ -2795,23 +2683,9 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteField_var() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteField_var();
-  }
-
-  @override
-  @failingTest
   void test_incompleteForEach() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteForEach();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_atTheEndOfBlock() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_atTheEndOfBlock();
   }
 
   @override
@@ -2830,30 +2704,9 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteLocalVariable_beforeNextBlock() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeNextBlock();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_parameterizedType() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_parameterizedType();
-  }
-
-  @override
-  @failingTest
   void test_incompleteTypeArguments_field() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteTypeArguments_field();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteTypeParameters() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteTypeParameters();
   }
 
   @override
@@ -2868,13 +2721,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_keywordInPlaceOfIdentifier() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_keywordInPlaceOfIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_missingComma_beforeNamedArgument() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_missingComma_beforeNamedArgument();
   }
 
   @override
@@ -2934,29 +2780,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
       ParserErrorCode.MISSING_IDENTIFIER
     ]);
   }
-
-  @override
-  @failingTest
-  void test_shiftExpression_precedence_unary_left() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_shiftExpression_precedence_unary_left();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_precedence_unary_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_precedence_unary_right();
-  }
-
-  @override
-  @failingTest
-  void test_unaryPlus() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_unaryPlus();
-  }
 }
 
 /**
@@ -2990,30 +2813,6 @@ class ScopeProxy implements Scope {
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
-  @override
-  @failingTest
-  void test_parseDocumentationComment_block() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseDocumentationComment_block_withReference() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_block_withReference();
-  }
-
-  @override
-  @failingTest
-  void test_parseDocumentationComment_endOfLine() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_endOfLine();
-  }
-
   @override
   @failingTest
   void test_parseTypeParameterList_single() {

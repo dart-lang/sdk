@@ -89,10 +89,10 @@ class _Token {
 }
 
 /// A reference to a variable.
-class _Variable {
+class Variable {
   final String name;
 
-  _Variable(this.name);
+  Variable(this.name);
 
   String lookup(Environment environment) {
     var value = environment.lookUp(name);
@@ -116,12 +116,12 @@ class _Variable {
 /// $variable == someValue
 /// ```
 /// Negate the result if [negate] is true.
-class _ComparisonExpression extends Expression {
-  final _Variable left;
+class ComparisonExpression extends Expression {
+  final Variable left;
   final String right;
   final bool negate;
 
-  _ComparisonExpression(this.left, this.right, this.negate);
+  ComparisonExpression(this.left, this.right, this.negate);
 
   void validate(Environment environment, List<String> errors) {
     environment.validate(left.name, right, errors);
@@ -134,15 +134,15 @@ class _ComparisonExpression extends Expression {
   Expression normalize() {
     // Replace Boolean comparisons with a straight variable expression.
     if (right == "true") {
-      return new _VariableExpression(left, negate: negate);
+      return new VariableExpression(left, negate: negate);
     } else if (right == "false") {
-      return new _VariableExpression(left, negate: !negate);
+      return new VariableExpression(left, negate: !negate);
     } else {
       return this;
     }
   }
 
-  int _compareToMyType(_ComparisonExpression other) {
+  int _compareToMyType(ComparisonExpression other) {
     if (left.name != other.left.name) {
       return left.name.compareTo(other.left.name);
     }
@@ -178,11 +178,11 @@ class _ComparisonExpression extends Expression {
 /// ```
 ///     $variable != true
 /// ```
-class _VariableExpression extends Expression {
-  final _Variable variable;
+class VariableExpression extends Expression {
+  final Variable variable;
   final bool negate;
 
-  _VariableExpression(this.variable, {this.negate = false});
+  VariableExpression(this.variable, {this.negate = false});
 
   void validate(Environment environment, List<String> errors) {
     // It must be a Boolean, so it should allow either Boolean value.
@@ -195,7 +195,7 @@ class _VariableExpression extends Expression {
   /// Variable expressions are fine as they are.
   Expression normalize() => this;
 
-  int _compareToMyType(_VariableExpression other) {
+  int _compareToMyType(VariableExpression other) {
     if (variable.name != other.variable.name) {
       return variable.name.compareTo(other.variable.name);
     }
@@ -209,13 +209,19 @@ class _VariableExpression extends Expression {
 }
 
 /// A logical `||` or `&&` expression.
-class _LogicExpression extends Expression {
+class LogicExpression extends Expression {
   /// The operator, `||` or `&&`.
   final String op;
 
   final List<Expression> operands;
 
-  _LogicExpression(this.op, this.operands);
+  LogicExpression(this.op, this.operands);
+
+  LogicExpression.and(this.operands) : op = _Token.and;
+  LogicExpression.or(this.operands) : op = _Token.or;
+
+  bool get isAnd => op == _Token.and;
+  bool get isOr => op == _Token.or;
 
   void validate(Environment environment, List<String> errors) {
     for (var operand in operands) {
@@ -238,12 +244,27 @@ class _LogicExpression extends Expression {
     // order.
 
     // Recurse into the operands, sort them, and remove duplicates.
-    var normalized = operands.map((operand) => operand.normalize());
+    var normalized = new LogicExpression(
+            op, operands.map((operand) => operand.normalize()).toList())
+        .operands;
+    normalized = flatten(normalized);
     var ordered = new SplayTreeSet<Expression>.from(normalized).toList();
-    return new _LogicExpression(op, ordered);
+    return new LogicExpression(op, ordered);
   }
 
-  int _compareToMyType(_LogicExpression other) {
+  List<Expression> flatten(List<Expression> operands) {
+    var newOperands = <Expression>[];
+    for (var operand in operands) {
+      if (operand is LogicExpression && operand.op == op) {
+        newOperands.addAll(operand.operands);
+      } else {
+        newOperands.add(operand);
+      }
+    }
+    return newOperands;
+  }
+
+  int _compareToMyType(LogicExpression other) {
     // Put "&&" before "||".
     if (op != other.op) return op == _Token.and ? -1 : 1;
 
@@ -265,7 +286,7 @@ class _LogicExpression extends Expression {
   String toString() {
     String parenthesize(Expression operand) {
       var result = operand.toString();
-      if (op == "&&" && operand is _LogicExpression && operand.op == "||") {
+      if (isAnd && operand is LogicExpression && operand.isOr) {
         result = "($result)";
       }
 
@@ -301,7 +322,7 @@ class _ExpressionParser {
 
     if (operands.length == 1) return operands.single;
 
-    return new _LogicExpression(_Token.or, operands);
+    return new LogicExpression(_Token.or, operands);
   }
 
   Expression _parseAnd() {
@@ -312,10 +333,12 @@ class _ExpressionParser {
 
     if (operands.length == 1) return operands.single;
 
-    return new _LogicExpression(_Token.and, operands);
+    return new LogicExpression(_Token.and, operands);
   }
 
   Expression _parsePrimary() {
+    // TODO(mkroghj,rnystrom) If DNF is enforced, the need to parse parenthesis
+    // should go away. Remove this when all section headers has dnf'ed.
     if (_scanner.match(_Token.leftParen)) {
       var value = _parseOr();
       if (!_scanner.match(_Token.rightParen)) {
@@ -342,7 +365,7 @@ class _ExpressionParser {
           "Expected identifier in expression, got ${_scanner.current}");
     }
 
-    var left = new _Variable(_scanner.current);
+    var left = new Variable(_scanner.current);
     _scanner.advance();
 
     if (!negate &&
@@ -356,9 +379,9 @@ class _ExpressionParser {
       }
 
       var right = _scanner.advance();
-      return new _ComparisonExpression(left, right, isNotEquals);
+      return new ComparisonExpression(left, right, isNotEquals);
     } else {
-      return new _VariableExpression(left, negate: negate);
+      return new VariableExpression(left, negate: negate);
     }
   }
 }

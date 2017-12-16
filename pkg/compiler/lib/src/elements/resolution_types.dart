@@ -129,6 +129,9 @@ abstract class ResolutionDartType implements DartType {
   /// Is [: true :] if this type is a type variable.
   bool get isTypeVariable => kind == ResolutionTypeKind.TYPE_VARIABLE;
 
+  @override
+  bool get isFunctionTypeVariable => false;
+
   /// Is [: true :] if this type is a malformed type.
   bool get isMalformed => false;
 
@@ -688,6 +691,14 @@ class ResolutionFunctionType extends ResolutionDartType
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
     assert(namedParameters.length == namedParameterTypes.length);
+  }
+
+  @override
+  final List<FunctionTypeVariable> typeVariables =
+      const <FunctionTypeVariable>[];
+
+  FunctionType instantiate(List<DartType> arguments) {
+    throw new UnsupportedError("ResolutionFunctionType.instantiate");
   }
 
   ResolutionTypeKind get kind => ResolutionTypeKind.FUNCTION;

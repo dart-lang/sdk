@@ -2790,6 +2790,12 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
  */
 class ElementAnnotationImpl implements ElementAnnotation {
   /**
+   * The name of the top-level variable used to mark that a function always
+   * throws, for dead code purposes.
+   */
+  static String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
+
+  /**
    * The name of the top-level variable used to mark a method parameter as
    * covariant.
    */
@@ -2868,6 +2874,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
    */
   static String _REQUIRED_VARIABLE_NAME = "required";
 
+  /// The name of the top-level variable used to mark a method as being
+  /// visible for testing.
+  static String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
+
   /**
    * The element representing the field, variable, or constructor being used as
    * an annotation.
@@ -2903,6 +2913,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
+
+  @override
+  bool get isAlwaysThrows =>
+      element is PropertyAccessorElement &&
+      element.name == _ALWAYS_THROWS_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   /**
    * Return `true` if this annotation marks the associated parameter as being
@@ -2975,6 +2991,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isVisibleForTesting =>
+      element is PropertyAccessorElement &&
+      element.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -3157,6 +3179,10 @@ abstract class ElementImpl implements Element {
   String get identifier => name;
 
   @override
+  bool get isAlwaysThrows =>
+      metadata.any((ElementAnnotation annotation) => annotation.isAlwaysThrows);
+
+  @override
   bool get isDeprecated {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isDeprecated) {
@@ -3242,6 +3268,10 @@ abstract class ElementImpl implements Element {
   void set isSynthetic(bool isSynthetic) {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
+
+  @override
+  bool get isVisibleForTesting => metadata
+      .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
 
   @override
   LibraryElement get library =>
@@ -5341,11 +5371,8 @@ class GenericTypeAliasElementImpl extends ElementImpl
   GenericFunctionTypeElementImpl get function {
     if (_function == null) {
       if (_kernel != null) {
-        var context = enclosingUnit._kernelContext;
-        var type = context.getType(this, _kernel.type);
-        if (type is FunctionType) {
-          _function = type.element;
-        }
+        _function =
+            new GenericFunctionTypeElementImpl.forKernel(this, _kernel.type);
       }
       if (_unlinkedTypedef != null) {
         if (_unlinkedTypedef.style == TypedefStyle.genericFunctionType) {
@@ -7416,6 +7443,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Element get enclosingElement => null;
 
   @override
+  bool get isAlwaysThrows => false;
+
+  @override
   bool get isDeprecated => false;
 
   @override
@@ -7447,6 +7477,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  bool get isVisibleForTesting => false;
 
   @override
   ElementKind get kind => ElementKind.ERROR;

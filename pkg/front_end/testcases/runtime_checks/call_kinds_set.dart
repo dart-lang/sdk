@@ -10,10 +10,10 @@ class C {
   dynamic y;
   void test() {
     // Set via this
-    x = null;
-    this.x = null;
-    y = null;
-    this.y = null;
+    /*@callKind=this*/ x = null;
+    this. /*@callKind=this*/ x = null;
+    /*@callKind=this*/ y = null;
+    this. /*@callKind=this*/ y = null;
   }
 }
 
@@ -23,7 +23,7 @@ void test(C c, dynamic d) {
   c.y = null;
 
   // Dynamic set
-  d.x = null;
+  d. /*@callKind=dynamic*/ x = null;
 }
 
 main() {}

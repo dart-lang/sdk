@@ -15,7 +15,7 @@ import 'perf_report_test.dart' as perf_report_test;
 import 'reporter_test.dart' as reporter_test;
 import 'sdk_ext_test.dart' as sdk_ext_test;
 import 'super_mixin_test.dart' as super_mixin_test;
-//import 'strong_mode_test.dart' as strong_mode_test;
+import 'strong_mode_test.dart' as strong_mode_test;
 
 main() {
   analysis_options_test.main();
@@ -31,7 +31,5 @@ main() {
   reporter_test.main();
   sdk_ext_test.main();
   super_mixin_test.main();
-  // TODO(pq): fix tests to run safely on the bots
-  // https://github.com/dart-lang/sdk/issues/25001
-  //strong_mode_test.main();
+  strong_mode_test.main();
 }

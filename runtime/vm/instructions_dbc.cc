@@ -43,7 +43,7 @@ static bool GetLoadedObjectAt(uword pc,
   Instr instr = Bytecode::At(pc);
   if (HasLoadFromPool(instr)) {
     uint16_t index = Bytecode::DecodeD(instr);
-    if (object_pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+    if (object_pool.TypeAt(index) == ObjectPool::kTaggedObject) {
       *obj = object_pool.ObjectAt(index);
       return true;
     }

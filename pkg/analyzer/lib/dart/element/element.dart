@@ -609,6 +609,12 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   int get id;
 
   /**
+   * Return `true` if this element has an annotation of the form
+   * '@alwaysThrows'.
+   */
+  bool get isAlwaysThrows;
+
+  /**
    * Return `true` if this element has an annotation of the form '@deprecated'
    * or '@Deprecated('..')'.
    */
@@ -658,6 +664,10 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * that does not explicitly define any constructors.
    */
   bool get isSynthetic;
+
+  /// Return `true` if this element has an annotation of the form
+  /// '@visibleForTesting'.
+  bool get isVisibleForTesting;
 
   /**
    * Return the kind of element that this is.
@@ -809,6 +819,12 @@ abstract class ElementAnnotation
   Element get element;
 
   /**
+   * Return `true` if this annotation marks the associated function as always
+   * throwing.
+   */
+  bool get isAlwaysThrows;
+
+  /**
    * Return `true` if this annotation marks the associated element as being
    * deprecated.
    */
@@ -860,6 +876,10 @@ abstract class ElementAnnotation
    * required.
    */
   bool get isRequired;
+
+  /// Return `true` if this annotation marks the associated member as being
+  /// visible for testing.
+  bool get isVisibleForTesting;
 
   /**
    * Return a representation of the value of this annotation, forcing the value

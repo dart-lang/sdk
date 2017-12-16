@@ -270,8 +270,8 @@ class PageSpace {
   // code.
   bool ShouldCollectCode();
 
-  // Collect the garbage in the page space using mark-sweep.
-  void MarkSweep();
+  // Collect the garbage in the page space using mark-sweep or mark-compact.
+  void CollectGarbage(bool compact);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
@@ -330,10 +330,15 @@ class PageSpace {
   }
 
   Monitor* tasks_lock() const { return tasks_lock_; }
-  intptr_t tasks() const { return tasks_; }
-  void set_tasks(intptr_t val) {
+  intptr_t sweeper_tasks() const { return sweeper_tasks_; }
+  void set_sweeper_tasks(intptr_t val) {
     ASSERT(val >= 0);
-    tasks_ = val;
+    sweeper_tasks_ = val;
+  }
+  intptr_t low_memory_tasks() const { return low_memory_tasks_; }
+  void set_low_memory_tasks(intptr_t val) {
+    ASSERT(val >= 0);
+    low_memory_tasks_ = val;
   }
 
   // Attempt to allocate from bump block rather than normal freelist.
@@ -434,7 +439,8 @@ class PageSpace {
 
   // Keep track of running MarkSweep tasks.
   Monitor* tasks_lock_;
-  intptr_t tasks_;
+  int32_t sweeper_tasks_;
+  int32_t low_memory_tasks_;
 #if defined(DEBUG)
   Thread* iterating_thread_;
 #endif
@@ -451,6 +457,7 @@ class PageSpace {
   friend class PageSpaceController;
   friend class SweeperTask;
   friend class GCCompactor;
+  friend class CompactorTask;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

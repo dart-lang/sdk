@@ -15,6 +15,8 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest);
+    defineReflectiveTests(
+        AnalysisGetImportedElementsIntegrationTest_PreviewDart2);
   });
 }
 
@@ -137,4 +139,11 @@ $selection
       ]);
     }
   }
+}
+
+@reflectiveTest
+class AnalysisGetImportedElementsIntegrationTest_PreviewDart2
+    extends AnalysisGetImportedElementsIntegrationTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

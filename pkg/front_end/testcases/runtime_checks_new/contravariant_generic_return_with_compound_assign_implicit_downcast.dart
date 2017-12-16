@@ -31,7 +31,7 @@ class D {
   C<num> get value => /*@callKind=this*/ getValue;
   int Function(int) setValue;
   void set value(int Function(int) value) {
-    setValue = value;
+    /*@callKind=this*/ setValue = value;
   }
 }
 

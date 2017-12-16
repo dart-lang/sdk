@@ -84,21 +84,33 @@ class JsBackendStrategy implements KernelBackendStrategy {
   OutputUnitData convertOutputUnitData(OutputUnitData data) {
     JsToFrontendMapImpl map = new JsToFrontendMapImpl(_elementMap);
 
-    // TODO(sigmund): make this more flexible to support scenarios where we have
-    // a 1-n mapping (a k-entity that maps to multiple j-entities).
     Entity toBackendEntity(Entity entity) {
       if (entity is ClassEntity) return map.toBackendClass(entity);
       if (entity is MemberEntity) return map.toBackendMember(entity);
       if (entity is TypeVariableEntity) {
         return map.toBackendTypeVariable(entity);
       }
-      if (entity is Local) {
-        // TODO(sigmund): ensure we don't store locals in OuputUnitData
-        return entity;
-      }
       assert(
           entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
       return map.toBackendLibrary(entity);
+    }
+
+    // Convert a front-end map containing K-entities keys to a backend map using
+    // J-entities as keys.
+    Map<Entity, OutputUnit> convertEntityMap(Map<Entity, OutputUnit> input) {
+      var result = <Entity, OutputUnit>{};
+      input.forEach((Entity entity, OutputUnit unit) {
+        // Closures have both a class and a call-method, we ensure both are
+        // included in the corresponding output unit.
+        if (entity is KLocalFunction) {
+          var closureInfo = _closureDataLookup.getClosureInfo(entity.node);
+          result[closureInfo.closureClassEntity] = unit;
+          result[closureInfo.callMethod] = unit;
+        } else {
+          result[toBackendEntity(entity)] = unit;
+        }
+      });
+      return result;
     }
 
     ConstantValue toBackendConstant(ConstantValue constant) {
@@ -107,7 +119,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
 
     return new OutputUnitData.from(
         data,
-        (m) => convertMap<Entity, OutputUnit>(m, toBackendEntity, (v) => v),
+        convertEntityMap,
         (m) => convertMap<ConstantValue, OutputUnit>(
             m, toBackendConstant, (v) => v));
   }

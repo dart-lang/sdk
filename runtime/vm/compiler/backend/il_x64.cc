@@ -35,6 +35,36 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
+DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
+  ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  __ movq(out, Address(instr->base_reg(), index, TIMES_4, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(StoreIndexedUnsafe,
+               (NoLocation, Register index, Register value)) {
+  ASSERT(instr->RequiredInputRepresentation(
+             StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
+  __ movq(Address(instr->base_reg(), index, TIMES_4, instr->offset()), value);
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(TailCall, (NoLocation, Fixed<Register, ARGS_DESC_REG>)) {
+  __ LoadObject(CODE_REG, instr->code());
+  __ LeaveDartFrame();  // The arguments are still on the stack.
+  __ jmp(FieldAddress(CODE_REG, Code::entry_point_offset()));
+
+  // Even though the TailCallInstr will be the last instruction in a basic
+  // block, the flow graph compiler will emit native code for other blocks after
+  // the one containing this instruction and needs to be able to use the pool.
+  // (The `LeaveDartFrame` above disables usages of the pool.)
+  __ set_constant_pool_allowed(true);
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -306,6 +336,17 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(1, Location::RegisterLocation(RDX));  // Instant. type args.
   summary->set_in(2, Location::RegisterLocation(RCX));  // Function type args.
   summary->set_out(0, Location::RegisterLocation(RAX));
+  return summary;
+}
+
+LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(RDX));  // Instant. type args
+  summary->set_in(1, Location::RegisterLocation(RCX));  // Function type args
   return summary;
 }
 
@@ -708,16 +749,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
+  // All arguments are already @RSP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in RAX.
-  if (!function().HasOptionalParameters()) {
-    __ leaq(RAX,
-            Address(RBP, (kParamEndSlotFromFp + function().NumParameters()) *
-                             kWordSize));
-  } else {
-    __ leaq(RAX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
-  }
+  __ leaq(RAX, Address(RSP, ArgumentCount() * kWordSize));
+
   __ LoadImmediate(R10, Immediate(argc_tag));
   const StubEntry* stub_entry;
   if (link_lazily()) {
@@ -740,6 +780,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            locs());
   }
   __ popq(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
@@ -3843,17 +3885,16 @@ DEFINE_EMIT(SimdBinaryOp,
   SIMD_OP_FLOAT_ARITH(V, Sqrt, sqrt)                                           \
   SIMD_OP_FLOAT_ARITH(V, Negate, negate)                                       \
   SIMD_OP_FLOAT_ARITH(V, Abs, abs)                                             \
-  V(Float32x4Reciprocal, reciprocalps)                                         \
+  V(Float32x4Reciprocal, rcpps)                                                \
   V(Float32x4ReciprocalSqrt, rsqrtps)
 
 DEFINE_EMIT(SimdUnaryOp, (SameAsFirstInput, XmmRegister value)) {
   // TODO(dartbug.com/30949) select better register constraints to avoid
-  // redundant move of input into a different register because all instructions
-  // below support two operand forms.
+  // redundant move of input into a different register.
   switch (instr->kind()) {
 #define EMIT(Name, op)                                                         \
   case SimdOpInstr::k##Name:                                                   \
-    __ op(value);                                                              \
+    __ op(value, value);                                                       \
     break;
     SIMD_OP_SIMPLE_UNARY(EMIT)
 #undef EMIT
@@ -4048,7 +4089,7 @@ DEFINE_EMIT(Int32x4Select,
   // Copy mask.
   __ movaps(temp, mask);
   // Invert it.
-  __ notps(temp);
+  __ notps(temp, temp);
   // mask = mask & trueValue.
   __ andps(mask, trueValue);
   // temp = temp & falseValue.
@@ -4251,7 +4292,7 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   ASSERT(locs()->out(0).fpu_reg() == value);
-  __ DoubleNegate(value);
+  __ DoubleNegate(value, value);
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -4338,7 +4379,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_min) {
     __ cmovgeq(result, right);
   } else {
-    __ cmovlessq(result, right);
+    __ cmovlq(result, right);
   }
 }
 

@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:front_end/dependency_grapher.dart';
+import 'package:front_end/src/api_prototype/dependency_grapher.dart';
 import 'package:front_end/src/async_dependency_walker.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/parser.dart';
@@ -22,7 +22,7 @@ import 'package:front_end/src/fasta/uri_translator.dart';
 /// they are read directly from `options.fileSystem`.
 ///
 /// This is intended for internal use by the front end.  Clients should use
-/// package:front_end/dependency_grapher.dart.
+/// package:front_end/src/api_prototype/dependency_grapher.dart.
 Future<Graph> graphForProgram(List<Uri> sources, ProcessedOptions options,
     {FileReader fileReader}) async {
   UriTranslator uriTranslator = await options.getUriTranslator();

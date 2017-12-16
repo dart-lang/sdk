@@ -75,6 +75,7 @@ class SnapshotWriter;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(LazyCompile)                                                               \
   V(OptimizeFunction)                                                          \
+  V(CallClosureNoSuchMethod)                                                   \
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \
   V(FixCallersTarget)                                                          \
@@ -124,10 +125,6 @@ class StubCode : public AllStatic {
   // Generate all stubs which are shared across all isolates, this is done
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
-
-  // Generate all stubs which are generated on a per isolate basis as they
-  // have embedded objects which are isolate specific.
-  static void Init(Isolate* isolate);
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 

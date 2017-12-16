@@ -4,5 +4,5 @@ import "dart:core" as core;
 
 static field core::int i;
 static field core::String s;
-static field core::String x = self::i = self::s as{TypeError} core::int;
+static field core::String x = self::i = let final dynamic #t1 = self::s in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:9:62: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\nvar /*@topType=String*/ x = i = /*@error=InvalidAssignment*/ s;\n                                                             ^"));
 static method main() → dynamic {}

@@ -4,6 +4,7 @@
 
 import '../common.dart';
 import '../elements/jumps.dart';
+import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';
@@ -23,8 +24,10 @@ abstract class JumpHandler {
   factory JumpHandler(GraphBuilder builder, JumpTarget target) {
     return new TargetJumpHandler(builder, target);
   }
-  void generateBreak([LabelDefinition label]);
-  void generateContinue([LabelDefinition label]);
+  void generateBreak(SourceInformation sourceInformation,
+      [LabelDefinition label]);
+  void generateContinue(SourceInformation sourceInformation,
+      [LabelDefinition label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
   void forEachContinue(
       void action(HContinue instruction, LocalsHandler locals));
@@ -43,12 +46,14 @@ class NullJumpHandler implements JumpHandler {
 
   NullJumpHandler(this.reporter);
 
-  void generateBreak([LabelDefinition label]) {
+  void generateBreak(SourceInformation sourceInformation,
+      [LabelDefinition label]) {
     reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateBreak should not be called.');
   }
 
-  void generateContinue([LabelDefinition label]) {
+  void generateContinue(SourceInformation sourceInformation,
+      [LabelDefinition label]) {
     reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateContinue should not be called.');
   }
@@ -79,24 +84,26 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets[target] = this;
   }
 
-  void generateBreak([LabelDefinition label]) {
+  void generateBreak(SourceInformation sourceInformation,
+      [LabelDefinition label]) {
     HInstruction breakInstruction;
     if (label == null) {
-      breakInstruction = new HBreak(target);
+      breakInstruction = new HBreak(target, sourceInformation);
     } else {
-      breakInstruction = new HBreak.toLabel(label);
+      breakInstruction = new HBreak.toLabel(label, sourceInformation);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction);
     jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
   }
 
-  void generateContinue([LabelDefinition label]) {
+  void generateContinue(SourceInformation sourceInformation,
+      [LabelDefinition label]) {
     HInstruction continueInstruction;
     if (label == null) {
-      continueInstruction = new HContinue(target);
+      continueInstruction = new HContinue(target, sourceInformation);
     } else {
-      continueInstruction = new HContinue.toLabel(label);
+      continueInstruction = new HContinue.toLabel(label, sourceInformation);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
       assert(!label.target.isSwitchCase);
@@ -157,19 +164,20 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   SwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target)
       : super(builder, target);
 
-  void generateBreak([LabelDefinition label]) {
+  void generateBreak(SourceInformation sourceInformation,
+      [LabelDefinition label]) {
     if (label == null) {
       // Creates a special break instruction for the synthetic loop generated
       // for a switch statement with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
       HInstruction breakInstruction =
-          new HBreak(target, breakSwitchContinueLoop: true);
+          new HBreak(target, sourceInformation, breakSwitchContinueLoop: true);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction);
       jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
     } else {
-      super.generateBreak(label);
+      super.generateBreak(sourceInformation, label);
     }
   }
 
@@ -177,7 +185,8 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
     return label != null && targetIndexMap.containsKey(label.target);
   }
 
-  void generateContinue([LabelDefinition label]) {
+  void generateContinue(SourceInformation sourceInformation,
+      [LabelDefinition label]) {
     if (isContinueToSwitchCase(label)) {
       // Creates the special instructions 'label = i; continue l;' used in
       // switch statements with continue statements. See
@@ -189,12 +198,13 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       builder.localsHandler.updateLocal(target, value);
 
       assert(label.target.labels.contains(label));
-      HInstruction continueInstruction = new HContinue(target);
+      HInstruction continueInstruction =
+          new HContinue(target, sourceInformation);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction);
       jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
     } else {
-      super.generateContinue(label);
+      super.generateContinue(sourceInformation, label);
     }
   }
 

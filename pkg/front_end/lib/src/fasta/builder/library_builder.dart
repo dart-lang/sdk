@@ -16,15 +16,9 @@ import '../messages.dart'
     show
         LocatedMessage,
         Message,
-        error,
-        nit,
-        report,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
-        templateInternalProblemPrivateConstructorAccess,
-        warning;
-
-import '../severity.dart' show Severity;
+        templateInternalProblemPrivateConstructorAccess;
 
 import 'builder.dart'
     show
@@ -35,8 +29,7 @@ import 'builder.dart'
         PrefixBuilder,
         Scope,
         ScopeBuilder,
-        TypeBuilder,
-        VoidTypeBuilder;
+        TypeBuilder;
 
 abstract class LibraryBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
@@ -51,9 +44,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   final List<Export> exporters = <Export>[];
 
   LibraryBuilder partOfLibrary;
-
-  /// True if a compile-time error has been reported in this library.
-  bool hasCompileTimeErrors = false;
 
   bool mayImplementRestrictedTypes = false;
 
@@ -86,37 +76,23 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   /// arguments passed to this method.
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.
-  void addCompileTimeError(Message message, int charOffset, Uri uri,
-      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
-    hasCompileTimeErrors = true;
-    loader.addCompileTimeError(message, charOffset, uri,
-        silent: silent, wasHandled: wasHandled, context: context);
+  void addCompileTimeError(Message message, int charOffset, Uri fileUri,
+      {bool wasHandled: false, LocatedMessage context}) {
+    fileUri ??= this.fileUri;
+    loader.addCompileTimeError(message, charOffset, fileUri,
+        wasHandled: wasHandled, context: context);
   }
 
-  void addWarning(Message message, int charOffset, Uri uri,
-      {bool silent: false, LocatedMessage context}) {
-    if (!silent) {
-      warning(message, charOffset, uri);
-      if (context != null) {
-        report(context, Severity.warning);
-      }
-    }
+  void addWarning(Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {
+    fileUri ??= this.fileUri;
+    loader.addWarning(message, charOffset, fileUri, context: context);
   }
 
-  void addError(Message message, int charOffset, Uri uri,
-      {bool silent: false, LocatedMessage context}) {
-    if (!silent) {
-      error(message, charOffset, uri);
-      if (context != null) {
-        report(context, Severity.error);
-      }
-    }
-  }
-
-  void addNit(Message message, int charOffset, Uri uri, {bool silent: false}) {
-    if (!silent) {
-      nit(message, charOffset, uri);
-    }
+  void addNit(Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {
+    fileUri ??= this.fileUri;
+    loader.addNit(message, charOffset, fileUri, context: context);
   }
 
   /// Returns true if the export scope was modified.
@@ -145,8 +121,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
       {bool isExport: false, bool isImport: false});
 
   int finishDeferredLoadTearoffs() => 0;
-
-  int finishStaticInvocations() => 0;
 
   int finishNativeMethods() => 0;
 
@@ -200,10 +174,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   int finishTypeVariables(ClassBuilder object) => 0;
 
-  void becomeCoreLibrary(dynamicType, voidType) {
+  void becomeCoreLibrary(dynamicType) {
     addBuilder("dynamic",
         new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
-    addBuilder("void", new VoidTypeBuilder<T, dynamic>(voidType, this, -1), -1);
   }
 
   void forEach(void f(String name, Builder builder)) {
@@ -219,10 +192,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   Builder operator [](String name) {
     return scope.local[name] ??
         internalProblem(
-            templateInternalProblemNotFoundIn.withArguments(
-                name, relativeFileUri),
+            templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),
             -1,
-            null);
+            fileUri);
   }
 
   Builder lookup(String name, int charOffset, Uri fileUri) {

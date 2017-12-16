@@ -307,6 +307,9 @@ the output folder from a previous run. This flag will often cause
 false positves and negatives, but can be useful for quick and
 dirty offline testing when not making changes that affect the
 compiler.''',
+        hide: true),
+    new _Option.bool('print_passing_stdout',
+        'Print the stdout of passing, as well as failing, tests.',
         hide: true)
   ];
 
@@ -676,7 +679,8 @@ compiler.''',
                 builderTag: data["builder_tag"] as String,
                 outputDirectory: data["output_directory"] as String,
                 reproducingArguments: _reproducingCommand(data),
-                fastTestsOnly: data["fast_tests"] as bool);
+                fastTestsOnly: data["fast_tests"] as bool,
+                printPassingStdout: data["print_passing_stdout"] as bool);
 
             if (configuration.validate()) {
               result.add(configuration);

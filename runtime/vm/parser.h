@@ -89,35 +89,7 @@ typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  ParsedFunction(Thread* thread, const Function& function)
-      : thread_(thread),
-        function_(function),
-        code_(Code::Handle(zone(), function.unoptimized_code())),
-        node_sequence_(NULL),
-        regexp_compile_data_(NULL),
-        instantiator_(NULL),
-        function_type_arguments_(NULL),
-        parent_type_arguments_(NULL),
-        current_context_var_(NULL),
-        expression_temp_var_(NULL),
-        finally_return_temp_var_(NULL),
-        deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
-        guarded_fields_(new ZoneGrowableArray<const Field*>()),
-        default_parameter_values_(NULL),
-        first_parameter_index_(0),
-        first_stack_local_index_(0),
-        num_copied_params_(0),
-        num_stack_locals_(0),
-        have_seen_await_expr_(false),
-        kernel_scopes_(NULL) {
-    ASSERT(function.IsZoneHandle());
-    // Every function has a local variable for the current context.
-    LocalVariable* temp = new (zone())
-        LocalVariable(function.token_pos(), function.token_pos(),
-                      Symbols::CurrentContextVar(), Object::dynamic_type());
-    ASSERT(temp != NULL);
-    current_context_var_ = temp;
-  }
+  ParsedFunction(Thread* thread, const Function& function);
 
   const Function& function() const { return function_; }
   const Code& code() const { return code_; }
@@ -172,6 +144,9 @@ class ParsedFunction : public ZoneAllocated {
 
   LocalVariable* current_context_var() const { return current_context_var_; }
 
+  bool has_arg_desc_var() const { return arg_desc_var_ != NULL; }
+  LocalVariable* arg_desc_var() const { return arg_desc_var_; }
+
   LocalVariable* expression_temp_var() const {
     ASSERT(has_expression_temp_var());
     return expression_temp_var_;
@@ -208,12 +183,7 @@ class ParsedFunction : public ZoneAllocated {
   }
 
   int first_parameter_index() const { return first_parameter_index_; }
-  int first_stack_local_index() const { return first_stack_local_index_; }
-  int num_copied_params() const { return num_copied_params_; }
   int num_stack_locals() const { return num_stack_locals_; }
-  int num_non_copied_params() const {
-    return (num_copied_params_ == 0) ? function().num_fixed_parameters() : 0;
-  }
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
@@ -233,6 +203,14 @@ class ParsedFunction : public ZoneAllocated {
 
   kernel::ScopeBuildingResult* EnsureKernelScopes();
 
+  LocalVariable* RawTypeArgumentsVariable() const {
+    return raw_type_arguments_var_;
+  }
+
+  LocalVariable* RawParameterVariable(intptr_t i) const {
+    return raw_parameters_[i];
+  }
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -243,15 +221,17 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* function_type_arguments_;
   LocalVariable* parent_type_arguments_;
   LocalVariable* current_context_var_;
+  LocalVariable* arg_desc_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
+  LocalVariable* raw_type_arguments_var_;
+  ZoneGrowableArray<LocalVariable*> raw_parameters_;
+
   int first_parameter_index_;
-  int first_stack_local_index_;
-  int num_copied_params_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
 
@@ -453,9 +433,6 @@ class Parser : public ValueObject {
   void CheckConstructorCallTypeArguments(TokenPosition pos,
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);
-
-  // Report error if parsed code is too deeply nested; avoid stack overflow.
-  void CheckStack();
 
   // Report already formatted error.
   static void ReportError(const Error& error);

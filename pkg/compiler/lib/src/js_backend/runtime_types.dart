@@ -79,7 +79,7 @@ abstract class RuntimeTypesChecks {
   /// in the return type or the argument types.
   Set<ClassEntity> getReferencedClasses(FunctionType type);
 
-  /// Return all classes that are uses a type arguments.
+  /// Return all classes that use type arguments.
   Set<ClassEntity> getRequiredArgumentClasses();
 }
 
@@ -1012,6 +1012,13 @@ class TypeRepresentationGenerator
       return typedefBindings[type];
     }
     return onVariable(type);
+  }
+
+  jsAst.Expression visitFunctionTypeVariable(
+      FunctionTypeVariable type, Emitter emitter) {
+    // TODO(johnniwinther): Create a runtime representation for existential
+    // types.
+    return getDynamicValue();
   }
 
   jsAst.Expression visitDynamicType(DynamicType type, Emitter emitter) {

@@ -7,7 +7,7 @@
 // and also information about test-suites.
 
 import 'package:status_file/environment.dart';
-import 'result_models.dart';
+import 'result_json_models.dart';
 import 'configurations.dart';
 
 typedef String _LookUpFunction(Configuration configuration);
@@ -20,7 +20,7 @@ final _variables = {
       new _Variable.bool((c) => c.compiler == Compiler.dart2analyzer.name),
   "arch": new _Variable((c) => c.arch, Architecture.names),
   "browser": new _Variable.bool((c) {
-    var runtime = new Runtime.fromName(c.runtime);
+    var runtime = runtimeFromName(c.runtime);
     return runtime != null ? runtime.isBrowser : false;
   }),
   "builder_tag": new _Variable((c) => c.builderTag ?? "", const []),
@@ -35,16 +35,17 @@ final _variables = {
   "hot_reload": new _Variable.bool((c) => c.hotReload),
   "hot_reload_rollback": new _Variable.bool((c) => c.hotReloadRollback),
   "ie": new _Variable.bool((c) {
-    var runtime = new Runtime.fromName(c.runtime);
+    var runtime = runtimeFromName(c.runtime);
     return runtime != null ? runtime.isIE : false;
   }),
   "jscl": new _Variable.bool((c) {
-    var runtime = new Runtime.fromName(c.runtime);
+    var runtime = runtimeFromName(c.runtime);
     return runtime != null ? runtime.isJSCommandLine : false;
   }),
   "minified": new _Variable.bool((c) => c.minified),
   "mode": new _Variable((c) => c.mode, Mode.names),
   "runtime": new _Variable(_runtimeName, Runtime.names),
+  "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => c.strong),
   "system": new _Variable((c) => c.system, System.names),
   "use_sdk": new _Variable.bool((c) => c.useSdk)

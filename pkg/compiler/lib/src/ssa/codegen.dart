@@ -593,8 +593,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         collectedVariableDeclarations.contains(variableName);
   }
 
-  js.Expression generateExpressionAssignment(
-      String variableName, js.Expression value) {
+  js.Expression generateExpressionAssignment(String variableName,
+      js.Expression value, SourceInformation sourceInformation) {
     if (value is js.Binary) {
       js.Binary binary = value;
       String op = binary.op;
@@ -620,7 +620,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
     return new js.Assignment(new js.VariableUse(variableName), value)
-        .withSourceInformation(value.sourceInformation);
+        .withSourceInformation(value.sourceInformation ?? sourceInformation);
   }
 
   void assignVariable(String variableName, js.Expression value,
@@ -631,7 +631,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (!isVariableDeclared(variableName)) {
         collectedVariableDeclarations.add(variableName);
       }
-      push(generateExpressionAssignment(variableName, value));
+      push(
+          generateExpressionAssignment(variableName, value, sourceInformation));
       // Otherwise if we are trying to declare inline and we are in a statement
       // then we declare (unless it was already declared).
     } else if (!shouldGroupVarDeclarations &&
@@ -654,7 +655,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         collectedVariableDeclarations.add(variableName);
       }
       pushExpressionAsStatement(
-          generateExpressionAssignment(variableName, value), sourceInformation);
+          generateExpressionAssignment(variableName, value, sourceInformation),
+          sourceInformation);
     }
   }
 
@@ -1246,16 +1248,33 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     blockQueue.add(node);
   }
 
-  void emitAssignment(String destination, String source) {
-    assignVariable(destination, new js.VariableUse(source), null);
+  void emitAssignment(
+      String destination, String source, SourceInformation sourceInformation) {
+    assignVariable(destination, new js.VariableUse(source), sourceInformation);
   }
 
   /**
    * Sequentialize a list of conceptually parallel copies. Parallel
    * copies may contain cycles, that this method breaks.
    */
-  void sequentializeCopies(Iterable<Copy> copies, String tempName,
-      void doAssignment(String target, String source)) {
+  void sequentializeCopies(
+      Iterable<Copy<HInstruction>> instructionCopies,
+      String tempName,
+      void doAssignment(
+          String target, String source, SourceInformation sourceInformation)) {
+    Map<String, SourceInformation> sourceInformationMap =
+        <String, SourceInformation>{};
+
+    // Map the instructions to strings.
+    Iterable<Copy<String>> copies =
+        instructionCopies.map((Copy<HInstruction> copy) {
+      String sourceName = variableNames.getName(copy.source);
+      sourceInformationMap[sourceName] = copy.source.sourceInformation;
+      String destinationName = variableNames.getName(copy.destination);
+      sourceInformationMap[sourceName] = copy.destination.sourceInformation;
+      return new Copy<String>(sourceName, destinationName);
+    });
+
     // Map to keep track of the current location (ie the variable that
     // holds the initial value) of a variable.
     Map<String, String> currentLocation = new Map<String, String>();
@@ -1271,8 +1290,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<String> ready = <String>[];
 
     // Prune [copies] by removing self-copies.
-    List<Copy> prunedCopies = <Copy>[];
-    for (Copy copy in copies) {
+    List<Copy<String>> prunedCopies = <Copy<String>>[];
+    for (Copy<String> copy in copies) {
       if (copy.source != copy.destination) {
         prunedCopies.add(copy);
       }
@@ -1282,7 +1301,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // For each copy, set the current location of the source to
     // itself, and the initial value of the destination to the source.
     // Add the destination to the list of copies to make.
-    for (Copy copy in copies) {
+    for (Copy<String> copy in copies) {
       currentLocation[copy.source] = copy.source;
       initialValue[copy.destination] = copy.source;
       worklist.add(copy.destination);
@@ -1290,7 +1309,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     // For each copy, if the destination does not have a current
     // location, then we can safely assign to it.
-    for (Copy copy in copies) {
+    for (Copy<String> copy in copies) {
       if (currentLocation[copy.destination] == null) {
         ready.add(copy.destination);
       }
@@ -1303,7 +1322,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Since [source] might have been updated, use the current
         // location of [source]
         String copy = currentLocation[source];
-        doAssignment(destination, copy);
+        doAssignment(destination, copy,
+            sourceInformationMap[copy] ?? sourceInformationMap[destination]);
         // Now [destination] is the current location of [source].
         currentLocation[source] = destination;
         // If [source] hasn't been updated and needs to have a value,
@@ -1321,7 +1341,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // cycle that we break by using a temporary name.
       if (currentLocation[current] != null &&
           current != currentLocation[initialValue[current]]) {
-        doAssignment(tempName, current);
+        doAssignment(tempName, current, sourceInformationMap[current]);
         currentLocation[current] = tempName;
         // [current] can now be safely updated. Copies of [current]
         // will now use [tempName].
@@ -1334,18 +1354,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     CopyHandler handler = variableNames.getCopyHandler(node);
     if (handler == null) return;
 
-    // Map the instructions to strings.
-    Iterable<Copy> copies = handler.copies.map((Copy copy) {
-      return new Copy(variableNames.getName(copy.source),
-          variableNames.getName(copy.destination));
-    });
+    sequentializeCopies(
+        handler.copies, variableNames.getSwapTemp(), emitAssignment);
 
-    sequentializeCopies(copies, variableNames.getSwapTemp(), emitAssignment);
-
-    for (Copy copy in handler.assignments) {
+    for (Copy<HInstruction> copy in handler.assignments) {
       String name = variableNames.getName(copy.destination);
       use(copy.source);
-      assignVariable(name, pop(), null);
+      assignVariable(name, pop(),
+          copy.source.sourceInformation ?? copy.destination.sourceInformation);
     }
   }
 

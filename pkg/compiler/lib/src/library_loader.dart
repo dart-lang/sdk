@@ -6,7 +6,7 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'package:front_end/front_end.dart' as fe;
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
@@ -838,9 +838,11 @@ class KernelLibraryLoaderTask extends CompilerTask
 
   List<LibraryEntity> _allLoadedLibraries;
 
+  fe.InitializedCompilerState initializedCompilerState;
+
   KernelLibraryLoaderTask(this.platformBinaries, this._packageConfig,
       this._elementMap, this.compilerInput, this.reporter, Measurer measurer,
-      {this.verbose: false})
+      {this.verbose: false, this.initializedCompilerState})
       : _allLoadedLibraries = new List<LibraryEntity>(),
         super(measurer);
 
@@ -859,17 +861,17 @@ class KernelLibraryLoaderTask extends CompilerTask
         program = new ir.Program();
         new BinaryBuilder(input.data).readProgram(program);
       } else {
-        var options = new fe.CompilerOptions()
-          ..verbose = verbose
-          ..fileSystem = new CompilerFileSystem(compilerInput)
-          ..target = new Dart2jsTarget(new TargetFlags())
-          ..linkedDependencies = [
+        initializedCompilerState = fe.initializeCompiler(
+            initializedCompilerState,
+            new Dart2jsTarget(new TargetFlags()),
             platformBinaries.resolve("dart2js_platform.dill"),
-          ]
-          ..packagesFileUri = _packageConfig
-          ..onError = (e) => reportFrontEndMessage(reporter, e);
-
-        program = await fe.kernelForProgram(resolvedUri, options);
+            _packageConfig);
+        program = await fe.compile(
+            initializedCompilerState,
+            verbose,
+            new CompilerFileSystem(compilerInput),
+            (e) => reportFrontEndMessage(reporter, e),
+            resolvedUri);
       }
       if (program == null) return null;
       return createLoadedLibraries(program);

@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
+    defineReflectiveTests(GetSuggestionsTest_PreviewDart2);
   });
 }
 
@@ -115,4 +116,10 @@ main() {
       expect(result, new isInstanceOf<CompletionGetSuggestionsResult>());
     });
   }
+}
+
+@reflectiveTest
+class GetSuggestionsTest_PreviewDart2 extends GetSuggestionsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

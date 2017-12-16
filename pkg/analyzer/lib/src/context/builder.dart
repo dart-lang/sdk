@@ -32,8 +32,9 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/sdk.dart';
 import 'package:args/args.dart';
-import 'package:front_end/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -171,6 +172,19 @@ class ContextBuilder {
         getAnalysisOptions(path, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
+
+    // The folder with `vm_platform_strong.dill`, which has required patches.
+    Folder kernelPlatformFolder;
+    if (previewDart2) {
+      DartSdk sdk = sf.dartSdk;
+      if (sdk is FolderBasedDartSdk) {
+        var binariesPath = computePlatformBinariesPath(sdk.directory.path);
+        if (binariesPath != null) {
+          kernelPlatformFolder = resourceProvider.getFolder(binariesPath);
+        }
+      }
+    }
+
     AnalysisDriver driver = new AnalysisDriver(
         analysisDriverScheduler,
         performanceLog,
@@ -180,7 +194,8 @@ class ContextBuilder {
         contextRoot,
         sf,
         options,
-        enableKernelDriver: previewDart2);
+        enableKernelDriver: previewDart2,
+        kernelPlatformFolder: kernelPlatformFolder);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,

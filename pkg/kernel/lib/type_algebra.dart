@@ -446,7 +446,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: node.requiredParameterCount);
+        requiredParameterCount: node.requiredParameterCount,
+        typedefReference: node.typedefReference);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {

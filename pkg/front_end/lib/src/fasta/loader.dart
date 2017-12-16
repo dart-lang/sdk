@@ -13,7 +13,13 @@ import 'builder/builder.dart' show Builder, LibraryBuilder;
 import 'deprecated_problems.dart' show firstSourceUri;
 
 import 'messages.dart'
-    show LocatedMessage, Message, messagePlatformPrivateLibraryAccess;
+    show
+        LocatedMessage,
+        Message,
+        SummaryTemplate,
+        Template,
+        messagePlatformPrivateLibraryAccess,
+        templateSourceBodySummary;
 
 import 'severity.dart' show Severity;
 
@@ -44,6 +50,8 @@ abstract class Loader<L> {
   /// [handledErrors].
   final List<LocatedMessage> unhandledErrors = <LocatedMessage>[];
 
+  final Set<String> seenMessages = new Set<String>();
+
   LibraryBuilder coreLibrary;
 
   /// The first library that we've been asked to compile. When compiling a
@@ -57,6 +65,8 @@ abstract class Loader<L> {
   Loader(this.target);
 
   Ticker get ticker => target.ticker;
+
+  Template<SummaryTemplate> get outlineSummaryTemplate;
 
   /// Look up a library builder by the name [uri], or if such doesn't
   /// exist, create one. The canonical URI of the library is [uri], and its
@@ -132,20 +142,13 @@ abstract class Loader<L> {
   Future<Null> buildBodies() async {
     assert(coreLibrary != null);
     for (LibraryBuilder library in builders.values) {
-      currentUriForCrashReporting = library.uri;
-      await buildBody(library);
+      if (library.loader == this) {
+        currentUriForCrashReporting = library.uri;
+        await buildBody(library);
+      }
     }
     currentUriForCrashReporting = null;
-    ticker.log((Duration elapsed, Duration sinceStart) {
-      int libraryCount = builders.length;
-      double ms =
-          elapsed.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND;
-      String message = "Built $libraryCount compilation units";
-      print("""
-$sinceStart: $message ($byteCount bytes) in ${format(ms, 3, 0)}ms, that is,
-${format(byteCount / ms, 3, 12)} bytes/ms, and
-${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
-    });
+    logSummary(templateSourceBodySummary);
   }
 
   Future<Null> buildOutlines() async {
@@ -156,18 +159,24 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
       await buildOutline(library);
     }
     currentUriForCrashReporting = null;
+    logSummary(outlineSummaryTemplate);
+  }
+
+  void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
-      int libraryCount = builders.length;
+      int libraryCount = 0;
+      builders.forEach((Uri uri, LibraryBuilder library) {
+        if (library.loader == this) libraryCount++;
+      });
       double ms =
           elapsed.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND;
-      String message = "Built outlines for $libraryCount compilation units";
-      // TODO(ahe): Share this message with [buildBodies]. Also make it easy to
-      // tell the difference between outlines read from a dill file or source
-      // files. Currently, [libraryCount] is wrong for dill files.
-      print("""
-$sinceStart: $message ($byteCount bytes) in ${format(ms, 3, 0)}ms, that is,
-${format(byteCount / ms, 3, 12)} bytes/ms, and
-${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
+      Message message = template.withArguments(
+          libraryCount,
+          byteCount,
+          "${format(ms, 3, 0)}ms",
+          format(byteCount / ms, 3, 12),
+          format(ms / libraryCount, 3, 12));
+      print("$sinceStart: ${message.message}");
     });
   }
 
@@ -178,22 +187,50 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
 
   /// Register [message] as a compile-time error.
   ///
-  /// If [silent] is true, no error is printed as it is assumed the error has
-  /// been previously reported.
-  ///
   /// If [wasHandled] is true, this error is added to [handledErrors],
   /// otherwise it is added to [unhandledErrors].
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
-      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
-    if (!silent) {
-      target.context
-          .report(message.withLocation(fileUri, charOffset), Severity.error);
-      if (context != null) {
-        target.context.report(context, Severity.error);
-      }
+      {bool wasHandled: false, LocatedMessage context}) {
+    if (addMessage(message, charOffset, fileUri, Severity.error,
+        context: context)) {
+      (wasHandled ? handledErrors : unhandledErrors)
+          .add(message.withLocation(fileUri, charOffset));
     }
-    (wasHandled ? handledErrors : unhandledErrors)
-        .add(message.withLocation(fileUri, charOffset));
+  }
+
+  void addWarning(Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {
+    addMessage(message, charOffset, fileUri, Severity.warning,
+        context: context);
+  }
+
+  void addNit(Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {
+    addMessage(message, charOffset, fileUri, Severity.nit, context: context);
+  }
+
+  /// All messages reported by the compiler (errors, warnings, etc.) are routed
+  /// through this method.
+  ///
+  /// Returns true if the message is new, that is, not previously
+  /// reported. This is important as some parser errors may be reported up to
+  /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
+  bool addMessage(
+      Message message, int charOffset, Uri fileUri, Severity severity,
+      {LocatedMessage context}) {
+    String trace = """
+message: ${message.message}
+charOffset: $charOffset
+fileUri: $fileUri
+severity: $severity
+""";
+    if (!seenMessages.add(trace)) return false;
+    target.context.report(message.withLocation(fileUri, charOffset), severity);
+    if (context != null) {
+      target.context.report(context, severity);
+    }
+    recordMessage(severity, message, charOffset, fileUri, context: context);
+    return true;
   }
 
   Builder getAbstractClassInstantiationError() {
@@ -207,6 +244,10 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   }
 
   Builder getNativeAnnotation() => target.getNativeAnnotation(this);
+
+  void recordMessage(
+      Severity severity, Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {}
 }
 
 String format(double d, int fractionDigits, int width) {

@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetGeneralSubscriptionsTest);
+    defineReflectiveTests(SetGeneralSubscriptionsTest_PreviewDart2);
   });
 }
 
@@ -37,4 +38,11 @@ class Foo {
         lastAnalyzedFiles.any((String file) => file.endsWith('core/core.dart')),
         true);
   }
+}
+
+@reflectiveTest
+class SetGeneralSubscriptionsTest_PreviewDart2
+    extends SetGeneralSubscriptionsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

@@ -11,7 +11,6 @@ import 'flutter.dart' show FlutterTarget;
 import 'vm.dart' show VmTarget;
 import 'vmcc.dart' show VmClosureConvertedTarget;
 import 'vmreify.dart' show VmGenericTypesReifiedTarget;
-import 'implementation_option.dart' show ImplementationOption;
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -20,18 +19,12 @@ class TargetFlags {
   bool treeShake;
   List<ProgramRoot> programRoots;
   Uri kernelRuntime;
-  final List<ImplementationOption> implementationOptions;
 
   TargetFlags(
       {this.strongMode: false,
       this.treeShake: false,
       this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime,
-      this.implementationOptions}) {
-    if (implementationOptions != null) {
-      implementationOptions.forEach(ImplementationOption.validate);
-    }
-  }
+      this.kernelRuntime}) {}
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -78,9 +71,6 @@ abstract class Target {
   /// This is intended for profiling, to ensure that type inference and type
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
-
-  /// If true, the SDK should be loaded in strong mode.
-  bool get strongModeSdk => strongMode;
 
   /// Perform target-specific modular transformations on the given program.
   ///
@@ -139,7 +129,9 @@ abstract class Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       imported.scheme != "dart" ||
       !imported.path.startsWith("_") ||
-      importer.scheme == "dart";
+      importer.scheme == "dart" ||
+      (importer.scheme == "package" &&
+          importer.path.startsWith("dart_internal/"));
 
   /// Whether the `native` language extension is supported within [library].
   ///
@@ -184,11 +176,15 @@ abstract class Target {
         new Arguments.empty()..fileOffset = offset,
         isConst: true)
       ..fileOffset = offset;
-    return new MethodInvocation(
+    var methodInvocation = new MethodInvocation(
         receiver,
         new Name("_throw", coreTypes.coreLibrary),
         new Arguments(<Expression>[error])..fileOffset = error.fileOffset)
       ..fileOffset = offset;
+    if (strongMode) {
+      methodInvocation.interfaceTarget = coreTypes.constantExpressionErrorThrow;
+    }
+    return methodInvocation;
   }
 
   /// Builds an expression that represents a compile-time error which is

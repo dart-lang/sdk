@@ -584,7 +584,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void doInlining() {
-      registry.registerStaticUse(new StaticUse.inlining(declaration));
+      registry
+          .registerStaticUse(new StaticUse.inlining(declaration, instanceType));
 
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the
@@ -1335,15 +1336,15 @@ class SsaAstGraphBuilder extends ast.Visitor
         constructorArguments.add(typeInfo);
       }
 
-      newObject = new HCreate(classElement, constructorArguments, ssaType,
-          instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
-      if (function != null) {
-        newObject.sourceInformation =
-            sourceInformationBuilder.buildCreate(function);
-      } else {
-        newObject.sourceInformation =
-            sourceInformationBuilder.buildDeclaration(functionElement);
-      }
+      newObject = new HCreate(
+          classElement,
+          constructorArguments,
+          ssaType,
+          function != null
+              ? sourceInformationBuilder.buildCreate(function)
+              : sourceInformationBuilder.buildDeclaration(functionElement),
+          instantiatedTypes: instantiatedTypes,
+          hasRtiInput: hasRtiInput);
       add(newObject);
     } else {
       // Bulk assign to the initialized fields.
@@ -1416,8 +1417,12 @@ class SsaAstGraphBuilder extends ast.Visitor
           tryInlineMethod(body, null, null, bodyCallInputs, function)) {
         pop();
       } else {
+        ConstructorBodyElement declaration = body.declaration;
         HInvokeConstructorBody invoke = new HInvokeConstructorBody(
-            body.declaration, bodyCallInputs, commonMasks.nonNullType);
+            declaration,
+            bodyCallInputs,
+            commonMasks.nonNullType,
+            sourceInformationBuilder.buildDeclaration(constructor));
         invoke.sideEffects = closedWorld.getSideEffectsOfElement(constructor);
         add(invoke);
       }
@@ -1485,7 +1490,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((_parameterElement) {
+      signature.forEachParameter((_parameterElement) {
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
@@ -1594,7 +1599,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       return typeBuilder.potentiallyCheckOrTrustType(value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
-    HInstruction result = new HBoolify(value, commonMasks.boolType);
+    HInstruction result = new HBoolify(value, commonMasks.boolType)
+      ..sourceInformation = value.sourceInformation;
     add(result);
     return result;
   }
@@ -1887,7 +1893,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
+          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -1910,8 +1916,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod)
-      ..sourceInformation = sourceInformationBuilder.buildCreate(node));
+        sourceInformationBuilder.buildCreate(node),
+        callMethod: closureInfo.callMethod));
   }
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
@@ -1981,8 +1987,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   ///       t3 = phi(t2, false);
   ///     }
   ///     result = phi(t3, false);
-  void handleLogicalBinaryWithLeftNode(
-      ast.Node left, void visitRight(), SsaBranchBuilder branchBuilder,
+  void handleLogicalBinaryWithLeftNode(ast.Node left, void visitRight(),
+      SsaBranchBuilder branchBuilder, SourceInformation sourceInformation,
       {bool isAnd}) {
     ast.Send send = left.asSend();
     if (send != null && (isAnd ? send.isLogicalAnd : send.isLogicalOr)) {
@@ -1992,13 +1998,15 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.Node middle = link.head;
       handleLogicalBinaryWithLeftNode(
           newLeft,
-          () => handleLogicalBinaryWithLeftNode(
-              middle, visitRight, branchBuilder,
+          () => handleLogicalBinaryWithLeftNode(middle, visitRight,
+              branchBuilder, sourceInformationBuilder.buildBinary(middle),
               isAnd: isAnd),
           branchBuilder,
+          sourceInformation,
           isAnd: isAnd);
     } else {
-      branchBuilder.handleLogicalBinary(() => visit(left), visitRight,
+      branchBuilder.handleLogicalBinary(
+          () => visit(left), visitRight, sourceInformation,
           isAnd: isAnd);
     }
   }
@@ -2007,6 +2015,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitLogicalAnd(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     handleLogicalBinaryWithLeftNode(left, () => visit(right), branchBuilder,
+        sourceInformationBuilder.buildBinary(node),
         isAnd: true);
   }
 
@@ -2014,6 +2023,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitLogicalOr(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     handleLogicalBinaryWithLeftNode(left, () => visit(right), branchBuilder,
+        sourceInformationBuilder.buildBinary(node),
         isAnd: false);
   }
 
@@ -3178,7 +3188,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         typeMask: commonMasks.dynamicType);
 
     var inputs = <HInstruction>[pop()];
-    push(buildInvokeSuper(Selectors.noSuchMethod_, element, inputs));
+    push(buildInvokeSuper(Selectors.noSuchMethod_, element, inputs,
+        sourceInformationBuilder.buildGeneric(node)));
   }
 
   /// Generate a call to a super method or constructor.
@@ -4286,9 +4297,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
   }
 
-  HInstruction buildInvokeSuper(
-      Selector selector, MemberElement element, List<HInstruction> arguments,
-      [SourceInformation sourceInformation]) {
+  HInstruction buildInvokeSuper(Selector selector, MemberElement element,
+      List<HInstruction> arguments, SourceInformation sourceInformation) {
     HInstruction receiver =
         localsHandler.readThis(sourceInformation: sourceInformation);
     // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -4350,7 +4360,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         generateSuperNoSuchMethodSend(node, setterSelector, setterInputs);
         pop();
       } else {
-        add(buildInvokeSuper(setterSelector, element, setterInputs));
+        add(buildInvokeSuper(setterSelector, element, setterInputs,
+            sourceInformationBuilder.buildAssignment(node)));
       }
     }
 
@@ -4380,8 +4391,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         generateSuperNoSuchMethodSend(node, getterSelector, getterInputs);
         getterInstruction = pop();
       } else {
-        getterInstruction =
-            buildInvokeSuper(getterSelector, getter, getterInputs);
+        getterInstruction = buildInvokeSuper(getterSelector, getter,
+            getterInputs, sourceInformationBuilder.buildGet(node));
         add(getterInstruction);
       }
 
@@ -5434,10 +5445,10 @@ class SsaAstGraphBuilder extends ast.Visitor
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     if (node.target == null) {
-      handler.generateBreak();
+      handler.generateBreak(sourceInformationBuilder.buildGoto(node));
     } else {
       LabelDefinition label = elements.getTargetLabel(node);
-      handler.generateBreak(label);
+      handler.generateBreak(sourceInformationBuilder.buildGoto(node), label);
     }
   }
 
@@ -5448,11 +5459,11 @@ class SsaAstGraphBuilder extends ast.Visitor
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     if (node.target == null) {
-      handler.generateContinue();
+      handler.generateContinue(sourceInformationBuilder.buildGoto(node));
     } else {
       LabelDefinition label = elements.getTargetLabel(node);
       assert(label != null);
-      handler.generateContinue(label);
+      handler.generateContinue(sourceInformationBuilder.buildGoto(node), label);
     }
   }
 
@@ -6044,17 +6055,21 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void buildSwitchCase(ast.SwitchCase switchCase) {
+      SourceInformation caseSourceInformation = sourceInformation;
       if (switchCase != null) {
+        caseSourceInformation = sourceInformationBuilder.buildGoto(switchCase);
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
         HInstruction value = graph.addConstantInt(index, closedWorld);
-        localsHandler.updateLocal(switchTarget, value);
+        localsHandler.updateLocal(switchTarget, value,
+            sourceInformation: caseSourceInformation);
       } else {
         // Generate synthetic default case 'target = null; break;'.
         HInstruction value = graph.addConstantNull(closedWorld);
-        localsHandler.updateLocal(switchTarget, value);
+        localsHandler.updateLocal(switchTarget, value,
+            sourceInformation: caseSourceInformation);
       }
-      jumpTargets[switchTarget].generateBreak();
+      jumpTargets[switchTarget].generateBreak(caseSourceInformation);
     }
 
     handleSwitch(node, jumpHandler, buildExpression, switchCases, getConstants,
@@ -6077,7 +6092,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         if (!isAborted()) {
           // Ensure that we break the loop if the case falls through. (This
           // is only possible for the last case.)
-          jumpTargets[switchTarget].generateBreak();
+          jumpTargets[switchTarget].generateBreak(sourceInformation);
         }
       }
 
@@ -6123,7 +6138,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           node: node,
           visitCondition: buildCondition,
           visitThen: buildLoop,
-          visitElse: () => {});
+          visitElse: () => {},
+          sourceInformation: sourceInformation);
     }
   }
 
@@ -6190,7 +6206,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           // If there is no default, we will add one later to avoid
           // the critical edge. So we generate a break statement to make
           // sure the last case does not fall through to the default case.
-          jumpHandler.generateBreak();
+          jumpHandler.generateBreak(sourceInformation);
         }
       }
       statements.add(
@@ -6791,7 +6807,7 @@ class InlineWeeder extends ast.Visitor {
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
   bool seenReturn = false;
-  bool tooDifficult = false;
+  String tooDifficultReason;
   int nodeCount = 0;
   final int maxInliningNodes; // `null` for unbounded.
   final bool allowLoops;
@@ -6801,10 +6817,21 @@ class InlineWeeder extends ast.Visitor {
   InlineWeeder._(this.elements, this.maxInliningNodes, this.allowLoops,
       this.enableUserAssertions);
 
+  bool get tooDifficult => tooDifficultReason != null;
+
   static bool canBeInlined(ResolvedAst resolvedAst, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
+    return cannotBeInlinedReason(resolvedAst, maxInliningNodes,
+            allowLoops: allowLoops,
+            enableUserAssertions: enableUserAssertions) ==
+        null;
+  }
+
+  static String cannotBeInlinedReason(
+      ResolvedAst resolvedAst, int maxInliningNodes,
+      {bool allowLoops: false, bool enableUserAssertions: null}) {
     assert(enableUserAssertions is bool); // Ensure we passed it.
-    if (resolvedAst.elements.containsTryStatement) return false;
+    if (resolvedAst.elements.containsTryStatement) return 'try';
 
     InlineWeeder weeder = new InlineWeeder._(resolvedAst.elements,
         maxInliningNodes, allowLoops, enableUserAssertions);
@@ -6813,13 +6840,13 @@ class InlineWeeder extends ast.Visitor {
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);
-    return !weeder.tooDifficult;
+    return weeder.tooDifficultReason;
   }
 
   bool registerNode() {
     if (maxInliningNodes == null) return true;
     if (nodeCount++ > maxInliningNodes) {
-      tooDifficult = true;
+      tooDifficultReason = 'too many nodes';
       return false;
     } else {
       return true;
@@ -6833,7 +6860,7 @@ class InlineWeeder extends ast.Visitor {
   void visitNode(ast.Node node) {
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficult = true;
+      tooDifficultReason = 'code after return';
     } else {
       node.visitChildren(this);
     }
@@ -6849,18 +6876,18 @@ class InlineWeeder extends ast.Visitor {
   @override
   void visitAsyncModifier(ast.AsyncModifier node) {
     if (node.isYielding || node.isAsynchronous) {
-      tooDifficult = true;
+      tooDifficultReason = 'async/await';
     }
   }
 
   void visitFunctionExpression(ast.Node node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'closure';
   }
 
   void visitFunctionDeclaration(ast.Node node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'closure';
   }
 
   void visitSend(ast.Send node) {
@@ -6881,12 +6908,14 @@ class InlineWeeder extends ast.Visitor {
     // It's actually not difficult to inline a method with a loop, but
     // our measurements show that it's currently better to not inline a
     // method that contains a loop.
-    if (!allowLoops) tooDifficult = true;
+    if (!allowLoops) {
+      tooDifficultReason = 'loop';
+    }
   }
 
   void visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'redirecting factory';
   }
 
   void visitConditional(ast.Conditional node) {
@@ -6919,13 +6948,13 @@ class InlineWeeder extends ast.Visitor {
 
   void visitRethrow(ast.Rethrow node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'rethrow';
   }
 
   void visitReturn(ast.Return node) {
     if (!registerNode()) return;
     if (seenReturn || identical(node.beginToken.stringValue, 'native')) {
-      tooDifficult = true;
+      tooDifficultReason = 'code after return';
       return;
     }
     node.visitChildren(this);
@@ -6937,7 +6966,7 @@ class InlineWeeder extends ast.Visitor {
     // For now, we don't want to handle throw after a return even if
     // it is in an "if".
     if (seenReturn) {
-      tooDifficult = true;
+      tooDifficultReason = 'code after return';
     } else {
       node.visitChildren(this);
     }
@@ -7032,7 +7061,7 @@ class AstTypeBuilder extends TypeBuilder {
     if (!checkOrTrustTypes) return;
 
     FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((_parameter) {
+    signature.forEachParameter((_parameter) {
       ParameterElement parameter = _parameter;
       HInstruction argument = builder.localsHandler.readLocal(parameter);
       potentiallyCheckOrTrustType(argument, parameter.type);

@@ -5,20 +5,29 @@
 
 import 'dart:io';
 import 'dart:async';
+import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/kernel_generator.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 import 'patch_sdk.dart' as patch_sdk;
 
 Future main(List<String> args) async {
+  // Parse flags.
+  var parser = new ArgParser()
+    ..addFlag('generate-javascript',
+        help: 'Generate JavaScript (in addition to dill)', abbr: 'g');
+  var parserOptions = parser.parse(args);
+  var generateJS = parserOptions['generate-javascript'] as bool;
+  var rest = parserOptions.rest;
+
   Directory.current = path.dirname(path.dirname(path.fromUri(Platform.script)));
 
   var outputPath =
-      path.absolute(args.length > 0 ? args[0] : 'lib/sdk/ddc_sdk.dill');
+      path.absolute(rest.length > 0 ? rest[0] : 'gen/sdk/ddc_sdk.dill');
 
   patch_sdk.main(['../..', 'tool/input_sdk', 'gen/patched_sdk']);
 
@@ -38,7 +47,6 @@ Future main(List<String> args) async {
   // writeProgramToText(program);
   await writeProgramToBinary(program, outputPath);
 
-  bool generateJS = false;
   if (generateJS) {
     var jsModule = compileToJSModule(program, [], [], {});
     var jsPath = path.join(path.basename(outputPath), 'dart_sdk.kernel.js');

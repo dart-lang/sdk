@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
+    defineReflectiveTests(UpdateContentTest_PreviewDart2);
   });
 }
 
@@ -104,4 +105,10 @@ void main() {
     expect(errors2, hasLength(1));
     expect(errors2[0].location.file, equals(pathname));
   }
+}
+
+@reflectiveTest
+class UpdateContentTest_PreviewDart2 extends UpdateContentTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

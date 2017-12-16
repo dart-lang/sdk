@@ -14,6 +14,8 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -302,12 +304,6 @@ FlowGraphBuilder::FlowGraphBuilder(
     : parsed_function_(parsed_function),
       ic_data_array_(ic_data_array),
       context_level_array_(context_level_array),
-      num_copied_params_(parsed_function.num_copied_params()),
-      // All parameters are copied if any parameter is.
-      num_non_copied_params_(
-          (num_copied_params_ == 0)
-              ? parsed_function.function().num_fixed_parameters()
-              : 0),
       num_stack_locals_(parsed_function.num_stack_locals()),
       exit_collector_(exit_collector),
       last_used_block_id_(0),  // 0 is used for the graph entry.
@@ -2109,8 +2105,7 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
 
 intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
   return kFirstLocalSlotFromFp - owner()->num_stack_locals() -
-         owner()->num_copied_params() - owner()->args_pushed() -
-         owner()->temp_count() + 1;
+         owner()->args_pushed() - owner()->temp_count() + 1;
 }
 
 LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
@@ -3320,7 +3315,18 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
     }
   }
   InlineBailout("EffectGraphVisitor::VisitNativeBodyNode");
-  NativeCallInstr* native_call = new (Z) NativeCallInstr(node);
+
+  const ParsedFunction& pf = owner_->parsed_function();
+  const String& name = String::ZoneHandle(Z, function.native_name());
+  ZoneGrowableArray<PushArgumentInstr*>& args =
+      *new (Z) ZoneGrowableArray<PushArgumentInstr*>(function.NumParameters());
+  for (intptr_t i = 0; i < function.NumParameters(); ++i) {
+    LocalVariable* parameter = pf.RawParameterVariable(i);
+    Value* value = Bind(new (Z) LoadLocalInstr(*parameter, node->token_pos()));
+    args.Add(PushArgument(value));
+  }
+  NativeCallInstr* native_call = new (Z) NativeCallInstr(
+      &name, &function, FLAG_link_natives_lazily, node->token_pos(), &args);
   ReturnDefinition(native_call);
 }
 
@@ -3725,37 +3731,26 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (is_top_level_sequence) {
       ASSERT(scope->context_level() == 1);
       const int num_params = function.NumParameters();
-      int param_frame_index = (num_params == function.num_fixed_parameters())
-                                  ? (kParamEndSlotFromFp + num_params)
-                                  : kFirstLocalSlotFromFp;
-      for (int pos = 0; pos < num_params; param_frame_index--, pos++) {
+      for (int pos = 0; pos < num_params; pos++) {
         const LocalVariable& parameter = *scope->VariableAt(pos);
         ASSERT(parameter.owner() == scope);
         if (parameter.is_captured()) {
-          // Create a temporary local describing the original position.
-          const String& temp_name = Symbols::TempParam();
-          LocalVariable* temp_local =
-              new (Z) LocalVariable(TokenPosition::kNoSource,  // Token index.
-                                    TokenPosition::kNoSource,  // Token index.
-                                    temp_name,
-                                    Object::dynamic_type());  // Type.
-          temp_local->set_index(param_frame_index);
-
-          // Mark this local as captured parameter so that the optimizer
-          // correctly handles these when compiling try-catch: Captured
-          // parameters are not in the stack environment, therefore they
-          // must be skipped when emitting sync-code in try-blocks.
-          temp_local->set_is_captured_parameter(true);
-
+          LocalVariable& raw_parameter =
+              *owner_->parsed_function().RawParameterVariable(pos);
+          ASSERT((function.HasOptionalParameters() &&
+                  raw_parameter.owner() == scope) ||
+                 !(function.HasOptionalParameters() &&
+                   raw_parameter.owner() == NULL));
+          ASSERT(!raw_parameter.is_captured());
           // Copy parameter from local frame to current context.
-          Value* load = Bind(BuildLoadLocal(*temp_local, node->token_pos()));
+          Value* load = Bind(BuildLoadLocal(raw_parameter, node->token_pos()));
           Do(BuildStoreLocal(parameter, load, ST(node->token_pos())));
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
           // the function.
           Value* null_constant = Bind(
               new (Z) ConstantInstr(Object::ZoneHandle(Z, Object::null())));
-          Do(BuildStoreLocal(*temp_local, null_constant,
+          Do(BuildStoreLocal(raw_parameter, null_constant,
                              ST(node->token_pos())));
         }
       }
@@ -3773,23 +3768,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     LocalVariable* parent_type_args_var =
         parsed_function.parent_type_arguments();
     if (type_args_var->is_captured() || (parent_type_args_var != NULL)) {
-      // Create a temporary local describing the original position.
-      const String& temp_name = Symbols::TempParam();
-      LocalVariable* temp_local =
-          new (Z) LocalVariable(TokenPosition::kNoSource,  // Token index.
-                                TokenPosition::kNoSource,  // Token index.
-                                temp_name,
-                                Object::dynamic_type());  // Type.
-      temp_local->set_index(parsed_function.first_stack_local_index());
-
-      // Mark this local as captured parameter so that the optimizer
-      // correctly handles these when compiling try-catch: Captured
-      // parameters are not in the stack environment, therefore they
-      // must be skipped when emitting sync-code in try-blocks.
-      temp_local->set_is_captured_parameter(true);  // TODO(regis): Correct?
-
+      LocalVariable* raw_type_args = parsed_function.RawTypeArgumentsVariable();
       Value* type_args_val =
-          Bind(BuildLoadLocal(*temp_local, node->token_pos()));
+          Bind(BuildLoadLocal(*raw_type_args, node->token_pos()));
       if (parent_type_args_var != NULL) {
         ASSERT(parent_type_args_var->owner() != scope);
         // Call the runtime to concatenate both vectors.
@@ -3817,21 +3798,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
             ICData::kStatic));
       }
       Do(BuildStoreLocal(*type_args_var, type_args_val, ST(node->token_pos())));
-      if (type_args_var->is_captured()) {
-        // Write NULL to the source location to detect buggy accesses and
-        // allow GC of passed value if it gets overwritten by a new value in
-        // the function.
-        Value* null_constant =
-            Bind(new (Z) ConstantInstr(Object::ZoneHandle(Z, Object::null())));
-        Do(BuildStoreLocal(*temp_local, null_constant, ST(node->token_pos())));
-      } else {
-        // Do not write NULL, since the temp is also the final location.
-        ASSERT(temp_local->index() == type_args_var->index());
-      }
-    } else {
-      // The type args slot is the final location. No copy needed.
-      ASSERT(type_args_var->index() ==
-             parsed_function.first_stack_local_index());
     }
   }
 
@@ -4401,11 +4367,22 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   }
   TargetEntryInstr* normal_entry = new (Z) TargetEntryInstr(
       AllocateBlockId(), CatchClauseNode::kInvalidTryIndex, GetNextDeoptId());
+
+  // Generate optional positional/named argument copying!
+  const bool compiling_for_osr = osr_id_ != Compiler::kNoOSRDeoptId;
+
+  kernel::PrologueBuilder prologue_builder(
+      &parsed_function_, last_used_block_id_, compiling_for_osr, IsInlining());
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      prologue_builder.BuildPrologue(normal_entry, &prologue_info);
+  last_used_block_id_ = prologue_builder.last_used_block_id();
+
   graph_entry_ =
       new (Z) GraphEntryInstr(parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this);
   parsed_function().node_sequence()->Visit(&for_effect);
-  AppendFragment(normal_entry, for_effect);
+  AppendFragment(instruction_cursor, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
 
@@ -4417,9 +4394,10 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_);
   }
 
-  FlowGraph* graph =
-      new (Z) FlowGraph(parsed_function(), graph_entry_, last_used_block_id_);
+  FlowGraph* graph = new (Z) FlowGraph(parsed_function(), graph_entry_,
+                                       last_used_block_id_, prologue_info);
   graph->set_await_token_positions(await_token_positions_);
+
   return graph;
 }
 

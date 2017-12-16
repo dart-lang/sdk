@@ -423,7 +423,8 @@ class CodeGenerator extends Object
       // TODO(jacobr): we could specify a short library name instead of the
       // full library uri if we wanted to save space.
       properties.add(new JS.Property(
-          js.string(jsLibraryDebuggerName(_libraryRoot, library)), value));
+          js.escapedString(jsLibraryDebuggerName(_libraryRoot, library)),
+          value));
     });
 
     // Track the module name for each library in the module.
@@ -3077,6 +3078,17 @@ class CodeGenerator extends Object
       var member = _emitMemberName(name,
           isStatic: isStatic, type: type, element: accessor);
 
+      // A static native element should just forward directly to the
+      // JS type's member.
+      if (isStatic && _isExternal(element)) {
+        var nativeName = getAnnotationName(classElem, isNativeAnnotation);
+        if (nativeName != null) {
+          var memberName = getAnnotationName(element, isJSName) ?? member;
+          return js
+              .call('#.#.#', [_callHelper('global'), nativeName, memberName]);
+        }
+      }
+
       // For instance members, we add implicit-this.
       // For method tear-offs, we ensure it's a bound method.
       if (element is MethodElement &&
@@ -5091,7 +5103,8 @@ class CodeGenerator extends Object
       _emitNormalFormalParameter(node);
 
   @override
-  JS.This visitThisExpression(ThisExpression node) => new JS.This();
+  JS.This visitThisExpression(ThisExpression node) =>
+      new JS.This()..sourceInformation = node;
 
   @override
   JS.Expression visitSuperExpression(SuperExpression node) => new JS.Super();
@@ -5849,7 +5862,11 @@ class CodeGenerator extends Object
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
-    name = JS.memberNameForDartMember(name);
+    // Rename members that conflict with standard JS members unless we are
+    // actually try to access those JS members via interop.
+    var isExternal = element != null &&
+        !(element is ExecutableElement && !element.isExternal);
+    name = JS.memberNameForDartMember(name, isExternal);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }

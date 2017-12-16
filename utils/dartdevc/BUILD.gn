@@ -8,6 +8,7 @@ import("../create_timestamp.gni")
 
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
+sdk_dill = "$target_gen_dir/ddc_sdk.dill"
 dart_root = rebase_path("../..")
 
 application_snapshot("dartdevc") {
@@ -37,6 +38,32 @@ application_snapshot("dartdevc") {
                        ],
                        "list lines")
   inputs += [ sdk_summary ]
+}
+
+application_snapshot("dartdevk") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
+
+  # TODO: Train this on real input.
+  training_args = [
+    "--dart-sdk-summary",
+    rebase_path(sdk_dill),
+    "-o",
+    "dartdevk.js",
+    rebase_path("../../pkg/dev_compiler/test/codegen/sunflower/sunflower.dart"),
+  ]
+
+  deps = [
+    ":dartdevc_sdk",
+    ":dartdevc_sdk_kernel_summary",
+  ]
+
+  inputs = exec_script("../../tools/list_dart_files.py",
+                       [
+                         "absolute",
+                         rebase_path("../../pkg/dev_compiler/bin"),
+                       ],
+                       "list lines")
+  inputs += [ sdk_dill ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -192,7 +219,7 @@ action("dartdevc_sdk") {
     ]
   }
 
-  args = [
+  args += [
     "--quiet",
     rebase_path("../../pkg/dev_compiler/tool/build_sdk.dart"),
     "--dart-sdk",
@@ -251,6 +278,7 @@ action("dartdevc_sdk") {
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
+    ":dartdevk",
     ":dartdevc_sdk",
     ":dartdevc_sdk_kernel_summary",
     ":dartdevc_test_pkg",

@@ -202,10 +202,14 @@ class DartUtils {
 
   enum MagicNumber {
     kSnapshotMagicNumber,
+    kAppJITMagicNumber,
     kKernelMagicNumber,
     kGzipMagicNumber,
     kUnknownMagicNumber
   };
+
+  // Checks if the buffer is a script snapshot, kernel file, or gzip file.
+  static MagicNumber SniffForMagicNumber(const char* filename);
 
   // Checks if the buffer is a script snapshot, kernel file, or gzip file.
   static MagicNumber SniffForMagicNumber(const uint8_t* text_buffer,
@@ -643,6 +647,18 @@ class ScopedMemBuffer {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ScopedMemBuffer);
 };
+
+struct MagicNumberData {
+  static const intptr_t kMaxLength = 8;
+
+  intptr_t length;
+  const uint8_t bytes[kMaxLength];
+};
+
+extern MagicNumberData appjit_magic_number;
+extern MagicNumberData snapshot_magic_number;
+extern MagicNumberData kernel_magic_number;
+extern MagicNumberData gzip_magic_number;
 
 }  // namespace bin
 }  // namespace dart

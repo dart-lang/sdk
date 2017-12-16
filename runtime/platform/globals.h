@@ -424,6 +424,9 @@ typedef simd128_value_t fpu_register_t;
   (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
 
 // Integer constants.
+const int8_t kMinInt8 = 0x80;
+const int8_t kMaxInt8 = 0x7F;
+const uint8_t kMaxUint8 = 0xFF;
 const int16_t kMinInt16 = 0x8000;
 const int16_t kMaxInt16 = 0x7FFF;
 const uint16_t kMaxUint16 = 0xFFFF;

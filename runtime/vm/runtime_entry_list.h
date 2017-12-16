@@ -21,6 +21,7 @@ namespace dart {
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
   V(Instanceof)                                                                \
+  V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
   V(BadTypeError)                                                              \
   V(NonBoolTypeError)                                                          \

@@ -2,78 +2,54 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash
+
+[ $compiler != dart2analyzer ]
+switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
-regress_29784_test/02: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.
+issue13474_test: SkipByDesign # Requires checked mode.
+map_literal4_test: SkipByDesign # Requires checked mode.
 named_parameters_type_test/01: SkipByDesign # Requires checked mode.
 named_parameters_type_test/02: SkipByDesign # Requires checked mode.
 named_parameters_type_test/03: SkipByDesign # Requires checked mode.
-issue13474_test: SkipByDesign # Requires checked mode.
-map_literal4_test: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
+regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+
+[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
+type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
+
+[ $compiler != dartdevc && !$checked ]
+function_type/*: Skip # Needs checked mode.
+
+[ $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
+compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
+compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
+issue_25671a_test/01: CompileTimeError
+issue_25671b_test/01: CompileTimeError
+type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+
+[ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
+built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM front-end.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error_test/01: Fail
 
-[ !$checked && $compiler != dartdevc ]
-function_type/*: Skip # Needs checked mode.
-
-[ $hot_reload || $hot_reload_rollback ]
-cha_deopt1_test: Crash # Requires deferred libraries
-cha_deopt2_test: Crash # Requires deferred libraries
-cha_deopt3_test: Crash # Requires deferred libraries
-deferred_call_empty_before_load_test: Crash # Requires deferred libraries
-deferred_closurize_load_library_test: Crash # Requires deferred libraries
-deferred_constant_list_test: Crash # Requires deferred libraries
-deferred_constraints_constants_test: Crash # Requires deferred libraries
-deferred_constraints_type_annotation_test: Crash # Requires deferred libraries
-deferred_function_type_test: Crash # Requires deferred libraries
-deferred_global_test: Crash # Requires deferred libraries
-deferred_import_core_test: Crash # Requires deferred libraries
-deferred_inlined_test: Crash # Requires deferred libraries
-deferred_inheritance_constraints_test: Crash # Requires deferred libraries
-deferred_load_constants_test: Crash # Requires deferred libraries
-deferred_load_inval_code_test: Crash # Requires deferred libraries
-deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
-deferred_mixin_test: Crash # Requires deferred libraries
-deferred_no_such_method_test: Crash # Requires deferred libraries
-deferred_not_loaded_check_test: Crash # Requires deferred libraries
-deferred_only_constant_test: Crash # Requires deferred libraries
-deferred_optimized_test: Crash # Requires deferred libraries
-deferred_redirecting_factory_test: Crash # Requires deferred libraries
-deferred_regression_22995_test: Crash # Requires deferred libraries
-deferred_regression_28678_test: Crash # Requires deferred libraries
-deferred_shadow_load_library_test: Crash # Requires deferred libraries
-deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
-deferred_static_seperate_test: Crash # Requires deferred libraries
-deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
-deferred_type_dependency_test: Crash # Requires deferred libraries
-issue21159_test: Pass, Crash # Issue 29094
-issue_22780_test/01: Pass, Crash # Issue 29094
-issue_1751477_test: Crash # Requires deferred libraries
-regress_23408_test: Crash # Requires deferred libraries
-regress_22443_test: Crash # Requires deferred libraries
-regress_28278_test: Crash # Requires deferred libraries
-static_closure_identical_test: Pass, Fail # Closure identity
-vm/regress_27201_test: Pass, Crash # Requires deferred libraries
-vm/optimized_stacktrace_test: Pass, Slow
-conditional_import_test: Crash # Requires deferred libraries
-conditional_import_string_test: Crash # Requires deferred libraries
-
-[ $checked && ! $strong ]
-type_parameter_test/05: Pass
-
-[ ! $checked && ! $strong && $compiler != spec_parser ]
+[ $compiler != spec_parser && !$checked && !$strong ]
 closure_type_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
 
-[ ! $strong && $compiler != spec_parser ]
-class_literal_static_test/none: Pass
+[ $compiler != spec_parser && !$strong ]
 class_literal_static_test: MissingCompileTimeError # Requires strong mode
+class_literal_static_test/none: Pass
 class_override_test: MissingCompileTimeError # Requires strong mode
 closure_internals_test/01: MissingCompileTimeError # Requires strong mode
 closure_internals_test/02: MissingCompileTimeError # Requires strong mode
@@ -110,8 +86,8 @@ issue1363_test/01: MissingCompileTimeError # Requires strong mode
 issue15606_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
-known_identifier_prefix_error_test/none: Pass
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Requires strong mode
+known_identifier_prefix_error_test/none: Pass
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
@@ -183,34 +159,59 @@ void_type_usage_test: Skip # Requires strong mode
 wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
 wrong_number_type_arguments_test/none: Pass
 
-[ !$strong && $runtime != none ]
+[ $runtime != none && !$strong ]
 map_literal11_test/none: MissingRuntimeError
 map_literal7_test: RuntimeError # Requires strong mode
 
-[ $strong && $compiler != dartk && $compiler != dartkp && $compiler != dartdevk ]
-compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
-issue_25671a_test/01: CompileTimeError
-issue_25671b_test/01: CompileTimeError
-type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+[ $checked && !$strong ]
+type_parameter_test/05: Pass
 
-[ $strong && $compiler != dartk && $compiler != dartkp && $compiler != dartdevc && $compiler != dartdevk]
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
-
-[ $compiler == app_jit ]
-deferred_inheritance_constraints_test/redirecting_constructor: Crash
-
-[ $compiler == none || $compiler == app_jit ]
-library_env_test/has_no_mirror_support: RuntimeError, OK
-
-[ $mode == debug && ($compiler != dartk && $compiler != dartkp) && $runtime == vm]
-built_in_identifier_type_annotation_test/15: Crash  # Not supported by legacy VM front-end.
-
-[ $minified && !$dart2js_with_kernel ]
+[ !$dart2js_with_kernel && $minified ]
 regress_21795_test: RuntimeError # Issue 12605
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 
-[ $compiler != dart2analyzer]
-switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
+[ $compiler == app_jit || $compiler == none ]
+library_env_test/has_no_mirror_support: RuntimeError, OK
+
+[ $hot_reload || $hot_reload_rollback ]
+cha_deopt1_test: Crash # Requires deferred libraries
+cha_deopt2_test: Crash # Requires deferred libraries
+cha_deopt3_test: Crash # Requires deferred libraries
+conditional_import_string_test: Crash # Requires deferred libraries
+conditional_import_test: Crash # Requires deferred libraries
+deferred_call_empty_before_load_test: Crash # Requires deferred libraries
+deferred_closurize_load_library_test: Crash # Requires deferred libraries
+deferred_constant_list_test: Crash # Requires deferred libraries
+deferred_constraints_constants_test: Crash # Requires deferred libraries
+deferred_constraints_type_annotation_test: Crash # Requires deferred libraries
+deferred_function_type_test: Crash # Requires deferred libraries
+deferred_global_test: Crash # Requires deferred libraries
+deferred_import_core_test: Crash # Requires deferred libraries
+deferred_inheritance_constraints_test: Crash # Requires deferred libraries
+deferred_inlined_test: Crash # Requires deferred libraries
+deferred_load_constants_test: Crash # Requires deferred libraries
+deferred_load_inval_code_test: Crash # Requires deferred libraries
+deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
+deferred_mixin_test: Crash # Requires deferred libraries
+deferred_no_such_method_test: Crash # Requires deferred libraries
+deferred_not_loaded_check_test: Crash # Requires deferred libraries
+deferred_only_constant_test: Crash # Requires deferred libraries
+deferred_optimized_test: Crash # Requires deferred libraries
+deferred_redirecting_factory_test: Crash # Requires deferred libraries
+deferred_regression_22995_test: Crash # Requires deferred libraries
+deferred_regression_28678_test: Crash # Requires deferred libraries
+deferred_shadow_load_library_test: Crash # Requires deferred libraries
+deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
+deferred_static_seperate_test: Crash # Requires deferred libraries
+deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
+deferred_type_dependency_test: Crash # Requires deferred libraries
+issue21159_test: Pass, Crash # Issue 29094
+issue_1751477_test: Crash # Requires deferred libraries
+issue_22780_test/01: Pass, Crash # Issue 29094
+regress_22443_test: Crash # Requires deferred libraries
+regress_23408_test: Crash # Requires deferred libraries
+regress_28278_test: Crash # Requires deferred libraries
+static_closure_identical_test: Pass, Fail # Closure identity
+vm/optimized_stacktrace_test: Pass, Slow
+vm/regress_27201_test: Pass, Crash # Requires deferred libraries
+

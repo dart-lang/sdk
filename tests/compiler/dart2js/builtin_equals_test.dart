@@ -18,12 +18,23 @@ foo() {
 """;
 
 main() {
-  asyncTest(() => compile(TEST, entry: 'foo', enableTypeAssertions: true,
-          check: (String generated) {
-        Expect.isTrue(!generated.contains('eqB'));
+  test(CompileMode compileMode) async {
+    await compile(TEST,
+        entry: 'foo',
+        enableTypeAssertions: true,
+        compileMode: compileMode, check: (String generated) {
+      Expect.isTrue(!generated.contains('eqB'));
 
-        RegExp regexp = new RegExp('==');
-        Iterator<Match> matches = regexp.allMatches(generated).iterator;
-        checkNumberOfMatches(matches, 4);
-      }));
+      RegExp regexp = new RegExp('==');
+      Iterator<Match> matches = regexp.allMatches(generated).iterator;
+      checkNumberOfMatches(matches, 4);
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await test(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await test(CompileMode.kernel);
+  });
 }

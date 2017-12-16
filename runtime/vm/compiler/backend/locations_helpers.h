@@ -78,6 +78,10 @@ struct LocationTrait;
 // register and the instruction will produce output in the same register.
 struct SameAsFirstInput {};
 
+// Marker type used to signal that output has NoLocation register
+// constraint.
+struct NoLocation {};
+
 // Marker type used to signal that this input, output or temp needs to
 // be in a fixed register `reg` of type `R` (either Register or FpuRegister).
 template <typename R, R reg>
@@ -209,6 +213,15 @@ struct LocationTrait<SameAsFirstInput> {
   }
 
   static Location ToConstraint() { return Location::SameAsFirstInput(); }
+};
+
+template <>
+struct LocationTrait<NoLocation> {
+  static const bool kIsTemp = false;  // This is not a temporary.
+
+  static NoLocation Unwrap(const Location& loc) { return NoLocation(); }
+
+  static Location ToConstraint() { return Location::NoLocation(); }
 };
 
 // Auxiliary types and macro helpers to construct lists of types.

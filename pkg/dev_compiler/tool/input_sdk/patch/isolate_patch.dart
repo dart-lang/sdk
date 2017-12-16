@@ -8,8 +8,6 @@ import 'dart:_js_helper' show patch;
 import 'dart:_isolate_helper'
     show CapabilityImpl, IsolateNatives, ReceivePortImpl, RawReceivePortImpl;
 
-typedef _UnaryFunction(arg);
-
 @patch
 class Isolate {
   static final _currentIsolateCache = IsolateNatives.currentIsolate;
@@ -38,7 +36,7 @@ class Isolate {
   }
 
   @patch
-  static Future<Isolate> spawn(void entryPoint(message), var message,
+  static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,
@@ -46,11 +44,6 @@ class Isolate {
     bool forcePause =
         (errorsAreFatal != null) || (onExit != null) || (onError != null);
     try {
-      // Check for the type of `entryPoint` on the spawning isolate to make
-      // error-handling easier.
-      if (entryPoint is! _UnaryFunction) {
-        throw new ArgumentError(entryPoint);
-      }
       // TODO: Consider passing the errorsAreFatal/onExit/onError values
       //       as arguments to the internal spawnUri instead of setting
       //       them after the isolate has been created.

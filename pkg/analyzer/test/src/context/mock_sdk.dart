@@ -81,6 +81,8 @@ abstract class Stream<T> {
   factory Stream.fromIterable(Iterable<T> data) => null;
 }
 
+abstract class StreamIterator<T> {}
+
 abstract class StreamSubscription<T> {
   Future cancel();
   void onData(void handleData(T data));
@@ -266,6 +268,7 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
   E get first;
+  int get length;
 
   Iterable<R> map<R>(R f(E e));
 
@@ -324,6 +327,7 @@ class _CompileTimeError {
 
 class _ConstantExpressionError {
   const _ConstantExpressionError();
+  external _throw(error);
 }
 
 class _DuplicatedFieldInitializerError {

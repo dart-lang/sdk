@@ -27,7 +27,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:front_end/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:test/test.dart';
 
@@ -350,6 +350,8 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
+  bool get previewDart2 => false;
+
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
@@ -664,6 +666,11 @@ class ResolverTestCase extends EngineTestCase {
     }
     options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
+      if (previewDart2) {
+        (options as AnalysisOptionsImpl)
+          ..strongMode = true
+          ..useFastaParser = true;
+      }
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
 

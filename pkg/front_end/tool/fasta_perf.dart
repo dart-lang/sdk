@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/scanner.dart';
@@ -19,8 +19,6 @@ import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
-import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm.dart' show VmTarget;
 import 'perf_common.dart';
 
 /// Cumulative total number of chars scanned.
@@ -92,7 +90,6 @@ UriTranslator uriResolver;
 Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..reportMessages = true
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
     ..onError = onErrorHandler(false)
@@ -228,13 +225,12 @@ generateKernel(Uri entryUri,
   scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
-  var flags = new TargetFlags(strongMode: strongMode);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..reportMessages = true
     ..onError = onErrorHandler(strongMode)
     ..strongMode = strongMode
-    ..target = (strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags))
+    ..target = createTarget(isFlutter: false, strongMode: strongMode)
     ..chaseDependencies = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
@@ -285,12 +281,3 @@ ArgParser argParser = new ArgParser()
       help: 'run the compiler in legacy-mode',
       defaultsTo: false,
       negatable: false);
-
-// TODO(sigmund): delete as soon as the disableTypeInference flag and the
-// strongMode flag get merged.
-class LegacyVmTarget extends VmTarget {
-  LegacyVmTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get disableTypeInference => true;
-}

@@ -34,6 +34,7 @@ declare_args() {
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
+# ......dartdevk
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -42,6 +43,8 @@ declare_args() {
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
+# ........dartdevk.dart.snapshot
+# ........front_end_worker.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
 #.........resources/
@@ -98,6 +101,7 @@ _full_sdk_scripts = [
   "dart2js",
   "dartanalyzer",
   "dartdevc",
+  "dartdevk",
   "dartfmt",
   "pub",
 ]
@@ -147,12 +151,20 @@ _full_sdk_snapshots = [
     "../utils/dartdevc",
   ],
   [
+    "dartdevk",
+    "../utils/dartdevc:dartdevk",
+  ],
+  [
     "dartdoc",
     "../utils/dartdoc",
   ],
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "front_end_worker",
+    "../utils/front_end:front_end_worker",
   ],
   [
     "pub",
@@ -541,10 +553,12 @@ copy("copy_dev_compiler_summary") {
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_sdk",
+    "../utils/dartdevc:dartdevc_sdk_kernel_summary",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
     "$gen_dir/ddc_sdk.sum",
+    "$gen_dir/ddc_sdk.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",

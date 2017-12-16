@@ -4,7 +4,7 @@
 
 library fasta.analyzer_loader;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:front_end/src/fasta/builder/builder.dart' show LibraryBuilder;

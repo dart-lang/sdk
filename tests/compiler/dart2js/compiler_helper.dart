@@ -12,6 +12,7 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common_elements.dart';
 
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 export 'package:compiler/src/elements/elements.dart';
 
 import 'package:compiler/src/js_backend/js_backend.dart' as js;
@@ -45,6 +46,8 @@ import 'memory_compiler.dart' hide compilerFor;
 import 'output_collector.dart';
 export 'output_collector.dart';
 
+enum CompileMode { mock, memory, kernel }
+
 /// Compile [code] and returns either the code for [entry] or, if [returnAll] is
 /// true, the code for the entire program.
 ///
@@ -58,11 +61,11 @@ Future<String> compile(String code,
     bool analyzeAll: false,
     bool disableInlining: true,
     bool trustJSInteropTypeAnnotations: false,
-    bool useMock: false,
+    CompileMode compileMode: CompileMode.memory,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
-  if (useMock) {
+  if (compileMode == CompileMode.mock) {
     // TODO(johnniwinther): Remove this when no longer needed by
     // `arithmetic_simplication_test.dart`.
     MockCompiler compiler = new MockCompiler.internal(
@@ -111,6 +114,9 @@ Future<String> compile(String code,
     if (trustJSInteropTypeAnnotations) {
       options.add(Flags.trustJSInteropTypeAnnotations);
     }
+    if (compileMode == CompileMode.kernel) {
+      options.add(Flags.useKernel);
+    }
 
     if (disableInlining) {
       options.add(Flags.disableInlining);
@@ -129,9 +135,11 @@ Future<String> compile(String code,
         outputProvider: outputCollector);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    LibraryElement mainApp =
-        compiler.frontendStrategy.elementEnvironment.mainLibrary;
-    MemberElement element = mainApp.find(entry);
+    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+    FunctionEntity element =
+        elementEnvironment.lookupLibraryMember(mainLibrary, entry);
     js.JavaScriptBackend backend = compiler.backend;
     String generated = backend.getGeneratedCode(element);
     if (check != null) {
@@ -231,16 +239,18 @@ void checkNumberOfMatches(Iterator it, int nb) {
 }
 
 Future compileAndMatch(String code, String entry, RegExp regexp,
-    {bool useMock: false}) {
-  return compile(code, entry: entry, useMock: useMock,
+    {CompileMode compileMode: CompileMode.memory}) {
+  return compile(code, entry: entry, compileMode: compileMode,
       check: (String generated) {
     Expect.isTrue(
         regexp.hasMatch(generated), '"$generated" does not match /$regexp/');
   });
 }
 
-Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
-  return compile(code, entry: entry, check: (String generated) {
+Future compileAndDoNotMatch(String code, String entry, RegExp regexp,
+    {CompileMode compileMode: CompileMode.memory}) {
+  return compile(code, entry: entry, compileMode: compileMode,
+      check: (String generated) {
     Expect.isFalse(
         regexp.hasMatch(generated), '"$generated" has a match in /$regexp/');
   });

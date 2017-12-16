@@ -29,6 +29,7 @@ convert:third_party/pkg/convert/lib
 crypto:third_party/pkg/crypto/lib
 csslib:third_party/pkg/csslib/lib
 dart2js_info:third_party/pkg/dart2js_info/lib
+dart_internal:pkg/dart_internal/lib
 dart_messages:pkg/dart_messages/lib
 dart_style:third_party/pkg_tested/dart_style/lib
 dartdoc:third_party/pkg/dartdoc/lib
@@ -101,6 +102,7 @@ typed_mock:pkg/typed_mock/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 utf:third_party/pkg/utf/lib
+vm:pkg/vm/lib
 watcher:third_party/pkg/watcher/lib
 # Note: this is pointing to the observatory_pub_packages version of pkg/observe
 web_components:third_party/observatory_pub_packages/packages/web_components/lib

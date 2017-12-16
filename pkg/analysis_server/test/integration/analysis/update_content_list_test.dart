@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
+    defineReflectiveTests(UpdateContentTest_PreviewDart2);
   });
 }
 
@@ -48,5 +49,18 @@ main() {
       // inserted in all the correct places.
       expect(currentAnalysisErrors[pathname], isEmpty);
     });
+  }
+}
+
+@reflectiveTest
+class UpdateContentTest_PreviewDart2 extends UpdateContentTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  test_updateContent_list() {
+    // TODO(devoncarew): Class '_CompileTimeError' not found in library 'dart:core'.
+    return super.test_updateContent_list();
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -12,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetFixesTest);
+    defineReflectiveTests(GetFixesTest_PreviewDart2);
   });
 }
 
@@ -57,4 +60,14 @@ Future f;
         await sendEditGetFixes(pathname, text.indexOf('Future f'));
     expect(result.fixes, isEmpty);
   }
+}
+
+@reflectiveTest
+class GetFixesTest_PreviewDart2 extends GetFixesTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  Future test_has_fixes() => super.test_has_fixes();
 }

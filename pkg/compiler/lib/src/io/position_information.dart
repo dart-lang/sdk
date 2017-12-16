@@ -331,6 +331,9 @@ class PositionSourceInformationBuilder
   SourceInformation buildBinary(Node node) => buildBegin(node);
 
   @override
+  SourceInformation buildUnary(Node node) => buildBegin(node);
+
+  @override
   SourceInformation buildTry(Node node) => buildBegin(node);
 
   @override
@@ -347,6 +350,9 @@ class PositionSourceInformationBuilder
 
   @override
   SourceInformation buildSwitchCase(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildGoto(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].

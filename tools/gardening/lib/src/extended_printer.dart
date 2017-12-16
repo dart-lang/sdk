@@ -42,8 +42,8 @@ class ExtendedPrinter {
   }
 
   /// Prints an iterable while maintaining state for index and preceding.
-  void printIterable<T>(Iterable<T> items, ItemCallBack cb,
-      {ItemCallBack header,
+  void printIterable<T>(Iterable<T> items, ItemCallBack<T> cb,
+      {ItemCallBack<T> header,
       String separatorPattern: "",
       String itemPreceding: ""}) {
     bool isFirst = true;

@@ -253,6 +253,12 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
+   * Whether to run integration tests with the --preview-dart-2 flag.
+   */
+  // TODO(devoncarew): Remove this when --preview-dart-2 goes away.
+  bool get usePreviewDart2 => false;
+
+  /**
    * Start [server].
    */
   Future startServer({
@@ -265,7 +271,7 @@ abstract class AbstractAnalysisServerIntegrationTest
         checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
-        previewDart2: previewDart2);
+        previewDart2: previewDart2 || usePreviewDart2);
   }
 
   /**
@@ -574,7 +580,7 @@ class Server {
       if (trimmedLine.startsWith('Observatory listening on ')) {
         return;
       }
-      _recordStdio('RECV: $trimmedLine');
+      _recordStdio('<== $trimmedLine');
       var message;
       try {
         message = JSON.decoder.convert(trimmedLine);
@@ -646,7 +652,7 @@ class Server {
         new Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
-    _recordStdio('SEND: $line');
+    _recordStdio('==> $line');
     _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }

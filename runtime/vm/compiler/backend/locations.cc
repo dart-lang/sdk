@@ -179,6 +179,10 @@ const char* Location::Name() const {
           return "0";
       }
       UNREACHABLE();
+#if TARGET_ARCH_DBC
+    case kArgsDescRegister:
+      return "ArgDesc";
+#endif
     default:
       if (IsConstant()) {
         return "C";

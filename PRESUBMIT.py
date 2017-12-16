@@ -15,6 +15,39 @@ import scm
 import subprocess
 import tempfile
 
+
+def _CheckFormat(input_api, identification, extension, windows,
+    hasFormatErrors):
+  local_root = input_api.change.RepositoryRoot()
+  upstream = input_api.change._upstream
+  unformatted_files = []
+  for git_file in input_api.AffectedTextFiles():
+    filename = git_file.AbsoluteLocalPath()
+    if filename.endswith(extension) and hasFormatErrors(filename=filename):
+      old_version_has_errors = False
+      try:
+        path = git_file.LocalPath()
+        if windows:
+          # Git expects a linux style path.
+          path = path.replace(os.sep, '/')
+        old_contents = scm.GIT.Capture(
+          ['show', upstream + ':' + path],
+          cwd=local_root,
+          strip_out=False)
+        if hasFormatErrors(contents=old_contents):
+          old_version_has_errors = True
+      except subprocess.CalledProcessError as e:
+        old_version_has_errors = False
+
+      if old_version_has_errors:
+        print("WARNING: %s has existing and possibly new %s issues" %
+          (git_file.LocalPath(), identification))
+      else:
+        unformatted_files.append(filename)
+
+  return unformatted_files
+
+
 def _CheckBuildStatus(input_api, output_api):
   results = []
   status_check = input_api.canned_checks.CheckTreeIsOpen(
@@ -23,6 +56,7 @@ def _CheckBuildStatus(input_api, output_api):
       json_url='http://dart-status.appspot.com/current?format=json')
   results.extend(status_check)
   return results
+
 
 def _CheckDartFormat(input_api, output_api):
   local_root = input_api.change.RepositoryRoot()
@@ -57,33 +91,8 @@ def _CheckDartFormat(input_api, output_api):
     # parsed and formatted. Don't treat those as errors.
     return process.returncode == 1
 
-  unformatted_files = []
-  for git_file in input_api.AffectedTextFiles():
-    filename = git_file.AbsoluteLocalPath()
-    if filename.endswith('.dart'):
-      if HasFormatErrors(filename=filename):
-        old_version_has_errors = False
-        try:
-          path = git_file.LocalPath()
-          if windows:
-            # Git expects a linux style path.
-            path = path.replace(os.sep, '/')
-          old_contents = scm.GIT.Capture(
-            ['show', upstream + ':' + path],
-            cwd=local_root,
-            strip_out=False)
-          if HasFormatErrors(contents=old_contents):
-            old_version_has_errors = True
-        except subprocess.CalledProcessError as e:
-          # TODO(jacobr): verify that the error really is that the file was
-          # added for this CL.
-          old_version_has_errors = False
-
-        if old_version_has_errors:
-          print("WARNING: %s has existing and possibly new dartfmt issues" %
-            git_file.LocalPath())
-        else:
-          unformatted_files.append(filename)
+  unformatted_files = _CheckFormat(input_api, "dartfmt", ".dart", windows,
+      HasFormatErrors)
 
   if unformatted_files:
     lineSep = " \\\n"
@@ -96,6 +105,7 @@ def _CheckDartFormat(input_api, output_api):
             lineSep.join(unformatted_files)))]
 
   return []
+
 
 def _CheckNewTests(input_api, output_api):
   testsDirectories = [
@@ -167,11 +177,62 @@ def _CheckNewTests(input_api, output_api):
 
   return result
 
+
+def _CheckStatusFiles(input_api, output_api):
+  local_root = input_api.change.RepositoryRoot()
+  upstream = input_api.change._upstream
+  utils = imp.load_source('utils',
+      os.path.join(local_root, 'tools', 'utils.py'))
+
+  dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
+  lint = os.path.join(local_root, 'pkg', 'status_file', 'bin', 'lint.dart')
+
+  windows = utils.GuessOS() == 'win32'
+  if windows:
+    dart += '.bat'
+
+  if not os.path.isfile(dart):
+    print('WARNING: dart not found: %s' % dart)
+    return []
+
+  if not os.path.isfile(lint):
+    print('WARNING: Status file linter not found: %s' % lint)
+    return []
+
+  def HasFormatErrors(filename=None, contents=None):
+    args = [dart, lint] + (['-t'] if contents else [filename])
+    process = subprocess.Popen(args,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE)
+    process.communicate(input=contents)
+    return process.returncode != 0
+
+  unformatted_files = _CheckFormat(input_api, "status file", ".status",
+      windows, HasFormatErrors)
+
+  if unformatted_files:
+    normalize = os.path.join(local_root, 'pkg', 'status_file', 'bin',
+        'normalize.dart')
+    lineSep = " \\\n"
+    if windows:
+      lineSep = " ^\n";
+    return [output_api.PresubmitError(
+        'Status files are not normalized.\n'
+        'Fix these issues with:\n'
+        '%s %s -w%s%s' % (dart, normalize, lineSep,
+            lineSep.join(unformatted_files)))]
+
+  return []
+
+
 def CheckChangeOnCommit(input_api, output_api):
   return (_CheckBuildStatus(input_api, output_api) +
           _CheckNewTests(input_api, output_api) +
-          _CheckDartFormat(input_api, output_api))
+          _CheckDartFormat(input_api, output_api) +
+          _CheckStatusFiles(input_api, output_api))
+
 
 def CheckChangeOnUpload(input_api, output_api):
   return (_CheckNewTests(input_api, output_api) +
-          _CheckDartFormat(input_api, output_api))
+          _CheckDartFormat(input_api, output_api) +
+          _CheckStatusFiles(input_api, output_api))

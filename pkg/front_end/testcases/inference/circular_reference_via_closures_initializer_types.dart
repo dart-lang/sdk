@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
+/*@testedFeatures=inference,error*/
 library test;
 
-var /*@topType=dynamic*/ x = /*@returnType=dynamic*/ () => /*error:TOP_LEVEL_CYCLE*/ y;
-var /*@topType=dynamic*/ y = /*@returnType=dynamic*/ () => /*error:TOP_LEVEL_CYCLE*/ x;
+var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+    y;
+var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
+    x;
 
 main() {}

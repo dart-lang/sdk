@@ -8,9 +8,9 @@ import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
 import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
@@ -110,7 +110,8 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 
 FormattingDiagnosticHandler diagnosticHandler;
 
-Future<api.CompilationResult> compile(List<String> argv) {
+Future<api.CompilationResult> compile(List<String> argv,
+    {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   Stopwatch wallclock = new Stopwatch()..start();
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
@@ -288,8 +289,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   void setUseKernel(String argument) {
     useKernel = true;
-    // TODO(sigmund): remove once we support inlining with `useKernel`.
-    options.add(Flags.disableInlining);
     passThrough(argument);
   }
 
@@ -603,7 +602,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
       resolutionInputs: resolutionInputs,
       resolutionOutput: resolveOnly ? resolutionOutput : null,
       options: options,
-      environment: environment);
+      environment: environment)
+    ..kernelInitializedCompilerState = kernelInitializedCompilerState;
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
       .then(compilationDone);
@@ -656,11 +656,13 @@ void fail(String message) {
   exitFunc(1);
 }
 
-Future<api.CompilationResult> compilerMain(List<String> arguments) {
+Future<api.CompilationResult> compilerMain(List<String> arguments,
+    {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
   arguments = <String>['--library-root=${Platform.script.toFilePath()}$root']
     ..addAll(arguments);
-  return compile(arguments);
+  return compile(arguments,
+      kernelInitializedCompilerState: kernelInitializedCompilerState);
 }
 
 void help() {
@@ -868,7 +870,8 @@ CompileFunc compileFunc = api.compile;
 /// Set this to `false` in end-to-end tests to avoid generating '.deps' files.
 bool enableWriteString = true;
 
-Future<api.CompilationResult> internalMain(List<String> arguments) {
+Future<api.CompilationResult> internalMain(List<String> arguments,
+    {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   Future onError(exception, trace) {
     // If we are already trying to exit, just continue exiting.
     if (exception == _EXIT_SIGNAL) throw exception;
@@ -890,7 +893,9 @@ Future<api.CompilationResult> internalMain(List<String> arguments) {
   }
 
   try {
-    return compilerMain(arguments).catchError(onError);
+    return compilerMain(arguments,
+            kernelInitializedCompilerState: kernelInitializedCompilerState)
+        .catchError(onError);
   } catch (exception, trace) {
     return onError(exception, trace);
   }
@@ -919,6 +924,7 @@ void batchMain(List<String> batchArguments) {
 
   var stream = stdin.transform(UTF8.decoder).transform(new LineSplitter());
   var subscription;
+  fe.InitializedCompilerState kernelInitializedCompilerState;
   subscription = stream.listen((line) {
     new Future.sync(() {
       subscription.pause();
@@ -927,10 +933,15 @@ void batchMain(List<String> batchArguments) {
       List<String> args = <String>[];
       args.addAll(batchArguments);
       args.addAll(splitLine(line, windows: Platform.isWindows));
-      return internalMain(args);
+      return internalMain(args,
+          kernelInitializedCompilerState: kernelInitializedCompilerState);
     }).catchError((exception, trace) {
       if (!identical(exception, _EXIT_SIGNAL)) {
         exitCode = 253;
+      }
+    }).then((api.CompilationResult result) {
+      if (result != null) {
+        kernelInitializedCompilerState = result.kernelInitializedCompilerState;
       }
     }).whenComplete(() {
       // The testing framework waits for a status line on stdout and

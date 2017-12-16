@@ -15,6 +15,8 @@ import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
   KernelToElementMapForImpact _elementMap;
+  Map<ir.Library, Set<ir.NamedNode>> _additionalExportsSets =
+      <ir.Library, Set<ir.NamedNode>>{};
 
   KernelDeferredLoadTask(Compiler compiler, this._elementMap) : super(compiler);
 
@@ -28,8 +30,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
       if (dependency.isExport) continue;
       if (!_isVisible(dependency.combinators, member.name.name)) continue;
       if (member.enclosingLibrary == dependency.targetLibrary ||
-          dependency.targetLibrary.additionalExports
-              .any((ir.Reference ref) => ref.node == member)) {
+          additionalExports(dependency.targetLibrary).contains(member)) {
         imports.add(_elementMap.getImport(dependency));
       }
     }
@@ -42,10 +43,30 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   }
 
   @override
+  void collectConstantsFromMetadata(
+      Entity element, Set<ConstantValue> constants) {
+    // Nothing to do. Kernel-pipeline doesn't support mirrors, so we don't need
+    // to track any constants from meta-data.
+  }
+
+  @override
   void collectConstantsInBody(
       covariant MemberEntity element, Set<ConstantValue> constants) {
     ir.Member node = _elementMap.getMemberDefinition(element).node;
-    node.accept(new ConstantCollector(_elementMap, constants));
+
+    // Fetch the internal node in order to skip annotations on the member.
+    // TODO(sigmund): replace this pattern when the kernel-ast provides a better
+    // way to skip annotations (issue 31565).
+    var visitor = new ConstantCollector(_elementMap, constants);
+    if (node is ir.Field) {
+      node.initializer?.accept(visitor);
+      return;
+    }
+
+    if (node is ir.Constructor) {
+      node.initializers.forEach((i) => i.accept(visitor));
+    }
+    node.function?.accept(visitor);
   }
 
   /// Adds extra dependencies coming from mirror usage.
@@ -62,6 +83,16 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
       WorkQueue queue, LibraryEntity root, ImportSet newSet) {
     throw new UnsupportedError(
         "KernelDeferredLoadTask.addMirrorElementsForLibrary");
+  }
+
+  Set<ir.NamedNode> additionalExports(ir.Library library) {
+    return _additionalExportsSets[library] ??= new Set<ir.NamedNode>.from(
+        library.additionalExports.map((ir.Reference ref) => ref.node));
+  }
+
+  @override
+  void cleanup() {
+    _additionalExportsSets = null;
   }
 }
 

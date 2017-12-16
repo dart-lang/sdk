@@ -3862,3 +3862,7 @@ void assertUnreachable() {
 // Hook to register new global object if necessary.
 // This is currently a no-op in dart2js.
 void registerGlobalObject(object) {}
+
+// Hook to register new browser classes.
+// This is currently a no-op in dart2js.
+void applyExtension(name, nativeObject) {}

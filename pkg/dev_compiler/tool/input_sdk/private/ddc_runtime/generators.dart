@@ -156,6 +156,7 @@ final _AsyncStarStreamController = JS('', '''
           () => {
         this.isAdding = false;
         this.scheduleGenerator();
+        if (!this.isScheduled) this.isSuspendedAtYield = true;
       }, { onError: (e, s) => this.throwError(e, s) });
     }
 

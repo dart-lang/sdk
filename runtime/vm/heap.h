@@ -45,8 +45,10 @@ class Heap {
     kNewSpace,
     kPromotion,
     kOldSpace,
+    kCompaction,
     kFull,
     kIdle,
+    kLowMemory,
     kGCAtAlloc,
     kGCTestCase,
   };
@@ -105,10 +107,11 @@ class Heap {
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
   void NotifyIdle(int64_t deadline);
+  void NotifyLowMemory();
 
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, GCReason reason);
-  void CollectAllGarbage();
+  void CollectAllGarbage(GCReason reason = kFull);
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
   }
@@ -320,8 +323,7 @@ class Heap {
   void RecordBeforeGC(Space space, GCReason reason);
   void RecordAfterGC(Space space);
   void PrintStats();
-  void UpdateClassHeapStatsBeforeGC(Heap::Space space);
-  void PrintStatsToTimeline(TimelineEventScope* event);
+  void PrintStatsToTimeline(TimelineEventScope* event, GCReason reason);
 
   // Updates gc in progress flags.
   bool BeginNewSpaceGC(Thread* thread);

@@ -4,8 +4,6 @@
 
 #include "vm/thread.h"
 
-#include "platform/address_sanitizer.h"
-#include "platform/safe_stack.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
@@ -409,17 +407,6 @@ void Thread::SetStackLimit(uword limit) {
 
 void Thread::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
-}
-
-// Disable AdressSanitizer and SafeStack transformation on this function. In
-// particular, taking the address of a local gives an address on the stack
-// instead of an address in the shadow memory (AddressSanitizer) or the safe
-// stack (SafeStack).
-NO_SANITIZE_ADDRESS
-NO_SANITIZE_SAFE_STACK
-uword Thread::GetCurrentStackPointer() {
-  uword stack_allocated_local = reinterpret_cast<uword>(&stack_allocated_local);
-  return stack_allocated_local;
 }
 
 void Thread::ScheduleInterrupts(uword interrupt_bits) {
