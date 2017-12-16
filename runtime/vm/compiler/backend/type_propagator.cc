@@ -1021,6 +1021,8 @@ CompileType SpecialParameterInstr::ComputeType() const {
       return CompileType::FromCid(kContextCid);
     case kTypeArgs:
       return CompileType::FromCid(kTypeArgumentsCid);
+    case kArgDescriptor:
+      return CompileType::FromCid(kImmutableArrayCid);
   }
   UNREACHABLE();
   return CompileType::Dynamic();

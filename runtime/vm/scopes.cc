@@ -222,17 +222,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
       if (variable->is_captured()) {
         AllocateContextVariable(variable, &context_owner);
         *found_captured_variables = true;
-        if (variable->name().raw() ==
-            Symbols::FunctionTypeArgumentsVar().raw()) {
-          ASSERT(pos == num_parameters);
-          // A captured type args variable has a slot allocated in the frame and
-          // one in the context, where it gets copied to.
-          frame_index--;
-        }
       } else {
-        ASSERT((variable->name().raw() !=
-                Symbols::FunctionTypeArgumentsVar().raw()) ||
-               (pos == num_parameters));
         variable->set_index(frame_index--);
       }
     }
@@ -447,6 +437,7 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
 
 void LocalScope::CaptureVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
+
   // The variable must exist in an enclosing scope, not necessarily in this one.
   variable->set_is_captured();
   const int variable_function_level = variable->owner()->function_level();
@@ -651,7 +642,8 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
       if (variable->is_forced_stack() ||
           (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
-          (variable->name().raw() == Symbols::SavedTryContextVar().raw())) {
+          (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
+          (variable->name().raw() == Symbols::ArgDescVar().raw())) {
         // Don't capture those variables because the VM expects them to be on
         // the stack.
         continue;
@@ -700,8 +692,8 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
 int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
   ASSERT(!is_captured());
   // Parameters have positive indexes with the lowest index being
-  // kParamEndSlotFromFp + 1.  Locals and copied parameters have negative
-  // indexes with the lowest (closest to 0) index being kFirstLocalSlotFromFp.
+  // kParamEndSlotFromFp + 1.  Locals have negative indexes with the lowest
+  // (closest to 0) index being kFirstLocalSlotFromFp.
   if (index() > 0) {
     // Shift non-negative indexes so that the lowest one is 0.
     return fixed_parameter_count - (index() - kParamEndSlotFromFp);

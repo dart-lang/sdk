@@ -497,6 +497,15 @@ class Expect {
         f, (error) => error is UnsupportedError, reason ?? "UnsupportedError");
   }
 
+  /// Reports that there is an error in the test itself and not the code under
+  /// test.
+  ///
+  /// It may be using the expect API incorrectly or failing some other
+  /// invariant that the test expects to be true.
+  static void testError(String message) {
+    _fail("Test error: $message");
+  }
+
   static String _getMessage(String reason) =>
       (reason == null) ? "" : ", '$reason'";
 

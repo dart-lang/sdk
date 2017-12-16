@@ -48,9 +48,6 @@ abstract class TargetImplementation extends Target {
   /// Add the classes extended or implemented directly by [cls] to [set].
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set);
 
-  /// Returns all classes that will be included in the resulting program.
-  List<ClassBuilder> collectAllClasses();
-
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and
   /// implemented interfaces.

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performance_logger.dart';
@@ -87,6 +88,9 @@ class KernelDriver {
   /// Factory for working with metadata.
   final MetadataFactory _metadataFactory;
 
+  /// The listener to errors during kernel compilation.
+  final KernelErrorListener kernelErrorListener;
+
   /// The optional SDK outline loaded from [_sdkOutlineBytes].
   /// Might be `null` if the bytes are not provided, or if not loaded yet.
   Program _sdkOutline;
@@ -104,7 +108,7 @@ class KernelDriver {
   /// The object that provides additional information for tests.
   final _TestView _testView = new _TestView();
 
-  KernelDriver(this._options, this.uriTranslator,
+  KernelDriver(this._options, this.uriTranslator, this.kernelErrorListener,
       {List<int> sdkOutlineBytes,
       KernelDriverFileAddedFn fileAddedFn,
       MetadataFactory metadataFactory})
@@ -181,7 +185,13 @@ class KernelDriver {
       // We need to be able to access dart:core and dart:async classes.
       if (_sdkOutline != null) {
         results.add(new LibraryCycleResult(
-            new LibraryCycle(), '<sdk>', {}, _sdkOutline.libraries));
+            new LibraryCycle(),
+            '<sdk>',
+            {},
+            _sdkOutline.libraries
+                // TODO are there errors to report here?
+                .map((l) => new LibraryResult(l, []))
+                .toList()));
       }
 
       var lastCycle = cycles.last;
@@ -227,19 +237,19 @@ class KernelDriver {
     KernelSequenceResult sequence = await getKernelSequence(uri);
 
     var dependencies = <Library>[];
-    Library requestedLibrary;
+    LibraryResult requestedLibrary;
     for (var i = 0; i < sequence.results.length; i++) {
-      List<Library> libraries = sequence.results[i].kernelLibraries;
+      List<LibraryResult> libraryResults = sequence.results[i].libraryResults;
       if (i == sequence.results.length - 1) {
-        for (var library in libraries) {
-          if (library.importUri == uri) {
-            requestedLibrary = library;
+        for (var libraryResult in libraryResults) {
+          if (libraryResult.library.importUri == uri) {
+            requestedLibrary = libraryResult;
           } else {
-            dependencies.add(library);
+            dependencies.add(libraryResult.library);
           }
         }
       } else {
-        dependencies.addAll(libraries);
+        dependencies.addAll(libraryResults.map((l) => l.library));
       }
     }
 
@@ -278,11 +288,16 @@ class KernelDriver {
         return await _fsState.getFile(uri);
       });
 
-      List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
-        List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
-        _logger.writeln('Computed ${cycles.length} cycles.');
-        return cycles;
-      });
+      List<LibraryCycle> cycles;
+      if (_fsState.skipSdkLibraries.contains(uri)) {
+        cycles = <LibraryCycle>[];
+      } else {
+        cycles = _logger.run('Compute library cycles', () {
+          List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
+          _logger.writeln('Computed ${cycles.length} cycles.');
+          return cycles;
+        });
+      }
 
       DillTarget dillTarget = new DillTarget(
           new Ticker(isVerbose: false), uriTranslator, _options.target);
@@ -299,7 +314,13 @@ class KernelDriver {
       // We need to be able to access dart:core and dart:async classes.
       if (_sdkOutline != null) {
         results.add(new LibraryCycleResult(
-            new LibraryCycle(), '<sdk>', {}, _sdkOutline.libraries));
+            new LibraryCycle(),
+            '<sdk>',
+            {},
+            _sdkOutline.libraries
+                // TODO are there errors to report here?
+                .map((l) => new LibraryResult(l, []))
+                .toList()));
       }
 
       _testView.compiledCycles.clear();
@@ -345,7 +366,8 @@ class KernelDriver {
   /// All the libraries for [CoreTypes] are expected to be in the first result.
   TypeEnvironment _buildTypeEnvironment(
       CanonicalName nameRoot, List<LibraryCycleResult> results) {
-    var coreLibraries = results.first.kernelLibraries;
+    var coreLibraries =
+        results.first.libraryResults.map((l) => l.library).toList();
     var program = new Program(nameRoot: nameRoot, libraries: coreLibraries);
     return new TypeEnvironment(
         new CoreTypes(program), new IncrementalClassHierarchy());
@@ -400,7 +422,13 @@ class KernelDriver {
             await appendNewDillLibraries(program);
 
             return new LibraryCycleResult(
-                cycle, signature, program.uriToSource, program.libraries);
+                cycle,
+                signature,
+                program.uriToSource,
+                program.libraries
+                    // TODO report errors here
+                    .map((l) => new LibraryResult(l, []))
+                    .toList());
           });
         }
       }
@@ -419,6 +447,7 @@ class KernelDriver {
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
         return await kernelTarget.buildProgram();
       });
+
       _testView.compiledCycles.add(cycle);
 
       // Add newly compiled libraries into DILL.
@@ -427,6 +456,15 @@ class KernelDriver {
       List<Library> kernelLibraries = program.libraries
           .where((library) => libraryUris.contains(library.importUri))
           .toList();
+
+      final indexedErrors = <Uri, List<CompilationMessage>>{};
+      kernelErrorListener.errors.forEach((error) =>
+          indexedErrors.putIfAbsent(error.span.sourceUrl, () => []).add(error));
+      List<LibraryResult> kernelLibrariesResults = kernelLibraries
+          .map((l) => new LibraryResult(l, indexedErrors[l.fileUri]))
+          .toList();
+
+      kernelErrorListener.errors.clear();
 
       // Remove source for libraries outside of the cycle.
       {
@@ -447,7 +485,7 @@ class KernelDriver {
       });
 
       return new LibraryCycleResult(
-          cycle, signature, program.uriToSource, kernelLibraries);
+          cycle, signature, program.uriToSource, kernelLibrariesResults);
     });
   }
 
@@ -567,9 +605,9 @@ class KernelResult {
   final TypeEnvironment types;
 
   /// The library of the requested file.
-  final Library library;
+  final LibraryResult libraryResult;
 
-  KernelResult(this.dependencies, this.types, this.library);
+  KernelResult(this.dependencies, this.types, this.libraryResult);
 }
 
 /// The result of compiling of a sequence of libraries.
@@ -598,10 +636,18 @@ class LibraryCycleResult {
 
   /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
   /// are not included, but but references to those dependencies are included.
-  final List<Library> kernelLibraries;
+  final List<LibraryResult> libraryResults;
 
   LibraryCycleResult(
-      this.cycle, this.signature, this.uriToSource, this.kernelLibraries);
+      this.cycle, this.signature, this.uriToSource, this.libraryResults);
+}
+
+/// A [Library] produced by front end and the errors produced from compiling it.
+class LibraryResult {
+  final Library library;
+  final List<CompilationMessage> errors;
+
+  LibraryResult(this.library, this.errors);
 }
 
 /// Factory for creating [MetadataCollector]s and [MetadataRepository]s.
@@ -625,4 +671,10 @@ class _TestView {
   /// The list of [LibraryCycle]s compiled for the last delta.
   /// It does not include libraries which were read from the cache.
   final List<LibraryCycle> compiledCycles = [];
+}
+
+/// A simple errors listener for [CompilationMessage]s from kernel.
+class KernelErrorListener {
+  final List<CompilationMessage> errors = [];
+  void onError(CompilationMessage error) => errors.add(error);
 }

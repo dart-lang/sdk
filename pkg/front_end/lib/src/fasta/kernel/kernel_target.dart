@@ -183,30 +183,17 @@ class KernelTarget extends TargetImplementation {
     });
   }
 
-  List<ClassBuilder> collectAllClasses() {
-    List<ClassBuilder> result = <ClassBuilder>[];
-    loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.forEach((String name, Builder member) {
-        if (member is KernelClassBuilder) {
-          result.add(member);
-        }
-      });
-      // TODO(ahe): Translate this if needed:
-      // if (library is KernelLibraryBuilder) {
-      //   result.addAll(library.mixinApplicationClasses);
-      // }
-    });
-    return result;
-  }
-
-  List<SourceClassBuilder> collectAllSourceClasses() {
+  /// Returns classes defined in libraries in [loader].
+  List<SourceClassBuilder> collectMyClasses() {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.forEach((String name, Builder member) {
-        if (member is SourceClassBuilder && !member.isPatch) {
-          result.add(member);
-        }
-      });
+      if (library.loader == loader) {
+        library.forEach((String name, Builder member) {
+          if (member is SourceClassBuilder && !member.isPatch) {
+            result.add(member);
+          }
+        });
+      }
     });
     return result;
   }
@@ -242,11 +229,11 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
-      loader.checkSemantics();
+      List<SourceClassBuilder> myClasses = collectMyClasses();
+      loader.checkSemantics(myClasses);
       loader.buildProgram();
-      List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
       installDefaultSupertypes();
-      installDefaultConstructors(sourceClasses);
+      installDefaultConstructors(myClasses);
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
       program =
@@ -255,10 +242,10 @@ class KernelTarget extends TargetImplementation {
         program.addMetadataRepository(metadataCollector.repository);
       }
       loader.computeHierarchy(program);
-      loader.checkOverrides(sourceClasses);
+      loader.checkOverrides(myClasses);
       if (!loader.target.disableTypeInference) {
-        loader.prepareTopLevelInference(sourceClasses);
-        loader.performTopLevelInference(sourceClasses);
+        loader.prepareTopLevelInference(myClasses);
+        loader.performTopLevelInference(myClasses);
       }
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
@@ -287,9 +274,9 @@ class KernelTarget extends TargetImplementation {
     try {
       ticker.logMs("Building program");
       await loader.buildBodies();
-      loader.finishStaticInvocations();
       loader.finishDeferredLoadTearoffs();
-      finishAllConstructors();
+      List<SourceClassBuilder> myClasses = collectMyClasses();
+      finishAllConstructors(myClasses);
       loader.finishNativeMethods();
       loader.finishPatchMethods();
       runBuildTransformations();
@@ -380,19 +367,22 @@ class KernelTarget extends TargetImplementation {
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.forEach((String name, Builder builder) {
-        if (builder is SourceClassBuilder) {
-          Class cls = builder.target;
-          if (cls != objectClass) {
-            cls.supertype ??= objectClass.asRawSupertype;
-            builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
-              ..bind(objectClassBuilder);
+      if (library.loader == loader) {
+        library.forEach((String name, Builder builder) {
+          if (builder is SourceClassBuilder) {
+            Class cls = builder.target;
+            if (cls != objectClass) {
+              cls.supertype ??= objectClass.asRawSupertype;
+              builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
+                ..bind(objectClassBuilder);
+            }
+            if (builder.isMixinApplication) {
+              cls.mixedInType = builder.mixedInType
+                  .buildSupertype(library, builder.charOffset, builder.fileUri);
+            }
           }
-          if (builder.isMixinApplication) {
-            cls.mixedInType = builder.mixedInType.buildSupertype(library);
-          }
-        }
-      });
+        });
+      }
     });
     ticker.logMs("Installed Object as implicit superclass");
   }
@@ -523,9 +513,9 @@ class KernelTarget extends TargetImplementation {
         isSyntheticDefault: true);
   }
 
-  void finishAllConstructors() {
+  void finishAllConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
-    for (SourceClassBuilder builder in collectAllSourceClasses()) {
+    for (SourceClassBuilder builder in builders) {
       Class cls = builder.target;
       if (cls != objectClass) {
         finishConstructors(builder);

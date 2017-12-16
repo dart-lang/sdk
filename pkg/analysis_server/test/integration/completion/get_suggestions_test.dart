@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -124,18 +122,4 @@ main() {
 class GetSuggestionsTest_PreviewDart2 extends GetSuggestionsTest {
   @override
   bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  Future test_getSuggestions() => super.test_getSuggestions();
-
-  @override
-  @failingTest
-  Future test_getSuggestions_onlyOverlay() =>
-      super.test_getSuggestions_onlyOverlay();
-
-  @override
-  @failingTest
-  Future test_getSuggestions_onlyOverlay_noWait() =>
-      super.test_getSuggestions_onlyOverlay_noWait();
 }

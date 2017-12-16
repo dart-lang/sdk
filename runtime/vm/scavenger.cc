@@ -802,7 +802,8 @@ void Scavenger::FlushTLS() const {
 
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kMarkerTask));
+         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
+         (Thread::Current()->task_kind() == Thread::kCompactorTask));
   FlushTLS();
   uword cur = FirstObjectStart();
   while (cur < top_) {

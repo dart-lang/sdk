@@ -14,14 +14,12 @@ string_test: StaticWarning, OK # Test generates error on purpose.
 [ $compiler == dart2js ]
 regexp/pcre_test: Pass, Slow # Issue 21593
 
-[ $compiler == dartkp ]
-apply3_test: CompileTimeError # No support for mirrors
-
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign # Imports dart:mirrors
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
@@ -66,7 +64,7 @@ string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 
 [ $strong ]
-*: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
+*: SkipByDesign # tests/corelib_2 has the strong mode versions of these tests.
 
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 big_integer_parsed_mul_div_vm_test: Pass, Slow
@@ -139,6 +137,7 @@ big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
+error_stack_trace1_test: RuntimeError # Issue 12399
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -240,7 +239,7 @@ big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
-error_stack_trace1_test: Pass # Issue 27394
+error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError
 int_modulo_arith_test/bignum: RuntimeError
 int_modulo_arith_test/modPow: RuntimeError
@@ -347,58 +346,6 @@ regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platform
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
-# dartk: checked mode failures
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-symbol_test/01: Pass
-symbol_test/02: Pass
-
-[ ($compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
-bool_from_environment2_test/01: MissingCompileTimeError
-bool_from_environment2_test/02: MissingCompileTimeError
-bool_from_environment2_test/03: MissingCompileTimeError
-bool_from_environment2_test/04: MissingCompileTimeError
-compare_to2_test: RuntimeError
-int_from_environment3_test/01: MissingCompileTimeError
-int_from_environment3_test/02: MissingCompileTimeError
-int_from_environment3_test/03: MissingCompileTimeError
-int_from_environment3_test/04: MissingCompileTimeError
-string_case_test/01: RuntimeError
-string_from_environment3_test/01: MissingCompileTimeError
-string_from_environment3_test/02: MissingCompileTimeError
-string_from_environment3_test/03: MissingCompileTimeError
-string_from_environment3_test/04: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: Fail # Bug 6706
-
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
@@ -425,8 +372,10 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
 string_trimlr_test/02: RuntimeError # Issue 29060
 
-[ $compiler == dartkp || $compiler == precompiler ]
-regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+# We skip all the Dart 1.0 tests in dartk and dartkp mode as these
+# modes are intended only for Dart 2.0 with strong mode enabled.
+[ $compiler == dartk || $compiler == dartkp ]
+*: Skip
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008

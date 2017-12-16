@@ -1318,7 +1318,7 @@ abstract class VariableReference extends Expression {
 
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
-  accept(NodeVisitor visitor);
+  T accept<T>(NodeVisitor<T> visitor);
 
   int get precedenceLevel => PRIMARY;
 

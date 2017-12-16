@@ -3,9 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
-html/custom/attribute_changed_callback_test: RuntimeError # Issue 31577
-html/custom/constructor_calls_created_synchronously_test: RuntimeError # Issue 31577
-html/custom/document_register_basic_test: RuntimeError # Issue 29922
+html/custom/attribute_changed_callback_test: Skip # Issue 31577
+html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
+html/custom/created_callback_test: Skip # Issue 31577
+html/custom/document_register_basic_test: Skip # Issue 31577
 html/custom/document_register_template_test: Skip # Issue 31577
 html/custom/document_register_type_extensions_test/construction: Skip # Issue 31577
 html/custom/document_register_type_extensions_test/constructors: Skip # Issue 31577
@@ -24,10 +25,8 @@ html/custom/regress_194523002_test: Crash # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/fontface_loaded_test: RuntimeError
 html/gamepad_test: RuntimeError # Issue 31029
-html/messageevent_test: Skip # Issue 31144
 html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/scripts_htmltest: Skip # Issue 29919
-html/serialized_script_value_test: Skip # Issue 31144
 html/transferables_test: CompileTimeError # Issue 30975
 html/two_scripts_htmltest: Skip # Issue 29919
 html/websql_test: Pass, RuntimeError # Issue 31036
@@ -92,7 +91,6 @@ html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimen
 html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
 html/js_typed_interop_type_test: RuntimeError # Issue 30947
 html/js_util_test: RuntimeError # Issue 29922
-html/keyboard_event_test: RuntimeError # Issue 30946
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
@@ -123,3 +121,4 @@ html/interactive_media_test: RuntimeError
 
 [ $compiler == dartdevc && $system == windows ]
 html/xhr_test/xhr: Skip # Times out. Issue 21527
+

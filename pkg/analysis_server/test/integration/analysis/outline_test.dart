@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OutlineTest);
+    defineReflectiveTests(OutlineTest_PreviewDart2);
   });
 }
 
@@ -81,4 +82,10 @@ class Class2 {
       checkConnected(members);
     });
   }
+}
+
+@reflectiveTest
+class OutlineTest_PreviewDart2 extends OutlineTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

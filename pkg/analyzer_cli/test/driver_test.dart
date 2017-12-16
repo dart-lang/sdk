@@ -30,8 +30,11 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
+    defineReflectiveTests(ExitCodesTest_PreviewDart2);
     defineReflectiveTests(LinterTest);
+    defineReflectiveTests(LinterTest_PreviewDart2);
     defineReflectiveTests(OptionsTest);
+    defineReflectiveTests(OptionsTest_PreviewDart2);
   }, name: 'Driver');
 }
 
@@ -47,19 +50,26 @@ class BaseTest {
   /// Normalize text with bullets.
   String bulletToDash(item) => '$item'.replaceAll('•', '-');
 
+  bool get usePreviewDart2 => false;
+
   /// Start a driver for the given [source], optionally providing additional
-  /// [args] and an [options] file path.  The value of [options] defaults to
-  /// an empty options file to avoid unwanted configuration from an otherwise
+  /// [args] and an [options] file path. The value of [options] defaults to an
+  /// empty options file to avoid unwanted configuration from an otherwise
   /// discovered options file.
-  Future<Null> drive(String source,
-      {String options: emptyOptionsFile,
-      List<String> args: const <String>[]}) async {
+  Future<Null> drive(
+    String source, {
+    String options: emptyOptionsFile,
+    List<String> args: const <String>[],
+  }) async {
     driver = new Driver(isTesting: true);
-    var cmd = [
+    var cmd = <String>[
       '--options',
       path.join(testDirectory, options),
       _adjustFileSpec(source)
     ]..addAll(args);
+    if (usePreviewDart2) {
+      cmd.insert(0, '--preview-dart-2');
+    }
     await driver.start(cmd);
   }
 
@@ -591,6 +601,27 @@ class ExitCodesTest extends BaseTest {
 }
 
 @reflectiveTest
+class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  test_fatalErrors() {
+    // TODO(devoncarew): This test times out when used with @failingTest.
+    return new Future.error('failing test');
+  }
+
+  @override
+  @failingTest
+  test_fatalWarnings() => super.test_fatalWarnings();
+
+  @override
+  @failingTest
+  test_notFatalWarnings() => super.test_notFatalWarnings();
+}
+
+@reflectiveTest
 class LinterTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
@@ -685,6 +716,12 @@ linter:
     await drive('data/no_lints_project/test_file.dart',
         options: 'data/no_lints_project/$optionsFileName');
   }
+}
+
+@reflectiveTest
+class LinterTest_PreviewDart2 extends LinterTest {
+  @override
+  bool get usePreviewDart2 => true;
 }
 
 @reflectiveTest
@@ -792,6 +829,33 @@ class OptionsTest extends BaseTest {
     await drive('data/options_tests_project/test_file.dart',
         options: 'data/options_tests_project/$optionsFileName');
   }
+}
+
+@reflectiveTest
+class OptionsTest_PreviewDart2 extends OptionsTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  test_basic_filters() => super.test_basic_filters();
+
+  @override
+  @failingTest
+  test_basic_language() => super.test_basic_language();
+
+  @override
+  @failingTest
+  test_basic_strongMode() => super.test_basic_strongMode();
+
+  @override
+  @failingTest
+  test_includeDirective() => super.test_includeDirective();
+
+  @override
+  @failingTest
+  test_withFlags_overrideFatalWarning() =>
+      super.test_withFlags_overrideFatalWarning();
 }
 
 class TestSource implements Source {

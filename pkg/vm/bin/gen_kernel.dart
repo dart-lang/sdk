@@ -35,7 +35,7 @@ ${_argParser.usage}
 ''';
 
 const int _badUsageExitCode = 1;
-const int _compileTimeErrorExitCode = 250;
+const int _compileTimeErrorExitCode = 254;
 
 const _severityCaptions = const <Severity, String>{
   Severity.error: 'Error: ',

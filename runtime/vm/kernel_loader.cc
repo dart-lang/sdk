@@ -1334,9 +1334,10 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   functions_.Add(&getter);
   getter.set_end_token_pos(field_helper->end_position_);
   getter.set_kernel_offset(field.kernel_offset());
-  getter.set_result_type(AbstractType::Handle(Z, field.type()));
+  const AbstractType& field_type = AbstractType::Handle(Z, field.type());
+  getter.set_result_type(field_type);
   getter.set_is_debuggable(false);
-  SetupFieldAccessorFunction(klass, getter);
+  SetupFieldAccessorFunction(klass, getter, field_type);
 
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
     // Only static fields can be const.
@@ -1355,12 +1356,13 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_kernel_offset(field.kernel_offset());
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
-    SetupFieldAccessorFunction(klass, setter);
+    SetupFieldAccessorFunction(klass, setter, field_type);
   }
 }
 
 void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
-                                              const Function& function) {
+                                              const Function& function,
+                                              const AbstractType& field_type) {
   bool is_setter = function.IsImplicitSetterFunction();
   bool is_method = !function.IsStaticFunction();
   intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
@@ -1379,7 +1381,7 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
     pos++;
   }
   if (is_setter) {
-    function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+    function.SetParameterTypeAt(pos, field_type);
     function.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }

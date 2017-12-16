@@ -424,6 +424,9 @@ abstract class Member implements Element {
   bool get isSynthetic => _baseElement.isSynthetic;
 
   @override
+  bool get isVisibleForTesting => _baseElement.isVisibleForTesting;
+
+  @override
   ElementKind get kind => _baseElement.kind;
 
   @override

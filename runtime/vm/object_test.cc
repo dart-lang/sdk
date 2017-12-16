@@ -2544,9 +2544,9 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   int next_frame_index = parent_scope->AllocateVariables(
       first_parameter_index, num_parameters, first_frame_index, NULL,
       &found_captured_vars);
-  // Variables a and c are captured, therefore are not allocated in frame.
-  // Variable var_ta, although captured, still requires a slot in frame.
-  EXPECT_EQ(-1, next_frame_index - first_frame_index);  // Indices in frame < 0.
+  // Variables a, c and var_ta are captured, therefore are not allocated in
+  // frame.
+  EXPECT_EQ(0, next_frame_index - first_frame_index);  // Indices in frame < 0.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
   EXPECT(found_captured_vars);

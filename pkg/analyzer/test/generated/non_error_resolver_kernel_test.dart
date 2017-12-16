@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_error_resolver_driver_test.dart';
@@ -32,14 +31,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
-    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
   }
@@ -53,100 +45,72 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_async_flattened() async {
-    return super.test_async_flattened();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeEnum() async {
     return super.test_commentReference_beforeEnum();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeFunction_blockBody() async {
     return super.test_commentReference_beforeFunction_blockBody();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeFunction_expressionBody() async {
     return super.test_commentReference_beforeFunction_expressionBody();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeFunctionTypeAlias() async {
     return super.test_commentReference_beforeFunctionTypeAlias();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeGenericTypeAlias() async {
     return super.test_commentReference_beforeGenericTypeAlias();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeGetter() async {
     return super.test_commentReference_beforeGetter();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeMethod() async {
     return super.test_commentReference_beforeMethod();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_class() async {
     return super.test_commentReference_class();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_setter() async {
     return super.test_commentReference_setter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_constructor_with_named_generic_parameter() async {
-    return super.test_const_constructor_with_named_generic_parameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_dynamic() async {
-    return super.test_const_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constConstructorWithNonConstSuper_redirectingFactory() async {
-    return super.test_constConstructorWithNonConstSuper_redirectingFactory();
   }
 
   @override
@@ -179,58 +143,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constEval_propertyExtraction_methodStatic_targetType() async {
-    return super.test_constEval_propertyExtraction_methodStatic_targetType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constRedirectSkipsSupertype() async {
-    return super.test_constRedirectSkipsSupertype();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_dynamicIdentifier() async {
-    return super.test_dynamicIdentifier();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldFormalParameter_functionTyped_named() async {
-    return super.test_fieldFormalParameter_functionTyped_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldFormalParameter_genericFunctionTyped() async {
-    return super.test_fieldFormalParameter_genericFunctionTyped();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldFormalParameter_genericFunctionTyped_named() async {
-    return super.test_fieldFormalParameter_genericFunctionTyped_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_functionTypedFieldFormal() async {
-    return super.test_finalNotInitialized_functionTypedFieldFormal();
   }
 
   @override
@@ -328,7 +243,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
   }
@@ -367,31 +282,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invocationOfNonFunction_dynamic() async {
-    // TODO(scheglov) This test fails only in checked mode.
-    fail('This test fails only in checked mode');
-    return super.test_invocationOfNonFunction_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invocationOfNonFunction_functionTypeTypeParameter() async {
-    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invocationOfNonFunction_getter() async {
-    // TODO(scheglov) This test fails only in checked mode.
-    fail('This test fails only in checked mode');
-    return super.test_invocationOfNonFunction_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_loadLibraryDefined() async {
     return super.test_loadLibraryDefined();
   }
@@ -419,14 +309,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31628')
   test_nonConstCaseExpression_constField() async {
     return super.test_nonConstCaseExpression_constField();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31627')
   test_nonConstMapKey_constField() async {
     return super.test_nonConstMapKey_constField();
   }
@@ -434,64 +324,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_binary_dynamic() async {
-    return super.test_nonConstValueInInitializer_binary_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_redirecting() async {
-    return super.test_nonConstValueInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_null_callMethod() async {
-    return super.test_null_callMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_prefixCollidesWithTopLevelMembers() async {
     return super.test_prefixCollidesWithTopLevelMembers();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_recursiveConstructorRedirect() async {
-    return super.test_recursiveConstructorRedirect();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_recursiveFactoryRedirect() async {
-    return super.test_recursiveFactoryRedirect();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_redirectToInvalidFunctionType() async {
-    return super.test_redirectToInvalidFunctionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_redirectToNonConstConstructor() async {
-    return super.test_redirectToNonConstConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_referencedBeforeDeclaration_cascade() async {
-    return super.test_referencedBeforeDeclaration_cascade();
   }
 
   @override
@@ -518,13 +352,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_staticAccessToInstanceMember_method() async {
-    return super.test_staticAccessToInstanceMember_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeType_class_prefixed() async {
     return super.test_typeType_class_prefixed();
   }
@@ -534,20 +361,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_typeType_functionTypeAlias_prefixed() async {
     return super.test_typeType_functionTypeAlias_prefixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_redirecting() async {
-    return super.test_undefinedConstructorInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedGetter_static_conditionalAccess() async {
-    return super.test_undefinedGetter_static_conditionalAccess();
   }
 
   @override
@@ -583,12 +396,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedSetter_importWithPrefix() async {
     return super.test_undefinedSetter_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedSetter_static_conditionalAccess() async {
-    return super.test_undefinedSetter_static_conditionalAccess();
   }
 }

@@ -89,8 +89,6 @@ html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failu
 html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: RuntimeError # Please triage.
-html/messageevent_test: RuntimeError # Please triage this error. New in Chrome 62.
-html/serialized_script_value_test: RuntimeError # Please triage this error. New in Chrome 62.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
 isolate/kill_self_synchronously_test: RuntimeError
@@ -168,13 +166,15 @@ html/custom/document_register_basic_test: Skip # Times out, or unittest times ou
 html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_classes_test: RuntimeError # Issue 27535
-html/element_types_content_test: Pass, RuntimeError # Issue 28983
 html/element_types_content_test: RuntimeError # Issue 29922
+html/element_types_content_test: Pass, RuntimeError # Issue 28983
 html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: Fail
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: Pass, RuntimeError # Issue 28983
-html/fileapi_supported_throws_test: Fail
+html/file_sample_test: Skip # FileSystem not supported on FireFox.
+html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
+html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
 html/history_test/history: Skip # Issue 22050
 html/input_element_datetime_test: Fail
 html/input_element_month_test: Fail
@@ -262,13 +262,14 @@ async/timer_not_available_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
 html/audiobuffersourcenode_test: RuntimeError
-html/custom/attribute_changed_callback_test: Pass, Timeout
+html/custom/attribute_changed_callback_test: RuntimeError, Timeout
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Pass, Timeout
 html/custom/document_register_basic_test: Pass, Timeout
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
+html/file_sample_test: Skip # FileSystem not supported on Safari.
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
 
@@ -397,8 +398,8 @@ html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': 
 html/js_array_test: CompileTimeError
 html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dart_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_dispatch_property_test: CompileTimeError
 html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_dispatch_property_test: CompileTimeError
 html/js_function_getter_test: CompileTimeError
 html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_trust_types_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
@@ -676,7 +677,6 @@ html/localstorage_test: RuntimeError
 html/location_test: RuntimeError
 html/media_stream_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/mediasource_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/messageevent_test: RuntimeError
 html/mirrors_js_typed_interop_test: RuntimeError
 html/mouse_event_test: RuntimeError
 html/mutationobserver_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -694,7 +694,6 @@ html/range_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance gett
 html/request_animation_frame_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/rtc_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/selectelement_test: RuntimeError
-html/serialized_script_value_test: RuntimeError
 html/shadow_dom_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/shadowroot_test: RuntimeError
 html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

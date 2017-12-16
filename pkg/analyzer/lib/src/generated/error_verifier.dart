@@ -919,7 +919,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
-    _checkForTypeAnnotationGenericFunctionParameter(node.type);
     return super.visitIsExpression(node);
   }
 
@@ -2574,17 +2573,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
       } else if (element.isFinal) {
-        if (element is FieldElementImpl &&
-            element.setter == null &&
-            element.isSynthetic) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-              highlightedNode,
-              [element.name, element.enclosingElement.displayName]);
+        if (element is FieldElementImpl) {
+          if (element.setter == null && element.isSynthetic) {
+            _errorReporter.reportErrorForNode(
+                StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+                highlightedNode,
+                [element.name, element.enclosingElement.displayName]);
+          } else {
+            _errorReporter.reportErrorForNode(
+                StaticWarningCode.ASSIGNMENT_TO_FINAL,
+                highlightedNode,
+                [element.name]);
+          }
           return;
         }
-        _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL,
-            highlightedNode, [element.name]);
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL,
+            highlightedNode,
+            [element.name]);
       }
     } else if (element is FunctionElement) {
       _errorReporter.reportErrorForNode(
@@ -5561,7 +5567,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
     if (!node.inDeclarationContext() &&
         _hiddenElements != null &&
-        _hiddenElements.contains(node.staticElement)) {
+        _hiddenElements.contains(node.staticElement) &&
+        node.parent is! CommentReference) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
           node,
@@ -5755,28 +5762,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type is TypeName && type.isDeferred) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, type, [type.name]);
-    }
-  }
-
-  /**
-   * Verify that the given type [name] is not a type parameter in a generic
-   * method.
-   *
-   * See [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER].
-   */
-  void _checkForTypeAnnotationGenericFunctionParameter(TypeAnnotation type) {
-    if (type is TypeName) {
-      Identifier name = type.name;
-      if (name is SimpleIdentifier) {
-        Element element = name.staticElement;
-        if (element is TypeParameterElement &&
-            element.enclosingElement is ExecutableElement) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER,
-              name,
-              [name.name]);
-        }
-      }
     }
   }
 

@@ -289,8 +289,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setUseKernel(String argument) {
     useKernel = true;
-    // TODO(sigmund): remove once we support inlining with `useKernel`.
-    options.add(Flags.disableInlining);
     passThrough(argument);
   }
 

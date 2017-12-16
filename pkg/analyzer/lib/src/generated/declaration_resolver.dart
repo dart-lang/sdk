@@ -291,6 +291,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    if (_applyKernelTypes) {
+      ResolutionApplier.applyParameters(_walker._parameters, node);
+      _walker.consumeParameters();
+      return null;
+    } else {
+      return super.visitFormalParameterList(node);
+    }
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     SimpleIdentifier functionName = node.name;
     Token property = node.propertyKeyword;
@@ -888,6 +899,10 @@ class ElementWalker {
 
   void consumeLocalElements() {
     _functionIndex = _functions.length;
+  }
+
+  void consumeParameters() {
+    _parameterIndex = _parameters.length;
   }
 
   /**

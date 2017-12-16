@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common/names.dart';
 import '../common_elements.dart';
 import '../util/util.dart' show equalElements;
 import 'entities.dart';
@@ -70,6 +71,9 @@ abstract class DartType {
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
+  /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
+  bool get isObject => false;
+
   /// Applies [f] to each occurence of a [ResolutionTypeVariableType] within
   /// this type.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
@@ -118,7 +122,7 @@ class _Assumptions {
 
   /// Returns `true` if [a] and [b] are assumed to be equivalent.
   bool isAssumed(FunctionTypeVariable a, FunctionTypeVariable b) {
-    return _assumptionMap[a].contains(b);
+    return _assumptionMap[a]?.contains(b) ?? false;
   }
 }
 
@@ -129,6 +133,11 @@ class InterfaceType extends DartType {
   InterfaceType(this.element, this.typeArguments);
 
   bool get isInterfaceType => true;
+
+  bool get isObject {
+    return element.name == 'Object' &&
+        element.library.canonicalUri == Uris.dart_core;
+  }
 
   bool get containsTypeVariables =>
       typeArguments.any((type) => type.containsTypeVariables);
@@ -379,7 +388,7 @@ class FunctionTypeVariable extends DartType {
   /// type.
   final int index;
 
-  /// The bound of this existential type.
+  /// The bound of this function type variable.
   final DartType bound;
 
   FunctionTypeVariable(this.index, this.bound);
@@ -397,7 +406,7 @@ class FunctionTypeVariable extends DartType {
     if (index != -1) {
       return arguments[index];
     }
-    // The existential type was not substituted.
+    // The function type variable was not substituted.
     return this;
   }
 
@@ -613,6 +622,13 @@ class FunctionType extends DartType {
       for (int index = 0; index < typeVariables.length; index++) {
         assumptions.assume(typeVariables[index], other.typeVariables[index]);
       }
+      for (int index = 0; index < typeVariables.length; index++) {
+        if (!typeVariables[index]
+            .bound
+            ._equals(other.typeVariables[index].bound, assumptions)) {
+          return false;
+        }
+      }
     }
     bool result = returnType == other.returnType &&
         _equalTypes(parameterTypes, other.parameterTypes, assumptions) &&
@@ -636,12 +652,16 @@ class FunctionType extends DartType {
     if (typeVariables.isNotEmpty) {
       sb.write('<');
       bool needsComma = false;
-      // TODO(johnniwinther): Include bounds.
       for (FunctionTypeVariable typeVariable in typeVariables) {
         if (needsComma) {
           sb.write(',');
         }
         sb.write(typeVariable);
+        DartType bound = typeVariable.bound;
+        if (!bound.isObject) {
+          sb.write(' extends ');
+          sb.write(typeVariable.bound);
+        }
         needsComma = true;
       }
       sb.write('>');
@@ -781,6 +801,8 @@ abstract class AbstractTypeRelation<T extends DartType>
     extends BaseDartTypeVisitor<bool, T> {
   CommonElements get commonElements;
 
+  final _Assumptions assumptions = new _Assumptions();
+
   /// Ensures that the super hierarchy of [type] is computed.
   void ensureResolved(InterfaceType type) {}
 
@@ -860,6 +882,26 @@ abstract class AbstractTypeRelation<T extends DartType>
       return false;
     }
 
+    if (tf.typeVariables.length != sf.typeVariables.length) {
+      return false;
+    }
+    for (int i = 0; i < tf.typeVariables.length; i++) {
+      assumptions.assume(tf.typeVariables[i], sf.typeVariables[i]);
+    }
+    for (int i = 0; i < tf.typeVariables.length; i++) {
+      if (!tf.typeVariables[i].bound
+          ._equals(sf.typeVariables[i].bound, assumptions)) {
+        return false;
+      }
+    }
+    bool result = visitFunctionTypeInternal(tf, sf);
+    for (int i = 0; i < tf.typeVariables.length; i++) {
+      assumptions.forget(tf.typeVariables[i], sf.typeVariables[i]);
+    }
+    return result;
+  }
+
+  bool visitFunctionTypeInternal(FunctionType tf, FunctionType sf) {
     // TODO(johnniwinther): Rewrite the function subtyping to be more readable
     // but still as efficient.
 
@@ -972,6 +1014,11 @@ abstract class AbstractTypeRelation<T extends DartType>
     }
     if (invalidTypeVariableBounds(bound, s)) return false;
     return true;
+  }
+
+  bool visitFunctionTypeVariable(FunctionTypeVariable t, DartType s) {
+    if (!s.isFunctionTypeVariable) return false;
+    return assumptions.isAssumed(t, s);
   }
 }
 

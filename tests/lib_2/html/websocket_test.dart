@@ -2,7 +2,7 @@ library WebSocketTest;
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   group('supported', () {

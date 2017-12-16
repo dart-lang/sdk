@@ -7,9 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-// TODO(devoncarew): We should look into not creating any labels until there's
-// at least 2 levels of nesting.
-
 /**
  * A computer for [CompilationUnit] closing labels.
  */
@@ -17,6 +14,8 @@ class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final List<ClosingLabel> _closingLabels = [];
+  final Set<ClosingLabel> hasNestingSet = new Set();
+  final Set<ClosingLabel> isSingleLineSet = new Set();
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
@@ -25,7 +24,20 @@ class DartUnitClosingLabelsComputer {
    */
   List<ClosingLabel> compute() {
     _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
-    return _closingLabels;
+
+    return _closingLabels.where((ClosingLabel label) {
+      // Filter labels that don't have some nesting.
+      // Filter labels that start and end on the same line.
+      return hasNestingSet.contains(label) && !isSingleLineSet.contains(label);
+    }).toList();
+  }
+
+  void setHasNesting(ClosingLabel label) {
+    hasNestingSet.add(label);
+  }
+
+  void setSingleLine(ClosingLabel label) {
+    isSingleLineSet.add(label);
   }
 }
 
@@ -37,24 +49,33 @@ class _DartUnitClosingLabelsComputerVisitor
   final DartUnitClosingLabelsComputer computer;
 
   int interpolatedStringsEntered = 0;
+  List<ClosingLabel> labelStack = [];
 
   _DartUnitClosingLabelsComputerVisitor(this.computer);
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ClosingLabel label;
+
     if (node.argumentList != null) {
-      var label = node.constructorName.type.name.name;
+      String labelText = node.constructorName.type.name.name;
       if (node.constructorName.name != null) {
-        label += ".${node.constructorName.name.name}";
+        labelText += ".${node.constructorName.name.name}";
       }
       // We override the node used for doing line calculations because otherwise
       // constructors that split over multiple lines (but have parens on same
       // line) would incorrectly get labels, because node.start on an instance
       // creation expression starts at the start of the expression.
-      _addLabel(node, label, checkLinesUsing: node.argumentList);
+      label = _addLabel(node, labelText, checkLinesUsing: node.argumentList);
     }
 
-    return super.visitInstanceCreationExpression(node);
+    if (label != null) _pushLabel(label);
+
+    try {
+      return super.visitInstanceCreationExpression(node);
+    } finally {
+      if (label != null) _popLabel();
+    }
   }
 
   @override
@@ -62,11 +83,19 @@ class _DartUnitClosingLabelsComputerVisitor
     final NodeList<TypeAnnotation> args = node.typeArguments?.arguments;
     final String typeName = args != null ? args[0]?.toString() : null;
 
+    ClosingLabel label;
+
     if (typeName != null) {
-      _addLabel(node, "<$typeName>[]");
+      label = _addLabel(node, "<$typeName>[]");
     }
 
-    return super.visitListLiteral(node);
+    if (label != null) _pushLabel(label);
+
+    try {
+      return super.visitListLiteral(node);
+    } finally {
+      if (label != null) _popLabel();
+    }
   }
 
   @override
@@ -79,10 +108,11 @@ class _DartUnitClosingLabelsComputerVisitor
     }
   }
 
-  void _addLabel(AstNode node, String label, {AstNode checkLinesUsing}) {
+  ClosingLabel _addLabel(AstNode node, String label,
+      {AstNode checkLinesUsing}) {
     // Never add labels if we're inside strings.
     if (interpolatedStringsEntered > 0) {
-      return;
+      return null;
     }
 
     checkLinesUsing = checkLinesUsing ?? node;
@@ -92,14 +122,32 @@ class _DartUnitClosingLabelsComputerVisitor
     final LineInfo_Location end =
         computer._lineInfo.getLocation(checkLinesUsing.end - 1);
 
-    int spannedLines = end.lineNumber - start.lineNumber;
-    if (spannedLines < 1) {
-      return;
-    }
-
     final ClosingLabel closingLabel =
         new ClosingLabel(node.offset, node.length, label);
 
+    int spannedLines = end.lineNumber - start.lineNumber;
+    if (spannedLines < 1) {
+      computer.setSingleLine(closingLabel);
+    }
+
+    ClosingLabel parent = _currentLabel;
+    if (parent != null) {
+      computer.setHasNesting(parent);
+      computer.setHasNesting(closingLabel);
+    }
+
     computer._closingLabels.add(closingLabel);
+
+    return closingLabel;
+  }
+
+  void _pushLabel(ClosingLabel label) {
+    labelStack.add(label);
+  }
+
+  ClosingLabel get _currentLabel => labelStack.isEmpty ? null : labelStack.last;
+
+  void _popLabel() {
+    labelStack.removeLast();
   }
 }

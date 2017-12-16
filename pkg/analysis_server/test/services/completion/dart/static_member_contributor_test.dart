@@ -22,18 +22,6 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     return new StaticMemberContributor();
   }
 
-  fail_enumConst_deprecated() async {
-    addTestSource('@deprecated enum E { one, two } main() {E.^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    // TODO(danrubel) Investigate why enum suggestion is not marked
-    // as deprecated if enum ast element is deprecated
-    assertSuggestEnumConst('one', isDeprecated: true);
-    assertSuggestEnumConst('two', isDeprecated: true);
-    assertNotSuggested('index');
-    assertSuggestField('values', 'List<E>', isDeprecated: true);
-  }
-
   test_enumConst() async {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
@@ -94,6 +82,19 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
+  }
+
+  @failingTest
+  test_enumConst_deprecated() async {
+    addTestSource('@deprecated enum E { one, two } main() {E.^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    // TODO(danrubel) Investigate why enum suggestion is not marked
+    // as deprecated if enum ast element is deprecated
+    assertSuggestEnumConst('one', isDeprecated: true);
+    assertSuggestEnumConst('two', isDeprecated: true);
+    assertNotSuggested('index');
+    assertSuggestField('values', 'List<E>', isDeprecated: true);
   }
 
   test_keyword() async {

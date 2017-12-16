@@ -48,13 +48,8 @@ final_syntax_test/04: MissingCompileTimeError
 forwarding_stub_tearoff_test: CompileTimeError
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_local_functions_test: CompileTimeError
-generic_methods_closure_test: CompileTimeError # Issue 29920
 generic_methods_generic_function_parameter_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
-generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
-generic_methods_shadowing_test: CompileTimeError # Issue 29920
-generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
-generic_methods_type_expression_test: CompileTimeError
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_test: CompileTimeError
@@ -65,6 +60,8 @@ implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #
 import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 method_override_test: CompileTimeError # Negative test
@@ -111,6 +108,8 @@ switch_case_test/none: CompileTimeError
 syntax_test/none: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+type_inference_circularity_test: MissingCompileTimeError
+type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
 type_promotion_functions_test/03: CompileTimeError # Issue 30895
 type_promotion_functions_test/04: CompileTimeError # Issue 30895
@@ -189,6 +188,7 @@ call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
 callable_test/none: CompileTimeError
+cascade_on_static_field_test: Crash
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -230,7 +230,6 @@ const_optional_args_test/01: MissingCompileTimeError
 const_qq_test: Crash
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: MissingCompileTimeError
 const_syntax_test/09: Crash
 const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
@@ -286,7 +285,6 @@ emit_const_fields_test: CompileTimeError # Issue 31533
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: CompileTimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
@@ -307,7 +305,7 @@ final_attempt_reinitialization_test/01: Crash
 final_attempt_reinitialization_test/02: Crash
 final_syntax_test/09: Crash
 function_propagation_test: CompileTimeError
-function_subtype_bound_closure7_test: CompileTimeError
+function_subtype_bound_closure7_test: Crash
 function_type/function_type10_test: CompileTimeError
 function_type/function_type11_test: CompileTimeError
 function_type/function_type14_test: CompileTimeError
@@ -378,12 +376,12 @@ function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generalized_void_syntax_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
-generic_function_dcall_test: CompileTimeError
+generic_function_dcall_test: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_tearoff_specialization_test: CompileTimeError
-generic_methods_unused_parameter_test: CompileTimeError
+generic_methods_tearoff_specialization_test: Crash
+generic_methods_unused_parameter_test: Crash
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 getter_override2_test/02: MissingCompileTimeError
@@ -400,6 +398,9 @@ implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
+instantiate_tearoff_after_contravariance_check_test: Crash
+instantiate_tearoff_of_call_test: Crash
+instantiate_tearoff_test: Crash
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError
@@ -544,6 +545,7 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
+mixin_with_named_import_test: Crash
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
@@ -641,6 +643,7 @@ super_getter_setter_test: CompileTimeError
 super_in_async3_test: Crash
 super_in_async4_test: Crash
 super_in_async6_test: Crash
+super_in_constructor_test: RuntimeError
 super_in_finally_test: Crash
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
@@ -685,6 +688,7 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
+typedef_class_in_other_file_test: Crash
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
@@ -738,11 +742,6 @@ super_operator_index5_test: RuntimeError
 super_operator_index7_test: RuntimeError
 super_operator_index8_test: RuntimeError
 truncdiv_test: RuntimeError # Issue 29920
-yieldstar_pause_test: Skip # Times out
-
-[ $compiler == dartdevk && $runtime == none ]
-no_such_method_negative_test: Fail
-prefix6_negative_test: Fail
 
 [ $compiler == dartdevk && $runtime != none ]
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
@@ -791,7 +790,6 @@ generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_method_types_test/02: RuntimeError
-generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
@@ -823,7 +821,6 @@ regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
-yieldstar_pause_test: Timeout
 
 # Compiler tests for dartdevc and dartdevk.  These contain common expectations
 # for all runtimes including $runtime == none.  They are organized by: shared

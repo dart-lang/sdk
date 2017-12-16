@@ -20,10 +20,7 @@ main() {
   Expect.equals(0x7fffffffffffffff, int.parse("0x7fffffffffffffff"));
   Expect.equals(-0x7fffffffffffffff, int.parse("-0x7fffffffffffffff"));
   Expect.equals(-0x7fffffffffffffff - 1, int.parse("-0x8000000000000000"));
-
-  Expect.throwsFormatException(() => int.parse("0x8000000000000000"));
-  Expect.equals(ERROR, int.parse("0x8000000000000000", onError: returnError));
-  Expect.equals(ERROR, int.parse("-0x8000000000000001", onError: returnError));
+  Expect.equals(1 << 63, int.parse("0x8000000000000000"));
 
   Expect.equals(8999999999999999999, int.parse("8999999999999999999"));
   Expect.equals(-8999999999999999999, int.parse("-8999999999999999999"));
@@ -31,6 +28,7 @@ main() {
   Expect.equals(-9223372036854775807, int.parse("-9223372036854775807"));
   Expect.equals(-9223372036854775807 - 1, int.parse("-9223372036854775808"));
 
+  Expect.equals(ERROR, int.parse("-0x8000000000000001", onError: returnError));
   Expect.equals(ERROR, int.parse("9223372036854775808", onError: returnError));
   Expect.equals(ERROR, int.parse("9223372036854775809", onError: returnError));
   Expect.equals(ERROR, int.parse("-9223372036854775809", onError: returnError));

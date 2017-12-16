@@ -20,8 +20,8 @@ class RawObject;
 
 // Implements a sliding compactor.
 class GCCompactor : public ValueObject,
-                    private HandleVisitor,
-                    private ObjectPointerVisitor {
+                    public HandleVisitor,
+                    public ObjectPointerVisitor {
  public:
   GCCompactor(Thread* thread, Heap* heap)
       : HandleVisitor(thread),
@@ -29,25 +29,16 @@ class GCCompactor : public ValueObject,
         heap_(heap) {}
   ~GCCompactor() {}
 
-  void CompactBySliding(HeapPage* pages, FreeList* freelist, Mutex* mutex);
+  void Compact(HeapPage* pages, FreeList* freelist, Mutex* mutex);
 
  private:
-  void SlidePage(HeapPage* page);
-  uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
-  void MoveToExactAddress(uword addr);
-  void MoveToContiguousSize(intptr_t size);
-
-  void ForwardPointersForSliding();
-  void ForwardPointerForSliding(RawObject** ptr);
+  void SetupImagePageBoundaries();
+  void ForwardStackPointers();
+  void ForwardPointer(RawObject** ptr);
   void VisitPointers(RawObject** first, RawObject** last);
   void VisitHandle(uword addr);
 
   Heap* heap_;
-
-  HeapPage* free_page_;
-  uword free_current_;
-  uword free_end_;
-  FreeList* freelist_;
 
   struct ImagePageRange {
     uword base;

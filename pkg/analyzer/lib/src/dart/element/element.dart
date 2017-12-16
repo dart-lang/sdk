@@ -2874,6 +2874,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
    */
   static String _REQUIRED_VARIABLE_NAME = "required";
 
+  /// The name of the top-level variable used to mark a method as being
+  /// visible for testing.
+  static String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
+
   /**
    * The element representing the field, variable, or constructor being used as
    * an annotation.
@@ -2987,6 +2991,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isVisibleForTesting =>
+      element is PropertyAccessorElement &&
+      element.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -3258,6 +3268,10 @@ abstract class ElementImpl implements Element {
   void set isSynthetic(bool isSynthetic) {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
+
+  @override
+  bool get isVisibleForTesting => metadata
+      .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
 
   @override
   LibraryElement get library =>
@@ -7463,6 +7477,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isSynthetic => true;
+
+  @override
+  bool get isVisibleForTesting => false;
 
   @override
   ElementKind get kind => ElementKind.ERROR;

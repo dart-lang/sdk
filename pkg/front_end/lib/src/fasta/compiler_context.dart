@@ -6,16 +6,22 @@ library fasta.compiler_context;
 
 import 'dart:async' show Zone, runZoned;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/ast.dart' show Source;
+
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
+
+import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import 'scanner/token.dart' show StringToken;
+
 import 'command_line_reporting.dart' as command_line_reporting;
 
 import 'colors.dart' show computeEnableColors;
 
-import 'fasta_codes.dart' show LocatedMessage, Message;
+import 'fasta_codes.dart'
+    show LocatedMessage, Message, messageInternalProblemMissingContext;
 
 import 'severity.dart' show Severity;
 
@@ -84,9 +90,14 @@ class CompilerContext {
   }
 
   /// Perform [action] in a [Zone] where [this] will be available as
-  /// `CompilerContext.current.options`.
+  /// `CompilerContext.current`.
   T runInContext<T>(T action(CompilerContext c)) {
-    return runZoned(() => action(this), zoneValues: {compilerContextKey: this});
+    try {
+      return runZoned(() => action(this),
+          zoneValues: {compilerContextKey: this});
+    } finally {
+      clear();
+    }
   }
 
   /// Perform [action] in a [Zone] where [options] will be available as
@@ -103,5 +114,9 @@ class CompilerContext {
 
   static bool get enableColors {
     return current.enableColorsCached ??= computeEnableColors(current);
+  }
+
+  static void clear() {
+    StringToken.canonicalizer.clear();
   }
 }

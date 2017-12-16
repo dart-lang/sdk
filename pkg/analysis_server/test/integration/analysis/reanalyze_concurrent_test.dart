@@ -17,6 +17,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
+    defineReflectiveTests(ReanalyzeTest_PreviewDart2);
   });
 }
 
@@ -46,4 +47,10 @@ main() {}''';
       });
     });
   }
+}
+
+@reflectiveTest
+class ReanalyzeTest_PreviewDart2 extends ReanalyzeTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

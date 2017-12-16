@@ -312,6 +312,7 @@ class ConstructorHelper {
     kEndPosition,
     kFlags,
     kName,
+    kSourceUriIndex,
     kAnnotations,
     kFunction,
     kInitializers,
@@ -344,6 +345,7 @@ class ConstructorHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
+  intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
  private:
@@ -1033,8 +1035,6 @@ class StreamingFlowGraphBuilder {
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
 
-  LocalVariable* LookupParameterDirect(intptr_t kernel_offset,
-                                       intptr_t parameter_index);
   LocalVariable* LookupVariable(intptr_t kernel_offset);
   LocalVariable* MakeTemporary();
   RawFunction* LookupMethodByMember(NameIndex target,

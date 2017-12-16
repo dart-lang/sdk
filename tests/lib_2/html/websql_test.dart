@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:web_sql';
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/unittest.dart';
 
 Future<SqlTransaction> transaction(SqlDatabase db) {
   final completer = new Completer<SqlTransaction>.sync();

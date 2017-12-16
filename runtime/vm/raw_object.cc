@@ -528,11 +528,13 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   const intptr_t length = raw_obj->ptr()->length_;
+  RawObjectPool::Entry* entries = raw_obj->ptr()->data();
+  uint8_t* entry_types = raw_obj->ptr()->entry_types();
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(raw_obj->ptr()->entry_types()[i]);
+        static_cast<ObjectPool::EntryType>(entry_types[i]);
     if (entry_type == ObjectPool::kTaggedObject) {
-      visitor->VisitPointer(&raw_obj->ptr()->data()[i].raw_obj_);
+      visitor->VisitPointer(&entries[i].raw_obj_);
     }
   }
   return ObjectPool::InstanceSize(length);

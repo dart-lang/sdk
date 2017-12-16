@@ -21,7 +21,6 @@ extern const char* kIsolateSnapshotDataSymbolName;
 extern const char* kIsolateSnapshotInstructionsSymbolName;
 
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
-static const int64_t kAppSnapshotMagicNumber = 0xf6f6dcdc;
 static const int64_t kAppSnapshotPageSize = 4 * KB;
 
 class MappedAppSnapshot : public AppSnapshot {
@@ -86,7 +85,9 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
     file->Release();
     return NULL;
   }
-  if (header[0] != kAppSnapshotMagicNumber) {
+  ASSERT(sizeof(header[0]) == appjit_magic_number.length);
+  if (memcmp(&header[0], appjit_magic_number.bytes,
+             appjit_magic_number.length) != 0) {
     file->Release();
     return NULL;
   }
@@ -287,7 +288,7 @@ static void WriteAppSnapshot(const char* filename,
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
   }
 
-  file->WriteFully(&kAppSnapshotMagicNumber, sizeof(kAppSnapshotMagicNumber));
+  file->WriteFully(appjit_magic_number.bytes, appjit_magic_number.length);
   WriteInt64(file, vm_data_size);
   WriteInt64(file, vm_instructions_size);
   WriteInt64(file, isolate_data_size);

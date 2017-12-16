@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,12 +24,12 @@ import '../../mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SearchEngineImpl2Test);
+    defineReflectiveTests(SearchEngineImplTest);
   });
 }
 
 @reflectiveTest
-class SearchEngineImpl2Test {
+class SearchEngineImplTest {
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
@@ -392,31 +393,81 @@ get b => 42;
     expect(
         matches.where((match) => !match.libraryElement.isInSdk), hasLength(4));
 
-    void assertHasElement(String name) {
-      expect(
-          matches,
-          contains(predicate((SearchMatch m) =>
-              m.kind == MatchKind.DECLARATION && m.element.name == name)));
+    void assertHasOneElement(String name) {
+      Iterable<SearchMatch> nameMatches = matches.where((SearchMatch m) =>
+          m.kind == MatchKind.DECLARATION && m.element.name == name);
+      expect(nameMatches, hasLength(1));
     }
 
-    assertHasElement('A');
-    assertHasElement('a');
-    assertHasElement('B');
-    assertHasElement('b');
+    assertHasOneElement('A');
+    assertHasOneElement('a');
+    assertHasOneElement('B');
+    assertHasOneElement('b');
   }
 
-  AnalysisDriver _newDriver() => new AnalysisDriver(
-      scheduler,
-      logger,
-      provider,
-      byteStore,
-      contentOverlay,
-      null,
-      new SourceFactory(
-          [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
-          null,
-          provider),
-      new AnalysisOptionsImpl()..strongMode = true);
+  test_searchTopLevelDeclarations_dependentPackage() async {
+    var a = _p('/a/lib/a.dart');
+    provider.newFile(a, '''
+class A {}
+''');
+    var driver1 = _newDriver();
+    driver1.addFile(a);
+
+    // The package:b uses the class A from the package:a,
+    // so it sees the declaration the element A.
+    var b = _p('/b/lib/b.dart');
+    provider.newFile(b, '''
+import 'package:a/a.dart';
+class B extends A {}
+''');
+    var driver2 = _newDriver(
+        packageUriResolver: new PackageMapUriResolver(provider, {
+      'a': [provider.getFile(a).parent]
+    }));
+    driver2.addFile(b);
+
+    while (scheduler.isAnalyzing) {
+      await new Future.delayed(new Duration(milliseconds: 1));
+    }
+
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
+    List<SearchMatch> matches =
+        await searchEngine.searchTopLevelDeclarations('.*');
+    // We get exactly two items: A and B.
+    // I.e. we get exactly one A.
+    expect(
+        matches.where((match) => !match.libraryElement.isInSdk), hasLength(2));
+
+    void assertHasOneElement(String name) {
+      Iterable<SearchMatch> nameMatches = matches.where((SearchMatch m) =>
+          m.kind == MatchKind.DECLARATION && m.element.name == name);
+      expect(nameMatches, hasLength(1));
+    }
+
+    assertHasOneElement('A');
+    assertHasOneElement('B');
+  }
+
+  AnalysisDriver _newDriver({UriResolver packageUriResolver}) {
+    var resolvers = <UriResolver>[
+      new DartUriResolver(sdk),
+      new ResourceUriResolver(provider)
+    ];
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
+    }
+    resolvers.add(new ResourceUriResolver(provider));
+
+    return new AnalysisDriver(
+        scheduler,
+        logger,
+        provider,
+        byteStore,
+        contentOverlay,
+        null,
+        new SourceFactory(resolvers, null, provider),
+        new AnalysisOptionsImpl()..strongMode = true);
+  }
 
   String _p(String path) => provider.convertPath(path);
 }

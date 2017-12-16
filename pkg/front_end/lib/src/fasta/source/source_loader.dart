@@ -209,12 +209,13 @@ class SourceLoader<L> extends Loader<L> {
   void resolveParts() {
     List<Uri> parts = <Uri>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder) {
-        if (library.isPart) {
-          library.validatePart();
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        if (sourceLibrary.isPart) {
+          sourceLibrary.validatePart();
           parts.add(uri);
         } else {
-          library.includeParts();
+          sourceLibrary.includeParts();
         }
       }
     });
@@ -222,7 +223,7 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved parts");
 
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder) {
+      if (library.loader == this) {
         library.applyPatches();
       }
     });
@@ -233,8 +234,9 @@ class SourceLoader<L> extends Loader<L> {
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder) {
-        library.buildInitialScopes();
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        sourceLibrary.buildInitialScopes();
       }
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
@@ -266,10 +268,18 @@ class SourceLoader<L> extends Loader<L> {
       }
     } while (wasChanged);
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder) {
-        library.addImportsToScope();
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        sourceLibrary.addImportsToScope();
       }
     });
+    for (LibraryBuilder exportee in exportees) {
+      // TODO(ahe): Change how we track exporters. Currently, when a library
+      // (exporter) exports another library (exportee) we add a reference to
+      // exporter to exportee. This creates a reference in the wrong direction
+      // and can lead to memory leaks.
+      exportee.exporters.clear();
+    }
     ticker.logMs("Computed library scopes");
     // debugPrintExports();
   }
@@ -314,23 +324,19 @@ class SourceLoader<L> extends Loader<L> {
   void finishDeferredLoadTearoffs() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.finishDeferredLoadTearoffs();
+      if (library.loader == this) {
+        count += library.finishDeferredLoadTearoffs();
+      }
     });
     ticker.logMs("Finished deferred load tearoffs $count");
-  }
-
-  void finishStaticInvocations() {
-    int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.finishStaticInvocations();
-    });
-    ticker.logMs("Finished static invocations $count");
   }
 
   void resolveConstructors() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.resolveConstructors(null);
+      if (library.loader == this) {
+        count += library.resolveConstructors(null);
+      }
     });
     ticker.logMs("Resolved $count constructors");
   }
@@ -338,7 +344,9 @@ class SourceLoader<L> extends Loader<L> {
   void finishTypeVariables(ClassBuilder object) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.finishTypeVariables(object);
+      if (library.loader == this) {
+        count += library.finishTypeVariables(object);
+      }
     });
     ticker.logMs("Resolved $count type-variable bounds");
   }
@@ -346,7 +354,9 @@ class SourceLoader<L> extends Loader<L> {
   void finishNativeMethods() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.finishNativeMethods();
+      if (library.loader == this) {
+        count += library.finishNativeMethods();
+      }
     });
     ticker.logMs("Finished $count native methods");
   }
@@ -354,7 +364,9 @@ class SourceLoader<L> extends Loader<L> {
   void finishPatchMethods() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.finishPatchMethods();
+      if (library.loader == this) {
+        count += library.finishPatchMethods();
+      }
     });
     ticker.logMs("Finished $count patch methods");
   }
@@ -410,36 +422,49 @@ class SourceLoader<L> extends Loader<L> {
     return output;
   }
 
-  void checkSemantics() {
-    List<ClassBuilder> allClasses = target.collectAllClasses();
-    Iterable<ClassBuilder> candidates = cyclicCandidates(allClasses);
-    Map<ClassBuilder, Set<ClassBuilder>> realCycles =
-        <ClassBuilder, Set<ClassBuilder>>{};
-    for (ClassBuilder cls in candidates) {
-      Set<ClassBuilder> cycles = cyclicCandidates(allSupertypes(cls));
-      if (cycles.isNotEmpty) {
-        realCycles[cls] = cycles;
+  void checkSemantics(List<SourceClassBuilder> classes) {
+    Iterable<ClassBuilder> candidates = cyclicCandidates(classes);
+    if (candidates.isNotEmpty) {
+      Map<ClassBuilder, Set<ClassBuilder>> realCycles =
+          <ClassBuilder, Set<ClassBuilder>>{};
+      for (ClassBuilder cls in candidates) {
+        Set<ClassBuilder> cycles = cyclicCandidates(allSupertypes(cls));
+        if (cycles.isNotEmpty) {
+          realCycles[cls] = cycles;
+        }
       }
-    }
-    Set<ClassBuilder> reported = new Set<ClassBuilder>();
-    realCycles.forEach((ClassBuilder cls, Set<ClassBuilder> cycles) {
-      target.breakCycle(cls);
-      if (reported.add(cls)) {
+      Map<LocatedMessage, ClassBuilder> messages =
+          <LocatedMessage, ClassBuilder>{};
+      realCycles.forEach((ClassBuilder cls, Set<ClassBuilder> cycles) {
+        target.breakCycle(cls);
         List<ClassBuilder> involved = <ClassBuilder>[];
         for (ClassBuilder cls in cycles) {
           if (realCycles.containsKey(cls)) {
             involved.add(cls);
-            reported.add(cls);
           }
         }
-        String involvedString =
-            involved.map((c) => c.fullNameForErrors).join("', '");
-        cls.addCompileTimeError(
-            templateCyclicClassHierarchy.withArguments(
-                cls.fullNameForErrors, involvedString),
-            cls.charOffset);
+        // Sort the class names alphabetically to ensure the order is stable.
+        // TODO(ahe): It's possible that a better UX would be to sort the
+        // classes based on walking the class hierarchy in breadth-first order.
+        String involvedString = (involved
+                .where((c) => c != cls)
+                .map((c) => c.fullNameForErrors)
+                .toList()
+                  ..sort())
+            .join("', '");
+        messages[templateCyclicClassHierarchy
+            .withArguments(cls.fullNameForErrors, involvedString)
+            .withLocation(cls.fileUri, cls.charOffset)] = cls;
+      });
+
+      // Report all classes involved in a cycle, sorted to ensure stability as
+      // [cyclicCandidates] is sensitive to if the platform (or other modules)
+      // are included in [classes].
+      for (LocatedMessage message in messages.keys.toList()..sort()) {
+        messages[message]
+            .addCompileTimeError(message.messageObject, message.charOffset);
       }
-    });
+    }
     ticker.logMs("Found cycles");
     Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>.from([
       coreLibrary["bool"],
@@ -448,7 +473,7 @@ class SourceLoader<L> extends Loader<L> {
       coreLibrary["double"],
       coreLibrary["String"],
     ]);
-    for (ClassBuilder cls in allClasses) {
+    for (ClassBuilder cls in classes) {
       if (cls.library.loader != this) continue;
       Set<ClassBuilder> directSupertypes = new Set<ClassBuilder>();
       target.addDirectSupertype(cls, directSupertypes);
@@ -497,8 +522,9 @@ class SourceLoader<L> extends Loader<L> {
 
   void buildProgram() {
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder) {
-        L target = library.build(coreLibrary);
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        L target = sourceLibrary.build(coreLibrary);
         if (!library.isPatch) {
           libraries.add(target);
         }
@@ -517,7 +543,9 @@ class SourceLoader<L> extends Loader<L> {
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
-      builder.checkOverrides(hierarchy);
+      if (builder.library.loader == this) {
+        builder.checkOverrides(hierarchy);
+      }
     }
     ticker.logMs("Checked overrides");
   }
@@ -539,7 +567,7 @@ class SourceLoader<L> extends Loader<L> {
         instrumentation,
         target.strongMode);
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder) {
+      if (library.loader == this) {
         library.prepareTopLevelInference(library, null);
       }
     });
@@ -574,7 +602,7 @@ class SourceLoader<L> extends Loader<L> {
     typeInferenceEngine.finishTopLevelInitializingFormals();
     if (instrumentation != null) {
       builders.forEach((Uri uri, LibraryBuilder library) {
-        if (library is SourceLibraryBuilder) {
+        if (library.loader == this) {
           library.instrumentTopLevelInference(instrumentation);
         }
       });
@@ -644,10 +672,7 @@ class SourceLoader<L> extends Loader<L> {
             message.code == fasta_codes.codeConstConstructorWithBody ||
             message.code == fasta_codes.codeConstructorNotFound ||
             message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
-            message.code == fasta_codes.codeSupertypeIsIllegal ||
-            message.code == fasta_codes.codeSupertypeIsTypeVariable ||
             message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
-            message.code == fasta_codes.codeTypeNotFound ||
             message.code == fasta_codes.codeUnspecified)) {
       // TODO(ahe): All warnings should have a charOffset, but currently, some
       // warnings lack them.

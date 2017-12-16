@@ -166,6 +166,8 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                                    FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(!parsed_function.function().HasOptionalParameters());
+  PrologueInfo prologue_info(-1, -1);
+
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new ZoneGrowableArray<const ICData*>();
   FlowGraphBuilder builder(parsed_function, *ic_data_array,
@@ -178,7 +180,6 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                            Thread::Current()->GetNextDeoptId());
   GraphEntryInstr* graph_entry = new GraphEntryInstr(
       parsed_function, normal_entry, Compiler::kNoOSRDeoptId);
-  PrologueInfo prologue_info(-1, -1);
   FlowGraph* graph =
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();

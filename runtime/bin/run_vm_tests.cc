@@ -137,25 +137,33 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   }
   script_uri = kernel_snapshot;
 
-  bin::AppSnapshot* app_snapshot =
-      bin::Snapshot::TryReadAppSnapshot(script_uri);
-  if (app_snapshot == NULL) {
-    *error = strdup("Failed to read kernel service app snapshot");
-    return NULL;
-  }
-
+  // Kernel isolate uses an app snapshot or the core libraries snapshot.
+  bool isolate_run_script_snapshot = false;
   const uint8_t* isolate_snapshot_data = bin::core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       bin::core_isolate_snapshot_instructions;
+  bin::AppSnapshot* app_snapshot = NULL;
+  switch (bin::DartUtils::SniffForMagicNumber(script_uri)) {
+    case bin::DartUtils::kAppJITMagicNumber: {
+      app_snapshot = bin::Snapshot::TryReadAppSnapshot(script_uri);
+      ASSERT(app_snapshot != NULL);
 
-  const uint8_t* ignore_vm_snapshot_data;
-  const uint8_t* ignore_vm_snapshot_instructions;
-  app_snapshot->SetBuffers(
-      &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-      &isolate_snapshot_data, &isolate_snapshot_instructions);
-
+      const uint8_t* ignore_vm_snapshot_data;
+      const uint8_t* ignore_vm_snapshot_instructions;
+      app_snapshot->SetBuffers(
+          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+          &isolate_snapshot_data, &isolate_snapshot_instructions);
+      break;
+    }
+    case bin::DartUtils::kSnapshotMagicNumber: {
+      isolate_run_script_snapshot = true;
+      break;
+    }
+    default:
+      return NULL;
+  }
   bin::IsolateData* isolate_data = new bin::IsolateData(
-      script_uri, package_root, packages_config, NULL /* app_snapshot */);
+      script_uri, package_root, packages_config, app_snapshot);
   Dart_Isolate isolate = Dart_CreateIsolate(
       DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
       isolate_snapshot_instructions, flags, isolate_data, error);
@@ -166,6 +174,18 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   }
 
   Dart_EnterScope();
+
+  if (isolate_run_script_snapshot) {
+    const uint8_t* payload;
+    intptr_t payload_length;
+    void* file = bin::DartUtils::OpenFile(script_uri, false);
+    bin::DartUtils::ReadFile(&payload, &payload_length, file);
+    bin::DartUtils::CloseFile(file);
+
+    bin::DartUtils::SkipSnapshotMagicNumber(&payload, &payload_length);
+    Dart_Handle result = Dart_LoadScriptFromSnapshot(payload, payload_length);
+    CHECK_RESULT(result);
+  }
 
   bin::DartUtils::SetOriginalWorkingDirectory();
   Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(

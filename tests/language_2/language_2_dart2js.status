@@ -142,7 +142,7 @@ error_stacktrace_test/00: MissingCompileTimeError
 example_constructor_test: RuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: CompileTimeError # Issue 31371
+extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory1_test/00: MissingCompileTimeError
@@ -1076,7 +1076,6 @@ library_env_test/has_no_io_support: Pass # Issue 27398
 covariant_subtyping_test: CompileTimeError
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
-arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1197,6 +1196,7 @@ covariance_type_parameter_test/none: Crash # NoSuchMethodError: The method 'hasS
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 cyclic_constructor_test/01: Crash # Stack Overflow
+deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1243,13 +1243,13 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
+full_stacktrace1_test: RuntimeError # Issue 12698
+full_stacktrace2_test: RuntimeError # Issue 12698
+full_stacktrace3_test: RuntimeError # Issue 12698
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
-generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
-generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
@@ -1440,8 +1440,11 @@ regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
+stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -1521,6 +1524,7 @@ assertion_initializer_const_error2_test/none: Pass
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128
+forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
@@ -1566,6 +1570,7 @@ const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
+forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
@@ -1610,6 +1615,9 @@ implicit_downcast_during_return_async_test: RuntimeError
 implicit_downcast_during_super_initializer_test: RuntimeError
 implicit_downcast_during_yield_star_test: RuntimeError
 implicit_downcast_during_yield_test: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError
 invalid_cast_test/03: MissingCompileTimeError
@@ -1623,6 +1631,8 @@ library_env_test/has_no_mirror_support: Pass
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
+type_inference_circularity_test: MissingCompileTimeError
+type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 arithmetic_canonicalization_test: RuntimeError
@@ -2026,8 +2036,8 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -2048,7 +2058,6 @@ type_literal_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -2172,6 +2181,7 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
+deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_constraints_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
@@ -2220,6 +2230,9 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
+full_stacktrace1_test: RuntimeError
+full_stacktrace2_test: RuntimeError
+full_stacktrace3_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -2250,10 +2263,7 @@ function_type_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
-generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
-generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
@@ -2454,8 +2464,11 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
+stacktrace_rethrow_nonerror_test: RuntimeError
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # Assertion failure: Missing scope info for j:method(E.boz).
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -2478,7 +2491,6 @@ type_literal_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -2600,6 +2612,7 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
+deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
@@ -2648,9 +2661,9 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
-full_stacktrace1_test: RuntimeError
-full_stacktrace2_test: RuntimeError
-full_stacktrace3_test: RuntimeError
+full_stacktrace1_test: RuntimeError # Issue 12698
+full_stacktrace2_test: RuntimeError # Issue 12698
+full_stacktrace3_test: RuntimeError # Issue 12698
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -2679,10 +2692,7 @@ function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
-generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
-generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
-generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
@@ -2876,11 +2886,11 @@ regress_31057_test: Crash # Unsupported operation: Unsupported type parameter ty
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_rethrow_error_test/none: RuntimeError
-stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
-stacktrace_rethrow_nonerror_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
+stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -3031,6 +3041,9 @@ identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 infinity_test: RuntimeError # Issue 4984
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 left_shift_test: RuntimeError # Issue 1533
@@ -3086,13 +3099,15 @@ regress_22976_test: CompileTimeError # Issue 23132
 regress_24283_test: RuntimeError # Issue 1533
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 setter4_test: CompileTimeError # issue 13639
-stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
+stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant, issue 12698
 stacktrace_rethrow_error_test: Pass, RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError # Issue 12698
 stacktrace_test: Pass, RuntimeError # # Issue 12698
 truncdiv_test: RuntimeError # Issue 15246
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
+type_inference_circularity_test: MissingCompileTimeError
+type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_variable_conflict_test/01: Fail # Issue 13702
 type_variable_conflict_test/02: Fail # Issue 13702
 type_variable_conflict_test/03: Fail # Issue 13702

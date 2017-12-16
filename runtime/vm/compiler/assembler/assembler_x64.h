@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_x64.h"
+#include "vm/constants_x86.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
 
@@ -31,6 +32,7 @@ class Immediate : public ValueObject {
 
   bool is_int8() const { return Utils::IsInt(8, value_); }
   bool is_uint8() const { return Utils::IsUint(8, value_); }
+  bool is_int16() const { return Utils::IsInt(16, value_); }
   bool is_uint16() const { return Utils::IsUint(16, value_); }
   bool is_int32() const { return Utils::IsInt(32, value_); }
   bool is_uint32() const { return Utils::IsUint(32, value_); }
@@ -353,146 +355,221 @@ class Assembler : public ValueObject {
   /*
    * Emit Machine Instructions.
    */
-  void call(Register reg);
-  void call(const Address& address);
+  void call(Register reg) { EmitUnaryL(reg, 0xFF, 2); }
+  void call(const Address& address) { EmitUnaryL(address, 0xFF, 2); }
   void call(Label* label);
   void call(const ExternalLabel* label);
 
   static const intptr_t kCallExternalLabelSize = 15;
 
   void pushq(Register reg);
-  void pushq(const Address& address);
+  void pushq(const Address& address) { EmitUnaryL(address, 0xFF, 6); }
   void pushq(const Immediate& imm);
   void PushImmediate(const Immediate& imm);
 
   void popq(Register reg);
-  void popq(const Address& address);
+  void popq(const Address& address) { EmitUnaryL(address, 0x8F, 0); }
 
   void setcc(Condition condition, ByteRegister dst);
 
-  void movl(Register dst, Register src);
+// Register-register, register-address and address-register instructions.
+#define RR(width, name, ...)                                                   \
+  void name(Register dst, Register src) { Emit##width(dst, src, __VA_ARGS__); }
+#define RA(width, name, ...)                                                   \
+  void name(Register dst, const Address& src) {                                \
+    Emit##width(dst, src, __VA_ARGS__);                                        \
+  }
+#define AR(width, name, ...)                                                   \
+  void name(const Address& dst, Register src) {                                \
+    Emit##width(src, dst, __VA_ARGS__);                                        \
+  }
+#define REGULAR_INSTRUCTION(name, ...)                                         \
+  RA(W, name##w, __VA_ARGS__)                                                  \
+  RA(L, name##l, __VA_ARGS__)                                                  \
+  RA(Q, name##q, __VA_ARGS__)                                                  \
+  RR(W, name##w, __VA_ARGS__)                                                  \
+  RR(L, name##l, __VA_ARGS__)                                                  \
+  RR(Q, name##q, __VA_ARGS__)
+  REGULAR_INSTRUCTION(test, 0x85)
+  REGULAR_INSTRUCTION(xchg, 0x87)
+  REGULAR_INSTRUCTION(imul, 0xAF, 0x0F)
+  REGULAR_INSTRUCTION(bsr, 0xBD, 0x0F)
+#undef REGULAR_INSTRUCTION
+  RA(Q, movsxd, 0x63)
+  RR(Q, movsxd, 0x63)
+  AR(L, movb, 0x88)
+  AR(L, movl, 0x89)
+  AR(Q, movq, 0x89)
+  AR(W, movw, 0x89)
+  RA(L, movb, 0x8A)
+  RA(L, movl, 0x8B)
+  RA(Q, movq, 0x8B)
+  RR(L, movl, 0x8B)
+  RA(Q, leaq, 0x8D)
+  AR(L, cmpxchgl, 0xB1, 0x0F)
+  AR(Q, cmpxchgq, 0xB1, 0x0F)
+  RA(L, cmpxchgl, 0xB1, 0x0F)
+  RA(Q, cmpxchgq, 0xB1, 0x0F)
+  RR(L, cmpxchgl, 0xB1, 0x0F)
+  RR(Q, cmpxchgq, 0xB1, 0x0F)
+  RA(Q, movzxb, 0xB6, 0x0F)
+  RR(Q, movzxb, 0xB6, 0x0F)
+  RA(Q, movzxw, 0xB7, 0x0F)
+  RR(Q, movzxw, 0xB7, 0x0F)
+  RA(Q, movsxb, 0xBE, 0x0F)
+  RR(Q, movsxb, 0xBE, 0x0F)
+  RA(Q, movsxw, 0xBF, 0x0F)
+  RR(Q, movsxw, 0xBF, 0x0F)
+#define DECLARE_CMOV(name, code)                                               \
+  RR(Q, cmov##name##q, 0x40 + code, 0x0F)                                      \
+  RR(L, cmov##name##l, 0x40 + code, 0x0F)                                      \
+  RA(Q, cmov##name##q, 0x40 + code, 0x0F)                                      \
+  RA(L, cmov##name##l, 0x40 + code, 0x0F)
+  X86_CONDITIONAL_SUFFIXES(DECLARE_CMOV)
+#undef DECLARE_CMOV
+#undef AA
+#undef RA
+#undef AR
+
+#define SIMPLE(name, ...)                                                      \
+  void name() { EmitSimple(__VA_ARGS__); }
+  SIMPLE(cpuid, 0x0F, 0xA2)
+  SIMPLE(fcos, 0xD9, 0xFF)
+  SIMPLE(fincstp, 0xD9, 0xF7)
+  SIMPLE(fsin, 0xD9, 0xFE)
+  SIMPLE(lock, 0xF0)
+  SIMPLE(rep_movsb, 0xF3, 0xA4)
+#undef SIMPLE
+// XmmRegister operations with another register or an address.
+#define XX(width, name, ...)                                                   \
+  void name(XmmRegister dst, XmmRegister src) {                                \
+    Emit##width(dst, src, __VA_ARGS__);                                        \
+  }
+#define XA(width, name, ...)                                                   \
+  void name(XmmRegister dst, const Address& src) {                             \
+    Emit##width(dst, src, __VA_ARGS__);                                        \
+  }
+#define AX(width, name, ...)                                                   \
+  void name(const Address& dst, XmmRegister src) {                             \
+    Emit##width(src, dst, __VA_ARGS__);                                        \
+  }
+  // We could add movupd here, but movups does the same and is shorter.
+  XA(L, movups, 0x10, 0x0F);
+  XA(L, movsd, 0x10, 0x0F, 0xF2)
+  XA(L, movss, 0x10, 0x0F, 0xF3)
+  AX(L, movups, 0x11, 0x0F);
+  AX(L, movsd, 0x11, 0x0F, 0xF2)
+  AX(L, movss, 0x11, 0x0F, 0xF3)
+  XX(L, movhlps, 0x12, 0x0F)
+  XX(L, unpcklps, 0x14, 0x0F)
+  XX(L, unpcklpd, 0x14, 0x0F, 0x66)
+  XX(L, unpckhps, 0x15, 0x0F)
+  XX(L, unpckhpd, 0x15, 0x0F, 0x66)
+  XX(L, movlhps, 0x16, 0x0F)
+  XX(L, movaps, 0x28, 0x0F)
+  XX(L, comisd, 0x2F, 0x0F, 0x66)
+#define DECLARE_XMM(name, code)                                                \
+  XX(L, name##ps, 0x50 + code, 0x0F)                                           \
+  XA(L, name##ps, 0x50 + code, 0x0F)                                           \
+  AX(L, name##ps, 0x50 + code, 0x0F)                                           \
+  XX(L, name##pd, 0x50 + code, 0x0F, 0x66)                                     \
+  XA(L, name##pd, 0x50 + code, 0x0F, 0x66)                                     \
+  AX(L, name##pd, 0x50 + code, 0x0F, 0x66)                                     \
+  XX(L, name##sd, 0x50 + code, 0x0F, 0xF2)                                     \
+  XA(L, name##sd, 0x50 + code, 0x0F, 0xF2)                                     \
+  AX(L, name##sd, 0x50 + code, 0x0F, 0xF2)                                     \
+  XX(L, name##ss, 0x50 + code, 0x0F, 0xF3)                                     \
+  XA(L, name##ss, 0x50 + code, 0x0F, 0xF3)                                     \
+  AX(L, name##ss, 0x50 + code, 0x0F, 0xF3)
+  XMM_ALU_CODES(DECLARE_XMM)
+#undef DECLARE_XMM
+  XX(L, cvtps2pd, 0x5A, 0x0F)
+  XX(L, cvtpd2ps, 0x5A, 0x0F, 0x66)
+  XX(L, cvtsd2ss, 0x5A, 0x0F, 0xF2)
+  XX(L, cvtss2sd, 0x5A, 0x0F, 0xF3)
+  XX(L, pxor, 0xEF, 0x0F, 0x66)
+  XX(L, subpl, 0xFA, 0x0F, 0x66)
+  XX(L, addpl, 0xFE, 0x0F, 0x66)
+#undef XX
+#undef AX
+#undef XA
+
+#define DECLARE_CMPPS(name, code)                                              \
+  void cmpps##name(XmmRegister dst, XmmRegister src) {                         \
+    EmitL(dst, src, 0xC2, 0x0F);                                               \
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);                         \
+    EmitUint8(code);                                                           \
+  }
+  XMM_CONDITIONAL_CODES(DECLARE_CMPPS)
+#undef DECLARE_CMPPS
+
+#define DECLARE_SIMPLE(name, opcode)                                           \
+  void name() { EmitSimple(opcode); }
+  X86_ZERO_OPERAND_1_BYTE_INSTRUCTIONS(DECLARE_SIMPLE)
+#undef DECLARE_SIMPLE
+
   void movl(Register dst, const Immediate& imm);
-  void movl(Register dst, const Address& src);
-  void movl(const Address& dst, Register src);
   void movl(const Address& dst, const Immediate& imm);
 
-  void movzxb(Register dst, Register src);
-  void movzxb(Register dst, const Address& src);
-  void movsxb(Register dst, Register src);
-  void movsxb(Register dst, const Address& src);
-  void movb(Register dst, const Address& src);
-  void movb(const Address& dst, Register src);
   void movb(const Address& dst, const Immediate& imm);
 
-  void movzxw(Register dst, Register src);
-  void movzxw(Register dst, const Address& src);
-  void movsxw(Register dst, Register src);
-  void movsxw(Register dst, const Address& src);
   void movw(Register dst, const Address& src);
-  void movw(const Address& dst, Register src);
   void movw(const Address& dst, const Immediate& imm);
 
   void movq(Register dst, const Immediate& imm);
-  void movq(Register dst, Register src);
-  void movq(Register dst, const Address& src);
-  void movq(const Address& dst, Register src);
   void movq(const Address& dst, const Immediate& imm);
-  void movq(Register dst, XmmRegister src);
 
-  void movsxd(Register dst, Register src);
-  void movsxd(Register dst, const Address& src);
+  // Destination and source are reversed for some reason.
+  void movq(Register dst, XmmRegister src) {
+    EmitQ(src, dst, 0x7E, 0x0F, 0x66);
+  }
+  void movl(Register dst, XmmRegister src) {
+    EmitL(src, dst, 0x7E, 0x0F, 0x66);
+  }
+  void movss(XmmRegister dst, XmmRegister src) {
+    EmitL(src, dst, 0x11, 0x0F, 0xF3);
+  }
+  void movsd(XmmRegister dst, XmmRegister src) {
+    EmitL(src, dst, 0x11, 0x0F, 0xF2);
+  }
 
-  void rep_movsb();
+  // Use the reversed operand order and the 0x89 bytecode instead of the
+  // obvious 0x88 encoding for this some, because it is expected by gdb64 older
+  // than 7.3.1-gg5 when disassembling a function's prologue (movq rbp, rsp)
+  // for proper unwinding of Dart frames (use --generate_gdb_symbols and -O0).
+  void movq(Register dst, Register src) { EmitQ(src, dst, 0x89); }
 
-  void leaq(Register dst, const Address& src);
+  void movd(XmmRegister dst, Register src) {
+    EmitL(dst, src, 0x6E, 0x0F, 0x66);
+  }
+  void cvtsi2sdq(XmmRegister dst, Register src) {
+    EmitQ(dst, src, 0x2A, 0x0F, 0xF2);
+  }
+  void cvtsi2sdl(XmmRegister dst, Register src) {
+    EmitL(dst, src, 0x2A, 0x0F, 0xF2);
+  }
+  void cvttsd2siq(Register dst, XmmRegister src) {
+    EmitQ(dst, src, 0x2C, 0x0F, 0xF2);
+  }
+  void movmskpd(Register dst, XmmRegister src) {
+    EmitL(dst, src, 0x50, 0x0F, 0x66);
+  }
+  void movmskps(Register dst, XmmRegister src) { EmitL(dst, src, 0x50, 0x0F); }
 
-  void cmovnoq(Register dst, Register src);
-  void cmoveq(Register dst, Register src);
-  void cmovgeq(Register dst, Register src);
-  void cmovlessq(Register dst, Register src);
+  void btl(Register dst, Register src) { EmitL(src, dst, 0xA3, 0x0F); }
+  void btq(Register dst, Register src) { EmitQ(src, dst, 0xA3, 0x0F); }
 
-  void movss(XmmRegister dst, const Address& src);
-  void movss(const Address& dst, XmmRegister src);
-  void movss(XmmRegister dst, XmmRegister src);
-
-  void movd(XmmRegister dst, Register src);
-  void movd(Register dst, XmmRegister src);
-
-  void addss(XmmRegister dst, XmmRegister src);
-  void subss(XmmRegister dst, XmmRegister src);
-  void mulss(XmmRegister dst, XmmRegister src);
-  void divss(XmmRegister dst, XmmRegister src);
-
-  void movsd(XmmRegister dst, const Address& src);
-  void movsd(const Address& dst, XmmRegister src);
-  void movsd(XmmRegister dst, XmmRegister src);
-
-  void movaps(XmmRegister dst, XmmRegister src);
-
-  void movups(const Address& dst, XmmRegister src);
-  void movups(XmmRegister dst, const Address& src);
-
-  void addsd(XmmRegister dst, XmmRegister src);
-  void subsd(XmmRegister dst, XmmRegister src);
-  void mulsd(XmmRegister dst, XmmRegister src);
-  void divsd(XmmRegister dst, XmmRegister src);
-
-  void addpl(XmmRegister dst, XmmRegister src);
-  void subpl(XmmRegister dst, XmmRegister src);
-  void addps(XmmRegister dst, XmmRegister src);
-  void subps(XmmRegister dst, XmmRegister src);
-  void divps(XmmRegister dst, XmmRegister src);
-  void mulps(XmmRegister dst, XmmRegister src);
-  void minps(XmmRegister dst, XmmRegister src);
-  void maxps(XmmRegister dst, XmmRegister src);
-  void andps(XmmRegister dst, XmmRegister src);
-  void andps(XmmRegister dst, const Address& src);
-  void orps(XmmRegister dst, XmmRegister src);
-  void notps(XmmRegister dst);
-  void negateps(XmmRegister dst);
-  void absps(XmmRegister dst);
-  void zerowps(XmmRegister dst);
-  void cmppseq(XmmRegister dst, XmmRegister src);
-  void cmppsneq(XmmRegister dst, XmmRegister src);
-  void cmppslt(XmmRegister dst, XmmRegister src);
-  void cmppsle(XmmRegister dst, XmmRegister src);
-  void cmppsnlt(XmmRegister dst, XmmRegister src);
-  void cmppsnle(XmmRegister dst, XmmRegister src);
-  void sqrtps(XmmRegister dst);
-  void rsqrtps(XmmRegister dst);
-  void reciprocalps(XmmRegister dst);
-  void movhlps(XmmRegister dst, XmmRegister src);
-  void movlhps(XmmRegister dst, XmmRegister src);
-  void unpcklps(XmmRegister dst, XmmRegister src);
-  void unpckhps(XmmRegister dst, XmmRegister src);
-  void unpcklpd(XmmRegister dst, XmmRegister src);
-  void unpckhpd(XmmRegister dst, XmmRegister src);
+  void notps(XmmRegister dst, XmmRegister src);
+  void negateps(XmmRegister dst, XmmRegister src);
+  void absps(XmmRegister dst, XmmRegister src);
+  void zerowps(XmmRegister dst, XmmRegister src);
 
   void set1ps(XmmRegister dst, Register tmp, const Immediate& imm);
   void shufps(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
-  void addpd(XmmRegister dst, XmmRegister src);
-  void negatepd(XmmRegister dst);
-  void subpd(XmmRegister dst, XmmRegister src);
-  void mulpd(XmmRegister dst, XmmRegister src);
-  void divpd(XmmRegister dst, XmmRegister src);
-  void abspd(XmmRegister dst);
-  void minpd(XmmRegister dst, XmmRegister src);
-  void maxpd(XmmRegister dst, XmmRegister src);
-  void sqrtpd(XmmRegister dst);
-  void cvtps2pd(XmmRegister dst, XmmRegister src);
-  void cvtpd2ps(XmmRegister dst, XmmRegister src);
+  void negatepd(XmmRegister dst, XmmRegister src);
+  void abspd(XmmRegister dst, XmmRegister src);
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
-
-  void comisd(XmmRegister a, XmmRegister b);
-  void cvtsi2sdq(XmmRegister a, Register b);
-  void cvtsi2sdl(XmmRegister a, Register b);
-  void cvttsd2siq(Register dst, XmmRegister src);
-
-  void cvtss2sd(XmmRegister dst, XmmRegister src);
-  void cvtsd2ss(XmmRegister dst, XmmRegister src);
-
-  void pxor(XmmRegister dst, XmmRegister src);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
@@ -502,20 +579,12 @@ class Assembler : public ValueObject {
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
-  void xchgl(Register dst, Register src);
-  void xchgq(Register dst, Register src);
-
-  void cmpb(const Address& address, const Immediate& imm);
-  void cmpw(const Address& address, const Immediate& imm);
-
   void CompareImmediate(Register reg, const Immediate& imm);
   void CompareImmediate(const Address& address, const Immediate& imm);
 
-  void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);
 
-  void testq(Register reg1, Register reg2);
   void testq(Register reg, const Immediate& imm);
   void TestImmediate(Register dst, const Immediate& imm);
 
@@ -523,66 +592,61 @@ class Assembler : public ValueObject {
   void OrImmediate(Register dst, const Immediate& imm);
   void XorImmediate(Register dst, const Immediate& imm);
 
-// clang-format off
-// Macro for handling common ALU instructions. Arguments to F:
-//   name, opcode, reversed opcode, opcode for the reg field of the modrm byte.
-#define ALU_OPS(F)                                                             \
-  F(and, 0x23, 0x21, 4)                                                        \
-  F(or, 0x0b, 0x09, 1)                                                         \
-  F(xor, 0x33, 0x31, 6)                                                        \
-  F(add, 0x03, 0x01, 0)                                                        \
-  F(adc, 0x13, 0x11, 2)                                                        \
-  F(sub, 0x2b, 0x29, 5)                                                        \
-  F(sbb, 0x1b, 0x19, 3)                                                        \
-  F(cmp, 0x3b, 0x39, 7)
-// clang-format on
-
-#define DECLARE_ALU(op, opcode, opcode2, modrm_opcode)                         \
-  void op##w(Register dst, Register src) { Alu(2, opcode, dst, src); }         \
-  void op##l(Register dst, Register src) { Alu(4, opcode, dst, src); }         \
-  void op##q(Register dst, Register src) { Alu(8, opcode, dst, src); }         \
-  void op##w(Register dst, const Address& src) { Alu(2, opcode, dst, src); }   \
-  void op##l(Register dst, const Address& src) { Alu(4, opcode, dst, src); }   \
-  void op##q(Register dst, const Address& src) { Alu(8, opcode, dst, src); }   \
-  void op##w(const Address& dst, Register src) { Alu(2, opcode2, dst, src); }  \
-  void op##l(const Address& dst, Register src) { Alu(4, opcode2, dst, src); }  \
-  void op##q(const Address& dst, Register src) { Alu(8, opcode2, dst, src); }  \
-  void op##l(Register dst, const Immediate& imm) {                             \
-    AluL(modrm_opcode, dst, imm);                                              \
-  }                                                                            \
-  void op##q(Register dst, const Immediate& imm) {                             \
-    AluQ(modrm_opcode, opcode, dst, imm);                                      \
-  }                                                                            \
-  void op##l(const Address& dst, const Immediate& imm) {                       \
-    AluL(modrm_opcode, dst, imm);                                              \
-  }                                                                            \
-  void op##q(const Address& dst, const Immediate& imm) {                       \
-    AluQ(modrm_opcode, opcode, dst, imm);                                      \
+  void shldq(Register dst, Register src, Register shifter) {
+    ASSERT(shifter == RCX);
+    EmitQ(src, dst, 0xA5, 0x0F);
+  }
+  void shrdq(Register dst, Register src, Register shifter) {
+    ASSERT(shifter == RCX);
+    EmitQ(src, dst, 0xAD, 0x0F);
   }
 
-  ALU_OPS(DECLARE_ALU);
+#define DECLARE_ALU(op, c)                                                     \
+  void op##w(Register dst, Register src) { EmitW(dst, src, c * 8 + 3); }       \
+  void op##l(Register dst, Register src) { EmitL(dst, src, c * 8 + 3); }       \
+  void op##q(Register dst, Register src) { EmitQ(dst, src, c * 8 + 3); }       \
+  void op##w(Register dst, const Address& src) { EmitW(dst, src, c * 8 + 3); } \
+  void op##l(Register dst, const Address& src) { EmitL(dst, src, c * 8 + 3); } \
+  void op##q(Register dst, const Address& src) { EmitQ(dst, src, c * 8 + 3); } \
+  void op##w(const Address& dst, Register src) { EmitW(src, dst, c * 8 + 1); } \
+  void op##l(const Address& dst, Register src) { EmitL(src, dst, c * 8 + 1); } \
+  void op##q(const Address& dst, Register src) { EmitQ(src, dst, c * 8 + 1); } \
+  void op##l(Register dst, const Immediate& imm) { AluL(c, dst, imm); }        \
+  void op##q(Register dst, const Immediate& imm) {                             \
+    AluQ(c, c * 8 + 3, dst, imm);                                              \
+  }                                                                            \
+  void op##b(const Address& dst, const Immediate& imm) { AluB(c, dst, imm); }  \
+  void op##w(const Address& dst, const Immediate& imm) { AluW(c, dst, imm); }  \
+  void op##l(const Address& dst, const Immediate& imm) { AluL(c, dst, imm); }  \
+  void op##q(const Address& dst, const Immediate& imm) {                       \
+    AluQ(c, c * 8 + 3, dst, imm);                                              \
+  }
+
+  X86_ALU_CODES(DECLARE_ALU)
 
 #undef DECLARE_ALU
 #undef ALU_OPS
 
-  void cdq();
   void cqo();
 
-  void idivl(Register reg);
-  void divl(Register reg);
+#define REGULAR_UNARY(name, opcode, modrm)                                     \
+  void name##q(Register reg) { EmitUnaryQ(reg, opcode, modrm); }               \
+  void name##l(Register reg) { EmitUnaryL(reg, opcode, modrm); }               \
+  void name##q(const Address& address) { EmitUnaryQ(address, opcode, modrm); } \
+  void name##l(const Address& address) { EmitUnaryL(address, opcode, modrm); }
+  REGULAR_UNARY(not, 0xF7, 2)
+  REGULAR_UNARY(neg, 0xF7, 3)
+  REGULAR_UNARY(mul, 0xF7, 4)
+  REGULAR_UNARY(div, 0xF7, 6)
+  REGULAR_UNARY(idiv, 0xF7, 7)
+  REGULAR_UNARY(inc, 0xFF, 0)
+  REGULAR_UNARY(dec, 0xFF, 1)
+#undef REGULAR_UNARY
 
-  void idivq(Register reg);
-  void divq(Register reg);
-
-  void imull(Register dst, Register src);
   void imull(Register reg, const Immediate& imm);
-  void mull(Register reg);
 
-  void imulq(Register dst, Register src);
-  void imulq(Register dst, const Address& address);
   void imulq(Register dst, const Immediate& imm);
   void MulImmediate(Register reg, const Immediate& imm);
-  void mulq(Register reg);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -599,74 +663,27 @@ class Assembler : public ValueObject {
   void sarq(Register reg, const Immediate& imm);
   void sarq(Register operand, Register shifter);
   void shldq(Register dst, Register src, const Immediate& imm);
-  void shldq(Register dst, Register src, Register shifter);
-  void shrdq(Register dst, Register src, Register shifter);
 
-  void incl(const Address& address);
-  void decl(const Address& address);
-
-  void incq(Register reg);
-  void incq(const Address& address);
-  void decq(Register reg);
-  void decq(const Address& address);
-
-  void negl(Register reg);
-  void negq(Register reg);
-  void notl(Register reg);
-  void notq(Register reg);
-
-  void bsrq(Register dst, Register src);
-
-  void btq(Register base, Register offset);
   void btq(Register base, int bit);
 
   void enter(const Immediate& imm);
-  void leave();
-  void ret();
-
-  void movmskpd(Register dst, XmmRegister src);
-  void movmskps(Register dst, XmmRegister src);
-
-  void sqrtsd(XmmRegister dst, XmmRegister src);
-
-  void xorpd(XmmRegister dst, const Address& src);
-  void xorpd(XmmRegister dst, XmmRegister src);
-
-  void xorps(XmmRegister dst, const Address& src);
-  void xorps(XmmRegister dst, XmmRegister src);
-
-  void andpd(XmmRegister dst, const Address& src);
 
   void fldl(const Address& src);
   void fstpl(const Address& dst);
 
-  void fincstp();
   void ffree(intptr_t value);
-
-  void fsin();
-  void fcos();
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
-  void int3();
-  void hlt();
 
   static uword GetBreakInstructionFiller() { return 0xCCCCCCCCCCCCCCCC; }
 
   void j(Condition condition, Label* label, bool near = kFarJump);
-
-  void jmp(Register reg);
-  void jmp(const Address& address);
+  void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }
+  void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
   void jmp(const StubEntry& stub_entry);
-
-  void lock();
-  void cmpxchgl(const Address& address, Register reg);
-
-  void cmpxchgq(const Address& address, Register reg);
-
-  void cpuid();
 
   // Issue memory to memory move through a TMP register.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -688,10 +705,7 @@ class Assembler : public ValueObject {
     xorq(mem2, TMP);
   }
 
-  /*
-   * Macros for High-level operations and implemented on all architectures.
-   */
-
+  // Methods for High-level operations and implemented on all architectures.
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
 
@@ -700,7 +714,7 @@ class Assembler : public ValueObject {
   void PushRegister(Register r);
   void PopRegister(Register r);
 
-  // Macros for adding/subtracting an immediate value that may be loaded from
+  // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
   void AddImmediate(Register reg, const Immediate& imm);
@@ -760,10 +774,8 @@ class Assembler : public ValueObject {
   // Increments a Smi field. Leaves flags in same state as an 'addq'.
   void IncrementSmiField(const Address& dest, int64_t increment);
 
-  void DoubleNegate(XmmRegister d);
-  void FloatNegate(XmmRegister f);
-
-  void DoubleAbs(XmmRegister reg);
+  void DoubleNegate(XmmRegister dst, XmmRegister src);
+  void DoubleAbs(XmmRegister dst, XmmRegister src);
 
   void LockCmpxchgq(const Address& address, Register reg) {
     lock();
@@ -796,9 +808,7 @@ class Assembler : public ValueObject {
   // if platform ABI requires that. Does not restore RSP after the call itself.
   void CallCFunction(Register reg);
 
-  /*
-   * Loading and comparing classes of objects.
-   */
+  // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
 
   void LoadClassById(Register result, Register class_id);
@@ -816,9 +826,7 @@ class Assembler : public ValueObject {
   // Value in the register object is untagged optimistically.
   void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);
 
-  /*
-   * Misc. functionality.
-   */
+  // Misc. functionality.
   void SmiTag(Register reg) { addq(reg, reg); }
 
   void SmiUntag(Register reg) { sarq(reg, Immediate(kSmiTagSize)); }
@@ -1010,10 +1018,9 @@ class Assembler : public ValueObject {
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
   void LoadWordFromPoolOffset(Register dst, int32_t offset);
 
-  void Alu(int bytes, uint8_t opcode, Register dst, Register src);
-  void Alu(int bytes, uint8_t opcode, Register dst, const Address& src);
-  void Alu(int bytes, uint8_t opcode, const Address& dst, Register src);
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
+  void AluB(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);
+  void AluW(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);
   void AluL(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);
   void AluQ(uint8_t modrm_opcode,
             uint8_t opcode,
@@ -1024,6 +1031,37 @@ class Assembler : public ValueObject {
             const Address& dst,
             const Immediate& imm);
 
+  void EmitSimple(int opcode, int opcode2 = -1);
+  void EmitUnaryQ(Register reg, int opcode, int modrm_code);
+  void EmitUnaryL(Register reg, int opcode, int modrm_code);
+  void EmitUnaryQ(const Address& address, int opcode, int modrm_code);
+  void EmitUnaryL(const Address& address, int opcode, int modrm_code);
+  // The prefixes are in reverse order due to the rules of default arguments in
+  // C++.
+  void EmitQ(int reg,
+             const Address& address,
+             int opcode,
+             int prefix2 = -1,
+             int prefix1 = -1);
+  void EmitL(int reg,
+             const Address& address,
+             int opcode,
+             int prefix2 = -1,
+             int prefix1 = -1);
+  void EmitW(Register reg,
+             const Address& address,
+             int opcode,
+             int prefix2 = -1,
+             int prefix1 = -1);
+  void EmitQ(int dst, int src, int opcode, int prefix2 = -1, int prefix1 = -1);
+  void EmitL(int dst, int src, int opcode, int prefix2 = -1, int prefix1 = -1);
+  void EmitW(Register dst,
+             Register src,
+             int opcode,
+             int prefix2 = -1,
+             int prefix1 = -1);
+  void CmpPS(XmmRegister dst, XmmRegister src, int condition);
+
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
   inline void EmitUInt32(uint32_t value);
@@ -1033,24 +1071,16 @@ class Assembler : public ValueObject {
                               uint8_t rex,
                               bool force_emit = false);
   inline void EmitOperandREX(int rm, const Operand& operand, uint8_t rex);
-  inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
+  inline void EmitRegisterOperand(int rm, int reg);
   inline void EmitFixup(AssemblerFixup* fixup);
   inline void EmitOperandSizeOverride();
-  inline void EmitREX_RB(XmmRegister reg,
-                         XmmRegister base,
-                         uint8_t rex = REX_NONE);
-  inline void EmitREX_RB(XmmRegister reg,
-                         const Operand& operand,
-                         uint8_t rex = REX_NONE);
-  inline void EmitREX_RB(XmmRegister reg,
-                         Register base,
-                         uint8_t rex = REX_NONE);
-  inline void EmitREX_RB(Register reg,
-                         XmmRegister base,
-                         uint8_t rex = REX_NONE);
+  inline void EmitRegRegRex(int reg, int base, uint8_t rex = REX_NONE);
   void EmitOperand(int rm, const Operand& operand);
   void EmitImmediate(const Immediate& imm);
   void EmitComplex(int rm, const Operand& operand, const Immediate& immediate);
+  void EmitSignExtendedInt8(int rm,
+                            const Operand& operand,
+                            const Immediate& immediate);
   void EmitLabel(Label* label, intptr_t instruction_size);
   void EmitLabelLink(Label* label);
   void EmitNearLabelLink(Label* label);
@@ -1092,7 +1122,8 @@ inline void Assembler::EmitInt64(int64_t value) {
 }
 
 inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex, bool force) {
-  ASSERT(reg != kNoRegister);
+  ASSERT(reg != kNoRegister && reg <= R15);
+  ASSERT(rex == REX_NONE || rex == REX_W);
   rex |= (reg > 7 ? REX_B : REX_NONE);
   if (rex != REX_NONE || force) EmitUint8(REX_PREFIX | rex);
 }
@@ -1104,29 +1135,10 @@ inline void Assembler::EmitOperandREX(int rm,
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
-inline void Assembler::EmitREX_RB(XmmRegister reg,
-                                  XmmRegister base,
-                                  uint8_t rex) {
-  if (reg > 7) rex |= REX_R;
-  if (base > 7) rex |= REX_B;
-  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
-}
-
-inline void Assembler::EmitREX_RB(XmmRegister reg,
-                                  const Operand& operand,
-                                  uint8_t rex) {
-  if (reg > 7) rex |= REX_R;
-  rex |= operand.rex();
-  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
-}
-
-inline void Assembler::EmitREX_RB(XmmRegister reg, Register base, uint8_t rex) {
-  if (reg > 7) rex |= REX_R;
-  if (base > 7) rex |= REX_B;
-  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
-}
-
-inline void Assembler::EmitREX_RB(Register reg, XmmRegister base, uint8_t rex) {
+inline void Assembler::EmitRegRegRex(int reg, int base, uint8_t rex) {
+  ASSERT(reg != kNoRegister && reg <= R15);
+  ASSERT(base != kNoRegister && base <= R15);
+  ASSERT(rex == REX_NONE || rex == REX_W);
   if (reg > 7) rex |= REX_R;
   if (base > 7) rex |= REX_B;
   if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);

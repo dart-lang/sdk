@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
+/*@testedFeatures=inference,error*/
 library test;
 
 class A {
@@ -15,9 +15,9 @@ var /*@topType=A*/ a = new A();
 // There's a circularity between b and c because a.f is generic, so the type of
 // c is required to infer b, and vice versa.
 
-var /*@topType=dynamic*/ b = /*@returnType=dynamic*/ () =>
+var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>
     a. /*@typeArgs=dynamic*/ /*@target=A::f*/ f(c);
-var /*@topType=dynamic*/ c = /*@returnType=dynamic*/ () =>
+var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ c = /*@returnType=dynamic*/ () =>
     a. /*@typeArgs=dynamic*/ /*@target=A::f*/ f(b);
 
 // e's use of a.g breaks the circularity, because a.g is not generic, therefore

@@ -10,7 +10,10 @@ import 'package:kernel/ast.dart'
 import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart'
-    show messageInvalidInitializer, messageLoadLibraryTakesNoArguments;
+    show
+        messageInvalidInitializer,
+        messageLoadLibraryTakesNoArguments,
+        templateIntegerLiteralIsOutOfRange;
 
 import '../messages.dart' show Message;
 
@@ -29,6 +32,7 @@ import 'frontend_accessors.dart' as kernel
         LoadLibraryAccessor,
         PropertyAccessor,
         ReadOnlyAccessor,
+        DelayedErrorAccessor,
         StaticAccessor,
         SuperIndexAccessor,
         SuperPropertyAccessor,
@@ -126,7 +130,8 @@ abstract class BuilderHelper {
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
 
-  StaticGet makeStaticGet(Member readTarget, Token token);
+  StaticGet makeStaticGet(Member readTarget, Token token,
+      {int targetOffset: -1, Class targetClass});
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
@@ -790,7 +795,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowStaticAssignment(rhs);
+      new ShadowStaticAssignment(targetOffset, targetClass, rhs);
 }
 
 class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
@@ -984,6 +989,18 @@ class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
   }
 }
 
+class LargeIntAccessor extends kernel.DelayedErrorAccessor with FastaAccessor {
+  final String plainNameForRead = null;
+
+  LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
+
+  Expression buildError() => helper.buildCompileTimeError(
+      templateIntegerLiteralIsOutOfRange.withArguments(token),
+      token.charOffset);
+
+  Expression doInvocation(int offset, Arguments arguments) => buildError();
+}
+
 class ParenthesizedExpression extends ReadOnlyAccessor {
   ParenthesizedExpression(
       BuilderHelper helper, Expression expression, Token token)
@@ -1011,9 +1028,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       int offset = offsetForToken(token);
       if (declaration is KernelInvalidTypeBuilder) {
         KernelInvalidTypeBuilder declaration = this.declaration;
-        helper.library.addWarning(
-            declaration.message, declaration.charOffset, declaration.fileUri);
-        helper.addWarning(declaration.message, offset, token.length);
+        helper.addWarning(
+            declaration.message.messageObject, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)
               ..fileOffset = offsetForToken(token))

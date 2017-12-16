@@ -105,6 +105,7 @@ generic_closure_test: StaticWarning
 generic_list_checked_test: StaticWarning
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_methods_type_expression_test: Skip # This tests now unsupported Dart 1.0 behavior (is check warnings)
 generic_test: StaticWarning
 generics_test: StaticWarning
 get_set_syntax_test/none: Fail # Issue 11575
@@ -397,11 +398,8 @@ void_type_test: StaticWarning
 *: Skip # Issue 28649
 
 [ $compiler == dart2analyzer && $runtime == none ]
-assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31320
-assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31320
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_test/01: MissingStaticWarning
-assertion_initializer_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none && $checked ]
 assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #

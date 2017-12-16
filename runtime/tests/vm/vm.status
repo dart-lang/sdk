@@ -122,6 +122,28 @@ cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $arch == simarm && $compiler == dartk ]
+cc/IsolateReload_ExportedLibModified: Fail # Please triage.
+cc/IsolateReload_ImportedLibModified: Fail # Please triage.
+cc/IsolateReload_ImportedMixinFunction: Fail # Please triage.
+cc/IsolateReload_LibraryHide: Fail # Please triage.
+cc/IsolateReload_LibraryShow: Fail # Please triage.
+cc/IsolateReload_MainLibModified: Fail # Please triage.
+cc/IsolateReload_NoLibsModified: Fail # Please triage.
+cc/IsolateReload_PrefixImportedLibModified: Fail # Please triage.
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $arch == simdbc64 && $compiler == dartk ]
+cc/*: Pass, Crash # Please triage (flaky crashes in kernel-isolate?).
+dart/regress29620_test: RuntimeError # Please triage.
+dart/regress30853_test: Crash # Please triage.
+dart/truncating_ints_test: RuntimeError # Please triage.
+
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Pass, Fail # Issue 31137
@@ -140,6 +162,12 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 cc/InjectNativeFields1: Crash
 cc/InjectNativeFields3: Crash
 cc/Service_TokenStream: Crash
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64) ]
+cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == release && $runtime == vm ]
 cc/InjectNativeFields1: Fail
@@ -320,6 +348,15 @@ dart/data_uri_spawn_test: CompileTimeError # Issue 31586
 dart/hello_fuchsia_test: RuntimeError
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+dart/data_uri_spawn_test: Skip # Please triage.
+dart/snapshot_version_test: RuntimeError # Please triage.
+dart/spawn_infinite_loop_test: Crash # Please triage.
+dart/truncating_ints_test: CompileTimeError # Please triage.
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/base64: CompileTimeError

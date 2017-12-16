@@ -18,7 +18,7 @@ import 'package:compiler/src/world.dart';
 void main() {
   asyncTest(() async {
     await testAll(CompileMode.memory);
-    await testAll(CompileMode.dill);
+    await testAll(CompileMode.kernel);
   });
 }
 

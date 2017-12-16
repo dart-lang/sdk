@@ -16,6 +16,8 @@ List<FunctionTypeData> signatures = const <FunctionTypeData>[
   const FunctionTypeData("void", "2", "<T, S>(T t, S s)"),
   const FunctionTypeData("void", "3", "<T, S>(T t, [S s])"),
   const FunctionTypeData("void", "4", "<T, S>(T t, {S s})"),
+  const FunctionTypeData("void", "5", "<T extends num>(T t)"),
+  const FunctionTypeData("void", "6", "<T extends int>(T t)"),
 ];
 
 main() {
@@ -25,7 +27,7 @@ main() {
     TypeEnvironment env = await TypeEnvironment.create("""
       ${createTypedefs(signatures, prefix: 't')}
       ${createMethods(signatures, prefix: 'm')}
-    """, compileMode: CompileMode.dill);
+    """, compileMode: CompileMode.kernel);
 
     for (FunctionTypeData data in signatures) {
       FunctionType functionType = env.getElementType('t${data.name}');

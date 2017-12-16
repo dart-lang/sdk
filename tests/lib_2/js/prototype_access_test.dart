@@ -14,7 +14,8 @@ external Class get arrayBufferClass;
 @JS('Function')
 class Class {
   external dynamic get prototype;
-  external dynamic get constructor;
+  external Constructor get constructor;
+  external String get name;
 }
 
 class Normal {
@@ -26,6 +27,11 @@ class Normal {
   int operator [](int i) => prototype;
 }
 
+@JS()
+class Constructor {
+  external String get name;
+}
+
 void main() {
   Expect.isTrue(arrayBufferClass.prototype != null);
   var normal = new Normal();
@@ -33,6 +39,10 @@ void main() {
   Expect.equals(42, normal[0]);
   Expect.isTrue(arrayBufferClass.constructor != null);
   Expect.isTrue(arrayBufferClass.constructor is Function);
+  Expect.isTrue(arrayBufferClass.constructor is Constructor);
+  Expect.equals("ArrayBuffer", arrayBufferClass.name);
+  Expect.equals("Function", arrayBufferClass.constructor.name);
+
   Expect.isTrue(normal.constructor is Function);
   Expect.equals(normal, normal.constructor());
 }

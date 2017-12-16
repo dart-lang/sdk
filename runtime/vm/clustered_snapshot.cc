@@ -1871,10 +1871,10 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     objects_.Add(pool);
 
     intptr_t length = pool->ptr()->length_;
-
+    uint8_t* entry_types = pool->ptr()->entry_types();
     for (intptr_t i = 0; i < length; i++) {
       ObjectPool::EntryType entry_type =
-          static_cast<ObjectPool::EntryType>(pool->ptr()->entry_types()[i]);
+          static_cast<ObjectPool::EntryType>(entry_types[i]);
       if (entry_type == ObjectPool::kTaggedObject) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
@@ -1899,9 +1899,10 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
       RawObjectPool* pool = objects_[i];
       intptr_t length = pool->ptr()->length_;
       s->Write<int32_t>(length);
+      uint8_t* entry_types = pool->ptr()->entry_types();
       for (intptr_t j = 0; j < length; j++) {
         ObjectPool::EntryType entry_type =
-            static_cast<ObjectPool::EntryType>(pool->ptr()->entry_types()[j]);
+            static_cast<ObjectPool::EntryType>(entry_types[j]);
         s->Write<int8_t>(entry_type);
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (entry_type) {

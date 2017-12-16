@@ -43,7 +43,6 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/language'),
   new Path('tests/language_2'),
   new Path('tests/lib'),
-  new Path('tests/lib_strong'),
   new Path('tests/lib_2'),
   new Path('tests/standalone'),
   new Path('tests/standalone_2'),

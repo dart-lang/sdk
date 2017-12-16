@@ -81,7 +81,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
         isEligibleForInference &&
         !isInstanceMember) {
       library.loader.typeInferenceEngine
-          .recordStaticFieldInferenceCandidate(field);
+          .recordStaticFieldInferenceCandidate(field, library);
     }
     return field;
   }

@@ -568,7 +568,10 @@ class BaseFlowGraphBuilder {
   Fragment IntConstant(int64_t value);
   Fragment Constant(const Object& value);
   Fragment NullConstant();
+  Fragment SmiRelationalOp(Token::Kind kind);
+  Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
   Fragment LoadFpRelativeSlot(intptr_t offset);
+  Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
                         bool negate = false);
@@ -620,6 +623,7 @@ class BaseFlowGraphBuilder {
   friend class TryCatchBlock;
   friend class StreamingFlowGraphBuilder;
   friend class FlowGraphBuilder;
+  friend class PrologueBuilder;
 };
 
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
@@ -638,8 +642,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
  private:
   BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,
-                                 intptr_t* min_prologue_block_id,
-                                 intptr_t* max_prologue_block_id);
+                                 PrologueInfo* prologue_info);
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);

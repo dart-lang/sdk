@@ -261,6 +261,12 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
     case kName:
       builder_->SkipName();  // read name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -775,6 +781,11 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
     scope_->AddVariable(type_args_var);
     parsed_function_->set_function_type_arguments(type_args_var);
+  }
+
+  if (parsed_function_->has_arg_desc_var()) {
+    needs_expr_temp_ = true;
+    scope_->AddVariable(parsed_function_->arg_desc_var());
   }
 
   LocalVariable* context_var = parsed_function_->current_context_var();
@@ -2517,6 +2528,7 @@ bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
 
 Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                          bool reset_position) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (!GetCachedConstant(offset, &result_)) {
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
@@ -2784,12 +2796,16 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
   NameIndex target =
       builder_->ReadCanonicalNameReference();  // read target_reference.
 
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
+
   if (H.IsField(target)) {
     const Field& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
     if (!field.is_const()) {
       H.ReportError(script_, position, "Not a constant field.");
     }
     if (field.StaticValue() == Object::transition_sentinel().raw()) {
+      builder_->InlineBailout(
+          "kernel::StreamingConstantEvaluator::EvaluateStaticGet::Cyclic");
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
@@ -3634,6 +3650,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 
 Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     NameIndex canonical_name) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   Field& field =
       Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
@@ -3651,6 +3668,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
 
 Fragment StreamingFlowGraphBuilder::BuildInitializers(
     const Class& parent_class) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   Fragment instructions;
 
   // Start by getting the position of the constructors initializer.
@@ -3831,14 +3849,20 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
   const Function& target = Function::ZoneHandle(Z, function.parent_function());
 
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
   flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
       *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
-  SetupDefaultParameterValues();
 
-  Fragment body(normal_entry);
+  Fragment body(instruction_cursor);
   body += flow_graph_builder_->CheckStackOverflowInPrologue();
 
   intptr_t type_args_len = 0;
@@ -3898,31 +3922,23 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // Return the result.
   body += Return(function_node_helper.end_position_);
 
-  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
-LocalVariable* StreamingFlowGraphBuilder::LookupParameterDirect(
-    intptr_t kernel_offset,
-    intptr_t parameter_index) {
-  LocalVariable* var = LookupVariable(kernel_offset);
-  LocalVariable* parameter =
-      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                            Symbols::TempParam(), var->type());
-  parameter->set_index(parameter_index);
-  if (var->is_captured()) parameter->set_is_captured_parameter(true);
-  return parameter;
-}
-
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
   const Function& dart_function = parsed_function()->function();
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
   flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
       *parsed_function(), normal_entry, flow_graph_builder_->osr_id_);
-
-  SetupDefaultParameterValues();
 
   Fragment body;
 
@@ -3991,29 +4007,29 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     intptr_t parameter_count = dart_function.NumParameters();
     intptr_t parameter_index = parsed_function()->first_parameter_index();
 
+    const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
+    const Function& function = pf.function();
+
     for (intptr_t i = 0; i < parameter_count; ++i, --parameter_index) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
-        // There is no LocalVariable describing the on-stack parameter so
-        // create one directly and use the same type.
-        LocalVariable* parameter = new (Z)
-            LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                          Symbols::TempParam(), variable->type());
-        parameter->set_index(parameter_index);
-        // Mark the stack variable so it will be ignored by the code for
-        // try/catch.
-        parameter->set_is_captured_parameter(true);
+        LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
+        ASSERT((function.HasOptionalParameters() &&
+                raw_parameter.owner() == scope) ||
+               (!function.HasOptionalParameters() &&
+                raw_parameter.owner() == NULL));
+        ASSERT(!raw_parameter.is_captured());
 
         // Copy the parameter from the stack to the context.  Overwrite it
         // with a null constant on the stack so the original value is
         // eligible for garbage collection.
         body += LoadLocal(context);
-        body += LoadLocal(parameter);
+        body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
             Context::variable_offset(variable->index()));
         body += NullConstant();
-        body += StoreLocal(TokenPosition::kNoSource, parameter);
+        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();
       }
     }
@@ -4280,7 +4296,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     flow_graph_builder_->context_depth_ = current_context_depth;
   }
 
-  normal_entry->LinkTo(body.entry);
+  instruction_cursor->LinkTo(body.entry);
 
   GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_;
   // When compiling for OSR, use a depth first search to find the OSR
@@ -4291,13 +4307,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
-  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), graph_entry,
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   const Function& function = parsed_function()->function();
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
@@ -6010,9 +6026,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   intptr_t argument_check_bits = 0;
   if (I->strong()) {
     argument_check_bits = ArgumentCheckBitsForSetter(
-        // TODO(sjindel): Change 'Function::null_function()' to
-        // '*interface_target' and fix breakages.
-        Function::null_function(), static_cast<DispatchCategory>(flags & 3));
+        *interface_target, static_cast<DispatchCategory>(flags & 3));
   }
 
   if (direct_call.check_receiver_for_null_) {
@@ -6339,6 +6353,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   TokenPosition position = ReadPosition();  // read position.
@@ -6509,9 +6524,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
           Utils::SignedNBitMask(strong_checked_type_arguments);
       break;
     case Interface: {
-      // TODO(sjindel): Restore this assertion once '*interface_target'
-      // is passed to this function instead of 'Function::null_function()'.
-      // ASSERT(!interface_target.IsNull() || !I->strong());
+      ASSERT(!interface_target.IsNull() || !I->strong());
       if (interface_target.IsNull()) {
         argument_check_bits =
             Utils::SignedNBitMask(strong_checked_arguments + 1);
@@ -6547,6 +6560,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
         }
       }
 
+      fn_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
       fn_helper.ReadUntilExcluding(FunctionNodeHelper::kPositionalParameters);
       intptr_t num_interface_pos_params = ReadListLength();
       ASSERT(num_interface_pos_params >= positional_argument_count);
@@ -6744,11 +6758,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   if (I->strong()) {
     ArgumentCheckBitsForInvocation(
         argument_count - 1, type_args_len, positional_argument_count,
-        argument_names,
-        // TODO(sjindel): Change 'Function::null_function()' to
-        // '*interface_target' and fix breakages.
-        Function::null_function(), static_cast<DispatchCategory>(flags & 3),
-        &argument_check_bits, &type_argument_check_bits);
+        argument_names, *interface_target,
+        static_cast<DispatchCategory>(flags & 3), &argument_check_bits,
+        &type_argument_check_bits);
   }
 
   if (!direct_call.target_.IsNull()) {

@@ -1427,9 +1427,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralInt");
     int value = int.parse(token.lexeme, onError: (_) => null);
     if (value == null) {
-      push(buildCompileTimeError(
-          fasta.templateIntegerLiteralIsOutOfRange.withArguments(token),
-          token.charOffset));
+      push(new LargeIntAccessor(this, token));
     } else {
       push(new ShadowIntLiteral(value)..fileOffset = offsetForToken(token));
     }
@@ -2207,6 +2205,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String operator = token.stringValue;
       if (optional("-", token)) {
         operator = "unary-";
+
+        var new_receiver = null;
+        if (receiver is LargeIntAccessor) {
+          int value =
+              int.parse("-" + receiver.token.lexeme, onError: (_) => null);
+          if (value != null) {
+            new_receiver = new ShadowIntLiteral(value)
+              ..fileOffset = offsetForToken(token);
+          }
+        }
+        if (new_receiver != null) receiver = new_receiver;
       }
       bool isSuper = false;
       Expression receiverValue;
@@ -2689,7 +2698,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (declaration is ExpressionStatement) {
       // If [declaration] isn't a [FunctionDeclaration], it must be because
       // there was a compile-time error.
-      assert(library.hasCompileTimeErrors);
+      // TODO(askesc): Be more specific about the error code when we have
+      // errors represented as explicit invalid nodes.
+      assert(library.loader.handledErrors.isNotEmpty);
 
       // TODO(paulberry,ahe): ensure that when integrating with analyzer, type
       // inference is still performed for the dropped declaration.
@@ -3599,8 +3610,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  StaticGet makeStaticGet(Member readTarget, Token token) {
-    return new ShadowStaticGet(readTarget)..fileOffset = offsetForToken(token);
+  StaticGet makeStaticGet(Member readTarget, Token token,
+      {int targetOffset: -1, Class targetClass}) {
+    return new ShadowStaticGet(targetOffset, targetClass, readTarget)
+      ..fileOffset = offsetForToken(token);
   }
 }
 

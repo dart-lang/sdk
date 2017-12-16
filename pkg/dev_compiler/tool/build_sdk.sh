@@ -6,10 +6,10 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 echo "*** Patching SDK"
 { # Try
   dart -c tool/patch_sdk.dart ../.. tool/input_sdk gen/patched_sdk \
-      > tool/sdk_expected_errors.txt
+      > gen/sdk_analyzer_errors.txt
 } || { # Catch
   # Show errors if the sdk didn't compile.
-  cat tool/sdk_expected_errors.txt
+  cat gen/sdk_analyzer_errors.txt
   exit 1
 }
 
@@ -31,9 +31,9 @@ echo "*** Compiling SDK to JavaScript"
       -o gen/sdk/common/dart_sdk.js \
       --modules=legacy \
       -o gen/sdk/legacy/dart_sdk.js \
-      "$@" > tool/sdk_expected_errors.txt
+      "$@" > gen/sdk_analyzer_errors.txt
 } || { # Catch
   # Show errors if the sdk didn't compile.
-  cat tool/sdk_expected_errors.txt
+  cat gen/sdk_analyzer_errors.txt
   exit 1
 }

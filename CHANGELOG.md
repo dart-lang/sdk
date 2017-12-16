@@ -83,7 +83,9 @@
     decompression routines.
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
-  * Added `Stdin.hasTerminal`.
+  * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
+  * Added `waitForEventSync`, which suspends execution until an asynchronous
+    event oocurs.
 
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
@@ -108,6 +110,16 @@
 * Support for MIPS has been removed.
 
 ### Tool Changes
+
+* Analyzer
+
+The analyzer will no longer issue a warning when a generic type parameter is
+used as the type in an instance check. For example:
+    ```dart
+    test<T>() {
+      print(3 is T); // No warning
+    }
+    ```
 
 * Pub
 

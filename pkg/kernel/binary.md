@@ -326,6 +326,7 @@ type Constructor extends Member {
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
+  UriReference fileUri;
   List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
@@ -364,6 +365,7 @@ type RedirectingFactoryConstructor extends Member {
   FileOffset fileEndOffset;
   Byte flags;
   Name name;
+  UriReference fileUri;
   List<Expression> annotations;
   List<DartType> typeArguments;
   MemberReference targetReference;
@@ -800,6 +802,12 @@ type Let extends Expression {
   Byte tag = 53;
   VariableDeclaration variable;
   Expression body;
+}
+
+type Instantiation extends Expression {
+  Byte tag = 54;
+  Expression expression;
+  List<DartType> typeArguments;
 }
 
 type LoadLibrary extends Expression {

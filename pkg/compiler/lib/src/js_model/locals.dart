@@ -440,7 +440,10 @@ void forEachOrderedParameter(
     for (ir.VariableDeclaration variable in node.positionalParameters) {
       f(localsMap.getLocalVariable(variable));
     }
-    for (ir.VariableDeclaration variable in node.namedParameters) {
+    List<ir.VariableDeclaration> namedParameters =
+        new List<ir.VariableDeclaration>.from(node.namedParameters);
+    namedParameters.sort(namedOrdering);
+    for (ir.VariableDeclaration variable in namedParameters) {
       f(localsMap.getLocalVariable(variable));
     }
   }

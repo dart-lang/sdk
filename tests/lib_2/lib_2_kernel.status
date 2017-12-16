@@ -37,37 +37,16 @@ async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_first_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_from_iterable_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_iterator_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_join_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_last_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_periodic2_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_periodic3_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_periodic4_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_periodic5_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_periodic6_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_periodic_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_single_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_single_to_multi_subscriber_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_state_nonzero_timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_state_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_subscription_as_future_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_subscription_cancel_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_timeout_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_transform_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/stream_transformation_broadcast_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/timer_cancel1_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_cancel2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_cancel_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_isActive_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
 async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/zone_run_unary_test: CompileTimeError # Issue 31537
-convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
-html/*: DartkCompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/count_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -99,19 +78,18 @@ isolate/message3_test/none: CompileTimeError # Issue 31402 (Invocation arguments
 isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/nested_spawn2_test: CompileTimeError # Issue 31402 (Invocation arguments)
-isolate/nested_spawn_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/nested_spawn_test: RuntimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Pass, Timeout
 isolate/raw_port_test: CompileTimeError # Issue 31402 (Invocation arguments)
-isolate/request_reply_test: CompileTimeError # Issue 31402 (Invocation arguments)
-isolate/spawn_function_custom_class_test: CompileTimeError # Issue 31402 (Invocation arguments)
-isolate/spawn_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/request_reply_test: RuntimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_function_custom_class_test: RuntimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_function_test: RuntimeError # Issue 31402 (Invocation arguments)
 isolate/spawn_uri_exported_main_test: RuntimeError # Issue 31402 (Return and yield statements)
 isolate/spawn_uri_multi_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/spawn_uri_nested_vm_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/spawn_uri_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/spawn_uri_vm_test: CompileTimeError # Issue 31402 (Invocation arguments)
-isolate/static_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
-isolate/timer_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/static_function_test: RuntimeError # Issue 31402 (Invocation arguments)
 isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/unresolved_ports_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
@@ -143,6 +121,7 @@ mirrors/empty_test: Crash
 mirrors/empty_test: RuntimeError
 mirrors/enum_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
+mirrors/fake_function_without_call_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
@@ -155,6 +134,12 @@ mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
+mirrors/generics_double_substitution_test/01: RuntimeError
+mirrors/generics_double_substitution_test/none: RuntimeError
+mirrors/generics_dynamic_test: RuntimeError
+mirrors/generics_substitution_test: RuntimeError
+mirrors/generics_test/01: MissingCompileTimeError
+mirrors/generics_test/none: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/inherit_field_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -193,8 +178,6 @@ mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
-mirrors/library_uri_io_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_uri_package_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: Crash
@@ -290,25 +273,9 @@ async/slow_consumer2_test: RuntimeError
 async/slow_consumer_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
-async/stream_first_where_test: RuntimeError
 async/stream_from_iterable_test: RuntimeError
-async/stream_iterator_test: RuntimeError
 async/stream_join_test: RuntimeError
-async/stream_last_where_test: RuntimeError
-async/stream_periodic2_test: RuntimeError
-async/stream_periodic3_test: RuntimeError
-async/stream_periodic4_test: RuntimeError
-async/stream_periodic5_test: RuntimeError
-async/stream_periodic6_test: RuntimeError
-async/stream_periodic_test: RuntimeError
-async/stream_single_test: RuntimeError
-async/stream_single_to_multi_subscriber_test: RuntimeError
-async/stream_state_test: RuntimeError
 async/stream_subscription_as_future_test: RuntimeError
-async/stream_subscription_cancel_test: RuntimeError
-async/stream_timeout_test: RuntimeError
-async/stream_transform_test: RuntimeError
-async/stream_transformation_broadcast_test: RuntimeError
 async/timer_cancel2_test: RuntimeError
 async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
@@ -355,7 +322,6 @@ isolate/spawn_uri_test: RuntimeError
 isolate/spawn_uri_vm_test: RuntimeError
 isolate/stacktrace_message_test: RuntimeError
 isolate/static_function_test: Timeout
-isolate/timer_isolate_test: RuntimeError
 isolate/typed_message_test: RuntimeError
 isolate/unresolved_ports_test: RuntimeError
 mirrors/class_mirror_type_variables_test: RuntimeError
@@ -411,6 +377,24 @@ mirrors/typearguments_mirror_test: RuntimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
+mirrors/invocation_fuzz_test/emptyarray: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/false: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/smi: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/string: CompileTimeError # Please triage.
+mirrors/spawn_function_root_library_test: Skip
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Please triage.
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+isolate/*: Skip
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]

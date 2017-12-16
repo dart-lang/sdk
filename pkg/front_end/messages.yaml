@@ -236,7 +236,7 @@ ExpectedHexDigit:
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  dart2jsCode: EXPECTED_IDENTIFIER
+  dart2jsCode: "*fatal*"
   script: "do() {} main() {}"
 
 EqualityCannotBeEqualityOperand:
@@ -260,7 +260,7 @@ ExpectedString:
 ExpectedToken:
   template: "Expected to find '#string'."
   analyzerCode: EXPECTED_TOKEN
-  dart2jsCode: GENERIC
+  dart2jsCode: "*fatal*"
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
@@ -1148,6 +1148,9 @@ IllegalMixin:
 OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
 
+OverriddenMethodCause:
+  template: "This is the overriden method ('#name')."
+
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
 
@@ -1290,6 +1293,14 @@ FactoryTopLevelDeclaration:
   dart2jsCode: "*ignored*"
   script:
     - "factory class C {}"
+
+RedirectionInNonFactory:
+  template: "Only factory constructor can specify '=' redirection."
+  tip: "Try making this a factory constructor, or remove the redirection."
+  analyzerCode: REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C() = D; }"
 
 TopLevelOperator:
   template: "Operators must be declared within a class."
@@ -1662,3 +1673,11 @@ DillOutlineSummary:
     Indexed #count libraries (#count2 bytes) in #string, that is,
     #string2 bytes/ms, and
     #string3 ms/libraries.
+
+CantInferTypeDueToInconsistentOverrides:
+  template: "Can't infer the type of '#string': overridden members must all have the same type."
+  tip: "Specify the type explicitly."
+
+CantInferTypeDueToCircularity:
+  template: "Can't infer the type of '#string': circularity found during type inference."
+  tip: "Specify the type explicitly."

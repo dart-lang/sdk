@@ -128,14 +128,17 @@ class SourceClassBuilder extends KernelClassBuilder {
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
-    actualCls.supertype = supertype?.buildSupertype(library);
-    actualCls.mixedInType = mixedInType?.buildSupertype(library);
+    actualCls.supertype =
+        supertype?.buildSupertype(library, charOffset, fileUri);
+    actualCls.mixedInType =
+        mixedInType?.buildSupertype(library, charOffset, fileUri);
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
     if (interfaces != null) {
       for (KernelTypeBuilder interface in interfaces) {
-        Supertype supertype = interface.buildSupertype(library);
+        Supertype supertype =
+            interface.buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
           // TODO(ahe): Report an error if supertype is null.
           actualCls.implementedTypes.add(supertype);
@@ -205,6 +208,11 @@ class SourceClassBuilder extends KernelClassBuilder {
   @override
   int finishPatch() {
     if (!isPatch) return 0;
+
+    // TODO(ahe): restore file-offset once we track both origin and patch file
+    // URIs. See https://github.com/dart-lang/sdk/issues/31579
+    cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
+
     int count = 0;
     scope.forEach((String name, Builder builder) {
       count += builder.finishPatch();

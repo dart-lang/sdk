@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsIntegrationTest);
+    defineReflectiveTests(OptionsIntegrationTest_PreviewDart2);
   });
 }
 
@@ -78,4 +79,10 @@ linter:
     expect(error.location.startLine, 3);
     expect(error.location.startColumn, 7);
   }
+}
+
+@reflectiveTest
+class OptionsIntegrationTest_PreviewDart2 extends OptionsIntegrationTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

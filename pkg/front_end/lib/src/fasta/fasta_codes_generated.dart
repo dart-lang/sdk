@@ -335,6 +335,59 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateCantInferTypeDueToCircularity = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Can't infer the type of '#string': circularity found during type inference.""",
+    tipTemplate: r"""Specify the type explicitly.""",
+    withArguments: _withArgumentsCantInferTypeDueToCircularity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeCantInferTypeDueToCircularity =
+    const Code<Message Function(String string)>(
+  "CantInferTypeDueToCircularity",
+  templateCantInferTypeDueToCircularity,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypeDueToCircularity(String string) {
+  return new Message(codeCantInferTypeDueToCircularity,
+      message:
+          """Can't infer the type of '$string': circularity found during type inference.""",
+      tip: """Specify the type explicitly.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateCantInferTypeDueToInconsistentOverrides =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Can't infer the type of '#string': overridden members must all have the same type.""",
+        tipTemplate: r"""Specify the type explicitly.""",
+        withArguments: _withArgumentsCantInferTypeDueToInconsistentOverrides);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeCantInferTypeDueToInconsistentOverrides =
+    const Code<Message Function(String string)>(
+  "CantInferTypeDueToInconsistentOverrides",
+  templateCantInferTypeDueToInconsistentOverrides,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
+  return new Message(codeCantInferTypeDueToInconsistentOverrides,
+      message:
+          """Can't infer the type of '$string': overridden members must all have the same type.""",
+      tip: """Specify the type explicitly.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1270,7 +1323,7 @@ const Template<Message Function(Token token)> templateExpectedIdentifier =
 const Code<Message Function(Token token)> codeExpectedIdentifier =
     const Code<Message Function(Token token)>(
         "ExpectedIdentifier", templateExpectedIdentifier,
-        analyzerCode: "MISSING_IDENTIFIER", dart2jsCode: "EXPECTED_IDENTIFIER");
+        analyzerCode: "MISSING_IDENTIFIER", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedIdentifier(Token token) {
@@ -1319,7 +1372,7 @@ const Template<Message Function(String string)> templateExpectedToken =
 const Code<Message Function(String string)> codeExpectedToken =
     const Code<Message Function(String string)>(
         "ExpectedToken", templateExpectedToken,
-        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "GENERIC");
+        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedToken(String string) {
@@ -3356,6 +3409,26 @@ const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
     message: r"""An operator can't have optional parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateOverriddenMethodCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the overriden method ('#name').""",
+        withArguments: _withArgumentsOverriddenMethodCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOverriddenMethodCause =
+    const Code<Message Function(String name)>(
+  "OverriddenMethodCause",
+  templateOverriddenMethodCause,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverriddenMethodCause(String name) {
+  return new Message(codeOverriddenMethodCause,
+      message: """This is the overriden method ('$name').""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -3790,6 +3863,18 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
     dart2jsCode: "*ignored*",
     message: r"""An optional named parameter can't start with '_'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRedirectionInNonFactory = const MessageCode(
+    "RedirectionInNonFactory",
+    analyzerCode: "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Only factory constructor can specify '=' redirection.""",
+    tip:
+        r"""Try making this a factory constructor, or remove the redirection.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

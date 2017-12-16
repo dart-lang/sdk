@@ -113,7 +113,8 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kCompactorTask));
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -248,11 +249,11 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
+      if (FLAG_write_protect_code) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
+      if (FLAG_write_protect_code) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -826,14 +827,12 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      if (!page->is_image_page()) {
-        page->WriteProtect(read_only);
-      }
+      page->WriteProtect(read_only);
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable && !page->is_image_page()) {
+      if (page->type() == HeapPage::kExecutable) {
         page->WriteProtect(read_only);
       }
       page = page->next();
@@ -985,14 +984,14 @@ void PageSpace::CollectGarbage(bool compact) {
       }
 
       mid3 = OS::GetCurrentMonotonicMicros();
+    }
 
-      if (compact) {
-        Compact(thread);
-      } else if (FLAG_concurrent_sweep) {
-        ConcurrentSweep(isolate);
-      } else {
-        BlockingSweep();
-      }
+    if (compact) {
+      Compact(thread);
+    } else if (FLAG_concurrent_sweep) {
+      ConcurrentSweep(isolate);
+    } else {
+      BlockingSweep();
     }
 
     // Make code pages read-only.
@@ -1051,6 +1050,9 @@ void PageSpace::CollectGarbage(bool compact) {
 }
 
 void PageSpace::BlockingSweep() {
+  MutexLocker mld(freelist_[HeapPage::kData].mutex());
+  MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
+
   // Sweep all regular sized pages now.
   GCSweeper sweeper;
   HeapPage* prev_page = NULL;
@@ -1083,7 +1085,7 @@ void PageSpace::ConcurrentSweep(Isolate* isolate) {
 void PageSpace::Compact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  compactor.CompactBySliding(pages_, &freelist_[HeapPage::kData], pages_lock_);
+  compactor.Compact(pages_, &freelist_[HeapPage::kData], pages_lock_);
   thread->isolate()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {

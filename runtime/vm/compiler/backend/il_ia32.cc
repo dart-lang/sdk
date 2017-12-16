@@ -37,6 +37,34 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
+DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
+  ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  __ movl(out, Address(instr->base_reg(), index, TIMES_2, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(StoreIndexedUnsafe,
+               (NoLocation, Register index, Register value)) {
+  ASSERT(instr->RequiredInputRepresentation(
+             StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
+  __ movl(Address(instr->base_reg(), index, TIMES_2, instr->offset()), value);
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(TailCall,
+               (NoLocation,
+                Fixed<Register, ARGS_DESC_REG>,
+                Temp<Register> temp)) {
+  __ LoadObject(CODE_REG, instr->code());
+  __ LeaveFrame();  // The arguments are still on the stack.
+  __ movl(temp, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ jmp(temp);
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;

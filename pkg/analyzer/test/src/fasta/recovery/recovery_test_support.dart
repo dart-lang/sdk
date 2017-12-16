@@ -20,11 +20,19 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
       {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
     CompilationUnit invalidUnit =
         parseCompilationUnit(invalidCode, codes: errorCodes);
+    validateTokenStream(invalidUnit.beginToken);
     CompilationUnit validUnit = parseCompilationUnit(validCode);
     if (adjustValidUnitBeforeComparison != null) {
       validUnit = adjustValidUnitBeforeComparison(validUnit);
     }
     ResultComparator.compare(invalidUnit, validUnit);
+  }
+
+  void validateTokenStream(Token token) {
+    while (!token.isEof) {
+      expect(token.end, lessThanOrEqualTo(token.next.offset));
+      token = token.next;
+    }
   }
 }
 

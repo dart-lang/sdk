@@ -15,10 +15,20 @@ foo(a) {
 """;
 
 main() {
-  asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-        Expect.isTrue(generated.contains(r'.add$1('));
-        Expect.isTrue(generated.contains(r'.removeLast$0('));
-        Expect.isTrue(generated.contains(r'.length'),
-            "Unexpected code to contain '.length':\n$generated");
-      }));
+  test(CompileMode compileMode) async {
+    await compile(TEST_ONE, entry: 'foo', compileMode: compileMode,
+        check: (String generated) {
+      Expect.isTrue(generated.contains(r'.add$1('));
+      Expect.isTrue(generated.contains(r'.removeLast$0('));
+      Expect.isTrue(generated.contains(r'.length'),
+          "Unexpected code to contain '.length':\n$generated");
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await test(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await test(CompileMode.kernel);
+  });
 }

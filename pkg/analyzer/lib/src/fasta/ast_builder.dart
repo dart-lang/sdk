@@ -171,6 +171,7 @@ class AstBuilder extends ScopeListener {
         leftParenthesis, expression, leftParenthesis?.endGroup));
   }
 
+  @override
   void handleStringPart(Token literalString) {
     assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("StringPart");
@@ -178,6 +179,13 @@ class AstBuilder extends ScopeListener {
     push(literalString);
   }
 
+  @override
+  void handleInterpolationExpression(Token leftBracket, Token rightBracket) {
+    Expression expression = pop();
+    push(ast.interpolationExpression(leftBracket, expression, rightBracket));
+  }
+
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
 
@@ -197,8 +205,8 @@ class AstBuilder extends ScopeListener {
         var part = parts[i];
         if (part is Token) {
           elements.add(ast.interpolationString(part, part.lexeme));
-        } else if (part is Expression) {
-          elements.add(ast.interpolationExpression(null, part, null));
+        } else if (part is InterpolationExpression) {
+          elements.add(part);
         } else {
           unhandled("${part.runtimeType}", "string interpolation",
               first.charOffset, uri);
@@ -2027,8 +2035,7 @@ class AstBuilder extends ScopeListener {
         optional('set', getOrSet));
     debugEvent("Method");
 
-    FunctionBody body = pop();
-    ConstructorName redirectedConstructor = null; // TODO(paulberry)
+    var bodyObject = pop();
     List<ConstructorInitializer> initializers = pop() ?? const [];
     Token separator = pop();
     FormalParameterList parameters = pop();
@@ -2038,6 +2045,19 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+
+    ConstructorName redirectedConstructor;
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
+    }
 
     if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
       Token previous = typeParameters?.endToken;

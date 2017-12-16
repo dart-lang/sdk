@@ -140,8 +140,6 @@ class FlowGraphBuilder : public ValueObject {
 
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  intptr_t num_copied_params() const { return num_copied_params_; }
-  intptr_t num_non_copied_params() const { return num_non_copied_params_; }
   intptr_t num_stack_locals() const { return num_stack_locals_; }
 
   bool IsInlining() const { return (exit_collector_ != NULL); }
@@ -187,10 +185,7 @@ class FlowGraphBuilder : public ValueObject {
   friend class Intrinsifier;
 
   intptr_t parameter_count() const {
-    return num_copied_params_ + num_non_copied_params_;
-  }
-  intptr_t variable_count() const {
-    return parameter_count() + num_stack_locals_;
+    return parsed_function_.function().NumParameters();
   }
 
   const ParsedFunction& parsed_function_;
@@ -198,9 +193,7 @@ class FlowGraphBuilder : public ValueObject {
   // Contains (deopt_id, context_level) pairs.
   ZoneGrowableArray<intptr_t>* context_level_array_;
 
-  const intptr_t num_copied_params_;
-  const intptr_t num_non_copied_params_;
-  const intptr_t num_stack_locals_;  // Does not include any parameters.
+  const intptr_t num_stack_locals_;
   InlineExitCollector* const exit_collector_;
 
   intptr_t last_used_block_id_;

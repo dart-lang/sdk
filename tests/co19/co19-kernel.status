@@ -13,14 +13,30 @@ LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 # dartk: precompilation failures
 [ $compiler == dartkp ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
-Language/Expressions/Constants/bitwise_operators_t05: Crash
+Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Classes/definition_t23: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
-Language/Expressions/Constants/logical_expression_t04: Crash
+Language/Expressions/Constants/depending_on_itself_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Expressions/Null/extend_or_implement_t05: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Pass
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $arch == simarm64 && $compiler == dartk && $mode == debug ]
+LibTest/core/DateTime/parse_A01_t02: Crash # Please triage.
+LibTest/core/DateTime/parse_A01_t03: Crash # Please triage.
+LibTest/core/DateTime/parse_A03_t01: Crash # Please triage.
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
@@ -28,6 +44,21 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 [ $compiler == dartk && $strong ]
 *: SkipByDesign
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # Please triaage.
+Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # Please triaage.
+Language/Classes/definition_t23: RuntimeError # Please triaage.
+Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # Please triaage.
+Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # Please triaage.
+Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # Please triaage.
+Language/Expressions/Null/extend_or_implement_t05: MissingCompileTimeError # Please triaage.
+Language/Expressions/Spawning_an_Isolate/*: Skip
+Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # Please triaage.
+LibTest/isolate/*/*: Skip
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]

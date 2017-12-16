@@ -1,3 +1,4 @@
+import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:testing/testing.dart';
 
 import 'common.dart';
@@ -9,13 +10,20 @@ Future<ChainContext> createContext(
   return new StackTraceContext();
 }
 
-class StackTraceContext extends ChainContextWithCleanupHelper {
-  final List<Step> steps = <Step>[
-    const Setup(),
-    const SetCwdToSdkRoot(),
-    const TestStackTrace(
-        const ddk.RunDdc(false), "ddk.", const ["ddk.", "ddc."]),
-  ];
+class StackTraceContext extends ChainContextWithCleanupHelper
+    implements WithCompilerState {
+  fe.InitializedCompilerState compilerState;
+
+  List<Step> _steps;
+
+  List<Step> get steps {
+    return _steps ??= <Step>[
+      const Setup(),
+      const SetCwdToSdkRoot(),
+      new TestStackTrace(
+          new ddk.RunDdc(this, false), "ddk.", const ["ddk.", "ddc."]),
+    ];
+  }
 }
 
 main(List<String> arguments) => runMe(arguments, createContext, "testing.json");

@@ -15,6 +15,7 @@
               'tests/',
               'pkg/async_helper/',
               'pkg/browser/',
+              'pkg/dart_internal/',
               'pkg/expect/',
               'pkg/js/',
               'pkg/meta/',

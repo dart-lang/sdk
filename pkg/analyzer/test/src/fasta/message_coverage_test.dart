@@ -135,6 +135,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     fail(buffer.toString());
   }
 
+  @failingTest
   test_translatedMessageCoverage() {
     String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
     String astBuilderPath =

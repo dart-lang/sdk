@@ -34,9 +34,8 @@ class KernelMixinApplicationBuilder
   }
 
   @override
-  Supertype buildSupertype(LibraryBuilder library) {
-    int charOffset = -1; // TODO(ahe): Provide these.
-    Uri fileUri = null; // TODO(ahe): Provide these.
+  Supertype buildSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
     return unsupported("buildSupertype", charOffset, fileUri);
   }
 

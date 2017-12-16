@@ -141,6 +141,33 @@ struct NamedArgument {
   NamedArgument(String* name, Value* value) : name(name), value(value) {}
 };
 
+// Ensures we only inline callee graphs which are safe.  There are certain
+// instructions which cannot be inlined and we ensure here that we don't do
+// that.
+class CalleeGraphValidator : public AllStatic {
+ public:
+  static void Validate(FlowGraph* callee_graph) {
+#ifdef DEBUG
+    for (BlockIterator block_it = callee_graph->reverse_postorder_iterator();
+         !block_it.Done(); block_it.Advance()) {
+      BlockEntryInstr* entry = block_it.Current();
+
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        Instruction* current = it.Current();
+        if (current->IsBranch()) {
+          current = current->AsBranch()->comparison();
+        }
+        // The following instructions are not safe to inline, since they make
+        // assumptions about the frame layout.
+        ASSERT(!current->IsTailCall());
+        ASSERT(!current->IsLoadIndexedUnsafe());
+        ASSERT(!current->IsStoreIndexedUnsafe());
+      }
+    }
+#endif  // DEBUG
+  }
+};
+
 // Helper to collect information about a callee graph when considering it for
 // inlining.
 class GraphInfoCollector : public ValueObject {
@@ -431,11 +458,13 @@ class CallSites : public ValueObject {
 
 struct InlinedCallData {
   InlinedCallData(Definition* call,
+                  const Array& arguments_descriptor,
                   intptr_t first_arg_index,  // 1 if type args are passed.
                   GrowableArray<Value*>* arguments,
                   const Function& caller,
                   intptr_t caller_inlining_id)
       : call(call),
+        arguments_descriptor(arguments_descriptor),
         first_arg_index(first_arg_index),
         arguments(arguments),
         callee_graph(NULL),
@@ -445,6 +474,7 @@ struct InlinedCallData {
         caller_inlining_id(caller_inlining_id) {}
 
   Definition* call;
+  const Array& arguments_descriptor;
   const intptr_t first_arg_index;
   GrowableArray<Value*>* arguments;
   FlowGraph* callee_graph;
@@ -571,29 +601,42 @@ static void ReplaceParameterStubs(Zone* zone,
     }
     SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
     if ((param != NULL) && param->HasUses()) {
-      if (param->kind() == SpecialParameterInstr::kContext) {
-        ASSERT(!is_polymorphic);
-        // We do not support polymorphic inlining of closure calls (we did when
-        // there was a class per closure).
-        ASSERT(call_data->call->IsClosureCall());
-        LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
-            new Value((*arguments)[first_arg_index]->definition()),
-            Closure::context_offset(),
-            AbstractType::ZoneHandle(zone, AbstractType::null()),
-            call_data->call->token_pos());
-        context_load->set_is_immutable(true);
-        context_load->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
-        context_load->InsertBefore(callee_entry->next());
-        param->ReplaceUsesWith(context_load);
-      } else {
-        ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
-        Definition* type_args;
-        if (first_arg_index > 0) {
-          type_args = (*arguments)[0]->definition();
-        } else {
-          type_args = callee_graph->constant_null();
+      switch (param->kind()) {
+        case SpecialParameterInstr::kContext: {
+          ASSERT(!is_polymorphic);
+          // We do not support polymorphic inlining of closure calls.
+          ASSERT(call_data->call->IsClosureCall());
+          LoadFieldInstr* context_load = new (zone) LoadFieldInstr(
+              new Value((*arguments)[first_arg_index]->definition()),
+              Closure::context_offset(),
+              AbstractType::ZoneHandle(zone, AbstractType::null()),
+              call_data->call->token_pos());
+          context_load->set_is_immutable(true);
+          context_load->set_ssa_temp_index(
+              caller_graph->alloc_ssa_temp_index());
+          context_load->InsertBefore(callee_entry->next());
+          param->ReplaceUsesWith(context_load);
+          break;
         }
-        param->ReplaceUsesWith(type_args);
+        case SpecialParameterInstr::kTypeArgs: {
+          Definition* type_args;
+          if (first_arg_index > 0) {
+            type_args = (*arguments)[0]->definition();
+          } else {
+            type_args = caller_graph->constant_null();
+          }
+          param->ReplaceUsesWith(type_args);
+          break;
+        }
+        case SpecialParameterInstr::kArgDescriptor: {
+          param->ReplaceUsesWith(
+              caller_graph->GetConstant(call_data->arguments_descriptor));
+          break;
+        }
+        default: {
+          UNREACHABLE();
+          break;
+        }
       }
     }
   }
@@ -918,6 +961,8 @@ class CallSiteInliner : public ValueObject {
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();
+
+            CalleeGraphValidator::Validate(callee_graph);
           }
         } else {
           FlowGraphBuilder builder(*parsed_function, *ic_data_array,
@@ -927,6 +972,8 @@ class CallSiteInliner : public ValueObject {
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();
+
+            CalleeGraphValidator::Validate(callee_graph);
           }
         }
 #ifdef DART_PRECOMPILER
@@ -989,8 +1036,6 @@ class CallSiteInliner : public ValueObject {
         // match.
         ASSERT(arguments->length() ==
                first_actual_param_index + function.NumParameters());
-        ASSERT(param_stubs->length() ==
-               inlined_type_args_param + callee_graph->parameter_count());
 
         // Update try-index of the callee graph.
         BlockEntryInstr* call_block = call_data->call->GetBlock();
@@ -1332,7 +1377,8 @@ class CallSiteInliner : public ValueObject {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
       InlinedCallData call_data(
-          call, call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
+          call, Array::ZoneHandle(Z, call->GetArgumentsDescriptor()),
+          call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
@@ -1380,8 +1426,11 @@ class CallSiteInliner : public ValueObject {
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
       }
+      const Array& arguments_descriptor =
+          Array::ZoneHandle(Z, call->GetArgumentsDescriptor());
       InlinedCallData call_data(
-          call, call->FirstArgIndex(), &arguments, call_info[call_idx].caller(),
+          call, arguments_descriptor, call->FirstArgIndex(), &arguments,
+          call_info[call_idx].caller(),
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target, call->argument_names(), &call_data)) {
         InlineCall(&call_data);
@@ -1637,8 +1686,11 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());
   }
-  InlinedCallData call_data(call_, call_->instance_call()->FirstArgIndex(),
-                            &arguments, caller_function_, caller_inlining_id_);
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(Z, call_->instance_call()->GetArgumentsDescriptor());
+  InlinedCallData call_data(call_, arguments_descriptor,
+                            call_->instance_call()->FirstArgIndex(), &arguments,
+                            caller_function_, caller_inlining_id_);
   Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
   if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),
                            &call_data)) {

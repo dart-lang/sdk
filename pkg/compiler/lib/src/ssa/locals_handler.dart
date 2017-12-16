@@ -76,7 +76,6 @@ class LocalsHandler {
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
   DartType substInContext(DartType type) {
-    //DartType input = type;
     DartType newType = type;
     if (instanceType != null) {
       ClassEntity typeContext = DartTypes.getClassContext(newType);

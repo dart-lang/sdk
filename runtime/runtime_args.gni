@@ -47,4 +47,9 @@ declare_args() {
   # Whether to link the standalone VM against tcmalloc. The standalone build of
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false
+
+  # Controls the kind of core snapshot linked into the standalone VM. Using a
+  # core-jit snapshot breaks the ability to change various flags that affect
+  # code generation.
+  dart_core_snapshot_kind = "core"
 }

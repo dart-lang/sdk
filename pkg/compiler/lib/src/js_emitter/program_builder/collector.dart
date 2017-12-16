@@ -235,7 +235,7 @@ class Collector {
     // It is important that this is the penultimate step, at this point,
     // neededClasses must only contain classes that have been resolved and
     // codegen'd. The rtiNeededClasses may contain additional classes, but
-    // these are thought to not have been instantiated, so we neeed to be able
+    // these are thought to not have been instantiated, so we need to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
     classesOnlyNeededForRti = new Set<ClassEntity>();

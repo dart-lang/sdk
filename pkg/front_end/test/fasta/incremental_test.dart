@@ -192,9 +192,9 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
           foundSources = true;
           context.compiler.invalidate(uri);
           if (edits == 0) {
-            print("==> t.dart <==");
+            print("==> $uri <==");
           } else {
-            print("==> t.dart (edit #$edits) <==");
+            print("==> $uri (edit #$edits) <==");
           }
           print(source.trimRight());
         }

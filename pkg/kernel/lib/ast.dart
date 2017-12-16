@@ -1222,10 +1222,13 @@ class Field extends Member implements FileUriNode {
 /// invocation should be matched with the type parameters declared in the class.
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
-class Constructor extends Member {
+class Constructor extends Member implements FileUriNode {
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
+
+  /// The uri of the source file this field was loaded from.
+  Uri fileUri;
 
   Constructor(this.function,
       {Name name,
@@ -1234,6 +1237,7 @@ class Constructor extends Member {
       bool isSyntheticDefault: false,
       List<Initializer> initializers,
       int transformerFlags: 0,
+      this.fileUri,
       Reference reference})
       : this.initializers = initializers ?? <Initializer>[],
         super(name, reference) {
@@ -1297,6 +1301,10 @@ class Constructor extends Member {
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+  }
 }
 
 /// Residue of a redirecting factory constructor for the linking phase.
@@ -1320,8 +1328,11 @@ class Constructor extends Member {
 ///
 /// Redirecting factory constructors can be unnamed.  In this case, the name is
 /// an empty string (in a [Name]).
-class RedirectingFactoryConstructor extends Member {
+class RedirectingFactoryConstructor extends Member implements FileUriNode {
   int flags = 0;
+
+  /// The uri of the source file this field was loaded from.
+  Uri fileUri;
 
   /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
   /// of instantiated generic types, that is, generic types with supplied type
@@ -1359,6 +1370,7 @@ class RedirectingFactoryConstructor extends Member {
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
       int requiredParameterCount,
+      this.fileUri,
       Reference reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -1424,6 +1436,10 @@ class RedirectingFactoryConstructor extends Member {
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
+  }
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -2895,6 +2911,39 @@ class ConstructorInvocation extends InvocationExpression {
     return arguments.types.isEmpty
         ? target.enclosingClass.rawType
         : new InterfaceType(target.enclosingClass, arguments.types);
+  }
+}
+
+/// An explicit type instantiation of a generic function.
+class Instantiation extends Expression {
+  Expression expression;
+  final List<DartType> typeArguments;
+
+  Instantiation(this.expression, this.typeArguments) {
+    expression?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    FunctionType type = expression.getStaticType(types);
+    return Substitution
+        .fromPairs(type.typeParameters, typeArguments)
+        .substituteType(type.withoutTypeParameters);
+  }
+
+  accept(ExpressionVisitor v) => v.visitInstantiation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInstantiation(this, arg);
+
+  visitChildren(Visitor v) {
+    expression?.accept(v);
+    visitList(typeArguments, v);
+  }
+
+  transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept(v);
+      expression?.parent = this;
+    }
+    transformTypeList(typeArguments, v);
   }
 }
 

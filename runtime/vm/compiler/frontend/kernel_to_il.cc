@@ -7,7 +7,9 @@
 #include "vm/compiler/frontend/kernel_to_il.h"
 
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/kernel_loader.h"
 #include "vm/longjump.h"
@@ -1272,6 +1274,12 @@ Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
   return instructions;
 }
 
+Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
+  Fragment instructions;
+  Value* arg_desc = Pop();
+  return Fragment(new (Z) TailCallInstr(code, arg_desc));
+}
+
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
                                             int catch_try_index) {
   Fragment instructions;
@@ -1755,7 +1763,7 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
                             symbol_name, Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
-  variable->set_index(parsed_function_->first_stack_local_index() -
+  variable->set_index(kFirstLocalSlotFromFp -
                       parsed_function_->num_stack_locals() -
                       pending_argument_count_ - index);
 
@@ -2008,8 +2016,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
-        body += LoadLocal(
-            parsed_function_->node_sequence()->scope()->VariableAt(i));
+        body += LoadLocal(parsed_function_->RawParameterVariable(i));
         body += PushArgument();
       }
       body += NativeCall(&name, &function);
@@ -2217,6 +2224,20 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   return instructions;
 }
 
+BlockEntryInstr* FlowGraphBuilder::BuildPrologue(TargetEntryInstr* normal_entry,
+                                                 PrologueInfo* prologue_info) {
+  const bool compiling_for_osr = IsCompiledForOsr();
+
+  kernel::PrologueBuilder prologue_builder(
+      parsed_function_, last_used_block_id_, compiling_for_osr, IsInlining());
+  BlockEntryInstr* instruction_cursor =
+      prologue_builder.BuildPrologue(normal_entry, prologue_info);
+
+  last_used_block_id_ = prologue_builder.last_used_block_id();
+
+  return instruction_cursor;
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
     const Function& method) {
   // A method extractor is the implicit getter for a method.
@@ -2243,6 +2264,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   // the arguments descriptor at a call site.
 
   TargetEntryInstr* normal_entry = BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      BuildPrologue(normal_entry, &prologue_info);
   graph_entry_ = new (Z)
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
@@ -2260,7 +2284,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   }
   parsed_function_->set_default_parameter_values(default_values);
 
-  Fragment body(normal_entry);
+  Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue();
 
   // The receiver is the first argument to noSuchMethod, and it is the first
@@ -2347,7 +2371,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
                      /* argument_count = */ 2, ICData::kNSMDispatch);
   body += Return(TokenPosition::kNoSource);
 
-  PrologueInfo prologue_info(-1, -1);
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
 }
@@ -2390,10 +2413,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   parsed_function_->set_default_parameter_values(default_values);
 
   TargetEntryInstr* normal_entry = BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      BuildPrologue(normal_entry, &prologue_info);
   graph_entry_ = new (Z)
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
-  Fragment body(normal_entry);
+  Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue();
 
   LocalScope* scope = parsed_function_->node_sequence()->scope();
@@ -2448,7 +2474,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   body += Return(TokenPosition::kNoSource);
 
-  PrologueInfo prologue_info(-1, -1);
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
 }
@@ -2480,6 +2505,43 @@ ArgumentArray BaseFlowGraphBuilder::GetArguments(int count) {
   pending_argument_count_ -= count;
   ASSERT(pending_argument_count_ >= 0);
   return arguments;
+}
+
+Fragment BaseFlowGraphBuilder::SmiRelationalOp(Token::Kind kind) {
+  Value* right = Pop();
+  Value* left = Pop();
+  RelationalOpInstr* instr = new (Z) RelationalOpInstr(
+      TokenPosition::kNoSource, kind, left, right, kSmiCid, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::SmiBinaryOp(Token::Kind kind,
+                                           bool is_truncating) {
+  Value* right = Pop();
+  Value* left = Pop();
+  BinarySmiOpInstr* instr =
+      new (Z) BinarySmiOpInstr(kind, left, right, GetNextDeoptId());
+  if (is_truncating) {
+    instr->mark_truncating();
+  }
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(intptr_t offset) {
+  LoadIndexedUnsafeInstr* instr = new (Z) LoadIndexedUnsafeInstr(Pop(), offset);
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::StoreFpRelativeSlot(intptr_t offset) {
+  Value* value = Pop();
+  Value* index = Pop();
+  StoreIndexedUnsafeInstr* instr =
+      new (Z) StoreIndexedUnsafeInstr(index, value, offset);
+  Push(instr);
+  return Fragment(instr);
 }
 
 RawObject* EvaluateMetadata(const Field& metadata_field) {

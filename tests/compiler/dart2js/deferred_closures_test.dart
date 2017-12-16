@@ -52,10 +52,6 @@ const Map sources = const {
   "lib.dart": """
     library deferred;
 
-    unique_method_name() {
-      return (() => print("unique-string"))();
-      // TODO(sigmund): this line prevents inlining, but it should not be
-      // necessary: the kernel pipeline is incorrectly inlining this method.
-      return "1";
-    }"""
+    unique_method_name() => (() => print("unique-string"))();
+    """
 };

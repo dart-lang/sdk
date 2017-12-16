@@ -445,10 +445,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         typeParameters
             .add(getDartType(new ir.TypeParameterType(typeParameter)));
       }
-      // TODO(johnniwinther): Support bounds.
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,
-          (int index) => new FunctionTypeVariable(index, const DynamicType()));
+          (int index) => new FunctionTypeVariable(
+              index, getDartType(node.typeParameters[index].bound)));
 
       DartType subst(DartType type) {
         return type.subst(typeVariables, typeParameters);
@@ -1589,9 +1589,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       if (enableFunctionTypeVariables) {
-        // TODO(johnniwinther): Support bounds.
+        // TODO(johnniwinther): Support recursive type variable bounds, like
+        // `void Function<T extends Foo<T>>(T t)` when #31531 is fixed.
+        DartType bound = typeParameter.bound.accept(this);
         FunctionTypeVariable typeVariable =
-            new FunctionTypeVariable(index, const DynamicType());
+            new FunctionTypeVariable(index, bound);
         currentFunctionTypeParameters[typeParameter] = typeVariable;
         typeVariables ??= <FunctionTypeVariable>[];
         typeVariables.add(typeVariable);

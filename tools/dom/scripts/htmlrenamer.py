@@ -198,6 +198,38 @@ convert_to_future_members = monitored.Set(
   'WorkerGlobalScope.webkitResolveLocalFileSystemURL',
 ])
 
+# DDC Exposed Classes
+ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
+  'DirectoryEntry': {
+      'getFile': [
+          'applyExtension(\'FileEntry\', value);',
+      ]
+  },
+  'FileEntry': {
+      'createWriter': [
+          'applyExtension(\'FileWriter\', value);'
+      ],
+      'file': [
+          'applyExtension(\'Blob\', value);'
+      ]
+  },
+  'Window': {
+      'webkitRequestFileSystem':[
+          'applyExtension(\'DOMFileSystem\', value);',
+          'applyExtension(\'DirectoryEntry\', value.root);',
+      ]
+  },
+})
+
+# DDC Extension for this interface operation?
+def GetDDC_Extension(interface, operationName):
+  if interface.id in ddc_extensions:
+    entry = ddc_extensions[interface.id]
+    if operationName in entry:
+      return entry[operationName]
+  return None
+
+
 # Classes where we have customized constructors, but we need to keep the old
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(

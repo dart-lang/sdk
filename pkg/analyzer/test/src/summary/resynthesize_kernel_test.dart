@@ -436,7 +436,8 @@ class C {
       ..logger = new PerformanceLog(null)
       ..fileSystem = new _FileSystemAdaptor(resourceProvider)
       ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(options, uriTranslator,
+    var driver = new KernelDriver(
+        options, uriTranslator, new KernelErrorListener(),
         metadataFactory: new AnalyzerMetadataFactory());
 
     KernelResult kernelResult = await driver.getKernel(testUri);
@@ -451,7 +452,7 @@ class C {
     }
 
     kernelResult.dependencies.forEach(addLibrary);
-    addLibrary(kernelResult.library);
+    addLibrary(kernelResult.libraryResult.library);
 
     if (DEBUG) {
       String testUriStr = testUri.toString();

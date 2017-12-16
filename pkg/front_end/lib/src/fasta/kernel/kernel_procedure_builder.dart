@@ -358,6 +358,15 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   @override
   int finishPatch() {
     if (!isPatch) return 0;
+
+    // TODO(ahe): restore file-offset once we track both origin and patch file
+    // URIs. See https://github.com/dart-lang/sdk/issues/31579
+    origin.procedure.fileUri = fileUri;
+    origin.procedure.fileOffset = procedure.fileOffset;
+    origin.procedure.fileEndOffset = procedure.fileEndOffset;
+    origin.procedure.annotations
+        .forEach((m) => m.fileOffset = procedure.fileOffset);
+
     origin.procedure.isAbstract = procedure.isAbstract;
     origin.procedure.isExternal = procedure.isExternal;
     origin.procedure.function = procedure.function;
@@ -410,7 +419,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
-      : constructor = new Constructor(null)
+      : constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
@@ -519,6 +528,15 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   @override
   int finishPatch() {
     if (!isPatch) return 0;
+
+    // TODO(ahe): restore file-offset once we track both origin and patch file
+    // URIs. See https://github.com/dart-lang/sdk/issues/31579
+    origin.constructor.fileUri = fileUri;
+    origin.constructor.fileOffset = constructor.fileOffset;
+    origin.constructor.fileEndOffset = constructor.fileEndOffset;
+    origin.constructor.annotations
+        .forEach((m) => m.fileOffset = constructor.fileOffset);
+
     origin.constructor.isExternal = constructor.isExternal;
     origin.constructor.function = constructor.function;
     origin.constructor.function.parent = constructor.function;

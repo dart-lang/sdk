@@ -56,6 +56,8 @@
   P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
+  P(compactor_tasks, int, 2,                                                   \
+    "The number of tasks to use for parallel compaction.")                     \
   P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \

@@ -53,7 +53,7 @@ void defineTests() {
         );
         expect(r.exitCode, 0,
             reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
-      }, skip: true); // #31554
+      });
     }
   });
 }

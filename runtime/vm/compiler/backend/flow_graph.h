@@ -77,12 +77,12 @@ struct PrologueInfo {
   // The first blockid used for prologue building.  This information can be used
   // by the inliner for budget calculations: The prologue code falls away when
   // inlining, so we should not include it in the budget.
-  const intptr_t min_block_id;
+  intptr_t min_block_id;
 
   // The last blockid used for prologue building.  This information can be used
   // by the inliner for budget calculations: The prologue code falls away when
   // inlining, so we should not include it in the budget.
-  const intptr_t max_block_id;
+  intptr_t max_block_id;
 
   PrologueInfo(intptr_t min, intptr_t max)
       : min_block_id(min), max_block_id(max) {}
@@ -103,17 +103,26 @@ class FlowGraph : public ZoneAllocated {
   // Function properties.
   const ParsedFunction& parsed_function() const { return parsed_function_; }
   const Function& function() const { return parsed_function_.function(); }
-  intptr_t parameter_count() const {
-    return num_copied_params_ + num_non_copied_params_;
-  }
+
+  // The number of directly accessable parameters (above the frame pointer).
+  // All other parameters can only be indirectly loaded via metadata found in
+  // the arguments descriptor.
+  intptr_t num_direct_parameters() const { return num_direct_parameters_; }
+
+  // The number of variables (or boxes) which code can load from / store to.
+  // The SSA renaming will insert phi's for them (and only them - i.e. there
+  // will be no phi insertion for [LocalVariable]s pointing to the expression
+  // stack!).
   intptr_t variable_count() const {
-    return parameter_count() + parsed_function_.num_stack_locals();
+    return num_direct_parameters_ + parsed_function_.num_stack_locals();
   }
+
+  // The number of variables (or boxes) inside the functions frame - meaning
+  // below the frame pointer.  This does not include the expression stack.
   intptr_t num_stack_locals() const {
     return parsed_function_.num_stack_locals();
   }
-  intptr_t num_copied_params() const { return num_copied_params_; }
-  intptr_t num_non_copied_params() const { return num_non_copied_params_; }
+
   bool IsIrregexpFunction() const { return function().IsIrregexpFunction(); }
 
   LocalVariable* CurrentContextVar() const {
@@ -122,7 +131,16 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t CurrentContextEnvIndex() const {
     return parsed_function().current_context_var()->BitIndexIn(
-        num_non_copied_params_);
+        num_direct_parameters_);
+  }
+
+  intptr_t RawTypeArgumentEnvIndex() const {
+    return parsed_function().RawTypeArgumentsVariable()->BitIndexIn(
+        num_direct_parameters_);
+  }
+
+  intptr_t ArgumentDescriptorEnvIndex() const {
+    return parsed_function().arg_desc_var()->BitIndexIn(num_direct_parameters_);
   }
 
   // Flow graph orders.
@@ -180,10 +198,6 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_null() const { return constant_null_; }
 
   ConstantInstr* constant_dead() const { return constant_dead_; }
-
-  ConstantInstr* constant_empty_context() const {
-    return constant_empty_context_;
-  }
 
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
@@ -410,8 +424,7 @@ class FlowGraph : public ZoneAllocated {
 
   // Flow graph fields.
   const ParsedFunction& parsed_function_;
-  const intptr_t num_copied_params_;
-  const intptr_t num_non_copied_params_;
+  intptr_t num_direct_parameters_;
   GraphEntryInstr* graph_entry_;
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;
@@ -419,7 +432,6 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> optimized_block_order_;
   ConstantInstr* constant_null_;
   ConstantInstr* constant_dead_;
-  ConstantInstr* constant_empty_context_;
 
   bool licm_allowed_;
 

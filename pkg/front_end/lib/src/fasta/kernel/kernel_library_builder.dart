@@ -10,8 +10,6 @@ import 'package:front_end/src/fasta/export.dart';
 import 'package:front_end/src/fasta/import.dart';
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/clone.dart' show CloneVisitor;
-
 import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart'
@@ -91,8 +89,6 @@ class KernelLibraryBuilder
 
   final Map<String, SourceClassBuilder> mixinApplicationClasses =
       <String, SourceClassBuilder>{};
-
-  final List<List> argumentsWithMissingDefaultValues = <List>[];
 
   final List<KernelFunctionBuilder> nativeMethods = <KernelFunctionBuilder>[];
 
@@ -965,45 +961,6 @@ class KernelLibraryBuilder
       }
     }
     return total;
-  }
-
-  int finishStaticInvocations() {
-    CloneVisitor cloner;
-    for (var list in argumentsWithMissingDefaultValues) {
-      final Arguments arguments = list[0];
-      final FunctionNode function = list[1];
-
-      Expression defaultArgumentFrom(Expression expression) {
-        if (expression == null) {
-          return new NullLiteral();
-        }
-        cloner ??= new CloneVisitor();
-        return cloner.clone(expression);
-      }
-
-      for (int i = function.requiredParameterCount;
-          i < function.positionalParameters.length;
-          i++) {
-        arguments.positional[i] ??=
-            defaultArgumentFrom(function.positionalParameters[i].initializer)
-              ..parent = arguments;
-      }
-      Map<String, VariableDeclaration> names;
-      for (NamedExpression expression in arguments.named) {
-        if (expression.value == null) {
-          if (names == null) {
-            names = <String, VariableDeclaration>{};
-            for (VariableDeclaration parameter in function.namedParameters) {
-              names[parameter.name] = parameter;
-            }
-          }
-          expression.value =
-              defaultArgumentFrom(names[expression.name].initializer)
-                ..parent = expression;
-        }
-      }
-    }
-    return argumentsWithMissingDefaultValues.length;
   }
 
   void addNativeMethod(KernelFunctionBuilder method) {

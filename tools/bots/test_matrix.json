@@ -254,6 +254,77 @@
     },
     {
       "builders": [
+        "vm-kernel-linux-debug-simdbc64",
+        "vm-kernel-linux-release-simarm",
+        "vm-kernel-linux-release-simarm64",
+        "vm-kernel-linux-release-simdbc64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the simarm/simdbc vm kernel builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "dartk tests",
+          "arguments": ["-cdartk"]
+        },
+        {
+          "name": "dartk strong tests",
+          "arguments": [
+            "-cdartk",
+            "--strong",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-linux-release-simarm",
+        "vm-kernel-precomp-linux-release-simarm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the simarm vm kernel precomp release builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "dartk tests",
+          "arguments": [
+            "-cdartk",
+            "-rdart_precompiled"
+          ]
+        },
+        {
+          "name": "dartk strong tests",
+          "arguments": [
+            "-cdartk",
+            "-rdart_precompiled",
+            "--strong",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-linux-debug-x64",
         "vm-kernel-linux-release-x64",
         "vm-kernel-mac-debug-x64",
@@ -310,8 +381,8 @@
     },
     {
       "builders": [
-        "ddc-linux-release",
-        "ddc-win-release"
+        "ddc-linux-release-chrome",
+        "ddc-win-release-chrome"
       ],
       "meta": {
         "description": "This configuration is used by the ddc builder group."
@@ -326,21 +397,18 @@
           "name": "ddc tests",
           "arguments": [
             "-cdartdevc",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
             "language_2",
             "corelib_2",
-            "lib_2",
-            "lib_strong"
+            "lib_2"
           ]
         },
         {
           "name": "ddc kernel tests",
           "arguments": [
             "-cdartdevk",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -351,35 +419,39 @@
           "name": "ddc sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
           ]
         }
       ]
     },
     {
       "builders": [
-        "ddc-mac-release"
+        "ddc-mac-release-chrome"
       ],
       "meta": {
         "description": "This configuration is used by the ddc builder group."
@@ -394,7 +466,6 @@
           "name": "ddc tests",
           "arguments": [
             "-cdartdevc",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -408,7 +479,6 @@
           "name": "ddc kernel tests",
           "arguments": [
             "-cdartdevk",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -419,28 +489,32 @@
           "name": "ddc sourcemap tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
           ]
         }
       ]

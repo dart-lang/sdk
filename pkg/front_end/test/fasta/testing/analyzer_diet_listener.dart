@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart' as ast;
 import 'package:analyzer/src/fasta/ast_builder.dart' show AstBuilder;
 
 import 'package:analyzer/src/fasta/resolution_applier.dart'
-    show ResolutionApplier, TypeContext;
+    show ValidatingResolutionApplier, TypeContext;
 
 import 'package:analyzer/src/fasta/resolution_storer.dart'
     show InstrumentedResolutionStorer;
@@ -184,13 +184,13 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
-    var resolutionApplier = new ResolutionApplier(
+    var resolutionApplier = new ValidatingResolutionApplier(
         new _TestTypeContext(),
         translatedDeclarations,
-        _declarationOffsets,
         translatedReferences,
-        _referenceOffsets,
         _kernelTypes,
+        _declarationOffsets,
+        _referenceOffsets,
         _typeOffsets);
     ast.AstNode fields = listener.finishFields();
     fields.accept(resolutionApplier);
@@ -242,15 +242,17 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
-    var resolutionApplier = new ResolutionApplier(
+    var resolutionApplier = new ValidatingResolutionApplier(
         new _TestTypeContext(),
         translatedDeclarations,
-        _declarationOffsets,
         translatedReferences,
-        _referenceOffsets,
         _kernelTypes,
+        _declarationOffsets,
+        _referenceOffsets,
         _typeOffsets);
+    ast.AstNode formalsAsAstNode = formals;
     ast.AstNode bodyAsAstNode = body;
+    formalsAsAstNode?.accept(resolutionApplier);
     bodyAsAstNode.accept(resolutionApplier);
     resolutionApplier.checkDone();
 

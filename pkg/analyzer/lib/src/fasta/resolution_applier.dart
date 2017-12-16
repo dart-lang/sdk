@@ -19,21 +19,15 @@ import 'package:kernel/kernel.dart' as kernel;
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
 class ResolutionApplier extends GeneralizingAstVisitor {
-  /// Indicates whether debug messages should be printed.
-  static const bool _debug = false;
-
   final TypeContext _typeContext;
 
   final List<Element> _declaredElements;
-  final List<int> _declaredElementOffsets;
   int _declaredElementIndex = 0;
 
   final List<Element> _referencedElements;
-  final List<int> _referencedElementOffsets;
   int _referencedElementIndex = 0;
 
   final List<kernel.DartType> _types;
-  final List<int> _typeOffsets;
   int _typeIndex = 0;
 
   /// Indicates whether we are applying resolution to an annotation.
@@ -42,14 +36,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// with corresponding getters.
   bool _inAnnotation = false;
 
-  ResolutionApplier(
-      this._typeContext,
-      this._declaredElements,
-      this._declaredElementOffsets,
-      this._referencedElements,
-      this._referencedElementOffsets,
-      this._types,
-      this._typeOffsets);
+  ResolutionApplier(this._typeContext, this._declaredElements,
+      this._referencedElements, this._types);
 
   /// Apply resolution to annotations of the given [node].
   void applyToAnnotations(AnnotatedNode node) {
@@ -62,15 +50,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void checkDone() {
     if (_declaredElementIndex != _declaredElements.length) {
       throw new StateError('Some declarations were not consumed, starting at '
-          'offset ${_declaredElementOffsets[_declaredElementIndex]}');
+          '${_declaredElements[_declaredElementIndex]}');
     }
     if (_referencedElementIndex != _referencedElements.length) {
       throw new StateError('Some references were not consumed, starting at '
-          'offset ${_referencedElementOffsets[_referencedElementIndex]}');
+          '${_referencedElements[_referencedElementIndex]}');
     }
     if (_typeIndex != _types.length) {
-      throw new StateError('Some types were not consumed, starting at offset '
-          '${_typeOffsets[_typeIndex]}');
+      throw new StateError(
+          'Some types were not consumed, starting at ${_types[_typeIndex]}');
     }
   }
 
@@ -251,7 +239,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         }
       }
 
-      _applyParameters(element.parameters, parameterList.parameters);
+      applyParameters(element.parameters, parameterList);
     }
 
     functionExpression.body?.accept(this);
@@ -269,7 +257,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (element != null) {
       node.element = element;
       node.staticType = element.type;
-      _applyParameters(element.parameters, parameterList.parameters);
+      applyParameters(element.parameters, parameterList);
     }
 
     // Apply resolution to default values.
@@ -314,33 +302,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     DartType type = _getTypeFor(constructorName);
     ConstructorElement element = _getReferenceFor(constructorName);
-    ClassElement classElement = element?.enclosingElement;
 
     node.staticElement = element;
     node.staticType = type;
 
-    Identifier typeIdentifier = constructorName.type.name;
-    if (typeIdentifier is SimpleIdentifier) {
-      applyToTypeAnnotation(type, constructorName.type);
-      if (constructorName.name != null) {
-        constructorName.name.staticElement = element;
-      }
-    } else if (typeIdentifier is PrefixedIdentifier) {
-      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
-      // TODO(scheglov) Add support for `new prefix.Type()`.
-      // TODO(scheglov) Add support for `new prefix.Type.name()`.
-      assert(constructorName.name == null);
-      constructorName.period = typeIdentifier.period;
-      constructorName.name = typeIdentifier.identifier;
-      SimpleIdentifier classNode = typeIdentifier.prefix;
-      constructorName.type = astFactory.typeName(classNode, null);
-      classNode.staticElement = classElement;
-      classNode.staticType = type;
-      constructorName.name.staticElement = element;
-    }
+    applyConstructorElement(type, element, constructorName);
 
-    node.argumentList?.accept(this);
-    _associateArgumentsWithParameters(element?.parameters, node.argumentList);
+    ArgumentList argumentList = node.argumentList;
+    _associateArgumentsWithParameters(element?.parameters, argumentList);
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -376,13 +346,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
 
-    _getReferenceFor(node.methodName); // raw element
+    Element invokeElement = _getReferenceFor(node.methodName);
     DartType invokeType = _getTypeFor(node.methodName);
     DartType resultType = _getTypeFor(argumentList);
 
+    if (invokeElement is PropertyInducingElement) {
+      PropertyInducingElement property = invokeElement;
+      invokeElement = property.getter;
+    }
+
     node.staticInvokeType = invokeType;
     node.staticType = resultType;
-    node.methodName.staticElement = invokeType.element;
+    node.methodName.staticElement = invokeElement;
     node.methodName.staticType = invokeType;
 
     if (invokeType is FunctionType) {
@@ -392,15 +367,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       _associateArgumentsWithParameters(invokeType.parameters, argumentList);
     }
 
-    // Apply resolution to arguments.
-    // Skip names of named arguments.
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument.expression.accept(this);
-      } else {
-        argument.accept(this);
-      }
-    }
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -424,36 +391,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    Element element =
-        _getReferenceFor(node.identifier, nullIfDifferentOffset: true);
-    if (element != null) {
-      // If the element is for the identifier, then this is a static element.
-      DartType type = _getTypeFor(node.identifier);
-      if (element is PropertyAccessorElement) {
-        assert(element.isStatic);
-        node.identifier.staticElement = element;
-        node.identifier.staticType = type;
-        var enclosingElement = element.enclosingElement;
-        if (enclosingElement is ClassElement) {
-          node.prefix.staticElement = enclosingElement;
-          node.prefix.staticType = enclosingElement.type;
-        } else {
-          // TODO(scheglov) Support for prefixed top-level variables?
-          throw new UnimplementedError('(${element.runtimeType}) $element');
-        }
-      } else {
-        // TODO(scheglov) Support for methods?
-        throw new UnimplementedError('(${element.runtimeType}) $element');
-      }
-    } else {
-      // If the element is not for the identifier, this is actually a property.
-      // The element and type must be for the prefix.
-      node.prefix.staticElement = _getReferenceFor(node.prefix);
-      node.prefix.staticType = _getTypeFor(node.prefix);
-      // The resolution for the identifier follows.
-      node.identifier.staticElement = _getReferenceFor(node.identifier);
-      node.identifier.staticType = _getTypeFor(node.identifier);
-    }
+    node.prefix.accept(this);
+    node.identifier.accept(this);
     node.staticType = node.identifier.staticType;
   }
 
@@ -485,6 +424,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.target?.accept(this);
     node.propertyName.accept(this);
     node.staticType = node.propertyName.staticType;
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+
+    ConstructorElement element = _getReferenceFor(constructorName ?? node);
+    node.staticElement = element;
+    constructorName?.staticElement = element;
+
+    ArgumentList argumentList = node.argumentList;
+    _associateArgumentsWithParameters(element?.parameters, argumentList);
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -564,10 +517,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (node.parent is TopLevelVariableDeclaration) {
       node.variables.accept(this);
     } else {
-      if (node.variables.length != 1) {
-        // TODO(paulberry): handle this case
-        throw new UnimplementedError('Multiple variables in one declaration');
-      }
       if (node.metadata.isNotEmpty) {
         // TODO(paulberry): handle this case
         throw new UnimplementedError('Metadata on a variable declaration list');
@@ -579,6 +528,17 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         if (type != null) {
           applyToTypeAnnotation(type, node.type);
         }
+      }
+    }
+  }
+
+  /// Apply resolution to arguments of the [argumentList].
+  void _applyResolutionToArguments(ArgumentList argumentList) {
+    for (var argument in argumentList.arguments) {
+      if (argument is NamedExpression) {
+        argument.expression.accept(this);
+      } else {
+        argument.accept(this);
       }
     }
   }
@@ -630,46 +590,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// Return the element associated with the declaration represented by the
   /// given [node].
   Element _getDeclarationFor(AstNode node) {
-    int nodeOffset = node.offset;
-    if (_debug) {
-      print('Getting declaration element for $node at $nodeOffset');
-    }
-    if (_declaredElementIndex >= _declaredElements.length) {
-      throw new StateError(
-          'No declaration information for $node at $nodeOffset');
-    }
-    int elementOffset = _declaredElementOffsets[_declaredElementIndex];
-    if (nodeOffset != elementOffset) {
-      throw new StateError(
-          'Expected element declaration for analyzer offset $nodeOffset; '
-          'got one for kernel offset $elementOffset');
-    }
-
     return _declaredElements[_declaredElementIndex++];
   }
 
   /// Return the element associated with the reference represented by the
   /// given [entity].
-  Element _getReferenceFor(SyntacticEntity entity,
-      {bool nullIfDifferentOffset: false}) {
-    int entityOffset = entity.offset;
-    if (_debug) {
-      print('Getting reference element for $entity at $entityOffset');
-    }
-    if (_referencedElementIndex >= _referencedElements.length) {
-      throw new StateError(
-          'No reference information for $entity at $entityOffset');
-    }
-    int elementOffset = _referencedElementOffsets[_referencedElementIndex];
-    if (entityOffset != elementOffset) {
-      if (nullIfDifferentOffset) {
-        return null;
-      }
-      throw new StateError(
-          'Expected element reference for analyzer offset $entityOffset; '
-          'got one for kernel offset $elementOffset');
-    }
-
+  Element _getReferenceFor(SyntacticEntity entity) {
     Element element = _referencedElements[_referencedElementIndex++];
     if (_inAnnotation && element is PropertyInducingElement) {
       return element.getter;
@@ -684,21 +610,97 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// optional parameter (i.e. [Null]).
   DartType _getTypeFor(SyntacticEntity entity, {bool synthetic: false}) {
     assert(!synthetic || entity == null);
-
-    var entityOffset = synthetic ? -1 : entity.offset;
-    if (_debug) {
-      print('Getting type for $entity at $entityOffset');
-    }
-    if (_typeIndex >= _types.length) {
-      throw new StateError('No type information for $entity at $entityOffset');
-    }
-    if (entityOffset != _typeOffsets[_typeIndex]) {
-      throw new StateError('Expected a type for $entity at $entityOffset; '
-          'got one for kernel offset ${_typeOffsets[_typeIndex]}');
-    }
-
     kernel.DartType kernelType = _types[_typeIndex++];
     return _typeContext.translateType(kernelType);
+  }
+
+  /// Apply the [type] that is created by the [constructorName] and the
+  /// [constructorElement] it references.
+  static void applyConstructorElement(DartType type,
+      ConstructorElement constructorElement, ConstructorName constructorName) {
+    ClassElement classElement = constructorElement?.enclosingElement;
+
+    Identifier typeIdentifier = constructorName.type.name;
+    if (typeIdentifier is SimpleIdentifier) {
+      applyToTypeAnnotation(type, constructorName.type);
+      if (constructorName.name != null) {
+        constructorName.name.staticElement = constructorElement;
+      }
+    } else if (typeIdentifier is PrefixedIdentifier) {
+      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
+      // TODO(scheglov) Add support for `new prefix.Type()`.
+      // TODO(scheglov) Add support for `new prefix.Type.name()`.
+      assert(constructorName.name == null);
+      constructorName.period = typeIdentifier.period;
+      constructorName.name = typeIdentifier.identifier;
+
+      SimpleIdentifier classNode = typeIdentifier.prefix;
+      classNode.staticElement = classElement;
+      classNode.staticType = type;
+
+      constructorName.type = astFactory.typeName(classNode, null);
+      constructorName.type.type = type;
+      constructorName.name.staticElement = constructorElement;
+    }
+  }
+
+  /// Apply the types of the [parameterElements] to the [parameterList] that
+  /// have an explicit type annotation.
+  static void applyParameters(List<ParameterElement> parameterElements,
+      FormalParameterList parameterList) {
+    List<FormalParameter> parameters = parameterList.parameters;
+
+    int length = parameterElements.length;
+    if (parameters.length != length) {
+      throw new StateError('Parameter counts do not match');
+    }
+    for (int i = 0; i < length; i++) {
+      ParameterElementImpl element = parameterElements[i];
+      FormalParameter parameter = parameters[i];
+
+      NormalFormalParameter normalParameter;
+      if (parameter is NormalFormalParameter) {
+        normalParameter = parameter;
+      } else if (parameter is DefaultFormalParameter) {
+        normalParameter = parameter.parameter;
+      }
+      assert(normalParameter != null);
+
+      if (normalParameter is SimpleFormalParameterImpl) {
+        normalParameter.element = element;
+      }
+
+      if (normalParameter.identifier != null) {
+        element.nameOffset = normalParameter.identifier.offset;
+        normalParameter.identifier.staticElement = element;
+        normalParameter.identifier.staticType = element.type;
+      }
+
+      // Apply the type or the return type, if a function typed parameter.
+      TypeAnnotation functionReturnType;
+      FormalParameterList functionParameterList;
+      if (normalParameter is SimpleFormalParameter) {
+        applyToTypeAnnotation(element.type, normalParameter.type);
+      } else if (normalParameter is FunctionTypedFormalParameter) {
+        functionReturnType = normalParameter.returnType;
+        functionParameterList = normalParameter.parameters;
+      } else if (normalParameter is FieldFormalParameter) {
+        if (normalParameter.parameters == null) {
+          applyToTypeAnnotation(element.type, normalParameter.type);
+        } else {
+          functionReturnType = normalParameter.type;
+          functionParameterList = normalParameter.parameters;
+        }
+      }
+
+      if (functionParameterList != null) {
+        FunctionType elementType = element.type;
+        if (functionReturnType != null) {
+          applyToTypeAnnotation(elementType.returnType, functionReturnType);
+        }
+        applyParameters(elementType.parameters, functionParameterList);
+      }
+    }
   }
 
   /// Apply the [type] to the [typeAnnotation] by setting the type of the
@@ -726,8 +728,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       FunctionType functionType = type;
       typeAnnotation.type = type;
       applyToTypeAnnotation(functionType.returnType, typeAnnotation.returnType);
-      _applyParameters(
-          functionType.parameters, typeAnnotation.parameters.parameters);
+      applyParameters(functionType.parameters, typeAnnotation.parameters);
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
       SimpleIdentifier name = nameForElement(typeAnnotation.name);
@@ -745,42 +746,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       TypeArgumentList typeArguments = typeAnnotation.typeArguments;
       if (typeArguments != null) {
         _applyTypeArgumentsToList(type, typeArguments.arguments);
-      }
-    }
-  }
-
-  /// Apply the types of the [parameterElements] to the [parameters] that have
-  /// an explicit type annotation.
-  static void _applyParameters(List<ParameterElement> parameterElements,
-      List<FormalParameter> parameters) {
-    int length = parameterElements.length;
-    if (parameters.length != length) {
-      throw new StateError('Parameter counts do not match');
-    }
-    for (int i = 0; i < length; i++) {
-      ParameterElement element = parameterElements[i];
-      FormalParameter parameter = parameters[i];
-
-      NormalFormalParameter normalParameter;
-      if (parameter is NormalFormalParameter) {
-        normalParameter = parameter;
-      } else if (parameter is DefaultFormalParameter) {
-        normalParameter = parameter.parameter;
-      }
-
-      TypeAnnotation typeAnnotation = null;
-      if (normalParameter is SimpleFormalParameter) {
-        typeAnnotation = normalParameter.type;
-      }
-      if (typeAnnotation != null) {
-        applyToTypeAnnotation(element.type, typeAnnotation);
-      }
-
-      if (normalParameter is SimpleFormalParameterImpl) {
-        normalParameter.element = element;
-      }
-      if (normalParameter.identifier != null) {
-        normalParameter.identifier.staticElement = element;
       }
     }
   }
@@ -831,4 +796,96 @@ abstract class TypeContext {
 
   /// Return the Analyzer [DartType] for the given [kernelType].
   DartType translateType(kernel.DartType kernelType);
+}
+
+/// Visitor that applies resolution data from the front end (obtained via
+/// [ResolutionStorer]) to an analyzer AST, and also checks file offsets to
+/// verify that the types are applied to the correct subexpressions.
+class ValidatingResolutionApplier extends ResolutionApplier {
+  /// Indicates whether debug messages should be printed.
+  static const bool _debug = false;
+
+  final List<int> _declaredElementOffsets;
+  final List<int> _referencedElementOffsets;
+  final List<int> _typeOffsets;
+
+  ValidatingResolutionApplier(
+      TypeContext typeContext,
+      List<Element> declaredElements,
+      List<Element> referencedElements,
+      List<kernel.DartType> types,
+      this._declaredElementOffsets,
+      this._referencedElementOffsets,
+      this._typeOffsets)
+      : super(typeContext, declaredElements, referencedElements, types);
+
+  @override
+  void checkDone() {
+    if (_declaredElementIndex != _declaredElements.length) {
+      throw new StateError('Some declarations were not consumed, starting at '
+          'offset ${_declaredElementOffsets[_declaredElementIndex]}');
+    }
+    if (_referencedElementIndex != _referencedElements.length) {
+      throw new StateError('Some references were not consumed, starting at '
+          'offset ${_referencedElementOffsets[_referencedElementIndex]}');
+    }
+    if (_typeIndex != _types.length) {
+      throw new StateError('Some types were not consumed, starting at offset '
+          '${_typeOffsets[_typeIndex]}');
+    }
+  }
+
+  @override
+  Element _getDeclarationFor(AstNode node) {
+    int nodeOffset = node.offset;
+    if (_debug) {
+      print('Getting declaration element for $node at $nodeOffset');
+    }
+    if (_declaredElementIndex >= _declaredElements.length) {
+      throw new StateError(
+          'No declaration information for $node at $nodeOffset');
+    }
+    int elementOffset = _declaredElementOffsets[_declaredElementIndex];
+    if (nodeOffset != elementOffset) {
+      throw new StateError(
+          'Expected element declaration for analyzer offset $nodeOffset; '
+          'got one for kernel offset $elementOffset');
+    }
+    return super._getDeclarationFor(node);
+  }
+
+  @override
+  Element _getReferenceFor(SyntacticEntity entity) {
+    int entityOffset = entity.offset;
+    if (_debug) {
+      print('Getting reference element for $entity at $entityOffset');
+    }
+    if (_referencedElementIndex >= _referencedElements.length) {
+      throw new StateError(
+          'No reference information for $entity at $entityOffset');
+    }
+    int elementOffset = _referencedElementOffsets[_referencedElementIndex];
+    if (entityOffset != elementOffset) {
+      throw new StateError(
+          'Expected element reference for analyzer offset $entityOffset; '
+          'got one for kernel offset $elementOffset');
+    }
+    return super._getReferenceFor(entity);
+  }
+
+  @override
+  DartType _getTypeFor(SyntacticEntity entity, {bool synthetic: false}) {
+    var entityOffset = synthetic ? -1 : entity.offset;
+    if (_debug) {
+      print('Getting type for $entity at $entityOffset');
+    }
+    if (_typeIndex >= _types.length) {
+      throw new StateError('No type information for $entity at $entityOffset');
+    }
+    if (entityOffset != _typeOffsets[_typeIndex]) {
+      throw new StateError('Expected a type for $entity at $entityOffset; '
+          'got one for kernel offset ${_typeOffsets[_typeIndex]}');
+    }
+    return super._getTypeFor(entity);
+  }
 }

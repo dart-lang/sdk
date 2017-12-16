@@ -327,6 +327,14 @@ _applyExtension(jsType, dartExtType) {
       jsType, _setterSig, JS('', '() => #[#]', dartExtType, _setterSig));
 }
 
+/// Apply the previously registered extension to the type of [nativeObject].
+/// This is intended for types that are not available to polyfill at startup.
+applyExtension(name, nativeObject) {
+  var dartExtType = JS('', '#.get(#)', _extensionMap, name);
+  var jsType = JS('', '#.constructor', nativeObject);
+  _applyExtension(jsType, dartExtType);
+}
+
 /// Apply all registered extensions to a window.  This is intended for
 /// different frames, where registrations need to be reapplied.
 applyAllExtensions(global) {

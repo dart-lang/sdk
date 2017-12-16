@@ -31,9 +31,8 @@ class KernelNamedTypeBuilder
     return new KernelInvalidTypeBuilder("$name", charOffset, fileUri);
   }
 
-  Supertype handleInvalidSupertype(LibraryBuilder library) {
-    int charOffset = -1; // TODO(ahe): Provide these.
-    Uri fileUri = null; // TODO(ahe): Provide these.
+  Supertype handleInvalidSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
     var template = builder.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
@@ -46,12 +45,13 @@ class KernelNamedTypeBuilder
     return builder.buildType(library, arguments);
   }
 
-  Supertype buildSupertype(LibraryBuilder library) {
+  Supertype buildSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
     if (builder is KernelClassBuilder) {
       KernelClassBuilder builder = this.builder;
       return builder.buildSupertype(library, arguments);
     } else {
-      return handleInvalidSupertype(library);
+      return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
 

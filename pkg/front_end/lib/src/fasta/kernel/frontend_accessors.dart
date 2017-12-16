@@ -689,7 +689,8 @@ class StaticAccessor extends Accessor {
     if (readTarget == null) {
       return makeInvalidRead();
     } else {
-      var read = helper.makeStaticGet(readTarget, token);
+      var read = helper.makeStaticGet(readTarget, token,
+          targetOffset: targetOffset, targetClass: targetClass);
       complexAssignment?.read = read;
       return read;
     }
@@ -753,6 +754,23 @@ class ReadOnlyAccessor extends Accessor {
   Expression _finish(
           Expression body, ShadowComplexAssignment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
+}
+
+abstract class DelayedErrorAccessor extends Accessor {
+  DelayedErrorAccessor(BuilderHelper helper, Token token)
+      : super(helper, token);
+
+  Expression buildError();
+
+  Expression _makeSimpleRead() => buildError();
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+          ShadowComplexAssignment complexAssignment) =>
+      buildError();
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) =>
+      buildError();
+  Expression _makeWrite(Expression value, bool voidContext,
+          ShadowComplexAssignment complexAssignment) =>
+      buildError();
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

@@ -32,6 +32,7 @@ import '../fasta_codes.dart'
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
+        templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
         templateOverrideFewerPositionalArguments,
         templateOverrideMismatchNamedParameter,
@@ -238,7 +239,11 @@ abstract class KernelClassBuilder
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
               "${interfaceMember.name.name}"),
-          declaredMember.fileOffset);
+          declaredMember.fileOffset,
+          context: templateOverriddenMethodCause
+              .withArguments(interfaceMember.name.name)
+              .withLocation(
+                  interfaceMember.fileUri, interfaceMember.fileOffset));
     }
     if (declaredFunction.positionalParameters.length <
             interfaceFunction.requiredParameterCount ||
@@ -249,7 +254,11 @@ abstract class KernelClassBuilder
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
               "${interfaceMember.name.name}"),
-          declaredMember.fileOffset);
+          declaredMember.fileOffset,
+          context: templateOverriddenMethodCause
+              .withArguments(interfaceMember.name.name)
+              .withLocation(
+                  interfaceMember.fileUri, interfaceMember.fileOffset));
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
@@ -258,7 +267,11 @@ abstract class KernelClassBuilder
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
               "${interfaceMember.name.name}"),
-          declaredMember.fileOffset);
+          declaredMember.fileOffset,
+          context: templateOverriddenMethodCause
+              .withArguments(interfaceMember.name.name)
+              .withLocation(
+                  interfaceMember.fileUri, interfaceMember.fileOffset));
     }
     if (declaredFunction.namedParameters.isEmpty &&
         interfaceFunction.namedParameters.isEmpty) {
@@ -271,7 +284,11 @@ abstract class KernelClassBuilder
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
               "${interfaceMember.name.name}"),
-          declaredMember.fileOffset);
+          declaredMember.fileOffset,
+          context: templateOverriddenMethodCause
+              .withArguments(interfaceMember.name.name)
+              .withLocation(
+                  interfaceMember.fileUri, interfaceMember.fileOffset));
     }
     Iterator<VariableDeclaration> declaredNamedParameters =
         declaredFunction.namedParameters.iterator;
@@ -289,7 +306,11 @@ abstract class KernelClassBuilder
                   interfaceNamedParameters.current.name,
                   "${interfaceMember.enclosingClass.name}::"
                   "${interfaceMember.name.name}"),
-              declaredMember.fileOffset);
+              declaredMember.fileOffset,
+              context: templateOverriddenMethodCause
+                  .withArguments(interfaceMember.name.name)
+                  .withLocation(
+                      interfaceMember.fileUri, interfaceMember.fileOffset));
           break outer;
         }
       }

@@ -308,122 +308,29 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   const intptr_t num_fixed_params = function.num_fixed_parameters();
-  const int num_opt_pos_params = function.NumOptionalPositionalParameters();
-  const int num_opt_named_params = function.NumOptionalNamedParameters();
-  const int num_params =
-      num_fixed_params + num_opt_pos_params + num_opt_named_params;
-  const bool has_optional_params =
-      (num_opt_pos_params != 0) || (num_opt_named_params != 0);
   const int num_locals = parsed_function().num_stack_locals();
-  const intptr_t context_index =
-      -parsed_function().current_context_var()->index() - 1;
 
   if (CanOptimizeFunction() && function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     __ HotCheck(!is_optimizing(), GetOptimizationThreshold());
   }
 
-  if (has_optional_params) {
-    __ EntryOptional(num_fixed_params, num_opt_pos_params,
-                     num_opt_named_params);
-  } else if (!is_optimizing()) {
-    __ Entry(num_fixed_params, num_locals, context_index);
-  } else {
+  if (is_optimizing()) {
     __ EntryOptimized(num_fixed_params,
                       flow_graph_.graph_entry()->spill_slot_count());
+  } else {
+    __ Entry(num_locals);
   }
 
-  if (num_opt_named_params != 0) {
-    LocalScope* scope = parsed_function().node_sequence()->scope();
-
-    // Start by alphabetically sorting the names of the optional parameters.
-    LocalVariable** opt_param =
-        zone()->Alloc<LocalVariable*>(num_opt_named_params);
-    int* opt_param_position = zone()->Alloc<int>(num_opt_named_params);
-    for (int pos = num_fixed_params; pos < num_params; pos++) {
-      LocalVariable* parameter = scope->VariableAt(pos);
-      const String& opt_param_name = parameter->name();
-      int i = pos - num_fixed_params;
-      while (--i >= 0) {
-        LocalVariable* param_i = opt_param[i];
-        const intptr_t result = opt_param_name.CompareTo(param_i->name());
-        ASSERT(result != 0);
-        if (result > 0) break;
-        opt_param[i + 1] = opt_param[i];
-        opt_param_position[i + 1] = opt_param_position[i];
-      }
-      opt_param[i + 1] = parameter;
-      opt_param_position[i + 1] = pos;
-    }
-
-    for (intptr_t i = 0; i < num_opt_named_params; i++) {
-      const int param_pos = opt_param_position[i];
-      const Instance& value = parsed_function().DefaultParameterValueAt(
-          param_pos - num_fixed_params);
-      __ LoadConstant(param_pos, opt_param[i]->name());
-      __ LoadConstant(param_pos, value);
-    }
-  } else if (num_opt_pos_params != 0) {
-    for (intptr_t i = 0; i < num_opt_pos_params; i++) {
-      const Object& value = parsed_function().DefaultParameterValueAt(i);
-      __ LoadConstant(num_fixed_params + i, value);
-    }
-  }
-
-  if (has_optional_params) {
-    if (!is_optimizing()) {
-      ASSERT(num_locals > 0);  // There is always at least context_var.
-      __ Frame(num_locals);    // Reserve space for locals.
-    } else if (flow_graph_.graph_entry()->spill_slot_count() >
-               flow_graph_.num_copied_params()) {
-      __ Frame(flow_graph_.graph_entry()->spill_slot_count() -
-               flow_graph_.num_copied_params());
-    }
-  }
-
-  const bool expect_type_arguments =
-      isolate()->reify_generic_functions() && function.IsGeneric();
-  if (function.IsClosureFunction()) {
-    // In optimized mode the register allocator expects CurrentContext in the
-    // flow_graph_.num_copied_params() register at function entry, unless that
-    // register is used for function type arguments, either as their
-    // permanent location or as their temporary location when captured.
-    // In that case, the next register holds CurrentContext.
-    // (see FlowGraphAllocator::ProcessInitialDefinition)
-    Register context_reg =
-        is_optimizing()
-            ? (expect_type_arguments ? flow_graph_.num_copied_params() + 1
-                                     : flow_graph_.num_copied_params())
-            : context_index;
-    LocalScope* scope = parsed_function().node_sequence()->scope();
-    LocalVariable* local = scope->VariableAt(0);  // Closure instance receiver.
-
-    Register closure_reg;
-    if (local->index() > 0) {
-      __ Move(context_reg, -local->index());
-      closure_reg = context_reg;
-    } else {
-      closure_reg = -local->index() - 1;
-    }
-    __ LoadField(context_reg, closure_reg,
-                 Closure::context_offset() / kWordSize);
-  } else if (has_optional_params && !is_optimizing()) {
-    __ LoadConstant(context_index, Object::empty_context());
-  }
-
-  if (isolate()->reify_generic_functions()) {
-    // Check for a passed type argument vector if the function is generic, or
-    // check that none is passed if not generic and not already checked during
-    // resolution.
-    const bool check_arguments =
-        (function.IsClosureFunction() || function.IsConvertedClosureFunction());
-    if ((expect_type_arguments || check_arguments) &&
-        !flow_graph().IsCompiledForOsr()) {
-      ASSERT(!expect_type_arguments ||
-             (-parsed_function().first_stack_local_index() - 1 ==
-              flow_graph_.num_copied_params()));
-      __ CheckFunctionTypeArgs(function.NumTypeParameters(),
-                               flow_graph_.num_copied_params());
+  if (!is_optimizing()) {
+    if (parsed_function().has_arg_desc_var()) {
+      // TODO(kustermann): If dbc simulator put the args_desc_ into the
+      // _special_regs, we could replace these 3 with the MoveSpecial bytecode.
+      const intptr_t args_desc_index =
+          -(parsed_function().arg_desc_var()->index() - kFirstLocalSlotFromFp);
+      __ LoadArgDescriptor();
+      __ StoreLocal(args_desc_index);
+      __ Drop(1);
     }
   }
 }
@@ -450,10 +357,13 @@ uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
 }
 
 intptr_t FlowGraphCompiler::CatchEntryRegForVariable(const LocalVariable& var) {
+  const Function& function = parsed_function().function();
+  const intptr_t num_non_copied_params =
+      function.HasOptionalParameters() ? 0 : function.NumParameters();
+
   ASSERT(is_optimizing());
   ASSERT(var.index() <= 0);
-  return kNumberOfCpuRegisters -
-         (flow_graph().num_non_copied_params() - var.index());
+  return kNumberOfCpuRegisters - (num_non_copied_params - var.index());
 }
 
 #undef __
@@ -470,6 +380,9 @@ void ParallelMoveResolver::EmitMove(int index) {
     __ Move(destination.reg(), -kParamEndSlotFromFp + source.stack_index());
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());
+  } else if (source.IsArgsDescRegister()) {
+    ASSERT(destination.IsRegister());
+    __ LoadArgDescriptorOpt(destination.reg());
   } else if (source.IsConstant() && destination.IsRegister()) {
     if (source.constant_instruction()->representation() == kUnboxedDouble) {
       const Register result = destination.reg();

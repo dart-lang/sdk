@@ -212,6 +212,7 @@ void FlowGraphCompiler::InitCompiler() {
       }
     }
   }
+
   if (!is_optimizing()) {
     // Initialize edge counter array.
     const intptr_t num_counters = flow_graph_.preorder().length();
@@ -337,13 +338,14 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
     catch_entry_state_maps_builder_->NewMapping(assembler()->CodeSize());
     // Parameters first.
     intptr_t i = 0;
-    const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
-    for (; i < num_non_copied_params; ++i) {
+
+    const intptr_t num_direct_parameters = flow_graph().num_direct_parameters();
+    for (; i < num_direct_parameters; ++i) {
       // Don't sync captured parameters. They are not in the environment.
       if (flow_graph().captured_parameters()->Contains(i)) continue;
       if ((*idefs)[i]->IsConstant()) continue;  // Common constants.
       Location src = env->LocationAt(i);
-      intptr_t dest_index = i - num_non_copied_params;
+      intptr_t dest_index = i - num_direct_parameters;
       if (!src.IsStackSlot()) {
         ASSERT(src.IsConstant());
         // Skip dead locations.
@@ -362,7 +364,7 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
     }
 
     // Process locals. Skip exception_var and stacktrace_var.
-    intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+    intptr_t local_base = kFirstLocalSlotFromFp + num_direct_parameters;
     intptr_t ex_idx = local_base - catch_block->exception_var().index();
     intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
     for (; i < flow_graph().variable_count(); ++i) {
@@ -372,7 +374,7 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
       if ((*idefs)[i]->IsConstant()) continue;  // Common constants.
       Location src = env->LocationAt(i);
       if (src.IsInvalid()) continue;
-      intptr_t dest_index = i - num_non_copied_params;
+      intptr_t dest_index = i - num_direct_parameters;
       if (!src.IsStackSlot()) {
         ASSERT(src.IsConstant());
         // Skip dead locations.
@@ -542,8 +544,7 @@ intptr_t FlowGraphCompiler::StackSize() const {
   if (is_optimizing_) {
     return flow_graph_.graph_entry()->spill_slot_count();
   } else {
-    return parsed_function_.num_stack_locals() +
-           parsed_function_.num_copied_params();
+    return parsed_function_.num_stack_locals();
   }
 }
 
@@ -1269,20 +1270,24 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     Register reg = kNoRegister;
     if (loc.IsRegister()) {
       reg = loc.reg();
-    } else if (loc.IsUnallocated() || loc.IsConstant()) {
-      ASSERT(loc.IsConstant() ||
-             ((loc.policy() == Location::kRequiresRegister) ||
-              (loc.policy() == Location::kWritableRegister) ||
-              (loc.policy() == Location::kAny)));
+    } else if (loc.IsUnallocated()) {
+      ASSERT((loc.policy() == Location::kRequiresRegister) ||
+             (loc.policy() == Location::kWritableRegister) ||
+             (loc.policy() == Location::kPrefersRegister) ||
+             (loc.policy() == Location::kAny));
       reg = AllocateFreeRegister(blocked_registers);
       locs->set_in(i, Location::RegisterLocation(reg));
     }
-    ASSERT(reg != kNoRegister);
+    ASSERT(reg != kNoRegister || loc.IsConstant());
 
     // Inputs are consumed from the simulated frame. In case of a call argument
     // we leave it until the call instruction.
     if (should_pop) {
-      assembler()->PopRegister(reg);
+      if (loc.IsConstant()) {
+        assembler()->Drop(1);
+      } else {
+        assembler()->PopRegister(reg);
+      }
     }
   }
 

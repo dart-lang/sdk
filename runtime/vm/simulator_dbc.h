@@ -21,6 +21,7 @@ class Thread;
 class Code;
 class Array;
 class RawICData;
+class RawImmutableArray;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
@@ -163,6 +164,12 @@ class Simulator {
                      RawObject*** FP,
                      RawObject*** SP,
                      bool optimized);
+
+  void PrepareForTailCall(RawCode* code,
+                          RawImmutableArray* args_desc,
+                          RawObject** FP,
+                          RawObject*** SP,
+                          uint32_t** pc);
 
 #if !defined(PRODUCT)
   // Returns true if tracing of executed instructions is enabled.

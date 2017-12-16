@@ -35,14 +35,8 @@ class ResolutionApplierTest extends FastaParserTestCase {
   ///    [referencedElements], and [types] to the body of the function.
   /// 3. Verify that everything in the function body that should be resolved
   ///    _is_ resolved.
-  void applyTypes(
-      String content,
-      List<Element> declaredElements,
-      List<int> declareElementOffsets,
-      List<Element> referencedElements,
-      List<int> referencedElementOffsets,
-      List<DartType> types,
-      List<int> typeOffsets) {
+  void applyTypes(String content, List<Element> declaredElements,
+      List<Element> referencedElements, List<DartType> types) {
     CompilationUnit unit = parseCompilationUnit(content);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
@@ -51,11 +45,8 @@ class ResolutionApplierTest extends FastaParserTestCase {
     ResolutionApplier applier = new ResolutionApplier(
         new _TestTypeContext(),
         declaredElements,
-        declareElementOffsets,
         referencedElements,
-        referencedElementOffsets,
-        types.map((type) => new _KernelWrapperOfType(type)).toList(),
-        typeOffsets);
+        types.map((type) => new _KernelWrapperOfType(type)).toList());
 
     body.accept(applier);
     applier.checkDone();
@@ -76,24 +67,15 @@ class ResolutionApplierTest extends FastaParserTestCase {
 f(String s, int i) {
   return s + i;
 }
-''', [], [], [
+''', [], [
       _createFunctionParameter('s', 9),
       new MethodElementImpl('+', -1),
       _createFunctionParameter('i', 16),
-    ], [
-      30,
-      32,
-      34
     ], <DartType>[
       typeProvider.stringType,
       new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
       typeProvider.intType,
       typeProvider.stringType,
-    ], [
-      30,
-      32,
-      32,
-      34
     ]);
   }
 
@@ -102,26 +84,16 @@ f(String s, int i) {
 f(Object a) {
   return a.b().c();
 }
-''', [], [], [
+''', [], [
       _createFunctionParameter('a', 9),
       new MethodElementImpl('b', -1),
       new MethodElementImpl('c', -1)
-    ], [
-      23,
-      25,
-      29
     ], <DartType>[
       typeProvider.objectType,
       typeProvider.objectType,
       typeProvider.objectType,
       typeProvider.objectType,
       typeProvider.objectType
-    ], [
-      23,
-      25,
-      26,
-      29,
-      30
     ]);
   }
 
@@ -141,71 +113,50 @@ f(Object a) {
 f() {
   int Function(String, bool x) foo;
 }
-''', [new LocalVariableElementImpl('foo', 37)], [37], [], [],
-        <DartType>[functionType], [37]);
+''', [new LocalVariableElementImpl('foo', 37)], [], <DartType>[functionType]);
   }
 
   void test_listLiteral_const_noAnnotation() {
     applyTypes(r'''
 get f => const ['a', 'b', 'c'];
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.listType.instantiate([typeProvider.stringType])
-    ], [
-      16,
-      21,
-      26,
-      9
     ]);
   }
 
   void test_listLiteral_const_typeAnnotation() {
     applyTypes(r'''
 get f => const <String>['a', 'b', 'c'];
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.listType.instantiate([typeProvider.stringType])
-    ], [
-      24,
-      29,
-      34,
-      9
     ]);
   }
 
   void test_listLiteral_noAnnotation() {
     applyTypes(r'''
 get f => ['a', 'b', 'c'];
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.listType.instantiate([typeProvider.stringType])
-    ], [
-      10,
-      15,
-      20,
-      9
     ]);
   }
 
   void test_listLiteral_typeAnnotation() {
     applyTypes(r'''
 get f => <String>['a', 'b', 'c'];
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.listType.instantiate([typeProvider.stringType])
-    ], [
-      18,
-      23,
-      28,
-      17
     ]);
   }
 
@@ -218,14 +169,13 @@ get f => <String>['a', 'b', 'c'];
 f() {
   Map<String, List<String>> m = {};
 }
-''', [new LocalVariableElementImpl('m', 34)], [34], [], [],
-        <DartType>[mapType, mapType], [34, 38]);
+''', [new LocalVariableElementImpl('m', 34)], [], <DartType>[mapType, mapType]);
   }
 
   void test_mapLiteral_const_noAnnotation() {
     applyTypes(r'''
 get f => const {'a' : 1, 'b' : 2, 'c' : 3};
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -234,21 +184,13 @@ get f => const {'a' : 1, 'b' : 2, 'c' : 3};
       typeProvider.intType,
       typeProvider.mapType
           .instantiate([typeProvider.stringType, typeProvider.intType])
-    ], [
-      16,
-      22,
-      25,
-      31,
-      34,
-      40,
-      9
     ]);
   }
 
   void test_mapLiteral_const_typeAnnotation() {
     applyTypes(r'''
 get f => const <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -257,21 +199,13 @@ get f => const <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
       typeProvider.intType,
       typeProvider.mapType
           .instantiate([typeProvider.stringType, typeProvider.intType])
-    ], [
-      29,
-      35,
-      38,
-      44,
-      47,
-      53,
-      9
     ]);
   }
 
   void test_mapLiteral_noAnnotation() {
     applyTypes(r'''
 get f => {'a' : 1, 'b' : 2, 'c' : 3};
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -280,21 +214,13 @@ get f => {'a' : 1, 'b' : 2, 'c' : 3};
       typeProvider.intType,
       typeProvider.mapType
           .instantiate([typeProvider.stringType, typeProvider.intType])
-    ], [
-      10,
-      16,
-      19,
-      25,
-      28,
-      34,
-      9
     ]);
   }
 
   void test_mapLiteral_typeAnnotation() {
     applyTypes(r'''
 get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
-''', [], [], [], [], <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -303,14 +229,6 @@ get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
       typeProvider.intType,
       typeProvider.mapType
           .instantiate([typeProvider.stringType, typeProvider.intType])
-    ], [
-      23,
-      29,
-      32,
-      38,
-      41,
-      47,
-      22
     ]);
   }
 
@@ -319,18 +237,12 @@ get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
 f(String s) {
   return s.length;
 }
-''', [], [], [
+''', [], [
       _createFunctionParameter('s', 9),
       new MethodElementImpl('length', -1)
-    ], [
-      23,
-      25
     ], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
-    ], [
-      23,
-      25
     ]);
   }
 
@@ -339,24 +251,15 @@ f(String s) {
 f(String s) {
   return s.substring(3, 7);
 }
-''', [], [], [
+''', [], [
       _createFunctionParameter('s', 9),
       new MethodElementImpl('length', -1)
-    ], [
-      23,
-      25
     ], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.intType,
       typeProvider.stringType,
       typeProvider.stringType
-    ], [
-      23,
-      25,
-      34,
-      35,
-      38
     ]);
   }
 
@@ -380,8 +283,7 @@ f() {
   A<int, String> foo;
 }
 //typedef B A<B, C>(C x);
-''', [new LocalVariableElementImpl('foo', 23)], [], [], [],
-        <DartType>[functionType], []);
+''', [new LocalVariableElementImpl('foo', 23)], [], <DartType>[functionType]);
   }
 
   /// Return a newly created parameter element with the given [name] and

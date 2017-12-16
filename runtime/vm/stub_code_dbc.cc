@@ -33,6 +33,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Compile();
 }
 
+void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
+  __ NoSuchMethod();
+}
+
 // Not executed, but used as a stack marker when calling
 // DRT_OptimizeInvokedFunction.
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {

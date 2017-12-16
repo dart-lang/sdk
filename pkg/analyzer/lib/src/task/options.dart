@@ -281,7 +281,7 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       initialIncludeSpan ??= span;
       String includeUri = span.text;
       Source includedSource = sourceFactory.resolveUri(source, includeUri);
-      if (!includedSource.exists()) {
+      if (includedSource == null || !includedSource.exists()) {
         errors.add(new AnalysisError(
             initialSource,
             initialIncludeSpan.start.column + 1,

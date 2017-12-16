@@ -55,11 +55,7 @@ var tests = [
         return field.load().then((_) {
           return field.staticValue.load().then((Instance block) {
             expect(block.isClosure, isTrue);
-            expect(block.closureContext.isContext, isTrue);
-            expect(block.closureContext.length, equals(0));
-            return block.closureContext.load().then((Context ctxt) {
-              expect(ctxt.parentContext, isNull);
-            });
+            expect(block.closureContext, isNull);
           });
         });
       }),
@@ -75,11 +71,7 @@ var tests = [
               expect(ctxt.variables.single.value.asValue.isString, isTrue);
               expect(ctxt.variables.single.value.asValue.valueAsString,
                   equals('I could be copied into the block'));
-              expect(ctxt.parentContext.isContext, isTrue);
-              expect(ctxt.parentContext.length, equals(0));
-              return ctxt.parentContext.load().then((Context outerCtxt) {
-                expect(outerCtxt.parentContext, isNull);
-              });
+              expect(ctxt.parentContext, isNull);
             });
           });
         });
@@ -95,11 +87,7 @@ var tests = [
               expect(ctxt.variables.single.value.asValue.isInt, isTrue);
               expect(ctxt.variables.single.value.asValue.valueAsString,
                   equals('43'));
-              expect(ctxt.parentContext.isContext, isTrue);
-              expect(ctxt.parentContext.length, equals(0));
-              return ctxt.parentContext.load().then((Context outerCtxt) {
-                expect(outerCtxt.parentContext, isNull);
-              });
+              expect(ctxt.parentContext, isNull);
             });
           });
         });
@@ -122,13 +110,7 @@ var tests = [
                 expect(outerCtxt.variables.single.value.asValue.isInt, isTrue);
                 expect(outerCtxt.variables.single.value.asValue.valueAsString,
                     equals('421'));
-                expect(outerCtxt.parentContext.isContext, isTrue);
-                expect(outerCtxt.parentContext.length, equals(0));
-                return outerCtxt.parentContext
-                    .load()
-                    .then((Context outerCtxt2) {
-                  expect(outerCtxt2.parentContext, isNull);
-                });
+                expect(outerCtxt.parentContext, isNull);
               });
             });
           });

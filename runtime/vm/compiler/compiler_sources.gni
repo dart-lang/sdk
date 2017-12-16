@@ -75,6 +75,8 @@ compiler_sources = [
   "frontend/kernel_binary_flowgraph.h",
   "frontend/kernel_to_il.cc",
   "frontend/kernel_to_il.h",
+  "frontend/prologue_builder.cc",
+  "frontend/prologue_builder.h",
   "intrinsifier.cc",
   "intrinsifier.h",
   "intrinsifier_arm.cc",

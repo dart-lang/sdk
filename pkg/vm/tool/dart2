@@ -21,20 +21,29 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 # Handle the case where dart-sdk/bin has been symlinked to.
 CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
-if [[ `uname` == 'Darwin' ]];
-then
+if [[ `uname` == 'Darwin' ]]; then
   OUT_DIR="$CUR_DIR"/../../../xcodebuild/
 else
   OUT_DIR="$CUR_DIR"/../../../out/
 fi
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
+export DART_USE_SDK=${DART_USE_SDK:0}
+BUILD_DIR="$OUT_DIR$DART_CONFIGURATION"
 
-exec "$BIN_DIR"/dart                                                           \
+if [[ $DART_USE_SDK -eq 1 ]]; then
+  DART_BINARY="$BUILD_DIR"/dart-sdk/bin/dart
+  KERNEL_BINARIES_DIR="$BUILD_DIR"/dart-sdk/lib/_internal
+else
+  DART_BINARY="$BUILD_DIR"/dart
+  KERNEL_BINARIES_DIR="$BUILD_DIR"
+fi
+KERNEL_SERVICE_SNAPSHOT="$BUILD_DIR"/gen/kernel-service.dart.snapshot
+
+exec "$DART_BINARY"                                                            \
      --strong                                                                  \
      --reify-generic-functions                                                 \
      --limit-ints-to-64-bits                                                   \
-     --dfe="${BIN_DIR}/gen/kernel-service.dart.snapshot"                       \
-     --kernel-binaries="${BIN_DIR}"                                            \
+     --dfe="$KERNEL_SERVICE_SNAPSHOT"                                          \
+     --kernel-binaries="$KERNEL_BINARIES_DIR"                                  \
      "$@"

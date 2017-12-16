@@ -29,4 +29,9 @@ class Ticker {
       previousTick = sw.elapsed;
     }
   }
+
+  void reset() {
+    sw.reset();
+    previousTick = sw.elapsed;
+  }
 }

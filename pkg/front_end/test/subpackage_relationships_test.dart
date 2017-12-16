@@ -56,7 +56,6 @@ final subpackageRules = {
     'lib/src/api_prototype',
     'lib/src/base',
     'lib/src/fasta',
-    'lib/src/fasta/scanner',
   ]),
   'lib/src/base': new SubpackageRules(allowedDependencies: [
     'lib/src/api_prototype',
@@ -75,6 +74,7 @@ final subpackageRules = {
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
+    'lib/src/fasta/source',
     'lib/src/fasta/util',
     'lib/src/scanner',
   ]),
@@ -88,6 +88,7 @@ final subpackageRules = {
     'lib/src/fasta',
     'lib/src/fasta/kernel',
   ]),
+  'lib/src/fasta/graph': new SubpackageRules(),
   'lib/src/fasta/kernel': new SubpackageRules(allowedDependencies: [
     'lib/src/api_prototype',
     'lib/src/fasta',
@@ -118,6 +119,7 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
+    'lib/src/fasta/graph',
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/type_inference',
@@ -134,6 +136,7 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/type_inference': new SubpackageRules(allowedDependencies: [
     'lib/src/base',
+    'lib/src/fasta/builder',
     'lib/src/fasta',
     'lib/src/fasta/kernel',
     'lib/src/fasta/source',
@@ -199,6 +202,15 @@ class _SubpackageRelationshipsTest {
   /// Check for problems resulting from URI [src] having a direct dependency on
   /// URI [dst].
   void checkDependency(Uri src, Uri dst) {
+    var srcSubpackage = subpackageForUri(src);
+    if (srcSubpackage == null) return;
+    var srcSubpackageRules = subpackageRules[srcSubpackage];
+    if (srcSubpackageRules == null) {
+      problem('$src is in subpackage "$srcSubpackage", which is not found in '
+          'subpackageRules');
+      return;
+    }
+    srcSubpackageRules.actuallyContainsFiles = true;
     if (dst.scheme == 'dart') return;
     if (dst.scheme != 'package') {
       problem('$src depends on $dst, which is neither a package: or dart: URI');
@@ -215,15 +227,6 @@ class _SubpackageRelationshipsTest {
             'not found in allowedPackageDependencies');
       }
     }
-    var srcSubpackage = subpackageForUri(src);
-    if (srcSubpackage == null) return;
-    var srcSubpackageRules = subpackageRules[srcSubpackage];
-    if (srcSubpackageRules == null) {
-      problem('$src is in subpackage "$srcSubpackage", which is not found in '
-          'subpackageRules');
-      return;
-    }
-    srcSubpackageRules.actuallyContainsFiles = true;
     var dstSubPackage = subpackageForUri(dst);
     if (dstSubPackage == null) return;
     if (dstSubPackage == srcSubpackage) return;

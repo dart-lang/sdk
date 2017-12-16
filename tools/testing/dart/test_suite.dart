@@ -128,8 +128,12 @@ abstract class TestSuite {
 
   TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
     _environmentOverrides = {
-      'DART_CONFIGURATION': configuration.configurationDirectory
+      'DART_CONFIGURATION': configuration.configurationDirectory,
     };
+
+    if (useSdk && configuration.usingDart2VMWrapper) {
+      _environmentOverrides['DART_USE_SDK'] = '1';
+    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -173,14 +177,17 @@ abstract class TestSuite {
     }
 
     if (dartExecutable == null) {
-      var suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart$suffix'
-          : '$buildDir/dart$suffix';
+      dartExecutable = dartVmExecutableFileName;
     }
 
     TestUtils.ensureExists(dartExecutable, configuration);
     return dartExecutable;
+  }
+
+  String get dartVmExecutableFileName {
+    return useSdk
+        ? '$buildDir/dart-sdk/bin/dart$executableBinarySuffix'
+        : '$buildDir/dart$executableBinarySuffix';
   }
 
   /// Returns the name of the flutter engine executable.
@@ -269,12 +276,14 @@ abstract class TestSuite {
       [TestInformation info]) {
     var displayName = '$suiteName/$testName';
 
-    // If the test is not going to be run at all, then a RuntimeError will
-    // never occur. Instead, treat that as Pass.
-    if (configuration.runtime == Runtime.none &&
-        expectations.contains(Expectation.runtimeError)) {
+    // If the test is not going to be run at all, then a RuntimeError,
+    // MissingRuntimeError or Timeout will never occur.
+    // Instead, treat that as Pass.
+    if (configuration.runtime == Runtime.none) {
       expectations = expectations.toSet();
       expectations.remove(Expectation.runtimeError);
+      expectations.remove(Expectation.missingRuntimeError);
+      expectations.remove(Expectation.timeout);
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
@@ -873,7 +882,9 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
+    if (expectCompileError(info) &&
+        compilerConfiguration.hasCompiler &&
+        !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
       // error should be reported by the compilation command.
       return commands;
@@ -1037,8 +1048,11 @@ class StandardTestSuite extends TestSuite {
       case Compiler.dartdevk:
         var toPath =
             new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
-        commands.add(configuration.compilerConfiguration.createCommand(fileName,
-            toPath, optionsFromFile["sharedOptions"] as List<String>));
+        commands.add(configuration.compilerConfiguration.createCommand(
+            fileName,
+            toPath,
+            optionsFromFile["sharedOptions"] as List<String>,
+            environmentOverrides));
         break;
 
       default:
@@ -1062,7 +1076,8 @@ class StandardTestSuite extends TestSuite {
           commands.add(configuration.compilerConfiguration.createCommand(
               fromPath.toNativePath(),
               toPath,
-              optionsFromFile["sharedOptions"] as List<String>));
+              optionsFromFile["sharedOptions"] as List<String>,
+              environmentOverrides));
           break;
       }
     }

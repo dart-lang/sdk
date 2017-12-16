@@ -36,6 +36,42 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
+DEFINE_BACKEND(LoadIndexedUnsafe, (Register out, Register index)) {
+  ASSERT(instr->RequiredInputRepresentation(0) == kTagged);  // It is a Smi.
+  __ add(out, instr->base_reg(), Operand(index, LSL, 2));
+  __ ldr(out, Address(out, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(StoreIndexedUnsafe,
+               (NoLocation, Register index, Register value)) {
+  ASSERT(instr->RequiredInputRepresentation(
+             StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
+  __ add(TMP, instr->base_reg(), Operand(index, LSL, 2));
+  __ ldr(value, Address(TMP, instr->offset()));
+
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagSize == 1);
+}
+
+DEFINE_BACKEND(TailCall,
+               (NoLocation,
+                Fixed<Register, ARGS_DESC_REG>,
+                Temp<Register> temp)) {
+  __ LoadObject(CODE_REG, instr->code());
+  __ LeaveDartFrame();  // The arguments are still on the stack.
+  __ ldr(temp, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ br(temp);
+
+  // Even though the TailCallInstr will be the last instruction in a basic
+  // block, the flow graph compiler will emit native code for other blocks after
+  // the one containing this instruction and needs to be able to use the pool.
+  // (The `LeaveDartFrame` above disables usages of the pool.)
+  __ set_constant_pool_allowed(true);
+}
+
 LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;

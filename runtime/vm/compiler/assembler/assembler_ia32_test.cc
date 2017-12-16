@@ -1492,7 +1492,7 @@ ASSEMBLER_TEST_RUN(PackedCompareEQ, test) {
       "mov eax,0x........\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [0]\n"
+      "cmpps xmm0,xmm1 [eq]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -1523,7 +1523,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNEQ, test) {
       "mov eax,0x........\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [4]\n"
+      "cmpps xmm0,xmm1 [neq]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -1554,7 +1554,7 @@ ASSEMBLER_TEST_RUN(PackedCompareLT, test) {
       "mov eax,0x........\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [1]\n"
+      "cmpps xmm0,xmm1 [lt]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -1585,7 +1585,7 @@ ASSEMBLER_TEST_RUN(PackedCompareLE, test) {
       "mov eax,0x........\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [2]\n"
+      "cmpps xmm0,xmm1 [le]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -1616,7 +1616,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNLT, test) {
       "mov eax,0x........\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [5]\n"
+      "cmpps xmm0,xmm1 [nlt]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -1647,7 +1647,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
       "mov eax,0x........\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [6]\n"
+      "cmpps xmm0,xmm1 [nle]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -2632,7 +2632,7 @@ ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
   EXPECT_DISASSEMBLY(
       "movups xmm1,[rip+0x.......]\n"
-      "cvtsd2ss xmm0,xmm1\n"
+      "cvtps2pd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -3277,7 +3277,7 @@ ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
       "mov eax,0x........\n"
       "push eax\n"
       "movsd xmm0,[esp]\n"
-      "(null) xmm1,xmm0\n"
+      "cvtsd2ss xmm1,xmm0\n"
       "movss [esp],xmm1\n"
       "fld_s [esp]\n"
       "pop eax\n"
@@ -3528,6 +3528,37 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
       "fld_d [esp]\n"
       "pop eax\n"
       "pop eax\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(XmmAlu, assembler) {
+  // Test the disassembler.
+  __ addss(XMM0, XMM0);
+  __ addsd(XMM0, XMM0);
+  __ addps(XMM0, XMM0);
+  __ addpd(XMM0, XMM0);
+  __ cvtss2sd(XMM0, XMM0);
+  __ cvtsd2ss(XMM0, XMM0);
+  __ cvtps2pd(XMM0, XMM0);
+  __ cvtpd2ps(XMM0, XMM0);
+  __ movl(EAX, Immediate(0));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(XmmAlu, test) {
+  typedef intptr_t (*XmmAluTest)();
+  intptr_t res = reinterpret_cast<XmmAluTest>(test->entry())();
+  EXPECT_EQ(res, 0);
+  EXPECT_DISASSEMBLY(
+      "addss xmm0,xmm0\n"
+      "addsd xmm0,xmm0\n"
+      "addps xmm0,xmm0\n"
+      "addpd xmm0,xmm0\n"
+      "cvtss2sd xmm0,xmm0\n"
+      "cvtsd2ss xmm0,xmm0\n"
+      "cvtps2pd xmm0,xmm0\n"
+      "cvtpd2ps xmm0,xmm0\n"
+      "mov eax,0\n"
       "ret\n");
 }
 
@@ -4616,7 +4647,7 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
       "mov esi,[esp+0x10]\n"
       "mov edi,[esp+0x14]\n"
       "mov ecx,[esp+0x18]\n"
-      "rep movs\n"
+      "rep movsb\n"
       "pop ecx\n"
       "pop edi\n"
       "pop esi\n"

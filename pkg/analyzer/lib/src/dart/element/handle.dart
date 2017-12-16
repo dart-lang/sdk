@@ -378,6 +378,9 @@ abstract class ElementHandle implements Element {
   bool get isSynthetic => actualElement.isSynthetic;
 
   @override
+  bool get isVisibleForTesting => actualElement.isVisibleForTesting;
+
+  @override
   LibraryElement get library =>
       getAncestor((element) => element is LibraryElement);
 

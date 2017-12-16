@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
+import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart' as kernel;
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -196,7 +198,7 @@ class LibraryAnalyzer {
 
       // TODO(scheglov) Improve.
       AnalyzerTarget analyzerTarget;
-      await _kernelDriver.compileLibrary(
+      final kernelResult = await _kernelDriver.compileLibrary(
           (fileSystem, bool includeComments, dillTarget, uriTranslator,
                   {metadataCollector}) =>
               analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
@@ -207,6 +209,18 @@ class LibraryAnalyzer {
       units.forEach((file, unit) {
         _resolveFile2(file, unit, resolutions);
         _computePendingMissingRequiredParameters(file, unit);
+
+        // Invalid part URIs can result in an element with a null source
+        if (unit.element.source != null) {
+          final errorListener = new FastaErrorReporter(
+              new ErrorReporter(_getErrorListener(file), unit.element.source));
+          final libraryKernelResult = kernelResult.results
+              .expand((r) => r.libraryResults)
+              .where((r) => r.library.importUri == unit.element.source.uri)
+              .firstWhere((_) => true, orElse: () => null);
+          libraryKernelResult?.errors?.forEach((kernelError) =>
+              errorListener.reportCompilationMessage(kernelError));
+        }
       });
 
       _computeConstants();
@@ -724,24 +738,33 @@ class LibraryAnalyzer {
         }
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
-            var context = member.element as ElementImpl;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(context, resolution);
-            member.initializers.accept(applier);
-            member.parameters.accept(applier);
-            member.body.accept(applier);
-            applier.applyToAnnotations(member);
-            applier.checkDone();
+            var context = member.element as ConstructorElementImpl;
+            ConstructorName redirectName = member.redirectedConstructor;
+            if (redirectName != null) {
+              var redirectedConstructor = context.redirectedConstructor;
+              redirectName.staticElement = redirectedConstructor;
+              ResolutionApplier.applyConstructorElement(
+                  redirectedConstructor.returnType,
+                  redirectedConstructor,
+                  redirectName);
+              // TODO(scheglov) Add support for type parameterized redirects.
+            } else {
+              var resolution = resolutions.next();
+              var applier = _createResolutionApplier(context, resolution);
+              member.initializers.accept(applier);
+              member.parameters.accept(applier);
+              member.body.accept(applier);
+              applier.applyToAnnotations(member);
+              applier.checkDone();
+            }
           } else if (member is FieldDeclaration) {
             List<VariableDeclaration> fields = member.fields.variables;
-            if (fields.length != 1) {
-              // TODO(scheglov) Handle this case.
-              throw new UnimplementedError('Multiple field');
-            }
             var context = fields[0].element as ElementImpl;
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(context, resolution);
-            fields[0].initializer?.accept(applier);
+            for (var field in fields.reversed) {
+              field.initializer?.accept(applier);
+            }
             applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is MethodDeclaration) {
@@ -772,14 +795,12 @@ class LibraryAnalyzer {
         // No bodies to resolve.
       } else if (declaration is TopLevelVariableDeclaration) {
         List<VariableDeclaration> variables = declaration.variables.variables;
-        if (variables.length != 1) {
-          // TODO(scheglov) Handle this case.
-          throw new UnimplementedError('Multiple variables');
-        }
         var context = variables[0].element as ElementImpl;
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(context, resolution);
-        variables[0].initializer?.accept(applier);
+        for (var variable in variables.reversed) {
+          variable.initializer?.accept(applier);
+        }
         applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else {
@@ -999,10 +1020,11 @@ class _ResolutionApplierContext implements TypeContext {
   ElementImpl context;
 
   List<Element> declaredElements = [];
-  Map<kernel.TreeNode, Element> declarationToElement = {};
-  Map<FunctionElementImpl, kernel.TreeNode> functionElementToDeclaration = {};
+  Map<kernel.TreeNode, Element> declarationToElement = new HashMap.identity();
+  Map<FunctionElementImpl, kernel.TreeNode> functionElementToDeclaration =
+      new HashMap.identity();
   Map<ParameterElementImpl, kernel.VariableDeclaration>
-      parameterElementToDeclaration = {};
+      parameterElementToDeclaration = new HashMap.identity();
 
   ResolutionApplier applier;
 
@@ -1050,6 +1072,8 @@ class _ResolutionApplierContext implements TypeContext {
         element = resynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);
+      } else if (referencedNode is kernel.DynamicType) {
+        element = DynamicElementImpl.instance;
       } else if (referencedNode is kernel.FunctionType) {
         element = resynthesizer
             .getElementFromCanonicalName(referencedNode.typedef.canonicalName);
@@ -1059,24 +1083,32 @@ class _ResolutionApplierContext implements TypeContext {
             referencedNode.classNode.canonicalName);
         assert(element != null);
       } else if (referencedNode is kernel.MemberGetterNode) {
-        var memberElement = resynthesizer
-            .getElementFromCanonicalName(referencedNode.member.canonicalName);
-        assert(memberElement != null);
-        if (memberElement is PropertyInducingElementImpl) {
-          element = memberElement.getter;
-          assert(element != null);
+        if (referencedNode.member == null) {
+          element = null;
         } else {
-          element = memberElement;
+          var memberElement = resynthesizer
+              .getElementFromCanonicalName(referencedNode.member.canonicalName);
+          assert(memberElement != null);
+          if (memberElement is PropertyInducingElementImpl) {
+            element = memberElement.getter;
+            assert(element != null);
+          } else {
+            element = memberElement;
+          }
         }
       } else if (referencedNode is kernel.MemberSetterNode) {
-        var memberElement = resynthesizer
-            .getElementFromCanonicalName(referencedNode.member.canonicalName);
-        assert(memberElement != null);
-        if (memberElement is PropertyInducingElementImpl) {
-          element = memberElement.setter;
-          assert(element != null);
+        if (referencedNode.member == null) {
+          element = null;
         } else {
-          element = memberElement;
+          var memberElement = resynthesizer
+              .getElementFromCanonicalName(referencedNode.member.canonicalName);
+          assert(memberElement != null);
+          if (memberElement is PropertyInducingElementImpl) {
+            element = memberElement.setter;
+            assert(element != null);
+          } else {
+            element = memberElement;
+          }
         }
       } else if (referencedNode is kernel.NullNode) {
         element = null;
@@ -1091,13 +1123,13 @@ class _ResolutionApplierContext implements TypeContext {
       referencedElements.add(element);
     }
 
-    applier = new ResolutionApplier(
+    applier = new ValidatingResolutionApplier(
         this,
         declaredElements,
-        resolution.declarationOffsets,
         referencedElements,
-        resolution.referenceOffsets,
         resolution.kernelTypes,
+        resolution.declarationOffsets,
+        resolution.referenceOffsets,
         resolution.typeOffsets);
   }
 
@@ -1187,7 +1219,8 @@ class _ResolutionApplierContext implements TypeContext {
       return element.type;
     } else if (kernelType is kernel.MemberInvocationDartType) {
       kernel.Member member = kernelType.member;
-      if (member != null) {
+      if (member is kernel.Procedure &&
+          member.kind == kernel.ProcedureKind.Method) {
         ExecutableElementImpl element =
             resynthesizer.getElementFromCanonicalName(member.canonicalName);
         return resynthesizer.instantiateFunctionType(
@@ -1197,7 +1230,7 @@ class _ResolutionApplierContext implements TypeContext {
             member.function.functionType.withoutTypeParameters,
             kernelType.type);
       }
-      return null;
+      return DynamicTypeImpl.instance;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
     } else {

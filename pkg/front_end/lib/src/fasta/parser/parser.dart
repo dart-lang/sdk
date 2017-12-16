@@ -462,12 +462,12 @@ class Parser {
     if (next.isOperator && optional('(', next.next)) {
       // This appears to be a top level operator declaration, which is invalid.
       reportRecoverableError(next, fasta.messageTopLevelOperator);
-      // Insert a synthetic identifer
+      // Insert a synthetic identifier
       // and continue parsing as a top level function.
-      rewriter.insertToken(
+      rewriter.insertTokenAfter(
+          next,
           new SyntheticStringToken(TokenType.IDENTIFIER,
-              '#synthetic_function_${next.charOffset}', token.charOffset, 0),
-          next.next);
+              '#synthetic_function_${next.charOffset}', token.charOffset, 0));
       return parseTopLevelMember(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
@@ -1065,7 +1065,7 @@ class Parser {
       Token replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
           new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
-      rewriter.insertToken(replacement, next);
+      rewriter.insertTokenAfter(token, replacement);
     }
     return parseFormalParameters(token, kind);
   }
@@ -1347,9 +1347,10 @@ class Parser {
   }
 
   Token skipBlock(Token token) {
+    Token previousToken = token;
     token = token.next;
     if (!optional('{', token)) {
-      token = recoverFromMissingBlock(token);
+      token = recoverFromMissingBlock(previousToken);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -1511,9 +1512,9 @@ class Parser {
         Token extendsKeyword =
             new SyntheticKeywordToken(Keyword.EXTENDS, next.offset);
         Token superclassToken = new SyntheticStringToken(
-            TokenType.IDENTIFIER, 'Object', next.offset);
-        rewriter.insertToken(extendsKeyword, next);
-        rewriter.insertToken(superclassToken, next);
+            TokenType.IDENTIFIER, 'Object', next.offset, 0);
+        rewriter.insertTokenAfter(token, extendsKeyword);
+        rewriter.insertTokenAfter(extendsKeyword, superclassToken);
         token = parseType(extendsKeyword);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
@@ -1632,7 +1633,7 @@ class Parser {
     Message message = context.recoveryTemplate.withArguments(next);
     Token identifier = new SyntheticStringToken(
         TokenType.IDENTIFIER, stringValue, next.charOffset, 0);
-    return rewriteAndRecover(token, message, identifier);
+    return rewriteAndRecover(token, message, identifier).next;
   }
 
   /// Parse a simple identifier at the given [token], and return the identifier
@@ -1670,9 +1671,7 @@ class Parser {
         // forgotten the `operator` keyword.
         token = rewriteAndRecover(token, fasta.messageMissingOperatorKeyword,
             new SyntheticKeywordToken(Keyword.OPERATOR, next.offset));
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `rewriteAndRecover` returns the token before the new token.
-        return parseOperatorName(token.previous);
+        return parseOperatorName(token);
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
         if (context == IdentifierContext.methodDeclaration) {
@@ -1723,6 +1722,27 @@ class Parser {
     return token;
   }
 
+  /// Return `true` if the given [token] should be treated like the start of
+  /// an expression for the purposes of recovery.
+  bool isExpressionStartForRecovery(Token next) =>
+      next.isKeywordOrIdentifier ||
+      next.type == TokenType.DOUBLE ||
+      next.type == TokenType.HASH ||
+      next.type == TokenType.HEXADECIMAL ||
+      next.type == TokenType.IDENTIFIER ||
+      next.type == TokenType.INT ||
+      next.type == TokenType.STRING ||
+      optional('{', next) ||
+      optional('(', next) ||
+      optional('[', next) ||
+      optional('[]', next) ||
+      optional('<', next) ||
+      optional('!', next) ||
+      optional('-', next) ||
+      optional('~', next) ||
+      optional('++', next) ||
+      optional('--', next);
+
   /// Return `true` if the given [token] should be treated like an identifier in
   /// the given [context] for the purposes of recovery.
   bool isIdentifierForRecovery(Token token, IdentifierContext context) {
@@ -1744,7 +1764,7 @@ class Parser {
     } else if (context == IdentifierContext.combinator) {
       followingValues = [';'];
     } else if (context == IdentifierContext.fieldDeclaration) {
-      followingValues = [';', '=', ','];
+      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.enumDeclaration) {
       followingValues = ['{'];
     } else if (context == IdentifierContext.enumValueDeclaration) {
@@ -1755,6 +1775,7 @@ class Parser {
         return true;
       }
       followingValues = [
+        '.',
         ',',
         '(',
         ')',
@@ -2469,7 +2490,8 @@ class Parser {
             Message message = fasta.templateExpectedButGot.withArguments('.');
             Token newToken =
                 new SyntheticToken(TokenType.PERIOD, token.charOffset);
-            periodAfterThis = rewriteAndRecover(thisKeyword, message, newToken);
+            periodAfterThis =
+                rewriteAndRecover(thisKeyword, message, newToken).next;
           } else {
             periodAfterThis = token;
           }
@@ -2479,7 +2501,6 @@ class Parser {
           if (!token.isIdentifier) {
             // Recover from a missing identifier by inserting one.
             token = insertSyntheticIdentifier(beforeToken, nameContext);
-            beforeToken = previousToken(periodAfterThis, token);
           }
           beforeNameToken = beforeToken;
           beforeToken = nameToken = token;
@@ -2576,7 +2597,6 @@ class Parser {
           // We need to recompute the before tokens because [ensureIdentifier]
           // can cause synthetic tokens to be inserted.
           beforeToken = previousToken(beforeToken, token);
-          beforeNameToken = previousToken(beforeNameToken, nameToken);
         } else {
           listener.handleNoName(nameToken);
         }
@@ -2634,59 +2654,21 @@ class Parser {
       Function endStuff, Function handleNoStuff) {
     // TODO(brianwilkerson): Rename to `parseStuffOpt`?
 
-    bool rewriteEndToken(Token beforeEnd) {
-      Token end = beforeEnd.next;
-      String value = end?.stringValue;
-      if (value != null && value.length > 1) {
-        if (identical(value, '>>')) {
-          Token replacement = new Token(TokenType.GT, end.charOffset);
-          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
-          rewriter.replaceTokenFollowing(beforeEnd, replacement);
-          return true;
-        } else if (identical(value, '>=')) {
-          Token replacement = new Token(TokenType.GT, end.charOffset);
-          replacement.next = new Token(TokenType.EQ, end.charOffset + 1);
-          rewriter.replaceTokenFollowing(beforeEnd, replacement);
-          return true;
-        } else if (identical(value, '>>=')) {
-          Token replacement = new Token(TokenType.GT, end.charOffset);
-          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
-          replacement.next.next = new Token(TokenType.EQ, end.charOffset + 2);
-          rewriter.replaceTokenFollowing(beforeEnd, replacement);
-          return true;
-        }
-      }
-      return false;
-    }
-
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
       BeginToken begin = next;
-      Token end = begin.endToken;
-      if (end != null) {
-        Token beforeEnd = previousToken(begin, end);
-        if (rewriteEndToken(beforeEnd)) {
-          begin.endToken = null;
-        }
-      }
+      rewriteLtEndGroupOpt(begin);
       beginStuff(begin);
       int count = 0;
       do {
         token = stuffParser(token.next);
         ++count;
       } while (optional(',', token.next));
-      if (end == null) {
-        if (rewriteEndToken(token)) {
-          begin.endToken = null;
-        }
-      }
-      token = token.next;
+      token = begin.endToken = ensureGt(token);
       endStuff(count, begin, token);
-      expect('>', token);
-      begin.endToken ??= token;
       return token;
     }
     handleNoStuff(next);
@@ -2760,15 +2742,13 @@ class Parser {
     Token afterModifiers =
         identifiers.isNotEmpty ? identifiers.head.next.next : beforeStart.next;
     return isField
-        ? parseFields(beforeStart, identifiers.reverse(), beforeType?.next,
-            beforeName, true)
+        ? parseFields(beforeStart, identifiers.reverse(), beforeName, true)
         : parseTopLevelMethod(
             beforeStart, afterModifiers, beforeType, getOrSet, beforeName);
   }
 
-  Token parseFields(Token start, Link<Token> modifiers, Token type,
-      Token beforeName, bool isTopLevel) {
-    // TODO(brianwilkerson): Remove the parameter `type` because it isn't used.
+  Token parseFields(
+      Token start, Link<Token> modifiers, Token beforeName, bool isTopLevel) {
     Token varFinalOrConst = null;
     for (Token beforeModifier in modifiers) {
       Token modifier = beforeModifier.next;
@@ -3213,10 +3193,11 @@ class Parser {
   /// If the next token is a colon, return it. Otherwise, report an
   /// error, insert a synthetic colon, and return the inserted colon.
   Token ensureColon(Token token) {
-    if (optional(':', token.next)) return token.next;
+    Token next = token.next;
+    if (optional(':', next)) return next;
     Message message = fasta.templateExpectedButGot.withArguments(':');
-    Token newToken = new SyntheticToken(TokenType.COLON, token.charOffset);
-    return rewriteAndRecover(token, message, newToken);
+    Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
+    return rewriteAndRecover(token, message, newToken).next;
   }
 
   Token ensureParseLiteralString(Token token) {
@@ -3231,8 +3212,24 @@ class Parser {
     return parseLiteralString(token);
   }
 
-  /// If the given [token] is a semi-colon, return it. Otherwise, report an
-  /// error, insert a synthetic semi-colon, and return the inserted semi-colon.
+  /// If the token after [token] is a '>', return it.
+  /// If the next token is a composite greater-than token such as '>>',
+  /// then replace that token with separate tokens, and return the first '>'.
+  /// Otherwise, report an error, insert a synthetic '>',
+  /// and return that newly inserted synthetic '>'.
+  Token ensureGt(Token token) {
+    Token next = token.next;
+    String value = next.stringValue;
+    if (value == '>') {
+      return next;
+    }
+    rewriteGtCompositeOrRecover(token, next, value);
+    return token.next;
+  }
+
+  /// If the token after [token] is a semi-colon, return it.
+  /// Otherwise, report an error, insert a synthetic semi-colon,
+  /// and return the inserted semi-colon.
   Token ensureSemicolon(Token token) {
     // TODO(danrubel): Once all expect(';'...) call sites have been converted
     // to use this method, remove similar semicolon recovery code
@@ -3241,13 +3238,45 @@ class Parser {
     if (optional(';', next)) return next;
     Message message = fasta.templateExpectedButGot.withArguments(';');
     Token newToken = new SyntheticToken(TokenType.SEMICOLON, next.charOffset);
-    return rewriteAndRecover(token, message, newToken);
+    return rewriteAndRecover(token, message, newToken).next;
   }
 
+  /// Report an error at the token after [token] that has the given [message].
+  /// Insert the [newToken] after [token] and return [token].
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
-    token = token.next;
-    reportRecoverableError(token, message);
-    return rewriter.insertToken(newToken, token);
+    reportRecoverableError(token.next, message);
+    rewriter.insertTokenAfter(token, newToken);
+    return token;
+  }
+
+  void rewriteGtCompositeOrRecover(Token token, Token next, String value) {
+    assert(value != '>');
+    Token replacement = new Token(TokenType.GT, next.charOffset);
+    if (identical(value, '>>')) {
+      replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+    } else if (identical(value, '>=')) {
+      replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
+    } else if (identical(value, '>>=')) {
+      replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+      replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
+    } else {
+      // Recovery
+      rewriteAndRecover(token, fasta.templateExpectedToken.withArguments('>'),
+          new SyntheticToken(TokenType.GT, next.offset));
+      return;
+    }
+    rewriter.replaceTokenFollowing(token, replacement);
+  }
+
+  void rewriteLtEndGroupOpt(BeginToken beginToken) {
+    assert(optional('<', beginToken));
+    Token end = beginToken.endGroup;
+    String value = end?.stringValue;
+    if (value != null && value.length > 1) {
+      Token beforeEnd = previousToken(beginToken, end);
+      rewriteGtCompositeOrRecover(beforeEnd, end, value);
+      beginToken.endGroup = null;
+    }
   }
 
   /// Report the given token as unexpected and return the next token if the next
@@ -3372,9 +3401,10 @@ class Parser {
   }
 
   Token skipClassBody(Token token) {
+    Token previousToken = token;
     token = token.next;
     if (!optional('{', token)) {
-      token = recoverFromMissingClassBody(token);
+      token = recoverFromMissingClassBody(previousToken);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -3395,10 +3425,11 @@ class Parser {
   Token parseClassBody(Token token, Token beforeBody) {
     // TODO(brianwilkerson): Remove the parameter `beforeBody` because it is not
     // being used.
+    Token previousToken = token;
     Token begin = token = token.next;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = begin = recoverFromMissingClassBody(token);
+      token = begin = recoverFromMissingClassBody(previousToken);
     }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
@@ -3459,7 +3490,15 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(start);
     if (identifiers.isEmpty) {
-      return recoverFromInvalidClassMember(start);
+      if ((isValidTypeReference(token) || optional('var', token)) &&
+          isPostIdentifierForRecovery(
+              token.next, IdentifierContext.fieldDeclaration)) {
+        // Recovery: Looks like a field declaration but missing a field name.
+        insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
+        return parseFields(start, const Link<Token>(), token, false);
+      } else {
+        return recoverFromInvalidClassMember(start);
+      }
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
@@ -3530,8 +3569,7 @@ class Parser {
 
     Token lastModifier = identifiers.isNotEmpty ? identifiers.head.next : start;
     token = isField
-        ? parseFields(
-            start, identifiers.reverse(), beforeType?.next, beforeName, false)
+        ? parseFields(start, identifiers.reverse(), beforeName, false)
         : parseMethod(start, lastModifier, beforeType, getOrSet, beforeName);
     listener.endMember();
     return token;
@@ -3622,12 +3660,10 @@ class Parser {
       }
     } else {
       token = ensureIdentifier(beforeName, IdentifierContext.methodDeclaration);
+      token = parseQualifiedRestOpt(
+          token, IdentifierContext.methodDeclarationContinuation);
     }
 
-    // TODO(brianwilkerson): Move the next statement inside the else above
-    // because operator names can't be qualified.
-    token = parseQualifiedRestOpt(
-        token, IdentifierContext.methodDeclarationContinuation);
     bool isGetter = false;
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
@@ -3657,6 +3693,7 @@ class Parser {
       allowAbstract = true;
     }
     if (optional('=', next)) {
+      reportRecoverableError(next, fasta.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false, allowAbstract);
@@ -3971,7 +4008,7 @@ class Parser {
     Token begin = next;
     int statementCount = 0;
     if (!optional('{', next)) {
-      token = recoverFromMissingFunctionBody(next);
+      token = recoverFromMissingFunctionBody(token);
       listener.handleInvalidFunctionBody(token);
       return token.endGroup;
     }
@@ -4450,11 +4487,9 @@ class Parser {
     listener.beginCascade(cascadeOperator);
     if (optional('[', token.next)) {
       token = parseArgumentOrIndexStar(token, null);
-    } else if (token.next.isIdentifier) {
+    } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
-    } else {
-      return reportUnexpectedToken(token.next);
     }
     Token next = token.next;
     Token mark;
@@ -4548,7 +4583,7 @@ class Parser {
           Message message = fasta.templateExpectedButGot.withArguments(']');
           Token newToken = new SyntheticToken(
               TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
-          next = rewriteAndRecover(token, message, newToken);
+          next = rewriteAndRecover(token, message, newToken).next;
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
@@ -4673,6 +4708,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
+    Token previousToken = token;
     token = token.next;
     if (!optional('(', token)) {
       // Recover
@@ -4683,7 +4719,7 @@ class Parser {
       BeginToken replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
           new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
-      token = rewriter.insertToken(replacement, token);
+      token = rewriter.insertTokenAfter(previousToken, replacement).next;
     }
     BeginToken begin = token;
     token = parseExpression(token).next;
@@ -4788,17 +4824,41 @@ class Parser {
     int count = 0;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    do {
+    while (true) {
       if (optional('}', token.next)) {
         token = token.next;
         break;
       }
-      token = parseMapLiteralEntry(token).next;
+      token = parseMapLiteralEntry(token);
+      Token next = token.next;
       ++count;
-    } while (optional(',', token));
+      if (!optional(',', next)) {
+        if (optional('}', next)) {
+          token = next;
+          break;
+        }
+        // Recovery
+        if (isExpressionStartForRecovery(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+                  token,
+                  fasta.templateExpectedButGot.withArguments(','),
+                  new SyntheticToken(TokenType.COMMA, next.offset))
+              .next;
+        } else {
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing curly bracket
+          token = beginToken.endGroup;
+          break;
+        }
+      }
+      token = next;
+    }
+    assert(optional('}', token));
     mayParseFunctionExpressions = old;
     listener.handleLiteralMap(count, beginToken, constKeyword, token);
-    expect('}', token);
     return token;
   }
 
@@ -4864,10 +4924,9 @@ class Parser {
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
-    token = parseExpression(token).next;
-    Token colon = token;
-    expect(':', colon);
     token = parseExpression(token);
+    Token colon = ensureColon(token);
+    token = parseExpression(colon);
     listener.endLiteralMapEntry(colon, token.next);
     return token;
   }
@@ -4886,9 +4945,9 @@ class Parser {
       reportRecoverableError(
           token, fasta.templateExpectedButGot.withArguments('('));
       BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.offset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, token.offset));
-      rewriter.insertToken(replacement, next);
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.offset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, next.offset));
+      rewriter.insertTokenAfter(token, replacement);
     }
     token = parseArguments(token);
     return token;
@@ -5044,24 +5103,28 @@ class Parser {
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
     int interpolationCount = 0;
-    var kind = token.next.kind;
+    Token next = token.next;
+    var kind = next.kind;
     while (kind != EOF_TOKEN) {
       if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
-        token = parseExpression(token.next).next;
+        token = parseExpression(next).next;
         expect('}', token);
+        listener.handleInterpolationExpression(next, token);
       } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.
-        token = parseIdentifierExpression(token.next);
+        token = parseIdentifierExpression(next);
+        listener.handleInterpolationExpression(next, null);
       } else {
         break;
       }
       ++interpolationCount;
       // Parsing the infix/suffix, for instance y and z' of 'x${id}y${id}z'
       token = parseStringPart(token);
-      kind = token.next.kind;
+      next = token.next;
+      kind = next.kind;
     }
-    listener.endLiteralString(interpolationCount, token.next);
+    listener.endLiteralString(interpolationCount, next);
     return token;
   }
 
@@ -5184,31 +5247,14 @@ class Parser {
           break;
         }
         // Recovery
-        // TODO(danrubel): Consider using isPostIdentifierForRecovery
-        // and isStartOfNextSibling.
-        if (next.isKeywordOrIdentifier ||
-            next.type == TokenType.DOUBLE ||
-            next.type == TokenType.HASH ||
-            next.type == TokenType.HEXADECIMAL ||
-            next.type == TokenType.IDENTIFIER ||
-            next.type == TokenType.INT ||
-            next.type == TokenType.STRING ||
-            optional('{', next) ||
-            optional('(', next) ||
-            optional('[', next) ||
-            optional('[]', next) ||
-            optional('<', next) ||
-            optional('!', next) ||
-            optional('-', next) ||
-            optional('~', next) ||
-            optional('++', next) ||
-            optional('--', next)) {
+        if (isExpressionStartForRecovery(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
-              token,
-              fasta.templateExpectedButGot.withArguments(','),
-              new SyntheticToken(TokenType.COMMA, next.offset));
+                  token,
+                  fasta.templateExpectedButGot.withArguments(','),
+                  new SyntheticToken(TokenType.COMMA, next.offset))
+              .next;
         } else {
           reportRecoverableError(
               next, fasta.templateExpectedButGot.withArguments(')'));
@@ -5525,11 +5571,12 @@ class Parser {
   /// ;
   /// ```
   Token parseBlock(Token token) {
+    Token previousToken = token;
     Token begin = token = token.next;
     listener.beginBlock(begin);
     int statementCount = 0;
     if (!optional('{', token)) {
-      token = recoverFromMissingBlock(token);
+      token = recoverFromMissingBlock(previousToken);
     }
     while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
@@ -5964,44 +6011,47 @@ class Parser {
         next, fasta.templateExpectedClassMember);
   }
 
-  /// Report that the given [token] was expected to be the beginning of a block
-  /// but isn't, insert a synthetic pair of curly braces, and return the opening
-  /// curly brace.
-  Token recoverFromMissingBlock(Token token) {
+  /// Report that the token after [previousToken] was expected to be the
+  /// beginning of a block but isn't, insert a synthetic pair of curly braces,
+  /// and return the opening curly brace.
+  Token recoverFromMissingBlock(Token previousToken) {
     // TODO(brianwilkerson): Add context information (as a parameter) so that we
     // can (a) generate a better error and (b) unify this method with
     // `recoverFromMissingClassBody` and `recoverFromMissingFunctionBody`.
+    Token token = previousToken.next;
     reportRecoverableError(token, fasta.messageExpectedBlock);
     BeginToken replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
+    rewriter.insertTokenAfter(previousToken, replacement);
     return replacement;
   }
 
-  /// Report that the given [token] was expected to be the beginning of a class
-  /// body but isn't, insert a synthetic pair of curly braces, and return the
-  /// opening curly brace.
-  Token recoverFromMissingClassBody(Token token) {
+  /// Report that the token after [previousToken] was expected to be the
+  /// beginning of a class body but isn't, insert a synthetic pair of curly
+  /// braces, and return the opening curly brace.
+  Token recoverFromMissingClassBody(Token previousToken) {
+    Token token = previousToken.next;
     reportRecoverableError(
         token, fasta.templateExpectedClassBody.withArguments(token));
     BeginToken replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
+    rewriter.insertTokenAfter(previousToken, replacement);
     return replacement;
   }
 
-  /// Report that the given [token] was expected to be the beginning of a block
-  /// function body but isn't, insert a synthetic pair of curly braces, and
-  /// return the opening curly brace.
-  Token recoverFromMissingFunctionBody(Token token) {
+  /// Report that the token after [previousToken] was expected to be the
+  /// beginning of a block function body but isn't, insert a synthetic pair of
+  /// curly braces, and return the opening curly brace.
+  Token recoverFromMissingFunctionBody(Token previousToken) {
+    Token token = previousToken.next;
     reportRecoverableError(
         token, fasta.templateExpectedFunctionBody.withArguments(token));
     BeginToken replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
+    rewriter.insertTokenAfter(previousToken, replacement);
     return replacement;
   }
 

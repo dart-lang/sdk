@@ -72,7 +72,7 @@ class Template<T> {
   const Template({this.messageTemplate, this.tipTemplate, this.withArguments});
 }
 
-class LocatedMessage {
+class LocatedMessage implements Comparable<LocatedMessage> {
   final Uri uri;
 
   final int charOffset;
@@ -88,6 +88,14 @@ class LocatedMessage {
   String get tip => messageObject.tip;
 
   Map<String, dynamic> get arguments => messageObject.arguments;
+
+  int compareTo(LocatedMessage other) {
+    int result = "${uri}".compareTo("${other.uri}");
+    if (result != 0) return result;
+    result = charOffset.compareTo(other.charOffset);
+    if (result != 0) return result;
+    return message.compareTo(message);
+  }
 }
 
 String relativizeUri(Uri uri) {

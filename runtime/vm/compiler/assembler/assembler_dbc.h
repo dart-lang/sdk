@@ -130,6 +130,7 @@ class Assembler : public ValueObject {
 #define PARAMS_A_D uintptr_t ra, uintptr_t rd
 #define PARAMS_D uintptr_t rd
 #define PARAMS_A_B_C uintptr_t ra, uintptr_t rb, uintptr_t rc
+#define PARAMS_A_B_Y uintptr_t ra, uintptr_t rb, intptr_t ry
 #define PARAMS_A uintptr_t ra
 #define PARAMS_X intptr_t x
 #define PARAMS_T intptr_t x
@@ -141,6 +142,7 @@ class Assembler : public ValueObject {
 #undef PARAMS_A_D
 #undef PARAMS_D
 #undef PARAMS_A_B_C
+#undef PARAMS_A_B_Y
 #undef PARAMS_A
 #undef PARAMS_X
 #undef PARAMS_T

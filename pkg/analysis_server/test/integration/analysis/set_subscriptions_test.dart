@@ -10,6 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_PreviewDart2);
   });
 }
 
@@ -29,4 +30,10 @@ class Foo {
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest_PreviewDart2 extends SetSubscriptionsTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

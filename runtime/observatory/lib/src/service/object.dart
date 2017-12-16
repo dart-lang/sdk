@@ -2843,11 +2843,17 @@ class Instance extends HeapObject implements M.Instance {
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunction = map['closureFunction'];
-    closureContext = map['closureContext'];
     name = map['name'];
     length = map['length'];
     pattern = map['pattern'];
     typeClass = map['typeClass'];
+
+    final context = map['closureContext'];
+    if (context is Context) {
+      closureContext = context;
+    } else if (context != null) {
+      assert(context is Instance && context.isNull);
+    }
 
     if (mapIsRef) {
       return;

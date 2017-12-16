@@ -11,9 +11,15 @@ import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 import '../api_prototype/incremental_kernel_generator.dart'
     show DeltaProgram, IncrementalKernelGenerator;
 
+import 'builder/builder.dart' show LibraryBuilder;
+
 import 'dill/dill_target.dart' show DillTarget;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
+
+import 'source/source_graph.dart' show SourceGraph;
+
+import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -63,12 +69,15 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
   DillTarget platform;
 
+  KernelTarget userCode;
+
   IncrementalCompiler(this.context)
       : ticker = new Ticker(isVerbose: context.options.verbose);
 
   @override
   Future<FastaDelta> computeDelta({Uri entryPoint}) async {
     return context.runInContext<Future<FastaDelta>>((CompilerContext c) async {
+      ticker.reset();
       if (platform == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();
         ticker.logMs("Read packages file");
@@ -85,19 +94,82 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
       List<Uri> invalidatedUris = this.invalidatedUris.toList();
       this.invalidatedUris.clear();
-      print("Changed URIs: ${invalidatedUris.join('\n')}");
 
-      KernelTarget kernelTarget = new KernelTarget(
+      List<LibraryBuilder> reusedLibraries =
+          computeReusedLibraries(invalidatedUris);
+      ticker.logMs("Decided to reuse ${reusedLibraries.length} libraries");
+
+      userCode = new KernelTarget(
           c.fileSystem, false, platform, platform.uriTranslator,
           uriToSource: c.uriToSource);
+      for (LibraryBuilder library in reusedLibraries) {
+        userCode.loader.builders[library.uri] = library;
+      }
 
-      kernelTarget.read(entryPoint);
+      userCode.read(entryPoint);
 
-      await kernelTarget.buildOutlines();
+      await userCode.buildOutlines();
 
       return new FastaDelta(
-          await kernelTarget.buildProgram(verify: c.options.verify));
+          await userCode.buildProgram(verify: c.options.verify));
     });
+  }
+
+  List<LibraryBuilder> computeReusedLibraries(Iterable<Uri> invalidatedUris) {
+    if (userCode == null) return const <LibraryBuilder>[];
+
+    // [invalidatedUris] converted to a set.
+    Set<Uri> invalidatedFileUris = invalidatedUris.toSet();
+
+    // Maps all non-platform LibraryBuilders from their import URI.
+    Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
+
+    // Invalidated URIs translated back to their import URI (package:, dart:,
+    // etc.).
+    List<Uri> invalidatedImportUris = <Uri>[];
+
+    // Compute [builders] and [invalidatedImportUris].
+    userCode.loader.builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader != platform.loader) {
+        assert(library is SourceLibraryBuilder);
+        builders[uri] = library;
+        if (invalidatedFileUris.contains(uri) ||
+            (uri != library.fileUri &&
+                invalidatedFileUris.contains(library.fileUri))) {
+          invalidatedImportUris.add(uri);
+        }
+      }
+    });
+
+    SourceGraph graph = new SourceGraph(builders);
+
+    // Compute direct dependencies for each import URI (the reverse of the
+    // edges returned by `graph.neighborsOf`).
+    Map<Uri, Set<Uri>> directDependencies = <Uri, Set<Uri>>{};
+    for (Uri vertex in graph.vertices) {
+      for (Uri neighbor in graph.neighborsOf(vertex)) {
+        (directDependencies[neighbor] ??= new Set<Uri>()).add(vertex);
+      }
+    }
+
+    // Remove all dependencies of [invalidatedImportUris] from builders.
+    List<Uri> workList = invalidatedImportUris;
+    while (workList.isNotEmpty) {
+      LibraryBuilder current = builders.remove(workList.removeLast());
+      // [current] is null if the corresponding key (URI) has already been
+      // removed.
+      if (current != null) {
+        Set<Uri> s = directDependencies[current.uri];
+        if (s != null) {
+          // [s] is null for leaves.
+          for (Uri dependency in s) {
+            workList.add(dependency);
+          }
+        }
+      }
+    }
+
+    return builders.values.toList();
   }
 
   @override

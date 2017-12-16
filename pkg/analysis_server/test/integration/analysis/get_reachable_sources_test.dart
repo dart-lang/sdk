@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetReachableSourcesTest);
+    defineReflectiveTests(GetReachableSourcesTest_PreviewDart2);
   });
 }
 
@@ -46,4 +47,10 @@ class Bar {
     expect(keys, contains(url));
     expect(sources[url], contains('dart:core'));
   }
+}
+
+@reflectiveTest
+class GetReachableSourcesTest_PreviewDart2 extends GetReachableSourcesTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

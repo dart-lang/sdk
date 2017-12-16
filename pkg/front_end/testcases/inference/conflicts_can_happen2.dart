@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
+/*@testedFeatures=inference,error*/
 library test;
 
 class I1 {
@@ -31,7 +31,8 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_METHOD_OVERRIDE*/ get /*@topType=dynamic*/ a => null;
+  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
+      null;
 }
 
 main() {}
