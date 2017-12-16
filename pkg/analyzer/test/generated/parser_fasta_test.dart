@@ -163,23 +163,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedCaseOrDefault() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Bad state: No element
-    //   dart:core                                                          List.last
-    //   package:analyzer/src/fasta/ast_builder.dart 951:13                 AstBuilder.endSwitchCase
-    //   test/generated/parser_fasta_listener.dart 1010:14                  ForwardingTestListener.endSwitchCase
-    //   package:front_end/src/fasta/parser/parser.dart 3991:14             Parser.parseSwitchCase
-    //   package:front_end/src/fasta/parser/parser.dart 3914:15             Parser.parseSwitchBlock
-    //   package:front_end/src/fasta/parser/parser.dart 3900:13             Parser.parseSwitchStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2760:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 2903:39                      ParserProxy._run
-    super.test_expectedCaseOrDefault();
-  }
-
-  @override
-  @failingTest
   void test_expectedClassMember_inClass_afterType() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: an object with length of <1>

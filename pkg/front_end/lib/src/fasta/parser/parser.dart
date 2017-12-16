@@ -5771,7 +5771,7 @@ class Parser {
       if (optional('}', token.next)) {
         break;
       }
-      token = parseSwitchCase(token);
+      token = parseSwitchCase(token, begin);
       ++caseCount;
     }
     token = token.next;
@@ -5802,7 +5802,7 @@ class Parser {
   ///   label* 'default' ‘:’ statements
   /// ;
   /// ```
-  Token parseSwitchCase(Token token) {
+  Token parseSwitchCase(Token token, Token beginSwitchBlock) {
     Token begin = token.next;
     Token defaultKeyword = null;
     Token colonAfterDefault = null;
@@ -5835,13 +5835,20 @@ class Parser {
         listener.handleCaseMatch(caseKeyword, colonToken);
         expressionCount++;
         peek = peekPastLabels(token.next);
-      } else {
-        if (expressionCount == 0) {
-          // TODO(ahe): This is probably easy to recover from.
-          reportUnrecoverableError(
-              token.next, fasta.templateExpectedButGot.withArguments("case"));
-        }
+      } else if (expressionCount > 0) {
         break;
+      } else {
+        // Recovery
+        reportRecoverableError(
+            peek, fasta.templateExpectedToken.withArguments("case"));
+        Token endGroup = beginSwitchBlock.endGroup;
+        while (token.next != endGroup) {
+          token = token.next;
+        }
+        listener.beginSwitchCase(labelCount, expressionCount, begin);
+        listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
+            colonAfterDefault, 0, begin, token.next);
+        return token;
       }
     }
     listener.beginSwitchCase(labelCount, expressionCount, begin);

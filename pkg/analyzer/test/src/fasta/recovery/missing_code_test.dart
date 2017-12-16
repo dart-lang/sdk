@@ -44,14 +44,6 @@ f() => [a, b, c];
  */
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
-  void test_missingColonAndValue_last() {
-    testRecovery('''
-f() => {a };
-''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
-f() => {a: _s_};
-''');
-  }
-
   void test_extraComma() {
     testRecovery('''
 f() => {a: b, , c: d};
@@ -61,6 +53,14 @@ f() => {a: b, , c: d};
       ParserErrorCode.MISSING_IDENTIFIER
     ], '''
 f() => {a: b, _s_: _s_, c: d};
+''');
+  }
+
+  void test_missingColonAndValue_last() {
+    testRecovery('''
+f() => {a };
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+f() => {a: _s_};
 ''');
   }
 
