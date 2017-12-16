@@ -154,6 +154,8 @@ config("dart_config") {
 
     if (dart_debug) {
       cflags += [ "-O${dart_debug_optimization_level}" ]
+    } else if (is_chromecast) {
+      cflags += [ "-Os" ]
     } else {
       cflags += [ "-O3" ]
     }
