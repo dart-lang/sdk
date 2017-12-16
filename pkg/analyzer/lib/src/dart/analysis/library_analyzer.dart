@@ -438,7 +438,7 @@ class LibraryAnalyzer {
   ResolutionApplier _createResolutionApplier(
       ElementImpl context, CollectedResolution resolution) {
     return new _ResolutionApplierContext(
-            _resynthesizer, _typeProvider, resolution, context)
+            _resynthesizer, _typeProvider, _libraryElement, resolution, context)
         .applier;
   }
 
@@ -1011,6 +1011,7 @@ class _NameOrSource {
 class _ResolutionApplierContext implements TypeContext {
   final KernelResynthesizer resynthesizer;
   final TypeProvider typeProvider;
+  final LibraryElement libraryElement;
   final CollectedResolution resolution;
 
   @override
@@ -1028,8 +1029,8 @@ class _ResolutionApplierContext implements TypeContext {
 
   ResolutionApplier applier;
 
-  _ResolutionApplierContext(
-      this.resynthesizer, this.typeProvider, this.resolution, this.context) {
+  _ResolutionApplierContext(this.resynthesizer, this.typeProvider,
+      this.libraryElement, this.resolution, this.context) {
     for (Element element = context;
         element != null;
         element = element.enclosingElement) {
@@ -1110,6 +1111,15 @@ class _ResolutionApplierContext implements TypeContext {
             element = memberElement;
           }
         }
+      } else if (referencedNode is kernel.ImportPrefixNode) {
+        assert(referencedNode.name != null);
+        for (var import in libraryElement.imports) {
+          if (import.prefix?.name == referencedNode.name) {
+            element = import.prefix;
+            break;
+          }
+        }
+        assert(element != null);
       } else if (referencedNode is kernel.NullNode) {
         element = null;
       } else if (referencedNode == null) {
@@ -1213,7 +1223,9 @@ class _ResolutionApplierContext implements TypeContext {
 
   @override
   DartType translateType(kernel.DartType kernelType) {
-    if (kernelType is kernel.FunctionReferenceDartType) {
+    if (kernelType is kernel.NullType) {
+      return null;
+    } else if (kernelType is kernel.FunctionReferenceDartType) {
       kernel.VariableDeclaration variable = kernelType.function.variable;
       FunctionElement element = declarationToElement[variable];
       return element.type;

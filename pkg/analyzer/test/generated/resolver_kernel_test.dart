@@ -211,13 +211,6 @@ class TypePropagationTest_Kernel extends TypePropagationTest_Driver {
 
   @override
   @failingTest
-  test_invocation_target_prefixed() async {
-    // Bad state: Expected element reference for analyzer offset 43; got one for kernel offset 50
-    await super.test_invocation_target_prefixed();
-  }
-
-  @override
-  @failingTest
   test_is_conditional() async {
     // Expected: same instance as InterfaceTypeImpl:<A>
     await super.test_is_conditional();
@@ -344,23 +337,9 @@ class TypePropagationTest_Kernel extends TypePropagationTest_Driver {
 
   @override
   @failingTest
-  test_objectAccessInference_disabled_for_library_prefix() async {
-    // Bad state: Expected element reference for analyzer offset 43; got one for kernel offset 50
-    await super.test_objectAccessInference_disabled_for_library_prefix();
-  }
-
-  @override
-  @failingTest
   test_objectAccessInference_enabled_for_cascades() async {
     // Expected: DynamicTypeImpl:<dynamic>
     await super.test_objectAccessInference_enabled_for_cascades();
-  }
-
-  @override
-  @failingTest
-  test_objectMethodInference_disabled_for_library_prefix() async {
-    // Bad state: Expected element reference for analyzer offset 43; got one for kernel offset 50
-    await super.test_objectMethodInference_disabled_for_library_prefix();
   }
 
   @override

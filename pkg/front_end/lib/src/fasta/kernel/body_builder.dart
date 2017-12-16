@@ -1236,7 +1236,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             charOffset, "Not a constant expression.");
       }
       return new TypeDeclarationAccessor(
-          this, charOffset, builder, name, token);
+          this, prefix, charOffset, builder, name, token);
     } else if (builder.isLocal) {
       if (constantExpressionRequired &&
           !builder.isConst &&
@@ -1285,7 +1285,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new ThisPropertyAccessor(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      return new StaticAccessor(this, token, builder.target, null);
+      return new StaticAccessor(this, token, builder.target, null,
+          prefixName: prefix?.name);
     } else if (builder is PrefixBuilder) {
       if (constantExpressionRequired && builder.deferred) {
         deprecated_addCompileTimeError(
@@ -1309,8 +1310,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessor accessor =
-          new StaticAccessor.fromBuilder(this, builder, token, setter);
+      StaticAccessor accessor = new StaticAccessor.fromBuilder(
+          this, builder, token, setter,
+          prefix: prefix);
       if (constantExpressionRequired) {
         Member readTarget = accessor.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
@@ -2343,6 +2345,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isConst: false,
       int charOffset: -1,
       Member initialTarget,
+      String prefixName,
       int targetOffset: -1,
       Class targetClass}) {
     initialTarget ??= target;
@@ -2376,7 +2379,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           ..fileOffset = charOffset;
       } else {
         return new ShadowStaticInvocation(
-            targetOffset, targetClass, target, arguments,
+            prefixName, targetOffset, targetClass, target, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;
       }
@@ -3611,8 +3614,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   StaticGet makeStaticGet(Member readTarget, Token token,
-      {int targetOffset: -1, Class targetClass}) {
-    return new ShadowStaticGet(targetOffset, targetClass, readTarget)
+      {String prefixName, int targetOffset: -1, Class targetClass}) {
+    return new ShadowStaticGet(
+        prefixName, targetOffset, targetClass, readTarget)
       ..fileOffset = offsetForToken(token);
   }
 }

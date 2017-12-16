@@ -669,6 +669,10 @@ class SuperIndexAccessor extends Accessor {
 }
 
 class StaticAccessor extends Accessor {
+  /// The name of the import prefix preceding the [targetClass], [readTarget],
+  /// or [writeTarget], or `null` if the reference is not prefixed.
+  String prefixName;
+
   /// If [targetClass] is not `null`, the offset at which the explicit
   /// reference to it is; otherwise `-1`.
   int targetOffset;
@@ -681,8 +685,8 @@ class StaticAccessor extends Accessor {
   Member readTarget;
   Member writeTarget;
 
-  StaticAccessor(BuilderHelper helper, this.targetOffset, this.targetClass,
-      this.readTarget, this.writeTarget, Token token)
+  StaticAccessor(BuilderHelper helper, this.prefixName, this.targetOffset,
+      this.targetClass, this.readTarget, this.writeTarget, Token token)
       : super(helper, token);
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
@@ -690,7 +694,9 @@ class StaticAccessor extends Accessor {
       return makeInvalidRead();
     } else {
       var read = helper.makeStaticGet(readTarget, token,
-          targetOffset: targetOffset, targetClass: targetClass);
+          prefixName: prefixName,
+          targetOffset: targetOffset,
+          targetClass: targetClass);
       complexAssignment?.read = read;
       return read;
     }
