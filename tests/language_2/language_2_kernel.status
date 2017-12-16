@@ -198,11 +198,17 @@ async_star_regression_fisk_test: RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
 async_star_test/01: Pass
 async_star_test/01: RuntimeError
+async_star_test/01: Crash # see Issue 31667
 async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/02: Crash # see Issue 31667
 async_star_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/03: Crash # see Issue 31667
 async_star_test/04: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/04: Crash # see Issue 31667
 async_star_test/05: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/05: Crash # see Issue 31667
 async_star_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/none: Crash # see Issue 31667
 await_test: CompileTimeError # Issue 31541
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
