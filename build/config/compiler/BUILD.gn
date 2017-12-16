@@ -4,7 +4,7 @@
 
 declare_args() {
   # The optimization level to use for debug builds.
-  if (is_android) {
+  if (is_android || is_chromecast) {
     # On Android we kind of optimize some things that don't affect debugging
     # much even when optimization is disabled to get the binary size down.
     debug_optimization_level = "s"
@@ -701,7 +701,7 @@ config("optimize") {
     # Favor size over speed, /O1 must be before the common flags. The GYP
     # build also specifies /Os and /GF but these are implied by /O1.
     cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-  } else if (is_android) {
+  } else if (is_android || is_chromecast) {
     cflags = [ "-Os" ] + common_optimize_on_cflags  # Favor size over speed.
   } else {
     cflags = [ "-O3" ] + common_optimize_on_cflags
