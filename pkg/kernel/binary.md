@@ -349,7 +349,7 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isGenericContravariant);
+              isGenericContravariant, isForwardingSemiStub);
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
