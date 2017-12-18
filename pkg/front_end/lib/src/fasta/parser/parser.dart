@@ -5120,7 +5120,11 @@ class Parser {
       if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
         token = parseExpression(next).next;
-        expect('}', token);
+        if (!optional('}', token)) {
+          reportRecoverableError(
+              token, fasta.templateExpectedButGot.withArguments('}'));
+          token = next.endGroup;
+        }
         listener.handleInterpolationExpression(next, token);
       } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.

@@ -4625,7 +4625,7 @@ m() {
  {
  '${${
 ''',
-        codes: fe.Scanner.useFasta
+        codes: usingFastaParser
             ? [
                 ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
                 ScannerErrorCode.EXPECTED_TOKEN,
@@ -4633,20 +4633,30 @@ m() {
                 ScannerErrorCode.EXPECTED_TOKEN,
                 ScannerErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_EXECUTABLE,
+                ParserErrorCode.EXPECTED_TOKEN
               ]
-            : [
-                ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-              ]);
+            : fe.Scanner.useFasta
+                ? [
+                    ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+                    ScannerErrorCode.EXPECTED_TOKEN,
+                    ScannerErrorCode.EXPECTED_TOKEN,
+                    ScannerErrorCode.EXPECTED_TOKEN,
+                    ScannerErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.UNEXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_EXECUTABLE,
+                  ]
+                : [
+                    ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                    ParserErrorCode.EXPECTED_TOKEN,
+                  ]);
   }
 
   void test_switchHasCaseAfterDefaultCase() {
