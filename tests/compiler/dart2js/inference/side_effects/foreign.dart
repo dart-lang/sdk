@@ -8,8 +8,7 @@ import 'dart:_foreign_helper';
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_js_embedded_names';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-/// ignore: UNUSED_IMPORT
+/// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
 /*element: jsCallEmpty:SideEffects(reads nothing; writes nothing)*/

@@ -2135,7 +2135,7 @@ main() {
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
     await checkFileElement('''
-/*error:IMPORT_INTERNAL_LIBRARY*/import 'dart:_foreign_helper' show JS;
+import /*error:IMPORT_INTERNAL_LIBRARY*/'dart:_foreign_helper' show JS;
 main() {
   String x = /*error:INVALID_ASSIGNMENT*/JS('int', '42');
   var y = JS('String', '"hello"');

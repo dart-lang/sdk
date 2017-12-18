@@ -4225,8 +4225,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
-        directive,
-        [directive.uri]);
+        directive.uri,
+        [directive.uri.stringValue]);
   }
 
   /**
