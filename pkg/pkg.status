@@ -50,8 +50,9 @@ front_end/test/fasta/compile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
-front_end/tool/incremental_perf_test: Slow, Pass
+front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
+front_end/tool/incremental_perf_test: Slow, Pass
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
