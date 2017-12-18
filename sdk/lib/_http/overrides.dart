@@ -30,8 +30,19 @@ const _asyncRunZoned = runZoned;
 /// }
 /// ```
 abstract class HttpOverrides {
+  static HttpOverrides _global;
+
   static HttpOverrides get current {
-    return Zone.current[_httpOverridesToken];
+    return Zone.current[_httpOverridesToken] ?? _global;
+  }
+
+  /// The [HttpOverrides] to use in the root [Zone].
+  ///
+  /// These are the [HttpOverrides] that will be used in the root Zone, and in
+  /// Zone's that do not set [HttpOverrides] and whose ancestors up to the root
+  /// Zone do not set [HttpOverrides].
+  static set global(HttpOverrides overrides) {
+    _global = overrides;
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.
