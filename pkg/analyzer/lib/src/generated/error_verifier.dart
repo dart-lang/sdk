@@ -5632,6 +5632,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     DartType staticReturnType = _computeReturnTypeForMethod(returnExpression);
+    String displayName = _enclosingFunction.displayName;
+
+    void reportTypeError() => _errorReporter.reportTypeErrorForNode(
+        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+        returnExpression,
+        [staticReturnType, expectedReturnType, displayName]);
+    void reportTypeErrorFromClosure() => _errorReporter.reportTypeErrorForNode(
+        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+        returnExpression,
+        [staticReturnType, expectedReturnType]);
+
     if (expectedReturnType.isVoid) {
       if (isArrowFunction) {
         // "void f(..) => e" admits all types for "e".
@@ -5643,22 +5654,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           staticReturnType.isDartCoreNull) {
         return;
       }
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, returnExpression, [
-        staticReturnType,
-        expectedReturnType,
-        _enclosingFunction.displayName
-      ]);
+      if (displayName.isEmpty) {
+        reportTypeErrorFromClosure();
+      } else {
+        reportTypeError();
+      }
       return;
     }
     if (_expressionIsAssignableAtType(
         returnExpression, staticReturnType, expectedReturnType)) {
       return;
     }
-    _errorReporter.reportTypeErrorForNode(
-        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-        returnExpression,
-        [staticReturnType, expectedReturnType, _enclosingFunction.displayName]);
+    if (displayName.isEmpty) {
+      reportTypeErrorFromClosure();
+    } else {
+      reportTypeError();
+    }
 
     // TODO(brianwilkerson) Define a hint corresponding to the warning and
     // report it if appropriate.

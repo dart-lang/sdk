@@ -2865,6 +2865,19 @@ class StaticTypeWarningCode extends ErrorCode {
           "The return type '{0}' isn't a '{1}', as defined by the method '{2}'.");
 
   /**
+   * 13.11 Return: It is a static type warning if the type of <i>e</i> may not
+   * be assigned to the declared return type of the immediately enclosing
+   * function.
+   *
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the method
+   */
+  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_CLOSURE =
+      const StaticTypeWarningCode('RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
+          "The return type '{0}' isn't a '{1}', as defined by anonymous closure.");
+
+  /**
    * 12.11 Instance Creation: It is a static type warning if any of the type
    * arguments to a constructor of a generic type <i>G</i> invoked by a new
    * expression or a constant object expression are not subtypes of the bounds
