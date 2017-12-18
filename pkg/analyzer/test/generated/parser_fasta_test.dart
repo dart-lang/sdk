@@ -2547,48 +2547,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incomplete_topLevelVariable() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable_const() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable_const();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable_final() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable_final();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable_var() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable_var();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteField_const() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteField_const();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteField_final() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteField_final();
-  }
-
-  @override
-  @failingTest
   void test_incompleteForEach() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteForEach();

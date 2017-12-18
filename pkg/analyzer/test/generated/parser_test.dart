@@ -10245,7 +10245,12 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
 
   void test_incomplete_topLevelVariable() {
     CompilationUnit unit = parseCompilationUnit("String",
-        codes: [ParserErrorCode.EXPECTED_EXECUTABLE]);
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];

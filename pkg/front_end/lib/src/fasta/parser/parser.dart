@@ -2678,8 +2678,21 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(beforeStart);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableErrorWithToken(
-          token, fasta.templateExpectedDeclaration);
+      if ((isValidTypeReference(token) ||
+              optional('const', token) ||
+              optional('final', token) ||
+              optional('var', token)) &&
+          isPostIdentifierForRecovery(
+              token.next, IdentifierContext.topLevelVariableDeclaration)) {
+        // Recovery: Looks like a top level variable declaration
+        // but missing a variable name.
+        insertSyntheticIdentifier(
+            token, IdentifierContext.topLevelVariableDeclaration);
+        return parseFields(beforeStart, const Link<Token>(), token, true);
+      } else {
+        return reportUnrecoverableErrorWithToken(
+            token, fasta.templateExpectedDeclaration);
+      }
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
@@ -3501,7 +3514,10 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(start);
     if (identifiers.isEmpty) {
-      if ((isValidTypeReference(token) || optional('var', token)) &&
+      if ((isValidTypeReference(token) ||
+              optional('const', token) ||
+              optional('final', token) ||
+              optional('var', token)) &&
           isPostIdentifierForRecovery(
               token.next, IdentifierContext.fieldDeclaration)) {
         // Recovery: Looks like a field declaration but missing a field name.
