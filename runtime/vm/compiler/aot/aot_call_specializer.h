@@ -53,13 +53,6 @@ class AotCallSpecializer : public CallSpecializer {
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
 
-  // Check if o.m(...) [call] is actually an invocation through a getter
-  // o.get:m().call(...) given that the receiver of the call is a subclass
-  // of the [receiver_class]. If it is - then expand it into
-  // o.get:m.call(...) to avoid hitting dispatch through noSuchMethod.
-  bool TryExpandCallThroughGetter(const Class& receiver_class,
-                                  InstanceCallInstr* call);
-
   Precompiler* precompiler_;
 
   bool has_unique_no_such_method_;

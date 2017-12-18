@@ -321,7 +321,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
-static void PushArrayOfArguments(Assembler* assembler) {
+static void PushArgumentsArray(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object());
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
@@ -554,7 +554,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Bind(&args_count_ok);
 
   // R10: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);
+  PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
   __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
   __ Drop(4);
@@ -1205,7 +1205,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ Bind(&args_count_ok);
 
   // R10: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);
+  PushArgumentsArray(assembler);
 
   const intptr_t kNumArgs = 3;
   __ CallRuntime(kInvokeClosureNoSuchMethodRuntimeEntry, kNumArgs);
