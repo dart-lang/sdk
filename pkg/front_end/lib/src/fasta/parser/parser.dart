@@ -5763,19 +5763,73 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchBlock(Token token) {
-    Token begin = token = token.next;
-    listener.beginSwitchBlock(begin);
+    Token beginSwitch = token = token.next;
+    listener.beginSwitchBlock(beginSwitch);
     expect('{', token);
     int caseCount = 0;
+    Token defaultKeyword = null;
+    Token colonAfterDefault = null;
     while (!identical(token.next.kind, EOF_TOKEN)) {
       if (optional('}', token.next)) {
         break;
       }
-      token = parseSwitchCase(token, begin);
+      Token beginCase = token.next;
+      int expressionCount = 0;
+      int labelCount = 0;
+      Token peek = peekPastLabels(beginCase);
+      while (true) {
+        // Loop until we find something that can't be part of a switch case.
+        String value = peek.stringValue;
+        if (identical(value, 'default')) {
+          while (!identical(token.next, peek)) {
+            token = parseLabel(token);
+            labelCount++;
+          }
+          if (defaultKeyword != null) {
+            reportRecoverableError(
+                token.next, fasta.messageSwitchHasMultipleDefaults);
+          }
+          defaultKeyword = token.next;
+          colonAfterDefault = token = ensureColon(defaultKeyword);
+          peek = token.next;
+          break;
+        } else if (identical(value, 'case')) {
+          while (!identical(token.next, peek)) {
+            token = parseLabel(token);
+            labelCount++;
+          }
+          Token caseKeyword = token.next;
+          if (defaultKeyword != null) {
+            reportRecoverableError(
+                caseKeyword, fasta.messageSwitchHasCaseAfterDefault);
+          }
+          listener.beginCaseExpression(caseKeyword);
+          token = parseExpression(caseKeyword);
+          token = ensureColon(token);
+          listener.endCaseExpression(token);
+          listener.handleCaseMatch(caseKeyword, token);
+          expressionCount++;
+          peek = peekPastLabels(token.next);
+        } else if (expressionCount > 0) {
+          break;
+        } else {
+          // Recovery
+          reportRecoverableError(
+              peek, fasta.templateExpectedToken.withArguments("case"));
+          Token endGroup = beginSwitch.endGroup;
+          while (token.next != endGroup) {
+            token = token.next;
+          }
+          peek = peekPastLabels(token.next);
+          break;
+        }
+      }
+      token = parseStatementsInSwitchCase(token, peek, beginCase, labelCount,
+          expressionCount, defaultKeyword, colonAfterDefault);
       ++caseCount;
     }
     token = token.next;
-    listener.endSwitchBlock(caseCount, begin, token);
+    listener.endSwitchBlock(caseCount, beginSwitch, token);
     expect('}', token);
     return token;
   }
@@ -5790,66 +5844,15 @@ class Parser {
     return token;
   }
 
-  /// Parse a group of labels, cases and possibly a default keyword and the
-  /// statements that they select.
-  ///
-  /// ```
-  /// switchCase:
-  ///   label* 'case' expression ‘:’ statements
-  /// ;
-  ///
-  /// defaultCase:
-  ///   label* 'default' ‘:’ statements
-  /// ;
-  /// ```
-  Token parseSwitchCase(Token token, Token beginSwitchBlock) {
-    Token begin = token.next;
-    Token defaultKeyword = null;
-    Token colonAfterDefault = null;
-    int expressionCount = 0;
-    int labelCount = 0;
-    Token peek = peekPastLabels(begin);
-    while (true) {
-      // Loop until we find something that can't be part of a switch case.
-      String value = peek.stringValue;
-      if (identical(value, 'default')) {
-        while (!identical(token.next, peek)) {
-          token = parseLabel(token);
-          labelCount++;
-        }
-        defaultKeyword = token.next;
-        colonAfterDefault = token = ensureColon(defaultKeyword);
-        peek = token.next;
-        break;
-      } else if (identical(value, 'case')) {
-        while (!identical(token.next, peek)) {
-          token = parseLabel(token);
-          labelCount++;
-        }
-        Token caseKeyword = token.next;
-        listener.beginCaseExpression(caseKeyword);
-        token = parseExpression(caseKeyword);
-        token = ensureColon(token);
-        listener.endCaseExpression(token);
-        listener.handleCaseMatch(caseKeyword, token);
-        expressionCount++;
-        peek = peekPastLabels(token.next);
-      } else if (expressionCount > 0) {
-        break;
-      } else {
-        // Recovery
-        reportRecoverableError(
-            peek, fasta.templateExpectedToken.withArguments("case"));
-        Token endGroup = beginSwitchBlock.endGroup;
-        while (token.next != endGroup) {
-          token = token.next;
-        }
-        listener.beginSwitchCase(labelCount, expressionCount, begin);
-        listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-            colonAfterDefault, 0, begin, token.next);
-        return token;
-      }
-    }
+  /// Parse statements after a switch `case:` or `default:`.
+  Token parseStatementsInSwitchCase(
+      Token token,
+      Token peek,
+      Token begin,
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault) {
     listener.beginSwitchCase(labelCount, expressionCount, begin);
     // Finally zero or more statements.
     int statementCount = 0;

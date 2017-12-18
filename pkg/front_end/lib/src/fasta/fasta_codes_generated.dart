@@ -4365,6 +4365,31 @@ const MessageCode messageSwitchCaseFallThrough = const MessageCode(
     message: r"""Switch case may fall through to the next case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSwitchHasCaseAfterDefault =
+    messageSwitchHasCaseAfterDefault;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
+    "SwitchHasCaseAfterDefault",
+    analyzerCode: "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""The default case should be the last case in a switch statement.""",
+    tip: r"""Try moving the default case after the other case clauses.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSwitchHasMultipleDefaults =
+    messageSwitchHasMultipleDefaults;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
+    "SwitchHasMultipleDefaults",
+    analyzerCode: "SWITCH_HAS_MULTIPLE_DEFAULT_CASES",
+    dart2jsCode: "*fatal*",
+    message: r"""The 'default' case can only be declared once.""",
+    tip: r"""Try removing all but one default case.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateThisAccessInFieldInitializer =
     const Template<Message Function(String name)>(

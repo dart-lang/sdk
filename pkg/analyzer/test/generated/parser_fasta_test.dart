@@ -1518,38 +1518,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_switchHasCaseAfterDefaultCase() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, found 0
-    super.test_switchHasCaseAfterDefaultCase();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasCaseAfterDefaultCase_repeated() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 2 errors of type ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, found 0
-    super.test_switchHasCaseAfterDefaultCase_repeated();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasMultipleDefaultCases() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, found 0
-    super.test_switchHasMultipleDefaultCases();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasMultipleDefaultCases_repeated() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 2 errors of type ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, found 0
-    super.test_switchHasMultipleDefaultCases_repeated();
-  }
-
-  @override
-  @failingTest
   void test_topLevelVariable_withMetadata() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;

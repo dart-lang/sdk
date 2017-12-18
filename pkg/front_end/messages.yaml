@@ -1449,6 +1449,22 @@ SuperAsExpression:
   template: "Super calls can't be used as expressions."
   tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
 
+SwitchHasCaseAfterDefault:
+  template: "The default case should be the last case in a switch statement."
+  tip: "Try moving the default case after the other case clauses."
+  analyzerCode: SWITCH_HAS_CASE_AFTER_DEFAULT_CASE
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { foo(int a) {switch (a) {default: return 0; case 1: return 1;}} }"
+
+SwitchHasMultipleDefaults:
+  template: "The 'default' case can only be declared once."
+  tip: "Try removing all but one default case."
+  analyzerCode: SWITCH_HAS_MULTIPLE_DEFAULT_CASES
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { foo(int a) {switch (a) {default: return 0; default: return 1;}} }"
+
 SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
 
