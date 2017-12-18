@@ -11,8 +11,7 @@ class NamedLookup<E> extends Object with IterableMixin<E> {
   final Map<E, String> _ids = new Map<E, String>();
 
   NamedLookup({String prologue = ''})
-      : super(),
-        _generator = new IdGenerator(prologue: prologue);
+      : _generator = new IdGenerator(prologue: prologue);
 
   void add(E e) {
     final id = _generator.newId();

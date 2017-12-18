@@ -7,7 +7,6 @@ library dart._vmservice;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:developer' show ServiceProtocolInfo;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
@@ -217,23 +216,22 @@ class VMService extends MessageRouter {
       }
     }
     for (var service in client.services.keys) {
-      _eventMessageHandler([
-        '_Service',
-        json.encode({
-          'jsonrpc': '2.0',
-          'method': 'streamNotify',
-          'params': {
-            'streamId': '_Service',
-            'event': {
-              "type": "Event",
-              "kind": "ServiceUnregistered",
-              'timestamp': new DateTime.now().millisecondsSinceEpoch,
-              'service': service,
-              'method': namespace + '.' + service,
+      _eventMessageHandler(
+          '_Service',
+          new Response.json({
+            'jsonrpc': '2.0',
+            'method': 'streamNotify',
+            'params': {
+              'streamId': '_Service',
+              'event': {
+                "type": "Event",
+                "kind": "ServiceUnregistered",
+                'timestamp': new DateTime.now().millisecondsSinceEpoch,
+                'service': service,
+                'method': namespace + '.' + service,
+              }
             }
-          }
-        })
-      ]);
+          }));
     }
     // Complete all requestes as failed
     for (var handle in client.serviceHandles.values) {
@@ -241,9 +239,7 @@ class VMService extends MessageRouter {
     }
   }
 
-  void _eventMessageHandler(List eventMessage) {
-    var streamId = eventMessage[0];
-    var event = eventMessage[1];
+  void _eventMessageHandler(String streamId, Response event) {
     for (var client in clients) {
       if (client.sendEvents && client.streams.contains(streamId)) {
         client.post(event);
@@ -315,9 +311,7 @@ class VMService extends MessageRouter {
     if (message is List) {
       if (message.length == 2) {
         // This is an event.
-        assert(message[0] is String);
-        assert(message[1] is String || message[1] is Uint8List);
-        _eventMessageHandler(message);
+        _eventMessageHandler(message[0], new Response.from(message[1]));
         return;
       }
       if (message.length == 1) {
@@ -454,7 +448,7 @@ class VMService extends MessageRouter {
       {Client target}) async {
     final namespace = clients.keyOf(client);
     final alias = client.services[service];
-    final event = json.encode({
+    final event = new Response.json({
       'jsonrpc': '2.0',
       'method': 'streamNotify',
       'params': {
@@ -470,7 +464,7 @@ class VMService extends MessageRouter {
       }
     });
     if (target == null) {
-      _eventMessageHandler([kServiceStream, event]);
+      _eventMessageHandler(kServiceStream, event);
     } else {
       target.post(event);
     }
@@ -492,8 +486,8 @@ class VMService extends MessageRouter {
             completer.complete(encodeRpcError(message, kServiceDisappeared));
           }
         };
-        client.post(
-            json.encode(message.forwardToJson({'id': id, 'method': method})));
+        client.post(new Response.json(
+            message.forwardToJson({'id': id, 'method': method})));
         return completer.future;
       }
     }
@@ -531,10 +525,6 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
-  static _responseAsJson(String response) => json.decode(response);
-
-  // TODO(johnmccutchan): Turn this into a command line tool that uses the
-  // service library.
   Future<String> _getCrashDump(Message message) async {
     var client = message.client;
     final perIsolateRequests = [
@@ -556,13 +546,14 @@ class VMService extends MessageRouter {
     // Request VM.
     var getVM = Uri.parse('getVM');
     var getVmResponse =
-        _responseAsJson(await new Message.fromUri(client, getVM).sendToVM());
+        (await new Message.fromUri(client, getVM).sendToVM()).decodeJson();
     responses[getVM.toString()] = getVmResponse['result'];
 
     // Request command line flags.
     var getFlagList = Uri.parse('getFlagList');
-    var getFlagListResponse = _responseAsJson(
-        await new Message.fromUri(client, getFlagList).sendToVM());
+    var getFlagListResponse =
+        (await new Message.fromUri(client, getFlagList).sendToVM())
+            .decodeJson();
     responses[getFlagList.toString()] = getFlagListResponse['result'];
 
     // Make requests to each isolate.
@@ -571,13 +562,13 @@ class VMService extends MessageRouter {
         var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
-        var response = _responseAsJson(await isolate.routeRequest(message));
+        var response = (await isolate.routeRequest(message)).decodeJson();
         responses[message.toUri().toString()] = response['result'];
       }
       // Dump the object id ring requests.
       var message =
           new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = _responseAsJson(await isolate.routeRequest(message));
+      var response = (await isolate.routeRequest(message)).decodeJson();
       // Insert getObject requests into responses map.
       for (var object in response['result']['objects']) {
         final requestUri =
@@ -590,7 +581,11 @@ class VMService extends MessageRouter {
     return encodeResult(message, responses);
   }
 
-  Future<String> routeRequest(Message message) async {
+  Future<Response> routeRequest(Message message) async {
+    return new Response.from(await _routeRequestImpl(message));
+  }
+
+  Future _routeRequestImpl(Message message) async {
     try {
       if (message.completed) {
         return await message.response;

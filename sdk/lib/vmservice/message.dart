@@ -7,11 +7,11 @@ part of dart._vmservice;
 enum MessageType { Request, Notification, Response }
 
 class Message {
-  final Completer<String> _completer = new Completer<String>.sync();
+  final Completer<Response> _completer = new Completer<Response>.sync();
   bool get completed => _completer.isCompleted;
 
   /// Future of response.
-  Future<String> get response => _completer.future;
+  Future<Response> get response => _completer.future;
   Client client;
 
   // Is a notification message (no serial)
@@ -20,27 +20,11 @@ class Message {
   // Client-side identifier for this message.
   final serial;
 
-  // In new messages.
   final String method;
-
-  // In old messages.
-  final List path = new List();
 
   final Map params = new Map();
   final Map result = new Map();
   final Map error = new Map();
-
-  void _setPath(List<String> pathSegments) {
-    if (pathSegments == null) {
-      return;
-    }
-    pathSegments.forEach((String segment) {
-      if (segment == null || segment == '') {
-        return;
-      }
-      path.add(segment);
-    });
-  }
 
   factory Message.fromJsonRpc(Client client, Map map) {
     if (map.containsKey('id')) {
@@ -139,7 +123,7 @@ class Message {
   }
 
   dynamic toJson() {
-    return {'path': path, 'params': params};
+    throw 'unsupported';
   }
 
   dynamic forwardToJson([Map overloads]) {
@@ -183,7 +167,7 @@ class Message {
     return list;
   }
 
-  Future<String> send(SendPort sendPort) {
+  Future<Response> send(SendPort sendPort) {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
@@ -200,7 +184,7 @@ class Message {
       ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
-      _completer.complete(json.encode({
+      _completer.complete(new Response.json({
         'type': 'ServiceError',
         'id': '',
         'kind': 'InternalError',
@@ -231,7 +215,7 @@ class Message {
     }
   }
 
-  Future<String> sendToVM() {
+  Future<Response> sendToVM() {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
@@ -262,22 +246,16 @@ class Message {
     return _completer.future;
   }
 
-  void _setResponseFromPort(response) {
-    if (response is List) {
-      // See JSONStream::PostReply for the format of messages that arrive from
-      // VM.
-      response = utf8.decode(response[0]);
-    }
-    _completer.complete(response);
+  void _setResponseFromPort(dynamic response) {
+    _completer.complete(new Response.from(response));
   }
 
   void setResponse(String response) {
-    _completer.complete(response);
+    _completer.complete(new Response(ResponsePayloadKind.String, response));
   }
 
   void setErrorResponse(int code, String details) {
-    _completer
-        .complete(encodeRpcError(this, code, details: '$method: $details'));
+    setResponse(encodeRpcError(this, code, details: '$method: $details'));
   }
 }
 

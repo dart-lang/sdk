@@ -41,7 +41,7 @@ abstract class Client {
   void onRequest(Message message) {
     // In JSON-RPC 2.0 messages with and id are Request and must be answered
     // http://www.jsonrpc.org/specification#notification
-    service.routeRequest(message).then((response) => post(response));
+    service.routeRequest(message).then(post);
   }
 
   void onResponse(Message message) {
@@ -57,7 +57,7 @@ abstract class Client {
   }
 
   // Sends a result to the client.  Implemented in subclasses.
-  void post(dynamic result);
+  void post(Response result);
 
   dynamic toJson() {
     return {};
