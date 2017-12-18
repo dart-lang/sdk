@@ -37,13 +37,6 @@ ${_argParser.usage}
 const int _badUsageExitCode = 1;
 const int _compileTimeErrorExitCode = 254;
 
-const _severityCaptions = const <Severity, String>{
-  Severity.error: 'Error: ',
-  Severity.internalProblem: 'Internal problem: ',
-  Severity.nit: 'Nit: ',
-  Severity.warning: 'Warning: ',
-};
-
 main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments.last == '--batch') {
     await runBatchModeCompiler();
@@ -76,11 +69,6 @@ Future<int> compile(List<String> arguments) async {
     ..packagesFileUri = packages != null ? Uri.base.resolve(packages) : null
     ..reportMessages = true
     ..onError = (CompilationMessage message) {
-      final severity = _severityCaptions[message.severity] ?? '';
-      final text = message.span?.message(message.message) ?? message.message;
-      final tip = message.tip != null ? "\n${message.tip}" : '';
-      print("$severity$text$tip");
-
       if ((message.severity != Severity.nit) &&
           (message.severity != Severity.warning)) {
         ++errors;
