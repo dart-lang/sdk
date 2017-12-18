@@ -4003,6 +4003,10 @@ bool Class::FutureOrTypeTest(Zone* zone,
     }
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (other_type_arg.IsObjectType() || other_type_arg.IsDynamicType() ||
+        other_type_arg.IsVoidType()) {
+      return true;
+    }
     if (!type_arguments.IsNull() && IsFutureClass()) {
       const AbstractType& type_arg =
           AbstractType::Handle(zone, type_arguments.TypeAt(0));
@@ -15873,6 +15877,10 @@ bool Instance::IsFutureOrInstanceOf(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (other_type_arg.IsObjectType() || other_type_arg.IsDynamicType() ||
+        other_type_arg.IsVoidType()) {
+      return true;
+    }
     if (Class::Handle(zone, clazz()).IsFutureClass()) {
       const TypeArguments& type_arguments =
           TypeArguments::Handle(zone, GetTypeArguments());
@@ -16716,6 +16724,10 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (other_type_arg.IsObjectType() || other_type_arg.IsDynamicType() ||
+        other_type_arg.IsVoidType()) {
+      return true;
+    }
     // Retry the TypeTest function after unwrapping type arg of FutureOr.
     if (TypeTest(Class::kIsSubtypeOf, other_type_arg, bound_error, bound_trail,
                  space)) {
