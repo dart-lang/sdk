@@ -3073,16 +3073,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    // Check all but the last case for the following:
-    // 1. That it isn't a default case (which should be last).
-    // 2. That it doesn't fall through to the next case.
     for (int i = 0; i < caseCount - 1; i++) {
       SwitchCase current = cases[i];
-      if (current.isDefault) {
-        deprecated_addCompileTimeError(current.fileOffset,
-            "'default' switch case should be the last case.");
-        continue;
-      }
       Block block = current.body;
       // [block] is a synthetic block that is added to handle variable
       // declarations in the switch case.

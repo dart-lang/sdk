@@ -4702,6 +4702,19 @@ m() {
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 6)]);
   }
 
+  void test_switchMissingBlock() {
+    SwitchStatement statement =
+        parseStatement('switch (a) return;', expectedEndOffset: 11);
+    expect(statement, isNotNull);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6),
+            expectedError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, 11, 6),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6)
+          ]);
+  }
+
   void test_topLevel_getter() {
     createParser('get x => 7;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
