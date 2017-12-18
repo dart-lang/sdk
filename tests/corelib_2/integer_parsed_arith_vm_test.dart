@@ -65,9 +65,9 @@ testAddSub() {
       one, // 64 bit overflow.                      //# 01: continued
       "-0x8000000000000000"); //                    //# 01: continued
   addSubParsed( //                                  //# 02: ok
-      "0xFFFFFFFFFFFFFFFF", //                      //# 02: continued
+      minus_one, //                                 //# 02: continued
       one, // 64 bit overflow.                      //# 02: continued
-      "0"); //                                      //# 02: continued
+      zero); //                                     //# 02: continued
   addSubParsed(
       "0x8000000", // 28 bit overflow.
       "0x8000000",
@@ -81,9 +81,9 @@ testAddSub() {
       "0x80000000000000",
       "0x100000000000000");
   addSubParsed( //                                  //# 02: continued
-      "0x8000000000000000", // 64 bit overflow.     //# 02: continued
-      "0x8000000000000000", //                      //# 02: continued
-      "0"); //                                      //# 02: continued
+      "-0x8000000000000000", // 64 bit overflow.    //# 02: continued
+      "-0x8000000000000000", //                     //# 02: continued
+      zero); //                                     //# 02: continued
 
   addSubParsed("-0x123", minus_one, "-0x124");
   addSubParsed(minus_one, "-0x123", "-0x124");

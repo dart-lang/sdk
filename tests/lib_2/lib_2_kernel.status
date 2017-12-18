@@ -10,9 +10,6 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
-[ $compiler == dartkp ]
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339
-
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 mirrors/variable_is_const_test/01: Crash
@@ -388,7 +385,6 @@ mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/smi: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/string: CompileTimeError # Please triage.
 mirrors/spawn_function_root_library_test: Skip
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Please triage.
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

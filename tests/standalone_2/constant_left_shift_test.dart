@@ -38,7 +38,7 @@ main() {
   Expect.equals(2305843009213693952, shiftLeft1(61));
   // Deoptimize on 64 bits.
   Expect.equals(4611686018427387904, shiftLeft1(62));
-  Expect.equals(9223372036854775808, shiftLeft1(63));
+  Expect.equals(-9223372036854775808, shiftLeft1(63));
 
   Expect.equals(8448, shiftLeft8448(0));
   Expect.equals(1081344, shiftLeft8448(7));
