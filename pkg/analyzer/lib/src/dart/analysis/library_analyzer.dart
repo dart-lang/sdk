@@ -462,9 +462,7 @@ class LibraryAnalyzer {
     bool isIgnored(AnalysisError error) {
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
       String errorCode = error.errorCode.name.toLowerCase();
-      // Ignores can be on the line or just preceding the error.
-      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
-          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
+      return ignoreInfo.ignoredAt(errorCode, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
