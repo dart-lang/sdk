@@ -5818,8 +5818,8 @@ class Parser {
           labelCount++;
         }
         defaultKeyword = token.next;
-        colonAfterDefault = token = defaultKeyword.next;
-        peek = expect(':', colonAfterDefault);
+        colonAfterDefault = token = ensureColon(defaultKeyword);
+        peek = token.next;
         break;
       } else if (identical(value, 'case')) {
         while (!identical(token.next, peek)) {
@@ -5828,11 +5828,10 @@ class Parser {
         }
         Token caseKeyword = token.next;
         listener.beginCaseExpression(caseKeyword);
-        token = parseExpression(caseKeyword).next;
+        token = parseExpression(caseKeyword);
+        token = ensureColon(token);
         listener.endCaseExpression(token);
-        Token colonToken = token;
-        expect(':', colonToken);
-        listener.handleCaseMatch(caseKeyword, colonToken);
+        listener.handleCaseMatch(caseKeyword, token);
         expressionCount++;
         peek = peekPastLabels(token.next);
       } else if (expressionCount > 0) {

@@ -1193,7 +1193,7 @@ const Template<Message Function(String string)> templateExpectedButGot =
 const Code<Message Function(String string)> codeExpectedButGot =
     const Code<Message Function(String string)>(
         "ExpectedButGot", templateExpectedButGot,
-        analyzerCode: "UNEXPECTED_TOKEN",
+        analyzerCode: "EXPECTED_TOKEN",
         dart2jsCode: "MISSING_TOKEN_BEFORE_THIS");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -49,7 +49,7 @@ class MapLiteralTest extends AbstractRecoveryTest {
 f() => {a: b, , c: d};
 ''', [
       ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
       ParserErrorCode.MISSING_IDENTIFIER
     ], '''
 f() => {a: b, _s_: _s_, c: d};
@@ -59,7 +59,7 @@ f() => {a: b, _s_: _s_, c: d};
   void test_missingColonAndValue_last() {
     testRecovery('''
 f() => {a };
-''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
 f() => {a: _s_};
 ''');
   }
@@ -67,7 +67,7 @@ f() => {a: _s_};
   void test_missingComma() {
     testRecovery('''
 f() => {a: b, c: d e: f};
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => {a: b, c: d, e: f};
 ''');
   }
@@ -504,7 +504,7 @@ class C {
   int f;
   C(this);
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
 class C {
   int f;
   C(this._s_);
@@ -518,7 +518,7 @@ class C {
   int f;
   C(this, p);
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
 class C {
   int f;
   C(this._s_, p);

@@ -2572,19 +2572,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incomplete_conditionalExpression() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_conditionalExpression();
-  }
-
-  // TODO(danrubel): Remove this test
-  // once test_incomplete_conditionalExpression has been fixed.
-  void test_incomplete_conditionalExpression_ignoreErrors() {
-    parseExpression("x ? 0", codes: FastaParserTestCase.NO_ERROR_COMPARISON);
-  }
-
-  @override
-  @failingTest
   void test_incomplete_constructorInitializers_empty() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_constructorInitializers_empty();
