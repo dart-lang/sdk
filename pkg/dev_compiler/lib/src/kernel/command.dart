@@ -8,7 +8,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
@@ -122,12 +124,24 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
+  // To make the output .dill agnostic of the current working directory,
+  // we use a custom-uri scheme for all app URIs (these are files outside the
+  // lib folder). The following [FileSystem] will resolve those references to
+  // the correct location and keeps the real file location hidden from the
+  // front end.
+  // TODO(sigmund): technically we don't need a "multi-root" file system,
+  // because we are providing a single root, the alternative here is to
+  // implement a new file system with a single root instead.
+  var fileSystem = new MultiRootFileSystem(
+      'org-dartlang-app', [Uri.base], PhysicalFileSystem.instance);
+
   compilerState = await fe.initializeCompiler(
       compilerState,
       path.toUri(sdkSummaryPath),
       path.toUri(packageFile),
       summaryUris,
-      new DevCompilerTarget());
+      new DevCompilerTarget(),
+      fileSystem: fileSystem);
   fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
   if (result == null || !succeeded) {
     return new CompilerResult(compilerState, false);
