@@ -29,7 +29,7 @@ Future testMain() async {
   deferredLib.deferredTest();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
 
   // Test future breakpoints.

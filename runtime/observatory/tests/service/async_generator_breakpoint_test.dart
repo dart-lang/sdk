@@ -87,6 +87,6 @@ testAsync(Isolate isolate) async {
   expect(hits, equals([bp1, bp5, bp4, bp2, bp3]));
 }
 
-var tests = [testAsync];
+var tests = <IsolateTest>[testAsync];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testeeDo);

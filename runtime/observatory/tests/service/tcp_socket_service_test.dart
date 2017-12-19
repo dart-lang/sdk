@@ -27,7 +27,7 @@ Future setupTCP() async {
   await socket2.flush();
 }
 
-var tcpTests = [
+var tcpTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

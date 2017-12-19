@@ -19,7 +19,7 @@ Future<String> readResponse(HttpClientResponse response) {
   return completer.future;
 }
 
-var tests = [
+var tests = <VMTest>[
   // Write a file with the \r character in the filename.
   (VM vm) async {
     var fsId = 'test';

@@ -111,7 +111,7 @@ buildGraph() {
   l.x = h;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     final rootLib = await isolate.rootLibrary.load();
     final raw =

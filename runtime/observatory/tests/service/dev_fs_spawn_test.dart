@@ -11,7 +11,7 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     // Create a new fs.
     var fsName = 'scratch';

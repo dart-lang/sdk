@@ -22,7 +22,7 @@ Future setupUDP() async {
       new io.InternetAddress('127.0.0.1'), server.port);
 }
 
-var udpTests = [
+var udpTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

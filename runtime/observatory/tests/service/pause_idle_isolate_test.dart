@@ -19,7 +19,7 @@ void testMain() {
   debugger();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     print('Resuming...');

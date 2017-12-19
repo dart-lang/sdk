@@ -62,6 +62,6 @@ testSetter(Isolate isolate) async {
   expect(classDouble.name, equals('_Double'));
 }
 
-var tests = [testGetter, testSetter];
+var tests = <IsolateTest>[testGetter, testSetter];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);

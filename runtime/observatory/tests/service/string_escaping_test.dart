@@ -87,7 +87,7 @@ testStrings(Isolate isolate) async {
   expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   testStrings,
 ];
 

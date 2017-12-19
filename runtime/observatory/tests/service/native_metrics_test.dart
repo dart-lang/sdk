@@ -15,7 +15,7 @@ void script() {
   counter.value = 1234.5;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Map metrics = await isolate.refreshNativeMetrics();
     expect(metrics.length, greaterThan(1));

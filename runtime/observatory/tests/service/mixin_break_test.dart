@@ -34,7 +34,7 @@ List<String> expected = [
   "$file:5:5 (mixin_break_class2.dart:7:5)",
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   setBreakpointAtUriAndLine(file, 5),
   resumeProgramRecordingStops(stops, true),

@@ -51,7 +51,7 @@ checkForStackReferent(Isolate isolate) async {
   }
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   checkForStackReferent,
   resumeIsolate,

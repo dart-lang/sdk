@@ -18,7 +18,7 @@ bool isClosureFunctionsList(NamedField field) {
   return field.name == 'closure_functions_';
 }
 
-var tests = [
+var tests = <IsolateTest>[
 // Initial data fetch and verify we've hit the breakpoint.
   (Isolate isolate) async {
     await isolate.rootLibrary.load();

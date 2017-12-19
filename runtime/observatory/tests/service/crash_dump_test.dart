@@ -15,7 +15,7 @@ Future warmup() async {
   print('hi');
 }
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     HttpClient client = new HttpClient();
     print('Requesting uri ${serviceHttpAddress}/_getCrashDump');

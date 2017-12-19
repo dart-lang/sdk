@@ -28,7 +28,7 @@ testMain() {
   testParameters(0, 0);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedInFunction('testMain'),
   (Isolate isolate) async {

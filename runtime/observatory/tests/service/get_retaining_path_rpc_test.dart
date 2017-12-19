@@ -40,7 +40,7 @@ eval(Isolate isolate, String expression) async {
   return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // simple path
   (Isolate isolate) async {
     var obj = await eval(isolate, 'globalObject');

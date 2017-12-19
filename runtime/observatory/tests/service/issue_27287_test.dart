@@ -19,7 +19,7 @@ testMain() {
   print("and after");
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver,

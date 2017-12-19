@@ -38,7 +38,7 @@ Future<String> invokeTest(Isolate isolate) async {
   return result.valueAsString;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Stopped at 'debugger' statement.
   hasStoppedAtBreakpoint,
   // Resume the isolate into the while loop.

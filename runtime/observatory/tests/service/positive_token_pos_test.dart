@@ -18,7 +18,7 @@ testMain() {
   helper(); // Line 18, Col 3 is the position of the function call.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   markDartColonLibrariesDebuggable,
   stoppedAtLine(18),

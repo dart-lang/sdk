@@ -69,7 +69,7 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
   return completer.future;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   markDartColonLibrariesDebuggable,
   setBreakpointAtLine(LINE_A),

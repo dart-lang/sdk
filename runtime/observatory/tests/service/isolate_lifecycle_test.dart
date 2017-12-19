@@ -38,7 +38,7 @@ int numPaused(vm) {
   return paused;
 }
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     expect(vm.isolates.length, 1);
     await hasStoppedAtBreakpoint(vm.isolates[0]);

@@ -37,7 +37,7 @@ bool closureMatcher(handler) {
   return handler.isClosure;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var result = await isolate.invokeRpc('_getPorts', {});
     expect(result['type'], equals('_Ports'));

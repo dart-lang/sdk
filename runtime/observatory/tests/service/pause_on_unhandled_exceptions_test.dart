@@ -13,7 +13,7 @@ doThrow() {
   return "end of doThrow";
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedWithUnhandledException,
   (Isolate isolate) async {
     print("We stopped!");

@@ -27,7 +27,7 @@ eval(Isolate isolate, String expression) async {
   return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Call eval to get a Dart list.
     var evalResult = await eval(isolate, 'new Sub()');

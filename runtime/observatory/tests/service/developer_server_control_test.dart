@@ -68,7 +68,7 @@ Future<Null> testeeBefore() async {
   }
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (S.Isolate isolate) async {
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol

@@ -15,7 +15,7 @@ testeeMain() {
   thing2 = 4;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.load();
     var thing1 =

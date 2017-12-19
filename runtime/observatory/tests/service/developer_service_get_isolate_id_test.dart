@@ -36,7 +36,7 @@ Future testeeMain() async {
 Service.Isolate initialIsolate;
 Service.Isolate localChildIsolate;
 
-var tests = [
+var tests = <VMTest>[
   (Service.VM vm) async {
     // Sanity check.
     expect(vm.isolates.length, 1);

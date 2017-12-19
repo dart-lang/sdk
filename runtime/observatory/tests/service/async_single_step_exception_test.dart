@@ -36,7 +36,7 @@ testMain() async {
   print('z'); // LINE_G.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   stepOver, // print.

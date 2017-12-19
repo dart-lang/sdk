@@ -34,7 +34,7 @@ onTimelineEvent(ServiceEvent event) {
   }
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Subscribe to the Timeline stream.
     await subscribeToStream(isolate.vm, VM.kTimelineStream, onTimelineEvent);

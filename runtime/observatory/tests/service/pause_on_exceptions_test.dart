@@ -24,7 +24,7 @@ doUncaught() {
   return "end of doUncaught";
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.reload();
 

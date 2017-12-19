@@ -23,7 +23,7 @@ void startTimer() {
   new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
-var tests = [
+var tests = <IsolateTest>[
 // Pause
   (Isolate isolate) async {
     Completer completer = new Completer();

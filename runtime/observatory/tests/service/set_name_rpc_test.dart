@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     expect(isolate.name, equals('set_name_rpc_test.dart:main()'));
 

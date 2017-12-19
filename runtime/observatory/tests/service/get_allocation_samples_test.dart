@@ -27,7 +27,7 @@ void test() {
   debugger();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
   // Initial.

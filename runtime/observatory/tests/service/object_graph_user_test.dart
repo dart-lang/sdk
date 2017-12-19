@@ -37,7 +37,7 @@ void script() {
 
 int fooId;
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Library lib = await isolate.rootLibrary.load();
     expect(lib.classes.length, equals(1));

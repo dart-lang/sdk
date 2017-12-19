@@ -36,7 +36,7 @@ eval(Isolate isolate, String expression) async {
 var uint8List = new Uint8List.fromList([3, 2, 1]);
 var uint64List = new Uint64List.fromList([3, 2, 1]);
 
-var tests = [
+var tests = <IsolateTest>[
   // null object.
   (Isolate isolate) async {
     var params = {

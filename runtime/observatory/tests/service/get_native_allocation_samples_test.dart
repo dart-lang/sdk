@@ -52,7 +52,7 @@ void verify(var tree, bool exclusive) {
   }
 }
 
-var tests = [
+var tests = <VMTest>[
   // Verify inclusive tries.
   (VM vm) async {
     var response =

@@ -68,7 +68,7 @@ Future setupFiles() async {
   registerExtension('ext.dart.io.setup', setup);
 }
 
-var fileTests = [
+var fileTests = <IsolateTest>[
   (Isolate isolate) async {
     await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
     try {

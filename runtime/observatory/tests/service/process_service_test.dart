@@ -77,7 +77,7 @@ Future setupProcesses() async {
   registerExtension('ext.dart.io.closeStdin', closeStdin);
 }
 
-var processTests = [
+var processTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var setup = await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});

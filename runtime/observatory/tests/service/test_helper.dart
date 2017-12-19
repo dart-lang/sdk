@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+export 'service_test_common.dart' show IsolateTest, VMTest;
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.

@@ -7,7 +7,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) {
     VM vm = isolate.owner;
     expect(vm.targetCPU, isNotNull);

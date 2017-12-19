@@ -75,7 +75,7 @@ void test() {
   registerExtension('ext..languageError', LanguageErrorHandler);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     await isolate.load();

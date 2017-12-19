@@ -10,7 +10,7 @@ import 'dart:io' show WebSocket;
 import 'dart:convert' show JSON;
 import 'dart:async' show Future, StreamController;
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     VM vm = isolate.owner;
 
