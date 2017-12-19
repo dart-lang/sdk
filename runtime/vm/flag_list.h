@@ -83,9 +83,6 @@
     "Report error for bad overrides.")                                         \
   R(error_on_bad_type, false, bool, false,                                     \
     "Report error for malformed types.")                                       \
-  P(experimental_strong_mode, bool, false, "Enable experimental strong mode.") \
-  P(trace_experimental_strong_mode, bool, false,                               \
-    "Trace experimental strong mode.")                                         \
   P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                     \
     "Max total size of external allocations in MB, or 0 for unlimited,"        \
     "e.g: --external_max_size=1024 allows up to 1024MB of externals")          \
@@ -155,7 +152,7 @@
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  P(strong, bool, false, "Use strong mode in type checks.")                    \
+  P(strong, bool, false, "Enable strong mode.")                                \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
@@ -173,6 +170,8 @@
   R(trace_profiler, false, bool, false, "Profiler trace")                      \
   D(trace_profiler_verbose, bool, false, "Verbose profiler trace")             \
   D(trace_ssa_allocator, bool, false, "Trace register allocation over SSA.")   \
+  P(trace_strong_mode_types, bool, false,                                      \
+    "Trace optimizations based on strong mode types.")                         \
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
@@ -182,6 +181,7 @@
   P(use_field_guards, bool, !USING_DBC,                                        \
     "Use field guards and track field types")                                  \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
+  P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \
   R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
   R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
   R(verify_after_gc, false, bool, false,                                       \

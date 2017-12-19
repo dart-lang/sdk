@@ -3349,8 +3349,10 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                        Value* left,
                        Value* right,
                        intptr_t cid,
-                       intptr_t deopt_id)
-      : TemplateComparison(token_pos, kind, deopt_id) {
+                       intptr_t deopt_id,
+                       SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateComparison(token_pos, kind, deopt_id),
+        speculative_mode_(speculative_mode) {
     ASSERT(Token::IsEqualityOperator(kind));
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -3372,9 +3374,18 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     return kTagged;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return ComparisonInstr::AttributesEqual(other) &&
+           (speculative_mode() ==
+            other->AsEqualityCompare()->speculative_mode());
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
 

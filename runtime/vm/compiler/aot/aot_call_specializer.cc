@@ -254,7 +254,7 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
-  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(I->strong() && FLAG_use_strong_mode_types);
   ASSERT((cid == kDoubleCid) ||
          (FLAG_limit_ints_to_64_bits && (cid == kMintCid)));
 
@@ -265,7 +265,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
   if ((cid == kDoubleCid) && (input->Type()->ToNullableCid() == kSmiCid)) {
     Definition* conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
 
-    if (FLAG_trace_experimental_strong_mode) {
+    if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", conversion->ToCString());
     }
     InsertBefore(call, conversion, /* env = */ NULL, FlowGraph::kValue);
@@ -277,7 +277,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
 Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
                                                               intptr_t cid) {
-  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(I->strong() && FLAG_use_strong_mode_types);
   ASSERT(cid == kDoubleCid);
 
   // Can't assert !input->Type()->is_nullable() here as PushArgument receives
@@ -299,7 +299,7 @@ Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
 
 bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
     InstanceCallInstr* instr) {
-  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(I->strong() && FLAG_use_strong_mode_types);
 
   const intptr_t receiver_index = instr->FirstArgIndex();
   const Token::Kind op_kind = instr->token_kind();
@@ -419,9 +419,10 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
                   (right_type->ToNullableCid() == kSmiCid))) {
         // TODO(dartbug.com/30480): Extend double/int mixed cases from Smi to
         // AbstractInt (it requires corresponding conversions).
-        ASSERT(left_type->IsNullableDouble() || right_type->IsNullableDouble());
         if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
             (op_kind == Token::kMUL) || (op_kind == Token::kDIV)) {
+          ASSERT(left_type->IsNullableDouble() ||
+                 right_type->IsNullableDouble() || (op_kind == Token::kDIV));
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) BinaryDoubleOpInstr(
@@ -437,7 +438,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
   }
 
   if (replacement != NULL) {
-    if (FLAG_trace_experimental_strong_mode) {
+    if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 instr->ToCString(), replacement->ToCString());
     }
@@ -450,7 +451,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
 
 bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
     StaticCallInstr* call) {
-  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(I->strong() && FLAG_use_strong_mode_types);
   Definition* replacement = NULL;
 
   if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
@@ -501,7 +502,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
   }
 
   if (replacement != NULL) {
-    if (FLAG_trace_experimental_strong_mode) {
+    if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 call->ToCString(), replacement->ToCString());
     }
@@ -579,7 +580,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  if (FLAG_experimental_strong_mode &&
+  if (I->strong() && FLAG_use_strong_mode_types &&
       TryOptimizeInstanceCallUsingStaticTypes(instr)) {
     return;
   }
