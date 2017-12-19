@@ -1,5 +1,4 @@
 name: js_ast
-version: 0.0.0
 author: Dart Team <misc@dartlang.org>
 description: Library creating and printing JavaScript ASTs.
 homepage: http://www.dartlang.org
