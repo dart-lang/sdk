@@ -1445,7 +1445,7 @@ class Parser {
   /// ```
   Token parseClass(Token token, Token begin, Token classKeyword) {
     Token start = token;
-    token = parseClassHeader(token, begin, classKeyword);
+    token = parseClassHeaderOpt(token, begin, classKeyword);
     if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
@@ -1455,8 +1455,7 @@ class Parser {
     return token;
   }
 
-  Token parseClassHeader(Token token, Token begin, Token classKeyword) {
-    // TODO(brianwilkerson): Rename to `parseClassHeaderOpt`?
+  Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
     token = parseClassExtendsOpt(token);
     token = parseClassImplementsOpt(token);
     Token nativeToken;
@@ -1476,7 +1475,7 @@ class Parser {
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener.
     listener = recoveryListener;
-    token = parseClassHeader(token, begin, classKeyword);
+    token = parseClassHeaderOpt(token, begin, classKeyword);
     bool hasExtends = recoveryListener.extendsKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
     Token withKeyword = recoveryListener.withKeyword;
