@@ -357,7 +357,6 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         break;
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.FIELD_SET:
-      case StaticUseKind.GENERAL:
       case StaticUseKind.DIRECT_USE:
       case StaticUseKind.CLOSURE:
       case StaticUseKind.CALL_METHOD:
@@ -367,6 +366,11 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.REDIRECTION:
       case StaticUseKind.DIRECT_INVOKE:
       case StaticUseKind.INLINING:
+      case StaticUseKind.INVOKE:
+      case StaticUseKind.GET:
+      case StaticUseKind.SET:
+      case StaticUseKind.INIT:
+      case StaticUseKind.REFLECT:
         break;
     }
   }
@@ -399,7 +403,11 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         break;
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.SUPER_TEAR_OFF:
-      case StaticUseKind.GENERAL:
+      case StaticUseKind.INVOKE:
+      case StaticUseKind.GET:
+      case StaticUseKind.SET:
+      case StaticUseKind.INIT:
+      case StaticUseKind.REFLECT:
       case StaticUseKind.DIRECT_USE:
         useSet.addAll(usage.normalUse());
         break;
