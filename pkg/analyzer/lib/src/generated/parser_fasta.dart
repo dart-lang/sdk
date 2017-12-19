@@ -270,7 +270,7 @@ abstract class ParserAdapter implements Parser {
   @override
   Statement parseStatement2() {
     currentToken = fastaParser
-        .parseStatementOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .parseStatement(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     return astBuilder.pop();
   }

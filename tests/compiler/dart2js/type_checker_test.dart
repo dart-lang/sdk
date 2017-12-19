@@ -2562,7 +2562,7 @@ analyze(MockCompiler compiler, String text,
   NodeListener listener =
       new NodeListener(const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener);
-  parser.parseStatementOpt(parser.syntheticPreviousToken(tokens));
+  parser.parseStatement(parser.syntheticPreviousToken(tokens));
   Node node = listener.popNode();
   Element compilationUnit = new CompilationUnitElementX(
       new Script(null, null, null), compiler.mainApp);
@@ -2607,7 +2607,7 @@ analyzeIn(MockCompiler compiler, FunctionElement element, String text,
       new NodeListener(const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener)
     ..asyncState = element.asyncMarker.asyncParserState;
-  parser.parseStatementOpt(parser.syntheticPreviousToken(tokens));
+  parser.parseStatement(parser.syntheticPreviousToken(tokens));
   Node node = listener.popNode();
   TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker =

@@ -4038,7 +4038,7 @@ class Parser {
     token = next;
     while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
-      token = parseStatementOpt(token);
+      token = parseStatement(token);
       if (identical(token.next, startToken)) {
         // No progress was made, so we report the current token as being invalid
         // and move forward.
@@ -4108,8 +4108,7 @@ class Parser {
   }
 
   int statementDepth = 0;
-  Token parseStatementOpt(Token token) {
-    // TODO(brianwilkerson): Rename this to `parseStatement`?
+  Token parseStatement(Token token) {
     if (statementDepth++ > 500) {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
@@ -4277,7 +4276,7 @@ class Parser {
       labelCount++;
     } while (next.isIdentifier && optional(':', next.next));
     listener.beginLabeledStatement(next, labelCount);
-    token = parseStatementOpt(token);
+    token = parseStatement(token);
     listener.endLabeledStatement(labelCount);
     return token;
   }
@@ -5416,13 +5415,13 @@ class Parser {
     listener.beginIfStatement(ifToken);
     token = parseParenthesizedExpression(ifToken);
     listener.beginThenStatement(token.next);
-    token = parseStatementOpt(token);
+    token = parseStatement(token);
     listener.endThenStatement(token);
     Token elseToken = null;
     if (optional('else', token.next)) {
       elseToken = token.next;
       listener.beginElseStatement(elseToken);
-      token = parseStatementOpt(elseToken);
+      token = parseStatement(elseToken);
       listener.endElseStatement(elseToken);
     }
     listener.endIfStatement(ifToken, elseToken);
@@ -5518,7 +5517,7 @@ class Parser {
     }
     expect(')', token);
     listener.beginForStatementBody(token.next);
-    token = parseStatementOpt(token);
+    token = parseStatement(token);
     listener.endForStatementBody(token.next);
     listener.endForStatement(
         forToken, leftParenthesis, leftSeparator, expressionCount, token.next);
@@ -5545,7 +5544,7 @@ class Parser {
     listener.endForInExpression(token);
     expect(')', token);
     listener.beginForInBody(token.next);
-    token = parseStatementOpt(token);
+    token = parseStatement(token);
     listener.endForInBody(token.next);
     listener.endForIn(
         awaitToken, forKeyword, leftParenthesis, inKeyword, token.next);
@@ -5563,7 +5562,7 @@ class Parser {
     listener.beginWhileStatement(whileToken);
     token = parseParenthesizedExpression(whileToken);
     listener.beginWhileStatementBody(token.next);
-    token = parseStatementOpt(token);
+    token = parseStatement(token);
     listener.endWhileStatementBody(token.next);
     listener.endWhileStatement(whileToken, token.next);
     return token;
@@ -5579,7 +5578,7 @@ class Parser {
     assert(optional('do', doToken));
     listener.beginDoWhileStatement(doToken);
     listener.beginDoWhileStatementBody(doToken.next);
-    token = parseStatementOpt(doToken).next;
+    token = parseStatement(doToken).next;
     listener.endDoWhileStatementBody(token);
     Token whileToken = token;
     expect('while', token);
@@ -5600,7 +5599,7 @@ class Parser {
     int statementCount = 0;
     while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
-      token = parseStatementOpt(token);
+      token = parseStatement(token);
       if (identical(token.next, startToken)) {
         // No progress was made, so we report the current token as being invalid
         // and move forward.
@@ -5881,7 +5880,7 @@ class Parser {
         break;
       } else {
         Token startToken = token.next;
-        token = parseStatementOpt(token);
+        token = parseStatement(token);
         Token next = token.next;
         if (identical(next, startToken)) {
           // No progress was made, so we report the current token as being
