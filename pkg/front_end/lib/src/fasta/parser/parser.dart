@@ -595,7 +595,7 @@ class Parser {
     listener.beginImport(importKeyword);
     token = ensureLiteralString(importKeyword);
     Token uri = token;
-    token = parseConditionalUris(token);
+    token = parseConditionalUriStar(token);
     token = parseImportPrefixOpt(token);
     token = parseCombinatorStar(token).next;
     if (optional(';', token)) {
@@ -618,7 +618,7 @@ class Parser {
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener
     listener = recoveryListener;
-    token = parseConditionalUris(token);
+    token = parseConditionalUriStar(token);
     token = parseImportPrefixOpt(token);
     token = parseCombinatorStar(token);
 
@@ -642,7 +642,7 @@ class Parser {
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseImport method above.
       recoveryListener.clear();
-      token = parseConditionalUris(token);
+      token = parseConditionalUriStar(token);
       if (recoveryListener.ifKeyword != null) {
         if (firstDeferredKeyword != null) {
           // TODO(danrubel): report error indicating conditional should
@@ -713,8 +713,7 @@ class Parser {
   ///   conditionalUri*
   /// ;
   /// ```
-  Token parseConditionalUris(Token token) {
-    // TODO(brianwilkerson): Rename to `parseConditionalUriStar`?
+  Token parseConditionalUriStar(Token token) {
     listener.beginConditionalUris(token.next);
     int count = 0;
     while (optional('if', token.next)) {
@@ -776,7 +775,7 @@ class Parser {
     assert(optional('export', exportKeyword));
     listener.beginExport(exportKeyword);
     token = ensureLiteralString(exportKeyword);
-    token = parseConditionalUris(token);
+    token = parseConditionalUriStar(token);
     token = parseCombinatorStar(token);
     token = ensureSemicolon(token);
     listener.endExport(exportKeyword, token);
