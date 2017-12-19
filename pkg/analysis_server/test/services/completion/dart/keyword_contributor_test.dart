@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -316,7 +317,14 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_anonymous_function_async2() async {
     addTestSource('main() {foo(() a^ {}}}');
     await computeSuggestions();
-    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+    // Fasta adds a closing paren after the first `}`
+    // and adds synthetic `,`s making `a` an argument
+    // while analyzer adds the closing paren before the `a`
+    // and adds synthetic `;`s making `a` a statement.
+    assertSuggestKeywords(
+        request.target.entity is Expression
+            ? EXPRESSION_START_NO_INSTANCE
+            : STMT_START_OUTSIDE_CLASS,
         pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
@@ -354,6 +362,26 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords([],
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async8() async {
+    addTestSource('main() {foo(() ^ {})}}');
+    await computeSuggestions();
+    assertSuggestKeywords([],
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async9() async {
+    addTestSource('main() {foo(() a^ {})}}');
+    await computeSuggestions();
+    // Fasta adds synthetic `,`s making `a` an argument
+    // while analyzer adds synthetic `;`s making `a` a statement.
+    assertSuggestKeywords(
+        request.target.entity is Expression
+            ? EXPRESSION_START_NO_INSTANCE
+            : STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_argument() async {
