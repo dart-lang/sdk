@@ -8,13 +8,6 @@
 
 set -e
 
-# Enable Dart 2.0 fixed-size integers for gen_kernel if running in strong mode.
-for arg in "$@"; do
-  if [ "$arg" == "--strong-mode" ]; then
-    DART_VM_FLAGS="--limit-ints-to-64-bits $DART_VM_FLAGS"
-  fi
-done
-
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do
@@ -32,39 +25,14 @@ CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 SDK_DIR="$CUR_DIR/../../.."
 
+# TODO(kustermann): For windows as well as for hosts running on arm, our
+# checked-in dart binaries must be adjusted.
 if [[ `uname` == 'Darwin' ]]; then
+  DART="$SDK_DIR/tools/sdks/mac/dart-sdk/bin/dart"
   OUT_DIR="$SDK_DIR/xcodebuild"
 else
+  DART="$SDK_DIR/tools/sdks/linux/dart-sdk/bin/dart"
   OUT_DIR="$SDK_DIR/out"
 fi
 
-if [ -z $DART_VM_FLAGS ]; then
-  # No custom Dart VM flags, so use checked-in stable Dart SDK.
-
-  # TODO(kustermann): For windows as well as for hosts running on arm, our
-  # checked-in dart binaries must be adjusted.
-  if [[ `uname` == 'Darwin' ]]; then
-    DART="$SDK_DIR/tools/sdks/mac/dart-sdk/bin/dart"
-  else
-    DART="$SDK_DIR/tools/sdks/linux/dart-sdk/bin/dart"
-  fi
-
-else
-  # Use current Dart SDK to run Fasta as checked-in SDK might not fully
-  # support --limit-ints-to-64-bits.
-  #
-  # TODO(alexmarkov): Use checked-in SDK once it is updated and includes
-  # fix required by Fasta.
-
-  export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-  export DART_USE_SDK=${DART_USE_SDK:0}
-  BUILD_DIR="$OUT_DIR/$DART_CONFIGURATION"
-
-  if [[ $DART_USE_SDK -eq 1 ]]; then
-    DART="$BUILD_DIR"/dart-sdk/bin/dart
-  else
-    DART="$BUILD_DIR"/dart
-  fi
-fi
-
-exec "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@
+exec "$DART" "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@

@@ -115,7 +115,7 @@ void testUint64ToSmi() {
   intArray[0] = 4611686018427387903; // SmiMax
   intArray[1] = -1; // 0xFFFFFFFFFFFFFFFF : 18446744073709551615
   intArray[2] = 4611686018427387904; // SmiMax+1
-  intArray[3] = -9223372036854775808;
+  intArray[3] = 9223372036854775808;
   var x = intArray[0];
   var y = intArray[1];
   var z = intArray[2];
@@ -123,7 +123,7 @@ void testUint64ToSmi() {
   Expect.equals(4611686018427387903, x);
   Expect.equals(-1, y);
   Expect.equals(4611686018427387904, z);
-  Expect.equals(-9223372036854775808, w);
+  Expect.equals(9223372036854775808, w);
 }
 
 main() {
