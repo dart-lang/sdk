@@ -251,7 +251,6 @@ cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
 cc/IsolateReload_RunNewFieldInitializers: Skip
 cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
 cc/IsolateReload_RunNewFieldInitializersThrows: Skip
 cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_ShapeChangeRetainsHash: Skip

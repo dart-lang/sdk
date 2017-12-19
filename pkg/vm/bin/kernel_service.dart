@@ -67,12 +67,21 @@ abstract class Compiler {
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernel
       ..verbose = verbose
-      ..reportMessages = true
-      ..onError = (CompilationMessage e) {
-        if (e.severity == Severity.error) {
-          // TODO(sigmund): support emitting code with errors as long as they
-          // are handled in the generated code (issue #30194).
-          errors.add(e.message);
+      ..onProblem =
+          (message, Severity severity, String formatted, int line, int column) {
+        switch (severity) {
+          case Severity.error:
+          case Severity.internalProblem:
+            // TODO(sigmund): support emitting code with errors as long as they
+            // are handled in the generated code (issue #30194).
+            errors.add(formatted);
+            stderr.writeln(formatted);
+            break;
+          case Severity.nit:
+            break;
+          case Severity.warning:
+            stderr.writeln(formatted);
+            break;
         }
       };
   }

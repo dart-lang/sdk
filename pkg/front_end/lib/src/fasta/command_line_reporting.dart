@@ -37,7 +37,8 @@ const bool hideWarnings = false;
 ///
 /// This is shared implementation used by methods below, and isn't intended to
 /// be called directly.
-String formatInternal(Message message, Severity severity, Uri uri, int offset) {
+String formatInternal(Message message, Severity severity, Uri uri, int offset,
+    {Location location}) {
   try {
     String text =
         "${severityName(severity, capitalized: true)}: ${message.message}";
@@ -63,7 +64,7 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset) {
 
     if (uri != null) {
       String path = relativizeUri(uri);
-      Location location = offset == -1 ? null : getLocation(uri, offset);
+      location ??= (offset == -1 ? null : getLocation(uri, offset));
       String sourceLine = getSourceLine(location);
       if (sourceLine == null) {
         sourceLine = "";
@@ -191,9 +192,10 @@ void reportWithoutLocation(Message message, Severity severity) {
 ///
 /// This method isn't intended to be called directly. Use
 /// [CompilerContext.format] instead.
-String format(LocatedMessage message, Severity severity) {
+String format(LocatedMessage message, Severity severity, {Location location}) {
   return formatInternal(
-      message.messageObject, severity, message.uri, message.charOffset);
+      message.messageObject, severity, message.uri, message.charOffset,
+      location: location);
 }
 
 /// Formats [message] as described in [formatInternal].
