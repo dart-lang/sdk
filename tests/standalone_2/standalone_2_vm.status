@@ -72,7 +72,7 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
-[ $runtime == vm && !$checked && !$strong ]
+[ $runtime == vm && !$checked ]
 io/file_constructor_test: RuntimeError
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]

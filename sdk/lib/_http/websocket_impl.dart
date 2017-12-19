@@ -838,7 +838,7 @@ class _WebSocketConsumer implements StreamConsumer {
   StreamSubscription _subscription;
   bool _issuedPause = false;
   bool _closed = false;
-  Completer _closeCompleter = new Completer<WebSocket>();
+  Completer _closeCompleter = new Completer();
   Completer _completer;
 
   _WebSocketConsumer(this.webSocket, this.socket);

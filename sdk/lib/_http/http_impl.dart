@@ -1683,7 +1683,7 @@ class _HttpClientConnection {
     _httpParser.isHead = method == "HEAD";
     _streamFuture = outgoing.done.then<Socket>((Socket s) {
       // Request sent, set up response completer.
-      _nextResponseCompleter = new Completer<_HttpIncoming>();
+      _nextResponseCompleter = new Completer();
 
       // Listen for response.
       _nextResponseCompleter.future.then((incoming) {
@@ -2498,7 +2498,7 @@ class _HttpServer extends Stream<HttpRequest>
       address, int port, int backlog, bool v6Only, bool shared) {
     return ServerSocket
         .bind(address, port, backlog: backlog, v6Only: v6Only, shared: shared)
-        .then<HttpServer>((socket) {
+        .then((socket) {
       return new _HttpServer._(socket, true);
     });
   }
@@ -2517,7 +2517,7 @@ class _HttpServer extends Stream<HttpRequest>
             v6Only: v6Only,
             requestClientCertificate: requestClientCertificate,
             shared: shared)
-        .then<HttpServer>((socket) {
+        .then((socket) {
       return new _HttpServer._(socket, true);
     });
   }

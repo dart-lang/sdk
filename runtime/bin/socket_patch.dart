@@ -1165,7 +1165,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   InternetAddress get address => _socket.address;
 
   Future<RawServerSocket> close() {
-    return _socket.close().then<RawServerSocket>((_) {
+    return _socket.close().then((_) {
       if (_referencePort != null) {
         _referencePort.close();
         _referencePort = null;
@@ -1293,7 +1293,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   int write(List<int> buffer, [int offset, int count]) =>
       _socket.write(buffer, offset, count);
 
-  Future<RawSocket> close() => _socket.close().then<RawSocket>((_) => this);
+  Future<RawSocket> close() => _socket.close().then((_) => this);
 
   void shutdown(SocketDirection direction) => _socket.shutdown(direction);
 
@@ -1387,8 +1387,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 
   InternetAddress get address => _socket.address;
 
-  Future<ServerSocket> close() =>
-      _socket.close().then<ServerSocket>((_) => this);
+  Future<ServerSocket> close() => _socket.close().then((_) => this);
 
   void set _owner(owner) {
     _socket._owner = owner;
@@ -1554,9 +1553,9 @@ class _Socket extends Stream<List<int>> implements Socket {
     return _sink.addStream(stream);
   }
 
-  Future flush() => _sink.flush().then<Socket>((_) => this);
+  Future flush() => _sink.flush();
 
-  Future close() => _sink.close().then<Socket>((_) => this);
+  Future close() => _sink.close();
 
   Future get done => _sink.done;
 
@@ -1766,7 +1765,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  Future close() => _socket.close().then<RawDatagramSocket>((_) => this);
+  Future close() => _socket.close().then((_) => this);
 
   int send(List<int> buffer, InternetAddress address, int port) =>
       _socket.send(buffer, 0, buffer.length, address, port);
