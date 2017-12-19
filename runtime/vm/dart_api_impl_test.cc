@@ -1240,7 +1240,7 @@ class GCTestHelper : public AllStatic {
     Thread* thread = Thread::Current();
     PageSpace* old_space = thread->isolate()->heap()->old_space();
     MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->sweeper_tasks() > 0) {
+    while (old_space->tasks() > 0) {
       ml.WaitWithSafepointCheck(thread);
     }
   }

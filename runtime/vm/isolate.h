@@ -166,6 +166,7 @@ class Isolate : public BaseIsolate {
     // Internal message ids.
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
+    kLowMemoryMsg = 12,     // Run compactor, etc.
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {

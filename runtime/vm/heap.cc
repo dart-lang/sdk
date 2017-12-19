@@ -205,14 +205,14 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
     // We currently don't support nesting of HeapIterationScopes.
     ASSERT(old_space_->iterating_thread_ != thread);
 #endif
-    while (old_space_->sweeper_tasks() > 0) {
+    while (old_space_->tasks() > 0) {
       ml.WaitWithSafepointCheck(thread);
     }
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == NULL);
     old_space_->iterating_thread_ = thread;
 #endif
-    old_space_->set_sweeper_tasks(1);
+    old_space_->set_tasks(1);
   }
 
   isolate()->safepoint_handler()->SafepointThreads(thread);
@@ -234,8 +234,8 @@ HeapIterationScope::~HeapIterationScope() {
   ASSERT(old_space_->iterating_thread_ == thread());
   old_space_->iterating_thread_ = NULL;
 #endif
-  ASSERT(old_space_->sweeper_tasks() == 1);
-  old_space_->set_sweeper_tasks(0);
+  ASSERT(old_space_->tasks() == 1);
+  old_space_->set_tasks(0);
   ml.NotifyAll();
 }
 
@@ -365,49 +365,8 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 }
 
-class LowMemoryTask : public ThreadPool::Task {
- public:
-  explicit LowMemoryTask(Isolate* isolate) : task_isolate_(isolate) {}
-
-  virtual void Run() {
-    bool result =
-        Thread::EnterIsolateAsHelper(task_isolate_, Thread::kLowMemoryTask);
-    ASSERT(result);
-    Heap* heap = task_isolate_->heap();
-    {
-      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "LowMemoryTask");
-      heap->CollectAllGarbage(Heap::kLowMemory);
-    }
-    // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
-    Thread::ExitIsolateAsHelper();
-    // This compactor task is done. Notify the original isolate.
-    {
-      MonitorLocker ml(heap->old_space()->tasks_lock());
-      heap->old_space()->set_low_memory_tasks(
-          heap->old_space()->low_memory_tasks() - 1);
-      ml.NotifyAll();
-    }
-  }
-
- private:
-  Isolate* task_isolate_;
-};
-
 void Heap::NotifyLowMemory() {
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    if (old_space_.low_memory_tasks() > 0) {
-      return;
-    }
-    old_space_.set_low_memory_tasks(old_space_.low_memory_tasks() + 1);
-  }
-
-  bool success = Dart::thread_pool()->Run(new LowMemoryTask(isolate()));
-  if (!success) {
-    MonitorLocker ml(old_space_.tasks_lock());
-    old_space_.set_low_memory_tasks(old_space_.low_memory_tasks() - 1);
-    ml.NotifyAll();
-  }
+  CollectAllGarbage(kLowMemory);
 }
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
@@ -503,7 +462,7 @@ void Heap::CollectAllGarbage(GCReason reason) {
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
   MonitorLocker ml(old_space_.tasks_lock());
-  while (old_space_.sweeper_tasks() > 0) {
+  while (old_space_.tasks() > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
 }
