@@ -2860,7 +2860,7 @@ class Parser {
     token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
-    token = parseAsyncModifier(token);
+    token = parseAsyncModifierOpt(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
@@ -3704,7 +3704,7 @@ class Parser {
     bool allowAbstract = staticModifier == null;
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
-    token = parseAsyncModifier(token);
+    token = parseAsyncModifierOpt(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
@@ -3777,7 +3777,7 @@ class Parser {
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
-    token = parseAsyncModifier(token);
+    token = parseAsyncModifierOpt(token);
     next = token.next;
     if (!inPlainSync) {
       reportRecoverableError(asyncToken, fasta.messageFactoryNotSync);
@@ -3874,7 +3874,7 @@ class Parser {
   }
 
   /// Parses a function body optionally preceded by an async modifier (see
-  /// [parseAsyncModifier]).  This method is used in both expression context
+  /// [parseAsyncModifierOpt]).  This method is used in both expression context
   /// (when [ofFunctionExpression] is true) and statement context. In statement
   /// context (when [ofFunctionExpression] is false), and if the function body
   /// is on the form `=> expression`, a trailing semicolon is required.
@@ -3883,7 +3883,7 @@ class Parser {
   Token parseAsyncOptBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
     AsyncModifier savedAsyncModifier = asyncState;
-    token = parseAsyncModifier(token);
+    token = parseAsyncModifierOpt(token);
     token = parseFunctionBody(token, ofFunctionExpression, allowAbstract);
     asyncState = savedAsyncModifier;
     return token;
@@ -4074,8 +4074,7 @@ class Parser {
     return token;
   }
 
-  Token parseAsyncModifier(Token token) {
-    // TODO(brianwilkerson): Rename to `parseAsyncModifierOpt`?
+  Token parseAsyncModifierOpt(Token token) {
     Token async;
     Token star;
     asyncState = AsyncModifier.Sync;
