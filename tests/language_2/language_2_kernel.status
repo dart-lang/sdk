@@ -78,9 +78,6 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 assertion_initializer_const_function_test/01: RuntimeError
 assign_static_type_test/02: MissingCompileTimeError
-async_await_test/02: RuntimeError
-async_await_test/03: RuntimeError
-async_await_test/none: RuntimeError
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail
 async_star_regression_2238_test: RuntimeError
@@ -1407,9 +1404,6 @@ assign_top_method_test: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
-async_await_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
-async_await_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
-async_await_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
