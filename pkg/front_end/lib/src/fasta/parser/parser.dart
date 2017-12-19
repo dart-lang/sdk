@@ -593,7 +593,7 @@ class Parser {
     Token importKeyword = token.next;
     assert(optional('import', importKeyword));
     listener.beginImport(importKeyword);
-    token = parseLiteralStringOrRecoverExpression(importKeyword);
+    token = ensureLiteralString(importKeyword);
     Token uri = token;
     token = parseConditionalUris(token);
     token = parseImportPrefixOpt(token);
@@ -775,7 +775,7 @@ class Parser {
     Token exportKeyword = token.next;
     assert(optional('export', exportKeyword));
     listener.beginExport(exportKeyword);
-    token = ensureParseLiteralString(exportKeyword);
+    token = ensureLiteralString(exportKeyword);
     token = parseConditionalUris(token);
     token = parseCombinators(token);
     token = ensureSemicolon(token);
@@ -3222,18 +3222,6 @@ class Parser {
     return rewriteAndRecover(token, message, newToken).next;
   }
 
-  Token ensureParseLiteralString(Token token) {
-    // TODO(brianwilkerson): Rename to `ensureLiteralString`?
-    Token next = token.next;
-    if (!identical(next.kind, STRING_TOKEN)) {
-      Message message = fasta.templateExpectedString.withArguments(next);
-      Token newToken =
-          new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
-      rewriteAndRecover(token, message, newToken);
-    }
-    return parseLiteralString(token);
-  }
-
   /// If the token after [token] is a '>', return it.
   /// If the next token is a composite greater-than token such as '>>',
   /// then replace that token with separate tokens, and return the first '>'.
@@ -3247,6 +3235,20 @@ class Parser {
     }
     rewriteGtCompositeOrRecover(token, next, value);
     return token.next;
+  }
+
+  /// If the token after [token] is a not literal string,
+  /// then insert a synthetic literal string.
+  /// Call `parseLiteralString` and return the result.
+  Token ensureLiteralString(Token token) {
+    Token next = token.next;
+    if (!identical(next.kind, STRING_TOKEN)) {
+      Message message = fasta.templateExpectedString.withArguments(next);
+      Token newToken =
+          new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
+      rewriteAndRecover(token, message, newToken);
+    }
+    return parseLiteralString(token);
   }
 
   /// If the token after [token] is a semi-colon, return it.

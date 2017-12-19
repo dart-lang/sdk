@@ -10890,7 +10890,15 @@ class C {
 
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit("import dart:io; class C {}",
-        codes: [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 7, 4),
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 7, 4)
+              ]
+            : [expectedError(ParserErrorCode.NON_STRING_LITERAL_AS_URI, 7, 4)]);
   }
 
   void test_prefixExpression_missing_operand_minus() {

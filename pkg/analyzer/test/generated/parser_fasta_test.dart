@@ -2613,13 +2613,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_nonStringLiteralUri_import() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_nonStringLiteralUri_import();
-  }
-
-  @override
-  @failingTest
   void test_primaryExpression_argumentDefinitionTest() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_primaryExpression_argumentDefinitionTest();
