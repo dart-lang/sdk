@@ -597,7 +597,7 @@ class Parser {
     Token uri = token;
     token = parseConditionalUris(token);
     token = parseImportPrefixOpt(token);
-    token = parseCombinators(token).next;
+    token = parseCombinatorStar(token).next;
     if (optional(';', token)) {
       listener.endImport(importKeyword, token);
       return token;
@@ -620,7 +620,7 @@ class Parser {
     listener = recoveryListener;
     token = parseConditionalUris(token);
     token = parseImportPrefixOpt(token);
-    token = parseCombinators(token);
+    token = parseCombinatorStar(token);
 
     Token firstDeferredKeyword = recoveryListener.deferredKeyword;
     bool hasPrefix = recoveryListener.asKeyword != null;
@@ -688,7 +688,7 @@ class Parser {
         }
       }
 
-      token = parseCombinators(token);
+      token = parseCombinatorStar(token);
       hasCombinator = hasCombinator || recoveryListener.hasCombinator;
 
       if (optional(';', token.next)) {
@@ -777,7 +777,7 @@ class Parser {
     listener.beginExport(exportKeyword);
     token = ensureLiteralString(exportKeyword);
     token = parseConditionalUris(token);
-    token = parseCombinators(token);
+    token = parseCombinatorStar(token);
     token = ensureSemicolon(token);
     listener.endExport(exportKeyword, token);
     return token;
@@ -788,8 +788,7 @@ class Parser {
   ///   (hideCombinator | showCombinator)*
   /// ;
   /// ```
-  Token parseCombinators(Token token) {
-    // TODO(brianwilkerson): Rename to `parseCombinatorsStar`?
+  Token parseCombinatorStar(Token token) {
     Token next = token.next;
     listener.beginCombinators(next);
     int count = 0;

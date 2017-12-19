@@ -130,7 +130,7 @@ abstract class ParserAdapter implements Parser {
   @override
   List<Combinator> parseCombinators() {
     currentToken = fastaParser
-        .parseCombinators(fastaParser.syntheticPreviousToken(currentToken))
+        .parseCombinatorStar(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     return astBuilder.pop();
   }
