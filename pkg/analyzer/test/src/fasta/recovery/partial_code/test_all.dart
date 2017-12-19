@@ -10,6 +10,8 @@ import 'class_declaration_test.dart' as class_declaration;
 import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
 import 'export_directive_test.dart' as export_directive;
+import 'forEach_statement_test.dart' as forEach_statement;
+import 'for_statement_test.dart' as for_statement;
 import 'if_statement_test.dart' as if_statement;
 import 'import_directive_test.dart' as import_directive;
 import 'instance_creation_test.dart' as instance_creation;
@@ -22,6 +24,7 @@ import 'return_statement_test.dart' as return_statement;
 import 'switch_statement_test.dart' as switch_statement;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'while_statement_test.dart' as while_statement;
+import 'yield_statement_test.dart' as yield_statement;
 
 main() {
   group('partial_code', () {
@@ -31,6 +34,8 @@ main() {
     continue_statement.main();
     do_statement.main();
     export_directive.main();
+    for_statement.main();
+    forEach_statement.main();
     if_statement.main();
     import_directive.main();
     instance_creation.main();
@@ -43,5 +48,6 @@ main() {
     switch_statement.main();
     top_level_variable.main();
     while_statement.main();
+    yield_statement.main();
   });
 }
