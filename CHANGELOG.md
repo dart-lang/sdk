@@ -46,6 +46,7 @@
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
+  * Added `Provisional` annotation to `dart:core`.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
