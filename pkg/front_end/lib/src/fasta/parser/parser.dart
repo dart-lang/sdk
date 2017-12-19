@@ -4000,19 +4000,7 @@ class Parser {
       listener.handleEmptyFunctionBody(next);
       return next;
     } else if (optional('=>', next)) {
-      Token begin = next;
-      token = parseExpression(next);
-      if (!ofFunctionExpression) {
-        token = ensureSemicolon(token);
-        listener.handleExpressionFunctionBody(begin, token);
-      } else {
-        listener.handleExpressionFunctionBody(begin, null);
-      }
-      if (inGenerator) {
-        listener.handleInvalidStatement(
-            begin, fasta.messageGeneratorReturnsValue);
-      }
-      return token;
+      return parseExpressionFunctionBody(next, ofFunctionExpression);
     } else if (optional('=', next)) {
       Token begin = next;
       // Recover from a bad factory method.
@@ -4029,9 +4017,24 @@ class Parser {
     Token begin = next;
     int statementCount = 0;
     if (!optional('{', next)) {
-      token = ensureBlock(token, fasta.templateExpectedFunctionBody);
-      listener.handleInvalidFunctionBody(token);
-      return token.endGroup;
+      // Recovery
+      // If there is a stray simple identifier in the function expression
+      // because the user is typing (e.g. `() asy => null;`)
+      // then report an error, skip the token, and continue parsing.
+      if (next.isKeywordOrIdentifier && optional('=>', next.next)) {
+        reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+        return parseExpressionFunctionBody(next.next, ofFunctionExpression);
+      }
+      if (next.isKeywordOrIdentifier && optional('{', next.next)) {
+        reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+        token = next;
+        begin = next = token.next;
+        // Fall through to parse the block.
+      } else {
+        token = ensureBlock(token, fasta.templateExpectedFunctionBody);
+        listener.handleInvalidFunctionBody(token);
+        return token.endGroup;
+      }
     }
 
     listener.beginBlockFunctionBody(begin);
@@ -4051,6 +4054,23 @@ class Parser {
     token = token.next;
     listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
+    return token;
+  }
+
+  Token parseExpressionFunctionBody(Token token, bool ofFunctionExpression) {
+    assert(optional('=>', token));
+    Token begin = token;
+    token = parseExpression(token);
+    if (!ofFunctionExpression) {
+      token = ensureSemicolon(token);
+      listener.handleExpressionFunctionBody(begin, token);
+    } else {
+      listener.handleExpressionFunctionBody(begin, null);
+    }
+    if (inGenerator) {
+      listener.handleInvalidStatement(
+          begin, fasta.messageGeneratorReturnsValue);
+    }
     return token;
   }
 
@@ -4709,21 +4729,34 @@ class Parser {
     assert(optional('(', next));
     Token nextToken = closeBraceTokenFor(next).next;
     int kind = nextToken.kind;
-    if (mayParseFunctionExpressions &&
-        (identical(kind, FUNCTION_TOKEN) ||
-            identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
-            (identical(kind, KEYWORD_TOKEN) &&
-                (optional('async', nextToken) ||
-                    optional('sync', nextToken))))) {
-      listener.handleNoTypeVariables(next);
-      return parseFunctionExpression(token);
-    } else {
-      bool old = mayParseFunctionExpressions;
-      mayParseFunctionExpressions = true;
-      token = parseParenthesizedExpression(token);
-      mayParseFunctionExpressions = old;
-      return token;
+    if (mayParseFunctionExpressions) {
+      if ((identical(kind, FUNCTION_TOKEN) ||
+          identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
+        listener.handleNoTypeVariables(next);
+        return parseFunctionExpression(token);
+      } else if (identical(kind, KEYWORD_TOKEN) ||
+          identical(kind, IDENTIFIER_TOKEN)) {
+        if (optional('async', nextToken) || optional('sync', nextToken)) {
+          listener.handleNoTypeVariables(next);
+          return parseFunctionExpression(token);
+        }
+        // Recovery
+        // If there is a stray simple identifier in the function expression
+        // because the user is typing (e.g. `() asy {}`) then continue parsing
+        // and allow parseFunctionExpression to report an unexpected token.
+        kind = nextToken.next.kind;
+        if ((identical(kind, FUNCTION_TOKEN) ||
+            identical(kind, OPEN_CURLY_BRACKET_TOKEN))) {
+          listener.handleNoTypeVariables(next);
+          return parseFunctionExpression(token);
+        }
+      }
     }
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    token = parseParenthesizedExpression(token);
+    mayParseFunctionExpressions = old;
+    return token;
   }
 
   Token parseParenthesizedExpression(Token token) {

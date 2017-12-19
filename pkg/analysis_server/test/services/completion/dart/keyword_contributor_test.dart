@@ -318,14 +318,17 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo(() a^ {}}}');
     await computeSuggestions();
     // Fasta adds a closing paren after the first `}`
-    // and adds synthetic `,`s making `a` an argument
+    // and reports a single function expression argument
     // while analyzer adds the closing paren before the `a`
     // and adds synthetic `;`s making `a` a statement.
-    assertSuggestKeywords(
-        request.target.entity is Expression
-            ? EXPRESSION_START_NO_INSTANCE
-            : STMT_START_OUTSIDE_CLASS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    if (request.target.entity is BlockFunctionBody) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_anonymous_function_async3() async {
@@ -360,7 +363,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
     assertSuggestKeywords([],
-        pseudoKeywords: ['async', 'async*', 'sync*'],
+        pseudoKeywords: request.target.entity is ExpressionFunctionBody
+            ? ['async']
+            : ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
@@ -375,13 +380,16 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_anonymous_function_async9() async {
     addTestSource('main() {foo(() a^ {})}}');
     await computeSuggestions();
-    // Fasta adds synthetic `,`s making `a` an argument
+    // Fasta interprets the argument as a function expression
     // while analyzer adds synthetic `;`s making `a` a statement.
-    assertSuggestKeywords(
-        request.target.entity is Expression
-            ? EXPRESSION_START_NO_INSTANCE
-            : STMT_START_OUTSIDE_CLASS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    if (request.target.entity is BlockFunctionBody) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_argument() async {

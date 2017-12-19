@@ -10225,6 +10225,28 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ]);
   }
 
+  void test_incomplete_functionExpression() {
+    var expression = parseExpression("() a => null",
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 3, 1)]
+            : [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
+    if (usingFastaParser) {
+      FunctionExpression functionExpression = expression;
+      expect(functionExpression.parameters.parameters, hasLength(0));
+    }
+  }
+
+  void test_incomplete_functionExpression2() {
+    var expression = parseExpression("() a {}",
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 3, 1)]
+            : [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
+    if (usingFastaParser) {
+      FunctionExpression functionExpression = expression;
+      expect(functionExpression.parameters.parameters, hasLength(0));
+    }
+  }
+
   @failingTest
   void test_incomplete_returnType() {
     parseCompilationUnit(r'''
