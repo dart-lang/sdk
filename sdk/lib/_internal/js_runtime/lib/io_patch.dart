@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_js_helper' show patch;
+import 'dart:_internal' hide Symbol;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 @patch
 class _Directory {

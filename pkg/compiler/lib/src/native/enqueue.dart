@@ -127,10 +127,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
               _elementEnvironment.getThisType(type.element);
           return _dartTypes.isSubtype(nativeType, specType);
         }));
-      } else if (type.isDynamic) {
+      } else if (type.isDynamic ||
+          type.isFunctionTypeVariable ||
+          type is Dart1MethodTypeVariableType) {
         matchingClasses.addAll(_unusedClasses);
       } else {
-        assert(type is VoidType);
+        assert(type is VoidType, '$type was ${type.runtimeType}');
       }
     }
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {

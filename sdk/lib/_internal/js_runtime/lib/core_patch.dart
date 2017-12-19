@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
+import "dart:_internal" hide Symbol, LinkedList, LinkedListEntry;
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper'
@@ -26,7 +27,7 @@ import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_native_typed_data' show NativeUint8List;
 
-import 'dart:async' show StreamController;
+import "dart:convert" show Encoding, utf8;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 

@@ -21,6 +21,8 @@ import 'dart:_foreign_helper' show JS;
 
 import 'dart:_async_await_error_codes' as async_error_codes;
 
+import "dart:collection" show IterableBase;
+
 @patch
 class _AsyncRun {
   @patch
