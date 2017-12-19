@@ -2133,22 +2133,22 @@ class Parser {
         // Push the non-existing return type first. The loop below will
         // generate the full type.
         listener.handleNoType(begin);
-        token = begin;
+        token = beforeBegin;
       } else if (functionTypes > 0 && voidToken != null) {
         listener.handleVoidKeyword(voidToken);
-        token = voidToken.next;
+        token = voidToken;
       } else {
         token = ensureIdentifier(beforeBegin, context);
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
         assert(typeArguments == null || typeArguments == token.next);
-        token = parseTypeArgumentsOpt(token).next;
-        listener.handleType(begin, token);
+        token = parseTypeArgumentsOpt(token);
+        listener.handleType(begin, token.next);
       }
 
       {
-        Token newBegin =
-            listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
+        Token newBegin = listener.replaceTokenWithGenericCommentTypeAssign(
+            begin, token.next);
         if (!identical(newBegin, begin)) {
           listener.discardTypeReplacedWithCommentTypeAssign();
           // TODO(brianwilkerson): Remove the invocation of `previous` when
@@ -2159,25 +2159,23 @@ class Parser {
       }
 
       for (int i = 0; i < functionTypes; i++) {
-        assert(optional('Function', token));
-        Token functionToken = token;
-        if (optional("<", token.next)) {
+        Token next = token.next;
+        assert(optional('Function', next));
+        Token functionToken = next;
+        if (optional("<", next.next)) {
           // Skip type parameters, they were parsed above.
-          token = closeBraceTokenFor(token.next);
+          next = closeBraceTokenFor(next.next);
         }
         token = parseFormalParametersRequiredOpt(
-                token, MemberKind.GeneralizedFunctionType)
-            .next;
-        listener.endFunctionType(functionToken, token);
+            next, MemberKind.GeneralizedFunctionType);
+        listener.endFunctionType(functionToken, token.next);
       }
 
       if (hasVar) {
         reportRecoverableError(begin, fasta.messageTypeAfterVar);
       }
 
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `commitType` accepts the last consumed token.
-      return token.previous;
+      return token;
     }
 
     /// Returns true if [kind] could be the end of a variable declaration.
