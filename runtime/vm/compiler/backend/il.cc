@@ -3527,10 +3527,10 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sub_type().IsFinalized());
   ASSERT(super_type().IsFinalized());
 
-  __ PushObject(sub_type());
-  __ PushObject(super_type());
   __ PushRegister(locs()->in(0).reg());
   __ PushRegister(locs()->in(1).reg());
+  __ PushObject(sub_type());
+  __ PushObject(super_type());
   __ PushObject(dst_name());
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
@@ -3538,8 +3538,17 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Drop(5);
 #else
-  // TODO(sjindel): Support strong mode in DBC
-  UNREACHABLE();
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
+  } else {
+    // The 2 inputs are already on the expression stack.
+  }
+  __ PushConstant(sub_type());
+  __ PushConstant(super_type());
+  __ PushConstant(dst_name());
+  __ AssertSubtype();
+
 #endif
 }
 

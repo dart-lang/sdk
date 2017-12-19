@@ -117,6 +117,12 @@ string_case_test/01: RuntimeError
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $arch == simdbc64 && $compiler == dartk && $strong ]
+iterable_to_set_test: RuntimeError # Please triage.
+
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
@@ -410,6 +416,13 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $mode == debug && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+bigint_parse_radix_test: Pass, Timeout # Please triage.
+bigint_test: Pass, Timeout # Please triage.
+
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -453,16 +466,11 @@ unicode_test: RuntimeError
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 bit_twiddling_test/int64: CompileTimeError # Please triage.
 integer_to_radix_string_test/02: CompileTimeError # Please triage.
 integer_to_string_test/01: CompileTimeError # Please triage.
 num_sign_test: CompileTimeError # Please triage.
-
-[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-bit_twiddling_test/int64: CompileTimeError
-integer_parsed_arith_vm_test/01: RuntimeError
-integer_parsed_arith_vm_test/02: RuntimeError
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
@@ -696,3 +704,4 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 bigint_parse_radix_test: Pass, Timeout # Issue 31659
 bigint_test: Pass, Crash # Issue 31660
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
+

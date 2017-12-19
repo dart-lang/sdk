@@ -139,9 +139,6 @@ cc/IsolateReload_PrefixImportedLibModified: Fail # Please triage.
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $arch == simdbc64 && $compiler == dartk ]
-cc/*: Pass, Crash # Please triage (flaky crashes in kernel-isolate?).
-dart/regress29620_test: RuntimeError # Please triage.
-dart/regress30853_test: Crash # Please triage.
 dart/truncating_ints_test: RuntimeError # Please triage.
 
 [ $arch == x64 && $system == windows ]

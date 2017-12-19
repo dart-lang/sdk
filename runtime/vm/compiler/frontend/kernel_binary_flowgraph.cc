@@ -7530,12 +7530,15 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
 
   // The type argument for the factory call.
   Fragment instructions = TranslateInstantiatedTypeArguments(type_arguments);
+  LocalVariable* type = MakeTemporary();
+
+  instructions += LoadLocal(type);
   instructions += PushArgument();
   if (length == 0) {
     instructions += Constant(Object::empty_array());
   } else {
     // The type arguments for CreateArray.
-    instructions += Constant(type_arguments);
+    instructions += LoadLocal(type);
     instructions += IntConstant(length);
     instructions += CreateArray();
     AbstractType& list_type = AbstractType::ZoneHandle(Z);
@@ -7567,8 +7570,9 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
       Z, factory_class.LookupFactory(
              Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
 
-  return instructions +
-         StaticCall(position, factory_method, 2, ICData::kStatic);
+  instructions += StaticCall(position, factory_method, 2, ICData::kStatic);
+  instructions += DropTempsPreserveTop(1);  // Instantiated type_arguments.
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,

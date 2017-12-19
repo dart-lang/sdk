@@ -357,20 +357,20 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
 }
 
 // Instantiate type.
-// Arg0: type to be a subtype of the other
-// Arg1: type to be a supertype of the other
-// Arg2: instantiator type arguments
-// Arg3: function type arguments
+// Arg0: instantiator type arguments
+// Arg1: function type arguments
+// Arg2: type to be a subtype of the other
+// Arg3: type to be a supertype of the other
 // Arg4: variable name of the subtype parameter
 // No return value.
 DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
-  AbstractType& subtype = AbstractType::CheckedHandle(zone, arguments.ArgAt(0));
-  AbstractType& supertype =
-      AbstractType::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& instantiator_type_args =
-      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(0));
   const TypeArguments& function_type_args =
-      TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+  AbstractType& subtype = AbstractType::CheckedHandle(zone, arguments.ArgAt(2));
+  AbstractType& supertype =
+      AbstractType::CheckedHandle(zone, arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
 
   ASSERT(!subtype.IsNull() && !subtype.IsMalformedOrMalbounded());
