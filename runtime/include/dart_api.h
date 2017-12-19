@@ -571,34 +571,32 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
 /**
  * An isolate creation and initialization callback function.
  *
- * This callback, provided by the embedder, is called when the vm
+ * This callback, provided by the embedder, is called when the VM
  * needs to create an isolate. The callback should create an isolate
  * by calling Dart_CreateIsolate and load any scripts required for
  * execution.
  *
- * When the function returns false, it is the responsibility of this
+ * This callback may be called on a different thread than the one
+ * running the parent isolate.
+ *
+ * When the function returns NULL, it is the responsibility of this
  * function to ensure that Dart_ShutdownIsolate has been called if
  * required (for example, if the isolate was created successfully by
  * Dart_CreateIsolate() but the root library fails to load
  * successfully, then the function should call Dart_ShutdownIsolate
  * before returning).
  *
- * When the function returns false, the function should set *error to
+ * When the function returns NULL, the function should set *error to
  * a malloc-allocated buffer containing a useful error message.  The
- * caller of this function (the vm) will make sure that the buffer is
+ * caller of this function (the VM) will make sure that the buffer is
  * freed.
  *
- * \param script_uri The uri of the script to load.
- *   This uri is non NULL if the isolate is being created using the
- *   spawnUri isolate API. This uri has been canonicalized by the
- *   library tag handler from the parent isolate.
- *   The callback is responsible for loading this script by a call to
+ * \param script_uri The uri of the main source file or snapshot to load.
+ *   Either the URI of the parent isolate set in Dart_CreateIsolate for
+ *   Isolate.spawn, or the argument to Isolate.spawnUri canonicalized by the
+ *   library tag handler of the parent isolate.
+ *   The callback is responsible for loading the program by a call to
  *   Dart_LoadScript or Dart_LoadScriptFromSnapshot.
- *   This uri will be NULL if the isolate is being created using the
- *   spawnFunction isolate API.
- *   The callback is responsible for loading the script used in the
- *   parent isolate by a call to Dart_LoadScript or
- *   Dart_LoadScriptFromSnapshot.
  * \param main The name of the main entry point this isolate will
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
@@ -825,10 +823,13 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *
  * Requires there to be no current isolate.
  *
- * \param script_uri The name of the script this isolate will load.
- *   Provided only for advisory purposes to improve debugging messages.
- * \param main The name of the main entry point this isolate will run.
- *   Provided only for advisory purposes to improve debugging messages.
+ * \param script_uri The main source file or snapshot this isolate will load.
+ *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
+ *   isolate is created by Isolate.spawn. The embedder should use a URI that
+ *   allows it to load the same program into such a child isolate.
+ * \param main The name of the main entry point this isolate will run. Provided
+ *   only for advisory purposes to improve debugging messages. Typically either
+ *   'main' or the name of the function passed to Isolate.spawn.
  * \param isolate_snapshot_data
  * \param isolate_snapshot_instructions Buffers containing a snapshot of the
  *   isolate or NULL if no snapshot is provided.
@@ -862,10 +863,13 @@ Dart_CreateIsolate(const char* script_uri,
  * After this call, the `kernel_program` needs to be supplied to a call to
  * `Dart_LoadKernel()` which will then take ownership of the memory.
  *
- * \param script_uri The name of the script this isolate will load.
- *   Provided only for advisory purposes to improve debugging messages.
- * \param main The name of the main entry point this isolate will run.
- *   Provided only for advisory purposes to improve debugging messages.
+ * \param script_uri The main source file or snapshot this isolate will load.
+ *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
+ *   isolate is created by Isolate.spawn. The embedder should use a URI that
+ *   allows it to load the same program into such a child isolate.
+ * \param main The name of the main entry point this isolate will run. Provided
+ *   only for advisory purposes to improve debugging messages. Typically either
+ *   'main' or the name of the function passed to Isolate.spawn.
  * \param kernel_program The `dart::kernel::Program` object.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
