@@ -513,6 +513,20 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
   return false;
 }
 
+static void EnsureICData(Zone* zone,
+                         const Function& function,
+                         InstanceCallInstr* call) {
+  if (!call->HasICData()) {
+    const Array& arguments_descriptor =
+        Array::Handle(zone, call->GetArgumentsDescriptor());
+    const ICData& ic_data = ICData::ZoneHandle(
+        zone, ICData::New(function, call->function_name(), arguments_descriptor,
+                          call->deopt_id(), call->checked_argument_count(),
+                          ICData::kInstance));
+    call->set_ic_data(&ic_data);
+  }
+}
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 // TODO(dartbug.com/30635) Evaluate how much this can be shared with
@@ -780,6 +794,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         return;
       }
     }
+
+    // Detect if o.m(...) is a call through a getter and expand it
+    // into o.get:m().call(...).
+    if (TryExpandCallThroughGetter(receiver_class, instr)) {
+      return;
+    }
   }
 
   // More than one target. Generate generic polymorphic call without
@@ -795,6 +815,104 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     instr->ReplaceWith(call, current_iterator());
     return;
   }
+}
+
+bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
+                                                    InstanceCallInstr* call) {
+  // If it's an accessor call it can't be a call through getter.
+  if (call->token_kind() == Token::kGET || call->token_kind() == Token::kSET) {
+    return false;
+  }
+
+  // Ignore callsites like f.call() for now. Those need to be handled
+  // specially if f is a closure.
+  if (call->function_name().raw() == Symbols::Call().raw()) {
+    return false;
+  }
+
+  Function& target = Function::Handle(Z);
+
+  const String& getter_name = String::ZoneHandle(
+      Z, Symbols::LookupFromGet(thread(), call->function_name()));
+  if (getter_name.IsNull()) {
+    return false;
+  }
+
+  const Array& args_desc_array = Array::Handle(
+      Z, ArgumentsDescriptor::New(/*type_args_len=*/0, /*num_arguments=*/1));
+  ArgumentsDescriptor args_desc(args_desc_array);
+  target = Resolver::ResolveDynamicForReceiverClass(
+      receiver_class, getter_name, args_desc, /*allow_add=*/false);
+  if (target.raw() == Function::null() || target.IsMethodExtractor()) {
+    return false;
+  }
+
+  // We found a getter with the same name as the method this
+  // call tries to invoke. This implies call through getter
+  // because methods can't override getters. Build
+  // o.get:m().call(...) sequence and replace o.m(...) invocation.
+
+  const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
+
+  PushArgumentsArray* get_arguments = new (Z) PushArgumentsArray(1);
+  get_arguments->Add(new (Z) PushArgumentInstr(
+      call->PushArgumentAt(receiver_idx)->value()->CopyWithType()));
+  InstanceCallInstr* invoke_get = new (Z) InstanceCallInstr(
+      call->token_pos(), getter_name, Token::kGET, get_arguments,
+      /*type_args_len=*/0,
+      /*argument_names=*/Object::empty_array(),
+      /*checked_argument_count=*/1, thread()->GetNextDeoptId());
+
+  // Arguments to the .call() are the same as arguments to the
+  // original call (including type arguments), but receiver
+  // is replaced with the result of the get.
+  PushArgumentsArray* call_arguments =
+      new (Z) PushArgumentsArray(call->ArgumentCount());
+  if (call->type_args_len() > 0) {
+    call_arguments->Add(new (Z) PushArgumentInstr(
+        call->PushArgumentAt(0)->value()->CopyWithType()));
+  }
+  call_arguments->Add(new (Z) PushArgumentInstr(new (Z) Value(invoke_get)));
+  for (intptr_t i = receiver_idx + 1; i < call->ArgumentCount(); i++) {
+    call_arguments->Add(new (Z) PushArgumentInstr(
+        call->PushArgumentAt(i)->value()->CopyWithType()));
+  }
+
+  InstanceCallInstr* invoke_call = new (Z) InstanceCallInstr(
+      call->token_pos(), Symbols::Call(), Token::kILLEGAL, call_arguments,
+      call->type_args_len(), call->argument_names(),
+      /*checked_argument_count=*/1, thread()->GetNextDeoptId());
+
+  // Insert all new instructions, except .call() invocation into the
+  // graph.
+  for (intptr_t i = 0; i < invoke_get->ArgumentCount(); i++) {
+    InsertBefore(call, invoke_get->PushArgumentAt(i), NULL, FlowGraph::kEffect);
+  }
+  InsertBefore(call, invoke_get, call->env(), FlowGraph::kValue);
+  for (intptr_t i = 0; i < invoke_call->ArgumentCount(); i++) {
+    InsertBefore(call, invoke_call->PushArgumentAt(i), NULL,
+                 FlowGraph::kEffect);
+  }
+  // Remove original PushArguments from the graph.
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    call->PushArgumentAt(i)->RemoveFromGraph();
+  }
+
+  // Replace original call with .call(...) invocation.
+  call->ReplaceWith(invoke_call, current_iterator());
+
+  // AOT compiler expects all calls to have an ICData.
+  EnsureICData(Z, flow_graph()->function(), invoke_get);
+  EnsureICData(Z, flow_graph()->function(), invoke_call);
+
+  // Specialize newly inserted calls.
+  TryCreateICData(invoke_get);
+  VisitInstanceCall(invoke_get);
+  TryCreateICData(invoke_call);
+  VisitInstanceCall(invoke_call);
+
+  // Success.
+  return true;
 }
 
 void AotCallSpecializer::VisitPolymorphicInstanceCall(
