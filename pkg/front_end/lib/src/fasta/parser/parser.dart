@@ -2621,7 +2621,7 @@ class Parser {
   }
 
   Token parseTypeArgumentsOpt(Token token) {
-    return parseStuff(
+    return parseStuffOpt(
         token,
         (t) => listener.beginTypeArguments(t),
         (t) => parseType(t),
@@ -2630,7 +2630,7 @@ class Parser {
   }
 
   Token parseTypeVariablesOpt(Token token) {
-    return parseStuff(
+    return parseStuffOpt(
         token,
         (t) => listener.beginTypeVariables(t),
         (t) => parseTypeVariable(t),
@@ -2639,10 +2639,8 @@ class Parser {
   }
 
   /// TODO(ahe): Clean this up.
-  Token parseStuff(Token token, Function beginStuff, Function stuffParser,
+  Token parseStuffOpt(Token token, Function beginStuff, Function stuffParser,
       Function endStuff, Function handleNoStuff) {
-    // TODO(brianwilkerson): Rename to `parseStuffOpt`?
-
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(token.next).previous;
