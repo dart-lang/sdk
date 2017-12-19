@@ -323,9 +323,7 @@ typedef DirectChainedHashMap<FunctionFeedbackPair> FunctionFeedbackMap;
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
-      Dart_QualifiedFunctionName embedder_entry_points[],
-      uint8_t* jit_feedback,
-      intptr_t jit_feedback_length);
+      Dart_QualifiedFunctionName embedder_entry_points[]);
 
   static RawError* CompileFunction(Precompiler* precompiler,
                                    Thread* thread,
@@ -350,16 +348,10 @@ class Precompiler : public ValueObject {
     type_range_cache_ = value;
   }
 
-  bool HasFeedback() const { return jit_feedback_ != NULL; }
   static void PopulateWithICData(const Function& func, FlowGraph* graph);
-  void TryApplyFeedback(const Function& func, FlowGraph* graph);
-  void TryApplyFeedback(ParsedJSONArray* js_icdatas, const ICData& ic);
 
  private:
   explicit Precompiler(Thread* thread);
-
-  void LoadFeedback(uint8_t* jit_feedback, intptr_t jit_feedback_length);
-  ParsedJSONObject* LookupFeedback(const Function& function);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
@@ -409,9 +401,6 @@ class Precompiler : public ValueObject {
   void PrecompileConstructors();
 
   void FinalizeAllClasses();
-  void VerifyJITFeedback();
-  RawScript* LookupScript(const char* uri);
-  intptr_t MapCid(intptr_t feedback_cid);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -420,8 +409,6 @@ class Precompiler : public ValueObject {
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
-
-  ParsedJSONObject* jit_feedback_;
 
   bool changed_;
   bool retain_root_library_caches_;

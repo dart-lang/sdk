@@ -1226,7 +1226,7 @@ static void CreateAndWritePrecompiledSnapshot(
   Dart_Handle result;
 
   // Precompile with specified embedder entry points
-  result = Dart_Precompile(standalone_entry_points, NULL, 0);
+  result = Dart_Precompile(standalone_entry_points);
   CHECK_RESULT(result);
 
   // Create a precompiled snapshot.

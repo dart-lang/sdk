@@ -803,27 +803,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
 
     if (Options::gen_snapshot_kind() == kAppAOT) {
-      uint8_t* feedback_buffer = NULL;
-      intptr_t feedback_length = 0;
-      if (Options::load_feedback_filename() != NULL) {
-        File* file =
-            File::Open(NULL, Options::load_feedback_filename(), File::kRead);
-        if (file == NULL) {
-          ErrorExit(kErrorExitCode, "Failed to read JIT feedback.\n");
-        }
-        feedback_length = file->Length();
-        feedback_buffer = reinterpret_cast<uint8_t*>(malloc(feedback_length));
-        if (!file->ReadFully(feedback_buffer, feedback_length)) {
-          ErrorExit(kErrorExitCode, "Failed to read JIT feedback.\n");
-        }
-        file->Release();
-      }
-
-      result = Dart_Precompile(standalone_entry_points, feedback_buffer,
-                               feedback_length);
-      if (feedback_buffer != NULL) {
-        free(feedback_buffer);
-      }
+      result = Dart_Precompile(standalone_entry_points);
       CHECK_RESULT(result);
 
       if (Options::obfuscate() &&
@@ -892,14 +872,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         }
       }
       CHECK_RESULT(result);
-
-      if (Options::save_feedback_filename() != NULL) {
-        uint8_t* buffer = NULL;
-        intptr_t size = 0;
-        result = Dart_SaveJITFeedback(&buffer, &size);
-        CHECK_RESULT(result);
-        WriteFile(Options::save_feedback_filename(), buffer, size);
-      }
 
       if (Options::save_compilation_trace_filename() != NULL) {
         uint8_t* buffer = NULL;

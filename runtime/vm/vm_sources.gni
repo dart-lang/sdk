@@ -137,7 +137,6 @@ vm_sources = [
   "isolate.h",
   "isolate_reload.cc",
   "isolate_reload.h",
-  "json_parser.h",
   "json_stream.cc",
   "json_stream.h",
   "json_writer.cc",

@@ -3186,44 +3186,17 @@ DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
  */
 
 /**
- * Saves a serialized version of the information collected for use by the
- * optimizing compiler, such as type feedback and usage counters. When this
- * information is passed to Dart_Precompile, the AOT compiler may use it to
- * produce faster and smaller code. The feedback is only used if the JIT that
- * created it and the AOT compiler consuming it
- *   - are running the same Dart program
- *   - are built from the same version of the VM
- *   - agree on whether type checks and assertions are enabled
- *
- * \return Returns an error handler if the VM was built in a mode that does not
- * support saving JIT feedback.
- */
-DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
-                                             intptr_t* buffer_length);
-
-/**
  * Compiles all functions reachable from the provided entry points and marks
  * the isolate to disallow future compilation.
  *
  * \param entry_points A list of functions that may be invoked through the
  * embedding API, e.g. Dart_Invoke/GetField/SetField/New/InvokeClosure.
  *
- * \param reset_fields Controls whether static fields are reset. Fields without
- * an initializer will be set to null, and fields with an initializer will have
- * their initializer run the next time they are accessed.
- *
- * reset_fields is true when we are about to create a precompilated snapshot.
- * Some fields are already been initialized as part of the loading logic, and
- * we want them to be reinitialized in the new process that will load the
- * snapshot.
- *
  * \return An error handle if a compilation error or runtime error running const
  * constructors was encountered.
  */
 DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                uint8_t* jit_feedback,
-                intptr_t jit_feedback_length);
+Dart_Precompile(Dart_QualifiedFunctionName entry_points[]);
 
 /**
  *  Creates a precompiled snapshot.

@@ -24,8 +24,6 @@ namespace bin {
   V(save_obfuscation_map, obfuscation_map_filename)                            \
   V(save_compilation_trace, save_compilation_trace_filename)                   \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
-  V(save_feedback, save_feedback_filename)                                     \
-  V(load_feedback, load_feedback_filename)                                     \
   V(root_certs_file, root_certs_file)                                          \
   V(root_certs_cache, root_certs_cache)                                        \
   V(namespace, namespc)
