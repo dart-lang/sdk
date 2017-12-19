@@ -11,7 +11,6 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:meta/meta.dart';
@@ -116,6 +115,7 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
 
   @override
   Future<DeltaProgram> computeDelta() {
+    _options.ticker.reset();
     if (_isComputeDeltaExecuting) {
       throw new StateError(MSG_PENDING_COMPUTE);
     }
@@ -129,8 +129,8 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
 
     return _runWithFrontEndContext('Compute delta', () async {
       try {
-        var dillTarget = new DillTarget(new Ticker(isVerbose: _options.verbose),
-            uriTranslator, _options.target);
+        var dillTarget =
+            new DillTarget(_options.ticker, uriTranslator, _options.target);
 
         // Append all libraries what we still have in the current program.
         await _logger.runAsync('Load dill libraries', () async {
