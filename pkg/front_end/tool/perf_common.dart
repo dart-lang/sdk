@@ -85,3 +85,53 @@ class LegacyFlutterTarget extends FlutterTarget {
   @override
   bool get disableTypeInference => true;
 }
+
+class TimingsCollector {
+  final Stopwatch stopwatch = new Stopwatch();
+
+  final Map<String, List<double>> timings = <String, List<double>>{};
+
+  final bool verbose;
+
+  TimingsCollector(this.verbose);
+
+  String currentKey;
+
+  void start(String key) {
+    if (currentKey != null) {
+      throw "Attempt to time '$key' while '$currentKey' is running.";
+    }
+    currentKey = key;
+    stopwatch
+      ..reset()
+      ..start();
+  }
+
+  void stop(String key) {
+    stopwatch.stop();
+    if (currentKey == null) {
+      throw "Need to call 'start' before calling 'stop'.";
+    }
+    if (currentKey != key) {
+      throw "Can't stop timing '$key' because '$currentKey' is running.";
+    }
+    currentKey = null;
+    double duration =
+        stopwatch.elapsedMicroseconds / Duration.microsecondsPerMillisecond;
+    List<double> durations = (timings[key] ??= <double>[]);
+    durations.add(duration);
+    if (verbose) {
+      print("$key took: ${duration}ms");
+    }
+  }
+
+  void printTimings() {
+    timings.forEach((String key, List<double> durations) {
+      double total = 0.0;
+      for (double duration in durations.skip(3)) {
+        total += duration;
+      }
+      print("$key took: ${total/(durations.length - 3)}ms");
+    });
+  }
+}
