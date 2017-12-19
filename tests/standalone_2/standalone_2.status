@@ -88,8 +88,8 @@ io/secure_builtin_roots_test: Skip # These tests have started timing out and iss
 io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
 io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
 io/secure_server_client_certificate_test: Skip # Re-enable once the bots have been updated. Issue #26057
+io/socket_connect_stream_data_close_cancel_test: Pass, Timeout # Issue 27453
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
-io/socket_test: Pass, Timeout # Issue 27453
 
 [ $strong && ($compiler == dartk || $compiler == dartkp) ]
 assert_test: RuntimeError
