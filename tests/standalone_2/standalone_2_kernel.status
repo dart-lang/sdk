@@ -30,6 +30,7 @@ assert_test: CompileTimeError # Issue 31402 (Assert statement)
 io/compile_all_test: Crash
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
+io/http_proxy_test: CompileTimeError
 io/secure_builtin_roots_test: Timeout
 io/socket_finalizer_test: Pass, Timeout
 map_insert_remove_oom_test: Crash
@@ -77,7 +78,6 @@ io/socket_port_test: Pass, Crash
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 dwarf_stack_trace_test: RuntimeError
-io/arguments_test: RuntimeError
 io/compile_all_test: Crash
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
@@ -92,6 +92,7 @@ io/http_reuse_server_port_test: Skip # Flaky.
 io/http_server_close_response_after_error_test: Skip # Flaky.
 io/http_shutdown_test: Skip # Flaky.
 io/https_client_certificate_test: Crash
+io/namespace_test: RuntimeError
 io/platform_test: Crash
 io/raw_datagram_socket_test: Skip # Flaky.
 io/raw_secure_server_closing_test: Skip # Flaky
