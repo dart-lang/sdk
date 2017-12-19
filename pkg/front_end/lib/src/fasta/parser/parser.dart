@@ -422,7 +422,7 @@ class Parser {
     }
     token = parseMetadataStar(token);
     if (token.next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(null, token, directiveState);
+      return parseTopLevelKeywordDeclaration(token, null, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -447,7 +447,7 @@ class Parser {
         modifier = modifier.next;
       }
       return parseTopLevelKeywordDeclaration(
-          beforeAbstractToken, token, directiveState);
+          token, beforeAbstractToken, directiveState);
     } else if (next.isIdentifier || next.keyword != null) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -500,15 +500,14 @@ class Parser {
 
   /// Parse any top-level declaration that begins with a keyword.
   Token parseTopLevelKeywordDeclaration(
-      Token beforeAbstractToken, Token token, DirectiveContext directiveState) {
-    // TODO(brianwilkerson): Move `token` to be the first parameter.
+      Token token, Token beforeAbstractToken, DirectiveContext directiveState) {
     Token previous = token;
     token = token.next;
     assert(token.isTopLevelKeyword);
     final String value = token.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      return parseClassOrNamedMixinApplication(beforeAbstractToken, previous);
+      return parseClassOrNamedMixinApplication(previous, beforeAbstractToken);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       return parseEnum(previous);
@@ -1394,8 +1393,7 @@ class Parser {
   }
 
   Token parseClassOrNamedMixinApplication(
-      Token beforeAbstractToken, Token token) {
-    // TODO(brianwilkerson): Move `token` to be the first parameter.
+      Token token, Token beforeAbstractToken) {
     token = token.next;
     listener.beginClassOrNamedMixinApplication(token);
     Token begin = beforeAbstractToken?.next ?? token;
@@ -1971,7 +1969,6 @@ class Parser {
   }
 
   bool notEofOrValue(String value, Token token) {
-    // TODO(brianwilkerson): Move `token` to be the first parameter.
     return !identical(token.kind, EOF_TOKEN) &&
         !identical(value, token.stringValue);
   }
@@ -2294,7 +2291,7 @@ class Parser {
                 commitType();
               }
               return parseNamedFunctionRest(
-                  begin, beforeToken, beforeFormals, false);
+                  beforeToken, begin, beforeFormals, false);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -2314,7 +2311,7 @@ class Parser {
                   commitType();
                 }
                 return parseNamedFunctionRest(
-                    begin, beforeToken, beforeFormals, false);
+                    beforeToken, begin, beforeFormals, false);
               }
             }
           }
@@ -2336,7 +2333,7 @@ class Parser {
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
               listener.handleNoType(token);
-              return parseNamedFunctionRest(begin, beforeToken, formals, false);
+              return parseNamedFunctionRest(beforeToken, begin, formals, false);
             }
           } else if (optional('<', token.next)) {
             Token gt = closeBraceTokenFor(token.next);
@@ -2348,7 +2345,7 @@ class Parser {
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                return parseNamedFunctionRest(begin, beforeToken, gt, false);
+                return parseNamedFunctionRest(beforeToken, begin, gt, false);
               }
             }
             // Fall through to expression statement.
@@ -2411,7 +2408,7 @@ class Parser {
         }
         if (beforeName.next != name)
           throw new StateError("beforeName.next != name");
-        return parseNamedFunctionRest(begin, beforeName, formals, true);
+        return parseNamedFunctionRest(beforeName, begin, formals, true);
 
       case TypeContinuation.VariablesDeclarationOrExpression:
         if (looksLikeType &&
@@ -2864,7 +2861,7 @@ class Parser {
       token = name;
       listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(isGetter, name, token.next, MemberKind.TopLevelMethod);
+    checkFormals(name, isGetter, token.next, MemberKind.TopLevelMethod);
     token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
@@ -2878,8 +2875,7 @@ class Parser {
     return token;
   }
 
-  void checkFormals(bool isGetter, Token name, Token token, MemberKind kind) {
-    // TODO(brianwilkerson): Move `token` to be the first parameter?
+  void checkFormals(Token name, bool isGetter, Token token, MemberKind kind) {
     if (optional("(", token)) {
       if (isGetter) {
         reportRecoverableError(token, fasta.messageGetterWithFormals);
@@ -3699,7 +3695,7 @@ class Parser {
     MemberKind kind = staticModifier != null
         ? MemberKind.StaticMethod
         : MemberKind.NonStaticMethod;
-    checkFormals(isGetter, name, token.next, kind);
+    checkFormals(name, isGetter, token.next, kind);
     token = parseFormalParametersOpt(token, kind);
     token = parseInitializersOpt(token);
 
@@ -3853,9 +3849,7 @@ class Parser {
   /// - Modifiers.
   /// - Return type.
   Token parseNamedFunctionRest(
-      Token begin, Token beforeName, Token formals, bool isFunctionExpression) {
-    // TODO(brianwilkerson): Move `name` to be the first parameter (and consider
-    // renaming it to `token`).
+      Token beforeName, Token begin, Token formals, bool isFunctionExpression) {
     Token token = beforeName.next;
     listener.beginFunctionName(token);
     token =
