@@ -1346,7 +1346,7 @@ class Parser {
   }
 
   Token skipBlock(Token token) {
-    token = ensureBlock(token);
+    token = ensureBlock(token, null);
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
         !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
@@ -3174,14 +3174,18 @@ class Parser {
     return token;
   }
 
-  /// If the next token is an opening curly brace, return it.
-  /// Otherwise, report an error, insert an opening and a closing
-  /// curly brace, and return the newly inserted opening curly brace.
-  Token ensureBlock(Token token) {
+  /// If the next token is an opening curly brace, return it. Otherwise, use the
+  /// given [template] to report an error, insert an opening and a closing curly
+  /// brace, and return the newly inserted opening curly brace. If the
+  /// [template] is `null`, use a default error message instead.
+  Token ensureBlock(
+      Token token, Template<Message Function(Token token)> template) {
     Token next = token.next;
     if (optional('{', next)) return next;
-    reportRecoverableError(
-        next, fasta.templateExpectedButGot.withArguments('{'));
+    Message message = template == null
+        ? fasta.templateExpectedButGot.withArguments('{')
+        : template.withArguments(token);
+    reportRecoverableError(next, message);
     Token replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, next.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, next.offset));
@@ -3422,7 +3426,7 @@ class Parser {
     Token previousToken = token;
     token = token.next;
     if (!optional('{', token)) {
-      token = recoverFromMissingClassBody(previousToken);
+      token = ensureBlock(previousToken, fasta.templateExpectedClassBody);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -3447,7 +3451,8 @@ class Parser {
     Token begin = token = token.next;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = begin = recoverFromMissingClassBody(previousToken);
+      token =
+          begin = ensureBlock(previousToken, fasta.templateExpectedClassBody);
     }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
@@ -4027,7 +4032,7 @@ class Parser {
     Token begin = next;
     int statementCount = 0;
     if (!optional('{', next)) {
-      token = recoverFromMissingFunctionBody(token);
+      token = ensureBlock(token, fasta.templateExpectedFunctionBody);
       listener.handleInvalidFunctionBody(token);
       return token.endGroup;
     }
@@ -5594,7 +5599,7 @@ class Parser {
   /// ;
   /// ```
   Token parseBlock(Token token) {
-    Token begin = token = ensureBlock(token);
+    Token begin = token = ensureBlock(token, null);
     listener.beginBlock(begin);
     int statementCount = 0;
     while (notEofOrValue('}', token.next)) {
@@ -5782,7 +5787,7 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchBlock(Token token) {
-    Token beginSwitch = token = ensureBlock(token);
+    Token beginSwitch = token = ensureBlock(token, null);
     listener.beginSwitchBlock(beginSwitch);
     int caseCount = 0;
     Token defaultKeyword = null;
@@ -6033,36 +6038,6 @@ class Parser {
     }
     return reportUnrecoverableErrorWithToken(
         next, fasta.templateExpectedClassMember);
-  }
-
-  /// Report that the token after [previousToken] was expected to be the
-  /// beginning of a class body but isn't, insert a synthetic pair of curly
-  /// braces, and return the opening curly brace.
-  Token recoverFromMissingClassBody(Token previousToken) {
-    // TODO(danrubel): Consider unify this method with
-    // `ensureBlock` and `recoverFromMissingFunctionBody`.
-    Token token = previousToken.next;
-    reportRecoverableError(
-        token, fasta.templateExpectedClassBody.withArguments(token));
-    BeginToken replacement = link(
-        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertTokenAfter(previousToken, replacement);
-    return replacement;
-  }
-
-  /// Report that the token after [previousToken] was expected to be the
-  /// beginning of a block function body but isn't, insert a synthetic pair of
-  /// curly braces, and return the opening curly brace.
-  Token recoverFromMissingFunctionBody(Token previousToken) {
-    Token token = previousToken.next;
-    reportRecoverableError(
-        token, fasta.templateExpectedFunctionBody.withArguments(token));
-    BeginToken replacement = link(
-        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertTokenAfter(previousToken, replacement);
-    return replacement;
   }
 
   /// Report that the nesting depth of the code being parsed is too large for
