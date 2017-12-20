@@ -127,7 +127,7 @@ class TypeTest {
     {
       var a = new List(5);
       List a0 = a;
-      List<Object> ao = a;  //# 29: runtime error
+      List<Object> ao = a;  // No error.
       List<int> ai = a;  //# 30: runtime error
       List<num> an = a;  //# 31: runtime error
       List<String> as = a;  //# 32: runtime error

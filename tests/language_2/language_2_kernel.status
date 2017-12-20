@@ -643,7 +643,6 @@ generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, iss
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_method_types_test/02: RuntimeError
@@ -682,7 +681,6 @@ import_self_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instanceof2_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: CompileTimeError
@@ -798,7 +796,6 @@ malformed_test/22: MissingCompileTimeError
 malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
@@ -1875,7 +1872,6 @@ generic_function_typedef2_test/04: MissingCompileTimeError
 generic_function_typedef_test/01: Pass
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -1949,7 +1945,6 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
-instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/01: Pass
 instanceof4_test/none: Pass
@@ -2073,7 +2068,6 @@ malformed_test/22: MissingCompileTimeError
 malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: SkipByDesign
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError

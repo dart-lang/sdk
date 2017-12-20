@@ -3851,10 +3851,10 @@ bool Class::TypeTestNonRecursive(const Class& cls,
   Isolate* isolate = thread->isolate();
   Class& this_class = Class::Handle(zone, cls.raw());
   while (true) {
-    // Check for DynamicType.
     // Each occurrence of DynamicType in type T is interpreted as the dynamic
-    // type, a supertype of all types.
-    if (other.IsDynamicClass()) {
+    // type, a supertype of all types. So are Object and void types.
+    if (other.IsDynamicClass() || other.IsObjectClass() ||
+        other.IsVoidClass()) {
       return true;
     }
     // Check for NullType, which, as of Dart 1.5, is a subtype of (and is more
@@ -3880,11 +3880,6 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     if (this_class.IsDynamicClass()) {
       return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
     }
-    // Check for ObjectType. Any type that is not NullType or DynamicType
-    // (already checked above), is more specific than ObjectType/VoidType.
-    if (other.IsObjectClass() || other.IsVoidClass()) {
-      return true;
-    }
     // If other is neither Object, dynamic or void, then ObjectType/VoidType
     // can't be a subtype of other.
     if (this_class.IsObjectClass() || this_class.IsVoidClass()) {
@@ -3902,7 +3897,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       // below), we only check a subvector of the proper length.
       // Check for covariance.
       if (other_type_arguments.IsNull() ||
-          other_type_arguments.IsRaw(from_index, num_type_params)) {
+          other_type_arguments.IsTopTypes(from_index, num_type_params)) {
         return true;
       }
       if (type_arguments.IsNull() ||
@@ -4025,8 +4020,7 @@ bool Class::FutureOrTypeTest(Zone* zone,
     }
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
-    if (other_type_arg.IsObjectType() || other_type_arg.IsDynamicType() ||
-        other_type_arg.IsVoidType()) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     if (!type_arguments.IsNull() && IsFutureClass()) {
@@ -4792,6 +4786,18 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
     }
     type_class = type.type_class();
     if (!type_class.IsDynamicClass()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool TypeArguments::IsTopTypes(intptr_t from_index, intptr_t len) const {
+  ASSERT(Length() >= (from_index + len));
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
+    if (type.IsNull() || !type.IsTopType()) {
       return false;
     }
   }
@@ -6609,7 +6615,7 @@ bool Function::TestParameterType(TypeTestKind test_kind,
   if (Isolate::Current()->strong()) {
     const AbstractType& param_type =
         AbstractType::Handle(ParameterTypeAt(parameter_position));
-    if (param_type.IsDynamicType()) {
+    if (param_type.IsTopType()) {
       return true;
     }
     const AbstractType& other_param_type =
@@ -15759,7 +15765,7 @@ bool Instance::IsInstanceOf(
   Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
-    if (other.IsObjectType() || other.IsDartFunctionType() ||
+    if (other.IsTopType() || other.IsDartFunctionType() ||
         other.IsDartClosureType()) {
       return true;
     }
@@ -15776,9 +15782,7 @@ bool Instance::IsInstanceOf(
       if (instantiated_other.IsTypeRef()) {
         instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
-      if (instantiated_other.IsDynamicType() ||
-          instantiated_other.IsObjectType() ||
-          instantiated_other.IsVoidType() ||
+      if (instantiated_other.IsTopType() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
@@ -15834,8 +15838,7 @@ bool Instance::IsInstanceOf(
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
-    if (instantiated_other.IsDynamicType() ||
-        instantiated_other.IsObjectType() || instantiated_other.IsVoidType()) {
+    if (instantiated_other.IsTopType()) {
       return true;
     }
   }
@@ -15899,8 +15902,7 @@ bool Instance::IsFutureOrInstanceOf(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
-    if (other_type_arg.IsObjectType() || other_type_arg.IsDynamicType() ||
-        other_type_arg.IsVoidType()) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     if (Class::Handle(zone, clazz()).IsFutureClass()) {
@@ -16474,70 +16476,88 @@ bool AbstractType::IsDynamicType() const {
 }
 
 bool AbstractType::IsVoidType() const {
+  // The void type is always canonical, because void is a keyword.
   return raw() == Object::void_type().raw();
 }
 
+bool AbstractType::IsObjectType() const {
+  return HasResolvedTypeClass() && (type_class_id() == kInstanceCid);
+}
+
+bool AbstractType::IsTopType() const {
+  if (IsVoidType()) {
+    return true;
+  }
+  if (!HasResolvedTypeClass()) {
+    return false;
+  }
+  classid_t cid = type_class_id();
+  return (cid == kDynamicCid) || (cid == kInstanceCid);
+}
+
 bool AbstractType::IsNullType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Isolate::Current()->object_store()->null_class());
 }
 
 bool AbstractType::IsBoolType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Isolate::Current()->object_store()->bool_class());
 }
 
 bool AbstractType::IsIntType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::IntType()).type_class());
 }
 
 bool AbstractType::IsInt64Type() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Int64Type()).type_class());
 }
 
 bool AbstractType::IsDoubleType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Double()).type_class());
 }
 
 bool AbstractType::IsFloat32x4Type() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Float32x4()).type_class());
 }
 
 bool AbstractType::IsFloat64x2Type() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Float64x2()).type_class());
 }
 
 bool AbstractType::IsInt32x4Type() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Int32x4()).type_class());
 }
 
 bool AbstractType::IsNumberType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Number()).type_class());
 }
 
 bool AbstractType::IsSmiType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::SmiType()).type_class());
 }
 
 bool AbstractType::IsStringType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::StringType()).type_class());
 }
 
 bool AbstractType::IsDartFunctionType() const {
-  return !IsFunctionType() && HasResolvedTypeClass() &&
+  return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::DartFunctionType()).type_class());
 }
 
 bool AbstractType::IsDartClosureType() const {
+  // Non-typedef function types have '_Closure' class as type class, but are not
+  // the Dart '_Closure' type.
   return !IsFunctionType() && HasResolvedTypeClass() &&
          (type_class() == Isolate::Current()->object_store()->closure_class());
 }
@@ -16580,8 +16600,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // comparing function-types).
   // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
   // any type.
-  if (other.IsObjectType() || other.IsDynamicType() || other.IsVoidType() ||
-      IsNullType()) {
+  if (other.IsTopType() || IsNullType()) {
     return true;
   }
   Thread* thread = Thread::Current();
@@ -16746,8 +16765,7 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
-    if (other_type_arg.IsObjectType() || other_type_arg.IsDynamicType() ||
-        other_type_arg.IsVoidType()) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     // Retry the TypeTest function after unwrapping type arg of FutureOr.
@@ -17127,7 +17145,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (IsMalbounded() != other_type.IsMalbounded()) {
     return false;  // Do not drop bound error.
   }
-  if (type_class() != other_type.type_class()) {
+  if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
   if (!IsFinalized() || !other_type.IsFinalized()) {
@@ -17435,13 +17453,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 
   // Since void is a keyword, we never have to canonicalize the void type after
   // it is canonicalized once by the vm isolate. The parser does the mapping.
-  ASSERT((type_class() != Object::void_class()) ||
-         (isolate == Dart::vm_isolate()));
+  ASSERT((type_class_id() != kVoidCid) || (isolate == Dart::vm_isolate()));
 
   // Since dynamic is not a keyword, the parser builds a type that requires
   // canonicalization.
-  if ((type_class() == Object::dynamic_class()) &&
-      (isolate != Dart::vm_isolate())) {
+  if ((type_class_id() == kDynamicCid) && (isolate != Dart::vm_isolate())) {
     ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
   }
@@ -17549,7 +17565,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   if (IsMalformed() || IsRecursive()) {
     return true;
   }
-  if (type_class() == Object::dynamic_class()) {
+  if (type_class_id() == kDynamicCid) {
     return (raw() == Object::dynamic_type().raw());
   }
   Zone* zone = thread->zone();
@@ -17615,7 +17631,7 @@ intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
   if (IsMalformed()) return result;
-  result = CombineHashes(result, Class::Handle(type_class()).id());
+  result = CombineHashes(result, type_class_id());
   result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(signature());

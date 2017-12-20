@@ -124,7 +124,6 @@ mirrors/empty_test: Crash
 mirrors/empty_test: RuntimeError
 mirrors/enum_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
-mirrors/fake_function_without_call_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
@@ -284,13 +283,7 @@ async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
 async/zone_run_unary_test: RuntimeError
-convert/chunked_conversion_json_decode1_test: RuntimeError
-convert/json_chunk_test: RuntimeError
-convert/json_test: RuntimeError
 convert/json_toEncodable_reviver_test: CompileTimeError
-convert/json_utf8_chunk_test: RuntimeError
-convert/streamed_conversion_json_encode1_test: RuntimeError
-convert/streamed_conversion_json_utf8_encode_test: RuntimeError
 isolate/count_test: Timeout
 isolate/cross_isolate_message_test: RuntimeError
 isolate/illegal_msg_function_test: RuntimeError
@@ -331,7 +324,6 @@ mirrors/class_mirror_type_variables_test: RuntimeError
 mirrors/closures_test: RuntimeError
 mirrors/constructors_test: RuntimeError
 mirrors/fake_function_with_call_test: RuntimeError
-mirrors/function_apply_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError
 mirrors/generic_bounded_test/none: RuntimeError
 mirrors/generic_class_declaration_test: RuntimeError
@@ -354,7 +346,6 @@ mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/intercepted_class_test: RuntimeError
 mirrors/invocation_fuzz_test/smi: Pass
 mirrors/invoke_closurization2_test: RuntimeError
-mirrors/invoke_named_test/none: RuntimeError
 mirrors/library_declarations_test/01: RuntimeError
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
 mirrors/metadata_const_map_test: Crash
@@ -372,7 +363,6 @@ mirrors/reflected_type_test/01: MissingCompileTimeError
 mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/regress_16321_test/none: Crash
-mirrors/regress_19731_test: RuntimeError
 mirrors/return_type_test: RuntimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 mirrors/type_argument_is_type_variable_test: RuntimeError
@@ -442,13 +432,7 @@ async/timer_not_available_test: RuntimeError
 async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/zone_run_unary_test: CompileTimeError # Issue 31537
-convert/chunked_conversion_json_decode1_test: RuntimeError
-convert/json_chunk_test: RuntimeError
-convert/json_test: RuntimeError
 convert/json_toEncodable_reviver_test: CompileTimeError
-convert/json_utf8_chunk_test: RuntimeError
-convert/streamed_conversion_json_encode1_test: RuntimeError
-convert/streamed_conversion_json_utf8_encode_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
 isolate/compile_time_error_test/01: MissingCompileTimeError
