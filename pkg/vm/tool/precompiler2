@@ -67,7 +67,9 @@ export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 # Step 1: Generate Kernel binary from the input Dart source.
-"$BIN_DIR"/dart "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                        \
+"$BIN_DIR"/dart                                                                \
+     --limit-ints-to-64-bits                                                   \
+     "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
      --aot                                                                     \
      $PACKAGES                                                                 \
@@ -78,6 +80,7 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 exec "$BIN_DIR"/dart_bootstrap                                                 \
      --strong                                                                  \
      --reify-generic-functions                                                 \
+     --limit-ints-to-64-bits                                                   \
      --snapshot-kind=app-aot                                                   \
      --use-blobs                                                               \
      --snapshot="$SNAPSHOT_FILE"                                               \
