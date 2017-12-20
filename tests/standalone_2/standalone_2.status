@@ -58,9 +58,6 @@ io/addlatexhash_test: Skip
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
 
-[ $arch == simdbc64 && $strong && ($compiler == dartk || $compiler == dartkp) ]
-io/*: Skip # Issue 31695
-
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
