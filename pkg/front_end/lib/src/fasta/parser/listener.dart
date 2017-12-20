@@ -208,13 +208,6 @@ class Listener {
 
   void beginExpressionStatement(Token token) {}
 
-  /// Called by [ClassMemberParser] after skipping an expression as error
-  /// recovery. For a stack-based listener, the suggested action is to push
-  /// `null` or a synthetic erroneous expression.
-  void handleRecoverExpression(Token token, Message message) {
-    logEvent("RecoverExpression");
-  }
-
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.

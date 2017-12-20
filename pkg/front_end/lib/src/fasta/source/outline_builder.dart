@@ -191,13 +191,6 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleRecoverExpression(Token token, Message message) {
-    debugEvent("RecoverExpression");
-    push(NullValue.Expression);
-    push(token.charOffset);
-  }
-
-  @override
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
     int charOffset = popCharOffset();

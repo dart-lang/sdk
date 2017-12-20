@@ -305,11 +305,6 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverExpression(Token token, Message message) {
-    debugEvent("RecoverExpression");
-  }
-
-  @override
   void handleDirectivesOnly() {
     pop(); // Discard the metadata.
   }

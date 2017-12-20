@@ -739,10 +739,10 @@ class Parser {
     Token equalitySign;
     if (optional('==', token)) {
       equalitySign = token;
-      token = parseLiteralStringOrRecoverExpression(token).next;
+      token = ensureLiteralString(token).next;
     }
     expect(')', token);
-    token = parseLiteralStringOrRecoverExpression(token);
+    token = ensureLiteralString(token);
     listener.endConditionalUri(ifKeyword, leftParen, equalitySign);
     return token;
   }
@@ -889,7 +889,7 @@ class Parser {
     Token partKeyword = token.next;
     assert(optional('part', partKeyword));
     listener.beginPart(partKeyword);
-    token = parseLiteralStringOrRecoverExpression(partKeyword);
+    token = ensureLiteralString(partKeyword);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;
@@ -911,7 +911,7 @@ class Parser {
       token = parseQualified(ofKeyword, IdentifierContext.partName,
           IdentifierContext.partNameContinuation);
     } else {
-      token = parseLiteralStringOrRecoverExpression(ofKeyword);
+      token = ensureLiteralString(ofKeyword);
     }
     token = ensureSemicolon(token);
     listener.endPartOf(partKeyword, ofKeyword, token, hasName);
@@ -3323,23 +3323,6 @@ class Parser {
     return token;
   }
 
-  Token parseLiteralStringOrRecoverExpression(Token token) {
-    // TODO(brianwilkerson) Replace invocations of this method with invocations
-    // of `ensureParseLiteralString`.
-    Token next = token.next;
-    if (identical(next.kind, STRING_TOKEN)) {
-      return parseLiteralString(token);
-    } else if (next is ErrorToken) {
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `reportErrorToken` returns the last consumed token.
-      return reportErrorToken(next, false).previous;
-    } else {
-      reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
-      return parseRecoverExpression(
-          token, fasta.templateExpectedString.withArguments(next));
-    }
-  }
-
   Token expectSemicolon(Token token) {
     return expect(';', token);
   }
@@ -4378,10 +4361,6 @@ class Parser {
       }
     }
     return token;
-  }
-
-  Token parseRecoverExpression(Token token, Message message) {
-    return parseExpression(token);
   }
 
   int expressionDepth = 0;
