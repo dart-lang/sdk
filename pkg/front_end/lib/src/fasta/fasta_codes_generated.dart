@@ -2066,7 +2066,7 @@ const Template<
     messageTemplate:
         r"""The integer literal #lexeme can't be represented in 64 bits.""",
     tipTemplate:
-        r"""Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
+        r"""Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
     withArguments: _withArgumentsIntegerLiteralIsOutOfRange);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2083,7 +2083,7 @@ Message _withArgumentsIntegerLiteralIsOutOfRange(Token token) {
       message:
           """The integer literal $lexeme can't be represented in 64 bits.""",
       tip:
-          """Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
+          """Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
       arguments: {'token': token});
 }
 
