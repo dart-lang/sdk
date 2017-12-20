@@ -76,6 +76,7 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
   @override
   Future<FastaDelta> computeDelta({Uri entryPoint}) async {
     ticker.reset();
+    entryPoint ??= context.options.inputs.single;
     return context.runInContext<Future<FastaDelta>>((CompilerContext c) async {
       if (platform == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();

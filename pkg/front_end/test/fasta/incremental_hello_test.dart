@@ -35,15 +35,15 @@ test() async {
     ..strongMode = false
     ..onProblem = problemHandler;
 
+  final Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
+
   final ProcessedOptions options =
-      new ProcessedOptions(optionBuilder, false, []);
+      new ProcessedOptions(optionBuilder, false, [helloDart]);
 
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));
 
-  Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
-
-  FastaDelta delta = await compiler.computeDelta(entryPoint: helloDart);
+  FastaDelta delta = await compiler.computeDelta();
 
   // Expect that the new program contains at least the following libraries:
   // dart:core, dart:async, and hello.dart.
