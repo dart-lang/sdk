@@ -756,15 +756,15 @@ class FragmentEmitter {
     for (Field field in cls.fields) {
       js.Parameter parameter = new js.Parameter('t${parameters.length}');
       parameters.add(parameter);
-      statements
-          .add(js.js.statement('#.# = #', [thisRef, field.name, parameter]));
+      statements.add(
+          js.js.statement('#.# = #', [thisRef, field.name, parameter.name]));
     }
 
     if (cls.hasRtiField) {
       js.Parameter parameter = new js.Parameter('t${parameters.length}');
       parameters.add(parameter);
-      statements.add(js.js
-          .statement('#.# = #', [thisRef, namer.rtiFieldJsName, parameter]));
+      statements.add(js.js.statement(
+          '#.# = #', [thisRef, namer.rtiFieldJsName, parameter.name]));
     }
 
     return js.js('function #(#) { # }', [name, parameters, statements]);
