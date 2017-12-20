@@ -924,12 +924,6 @@ class Parser {
   /// ;
   /// ```
   Token parseMetadataStar(Token token) {
-    // TODO(brianwilkerson): Either remove the invocation of `previous` by
-    // making `injectGenericCommentTypeAssign` accept and return the last
-    // consumed token, or remove the invocation of
-    // `injectGenericCommentTypeAssign` by invoking it outside this method where
-    // invoking it is necessary.
-    token = listener.injectGenericCommentTypeAssign(token.next).previous;
     listener.beginMetadataStar(token.next);
     int count = 0;
     while (optional('@', token.next)) {
@@ -2039,20 +2033,11 @@ class Parser {
         // analyze the tokens following the const keyword.
         assert(optional("const", token.next));
         beforeBegin = token;
-        token = listener.injectGenericCommentTypeAssign(token.next.next);
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `injectGenericCommentTypeAssign` returns the last consumed token.
-        begin = beforeToken = token.previous;
-        // TODO(brianwilkerson): Figure out how to remove the invocation of
-        // `previous`.
-        beforeBegin = begin.previous;
-        assert(begin.next == token);
+        begin = beforeToken = token.next;
+        token = beforeToken.next;
       } else {
-        // Modify [begin] in case generic type are injected from a comment.
-        begin = token = listener.injectGenericCommentTypeAssign(token.next);
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `injectGenericCommentTypeAssign` returns the last consumed token.
-        beforeToken = beforeBegin = begin.previous;
+        beforeToken = beforeBegin = token;
+        token = begin = token.next;
       }
 
       if (optional("void", token)) {
@@ -2147,18 +2132,6 @@ class Parser {
         assert(typeArguments == null || typeArguments == token.next);
         token = parseTypeArgumentsOpt(token);
         listener.handleType(begin, token.next);
-      }
-
-      {
-        Token newBegin = listener.replaceTokenWithGenericCommentTypeAssign(
-            begin, token.next);
-        if (!identical(newBegin, begin)) {
-          listener.discardTypeReplacedWithCommentTypeAssign();
-          // TODO(brianwilkerson): Remove the invocation of `previous` when
-          // `replaceTokenWithGenericCommentTypeAssign` returns the last
-          // consumed token.
-          return parseType(newBegin.previous);
-        }
       }
 
       for (int i = 0; i < functionTypes; i++) {
@@ -2521,11 +2494,6 @@ class Parser {
           reportRecoverableError(nameToken, fasta.messagePrivateNamedParameter);
         }
 
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `injectGenericCommentTypeList` returns the last consumed token.
-        beforeToken = listener.injectGenericCommentTypeList(token).previous;
-        token = beforeToken.next;
-
         Token inlineFunctionTypeStart;
         if (optional("<", token)) {
           Token closer = closeBraceTokenFor(token);
@@ -2649,9 +2617,6 @@ class Parser {
   /// TODO(ahe): Clean this up.
   Token parseStuffOpt(Token token, Function beginStuff, Function stuffParser,
       Function endStuff, Function handleNoStuff) {
-    // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
       BeginToken begin = next;
@@ -2970,16 +2935,11 @@ class Parser {
       } else if (isGetter) {
         hasName = true;
       }
-      token = listener.injectGenericCommentTypeAssign(token);
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `injectGenericCommentTypeAssign` returns the last consumed token.
-      previous = token.previous;
       identifiers = identifiers.prepend(previous);
 
       if (!isGeneralizedFunctionType(token)) {
         // Read a potential return type.
         if (isValidTypeReference(token)) {
-          Token type = token;
           // type ...
           if (optional('.', token.next)) {
             // type '.' ...
@@ -3001,22 +2961,6 @@ class Parser {
                 previous = beforeCloseBrace;
                 token = beforeCloseBrace.next;
               }
-            }
-          }
-          // If the next token after a type has a type substitution comment
-          // /*=T*/, then the previous type tokens and the reference to them
-          // from the link should be replaced.
-          {
-            Token newType = listener.replaceTokenWithGenericCommentTypeAssign(
-                type, token.next);
-            if (!identical(newType, type)) {
-              identifiers = identifiers.tail;
-              token = newType;
-              // TODO(brianwilkerson): Remove the invocation of `previous` when
-              // `replaceTokenWithGenericCommentTypeAssign` returns the last
-              // consumed token.
-              previous = token.previous;
-              continue;
             }
           }
         } else if (token.type.isBuiltIn) {
@@ -4601,11 +4545,7 @@ class Parser {
         next = token.next;
       } else if (optional('(', next)) {
         if (typeArguments == null) {
-          next = listener.injectGenericCommentTypeList(next);
           if (isValidMethodTypeArguments(next)) {
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // `injectGenericCommentTypeList` (invoked above) returns the last
-            // consumed token.
             token = parseTypeArgumentsOpt(token);
             next = token.next;
           } else {
@@ -4624,9 +4564,6 @@ class Parser {
   }
 
   Token parsePrimary(Token token, IdentifierContext context) {
-    // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(token.next).previous;
     final kind = token.next.kind;
     if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token, context);
@@ -5009,11 +4946,8 @@ class Parser {
   /// ;
   /// ```
   Token parseConstExpression(Token token) {
-    Token constKeyword = token.next;
+    Token constKeyword = token = token.next;
     assert(optional('const', constKeyword));
-    // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(constKeyword.next).previous;
     Token next = token.next;
     final String value = next.stringValue;
     if ((identical(value, '[')) || (identical(value, '[]'))) {
@@ -5192,10 +5126,7 @@ class Parser {
   }
 
   Token parseSend(Token token, IdentifierContext context) {
-    Token beginToken = ensureIdentifier(token, context);
-    // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(beginToken.next).previous;
+    Token beginToken = token = ensureIdentifier(token, context);
     if (isValidMethodTypeArguments(token.next)) {
       token = parseTypeArgumentsOpt(token);
     } else {
@@ -5363,20 +5294,6 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     token = parseMetadataStar(token);
-
-    // If the next token has a type substitution comment /*=T*/, then
-    // the current 'var' token should be repealed and replaced.
-    // TODO(brianwilkerson): Shouldn't this also work when the current token is
-    // something other than `var`, such as in `Object /*=T*/ v;`?
-    if (optional('var', token.next)) {
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `replaceTokenWithGenericCommentTypeAssign` returns the last consumed
-      // token.
-      token = listener
-          .replaceTokenWithGenericCommentTypeAssign(token.next, token.next.next)
-          .previous;
-    }
-
     token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
