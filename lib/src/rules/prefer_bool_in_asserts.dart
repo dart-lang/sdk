@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Prefer using a boolean as the assert condition.';
 
@@ -49,21 +48,22 @@ class PreferBoolInAsserts extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
-  Visitor(this.rule);
-
   final LintRule rule;
+
   DartType boolType;
 
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    boolType = node.element.context.typeProvider.boolType;
-  }
+  Visitor(this.rule);
 
   @override
   visitAssertStatement(AssertStatement node) {
     if (!_unbound(node.condition.bestType).isAssignableTo(boolType)) {
       rule.reportLint(node.condition);
     }
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    boolType = node.element.context.typeProvider.boolType;
   }
 
   DartType _unbound(DartType type) {
