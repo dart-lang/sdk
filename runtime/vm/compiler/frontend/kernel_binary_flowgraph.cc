@@ -9207,6 +9207,9 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
   } else if (tag == kField) {
     FieldHelper field_helper(this);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+  } else if (tag == kClass) {
+    ClassHelper class_helper(this);
+    class_helper.ReadUntilExcluding(ClassHelper::kEnd);
   } else {
     H.ReportError("Unsupported tag at this point: %d.", tag);
     UNREACHABLE();

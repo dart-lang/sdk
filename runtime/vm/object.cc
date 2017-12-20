@@ -3565,16 +3565,37 @@ void Class::set_token_pos(TokenPosition token_pos) const {
 }
 
 TokenPosition Class::ComputeEndTokenPos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return TokenPosition::kNoSource;
+#else
   // Return the begin token for synthetic classes.
   if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
 
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
 
   if (scr.kind() == RawScript::kKernelTag) {
+    ASSERT(kernel_offset() > 0);
+    const Library& lib = Library::Handle(zone, library());
+    const TypedData& kernel_data = TypedData::Handle(zone, lib.kernel_data());
+    ASSERT(!kernel_data.IsNull());
+    const intptr_t library_kernel_offset = lib.kernel_offset();
+    ASSERT(library_kernel_offset > 0);
+    const intptr_t class_offset = kernel_offset();
+
+    kernel::TranslationHelper helper(thread);
+    helper.InitFromScript(scr);
+    kernel::StreamingFlowGraphBuilder builder_(&helper, scr, zone, kernel_data,
+                                               0);
+    builder_.SetOffset(class_offset);
+    kernel::ClassHelper class_helper(&builder_);
+    class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
+    if (class_helper.end_position_.IsReal()) return class_helper.end_position_;
+
     TokenPosition largest_seen = token_pos();
 
     // Walk through all functions and get their end_tokens to find the classes
@@ -3613,6 +3634,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
   }
   UNREACHABLE();
   return TokenPosition::kNoSource;
+#endif
 }
 
 int32_t Class::SourceFingerprint() const {
