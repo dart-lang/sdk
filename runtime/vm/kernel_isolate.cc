@@ -34,6 +34,10 @@ DEFINE_FLAG(bool,
             show_kernel_isolate,
             false,
             "Show Kernel service isolate as normal isolate.");
+DEFINE_FLAG(bool,
+            suppress_fe_warnings,
+            false,
+            "Suppress warnings from the FE.");
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
@@ -361,6 +365,11 @@ class KernelCompilationRequest : public ValueObject {
     } else {
       files.type = Dart_CObject_kNull;
     }
+
+    Dart_CObject suppress_warnings;
+    suppress_warnings.type = Dart_CObject_kBool;
+    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
+
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -368,7 +377,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &dart_incremental,
                                    &dart_strong,
                                    &isolate_id,
-                                   &files};
+                                   &files,
+                                   &suppress_warnings};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.

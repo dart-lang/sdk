@@ -185,6 +185,8 @@ Future _processLoadRequest(request) async {
   final bool strong = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
+  // TODO(bkonyi): this still needs to be hooked in.
+  // final bool suppressWarnings = request[8];
 
   Compiler compiler;
   // TODO(aam): There should be no need to have an option to choose
@@ -284,7 +286,8 @@ train(String scriptUri, String platformKernel) {
     false /* incremental */,
     false /* strong */,
     1 /* isolateId chosen randomly */,
-    null /* source files */
+    null /* source files */,
+    false /* suppress warnings */,
   ];
   _processLoadRequest(request);
 }
