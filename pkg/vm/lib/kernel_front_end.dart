@@ -17,7 +17,7 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'transformations/cha_devirtualization.dart' as chaDevirtualization
+import 'transformations/devirtualization.dart' as devirtualization
     show transformProgram;
 
 /// Generates a kernel representation of the program whose main library is in
@@ -46,12 +46,10 @@ Future<Program> compileToKernel(Uri source, CompilerOptions options,
 }
 
 _runGlobalTransformations(Program program, bool strongMode) {
-  final coreTypes = new CoreTypes(program);
-
-  // TODO(alexmarkov): AOT-specific whole-program transformations.
-
   if (strongMode) {
-    chaDevirtualization.transformProgram(coreTypes, program);
+    final coreTypes = new CoreTypes(program);
+
+    devirtualization.transformProgram(coreTypes, program);
   }
 }
 
