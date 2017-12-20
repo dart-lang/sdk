@@ -14,6 +14,9 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
@@ -28,12 +31,19 @@ void problemHandler(LocatedMessage message, Severity severity, String formatted,
   throw "Unexpected message: $formatted";
 }
 
-test() async {
+test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..strongMode = false
     ..onProblem = problemHandler;
+
+  if (sdkFromSource) {
+    optionBuilder.librariesSpecificationUri =
+        Uri.base.resolve("sdk/lib/libraries.json");
+  } else {
+    optionBuilder.sdkSummary =
+        computePlatformBinariesLocation().resolve("vm_platform.dill");
+  }
 
   final Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
 
@@ -45,17 +55,28 @@ test() async {
 
   FastaDelta delta = await compiler.computeDelta();
 
-  // Expect that the new program contains at least the following libraries:
-  // dart:core, dart:async, and hello.dart.
-  Expect.isTrue(delta.newProgram.libraries.length > 2);
+  if (sdkFromSource) {
+    // Expect that the new program contains at least the following libraries:
+    // dart:core, dart:async, and hello.dart.
+    Expect.isTrue(delta.newProgram.libraries.length > 2,
+        "${delta.newProgram.libraries.length} <= 2");
+  } else {
+    // Expect that the new program contains exactly hello.dart.
+    Expect.isTrue(delta.newProgram.libraries.length == 1,
+        "${delta.newProgram.libraries.length} != 1");
+  }
 
   compiler.invalidate(helloDart);
 
   delta = await compiler.computeDelta(entryPoint: helloDart);
   // Expect that the new program contains exactly hello.dart
-  Expect.isTrue(delta.newProgram.libraries.length == 1);
+  Expect.isTrue(delta.newProgram.libraries.length == 1,
+      "${delta.newProgram.libraries.length} != 1");
 }
 
 void main() {
-  asyncTest(test);
+  asyncTest(() async {
+    await test(sdkFromSource: true);
+    await test(sdkFromSource: false);
+  });
 }
