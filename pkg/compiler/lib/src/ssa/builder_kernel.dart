@@ -4790,7 +4790,7 @@ class InlineWeeder extends ir.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 15;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
-  static const INLINING_NODES_INSIDE_LOOP = 42;
+  static const INLINING_NODES_INSIDE_LOOP = 34;
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
   static bool canBeInlined(KernelToElementMapForBuilding elementMap,
