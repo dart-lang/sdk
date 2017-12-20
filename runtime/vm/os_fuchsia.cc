@@ -8,13 +8,19 @@
 #include "vm/os.h"
 
 #include <errno.h>
+#include <fdio/util.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
+#include "lib/app/cpp/environment_services.h"
+#include "lib/time_service/fidl/time_service.fidl.h"
+
 #include "platform/assert.h"
 #include "vm/zone.h"
+
+static constexpr char kTimeServiceName[] = "time_service::TimeService";
 
 namespace dart {
 
@@ -35,36 +41,53 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) {
-    return false;
+static zx_status_t GetTimeServicePtr(
+    time_service::TimeServiceSyncPtr* time_svc) {
+  zx::channel service_root = app::subtle::CreateStaticServiceRootHandle();
+  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).PassChannel();
+  return fdio_service_connect_at(service_root.get(), kTimeServiceName,
+                                 time_svc_channel.release());
+}
+
+static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
+                                                 int32_t* local_offset,
+                                                 int32_t* dst_offset) {
+  time_service::TimeServiceSyncPtr time_svc;
+  zx_status_t status = GetTimeServicePtr(&time_svc);
+  if (status == ZX_OK) {
+    time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000, local_offset,
+                                       dst_offset);
+    *local_offset *= 60;
+    *dst_offset *= 60;
   }
-  struct tm* error_code = localtime_r(&seconds, tm_result);
-  return error_code != NULL;
+  return status;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  tm decomposed;
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  // If unsuccessful, return an empty string like V8 does.
-  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
+  time_service::TimeServiceSyncPtr time_svc;
+  if (GetTimeServicePtr(&time_svc) == ZX_OK) {
+    fidl::String res;
+    time_svc->GetTimezoneId(&res);
+    char* tz_name = Thread::Current()->zone()->Alloc<char>(res.size() + 1);
+    memmove(tz_name, res.get().c_str(), res.size());
+    tz_name[res.size()] = '\0';
+    return tz_name;
+  }
+  return "";
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
-  tm decomposed;
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  // If unsuccessful, return zero like V8 does.
-  return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
+  int32_t local_offset, dst_offset;
+  zx_status_t status = GetLocalAndDstOffsetInSeconds(
+      seconds_since_epoch, &local_offset, &dst_offset);
+  return status == ZX_OK ? local_offset + dst_offset : 0;
 }
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  // TODO(floitsch): avoid excessive calls to tzset?
-  tzset();
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  // Note that Unix and Dart disagree on the sign.
-  return static_cast<int>(-timezone);
+  int32_t local_offset, dst_offset;
+  zx_status_t status = GetLocalAndDstOffsetInSeconds(
+      zx_time_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
+  return status == ZX_OK ? local_offset : 0;
 }
 
 int64_t OS::GetCurrentTimeMillis() {
