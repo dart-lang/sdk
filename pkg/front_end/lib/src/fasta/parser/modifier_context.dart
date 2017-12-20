@@ -478,11 +478,7 @@ class ClassMethodModifierContext {
       } else if (identical(value, 'static')) {
         token = parseStaticRecovery(token);
       } else if (identical(value, 'typedef')) {
-        // TODO(brianwilkerson): Move this into a `parseTypedefRecovery` method
-        // that can be more sophisticated about skipping the rest of the typedef
-        // declaration.
-        parser.reportRecoverableError(token.next, fasta.messageTypedefInClass);
-        token = token.next;
+        token = parseTypedefRecovery(token);
       } else if (identical(value, 'var')) {
         token = parseVarRecovery(token);
       } else if (token.next.isModifier) {
@@ -635,6 +631,16 @@ class ClassMethodModifierContext {
       ++modifierCount;
     }
     return next;
+  }
+
+  Token parseTypedefRecovery(Token token) {
+    token = token.next;
+    assert(optional('typedef', token));
+    parser.reportRecoverableError(token, fasta.messageTypedefInClass);
+    // TODO(brianwilkerson) If the declaration appears to be a valid typedef
+    // then skip the entire declaration so that we generate a single error
+    // (above) rather than many unhelpful errors.
+    return token;
   }
 
   Token parseVarRecovery(Token token) {
