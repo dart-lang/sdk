@@ -1042,10 +1042,19 @@ class Parser {
   }
 
   Token skipFormalParameters(Token token, MemberKind kind) {
+    Token lastConsumed = token;
     token = token.next;
-    assert(optional('(', token));
     // TODO(ahe): Shouldn't this be `beginFormalParameters`?
     listener.beginOptionalFormalParameters(token);
+    if (!optional('(', token)) {
+      if (optional(';', token)) {
+        reportRecoverableError(token, fasta.messageExpectedOpenParens);
+        listener.endFormalParameters(0, token, token, kind);
+        return lastConsumed;
+      }
+      listener.endFormalParameters(0, token, token, kind);
+      return reportUnexpectedToken(token);
+    }
     Token closeBrace = closeBraceTokenFor(token);
     listener.endFormalParameters(0, token, closeBrace, kind);
     return closeBrace;
