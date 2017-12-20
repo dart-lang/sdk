@@ -739,16 +739,20 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_class_implements2() async {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        request.target.containingNode is ClassDeclaration
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
   test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        request.target.containingNode is ClassDeclaration
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 

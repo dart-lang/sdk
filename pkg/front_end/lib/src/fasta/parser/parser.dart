@@ -3510,18 +3510,7 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(start);
     if (identifiers.isEmpty) {
-      if ((isValidTypeReference(token) ||
-              optional('const', token) ||
-              optional('final', token) ||
-              optional('var', token)) &&
-          isPostIdentifierForRecovery(
-              token.next, IdentifierContext.fieldDeclaration)) {
-        // Recovery: Looks like a field declaration but missing a field name.
-        insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
-        return parseFields(start, const Link<Token>(), token, false);
-      } else {
-        return recoverFromInvalidClassMember(start);
-      }
+      return recoverFromInvalidClassMember(start);
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
@@ -6052,9 +6041,10 @@ class Parser {
 
   /// Recover from finding an invalid class member. The metadata for the member,
   /// if any, has already been parsed (and events have already been generated).
-  /// The member was expected to start with the token after [beforeMember].
-  Token recoverFromInvalidClassMember(Token beforeMember) {
-    Token next = beforeMember.next;
+  /// The member was expected to start with the token after [token].
+  Token recoverFromInvalidClassMember(Token token) {
+    Token start = token;
+    Token next = token.next;
     if (optional(';', next)) {
       // Report and skip extra semicolons that appear between members.
       // TODO(brianwilkerson) Provide a more specific error message.
@@ -6064,8 +6054,33 @@ class Parser {
       listener.endMember();
       return next;
     }
+    // Skip modifiers
+    while (isModifier(next)) {
+      token = next;
+      next = token.next;
+    }
+    if (isValidTypeReference(next) || optional('var', next)) {
+      if (isPostIdentifierForRecovery(
+          next.next, IdentifierContext.fieldDeclaration)) {
+        // Looks like a field declaration but missing a field name.
+        insertSyntheticIdentifier(next, IdentifierContext.fieldDeclaration);
+        return parseFields(start, const Link<Token>(), next, false);
+      } else if (next.next.isKeywordOrIdentifier &&
+          isPostIdentifierForRecovery(
+              next.next.next, IdentifierContext.fieldDeclaration)) {
+        // Looks like a field declaration but missing a semicolon
+        // which parseFields will insert.
+        return parseFields(start, const Link<Token>(), next, false);
+      }
+    } else if (token != start &&
+        isPostIdentifierForRecovery(next, IdentifierContext.fieldDeclaration)) {
+      // If there is at least one modifier, then
+      // looks like the start of a field but missing field name.
+      insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
+      return parseFields(start, const Link<Token>(), token, false);
+    }
     return reportUnrecoverableErrorWithToken(
-        next, fasta.templateExpectedClassMember);
+        start, fasta.templateExpectedClassMember);
   }
 
   /// Report that the nesting depth of the code being parsed is too large for
