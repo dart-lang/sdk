@@ -315,50 +315,58 @@ copy_trees("copy_trees") {
 }
 
 # Copies the Dart VM binary into bin/
-copy("copy_dart") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    "../runtime/bin:dart",
-  ]
-  dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
-  if (is_win) {
-    sources = [
-      "$dart_out/dart.exe",
+if (is_fuchsia_host) {
+  # In the Fuchsia build, this has to use a symlink for two reasons.
+  # First, it makes the lookup of shared libraries relative to $ORIGIN
+  # (Linux) or @loader_path (macOS) find the libraries where they are,
+  # since those lookups use the directory of the symlink target rather
+  # than of the link itself (as they would for a copy or hard link).
+  # Second, when the dart binary is built as a "variant" (e.g. with a
+  # sanitizer), then $root_out_dir/dart is itself a symlink to the real
+  # binary in the selected variant toolchain's $root_out_dir and since
+  # the "copy" tool is actually a hard link rather than a copy, it will
+  # make a link to the symlink rather than the symlink's target, and the
+  # relative symlink interpreted from a different containing directory
+  # will not find the actual binary.
+  action("copy_dart") {
+    visibility = [ ":create_common_sdk" ]
+    dart_label = "../runtime/bin:dart"
+    deps = [
+      dart_label,
     ]
-  } else {
+    dart_out = get_label_info(dart_label, "root_out_dir")
     sources = [
       "$dart_out/$dart_stripped_binary",
     ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/$dart_stripped_binary",
+    ]
+    script = "/bin/ln"
+    args = [
+      "-snf",
+      rebase_path(sources[0], get_path_info(outputs[0], "dir")),
+      rebase_path(outputs[0]),
+    ]
   }
-  if (is_win) {
-    sources += [ "$dart_out/dart.lib" ]
-  }
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
-  ]
-}
-
-# Copies dynamically linked libraries into bin/. This is currently only needed
-# for Fuchsia when building for Linux hosts.
-if (is_fuchsia_host && is_linux) {
-  copy("copy_dylibs") {
+} else {
+  copy("copy_dart") {
     visibility = [ ":create_common_sdk" ]
     deps = [
-      "//third_party/boringssl:crypto",
-      "//third_party/boringssl:ssl",
-      "//third_party/zlib",
+      "../runtime/bin:dart",
     ]
-    crypto_out =
-        get_label_info("//third_party/boringssl:crypto", "root_out_dir")
-    crypto_name = get_label_info("//third_party/boringssl:crypto", "name")
-    ssl_out = get_label_info("//third_party/boringssl:ssl", "root_out_dir")
-    ssl_name = get_label_info("//third_party/boringssl:ssl", "name")
-    zlib_out = get_label_info("//third_party/zlib", "root_out_dir")
-    sources = [
-      "$crypto_out/lib${crypto_name}.so",
-      "$ssl_out/lib${ssl_name}.so",
-      "$zlib_out/libz.so",
-    ]
+    dart_out = get_label_info("../runtime/bin:dart", "root_out_dir")
+    if (is_win) {
+      sources = [
+        "$dart_out/dart.exe",
+      ]
+    } else {
+      sources = [
+        "$dart_out/$dart_stripped_binary",
+      ]
+    }
+    if (is_win) {
+      sources += [ "$dart_out/dart.lib" ]
+    }
     outputs = [
       "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
     ]
@@ -557,8 +565,8 @@ copy("copy_dev_compiler_summary") {
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$gen_dir/ddc_sdk.sum",
     "$gen_dir/ddc_sdk.dill",
+    "$gen_dir/ddc_sdk.sum",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -830,21 +838,18 @@ group("create_common_sdk") {
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
-    ":copy_vm_dill_files",
     ":copy_headers",
     ":copy_libraries_dart",
     ":copy_license",
     ":copy_platform_files",
     ":copy_pub_assets",
     ":copy_readme",
+    ":copy_vm_dill_files",
     ":write_revision_file",
     ":write_version_file",
   ]
   if (is_win) {
     deps += [ ":copy_7zip" ]
-  }
-  if (is_fuchsia_host && is_linux) {
-    deps += [ ":copy_dylibs" ]
   }
 }
 
