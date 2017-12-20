@@ -71,13 +71,12 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
   KernelTarget userCode;
 
-  IncrementalCompiler(this.context)
-      : ticker = new Ticker(isVerbose: context.options.verbose);
+  IncrementalCompiler(this.context) : ticker = context.options.ticker;
 
   @override
   Future<FastaDelta> computeDelta({Uri entryPoint}) async {
+    ticker.reset();
     return context.runInContext<Future<FastaDelta>>((CompilerContext c) async {
-      ticker.reset();
       if (platform == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();
         ticker.logMs("Read packages file");
@@ -86,8 +85,10 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
         List<int> bytes = await c.options.loadSdkSummaryBytes();
         if (bytes != null) {
           ticker.logMs("Read ${c.options.sdkSummary}");
-          platform.loader.appendLibraries(loadProgramFromBytes(bytes),
-              byteCount: bytes.length);
+          Program program = loadProgramFromBytes(bytes);
+          ticker.logMs("Deserialized ${c.options.sdkSummary}");
+          platform.loader.appendLibraries(program, byteCount: bytes.length);
+          ticker.logMs("Appended libraries");
         }
         await platform.buildOutlines();
       }

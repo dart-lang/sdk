@@ -49,7 +49,7 @@ void script() {
   fullBlockWithChain = genFullBlockWithChain();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
         Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
         return field.load().then((_) {

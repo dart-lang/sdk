@@ -11,7 +11,7 @@ export 'dart:collection';
 import 'dart:mirrors' as mirrors;
 import 'dart:convert' deferred as convert;
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.load();
     // Use mirrors to shutup the analyzer.

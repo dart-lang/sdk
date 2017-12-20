@@ -389,7 +389,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   }
 
   Future<Process> _start() {
-    var completer = new Completer();
+    var completer = new Completer<Process>();
     if (_mode == ProcessStartMode.NORMAL) {
       _exitCode = new Completer<int>();
     }

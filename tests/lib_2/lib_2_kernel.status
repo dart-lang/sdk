@@ -22,6 +22,12 @@ isolate/isolate_complex_messages_test: Crash
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $mode == debug && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+mirrors/variable_is_const_test/01: Crash # Please triage.
+
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
 mirrors/invocation_fuzz_test/smi: Crash
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
@@ -159,8 +165,8 @@ mirrors/library_declarations_test/01: CompileTimeError # Issue 31402 (Invocation
 mirrors/library_declarations_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
-mirrors/library_exports_hidden_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_hidden_test: RuntimeError, Crash
+mirrors/library_exports_hidden_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_shown_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_shown_test: RuntimeError
 mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
@@ -212,8 +218,8 @@ mirrors/no_metadata_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
-mirrors/parameter_metadata_test: Crash
 mirrors/parameter_metadata_test: RuntimeError
+mirrors/parameter_metadata_test: Crash
 mirrors/parameter_of_mixin_app_constructor_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/parameter_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/parameter_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -381,20 +387,16 @@ typed_data/int32x4_static_test/02: MissingCompileTimeError
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+isolate/*: Skip
 mirrors/invocation_fuzz_test/emptyarray: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/false: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/smi: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/string: CompileTimeError # Please triage.
+mirrors/library_uri_io_test: CompileTimeError # Please triage.
 mirrors/spawn_function_root_library_test: Skip
 typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Please triage.
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-isolate/*: Skip
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]

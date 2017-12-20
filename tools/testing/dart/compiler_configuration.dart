@@ -645,10 +645,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return multiplier;
   }
 
-  // TODO(dartbug.com/30480): create a separate option to toggle
-  // strong mode optimizations.
-  bool get _enableStrongModeOptimizations => false;
-
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
@@ -721,10 +717,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
     if (_configuration.isMinified) {
       args.add('--obfuscate');
-    }
-
-    if (_enableStrongModeOptimizations) {
-      args.add('--experimental-strong-mode');
     }
 
     if (_isStrong) {

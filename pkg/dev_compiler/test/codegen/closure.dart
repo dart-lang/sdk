@@ -3,7 +3,7 @@ library test;
 
 import 'dart:js';
 
-List/*<T>*/ generic_function/*<T>*/(List/*<T>*/ items, dynamic/*=T*/ seed) {
+List<T> generic_function<T>(List<T> items, T seed) {
   var strings = items.map((i) => "$i").toList();
   return items;
 }

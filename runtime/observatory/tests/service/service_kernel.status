@@ -168,7 +168,6 @@ pause_on_unhandled_exceptions_test: CompileTimeError
 positive_token_pos_test: CompileTimeError
 process_service_test: CompileTimeError
 reachable_size_test: CompileTimeError
-read_stream_test: CompileTimeError
 regexp_function_test: CompileTimeError
 regress_28443_test: CompileTimeError
 regress_28980_test: CompileTimeError

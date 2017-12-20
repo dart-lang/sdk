@@ -498,7 +498,7 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   {
     PageSpace* page_space = heap_->old_space();
     MonitorLocker ml(page_space->tasks_lock());
-    if (page_space->sweeper_tasks() == 0) {
+    if (page_space->tasks() == 0) {
       VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
       heap_->old_space()->VisitObjectPointers(&verify_store_buffer_visitor);
     }

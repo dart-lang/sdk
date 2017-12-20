@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     var result = await vm.invokeRpcNoUpgrade('getFlagList', {});
     expect(result['type'], equals('FlagList'));

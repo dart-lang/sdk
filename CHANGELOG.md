@@ -46,6 +46,7 @@
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
+  * Added `Provisional` annotation to `dart:core`.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
@@ -194,6 +195,20 @@ used as the type in an instance check. For example:
       print(l is List<String>);
     }
     ```
+
+## 1.24.3 - 14-12-2017
+
+* Fix for constructing a new SecurityContext that contains the built-in
+  certificate authority roots
+    (https://github.com/dart-lang/sdk/issues/24693).
+
+### Core library changes
+
+* `dart:io`
+  * Unified backends for `SecureSocket`, `SecurityContext`, and
+    `X509Certificate` to be consistent across all platforms. All
+    `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
+    methods are now supported on iOS and OSX.
 
 ## 1.24.2 - 22-06-2017
 

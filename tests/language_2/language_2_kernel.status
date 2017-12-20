@@ -78,9 +78,6 @@ assert_initializer_test/48: MissingCompileTimeError # KernelVM bug: Constant eva
 assert_initializer_test/none: RuntimeError # KernelVM bug: Constant evaluation.
 assertion_initializer_const_function_test/01: RuntimeError
 assign_static_type_test/02: MissingCompileTimeError
-async_await_test/02: RuntimeError
-async_await_test/03: RuntimeError
-async_await_test/none: RuntimeError
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail
 async_star_regression_2238_test: RuntimeError
@@ -385,8 +382,8 @@ deferred_constant_list_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_constants_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_constants_test/reference_after_load: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/as_operation: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: Pass # Passes by mistake. Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -643,8 +640,8 @@ function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
-generic_function_bounds_test: CompileTimeError
 generic_function_bounds_test: RuntimeError
+generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
@@ -744,8 +741,8 @@ local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
 local_function_test/02: MissingCompileTimeError
 local_function_test/none: RuntimeError
-main_not_a_function_test: DartkCrash
 main_not_a_function_test: Skip
+main_not_a_function_test: DartkCrash
 main_test/03: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
@@ -1152,7 +1149,6 @@ vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable d
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/none: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 void_type_function_types_test/none: CompileTimeError
@@ -1200,7 +1196,7 @@ wrong_number_type_arguments_test/none: Pass
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 bit_operations_test/03: CompileTimeError # Please triage.
 bit_operations_test/04: CompileTimeError # Please triage.
 bit_operations_test/none: CompileTimeError # Please triage.
@@ -1408,9 +1404,6 @@ assign_top_method_test: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
-async_await_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
-async_await_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
-async_await_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -1624,8 +1617,8 @@ deferred_constraints_type_annotation_test/catch_check: Pass
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: Pass
 deferred_constraints_type_annotation_test/new: CompileTimeError
-deferred_constraints_type_annotation_test/new_before_load: Pass
 deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: Pass
 deferred_constraints_type_annotation_test/new_generic1: CompileTimeError
 deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic2: Pass
@@ -1756,6 +1749,7 @@ function_subtype_bound_closure7_test: RuntimeError
 function_subtype_bound_closure7_test: CompileTimeError # Issue 31402 (Variable declaration)
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast2_test: RuntimeError
 function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
@@ -1768,8 +1762,8 @@ function_subtype_named1_test: RuntimeError
 function_subtype_not0_test: RuntimeError
 function_subtype_not2_test: RuntimeError
 function_subtype_not3_test: RuntimeError
-function_subtype_optional1_test: Pass
 function_subtype_optional1_test: RuntimeError
+function_subtype_optional1_test: Pass
 function_subtype_setter0_test: RuntimeError
 function_subtype_simple1_test: RuntimeError
 function_subtype_top_level1_test: RuntimeError
@@ -1883,8 +1877,8 @@ function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
-generic_function_bounds_test: RuntimeError
 generic_function_bounds_test: CompileTimeError
+generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: CompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
@@ -1911,8 +1905,8 @@ generic_methods_recursive_bound_test/03: Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_reuse_type_variables_test: Pass
-generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
+generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
@@ -1968,8 +1962,8 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
 instanceof2_test: RuntimeError
-instanceof4_test/01: Pass
 instanceof4_test/01: RuntimeError
+instanceof4_test/01: Pass
 instanceof4_test/none: Pass
 instanceof4_test/none: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: CompileTimeError
@@ -2011,8 +2005,8 @@ known_identifier_prefix_error_test/22: MissingCompileTimeError # Issue 28814
 known_identifier_prefix_error_test/23: MissingCompileTimeError # Issue 28814
 known_identifier_prefix_error_test/24: MissingCompileTimeError # Issue 28814
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
-least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_expansive_test/none: RuntimeError
+least_upper_bound_expansive_test/none: CompileTimeError
 library_ambiguous_test/00: MissingCompileTimeError
 library_ambiguous_test/01: MissingCompileTimeError
 library_ambiguous_test/02: MissingCompileTimeError
@@ -2186,8 +2180,8 @@ mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 multiline_strings_test: Pass
 multiline_strings_test: Fail # Issue 23020
-named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
+named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
@@ -2357,8 +2351,8 @@ regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redi
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28255_test: SkipByDesign
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-regress_28341_test: Pass
 regress_28341_test: RuntimeError
+regress_28341_test: Pass
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
@@ -2473,8 +2467,8 @@ vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_27201_test: Fail
-vm/regress_27671_test: Crash
 vm/regress_27671_test: Skip # Unsupported
+vm/regress_27671_test: Crash
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers

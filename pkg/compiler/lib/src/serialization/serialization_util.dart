@@ -37,24 +37,33 @@ Name deserializeName(ObjectDecoder decoder) {
   return new Name(name, library, isSetter: isSetter);
 }
 
+/// Serialize [callStructure] into [encoder].
+void serializeCallStructure(
+    CallStructure callStructure, ObjectEncoder encoder) {
+  encoder.setInt(Key.ARGUMENTS, callStructure.argumentCount);
+  encoder.setStrings(Key.NAMED_ARGUMENTS, callStructure.namedArguments);
+}
+
 /// Serialize [selector] into [encoder].
 void serializeSelector(Selector selector, ObjectEncoder encoder) {
   encoder.setEnum(Key.KIND, selector.kind);
-
-  encoder.setInt(Key.ARGUMENTS, selector.callStructure.argumentCount);
-  encoder.setStrings(
-      Key.NAMED_ARGUMENTS, selector.callStructure.namedArguments);
+  serializeCallStructure(selector.callStructure, encoder);
   serializeName(selector.memberName, encoder);
+}
+
+/// Deserialize a [CallStructure] from [decoder].
+CallStructure deserializeCallStructure(ObjectDecoder decoder) {
+  int argumentCount = decoder.getInt(Key.ARGUMENTS);
+  List<String> namedArguments =
+      decoder.getStrings(Key.NAMED_ARGUMENTS, isOptional: true);
+  return new CallStructure(argumentCount, namedArguments);
 }
 
 /// Deserialize a [Selector] from [decoder].
 Selector deserializeSelector(ObjectDecoder decoder) {
   SelectorKind kind = decoder.getEnum(Key.KIND, SelectorKind.values);
-  int argumentCount = decoder.getInt(Key.ARGUMENTS);
-  List<String> namedArguments =
-      decoder.getStrings(Key.NAMED_ARGUMENTS, isOptional: true);
-  return new Selector(kind, deserializeName(decoder),
-      new CallStructure(argumentCount, namedArguments));
+  CallStructure callStructure = deserializeCallStructure(decoder);
+  return new Selector(kind, deserializeName(decoder), callStructure);
 }
 
 /// Serialize [sendStructure] into [encoder].

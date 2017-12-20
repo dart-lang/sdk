@@ -595,6 +595,19 @@ namespace dart {
 //    arguments SP[-2] using SubtypeTestCache PP[D].
 //    If A is 1, then the instance may be a Smi.
 //
+//  - AssertSubtype
+//
+//    Assers that one type is a subtype of another.  Throws a TypeError
+//    otherwise.  The stack has the following arguments on it:
+//
+//        SP[-4]  instantiator type args
+//        SP[-3]  function type args
+//        SP[-2]  sub_type
+//        SP[-1]  super_type
+//        SP[-0]  dst_name
+//
+//    All 5 arguments are consumed from the stack and no results is pushed.
+//
 //  - BadTypeError
 //
 //    If SP[-4] is non-null, throws a BadType error by calling into the runtime.
@@ -770,6 +783,7 @@ namespace dart {
   V(SmiAddTOS,                             0, ___, ___, ___) \
   V(SmiSubTOS,                             0, ___, ___, ___) \
   V(SmiMulTOS,                             0, ___, ___, ___) \
+  V(SmiBitAndTOS,                          0, ___, ___, ___) \
   V(Add,                               A_B_C, reg, reg, reg) \
   V(Sub,                               A_B_C, reg, reg, reg) \
   V(Mul,                               A_B_C, reg, reg, reg) \
@@ -905,6 +919,7 @@ namespace dart {
   V(InstanceOf,                            0, ___, ___, ___) \
   V(BadTypeError,                          0, ___, ___, ___) \
   V(AssertAssignable,                    A_D, num, lit, ___) \
+  V(AssertSubtype,                         0, ___, ___, ___) \
   V(AssertBoolean,                         A, num, ___, ___) \
   V(TestSmi,                             A_D, reg, reg, ___) \
   V(TestCids,                            A_D, reg, num, ___) \

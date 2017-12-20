@@ -7,7 +7,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) =>
       isolate.getTypeArgumentsList(false).then((ServiceMap allTypeArgs) {
         var allTypeArgsTableSize =

@@ -20,7 +20,7 @@ void testFunction() {
   debugger();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     var stack = await isolate.getStack();

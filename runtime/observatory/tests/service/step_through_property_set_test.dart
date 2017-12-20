@@ -64,7 +64,7 @@ List<String> expected = [
   "$file:${LINE+8}:3" // on ending '}'
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   runStepIntoThroughProgramRecordingStops(stops),

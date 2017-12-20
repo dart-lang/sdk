@@ -29,7 +29,7 @@ Future testMain() async {
   deferredLib.deferredTest();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
 
   // Test future breakpoints.
@@ -62,7 +62,7 @@ var tests = [
       }
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -85,7 +85,7 @@ var tests = [
     subscription = stream.listen((ServiceEvent event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -132,7 +132,7 @@ var tests = [
       }
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -156,7 +156,7 @@ var tests = [
     subscription = stream.listen((ServiceEvent event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();

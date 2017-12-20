@@ -52,9 +52,7 @@ inference/future_then_explicit_future: Fail
 inference/generic_functions_return_typedef: Fail
 inference/generic_methods_basic_downward_inference: Crash
 inference/generic_methods_downwards_inference_fold: Crash
-inference/generic_methods_infer_generic_instantiation: Crash
 inference/generic_methods_infer_js_builtin: Fail
-inference/generic_methods_nested_generic_instantiation: Crash
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
 inference/infer_local_function_referenced_before_declaration: Crash
@@ -112,7 +110,6 @@ rasta/issue_000070: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: Crash
 rasta/parser_error: Crash
-rasta/previsit_deferred: Crash
 rasta/static: Crash
 rasta/super: Crash
 rasta/super_initializer: Crash
@@ -149,5 +146,4 @@ runtime_checks_new/for_in_call_kinds: Crash
 statements: Crash
 super_rasta_copy: Crash
 type_variable_as_super: Crash
-type_variable_prefix: Crash
 uninitialized_fields: Crash

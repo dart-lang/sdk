@@ -217,6 +217,12 @@ abstract class ClassEnv {
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
+  var aLoc = a.location;
+  var bLoc = b.location;
+  var aUri = '${aLoc.file}';
+  var bUri = '${bLoc.file}';
+  var uriCompare = aUri.compareTo(bUri);
+  if (uriCompare != 0) return uriCompare;
   return a.fileOffset.compareTo(b.fileOffset);
 }
 

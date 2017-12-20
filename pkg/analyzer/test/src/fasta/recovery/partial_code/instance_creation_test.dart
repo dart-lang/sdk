@@ -38,14 +38,14 @@ class InstanceCreationTest extends PartialCodeTest {
           '${keyword}_name_unnamed',
           '$keyword A',
           [
-            ParserErrorCode.UNEXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
           ],
           "$keyword A()"),
       new TestDescriptor(
           '${keyword}_name_named',
           '$keyword A.b',
           [
-            ParserErrorCode.UNEXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
           ],
           "$keyword A.b()"),
       new TestDescriptor(

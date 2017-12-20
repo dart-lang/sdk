@@ -36,7 +36,7 @@ testMain() {
   expect(f(), equals(11));
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Add breakpoint

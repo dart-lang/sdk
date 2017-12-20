@@ -431,6 +431,14 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_OPERATOR, offset, length);
         return;
+      case "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, offset, length);
+        return;
+      case "SWITCH_HAS_MULTIPLE_DEFAULT_CASES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, offset, length);
+        return;
       case "TOP_LEVEL_OPERATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);

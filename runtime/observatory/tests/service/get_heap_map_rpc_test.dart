@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var params = {};
     var result = await isolate.invokeRpcNoUpgrade('_getHeapMap', params);

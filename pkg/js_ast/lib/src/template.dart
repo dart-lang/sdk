@@ -287,7 +287,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();
-          ;
           return error('Interpolated value #$nameOrPosition is not '
               'a Statement or List of Statements: $value');
         }
@@ -368,7 +367,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         if (value is bool) return value;
         if (value is Expression) return value;
         if (value is String) return convertStringToVariableUse(value);
-        ;
         error('Interpolated value #$nameOrPosition '
             'is not an Expression: $value');
       };

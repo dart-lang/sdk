@@ -228,7 +228,7 @@ class AnalyzerDietListener extends DietListener {
     // Parse the modifier so that the parser's `asyncState` will be set
     // correctly, but remove the `AsyncModifier` from the listener's stack
     // because the listener doesn't expect it to be there.
-    token = parser.parseAsyncModifier(token);
+    token = parser.parseAsyncModifierOpt(token);
     _bodyBuilder.pop();
 
     bool isExpression = false;

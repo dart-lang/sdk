@@ -296,10 +296,9 @@ abstract class ResolutionWorldBuilderBase
   Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
 
   /// Map of registered usage of static members of live classes.
-  final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
-      <Entity, _StaticMemberUsage>{};
+  final Map<Entity, _MemberUsage> _staticMemberUsage = <Entity, _MemberUsage>{};
 
-  Map<Entity, _StaticMemberUsage> get staticMemberUsageForTesting =>
+  Map<Entity, _MemberUsage> get staticMemberUsageForTesting =>
       _staticMemberUsage;
 
   /// Map of registered usage of instance members of live classes.
@@ -616,14 +615,12 @@ abstract class ResolutionWorldBuilderBase
     }
 
     MemberEntity element = staticUse.element;
-    _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
-      if ((element.isStatic || element.isTopLevel) && element.isFunction) {
-        return new _StaticFunctionUsage(element);
-      } else {
-        return new _GeneralStaticMemberUsage(element);
-      }
-    });
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+    _MemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
+      _MemberUsage usage = new _MemberUsage(element);
+      useSet.addAll(usage.appliedUse);
+      return usage;
+    });
 
     if ((element.isStatic || element.isTopLevel) && element.isField) {
       allReferencedStaticFields.add(staticUse.element);
@@ -642,22 +639,32 @@ abstract class ResolutionWorldBuilderBase
         // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        useSet.addAll(usage.tearOff());
+        useSet.addAll(usage.read());
         methodsNeedingSuperGetter.add(staticUse.element);
         break;
       case StaticUseKind.SUPER_FIELD_SET:
         fieldSetters.add(staticUse.element);
-        useSet.addAll(usage.normalUse());
+        useSet.addAll(usage.write());
         break;
+      case StaticUseKind.GET:
       case StaticUseKind.STATIC_TEAR_OFF:
-        useSet.addAll(usage.tearOff());
+        useSet.addAll(usage.read());
         break;
-      case StaticUseKind.GENERAL:
+      case StaticUseKind.SET:
+        useSet.addAll(usage.write());
+        break;
       case StaticUseKind.DIRECT_USE:
+      case StaticUseKind.REFLECT:
+        useSet.addAll(usage.fullyUse());
+        break;
+      case StaticUseKind.INIT:
+        useSet.addAll(usage.init());
+        break;
+      case StaticUseKind.INVOKE:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
-        useSet.addAll(usage.normalUse());
+        useSet.addAll(usage.invoke());
         break;
       case StaticUseKind.DIRECT_INVOKE:
         failedAt(element, 'Direct static use is not supported for resolution.');
@@ -813,7 +820,7 @@ abstract class ResolutionWorldBuilderBase
       _MemberUsage usage = _instanceMemberUsage[member];
       if (usage != null && usage.hasUse) return true;
     }
-    _StaticMemberUsage usage = _staticMemberUsage[member];
+    _MemberUsage usage = _staticMemberUsage[member];
     return usage != null && usage.hasUse;
   }
 

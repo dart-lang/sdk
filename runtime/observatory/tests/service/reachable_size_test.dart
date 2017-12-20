@@ -39,7 +39,7 @@ getRetainedSize(ServiceObject obj) {
   });
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Instance p1 = await rootLibraryFieldValue(isolate, "p1");
     Instance p2 = await rootLibraryFieldValue(isolate, "p2");

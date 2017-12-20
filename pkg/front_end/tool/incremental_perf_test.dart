@@ -17,8 +17,15 @@ main() async {
   final ikgBenchmarks = Platform.script.resolve('../benchmarks/ikg/');
   final helloEntry = ikgBenchmarks.resolve('hello.dart');
   final helloEdits = ikgBenchmarks.resolve('hello.edits.json');
-  await m.main(['--sdk-summary', '$sdkOutline', '$helloEntry', '$helloEdits']);
   await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '$helloEntry',
+    '$helloEdits'
+  ]);
+  await m.main([
+    '--no-loop',
     '--sdk-summary',
     '$sdkOutline',
     '--mode=legacy',
@@ -26,6 +33,7 @@ main() async {
     '$helloEdits'
   ]);
   await m.main([
+    '--no-loop',
     '--sdk-summary',
     '$sdkOutline',
     '--implementation=minimal',
@@ -35,9 +43,15 @@ main() async {
 
   final dart2jsEntry = ikgBenchmarks.resolve('dart2js.dart');
   final dart2jsEdits = ikgBenchmarks.resolve('dart2js.edits.json');
-  await m
-      .main(['--sdk-summary', '$sdkOutline', '$dart2jsEntry', '$dart2jsEdits']);
   await m.main([
+    '--no-loop',
+    '--sdk-summary',
+    '$sdkOutline',
+    '$dart2jsEntry',
+    '$dart2jsEdits'
+  ]);
+  await m.main([
+    '--no-loop',
     '--sdk-summary',
     '$sdkOutline',
     '--mode=legacy',
@@ -46,6 +60,7 @@ main() async {
     '$dart2jsEdits'
   ]);
   await m.main([
+    '--no-loop',
     '--sdk-summary',
     '$sdkOutline',
     '--mode=legacy',

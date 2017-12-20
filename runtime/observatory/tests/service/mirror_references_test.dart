@@ -25,7 +25,7 @@ void script() {
       .reflectee;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var lib = await isolate.rootLibrary.load();
     Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');

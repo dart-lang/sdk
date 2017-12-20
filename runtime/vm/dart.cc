@@ -654,6 +654,7 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   } while (0);
     ADD_FLAG(type_checks, enable_type_checks, FLAG_enable_type_checks);
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
+    ADD_FLAG(strong, strong, FLAG_strong);
     ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
              FLAG_error_on_bad_type);
     ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,

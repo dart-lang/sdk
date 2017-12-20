@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -316,8 +317,18 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_anonymous_function_async2() async {
     addTestSource('main() {foo(() a^ {}}}');
     await computeSuggestions();
-    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    // Fasta adds a closing paren after the first `}`
+    // and reports a single function expression argument
+    // while analyzer adds the closing paren before the `a`
+    // and adds synthetic `;`s making `a` a statement.
+    if (request.target.entity is BlockFunctionBody) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_anonymous_function_async3() async {
@@ -352,8 +363,33 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
     assertSuggestKeywords([],
+        pseudoKeywords: request.target.entity is ExpressionFunctionBody
+            ? ['async']
+            : ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async8() async {
+    addTestSource('main() {foo(() ^ {})}}');
+    await computeSuggestions();
+    assertSuggestKeywords([],
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async9() async {
+    addTestSource('main() {foo(() a^ {})}}');
+    await computeSuggestions();
+    // Fasta interprets the argument as a function expression
+    // while analyzer adds synthetic `;`s making `a` a statement.
+    if (request.target.entity is BlockFunctionBody) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_argument() async {
@@ -703,16 +739,20 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_class_implements2() async {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        request.target.containingNode is ClassDeclaration
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
   test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        request.target.containingNode is ClassDeclaration
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 

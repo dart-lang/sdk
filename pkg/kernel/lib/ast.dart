@@ -1496,6 +1496,7 @@ class Procedure extends Member implements FileUriNode {
       bool isExternal: false,
       bool isConst: false,
       bool isForwardingStub: false,
+      bool isForwardingSemiStub: false,
       int transformerFlags: 0,
       this.fileUri,
       Reference reference})
@@ -1515,6 +1516,7 @@ class Procedure extends Member implements FileUriNode {
   static const int FlagConst = 1 << 3; // Only for external const factories.
   static const int FlagForwardingStub = 1 << 4;
   static const int FlagGenericContravariant = 1 << 5;
+  static const int FlagForwardingSemiStub = 1 << 6;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1533,6 +1535,10 @@ class Procedure extends Member implements FileUriNode {
   /// back ends need not consult this flag; this flag exists merely to reduce
   /// front end computational overhead.
   bool get isGenericContravariant => flags & FlagGenericContravariant != 0;
+
+  /// If set, this flag indicates that although this function is a forwarding
+  /// stub, it was present in the original source as an abstract method.
+  bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1559,6 +1565,12 @@ class Procedure extends Member implements FileUriNode {
     flags = value
         ? (flags | FlagGenericContravariant)
         : (flags & ~FlagGenericContravariant);
+  }
+
+  void set isForwardingSemiStub(bool value) {
+    flags = value
+        ? (flags | FlagForwardingSemiStub)
+        : (flags & ~FlagForwardingSemiStub);
   }
 
   bool get isInstanceMember => !isStatic;

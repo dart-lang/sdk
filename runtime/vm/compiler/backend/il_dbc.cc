@@ -255,11 +255,10 @@ EMIT_NATIVE_CODE(PolymorphicInstanceCall,
 
 EMIT_NATIVE_CODE(LoadIndexedUnsafe, 1, Location::RegisterLocation(0)) {
   ASSERT(base_reg() == FPREG);
-  ASSERT(Utils::IsInt(8, offset_));
 
   ASSERT(offset_ % kWordSize == 0);
   const intptr_t slot_offset = offset_ / kWordSize;
-  ASSERT(-128 <= slot_offset && slot_offset < 128);
+  ASSERT(Utils::IsInt(8, slot_offset));
 
   if (compiler->is_optimizing()) {
     const Register index = locs()->in(0).reg();
@@ -272,14 +271,17 @@ EMIT_NATIVE_CODE(LoadIndexedUnsafe, 1, Location::RegisterLocation(0)) {
 
 EMIT_NATIVE_CODE(StoreIndexedUnsafe, 2, Location::RegisterLocation(0)) {
   ASSERT(base_reg() == FPREG);
-  ASSERT(Utils::IsInt(8, offset_));
+
+  ASSERT(offset_ % kWordSize == 0);
+  const intptr_t slot_offset = offset_ / kWordSize;
+  ASSERT(Utils::IsInt(8, slot_offset));
 
   if (compiler->is_optimizing()) {
     const Register index = locs()->in(kIndexPos).reg();
     const Register value = locs()->in(kValuePos).reg();
-    __ StoreFpRelativeSlotOpt(value, index, offset_ / kWordSize);
+    __ StoreFpRelativeSlotOpt(value, index, slot_offset);
   } else {
-    __ StoreFpRelativeSlot(offset_ / kWordSize);
+    __ StoreFpRelativeSlot(slot_offset);
   }
 }
 
@@ -1605,6 +1607,9 @@ EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {
         break;
       case Token::kMUL:
         __ SmiMulTOS();
+        break;
+      case Token::kBIT_AND:
+        __ SmiBitAndTOS();
         break;
       default:
         UNIMPLEMENTED();

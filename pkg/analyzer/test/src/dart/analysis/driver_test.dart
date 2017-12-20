@@ -3569,6 +3569,101 @@ class C {
     expect(identifier.staticType, typeProvider.intType);
   }
 
+  test_prefixedIdentifier_importPrefix_className() async {
+    var libPath = _p('/test/lib/lib.dart');
+    provider.newFile(libPath, '''
+class MyClass {}
+typedef void MyFunctionTypeAlias();
+int myTopVariable;
+int myTopFunction() => 0;
+int get myGetter => 0;
+void set mySetter(int _) {}
+''');
+    addTestFile(r'''
+import 'lib.dart' as my;
+main() {
+  my.MyClass;
+  my.MyFunctionTypeAlias;
+  my.myTopVariable;
+  my.myTopFunction;
+  my.myTopFunction();
+  my.myGetter;
+  my.mySetter = 0;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    // TODO(scheglov) Uncomment and fix "unused imports" hint.
+//    expect(result.errors, isEmpty);
+
+    var unitElement = result.unit.element;
+    ImportElement myImport = unitElement.library.imports[0];
+    PrefixElement myPrefix = myImport.prefix;
+    var typeProvider = unitElement.context.typeProvider;
+
+    var myLibrary = myImport.importedLibrary;
+    var myUnit = myLibrary.definingCompilationUnit;
+    var myClass = myUnit.types.single;
+    var myFunctionTypeAlias = myUnit.functionTypeAliases.single;
+    var myTopVariable = myUnit.topLevelVariables[0];
+    var myTopFunction = myUnit.functions.single;
+    var myGetter = myUnit.topLevelVariables[1].getter;
+    var mySetter = myUnit.topLevelVariables[2].setter;
+    expect(myTopVariable.name, 'myTopVariable');
+    expect(myGetter.displayName, 'myGetter');
+    expect(mySetter.displayName, 'mySetter');
+
+    List<Statement> statements = _getMainStatements(result);
+
+    void assertPrefix(SimpleIdentifier identifier) {
+      expect(identifier.staticElement, same(myPrefix));
+      expect(identifier.staticType, isNull);
+    }
+
+    void assertPrefixedIdentifier(
+        int statementIndex, Element expectedElement, DartType expectedType) {
+      ExpressionStatement statement = statements[statementIndex];
+      PrefixedIdentifier prefixed = statement.expression;
+      assertPrefix(prefixed.prefix);
+
+      expect(prefixed.identifier.staticElement, same(expectedElement));
+      expect(prefixed.identifier.staticType, expectedType);
+    }
+
+    assertPrefixedIdentifier(0, myClass, typeProvider.typeType);
+    assertPrefixedIdentifier(1, myFunctionTypeAlias, typeProvider.typeType);
+    assertPrefixedIdentifier(2, myTopVariable.getter, typeProvider.intType);
+
+    {
+      ExpressionStatement statement = statements[3];
+      PrefixedIdentifier prefixed = statement.expression;
+      assertPrefix(prefixed.prefix);
+
+      expect(prefixed.identifier.staticElement, same(myTopFunction));
+      expect(prefixed.identifier.staticType, isNotNull);
+    }
+
+    {
+      ExpressionStatement statement = statements[4];
+      MethodInvocation invocation = statement.expression;
+      assertPrefix(invocation.target);
+
+      expect(invocation.methodName.staticElement, same(myTopFunction));
+      expect(invocation.methodName.staticType, isNotNull);
+    }
+
+    assertPrefixedIdentifier(5, myGetter, typeProvider.intType);
+
+    {
+      ExpressionStatement statement = statements[6];
+      AssignmentExpression assignment = statement.expression;
+      PrefixedIdentifier left = assignment.leftHandSide;
+      assertPrefix(left.prefix);
+
+      expect(left.identifier.staticElement, same(mySetter));
+      expect(left.identifier.staticType, typeProvider.intType);
+    }
+  }
+
   test_prefixExpression_local() async {
     String content = r'''
 main() {
@@ -5104,6 +5199,11 @@ typedef void F(int p);
     fail('Not found main() in ${result.unit}');
     return null;
   }
+
+  /**
+   * Return the [provider] specific path for the given Posix [path].
+   */
+  String _p(String path) => provider.convertPath(path);
 }
 
 @reflectiveTest

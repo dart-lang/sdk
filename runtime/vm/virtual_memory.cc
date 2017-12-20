@@ -20,7 +20,7 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   if (try_unmap &&
       (reserved_.size() ==
        region_.size()) && /* Don't create holes in reservation. */
-      FreeSubSegment(handle(), reinterpret_cast<void*>(start() + new_size),
+      FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
                      size() - new_size)) {
     reserved_.set_size(new_size);
   }

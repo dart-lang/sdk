@@ -401,9 +401,11 @@ class CloneVisitor extends TreeVisitor {
         isExternal: node.isExternal,
         isConst: node.isConst,
         isForwardingStub: node.isForwardingStub,
+        isForwardingSemiStub: node.isForwardingSemiStub,
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
-      ..fileEndOffset = node.fileEndOffset;
+      ..fileEndOffset = node.fileEndOffset
+      ..isGenericContravariant = node.isGenericContravariant;
   }
 
   visitField(Field node) {

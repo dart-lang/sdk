@@ -8,7 +8,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   // Write a file with the ? character in the filename.
   (VM vm) async {
     var fsId = 'test';

@@ -169,7 +169,6 @@ class Thread : public BaseThread {
     kMarkerTask = 0x4,
     kSweeperTask = 0x8,
     kCompactorTask = 0x10,
-    kLowMemoryTask = 0x20,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);

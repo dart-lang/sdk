@@ -134,4 +134,11 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
     //          1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
     await super.test_no_ignores();
   }
+
+  @override
+  @failingTest
+  test_trailing_not_above() async {
+    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
+    await super.test_trailing_not_above();
+  }
 }

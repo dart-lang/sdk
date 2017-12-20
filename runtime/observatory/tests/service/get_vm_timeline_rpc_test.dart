@@ -93,7 +93,7 @@ void allEventsHaveIsolateNumber(List<Map> events) {
   }
 }
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     Map result = await vm.invokeRpcNoUpgrade('_getVMTimeline', {});
     expect(result['type'], equals('_Timeline'));

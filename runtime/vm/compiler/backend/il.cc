@@ -1228,6 +1228,9 @@ bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
 }
 
 bool UnboxInt32Instr::ComputeCanDeoptimize() const {
+  if (speculative_mode() == kNotSpeculative) {
+    return false;
+  }
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
     return (kSmiBits > 32) && !is_truncating() &&
@@ -1243,9 +1246,6 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
     // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             value()->Type()->IsNullableInt()) {
-    return false;
   } else {
     return true;
   }
@@ -1253,10 +1253,11 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
 
 bool UnboxUint32Instr::ComputeCanDeoptimize() const {
   ASSERT(is_truncating());
+  if (speculative_mode() == kNotSpeculative) {
+    return false;
+  }
   if ((value()->Type()->ToCid() == kSmiCid) ||
-      (value()->Type()->ToCid() == kMintCid) ||
-      (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-       value()->Type()->IsNullableInt())) {
+      (value()->Type()->ToCid() == kMintCid)) {
     return false;
   }
   // Check input value's range.
@@ -1735,15 +1736,18 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
   CompileType* left_type = left()->Type();
   CompileType* right_type = right()->Type();
   intptr_t op_cid = kIllegalCid;
+  SpeculativeMode speculative_mode = kGuardInputs;
 
   if ((left_type->ToCid() == kSmiCid) && (right_type->ToCid() == kSmiCid)) {
     op_cid = kSmiCid;
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+  } else if (Isolate::Current()->strong() && FLAG_use_strong_mode_types &&
+             FLAG_limit_ints_to_64_bits &&
              FlowGraphCompiler::SupportsUnboxedMints() &&
              // TODO(dartbug.com/30480): handle nullable types here
              left_type->IsNullableInt() && !left_type->is_nullable() &&
              right_type->IsNullableInt() && !right_type->is_nullable()) {
     op_cid = kMintCid;
+    speculative_mode = kNotSpeculative;
   }
 
   if (op_cid != kIllegalCid) {
@@ -1751,14 +1755,14 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
     if (Token::IsRelationalOperator(kind())) {
       replacement = new RelationalOpInstr(
           token_pos(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, Thread::kNoDeoptId);
+          op_cid, Thread::kNoDeoptId, speculative_mode);
     } else if (Token::IsEqualityOperator(kind())) {
       replacement = new EqualityCompareInstr(
           token_pos(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, Thread::kNoDeoptId);
+          op_cid, Thread::kNoDeoptId, speculative_mode);
     }
     if (replacement != NULL) {
-      if (FLAG_trace_experimental_strong_mode && (op_cid == kMintCid)) {
+      if (FLAG_trace_strong_mode_types && (op_cid == kMintCid)) {
         THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                   ToCString(), replacement->ToCString());
       }
@@ -3527,10 +3531,10 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sub_type().IsFinalized());
   ASSERT(super_type().IsFinalized());
 
-  __ PushObject(sub_type());
-  __ PushObject(super_type());
   __ PushRegister(locs()->in(0).reg());
   __ PushRegister(locs()->in(1).reg());
+  __ PushObject(sub_type());
+  __ PushObject(super_type());
   __ PushObject(dst_name());
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
@@ -3538,8 +3542,17 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Drop(5);
 #else
-  // TODO(sjindel): Support strong mode in DBC
-  UNREACHABLE();
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
+  } else {
+    // The 2 inputs are already on the expression stack.
+  }
+  __ PushConstant(sub_type());
+  __ PushConstant(super_type());
+  __ PushConstant(dst_name());
+  __ AssertSubtype();
+
 #endif
 }
 
@@ -3774,14 +3787,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoadFromBox(compiler);
     } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
       EmitSmiConversion(compiler);
-    } else if (FLAG_experimental_strong_mode &&
-               (representation() == kUnboxedDouble) &&
-               value()->Type()->IsNullableDouble()) {
-      EmitLoadFromBox(compiler);
-    } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-               (representation() == kUnboxedInt64) &&
-               value()->Type()->IsNullableInt()) {
-      EmitLoadInt64FromBoxOrSmi(compiler);
     } else {
       ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);

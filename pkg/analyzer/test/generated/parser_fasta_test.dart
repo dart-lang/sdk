@@ -163,23 +163,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedCaseOrDefault() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Bad state: No element
-    //   dart:core                                                          List.last
-    //   package:analyzer/src/fasta/ast_builder.dart 951:13                 AstBuilder.endSwitchCase
-    //   test/generated/parser_fasta_listener.dart 1010:14                  ForwardingTestListener.endSwitchCase
-    //   package:front_end/src/fasta/parser/parser.dart 3991:14             Parser.parseSwitchCase
-    //   package:front_end/src/fasta/parser/parser.dart 3914:15             Parser.parseSwitchBlock
-    //   package:front_end/src/fasta/parser/parser.dart 3900:13             Parser.parseSwitchStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2760:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   test/generated/parser_fasta_test.dart 2903:39                      ParserProxy._run
-    super.test_expectedCaseOrDefault();
-  }
-
-  @override
-  @failingTest
   void test_expectedClassMember_inClass_afterType() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: an object with length of <1>
@@ -1503,70 +1486,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_string_unterminated_interpolation_block() {
-    // TODO(brianwilkerson) Does not recover.
-    //   RangeError: Value not in range: -1
-    //   dart:core                                                          _StringBase.substring
-    //   package:front_end/src/fasta/quote.dart 130:12                      unescapeLastStringPart
-    //   package:analyzer/src/fasta/ast_builder.dart 181:17                 AstBuilder.endLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3497:14             Parser.parseSingleLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3434:13             Parser.parseLiteralString
-    //   package:front_end/src/fasta/parser/parser.dart 3133:14             Parser.parsePrimary
-    //   package:front_end/src/fasta/parser/parser.dart 3097:14             Parser.parseUnaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2968:13             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2862:13             Parser.parseExpressionStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2790:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   package:front_end/src/fasta/parser/parser.dart 3792:15             Parser.parseBlock
-    //   package:front_end/src/fasta/parser/parser.dart 2732:14             Parser.parseStatementX
-    //   package:front_end/src/fasta/parser/parser.dart 2722:20             Parser.parseStatement
-    //   package:front_end/src/fasta/parser/parser.dart 2652:15             Parser.parseFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 1737:13             Parser.parseTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1646:11             Parser.parseTopLevelMember
-    //   package:front_end/src/fasta/parser/parser.dart 298:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3272:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_string_unterminated_interpolation_block();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasCaseAfterDefaultCase() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, found 0
-    super.test_switchHasCaseAfterDefaultCase();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasCaseAfterDefaultCase_repeated() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 2 errors of type ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, found 0
-    super.test_switchHasCaseAfterDefaultCase_repeated();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasMultipleDefaultCases() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, found 0
-    super.test_switchHasMultipleDefaultCases();
-  }
-
-  @override
-  @failingTest
-  void test_switchHasMultipleDefaultCases_repeated() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 2 errors of type ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, found 0
-    super.test_switchHasMultipleDefaultCases_repeated();
-  }
-
-  @override
-  @failingTest
   void test_topLevelVariable_withMetadata() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
@@ -2589,19 +2508,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incomplete_conditionalExpression() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_conditionalExpression();
-  }
-
-  // TODO(danrubel): Remove this test
-  // once test_incomplete_conditionalExpression has been fixed.
-  void test_incomplete_conditionalExpression_ignoreErrors() {
-    parseExpression("x ? 0", codes: FastaParserTestCase.NO_ERROR_COMPARISON);
-  }
-
-  @override
-  @failingTest
   void test_incomplete_constructorInitializers_empty() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_constructorInitializers_empty();
@@ -2637,48 +2543,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_incomplete_returnType() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incomplete_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable_const() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable_const();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable_final() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable_final();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_topLevelVariable_var() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_topLevelVariable_var();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteField_const() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteField_const();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteField_final() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteField_final();
   }
 
   @override
@@ -2745,13 +2609,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_missingIdentifier_afterAnnotation() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingIdentifier_afterAnnotation();
-  }
-
-  @override
-  @failingTest
-  void test_nonStringLiteralUri_import() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_nonStringLiteralUri_import();
   }
 
   @override

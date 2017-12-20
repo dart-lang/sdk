@@ -71,6 +71,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (entity is SimpleIdentifier && node.arguments.contains(entity)) {
       _addExpressionKeywords(node);
+      int index = node.arguments.indexOf(entity);
+      if (index > 0) {
+        Expression previousArgument = node.arguments[index - 1];
+        Token endToken = previousArgument?.endToken;
+        if (endToken?.lexeme == ')' &&
+            endToken.next?.lexeme == ',' &&
+            endToken.next.isSynthetic) {
+          _addSuggestion(Keyword.ASYNC);
+          _addSuggestion2(ASYNC_STAR);
+          _addSuggestion2(SYNC_STAR);
+        }
+      }
     }
   }
 

@@ -15,7 +15,7 @@ import 'package:front_end/src/fasta/severity.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:kernel/kernel.dart' show Program, CanonicalName;
+import 'package:kernel/kernel.dart' show CanonicalName, Location, Program;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart';
 import 'package:package_config/packages.dart' show Packages;
@@ -27,6 +27,10 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import '../fasta/messages.dart' show getLocation;
+
+import '../fasta/deprecated_problems.dart' show deprecated_InputError;
 
 import 'libraries_specification.dart';
 
@@ -158,9 +162,32 @@ class ProcessedOptions {
     return _raw.byteStore;
   }
 
-  bool get _reportMessages => _raw.reportMessages ?? (_raw.onError == null);
+  bool get _reportMessages {
+    return _raw.onProblem == null &&
+        (_raw.reportMessages ?? (_raw.onError == null));
+  }
 
   void report(LocatedMessage message, Severity severity) {
+    if (_raw.onProblem != null) {
+      int offset = message.charOffset;
+      Uri uri = message.uri;
+      Location location = offset == -1 ? null : getLocation(uri, offset);
+      _raw.onProblem(
+          message,
+          severity,
+          command_line_reporting.format(message, severity, location: location),
+          location?.line ?? -1,
+          location?.column ?? -1);
+      if (command_line_reporting.shouldThrowOn(severity)) {
+        if (verbose) print(StackTrace.current);
+        throw new deprecated_InputError(
+            uri,
+            offset,
+            "Compilation aborted due to fatal "
+            "${command_line_reporting.severityName(severity)}.");
+      }
+      return;
+    }
     if (_raw.onError != null) {
       _raw.onError(new _CompilationMessage(message, severity));
     }
@@ -169,6 +196,23 @@ class ProcessedOptions {
   }
 
   void reportWithoutLocation(Message message, Severity severity) {
+    if (_raw.onProblem != null) {
+      _raw.onProblem(
+          message.withLocation(null, -1),
+          severity,
+          command_line_reporting.formatWithoutLocation(message, severity),
+          -1,
+          -1);
+      if (command_line_reporting.shouldThrowOn(severity)) {
+        if (verbose) print(StackTrace.current);
+        throw new deprecated_InputError(
+            null,
+            -1,
+            "Compilation aborted due to fatal "
+            "${command_line_reporting.severityName(severity)}.");
+      }
+      return;
+    }
     if (_raw.onError != null) {
       _raw.onError(
           new _CompilationMessage(message.withLocation(null, -1), severity));

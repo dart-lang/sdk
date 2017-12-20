@@ -25,7 +25,7 @@ class RunningIsolates implements MessageRouter {
     isolates.remove(portId);
   }
 
-  Future<String> routeRequest(Message message) {
+  Future<Response> routeRequest(Message message) {
     String isolateParam = message.params['isolateId'];
     int isolateId;
     if (!isolateParam.startsWith('isolates/')) {

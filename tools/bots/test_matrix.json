@@ -657,7 +657,7 @@
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["dart2js_bot","patched_dart2js_sdk"]
+          "arguments": ["dart2js_bot",  "compile_dart2js_platform"]
         },
         {
           "name": "dart2js tests",

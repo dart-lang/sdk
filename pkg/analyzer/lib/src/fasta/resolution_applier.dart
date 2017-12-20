@@ -802,6 +802,10 @@ abstract class TypeContext {
 /// [ResolutionStorer]) to an analyzer AST, and also checks file offsets to
 /// verify that the types are applied to the correct subexpressions.
 class ValidatingResolutionApplier extends ResolutionApplier {
+  /// The offset that is used when the actual offset is not know.
+  /// The applier should not validate this offset.
+  static const UNKNOWN_OFFSET = -2;
+
   /// Indicates whether debug messages should be printed.
   static const bool _debug = false;
 
@@ -865,7 +869,7 @@ class ValidatingResolutionApplier extends ResolutionApplier {
           'No reference information for $entity at $entityOffset');
     }
     int elementOffset = _referencedElementOffsets[_referencedElementIndex];
-    if (entityOffset != elementOffset) {
+    if (elementOffset != UNKNOWN_OFFSET && entityOffset != elementOffset) {
       throw new StateError(
           'Expected element reference for analyzer offset $entityOffset; '
           'got one for kernel offset $elementOffset');
@@ -882,9 +886,10 @@ class ValidatingResolutionApplier extends ResolutionApplier {
     if (_typeIndex >= _types.length) {
       throw new StateError('No type information for $entity at $entityOffset');
     }
-    if (entityOffset != _typeOffsets[_typeIndex]) {
+    int typeOffset = _typeOffsets[_typeIndex];
+    if (typeOffset != UNKNOWN_OFFSET && entityOffset != typeOffset) {
       throw new StateError('Expected a type for $entity at $entityOffset; '
-          'got one for kernel offset ${_typeOffsets[_typeIndex]}');
+          'got one for kernel offset $typeOffset');
     }
     return super._getTypeFor(entity);
   }

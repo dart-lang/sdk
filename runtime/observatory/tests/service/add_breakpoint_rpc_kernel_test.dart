@@ -26,7 +26,7 @@ Future testMain() async {
   incValue(incValue(1)); // line B.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
 
   // Test future breakpoints.

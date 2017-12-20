@@ -4,10 +4,10 @@
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
-import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -30,7 +30,8 @@ Future<InitializedCompilerState> initializeCompiler(
     Uri sdkSummary,
     Uri packagesFile,
     List<Uri> inputSummaries,
-    Target target) async {
+    Target target,
+    {FileSystem fileSystem}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
   bool listEqual(List<Uri> a, List<Uri> b) {
     if (a.length != b.length) return false;
@@ -59,23 +60,12 @@ Future<InitializedCompilerState> initializeCompiler(
     return oldState;
   }
 
-  // To make the output .dill agnostic of the current working directory,
-  // we use a custom-uri scheme for all app URIs (these are files outside the
-  // lib folder). The following [FileSystem] will resolve those references to
-  // the correct location and keeps the real file location hidden from the
-  // front end.
-  // TODO(sigmund): technically we don't need a "multi-root" file system,
-  // because we are providing a single root, the alternative here is to
-  // implement a new file system with a single root instead.
-  var fileSystem = new MultiRootFileSystem(
-      'org-dartlang-app', [Uri.base], PhysicalFileSystem.instance);
-
   CompilerOptions options = new CompilerOptions()
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
     ..target = target
-    ..fileSystem = fileSystem
+    ..fileSystem = fileSystem ?? PhysicalFileSystem.instance
     ..chaseDependencies = true
     ..reportMessages = true;
 

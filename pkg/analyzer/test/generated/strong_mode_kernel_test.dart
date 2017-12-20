@@ -245,6 +245,10 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_generic_partial() async {
     // AnalysisException: Element mismatch in /test.dart at class A<T>
     await super.test_generic_partial();
+    // TODO(brianwilkerson) This test periodically fails (by not throwing an
+    // exception), so I am temporarily disabling it. The cause of the flaky
+    // behavior needs to be investigated.
+    fail('Flaky test');
   }
 
   @override

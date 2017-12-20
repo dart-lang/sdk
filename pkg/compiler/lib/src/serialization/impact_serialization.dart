@@ -9,6 +9,7 @@ import '../constants/expressions.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
+import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -84,6 +85,10 @@ class ImpactSerializer implements WorldImpactVisitor {
     if (staticUse.type != null) {
       object.setType(Key.TYPE, staticUse.type);
     }
+    if (staticUse.callStructure != null) {
+      serializeCallStructure(
+          staticUse.callStructure, object.createObject(Key.CALL_STRUCTURE));
+    }
   }
 
   @override
@@ -148,7 +153,14 @@ class ImpactDeserializer {
       Element usedElement =
           deserializeElementReference(element, Key.ELEMENT, Key.NAME, object);
       ResolutionDartType type = object.getType(Key.TYPE, isOptional: true);
-      staticUses.add(new StaticUse.internal(usedElement, kind, type));
+      ObjectDecoder callStructureObject =
+          object.getObject(Key.CALL_STRUCTURE, isOptional: true);
+      CallStructure callStructure;
+      if (callStructureObject != null) {
+        callStructure = deserializeCallStructure(callStructureObject);
+      }
+      staticUses.add(new StaticUse.internal(usedElement, kind,
+          type: type, callStructure: callStructure));
     }
 
     ListDecoder dynamicUseDecoder = objectDecoder.getList(Key.DYNAMIC_USES);

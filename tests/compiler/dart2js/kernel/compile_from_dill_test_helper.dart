@@ -382,7 +382,7 @@ Future<ResultKind> runTest(
     bool expectAstEquivalence: false,
     bool expectIdenticalOutput: true}) async {
   enableDebugMode();
-  Elements.usePatchedDart2jsSdkSorting = true;
+  Elements.useCFEOrder = true;
   useOptimizedMixins = true;
 
   print('---- compile from ast ----------------------------------------------');

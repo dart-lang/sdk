@@ -2954,13 +2954,15 @@ struct ArgumentsInfo {
   const Array& argument_names;
 };
 
+typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
+
 template <intptr_t kInputCount>
 class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
  public:
   TemplateDartCall(intptr_t deopt_id,
                    intptr_t type_args_len,
                    const Array& argument_names,
-                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   PushArgumentsArray* arguments,
                    TokenPosition token_pos,
                    intptr_t argument_check_bits = 0,
                    intptr_t type_argument_check_bits = 0)
@@ -3001,7 +3003,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
  private:
   intptr_t type_args_len_;
   const Array& argument_names_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
+  PushArgumentsArray* arguments_;
   TokenPosition token_pos_;
 
   // One bit per argument (up to word size) which helps the callee decide which
@@ -3017,7 +3019,7 @@ class ClosureCallInstr : public TemplateDartCall<1> {
  public:
   ClosureCallInstr(Value* function,
                    ClosureCallNode* node,
-                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   PushArgumentsArray* arguments,
                    intptr_t deopt_id)
       : TemplateDartCall(deopt_id,
                          node->arguments()->type_args_len(),
@@ -3029,7 +3031,7 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   }
 
   ClosureCallInstr(Value* function,
-                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   PushArgumentsArray* arguments,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    TokenPosition token_pos,
@@ -3064,7 +3066,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       TokenPosition token_pos,
       const String& function_name,
       Token::Kind token_kind,
-      ZoneGrowableArray<PushArgumentInstr*>* arguments,
+      PushArgumentsArray* arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -3087,6 +3089,44 @@ class InstanceCallInstr : public TemplateDartCall<0> {
         interface_target_(interface_target),
         has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
+    ASSERT(function_name.IsNotTemporaryScopedHandle());
+    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
+    ASSERT(!arguments->is_empty());
+    ASSERT(Token::IsBinaryOperator(token_kind) ||
+           Token::IsEqualityOperator(token_kind) ||
+           Token::IsRelationalOperator(token_kind) ||
+           Token::IsUnaryOperator(token_kind) ||
+           Token::IsIndexOperator(token_kind) ||
+           Token::IsTypeTestOperator(token_kind) ||
+           Token::IsTypeCastOperator(token_kind) || token_kind == Token::kGET ||
+           token_kind == Token::kSET || token_kind == Token::kILLEGAL);
+  }
+
+  InstanceCallInstr(
+      TokenPosition token_pos,
+      const String& function_name,
+      Token::Kind token_kind,
+      PushArgumentsArray* arguments,
+      intptr_t type_args_len,
+      const Array& argument_names,
+      intptr_t checked_argument_count,
+      intptr_t deopt_id,
+      const Function& interface_target = Function::null_function(),
+      intptr_t argument_check_bits = 0,
+      intptr_t type_argument_check_bits = 0)
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos,
+                         argument_check_bits,
+                         type_argument_check_bits),
+        ic_data_(NULL),
+        function_name_(function_name),
+        token_kind_(token_kind),
+        checked_argument_count_(checked_argument_count),
+        interface_target_(interface_target),
+        has_unique_selector_(false) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(interface_target_.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
@@ -3349,8 +3389,10 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                        Value* left,
                        Value* right,
                        intptr_t cid,
-                       intptr_t deopt_id)
-      : TemplateComparison(token_pos, kind, deopt_id) {
+                       intptr_t deopt_id,
+                       SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateComparison(token_pos, kind, deopt_id),
+        speculative_mode_(speculative_mode) {
     ASSERT(Token::IsEqualityOperator(kind));
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -3372,9 +3414,18 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     return kTagged;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return ComparisonInstr::AttributesEqual(other) &&
+           (speculative_mode() ==
+            other->AsEqualityCompare()->speculative_mode());
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
 
@@ -3512,7 +3563,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  PushArgumentsArray* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                   intptr_t deopt_id,
                   ICData::RebindRule rebind_rule,
@@ -3541,7 +3592,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  PushArgumentsArray* arguments,
                   intptr_t deopt_id,
                   intptr_t call_count,
                   ICData::RebindRule rebind_rule,
@@ -3569,8 +3620,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
   static StaticCallInstr* FromCall(Zone* zone,
                                    const C* call,
                                    const Function& target) {
-    ZoneGrowableArray<PushArgumentInstr*>* args =
-        new (zone) ZoneGrowableArray<PushArgumentInstr*>(call->ArgumentCount());
+    PushArgumentsArray* args =
+        new (zone) PushArgumentsArray(call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
       args->Add(call->PushArgumentAt(i));
     }
@@ -3763,7 +3814,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
                   const Function* function,
                   bool link_lazily,
                   TokenPosition position,
-                  ZoneGrowableArray<PushArgumentInstr*>* args)
+                  PushArgumentsArray* args)
       : TemplateDartCall(Thread::kNoDeoptId,
                          0,
                          Array::null_array(),
@@ -4386,7 +4437,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
  public:
   AllocateObjectInstr(TokenPosition token_pos,
                       const Class& cls,
-                      ZoneGrowableArray<PushArgumentInstr*>* arguments)
+                      PushArgumentsArray* arguments)
       : token_pos_(token_pos),
         cls_(cls),
         arguments_(arguments),
@@ -4424,7 +4475,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
  private:
   const TokenPosition token_pos_;
   const Class& cls_;
-  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+  PushArgumentsArray* const arguments_;
   AliasIdentity identity_;
   Function& closure_function_;
 

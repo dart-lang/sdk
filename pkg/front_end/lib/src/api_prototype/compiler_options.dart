@@ -8,12 +8,18 @@ import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
+import '../fasta/fasta_codes.dart' show LocatedMessage;
+import '../fasta/severity.dart' show Severity;
+
 import 'compilation_message.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
 
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationMessage error);
+
+typedef void ProblemHandler(LocatedMessage problem, Severity severity,
+    String formatted, int line, int column);
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -42,6 +48,8 @@ class CompilerOptions {
   /// By default, when no callback is provided, the compiler will report
   /// messages on the console and will throw when fatal errors are discovered.
   ErrorHandler onError;
+
+  ProblemHandler onProblem;
 
   /// Whether messages should be reported using the compiler's internal
   /// reporting mechanism.

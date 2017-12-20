@@ -730,7 +730,7 @@ class ObjectGraph {
         assert(parent[v] != SENTINEL);
       }
       return true;
-    });
+    }());
 
     if (dfsNumber != N) {
       // Remove successors of unconnected nodes

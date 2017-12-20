@@ -50,7 +50,7 @@ ShadowClass initializeClass(
     int charOffset,
     int charEndOffset) {
   cls ??= new ShadowClass(name: name);
-  cls.fileUri ??= parent.library.fileUri;
+  cls.fileUri ??= parent.fileUri;
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
   }

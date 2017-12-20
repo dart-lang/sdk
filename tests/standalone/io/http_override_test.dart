@@ -171,9 +171,39 @@ zonedWithHttpOverridesTest() {
   }, new MyHttpOverrides());
 }
 
+globalHttpOverridesTest() {
+  HttpOverrides.global = new MyHttpOverrides();
+  var httpClient = new HttpClient();
+  Expect.isNotNull(httpClient);
+  Expect.isTrue(httpClient is MyHttpClient1);
+  Expect.equals((new MyHttpClient1(null)).userAgent, httpClient.userAgent);
+  HttpOverrides.global = null;
+  httpClient = new HttpClient();
+  Expect.isTrue(httpClient is HttpClient);
+  Expect.isTrue(httpClient is! MyHttpClient1);
+}
+
+globalHttpOverridesZoneTest() {
+  HttpOverrides.global = new MyHttpOverrides();
+  runZoned(() {
+    runZoned(() {
+      var httpClient = new HttpClient();
+      Expect.isNotNull(httpClient);
+      Expect.isTrue(httpClient is MyHttpClient1);
+      Expect.equals((new MyHttpClient1(null)).userAgent, httpClient.userAgent);
+    });
+  });
+  HttpOverrides.global = null;
+  var httpClient = new HttpClient();
+  Expect.isTrue(httpClient is HttpClient);
+  Expect.isTrue(httpClient is! MyHttpClient1);
+}
+
 main() {
   withHttpOverridesTest();
   nestedWithHttpOverridesTest();
   nestedDifferentOverridesTest();
   zonedWithHttpOverridesTest();
+  globalHttpOverridesTest();
+  globalHttpOverridesZoneTest();
 }

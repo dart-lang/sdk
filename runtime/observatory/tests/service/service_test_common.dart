@@ -12,13 +12,15 @@ import 'package:unittest/unittest.dart';
 
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
+typedef void ServiceEventHandler(ServiceEvent event);
 
 Map<String, StreamSubscription> streamSubscriptions = {};
 
-Future subscribeToStream(VM vm, String streamName, onEvent) async {
+Future subscribeToStream(
+    VM vm, String streamName, ServiceEventHandler onEvent) async {
   assert(streamSubscriptions[streamName] == null);
 
-  Stream stream = await vm.getEventStream(streamName);
+  Stream<ServiceEvent> stream = await vm.getEventStream(streamName);
   StreamSubscription subscription = stream.listen(onEvent);
   streamSubscriptions[streamName] = subscription;
 }
@@ -32,7 +34,7 @@ Future cancelStreamSubscription(String streamName) async {
 Future smartNext(Isolate isolate) async {
   print('smartNext');
   if (isolate.status == M.IsolateStatus.paused) {
-    var event = isolate.pauseEvent;
+    dynamic event = isolate.pauseEvent;
     if (event.atAsyncSuspension) {
       return asyncNext(isolate);
     } else {
@@ -46,7 +48,7 @@ Future smartNext(Isolate isolate) async {
 Future asyncNext(Isolate isolate) async {
   print('asyncNext');
   if (isolate.status == M.IsolateStatus.paused) {
-    var event = isolate.pauseEvent;
+    dynamic event = isolate.pauseEvent;
     if (!event.atAsyncSuspension) {
       throw 'No async continuation at this location';
     } else {
@@ -86,7 +88,7 @@ Future asyncStepOver(Isolate isolate) async {
   }
 
   // Subscribe to the debugger event stream.
-  Stream stream;
+  Stream<ServiceEvent> stream;
   try {
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
   } catch (e) {
@@ -151,7 +153,7 @@ bool isEventOfKind(M.Event event, String kind) {
   }
 }
 
-Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
+Future hasPausedFor(Isolate isolate, String kind) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
@@ -186,27 +188,27 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   return completer.future; // Will complete when breakpoint hit.
 }
 
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+Future hasStoppedAtBreakpoint(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseBreakpoint);
 }
 
-Future<Isolate> hasStoppedPostRequest(Isolate isolate) {
+Future hasStoppedPostRequest(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPausePostRequest);
 }
 
-Future<Isolate> hasStoppedWithUnhandledException(Isolate isolate) {
+Future hasStoppedWithUnhandledException(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseException);
 }
 
-Future<Isolate> hasStoppedAtExit(Isolate isolate) {
+Future hasStoppedAtExit(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseExit);
 }
 
-Future<Isolate> hasPausedAtStart(Isolate isolate) {
+Future hasPausedAtStart(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseStart);
 }
 
-Future<Isolate> markDartColonLibrariesDebuggable(Isolate isolate) async {
+Future markDartColonLibrariesDebuggable(Isolate isolate) async {
   await isolate.reload();
   for (Library lib in isolate.libraries) {
     await lib.load();
@@ -327,7 +329,7 @@ IsolateTest stoppedInFunction(String functionName,
   };
 }
 
-Future<Isolate> resumeIsolate(Isolate isolate) {
+Future resumeIsolate(Isolate isolate) {
   Completer completer = new Completer();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
@@ -363,17 +365,17 @@ IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
       resumeAndAwaitEvent(isolate, stream, onEvent);
 }
 
-Future<Isolate> stepOver(Isolate isolate) async {
+Future stepOver(Isolate isolate) async {
   await isolate.stepOver();
   return hasStoppedAtBreakpoint(isolate);
 }
 
-Future<Isolate> stepInto(Isolate isolate) async {
+Future stepInto(Isolate isolate) async {
   await isolate.stepInto();
   return hasStoppedAtBreakpoint(isolate);
 }
 
-Future<Isolate> stepOut(Isolate isolate) async {
+Future stepOut(Isolate isolate) async {
   await isolate.stepOut();
   return hasStoppedAtBreakpoint(isolate);
 }

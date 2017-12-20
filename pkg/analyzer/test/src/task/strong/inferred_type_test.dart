@@ -203,7 +203,7 @@ test1() {
 main() {
   String f() => null;
   var g = f;
-  g = /*info:INFERRED_TYPE_CLOSURE*/() { return /*error:RETURN_OF_INVALID_TYPE*/1; };
+  g = /*info:INFERRED_TYPE_CLOSURE*/() { return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/1; };
 }
 ''');
     var g = findLocalVariable(unit, 'g');
@@ -1016,14 +1016,14 @@ void main () {
     Function2<int, String> l1 = (int x) => "hello";
     Function2<int, String> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => "hello";
     Function2<int, String> l3 = /*error:INVALID_ASSIGNMENT*/(int x) => 3;
-    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
+    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(int x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
   }
   {
     Function2<int, String> l0 = /*info:INFERRED_TYPE_CLOSURE*/(x) => null;
     Function2<int, String> l1 = /*info:INFERRED_TYPE_CLOSURE*/(x) => "hello";
     Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => 3;
-    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
-    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE*/x;};
+    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
+    Function2<int, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;};
   }
   {
     Function2<int, List<String>> l0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => null;
@@ -1151,7 +1151,7 @@ void main () {
     v = <T>(int x) => "hello";
     v = /*error:INVALID_ASSIGNMENT*/<T>(String x) => "hello";
     v = /*error:INVALID_ASSIGNMENT*/<T>(int x) => 3;
-    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
+    v = /*info:INFERRED_TYPE_CLOSURE*/<T>(int x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
   }
   {
     String f<S>(int x) => null;
@@ -1159,8 +1159,8 @@ void main () {
     v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => null;
     v = /*info:INFERRED_TYPE_CLOSURE*/<T>(x) => "hello";
     v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/<T>(x) => 3;
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) {return /*error:RETURN_OF_INVALID_TYPE*/3;};
-    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) {return /*error:RETURN_OF_INVALID_TYPE*/x;};
+    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
+    v = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;};
   }
   {
     List<String> f<S>(int x) => null;
@@ -2135,7 +2135,7 @@ main() {
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
     await checkFileElement('''
-/*error:IMPORT_INTERNAL_LIBRARY*/import 'dart:_foreign_helper' show JS;
+import /*error:IMPORT_INTERNAL_LIBRARY*/'dart:_foreign_helper' show JS;
 main() {
   String x = /*error:INVALID_ASSIGNMENT*/JS('int', '42');
   var y = JS('String', '"hello"');

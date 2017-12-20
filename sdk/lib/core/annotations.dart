@@ -72,14 +72,14 @@ class Deprecated {
   String toString() => "Deprecated feature. Will be removed $expires";
 }
 
-class _Override {
-  const _Override();
-}
-
 /**
  * Marks a feature as [Deprecated] until the next release.
  */
 const Deprecated deprecated = const Deprecated("next release");
+
+class _Override {
+  const _Override();
+}
 
 /**
  * The annotation `@override` marks an instance member as overriding a
@@ -107,6 +107,59 @@ const Deprecated deprecated = const Deprecated("next release");
  * libraries, since they only depend on themselves.
  */
 const Object override = const _Override();
+
+/**
+ * The annotation `@Provisional('message')` marks a feature as provisional.
+ *
+ * An API is considered to be provisional if it is still going through the
+ * process of stabilizing and is subject to change or removal.
+ *
+ * The intent of the `@Provisional` annotation is to mark APIs that are still in
+ * development or that are added only tentatively. Adding the API allows users
+ * to experiment with using the APIs, which can provide valuable feedback. Such
+ * provisional APIs do not promise stability. They can be changed or removed
+ * without warning.
+ *
+ * The `@Provisional` annotation applies to:
+ * - library directives,
+ * - public top-level declarations, and
+ * - public members of public classes.
+ *
+ * Provisionality is transitive:
+ * - If a library is provisional, so is every member of it.
+ * - If a class is provisional, so is every member of it.
+ * - If a variable is provisional, so are its implicit getter and setter.
+ *
+ * Further, if a class is provisional, so are classes that extend, implement,
+ * and mix-in the class.
+ *
+ * A tool that processes Dart source code may report when:
+ * - the code imports a provisional library.
+ * - the code exports a provisional library, or any provisional member of
+ *   a non-provisional library.
+ * - the code refers statically to a provisional declaration.
+ * - the code dynamically uses a member of an object with a statically known
+ *   type, where the member is provisional on the static type of the object.
+ *
+ * If the provisional use is inside a library, class or method which is itself
+ * provisional, the tool should not bother the user about it.
+ * A provisional feature is expected to use other provisional features.
+ */
+class Provisional {
+  /**
+   * A brief message describing how or why the feature is provisional.
+   */
+  final String message;
+
+  const Provisional({String message})
+      : this.message = message ?? "Subject to change or removal.";
+}
+
+/**
+ * Marks a feature as provisional with the message "Subject to change or
+ * removal".
+ */
+const Provisional provisional = const Provisional();
 
 class _Proxy {
   const _Proxy();

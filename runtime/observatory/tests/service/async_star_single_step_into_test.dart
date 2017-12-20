@@ -34,7 +34,7 @@ testMain() {
   print('z');
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E),
   stepOver, // print.

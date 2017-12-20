@@ -66,19 +66,20 @@ class WebSocketClient extends Client {
     }
   }
 
-  void post(dynamic result) {
+  void post(Response result) {
     if (result == null) {
       // Do nothing.
       return;
     }
     try {
-      if (result is String || result is Uint8List) {
-        socket.add(result); // String or binary message.
-      } else {
-        // String message as external Uint8List.
-        assert(result is List);
-        Uint8List cstring = result[0];
-        socket.addUtf8Text(cstring);
+      switch (result.kind) {
+        case ResponsePayloadKind.String:
+        case ResponsePayloadKind.Binary:
+          socket.add(result.payload);
+          break;
+        case ResponsePayloadKind.Utf8String:
+          socket.addUtf8Text(result.payload);
+          break;
       }
     } catch (e, st) {
       serverPrint("Ignoring error posting over WebSocket.");
@@ -108,7 +109,7 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(dynamic result) {
+  void post(Response result) {
     if (result == null) {
       close();
       return;
@@ -117,12 +118,15 @@ class HttpRequestClient extends Client {
     // We closed the connection for bad origins earlier.
     response.headers.add('Access-Control-Allow-Origin', '*');
     response.headers.contentType = jsonContentType;
-    if (result is String) {
-      response.write(result);
-    } else {
-      assert(result is List);
-      Uint8List cstring = result[0]; // Already in UTF-8.
-      response.add(cstring);
+    switch (result.kind) {
+      case ResponsePayloadKind.String:
+        response.write(result.payload);
+        break;
+      case ResponsePayloadKind.Utf8String:
+        response.add(result.payload);
+        break;
+      case ResponsePayloadKind.Binary:
+        throw 'Can not handle binary responses';
     }
     response.close();
     close();

@@ -14,7 +14,7 @@ class Server {
   bool passwordChanged = false;
 
   Future<Server> start() {
-    var completer = new Completer();
+    var completer = new Completer<Server>();
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {

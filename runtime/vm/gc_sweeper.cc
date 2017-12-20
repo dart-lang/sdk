@@ -115,7 +115,7 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(last_ != NULL);
     ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
-    old_space_->set_sweeper_tasks(old_space_->sweeper_tasks() + 1);
+    old_space_->set_tasks(old_space_->tasks() + 1);
   }
 
   virtual void Run() {
@@ -155,7 +155,7 @@ class SweeperTask : public ThreadPool::Task {
     // This sweeper task is done. Notify the original isolate.
     {
       MonitorLocker ml(old_space_->tasks_lock());
-      old_space_->set_sweeper_tasks(old_space_->sweeper_tasks() - 1);
+      old_space_->set_tasks(old_space_->tasks() - 1);
       ml.NotifyAll();
     }
   }

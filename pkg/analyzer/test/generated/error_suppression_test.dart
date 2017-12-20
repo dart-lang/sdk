@@ -215,6 +215,17 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
     assertErrors(source, []);
   }
 
+  test_trailing_not_above() async {
+    Source source = addSource('''
+int x = ''; // ignore: invalid_assignment
+int y = '';
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      StaticTypeWarningCode.INVALID_ASSIGNMENT,
+    ]);
+  }
+
   test_no_ignores() async {
     Source source = addSource('''
 int x = '';  //INVALID_ASSIGNMENT

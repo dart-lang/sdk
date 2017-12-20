@@ -66,8 +66,9 @@ dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 # batch mode.
 [ $arch == simdbc64 && $compiler == dartk ]
 coverage_optimized_function_test: Crash # Please triage
-rewind_optimized_out_test: RuntimeError # Please triage
-rewind_test: RuntimeError # Please triage
+
+[ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
+eval_test: Pass, Slow
 
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649

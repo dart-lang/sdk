@@ -15,7 +15,7 @@ doThrow() {
   };
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtExit,
 
   (Isolate isolate) async {

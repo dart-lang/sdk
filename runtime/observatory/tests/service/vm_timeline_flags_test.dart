@@ -28,7 +28,7 @@ List<Map> filterEvents(List<Map> events, filter) {
 
 int dartEventCount;
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Get the flags.

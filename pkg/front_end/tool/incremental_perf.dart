@@ -63,63 +63,101 @@ import 'perf_common.dart';
 main(List<String> args) async {
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
-    print('usage: incremental_perf.dart [options] <entry.dart> <edits.json>');
-    print(argParser.usage);
-    exit(1);
+    throw """
+usage: incremental_perf.dart [options] <entry.dart> <edits.json>
+${argParser.usage}""";
   }
 
   var entryUri = _resolveOverlayUri(options.rest[0]);
   var editsUri = Uri.base.resolve(options.rest[1]);
   var changeSets =
       parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
+  bool verbose = options["verbose"];
+  bool verboseCompilation = options["verbose-compilation"];
+  bool strongMode = options["mode"] == "strong";
+  bool isFlutter = options["target"] == "flutter";
+  bool useMinimalGenerator = options["implementation"] == "minimal";
+  TimingsCollector collector = new TimingsCollector(verbose);
 
+  for (int i = 0; i < 8; i++) {
+    await benchmark(
+        collector,
+        entryUri,
+        strongMode,
+        isFlutter,
+        useMinimalGenerator,
+        verbose,
+        verboseCompilation,
+        changeSets,
+        options["sdk-summary"],
+        options["sdk-library-specification"],
+        options["cache"]);
+    if (!options["loop"]) break;
+  }
+  collector.printTimings();
+}
+
+Future benchmark(
+    TimingsCollector collector,
+    Uri entryUri,
+    bool strongMode,
+    bool isFlutter,
+    bool useMinimalGenerator,
+    bool verbose,
+    bool verboseCompilation,
+    List<ChangeSet> changeSets,
+    String sdkSummary,
+    String sdkLibrarySpecification,
+    String cache) async {
   var overlayFs = new OverlayFileSystem();
-  bool strongMode = options['mode'] == 'strong';
   var compilerOptions = new CompilerOptions()
+    ..verbose = verboseCompilation
     ..fileSystem = overlayFs
     ..strongMode = strongMode
     ..onError = onErrorHandler(strongMode)
-    ..target = createTarget(
-        isFlutter: options['target'] == 'flutter', strongMode: strongMode);
-  if (options['sdk-summary'] != null) {
-    compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
+    ..target = createTarget(isFlutter: isFlutter, strongMode: strongMode);
+  if (sdkSummary != null) {
+    compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
   }
-  if (options['sdk-library-specification'] != null) {
+  if (sdkLibrarySpecification != null) {
     compilerOptions.librariesSpecificationUri =
-        _resolveOverlayUri(options["sdk-library-specification"]);
+        _resolveOverlayUri(sdkLibrarySpecification);
   }
 
-  var dir = Directory.systemTemp.createTempSync('ikg-cache');
-  compilerOptions.byteStore = createByteStore(options['cache'], dir.path);
+  var dir = Directory.systemTemp.createTempSync("ikg-cache");
+  compilerOptions.byteStore = createByteStore(cache, dir.path);
 
   final processedOptions =
       new ProcessedOptions(compilerOptions, false, [entryUri]);
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
-  var timer1 = new Stopwatch()..start();
+  collector.start("Initial compilation");
   var generator = await IncrementalKernelGenerator.newInstance(
       compilerOptions, entryUri,
-      useMinimalGenerator: options['implementation'] == 'minimal');
+      useMinimalGenerator: useMinimalGenerator);
 
   var delta = await generator.computeDelta();
   generator.acceptLastDelta();
-  timer1.stop();
-  print("Libraries changed: ${delta.newProgram.libraries.length}");
-  print("Initial compilation took: ${timer1.elapsedMilliseconds}ms");
+  collector.stop("Initial compilation");
+  if (verbose) {
+    print("Libraries changed: ${delta.newProgram.libraries.length}");
+  }
   if (delta.newProgram.libraries.length < 1) {
     throw "No libraries were changed";
   }
 
   for (final ChangeSet changeSet in changeSets) {
-    await applyEdits(changeSet.edits, overlayFs, generator, uriTranslator);
-    var iterTimer = new Stopwatch()..start();
+    String name = "Change '${changeSet.name}' - Incremental compilation";
+    await applyEdits(
+        changeSet.edits, overlayFs, generator, uriTranslator, verbose);
+    collector.start(name);
     delta = await generator.computeDelta();
     generator.acceptLastDelta();
-    iterTimer.stop();
-    print("Change '${changeSet.name}' - "
-        "Libraries changed: ${delta.newProgram.libraries.length}");
-    print("Change '${changeSet.name}' - "
-        "Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
+    collector.stop(name);
+    if (verbose) {
+      print("Change '${changeSet.name}' - "
+          "Libraries changed: ${delta.newProgram.libraries.length}");
+    }
     if (delta.newProgram.libraries.length < 1) {
       throw "No libraries were changed";
     }
@@ -130,10 +168,16 @@ main(List<String> args) async {
 
 /// Apply all edits of a single iteration by updating the copy of the file in
 /// the memory file system.
-applyEdits(List<Edit> edits, OverlayFileSystem fs,
-    IncrementalKernelGenerator generator, UriTranslator uriTranslator) async {
+applyEdits(
+    List<Edit> edits,
+    OverlayFileSystem fs,
+    IncrementalKernelGenerator generator,
+    UriTranslator uriTranslator,
+    bool verbose) async {
   for (var edit in edits) {
-    print('edit $edit');
+    if (verbose) {
+      print('edit $edit');
+    }
     var uri = edit.uri;
     if (uri.scheme == 'package') uri = uriTranslator.translate(uri);
     generator.invalidate(uri);
@@ -268,6 +312,10 @@ _resolveOverlayUri(String uriString) {
 }
 
 ArgParser argParser = new ArgParser()
+  ..addFlag('verbose-compilation',
+      help: 'make the compiler verbose', defaultsTo: false)
+  ..addFlag('verbose', help: 'print additional information', defaultsTo: false)
+  ..addFlag('loop', help: 'run benchmark 8 times', defaultsTo: true)
   ..addOption('target',
       help: 'target platform', defaultsTo: 'vm', allowed: ['vm', 'flutter'])
   ..addOption('cache',

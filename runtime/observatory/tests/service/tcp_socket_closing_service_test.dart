@@ -50,7 +50,7 @@ Future setup() async {
   await io.ServerSocket.bind('127.0.0.1', 0);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

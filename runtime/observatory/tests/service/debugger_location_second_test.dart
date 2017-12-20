@@ -53,7 +53,7 @@ Future<Debugger> initDebugger(Isolate isolate) {
   });
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Load the isolate's libraries

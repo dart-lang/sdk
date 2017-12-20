@@ -645,37 +645,31 @@ class Elements {
     return null;
   }
 
-  /// If `true`, injected members are sorted with their corresponding class or
-  /// library.
+  /// If `true`, members are sorted using their implementation fileUri.
   ///
   /// This is used for ensuring equivalent output order when testing against
-  /// .dill using the patched_dart2js_sdk.
-  // TODO(johnniwinther): Remove this when patching is implemented in
-  // package:front_end.
-  static bool usePatchedDart2jsSdkSorting = false;
+  /// .dill.
+  // TODO(johnniwinther): Remove this when patching correctly stores origin and
+  // patch file uris (issue 31579)
+  static bool useCFEOrder = false;
 
   /// A `compareTo` function that places [Element]s in a consistent order based
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
     if (identical(a, b)) return 0;
+    if (useCFEOrder) {
+      if (a is MethodElement) {
+        a = a.implementation;
+      }
+      if (b is MethodElement) {
+        b = b.implementation;
+      }
+    }
     int r = utils.compareLibrariesUris(
         a.library.canonicalUri, b.library.canonicalUri);
     if (r != 0) return r;
     Uri aUri = a.compilationUnit.script.readableUri;
     Uri bUri = b.compilationUnit.script.readableUri;
-    if (usePatchedDart2jsSdkSorting) {
-      Uri computePatchedDart2jsUri(Element e, Uri uri) {
-        if (!e.isInjected) return uri;
-        if (e.enclosingClass != null) {
-          return e.enclosingClass.compilationUnit.script.readableUri;
-        } else {
-          return e.library.compilationUnit.script.readableUri;
-        }
-      }
-
-      aUri = computePatchedDart2jsUri(a, aUri);
-      bUri = computePatchedDart2jsUri(b, bUri);
-    }
     r = utils.compareSourceUris(aUri, bUri);
     if (r != 0) return r;
     return utils.compareEntities(a, a.sourceOffset, -1, b, b.sourceOffset, -1);

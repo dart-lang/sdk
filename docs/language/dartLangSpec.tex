@@ -28,11 +28,13 @@
 %   namedArguments on Invocation.
 % - Remove the, now unnecessary, handling of invalid overrides of noSuchMethod.
 % - Add >>> as overridable operator.
-% - If initializing formal has type annotation, require subtype of field.
+% - If initializing formal has type annotation, require subtype of field type.
 % - Constant `==` operations now also allowed if just one operand is null.
 % - Make flatten not be recursive.
 % - Disallow implementing two instantiations of the same generic interface.
 % - Update "FutureOr" specification for Dart 2.0.
+% - Require that a top-level "main" declaration is a valid script-entry
+%   function declaration.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -7868,10 +7870,15 @@ A Dart program will typically be executed by executing a script.
 }
 
 \LMHash{}
-If a non-script library is provided where a script is expected,
-it precludes execution.
-As such, it should be reported as a compile-time error,
-even if that library compiles successfully as a non-script library.
+It is a compile-time error if a library's export scope contains a declaration
+named \code{main}, and the library is not a script.
+\commentary{This restriction ensures that all top-level \code{main} declarations
+introduce a script main-function, so there cannot be a top-level getter or field
+named \code{main}, nor can it be a function that requires more than two
+arguments. The restriction allows tools to fail early on invalid \code{main}
+methods, without needing to know whether a library will be used as the entry
+point of a Dart program. It is possible that this restriction will be removed
+in the future.}
 
 
 \subsection{URIs}

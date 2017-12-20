@@ -47,7 +47,7 @@ void testeeDoNamed() {
   r3_named(y: 'Not a closure', x: 'Not a closure');
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var rootLib = await isolate.rootLibrary.load();
 

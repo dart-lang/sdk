@@ -249,7 +249,7 @@ class Utils {
   static bool runningInJavaScript() => identical(1.0, 1);
 
   static formatStringAsLiteral(String value, [bool wasTruncated = false]) {
-    var result = new List();
+    var result = new List<int>();
     result.add("'".codeUnitAt(0));
     for (int codeUnit in value.codeUnits) {
       if (codeUnit == '\n'.codeUnitAt(0))

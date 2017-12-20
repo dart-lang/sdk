@@ -26,7 +26,7 @@ testMain() async {
   print('foo2'); // LINE_E.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   smartNext,

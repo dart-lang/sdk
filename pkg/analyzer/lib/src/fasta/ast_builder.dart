@@ -1173,8 +1173,10 @@ class AstBuilder extends ScopeListener {
       members.add(ast.switchDefault(
           <Label>[], defaultKeyword, colonAfterDefault, <Statement>[]));
     }
-    members.last.statements.addAll(statements);
-    members.first.labels.addAll(labels);
+    if (members.isNotEmpty) {
+      members.last.statements.addAll(statements);
+      members.first.labels.addAll(labels);
+    }
     push(members);
   }
 

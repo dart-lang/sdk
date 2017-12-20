@@ -139,9 +139,6 @@ cc/IsolateReload_PrefixImportedLibModified: Fail # Please triage.
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $arch == simdbc64 && $compiler == dartk ]
-cc/*: Pass, Crash # Please triage (flaky crashes in kernel-isolate?).
-dart/regress29620_test: RuntimeError # Please triage.
-dart/regress30853_test: Crash # Please triage.
 dart/truncating_ints_test: RuntimeError # Please triage.
 
 [ $arch == x64 && $system == windows ]
@@ -251,7 +248,6 @@ cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
 cc/IsolateReload_RunNewFieldInitializers: Skip
 cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
 cc/IsolateReload_RunNewFieldInitializersThrows: Skip
 cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_ShapeChangeRetainsHash: Skip
@@ -345,7 +341,6 @@ cc/Parser_AllocateVariables_TwoChains: Crash
 
 [ $compiler == dartk && $strong ]
 dart/data_uri_spawn_test: CompileTimeError # Issue 31586
-dart/hello_fuchsia_test: RuntimeError
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 
