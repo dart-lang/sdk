@@ -11,8 +11,8 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 class Foo {
-  Object left;
-  Object right;
+  dynamic left;
+  dynamic right;
 }
 
 Foo r;

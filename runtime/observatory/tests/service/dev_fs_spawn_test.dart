@@ -136,10 +136,11 @@ main(args, msg) {
     await hasStoppedAtBreakpoint(spawnedIsolate);
 
     // Make sure that we are running code from the spawned isolate.
-    result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
-    expect(result.type, equals('Instance'));
-    expect(result.kind, equals(M.InstanceKind.string));
-    expect(result.valueAsString, equals('I live!'));
+    var instance = (await spawnedIsolate.rootLibrary.evaluate('proofOfLife()'))
+        as Instance;
+    expect(instance.type, equals('Instance'));
+    expect(instance.kind, equals(M.InstanceKind.string));
+    expect(instance.valueAsString, equals('I live!'));
 
     // Spawn the script with arguments.
     completer = new Completer();
@@ -165,10 +166,11 @@ main(args, msg) {
     await hasStoppedAtBreakpoint(spawnedIsolate);
 
     // Make sure that we are running code from the spawned isolate.
-    result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
-    expect(result.type, equals('Instance'));
-    expect(result.kind, equals(M.InstanceKind.string));
-    expect(result.valueAsString, equals('I live, [one, two, three]!'));
+    instance = (await spawnedIsolate.rootLibrary.evaluate('proofOfLife()'))
+        as Instance;
+    expect(instance.type, equals('Instance'));
+    expect(instance.kind, equals(M.InstanceKind.string));
+    expect(instance.valueAsString, equals('I live, [one, two, three]!'));
 
     // Spawn the script with arguments and message
     completer = new Completer();
@@ -195,10 +197,11 @@ main(args, msg) {
     await hasStoppedAtBreakpoint(spawnedIsolate);
 
     // Make sure that we are running code from the spawned isolate.
-    result = await spawnedIsolate.rootLibrary.evaluate('proofOfLife()');
-    expect(result.type, equals('Instance'));
-    expect(result.kind, equals(M.InstanceKind.string));
-    expect(result.valueAsString, equals('I live, [A, B, C], test!'));
+    instance = (await spawnedIsolate.rootLibrary.evaluate('proofOfLife()'))
+        as Instance;
+    expect(instance.type, equals('Instance'));
+    expect(instance.kind, equals(M.InstanceKind.string));
+    expect(instance.valueAsString, equals('I live, [A, B, C], test!'));
 
     // Delete the fs.
     result = await vm.invokeRpcNoUpgrade('_deleteDevFS', {

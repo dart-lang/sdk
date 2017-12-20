@@ -38,7 +38,7 @@ test_code() async {
   }
 }
 
-Future<Isolate> stepThroughProgram(Isolate isolate) async {
+Future stepThroughProgram(Isolate isolate) async {
   Completer completer = new Completer();
   int pauseEventsSeen = 0;
 

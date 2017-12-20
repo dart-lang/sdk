@@ -137,10 +137,10 @@ abstract class CommonWebSocketVM extends VM {
       try {
         _webSocket.connect(
             target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
-      } catch (_) {
+      } catch (_, stack) {
         _webSocket = null;
         var exception = new NetworkRpcException('WebSocket closed');
-        return new Future.error(exception);
+        return new Future.error(exception, stack);
       }
     }
     if (_disconnected.isCompleted) {

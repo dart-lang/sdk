@@ -62,7 +62,7 @@ var tests = <IsolateTest>[
       }
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -85,7 +85,7 @@ var tests = <IsolateTest>[
     subscription = stream.listen((ServiceEvent event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -132,7 +132,7 @@ var tests = <IsolateTest>[
       }
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -156,7 +156,7 @@ var tests = <IsolateTest>[
     subscription = stream.listen((ServiceEvent event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();

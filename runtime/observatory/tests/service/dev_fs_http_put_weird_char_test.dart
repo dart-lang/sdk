@@ -11,7 +11,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 Future<String> readResponse(HttpClientResponse response) {
-  var completer = new Completer();
+  var completer = new Completer<String>();
   var contents = new StringBuffer();
   response.transform(UTF8.decoder).listen((String data) {
     contents.write(data);

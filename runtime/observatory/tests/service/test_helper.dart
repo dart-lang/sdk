@@ -125,7 +125,7 @@ class _ServiceTesteeLauncher {
 
     String dartExecutable = Platform.executable;
 
-    var fullArgs = [];
+    var fullArgs = <String>[];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
@@ -160,8 +160,8 @@ class _ServiceTesteeLauncher {
 
     String dartExecutable = _skyShellPath();
 
-    var dartFlags = [];
-    var fullArgs = [];
+    var dartFlags = <String>[];
+    var fullArgs = <String>[];
     if (pause_on_start) {
       dartFlags.add('--pause_isolates_on_start');
       fullArgs.add('--start-paused');
@@ -259,9 +259,11 @@ class _ServiceTesteeLauncher {
   }
 
   void requestExit() {
-    print('** Killing script');
-    if (process.kill()) {
-      killedByTester = true;
+    if (process != null) {
+      print('** Killing script');
+      if (process.kill()) {
+        killedByTester = true;
+      }
     }
   }
 }
@@ -334,12 +336,12 @@ class _ServiceTesterRunner {
         testsDone = true;
         await process.requestExit();
       });
-    }, onError: (error, stackTrace) async {
+    }, onError: (error, stackTrace) {
       if (testsDone) {
         print('Ignoring late exception during process exit:\n'
             '$error\n#stackTrace');
       } else {
-        await process.requestExit();
+        process.requestExit();
         print('Unexpected exception in service tests: $error\n$stackTrace');
         throw error;
       }

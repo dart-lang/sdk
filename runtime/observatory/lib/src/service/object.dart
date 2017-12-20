@@ -620,10 +620,10 @@ class _EventStreamState {
     return new Future.value(null);
   }
 
-  Future<Stream> addStream() async {
+  Future<Stream<ServiceEvent>> addStream() async {
     var controller;
-    controller =
-        new StreamController(onCancel: () => _cancelController(controller));
+    controller = new StreamController<ServiceEvent>(
+        onCancel: () => _cancelController(controller));
     _controllers.add(controller);
     if (_cancelFuture != null) {
       try {
@@ -934,12 +934,12 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   static const kServiceStream = '_Service';
 
   /// Returns a single-subscription Stream object for a VM event stream.
-  Future<Stream> getEventStream(String streamId) async {
+  Future<Stream<ServiceEvent>> getEventStream(String streamId) async {
     var eventStream = _eventStreams.putIfAbsent(
         streamId,
         () => new _EventStreamState(
             this, streamId, () => _eventStreams.remove(streamId)));
-    Stream stream = await eventStream.addStream();
+    Stream<ServiceEvent> stream = await eventStream.addStream();
     return stream;
   }
 

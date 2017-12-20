@@ -157,7 +157,7 @@ typedef Future WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
 typedef Future<List<int>> ReadFileCallback(Uri path);
 
 /// Called to list all files under some path.
-typedef Future<List<Map<String, String>>> ListFilesCallback(Uri path);
+typedef Future<List<Map<String, dynamic>>> ListFilesCallback(Uri path);
 
 /// Called when we need information about the server.
 typedef Future<Uri> ServerInformamessage_routertionCallback();

@@ -23,7 +23,7 @@ var tests = <VMTest>[
         await client.getUrl(Uri.parse('$serviceHttpAddress/_getCrashDump'));
     var response = await request.close();
     print('Received response');
-    Completer completer = new Completer();
+    Completer completer = new Completer<String>();
     StringBuffer sb = new StringBuffer();
     response.transform(UTF8.decoder).listen((chunk) {
       sb.write(chunk);

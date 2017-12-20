@@ -146,17 +146,17 @@ Future<List<int>> readFileCallback(Uri path) async {
   return await file.readAsBytes();
 }
 
-Future<List<Map<String, String>>> listFilesCallback(Uri dirPath) async {
+Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
   var dir = new Directory.fromUri(dirPath);
   var dirPathStr = dirPath.path;
   var stream = dir.list(recursive: true);
-  var result = <Map<String, String>>[];
+  var result = <Map<String, dynamic>>[];
   await for (var fileEntity in stream) {
     var filePath = new Uri.file(fileEntity.path).path;
     var stat = await fileEntity.stat();
     if (stat.type == FileSystemEntityType.FILE &&
         filePath.startsWith(dirPathStr)) {
-      var map = {};
+      var map = <String, dynamic>{};
       map['name'] = '/' + filePath.substring(dirPathStr.length);
       map['size'] = stat.size;
       map['modified'] = stat.modified.millisecondsSinceEpoch;

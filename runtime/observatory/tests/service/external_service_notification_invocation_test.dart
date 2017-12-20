@@ -22,8 +22,8 @@ var tests = <IsolateTest>[
     WebSocket _socket_invoker =
         await WebSocket.connect((vm as WebSocketVM).target.networkAddress);
 
-    final socket = new StreamController();
-    final socket_invoker = new StreamController();
+    final socket = new StreamController<Map>();
+    final socket_invoker = new StreamController<Map>();
 
     // Avoid to manually encode and decode messages from the stream
     socket.stream.map(JSON.encode).pipe(_socket);
