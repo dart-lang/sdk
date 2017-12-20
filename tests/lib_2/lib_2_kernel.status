@@ -344,7 +344,6 @@ mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/intercepted_class_test: RuntimeError
-mirrors/invocation_fuzz_test/smi: Pass
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/library_declarations_test/01: RuntimeError
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
@@ -371,16 +370,16 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 isolate/*: Skip
-mirrors/invocation_fuzz_test/emptyarray: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/false: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/emptyarray: CompileTimeError, Pass # Please triage.
+mirrors/invocation_fuzz_test/false: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/smi: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/string: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash # Please triage.
+mirrors/invocation_fuzz_test/string: CompileTimeError, Pass # Please triage.
 mirrors/library_uri_io_test: CompileTimeError # Please triage.
 mirrors/spawn_function_root_library_test: Skip
 

@@ -110,12 +110,6 @@ string_case_test/01: RuntimeError
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simdbc64 && $compiler == dartk && $strong ]
-iterable_to_set_test: RuntimeError # Please triage.
-
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
