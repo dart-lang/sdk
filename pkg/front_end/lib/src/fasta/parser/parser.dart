@@ -1450,7 +1450,7 @@ class Parser {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
     }
-    token = parseClassBody(token, start.next);
+    token = parseClassBody(token);
     listener.endClassDeclaration(begin, token);
     return token;
   }
@@ -3438,12 +3438,7 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  ///
-  /// The [beforeBody] token is required to be a token that appears somewhere
-  /// before the [token] in the token stream.
-  Token parseClassBody(Token token, Token beforeBody) {
-    // TODO(brianwilkerson): Remove the parameter `beforeBody` because it is not
-    // being used.
+  Token parseClassBody(Token token) {
     Token previousToken = token;
     Token begin = token = token.next;
     listener.beginClassBody(token);
