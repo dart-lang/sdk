@@ -719,10 +719,18 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
         cls = isolate()->class_table()->At(cid);
+        // Even if we are resolving get:M on a class that has method M
+        // ResolveForReceiverClass would not inject a method extractor into
+        // a class becuase FLAG_lazy_dispatchers is set to false during AOT
+        // compilation. Precompiler however does inject method extractors
+        // (see Precompiler::CheckForNewDynamicFunctions). This means that that
+        // lookup for get:m might overlook a method M in subclass and return
+        // get:m (method extractor for M) from a superclass.
+        // For this reason we abort optimization if lookup returns any
+        // artificial functions that can be inserted lazily.
         target = instr->ResolveForReceiverClass(cls);
-        if (target.IsNull()) {
-          // Can't resolve the target. It might be a noSuchMethod,
-          // call through getter or closurization.
+        if (target.IsNull() || target.IsMethodExtractor() ||
+            target.IsInvokeFieldDispatcher()) {
           single_target = Function::null();
           ic_data = ICData::null();
           break;
