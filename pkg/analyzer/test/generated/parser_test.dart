@@ -10601,7 +10601,8 @@ class C {
     ForStatement statement = parseStatement('for (String item i) {}');
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
+      expectedError(
+          ParserErrorCode.EXPECTED_TOKEN, usingFastaParser ? 18 : 17, 1)
     ]);
     expect(statement, new isInstanceOf<ForStatement>());
     expect(statement.toSource(), 'for (String item; i;) {}');

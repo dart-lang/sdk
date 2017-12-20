@@ -2390,9 +2390,7 @@ class Parser {
         return parseNamedFunctionRest(beforeName, begin, formals, true);
 
       case TypeContinuation.VariablesDeclarationOrExpression:
-        if (looksLikeType &&
-            token.isIdentifier &&
-            isOneOf4(token.next, '=', ';', ',', 'in')) {
+        if (looksLikeType && token.isIdentifier) {
           // TODO(ahe): Generate type events and call
           // parseVariablesDeclarationNoSemicolonRest instead.
           return parseVariablesDeclarationNoSemicolon(beforeBegin);
