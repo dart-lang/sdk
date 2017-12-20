@@ -7,9 +7,13 @@ library vm.kernel_front_end;
 
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions, ErrorHandler;
 import 'package:front_end/src/api_prototype/kernel_generator.dart'
     show kernelForProgram;
+import 'package:front_end/src/api_prototype/compilation_message.dart'
+    show CompilationMessage, Severity;
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -23,9 +27,18 @@ import 'transformations/cha_devirtualization.dart' as chaDevirtualization
 ///
 Future<Program> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false}) async {
+  // Replace error handler to detect if there are compilation errors.
+  final errorDetector =
+      new ErrorDetector(previousErrorHandler: options.onError);
+  options.onError = errorDetector;
+
   final program = await kernelForProgram(source, options);
 
-  if (aot && (program != null)) {
+  // Restore error handler (in case 'options' are reused).
+  options.onError = errorDetector.previousErrorHandler;
+
+  // Run global transformations only if program is correct.
+  if (aot && (program != null) && !errorDetector.hasCompilationErrors) {
     _runGlobalTransformations(program, options.strongMode);
   }
 
@@ -39,5 +52,21 @@ _runGlobalTransformations(Program program, bool strongMode) {
 
   if (strongMode) {
     chaDevirtualization.transformProgram(coreTypes, program);
+  }
+}
+
+class ErrorDetector {
+  final ErrorHandler previousErrorHandler;
+  bool hasCompilationErrors = false;
+
+  ErrorDetector({this.previousErrorHandler});
+
+  void call(CompilationMessage message) {
+    if ((message.severity != Severity.nit) &&
+        (message.severity != Severity.warning)) {
+      hasCompilationErrors = true;
+    }
+
+    previousErrorHandler?.call(message);
   }
 }
