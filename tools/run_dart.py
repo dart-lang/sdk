@@ -39,10 +39,10 @@ def main():
   parser = BuildArguments()
   (options, args) = parser.parse_known_args()
   if utils.CheckedInSdkCheckExecutable():
-    options.dart_executable = utils.CheckedInSdkExecutable()
-  elif options.dart_executable is not None:
+    options.dart = utils.CheckedInSdkExecutable()
+  elif options.dart is not None:
     DisplayBootstrapWarning()
-    options.dart_executable = os.path.abspath(options.dart_executable)
+    options.dart = os.path.abspath(options.dart)
   else:
     print >> sys.stderr, 'ERROR: cannot locate dart executable'
     return -1
@@ -53,7 +53,7 @@ def main():
   else:
     out = None
 
-  return subprocess.call([options.dart_executable] + args,
+  return subprocess.call([options.dart] + args,
       stdout=out, stderr=out)
 
 if __name__ == '__main__':
