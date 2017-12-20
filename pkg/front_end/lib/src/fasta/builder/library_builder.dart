@@ -175,8 +175,10 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   int finishTypeVariables(ClassBuilder object) => 0;
 
   void becomeCoreLibrary(dynamicType) {
-    addBuilder("dynamic",
-        new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
+    if (scope.local["dynamic"] == null) {
+      addBuilder("dynamic",
+          new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
+    }
   }
 
   void forEach(void f(String name, Builder builder)) {

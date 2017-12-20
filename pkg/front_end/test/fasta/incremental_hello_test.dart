@@ -16,8 +16,7 @@ import 'package:front_end/src/base/processed_options.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show LocatedMessage, codeDuplicatedDefinition;
+import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show FastaDelta, IncrementalCompiler;
@@ -26,12 +25,7 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 void problemHandler(LocatedMessage message, Severity severity, String formatted,
     int line, int column) {
-  if (message.code != codeDuplicatedDefinition ||
-      message.arguments["name"] != "dynamic") {
-    throw "Unexpected message: $formatted";
-  } else {
-    print(formatted);
-  }
+  throw "Unexpected message: $formatted";
 }
 
 test() async {
@@ -60,7 +54,6 @@ test() async {
   delta = await compiler.computeDelta(entryPoint: helloDart);
   // Expect that the new program contains exactly hello.dart
   Expect.isTrue(delta.newProgram.libraries.length == 1);
-  print("new program has expected length");
 }
 
 void main() {
