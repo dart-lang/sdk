@@ -321,7 +321,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     // and reports a single function expression argument
     // while analyzer adds the closing paren before the `a`
     // and adds synthetic `;`s making `a` a statement.
-    if (request.target.entity is BlockFunctionBody) {
+    if (usingFastaParser) {
       assertSuggestKeywords([],
           pseudoKeywords: ['async', 'async*', 'sync*'],
           relevance: DART_RELEVANCE_HIGH);
@@ -363,9 +363,8 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
     assertSuggestKeywords([],
-        pseudoKeywords: request.target.entity is ExpressionFunctionBody
-            ? ['async']
-            : ['async', 'async*', 'sync*'],
+        pseudoKeywords:
+            usingFastaParser ? ['async'] : ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
@@ -382,7 +381,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     // Fasta interprets the argument as a function expression
     // while analyzer adds synthetic `;`s making `a` a statement.
-    if (request.target.entity is BlockFunctionBody) {
+    if (usingFastaParser) {
       assertSuggestKeywords([],
           pseudoKeywords: ['async', 'async*', 'sync*'],
           relevance: DART_RELEVANCE_HIGH);
@@ -740,7 +739,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
     assertSuggestKeywords(
-        request.target.containingNode is ClassDeclaration
+        usingFastaParser
             ? [Keyword.EXTENDS]
             : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
@@ -750,7 +749,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
     assertSuggestKeywords(
-        request.target.containingNode is ClassDeclaration
+        usingFastaParser
             ? [Keyword.EXTENDS]
             : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
@@ -919,7 +918,7 @@ class C {
   test_function_async() async {
     addTestSource('main()^');
     await computeSuggestions();
-    assertSuggestKeywords(DECLARATION_KEYWORDS,
+    assertSuggestKeywords(usingFastaParser ? [] : DECLARATION_KEYWORDS,
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -943,7 +942,7 @@ class C {
   test_function_async4() async {
     addTestSource('main()a^{}');
     await computeSuggestions();
-    assertSuggestKeywords(DECLARATION_KEYWORDS,
+    assertSuggestKeywords(usingFastaParser ? [] : DECLARATION_KEYWORDS,
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -1453,8 +1452,14 @@ class A {
   test_method_async() async {
     addTestSource('class A { foo() ^}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_method_async2() async {
@@ -1475,8 +1480,14 @@ class A {
   test_method_async4() async {
     addTestSource('class A { foo() a^{}}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_method_async5() async {
