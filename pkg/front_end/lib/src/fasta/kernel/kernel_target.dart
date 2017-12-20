@@ -242,6 +242,7 @@ class KernelTarget extends TargetImplementation {
         program.addMetadataRepository(metadataCollector.repository);
       }
       loader.computeHierarchy(program);
+      computeCoreTypes();
       loader.checkOverrides(myClasses);
       if (!loader.target.disableTypeInference) {
         loader.prepareTopLevelInference(myClasses);
@@ -511,6 +512,41 @@ class KernelTarget extends TargetImplementation {
         new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
         name: new Name(""),
         isSyntheticDefault: true);
+  }
+
+  void computeCoreTypes() {
+    List<Library> libraries = <Library>[];
+    for (String platformLibrary in const [
+      "dart:_internal",
+      "dart:async",
+      "dart:core",
+      "dart:mirrors"
+    ]) {
+      Uri uri = Uri.parse(platformLibrary);
+      LibraryBuilder library = loader.builders[uri];
+      if (library == null) {
+        // TODO(ahe): This is working around a bug in kernel_driver_test or
+        // kernel_driver.
+        bool found = false;
+        for (Library target in dillTarget.loader.libraries) {
+          if (target.importUri == uri) {
+            libraries.add(target);
+            found = true;
+            break;
+          }
+        }
+        if (!found && uri.path != "mirrors") {
+          // dart:mirrors is optional.
+          throw "Can't find $uri";
+        }
+      } else {
+        libraries.add(library.target);
+      }
+    }
+    Program plaformLibraries = new Program();
+    // Add libraries directly to prevent that their parents are changed.
+    plaformLibraries.libraries.addAll(libraries);
+    loader.computeCoreTypes(plaformLibraries);
   }
 
   void finishAllConstructors(List<SourceClassBuilder> builders) {

@@ -105,6 +105,9 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
           uriToSource: c.uriToSource);
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
+        if (library.uri.scheme == "dart" && library.uri.path == "core") {
+          userCode.loader.coreLibrary = library;
+        }
       }
 
       userCode.read(entryPoint);

@@ -536,6 +536,9 @@ class SourceLoader<L> extends Loader<L> {
   void computeHierarchy(Program program) {
     hierarchy = new IncrementalClassHierarchy();
     ticker.logMs("Computed class hierarchy");
+  }
+
+  void computeCoreTypes(Program program) {
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");
   }
