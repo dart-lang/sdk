@@ -4,7 +4,7 @@
 
 import("../application_snapshot.gni")
 
-application_snapshot("front_end_worker") {
-  main_dart = "../../pkg/front_end/tool/bazel/worker.dart"
+application_snapshot("kernel_summary_worker") {
+  main_dart = "kernel_summary_worker.dart"
   training_args = [ "--help" ]
 }

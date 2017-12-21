@@ -44,7 +44,7 @@ declare_args() {
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
 # ........dartdevk.dart.snapshot
-# ........front_end_worker.dart.snapshot
+# ........kernel_summary_worker.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
 #.........resources/
@@ -163,8 +163,8 @@ _full_sdk_snapshots = [
     "../utils/dartfmt",
   ],
   [
-    "front_end_worker",
-    "../utils/front_end:front_end_worker",
+    "kernel_summary_worker",
+    "../utils/bazel:kernel_summary_worker",
   ],
   [
     "pub",
