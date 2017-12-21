@@ -114,7 +114,7 @@ vars = {
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
   "scheduled_test_tag": "@0.12.11+1",
-  "shelf_static_tag": "@0.2.5",
+  "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
   "shelf_packages_handler_tag": "@1.0.3",
   "shelf_tag": "@0.7.1",
   "shelf_web_socket_tag": "@0.2.2",
@@ -293,7 +293,7 @@ deps = {
       Var("github_mirror") + "shelf_packages_handler.git"
       + Var("shelf_packages_handler_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
-      Var("github_mirror") + "shelf_static.git" + Var("shelf_static_tag"),
+      Var("github_mirror") + "shelf_static.git" + Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       Var("github_mirror") + "shelf_web_socket.git" +
       Var("shelf_web_socket_tag"),
