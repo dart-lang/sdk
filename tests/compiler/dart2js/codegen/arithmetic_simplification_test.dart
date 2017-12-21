@@ -4,7 +4,7 @@
 // Test constant folding on numbers.
 
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String INT_PLUS_ZERO = """
 int foo(x) => x;

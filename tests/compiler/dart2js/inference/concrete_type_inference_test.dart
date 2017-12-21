@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 Future compileAndFind(String code, String name, check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');

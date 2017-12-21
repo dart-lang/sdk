@@ -4,13 +4,23 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST_ONE = r"""
-foo(a) {
-  a.add(42);
-  a.removeLast();
-  return a.length;
+foo() {
+  return "foo".length;
+}
+""";
+
+const String TEST_TWO = r"""
+foo() {
+  return r"foo".length;
+}
+""";
+
+const String TEST_THREE = r"""
+foo() {
+  return new List().add(2);
 }
 """;
 
@@ -18,10 +28,15 @@ main() {
   test({bool useKernel}) async {
     await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
         check: (String generated) {
-      Expect.isTrue(generated.contains(r'.add$1('));
-      Expect.isTrue(generated.contains(r'.removeLast$0('));
-      Expect.isTrue(generated.contains(r'.length'),
-          "Unexpected code to contain '.length':\n$generated");
+      Expect.isTrue(generated.contains("return 3;"));
+    });
+    await compile(TEST_TWO, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(generated.contains("return 3;"));
+    });
+    await compile(TEST_THREE, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(generated.contains("push(2);"));
     });
   }
 
