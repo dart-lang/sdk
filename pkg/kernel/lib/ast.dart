@@ -1507,6 +1507,7 @@ class Procedure extends Member implements FileUriNode {
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
+    this.isForwardingSemiStub = isForwardingSemiStub;
     this.transformerFlags = transformerFlags;
   }
 
