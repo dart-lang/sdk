@@ -637,7 +637,7 @@ class ClassMethodModifierContext {
     token = token.next;
     assert(optional('typedef', token));
     parser.reportRecoverableError(token, fasta.messageTypedefInClass);
-    // TODO(brianwilkerson) If the declaration appears to be a valid typedef
+    // TODO(brianwilkerson): If the declaration appears to be a valid typedef
     // then skip the entire declaration so that we generate a single error
     // (above) rather than many unhelpful errors.
     return token;

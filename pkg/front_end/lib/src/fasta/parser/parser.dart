@@ -604,14 +604,13 @@ class Parser {
     } else {
       // Recovery
       listener.endImport(importKeyword, null);
-      return parseImportRecovery(uri, token);
+      return parseImportRecovery(uri);
     }
   }
 
   /// Recover given out-of-order clauses in an import directive where [token] is
-  /// the import keyword and [recoveryStart] is the token on which main parsing
-  /// stopped.
-  Token parseImportRecovery(Token token, Token recoveryStart) {
+  /// the import keyword.
+  Token parseImportRecovery(Token token) {
     final primaryListener = listener;
     final recoveryListener = new ImportRecoveryListener(primaryListener);
 
@@ -5360,6 +5359,7 @@ class Parser {
   /// ;
   /// ```
   Token parseForStatement(Token awaitToken, Token token) {
+    // TODO(brianwilkerson): Consider moving `token` to be the first parameter.
     Token forKeyword = token.next;
     assert(awaitToken == null || optional('await', awaitToken));
     listener.beginForStatement(forKeyword);
@@ -5416,6 +5416,7 @@ class Parser {
   /// ;
   /// ```
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
+    // TODO(brianwilkerson): Consider moving `token` to be the first parameter.
     Token leftSeparator = ensureSemicolon(token);
     if (optional(';', leftSeparator.next)) {
       token = parseEmptyStatement(leftSeparator);
@@ -5457,6 +5458,7 @@ class Parser {
   /// ```
   Token parseForInRest(
       Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
+    // TODO(brianwilkerson): Consider moving `token` to be the first parameter.
     Token inKeyword = token.next;
     assert(optional('in', inKeyword) || optional(':', inKeyword));
     listener.beginForInExpression(inKeyword.next);
@@ -5945,7 +5947,7 @@ class Parser {
     Token next = token.next;
     if (optional(';', next)) {
       // Report and skip extra semicolons that appear between members.
-      // TODO(brianwilkerson) Provide a more specific error message.
+      // TODO(brianwilkerson): Provide a more specific error message.
       reportRecoverableError(
           next, fasta.templateExpectedClassMember.withArguments(next));
       listener.handleInvalidMember(next);
