@@ -77,7 +77,6 @@ Future<String> compile(String code,
   if (useKernel) {
     options.add(Flags.useKernel);
   }
-
   if (disableInlining) {
     options.add(Flags.disableInlining);
   }

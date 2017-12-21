@@ -11,18 +11,27 @@ main() {
   // For a function with only one variable we declare it inline for more
   // compactness.  Test that we don't also declare it at the start of the
   // method.
-  asyncTest(() => compile(
-          'final List a = const ["bar", "baz"];'
-          'int foo() {'
-          '  for (int i = 0; i < a.length; i++) {'
-          '    print(a[i]);'
-          '  }'
-          '}',
-          entry: 'foo',
-          minify: false).then((String generated) {
-        RegExp re = new RegExp(r"var ");
-        Expect.isTrue(re.hasMatch(generated));
-        print(generated);
-        Expect.equals(1, re.allMatches(generated).length);
-      }));
+  runTest({bool useKernel}) async {
+    String generated = await compile(
+        'final List a = const ["bar", "baz"];'
+        'int foo() {'
+        '  for (int i = 0; i < a.length; i++) {'
+        '    print(a[i]);'
+        '  }'
+        '}',
+        useKernel: useKernel,
+        entry: 'foo',
+        minify: false);
+    RegExp re = new RegExp(r"var ");
+    Expect.isTrue(re.hasMatch(generated));
+    print(generated);
+    Expect.equals(1, re.allMatches(generated).length);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

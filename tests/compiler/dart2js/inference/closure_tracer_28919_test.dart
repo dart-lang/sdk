@@ -2,12 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
 
-import '../compiler_helper.dart';
-import '../type_mask_test_helper.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
 import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/world.dart';
+import 'package:expect/expect.dart';
+
+import '../memory_compiler.dart';
+import '../type_mask_test_helper.dart';
 
 bool isContainer(TypeMask mask) {
   return mask is ContainerTypeMask;
@@ -58,34 +66,49 @@ main() {
 ''';
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
-        var commonMasks = closedWorld.commonMasks;
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    Expect.isTrue(result.isSuccess);
+    Compiler compiler = result.compiler;
 
-        typeOf(String name) {
-          MemberElement member = findElement(compiler, name);
-          return typesInferrer.getReturnTypeOfMember(member);
-        }
+    TypeGraphInferrer typesInferrer =
+        compiler.globalInference.typesInferrerInternal;
+    ClosedWorld closedWorld = typesInferrer.closedWorld;
+    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    CommonMasks commonMasks = closedWorld.commonMasks;
 
-        checkType(String name, type) {
-          var mask = typeOf(name);
-          Expect.equals(type.nullable(), simplify(mask, closedWorld), name);
-        }
+    typeOf(String name) {
+      LibraryEntity library = elementEnvironment.mainLibrary;
+      MemberEntity member =
+          elementEnvironment.lookupLibraryMember(library, name);
+      return typesInferrer.getReturnTypeOfMember(member);
+    }
 
-        checkContainer(String name, bool value) {
-          var mask = typeOf(name);
-          Expect.equals(
-              value, isContainer(mask), '$name is container (mask: $mask)');
-        }
+    checkType(String name, type) {
+      var mask = typeOf(name);
+      Expect.equals(type.nullable(), simplify(mask, closedWorld), name);
+    }
 
-        checkContainer('probe1methods', true);
-        checkType('probe1res', commonMasks.uint31Type);
-        checkType('probe1sum', commonMasks.positiveIntType);
+    checkContainer(String name, bool value) {
+      var mask = typeOf(name);
+      Expect.equals(
+          value, isContainer(mask), '$name is container (mask: $mask)');
+    }
 
-        checkContainer('probe2methods', false);
-        checkType('probe2res', commonMasks.dynamicType);
-      }));
+    checkContainer('probe1methods', true);
+    checkType('probe1res', commonMasks.uint31Type);
+    checkType('probe1sum', commonMasks.positiveIntType);
+
+    checkContainer('probe2methods', false);
+    checkType('probe2res', commonMasks.dynamicType);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
+/// Currently it only works with the mock compiler.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/elements.dart';

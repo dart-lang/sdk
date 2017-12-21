@@ -2,33 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart' as dart2js;
+import 'package:expect/expect.dart';
+
 import 'memory_compiler.dart';
 
-import 'package:compiler/src/compiler.dart' as dart2js;
-
 void main() {
-  asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        options: useKernel ? [Flags.useKernel] : []);
     dart2js.Compiler compiler = result.compiler;
+    var closedWorld = compiler.backendClosedWorldForTesting;
+    var elementEnvironment = closedWorld.elementEnvironment;
 
     lookupLibrary(name) {
-      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
+      return elementEnvironment.lookupLibrary(Uri.parse(name));
     }
 
     var outputUnitForEntity =
         compiler.backend.outputUnitData.outputUnitForEntity;
 
     dynamic lib = lookupLibrary("memory:lib.dart");
-    var a = lib.find("a");
-    var b = lib.find("b");
-    var c = lib.find("c");
-    var d = lib.find("d");
+    var a = elementEnvironment.lookupLibraryMember(lib, "a");
+    var b = elementEnvironment.lookupLibraryMember(lib, "b");
+    var c = elementEnvironment.lookupLibraryMember(lib, "c");
+    var d = elementEnvironment.lookupLibraryMember(lib, "d");
     Expect.equals(outputUnitForEntity(a), outputUnitForEntity(b));
     Expect.equals(outputUnitForEntity(a), outputUnitForEntity(c));
     Expect.equals(outputUnitForEntity(a), outputUnitForEntity(d));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }
 

@@ -7,6 +7,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:expect/expect.dart';
@@ -14,10 +15,12 @@ import 'memory_compiler.dart';
 import 'output_collector.dart';
 
 void main() {
-  asyncTest(() async {
+  runTest({bool useKernel}) async {
     OutputCollector collector = new OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector,
+        options: useKernel ? [Flags.useKernel] : []);
     Compiler compiler = result.compiler;
     String mainOutput = collector.getOutput('', OutputType.js);
     String deferredOutput = collector.getOutput('out_1', OutputType.jsPart);
@@ -28,6 +31,13 @@ void main() {
         "Deferred output doesn't contain '${isPrefix}A: 1':\n"
         "$deferredOutput");
     Expect.isFalse(mainOutput.contains('${isPrefix}A: 1'));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }
 

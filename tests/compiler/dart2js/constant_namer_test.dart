@@ -23,15 +23,24 @@ const String TEST_ONE = r"""
 """;
 
 main() {
-  check(generated, text) {
+  check(String generated, String text) {
     Expect.isTrue(generated.contains(text), text);
   }
 
-  asyncTest(() => compile(TEST_ONE, entry: 'test').then((String generated) {
-        check(generated, '.List_12_53.');
-        check(generated, '.Token_start_null.');
-        check(generated, '.Token_end_null.');
-        check(generated, '.Token_yes_12.');
-        check(generated, '.Token_true_false.');
-      }));
+  runTests({bool useKernel}) async {
+    String generated =
+        await compile(TEST_ONE, useKernel: useKernel, entry: 'test');
+    check(generated, '.List_12_53.');
+    check(generated, '.Token_start_null.');
+    check(generated, '.Token_end_null.');
+    check(generated, '.Token_yes_12.');
+    check(generated, '.Token_true_false.');
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

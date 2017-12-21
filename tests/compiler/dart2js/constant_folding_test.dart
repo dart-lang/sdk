@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
@@ -58,27 +57,43 @@ foo() {
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        compileAndMatch(NUMBER_FOLDING, 'main', new RegExp(r"print\(7\)")),
-        compileAndMatch(
-            NEGATIVE_NUMBER_FOLDING, 'main', new RegExp(r"print\(1\)")),
-        compile(NULL_EQUALS_FOLDING, entry: 'foo', check: (String generated) {
-          RegExp regexp = new RegExp(r'a == null');
-          Expect.isTrue(regexp.hasMatch(generated));
+  runTests({bool useKernel}) async {
+    await compileAndMatch(NUMBER_FOLDING, 'main', new RegExp(r"print\(7\)"),
+        useKernel: useKernel);
+    await compileAndMatch(
+        NEGATIVE_NUMBER_FOLDING, 'main', new RegExp(r"print\(1\)"),
+        useKernel: useKernel);
+    await compile(NULL_EQUALS_FOLDING, useKernel: useKernel, entry: 'foo',
+        check: (String generated) {
+      RegExp regexp = new RegExp(r'a == null');
+      Expect.isTrue(regexp.hasMatch(generated));
 
-          regexp = new RegExp(r'null == b');
-          Expect.isTrue(regexp.hasMatch(generated));
+      regexp = new RegExp(r'null == b');
+      Expect.isTrue(regexp.hasMatch(generated));
 
-          regexp = new RegExp(r'4 === c');
-          Expect.isTrue(regexp.hasMatch(generated));
+      regexp = new RegExp(r'4 === c');
+      Expect.isTrue(regexp.hasMatch(generated));
 
-          regexp = new RegExp('"foo" === d');
-          Expect.isTrue(regexp.hasMatch(generated));
-        }),
-        compileAndMatch(LIST_LENGTH_FOLDING, 'foo', new RegExp(r"return 3")),
-        compileAndMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1")),
-        compileAndDoNotMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"ioore")),
-        compileAndMatch(STRING_LENGTH_FOLDING, 'foo', new RegExp(r"return 3")),
-        compileAndMatch(RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"ioore")),
-      ]));
+      regexp = new RegExp('"foo" === d');
+      Expect.isTrue(regexp.hasMatch(generated));
+    });
+    await compileAndMatch(LIST_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"),
+        useKernel: useKernel);
+    await compileAndMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1"),
+        useKernel: useKernel);
+    await compileAndDoNotMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"ioore"),
+        useKernel: useKernel);
+    await compileAndMatch(STRING_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"),
+        useKernel: useKernel);
+    await compileAndMatch(
+        RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"ioore"),
+        useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

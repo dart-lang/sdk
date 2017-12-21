@@ -18,8 +18,18 @@ void foo(bar) {
 """;
 
 main() {
-  asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-        RegExp regexp = new RegExp("toBeRemoved");
-        Expect.isTrue(!regexp.hasMatch(generated));
-      }));
+  runTest({bool useKernel}) async {
+    await compile(TEST_ONE, useKernel: useKernel, entry: 'foo',
+        check: (String generated) {
+      RegExp regexp = new RegExp("toBeRemoved");
+      Expect.isTrue(!regexp.hasMatch(generated));
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

@@ -7,35 +7,40 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 import 'output_collector.dart';
 
 void main() {
-  asyncTest(() async {
+  runTest({bool useKernel}) async {
     OutputCollector collector = new OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector,
+        options: useKernel ? [Flags.useKernel] : []);
     Compiler compiler = result.compiler;
+    var closedWorld = compiler.backendClosedWorldForTesting;
+    var elementEnvironment = closedWorld.elementEnvironment;
 
     lookupLibrary(name) {
-      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
+      return elementEnvironment.lookupLibrary(Uri.parse(name));
     }
 
     var outputUnitForEntity =
         compiler.backend.outputUnitData.outputUnitForEntity;
 
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
-    var foo1 = lib1.find("foo");
+    var foo1 = elementEnvironment.lookupLibraryMember(lib1, "foo");
     var ou_lib1 = outputUnitForEntity(foo1);
 
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
-    var foo2 = lib2.find("foo");
+    var foo2 = elementEnvironment.lookupLibraryMember(lib2, "foo");
     var ou_lib2 = outputUnitForEntity(foo2);
 
-    dynamic mainApp = compiler.frontendStrategy.elementEnvironment.mainLibrary;
-    var fooMain = mainApp.find("foo");
+    dynamic mainApp = elementEnvironment.mainLibrary;
+    var fooMain = elementEnvironment.lookupLibraryMember(mainApp, "foo");
     var ou_lib1_lib2 = outputUnitForEntity(fooMain);
 
     String mainOutput = collector.getOutput("", OutputType.js);
@@ -80,6 +85,14 @@ void main() {
     Expect.isTrue(new RegExp(r"= .string4").hasMatch(lib1Output));
     Expect.isTrue(new RegExp(r"= .string4").hasMatch(lib2Output));
     Expect.isFalse(new RegExp(r"= .string4").hasMatch(lib12Output));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    // TODO(sigmund): Handle this for kernel.
+    //print('--test from kernel------------------------------------------------');
+    //await runTest(useKernel: true);
   });
 }
 

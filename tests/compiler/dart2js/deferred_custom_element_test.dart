@@ -8,25 +8,34 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
-    Compiler compiler = result.compiler;
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
-    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
-    dynamic lib =
-        compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
-    var customType = lib.find("CustomType");
-    var foo = lib.find("foo");
-    Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo));
-    // Native elements are not deferred
-    Expect.equals(mainOutputUnit, outputUnitForEntity(customType));
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
+}
+
+runTest({bool useKernel}) async {
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      options: useKernel ? [Flags.useKernel] : []);
+  Compiler compiler = result.compiler;
+  var closedWorld = compiler.backendClosedWorldForTesting;
+  var outputUnitForEntity = compiler.backend.outputUnitData.outputUnitForEntity;
+  var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
+  var elementEnvironment = closedWorld.elementEnvironment;
+  dynamic lib = elementEnvironment.lookupLibrary(Uri.parse("memory:lib.dart"));
+  var customType = elementEnvironment.lookupClass(lib, "CustomType");
+  var foo = elementEnvironment.lookupLibraryMember(lib, "foo");
+  Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo));
+  // Native elements are not deferred
+  Expect.equals(mainOutputUnit, outputUnitForEntity(customType));
 }
 
 // The main library imports a file defining a custom element.

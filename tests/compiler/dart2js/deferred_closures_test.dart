@@ -14,12 +14,14 @@ import 'output_collector.dart';
 
 void main() {
   asyncTest(() async {
-    await runTest(false);
-    await runTest(true);
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }
 
-runTest(bool useKernel) async {
+runTest({bool useKernel}) async {
   OutputCollector collector = new OutputCollector();
   var options = useKernel ? [Flags.useKernel] : [];
   await runCompiler(
