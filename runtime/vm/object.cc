@@ -3821,13 +3821,19 @@ bool Class::IsDartFunctionClass() const {
 }
 
 bool Class::IsFutureClass() const {
-  return (library() == Library::AsyncLibrary()) &&
-         (Name() == Symbols::Future().raw());
+  // Looking up future_class in the object store would not work, because
+  // this function is called during class finalization, before the object store
+  // field would be initialized by InitKnownObjects().
+  return (Name() == Symbols::Future().raw()) &&
+         (library() == Library::AsyncLibrary());
 }
 
 bool Class::IsFutureOrClass() const {
-  return (library() == Library::AsyncLibrary()) &&
-         (Name() == Symbols::FutureOr().raw());
+  // Looking up future_or_class in the object store would not work, because
+  // this function is called during class finalization, before the object store
+  // field would be initialized by InitKnownObjects().
+  return (Name() == Symbols::FutureOr().raw()) &&
+         (library() == Library::AsyncLibrary());
 }
 
 // If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
@@ -11555,7 +11561,7 @@ void Library::RegisterLibraries(Thread* thread,
     lib_url = lib.url();
     map.InsertNewOrGetValue(lib_url, lib);
   }
-  // Now rememeber these in the isolate's object store.
+  // Now remember these in the isolate's object store.
   isolate->object_store()->set_libraries(libs);
   isolate->object_store()->set_libraries_map(map.Release());
 }
@@ -16478,7 +16484,7 @@ bool AbstractType::IsDynamicType() const {
   if (IsCanonical()) {
     return raw() == Object::dynamic_type().raw();
   }
-  return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
+  return HasResolvedTypeClass() && (type_class_id() == kDynamicCid);
 }
 
 bool AbstractType::IsVoidType() const {
@@ -16502,13 +16508,11 @@ bool AbstractType::IsTopType() const {
 }
 
 bool AbstractType::IsNullType() const {
-  return HasResolvedTypeClass() &&
-         (type_class() == Isolate::Current()->object_store()->null_class());
+  return HasResolvedTypeClass() && (type_class_id() == kNullCid);
 }
 
 bool AbstractType::IsBoolType() const {
-  return HasResolvedTypeClass() &&
-         (type_class() == Isolate::Current()->object_store()->bool_class());
+  return HasResolvedTypeClass() && (type_class_id() == kBoolCid);
 }
 
 bool AbstractType::IsIntType() const {
@@ -16527,28 +16531,29 @@ bool AbstractType::IsDoubleType() const {
 }
 
 bool AbstractType::IsFloat32x4Type() const {
+  // kFloat32x4Cid refers to the private class and cannot be used here.
   return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Float32x4()).type_class());
 }
 
 bool AbstractType::IsFloat64x2Type() const {
+  // kFloat64x2Cid refers to the private class and cannot be used here.
   return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Float64x2()).type_class());
 }
 
 bool AbstractType::IsInt32x4Type() const {
+  // kInt32x4Cid refers to the private class and cannot be used here.
   return HasResolvedTypeClass() &&
          (type_class() == Type::Handle(Type::Int32x4()).type_class());
 }
 
 bool AbstractType::IsNumberType() const {
-  return HasResolvedTypeClass() &&
-         (type_class() == Type::Handle(Type::Number()).type_class());
+  return HasResolvedTypeClass() && (type_class_id() == kNumberCid);
 }
 
 bool AbstractType::IsSmiType() const {
-  return HasResolvedTypeClass() &&
-         (type_class() == Type::Handle(Type::SmiType()).type_class());
+  return HasResolvedTypeClass() && (type_class_id() == kSmiCid);
 }
 
 bool AbstractType::IsStringType() const {
@@ -16565,7 +16570,7 @@ bool AbstractType::IsDartClosureType() const {
   // Non-typedef function types have '_Closure' class as type class, but are not
   // the Dart '_Closure' type.
   return !IsFunctionType() && HasResolvedTypeClass() &&
-         (type_class() == Isolate::Current()->object_store()->closure_class());
+         (type_class_id() == kClosureCid);
 }
 
 bool AbstractType::TypeTest(TypeTestKind test_kind,
