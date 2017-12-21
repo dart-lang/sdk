@@ -1856,18 +1856,12 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
                                       Label* no_update) {
-  // For the value we are only interested in the new/old bit and the tag bit.
-  andl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
-  // Shift the tag bit into the carry.
-  shrl(value, Immediate(1));
-  // Add the tag bits together, if the value is not a Smi the addition will
-  // overflow into the next bit, leaving us with a zero low bit.
-  adcl(value, object);
-  // Mask out higher, uninteresting bits which were polluted by dest.
-  andl(value, Immediate(kObjectAlignment - 1));
-  // Compare with the expected bit pattern.
-  cmpl(value, Immediate((kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
-                        kOldObjectAlignmentOffset + kHeapObjectTag));
+  ASSERT(kNewObjectAlignmentOffset == 4);
+  ASSERT(kHeapObjectTag == 1);
+  // Detect value being ...101 and object being ...001.
+  andl(value, Immediate(7));
+  leal(value, Address(value, object, TIMES_2, 9));
+  testl(value, Immediate(0xf));
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 
