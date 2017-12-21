@@ -85,6 +85,7 @@ final summaryArgsParser = new ArgParser()
   ..addOption('dart-sdk-summary')
   ..addOption('input-summary', allowMultiple: true)
   ..addOption('multi-root', allowMultiple: true)
+  ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-multi-root')
   ..addOption('packages-file')
   ..addOption('source', allowMultiple: true)
   ..addOption('output');
@@ -110,17 +111,17 @@ Future<bool> computeSummary(List<String> args,
   // Bazel creates an overlay file system where some files may be located in the
   // source tree, some in a gendir, and some in a bindir. The multi-root file
   // system hides this from the front end.
-  var fileSystem = new MultiRootFileSystem(
-      'org-dartlang-multi-root',
-      parsedArgs['multi-root'].map(Uri.parse).toList(),
-      fe.PhysicalFileSystem.instance);
+  var multiRoots = parsedArgs['multi-root'].map(Uri.base.resolve).toList();
+  if (multiRoots.isEmpty) multiRoots.add(Uri.base);
+  var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
+      multiRoots, fe.PhysicalFileSystem.instance);
 
   var state = await fe.initializeCompiler(
       // TODO(sigmund): pass an old state once we can make use of it.
       null,
-      Uri.parse(parsedArgs['dart-sdk-summary']),
-      Uri.parse(parsedArgs['packages-file']),
-      parsedArgs['input-summary'].map(Uri.parse).toList(),
+      Uri.base.resolve(parsedArgs['dart-sdk-summary']),
+      Uri.base.resolve(parsedArgs['packages-file']),
+      parsedArgs['input-summary'].map(Uri.base.resolve).toList(),
       new NoneTarget(new TargetFlags()),
       fileSystem);
 
