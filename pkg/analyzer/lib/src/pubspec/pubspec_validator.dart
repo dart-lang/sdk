@@ -125,13 +125,14 @@ class PubspecValidator {
     if (flutterField is YamlMap) {
       YamlNode assetsField = flutterField.nodes[ASSETS_FIELD];
       if (assetsField is YamlList) {
-        String packageRoot = path.dirname(source.fullName);
+        path.Context context = provider.pathContext;
+        String packageRoot = context.dirname(source.fullName);
         for (YamlNode entryValue in assetsField.nodes) {
           if (entryValue is YamlScalar) {
             Object entry = entryValue.value;
             if (entry is String) {
-              String normalizedEntry = path.joinAll(path.posix.split(entry));
-              String assetPath = path.join(packageRoot, normalizedEntry);
+              String normalizedEntry = context.joinAll(path.posix.split(entry));
+              String assetPath = context.join(packageRoot, normalizedEntry);
               if (!provider.getFile(assetPath).exists) {
                 _reportErrorForNode(
                     reporter,
