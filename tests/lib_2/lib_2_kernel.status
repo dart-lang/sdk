@@ -26,7 +26,6 @@ mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter
 mirrors/variable_is_const_test/01: Crash # Please triage.
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
-mirrors/invocation_fuzz_test/smi: Crash
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
@@ -150,7 +149,6 @@ mirrors/intercepted_object_test: CompileTimeError # Issue 31402 (Invocation argu
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
-mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
@@ -378,7 +376,7 @@ isolate/*: Skip
 mirrors/invocation_fuzz_test/emptyarray: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/false: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash # Please triage.
+mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash, Crash, Pass # Please triage.
 mirrors/invocation_fuzz_test/string: CompileTimeError, Pass # Please triage.
 mirrors/library_uri_io_test: CompileTimeError # Please triage.
 mirrors/spawn_function_root_library_test: Skip
