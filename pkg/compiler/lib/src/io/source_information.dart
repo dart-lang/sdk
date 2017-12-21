@@ -28,8 +28,10 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
   /// The source location associated with the start of the JS node.
   SourceLocation get startPosition => null;
 
-  /// The source location associated with the closing of the JS node.
-  SourceLocation get closingPosition => null;
+  /// The source location associated with an inner of the JS node.
+  ///
+  /// The inner position is for instance `foo()` in `o.foo()`.
+  SourceLocation get innerPosition => null;
 
   /// The source location associated with the end of the JS node.
   SourceLocation get endPosition => null;

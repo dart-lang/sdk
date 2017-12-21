@@ -509,7 +509,8 @@ class CodePointComputer extends TraceListener {
           .trim();
     }
 
-    void addLocation(SourceLocation sourceLocation, String jsCode) {
+    void addLocation(
+        SourceLocation sourceLocation, String jsCode, int targetOffset) {
       if (sourceLocation == null) {
         if (expectInfo) {
           SourceInformation sourceInformation = node.sourceInformation;
@@ -519,23 +520,24 @@ class CodePointComputer extends TraceListener {
             sourceLocation = sourceInformation.sourceLocations.first;
             dartCode = dartCodeFromSourceLocation(sourceLocation);
           }
-          codePoints.add(new CodePoint(kind, jsCode, sourceLocation, dartCode,
+          codePoints.add(new CodePoint(
+              kind, jsCode, targetOffset, sourceLocation, dartCode,
               isMissing: true));
         }
       } else {
-        codePoints.add(new CodePoint(kind, jsCode, sourceLocation,
+        codePoints.add(new CodePoint(kind, jsCode, targetOffset, sourceLocation,
             dartCodeFromSourceLocation(sourceLocation)));
       }
     }
 
     Map<int, List<SourceLocation>> locationMap = nodeMap[node];
     if (locationMap == null) {
-      addLocation(null, nodeToString(node));
+      addLocation(null, nodeToString(node), null);
     } else {
       locationMap.forEach((int targetOffset, List<SourceLocation> locations) {
         String jsCode = nodeToString(node);
         for (SourceLocation location in locations) {
-          addLocation(location, jsCode);
+          addLocation(location, jsCode, targetOffset);
         }
       });
     }
@@ -546,11 +548,13 @@ class CodePointComputer extends TraceListener {
 class CodePoint {
   final StepKind kind;
   final String jsCode;
+  final int targetOffset;
   final SourceLocation sourceLocation;
   final String dartCode;
   final bool isMissing;
 
-  CodePoint(this.kind, this.jsCode, this.sourceLocation, this.dartCode,
+  CodePoint(this.kind, this.jsCode, this.targetOffset, this.sourceLocation,
+      this.dartCode,
       {this.isMissing: false});
 
   String toString() {

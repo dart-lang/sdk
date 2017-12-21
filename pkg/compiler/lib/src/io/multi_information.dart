@@ -310,7 +310,7 @@ class MultiSourceInformation implements SourceInformation {
   SourceLocation get endPosition => infos.first?.endPosition;
 
   @override
-  SourceLocation get closingPosition => infos.first?.closingPosition;
+  SourceLocation get innerPosition => infos.first?.innerPosition;
 
   @override
   SourceLocation get startPosition => infos.first?.startPosition;

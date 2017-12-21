@@ -487,6 +487,8 @@ class Printer implements NodeVisitor {
       visitNestedExpression(node.value, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
+    // Set the closing position to be before the optional semicolon.
+    currentNode.closingPosition = _charCount;
     outSemicolonLn();
   }
 
