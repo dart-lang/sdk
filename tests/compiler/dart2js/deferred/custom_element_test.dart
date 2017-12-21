@@ -10,7 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 void main() {
   asyncTest(() async {

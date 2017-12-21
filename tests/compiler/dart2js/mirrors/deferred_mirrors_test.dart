@@ -9,7 +9,7 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 Future runTest(String mainScript, test) async {
   CompilationResult result = await runCompiler(

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'memory_source_file_helper.dart';
-import "memory_compiler.dart";
+import '../memory_source_file_helper.dart';
+import '../memory_compiler.dart';
 
 void main() {
   asyncTest(() async {

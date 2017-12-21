@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
+
 // Regression test for dart2js that used to have a bogus
 // implementation of var.== and
 // var.hashCode.
@@ -9,7 +11,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''

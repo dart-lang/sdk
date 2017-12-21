@@ -4,7 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST_ONE = r"""
   class Token {

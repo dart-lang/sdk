@@ -5,7 +5,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 main() {
   // For a function with only one variable we declare it inline for more
