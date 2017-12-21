@@ -13,6 +13,7 @@ import '../fasta_codes.dart'
     show
         messageInvalidInitializer,
         messageLoadLibraryTakesNoArguments,
+        messageSuperAsExpression,
         templateIntegerLiteralIsOutOfRange;
 
 import '../messages.dart' show Message;
@@ -352,8 +353,8 @@ class ThisAccessor extends FastaAccessor {
     if (!isSuper) {
       return new ShadowThisExpression();
     } else {
-      return helper.deprecated_buildCompileTimeError(
-          "Can't use `super` as an expression.", offsetForToken(token));
+      return helper.buildCompileTimeError(
+          messageSuperAsExpression, offsetForToken(token));
     }
   }
 
@@ -406,6 +407,8 @@ class ThisAccessor extends FastaAccessor {
   doInvocation(int offset, Arguments arguments) {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
+    } else if (isSuper) {
+      return helper.buildCompileTimeError(messageSuperAsExpression, offset);
     } else {
       return helper.buildMethodInvocation(
           new ShadowThisExpression(), callName, arguments, offset,

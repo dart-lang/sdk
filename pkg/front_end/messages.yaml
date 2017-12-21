@@ -1446,7 +1446,7 @@ SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
 
 SuperAsExpression:
-  template: "Super calls can't be used as expressions."
+  template: "Can't use 'super' as an expression."
   tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
 
 SwitchHasCaseAfterDefault:

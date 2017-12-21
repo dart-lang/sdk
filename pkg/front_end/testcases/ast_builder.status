@@ -144,6 +144,7 @@ runtime_checks/implicit_downcast_assert_initializer: Crash
 runtime_checks/implicit_downcast_constructor_initializer: Crash
 runtime_checks_new/for_in_call_kinds: Crash
 statements: Crash
+super_call: Crash
 super_rasta_copy: Crash
 type_variable_as_super: Crash
 uninitialized_fields: Crash
