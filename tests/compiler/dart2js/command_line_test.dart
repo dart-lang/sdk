@@ -19,6 +19,8 @@ main() {
   asyncTest(() async {
     await test([], exitCode: 1);
     await test(['foo.dart']);
+    await test([Flags.useKernel], exitCode: 1);
+    await test([Flags.useKernel, 'foo.dart']);
     await test([Flags.resolveOnly, 'foo.dart'],
         resolveOnly: true, resolutionOutput: Uri.base.resolve('out.data'));
     await test(['--resolution-input=bar.dart', 'foo.dart'],

@@ -15,7 +15,7 @@ import '../type_mask_test_helper.dart';
 void compileAndFind(String code, String className, String memberName,
     bool disableInlining, check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(code, uri, disableInlining: disableInlining);
+  var compiler = mockCompilerFor(code, uri, disableInlining: disableInlining);
   asyncTest(() => compiler.run(uri).then((_) {
         ClassElement cls = findElement(compiler, className);
         var member = cls.lookupLocalMember(memberName);

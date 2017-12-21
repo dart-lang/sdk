@@ -21,7 +21,7 @@ Future runTest() async {
   Uri uri = new Uri(scheme: 'source');
   {
     // Assertions enabled:
-    var compiler = compilerFor(TEST, uri, enableUserAssertions: true);
+    var compiler = mockCompilerFor(TEST, uri, enableUserAssertions: true);
     await compiler.run(uri);
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
@@ -52,7 +52,7 @@ Future runTest() async {
 
   {
     // Assertions disabled:
-    var compiler = compilerFor(TEST, uri, enableUserAssertions: false);
+    var compiler = mockCompilerFor(TEST, uri, enableUserAssertions: false);
     await compiler.run(uri);
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;

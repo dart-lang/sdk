@@ -132,7 +132,7 @@ main() {
 
 Future runTest(String test, checker) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(test, uri);
+  var compiler = mockCompilerFor(test, uri);
   return compiler.run(uri).then((_) {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;

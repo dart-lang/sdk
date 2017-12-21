@@ -15,8 +15,8 @@ foo(a) {
 """;
 
 main() {
-  test(CompileMode compileMode) async {
-    await compile(TEST_ONE, entry: 'foo', compileMode: compileMode,
+  test({bool useKernel}) async {
+    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
         check: (String generated) {
       Expect.isTrue(generated.contains(r'.add$1('));
       Expect.isTrue(generated.contains(r'.removeLast$0('));
@@ -27,8 +27,8 @@ main() {
 
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await test(CompileMode.memory);
+    await test(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await test(CompileMode.kernel);
+    await test(useKernel: true);
   });
 }

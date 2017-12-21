@@ -35,7 +35,7 @@ main() {
 """;
 
 Uri uri = new Uri(scheme: 'source');
-var compiler = compilerFor(CODE, uri);
+var compiler = mockCompilerFor(CODE, uri);
 dynamic world = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
 main() {

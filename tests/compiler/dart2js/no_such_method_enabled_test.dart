@@ -211,7 +211,7 @@ main() {
       print('---- testing -------------------------------------------------');
       print(test.code);
       Uri uri = new Uri(scheme: 'source');
-      Compiler compiler = compilerFor(test.code, uri);
+      Compiler compiler = mockCompilerFor(test.code, uri);
       await compiler.run(uri);
       checkTest(compiler, test, testComplexReturns: true);
     }

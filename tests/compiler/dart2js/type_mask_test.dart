@@ -20,7 +20,7 @@ main() {
 
 main() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(CODE, uri);
+  var compiler = mockCompilerFor(CODE, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
         dynamic classA = findElement(compiler, 'A');

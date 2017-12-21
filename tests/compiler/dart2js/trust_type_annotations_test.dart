@@ -48,7 +48,7 @@ main () {
 
 void main() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST, uri, trustTypeAnnotations: true);
+  var compiler = mockCompilerFor(TEST, uri, trustTypeAnnotations: true);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
         var closedWorld = typesInferrer.closedWorld;

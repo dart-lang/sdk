@@ -63,41 +63,45 @@ main() {
 }
 """;
 
-twoClasses() {
-  asyncTest(() => compileAll(TEST_ONE).then((generated) {
-        Expect.isTrue(
-            generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
-        Expect.isTrue(
-            generated.contains(new RegExp('B: {[ \n]*"\\^": "Object;"')));
-      }));
+twoClasses(CompileMode compileMode) async {
+  String generated = await compileAll(TEST_ONE, compileMode: compileMode);
+  Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
+  Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "Object;"')));
 }
 
-subClass() {
+subClass(CompileMode compileMode) async {
   checkOutput(String generated) {
     Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
     Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "A;"')));
   }
 
-  asyncTest(() => compileAll(TEST_TWO).then(checkOutput));
-  asyncTest(() => compileAll(TEST_THREE).then(checkOutput));
+  checkOutput(await compileAll(TEST_TWO, compileMode: compileMode));
+  checkOutput(await compileAll(TEST_THREE, compileMode: compileMode));
 }
 
-fieldTest() {
-  asyncTest(() => compileAll(TEST_FOUR).then((generated) {
-        Expect.isTrue(generated
-            .contains(new RegExp('B: {[ \n]*"\\^": "A;y,z,x",[ \n]*static:')));
-      }));
+fieldTest(CompileMode compileMode) async {
+  String generated = await compileAll(TEST_FOUR, compileMode: compileMode);
+  Expect.isTrue(generated
+      .contains(new RegExp('B: {[ \n]*"\\^": "A;y,z,x",[ \n]*static:')));
 }
 
-constructor1() {
-  asyncTest(() => compileAll(TEST_FIVE).then((generated) {
-        Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
-      }));
+constructor1(CompileMode compileMode) async {
+  String generated = await compileAll(TEST_FIVE, compileMode: compileMode);
+  Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
 }
 
 main() {
-  twoClasses();
-  subClass();
-  fieldTest();
-  constructor1();
+  runTests(CompileMode compileMode) async {
+    await twoClasses(compileMode);
+    await subClass(compileMode);
+    await fieldTest(compileMode);
+    await constructor1(compileMode);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await runTests(CompileMode.kernel);
+  });
 }

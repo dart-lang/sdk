@@ -87,7 +87,7 @@ main() {
   Future check(String test) {
     var checker = checkerForAbsentPresent(test);
     Uri uri = new Uri(scheme: 'dart', path: 'test');
-    var compiler = compilerFor(test, uri, expectedErrors: 0);
+    var compiler = mockCompilerFor(test, uri, expectedErrors: 0);
     return compiler.run(uri).then((_) {
       MemberElement element = findElement(compiler, 'main');
       var backend = compiler.backend;

@@ -1165,7 +1165,7 @@ List<String> asSortedStrings(Link link) {
 
 Future compileScript(String source) {
   Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = compilerFor(source, uri);
+  MockCompiler compiler = mockCompilerFor(source, uri);
   compiler.diagnosticHandler = createHandler(compiler, source);
   return compiler.run(uri).then((_) {
     return compiler;

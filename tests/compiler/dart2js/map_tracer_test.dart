@@ -210,7 +210,7 @@ void main() {
 void doTest(String allocation,
     [String keyElementName, String valueElementName]) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(generateTest(allocation), uri,
+  var compiler = mockCompilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
   asyncTest(() => compiler.run(uri).then((_) {
         var keyType, valueType;

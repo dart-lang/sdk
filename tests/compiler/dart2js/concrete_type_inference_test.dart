@@ -9,7 +9,7 @@ import 'compiler_helper.dart';
 
 Future compileAndFind(String code, String name, check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(code, uri);
+  var compiler = mockCompilerFor(code, uri);
   return compiler.run(uri).then((_) {
     var element = findElement(compiler, name);
     check(compiler, element);

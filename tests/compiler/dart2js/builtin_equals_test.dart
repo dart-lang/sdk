@@ -18,11 +18,11 @@ foo() {
 """;
 
 main() {
-  test(CompileMode compileMode) async {
+  test({bool useKernel}) async {
     await compile(TEST,
         entry: 'foo',
         enableTypeAssertions: true,
-        compileMode: compileMode, check: (String generated) {
+        useKernel: useKernel, check: (String generated) {
       Expect.isTrue(!generated.contains('eqB'));
 
       RegExp regexp = new RegExp('==');
@@ -33,8 +33,8 @@ main() {
 
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await test(CompileMode.memory);
+    await test(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await test(CompileMode.kernel);
+    await test(useKernel: true);
   });
 }

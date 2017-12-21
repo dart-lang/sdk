@@ -31,7 +31,7 @@ main() {
 
 Future runTest1() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST1, uri);
+  var compiler = mockCompilerFor(TEST1, uri);
   return compiler.run(uri).then((_) {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var commonMasks = typesInferrer.closedWorld.commonMasks;
@@ -74,7 +74,7 @@ main() {
 
 Future runTest2() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST2, uri);
+  var compiler = mockCompilerFor(TEST2, uri);
   return compiler.run(uri).then((_) {
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var commonMasks = typesInferrer.closedWorld.commonMasks;

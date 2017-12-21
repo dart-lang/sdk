@@ -172,7 +172,7 @@ checkReturn(MockCompiler compiler, String name, type) {
 
 test1() async {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST1, uri);
+  var compiler = mockCompilerFor(TEST1, uri);
   await compiler.run(uri);
   var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
   checkReturn(compiler, 'test1', closedWorld.commonMasks.uint31Type);
@@ -188,7 +188,7 @@ test1() async {
 
 test2() async {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST2, uri);
+  var compiler = mockCompilerFor(TEST2, uri);
   await compiler.run(uri);
   var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
   checkReturn(compiler, 'test1', closedWorld.commonMasks.mapType.nonNullable());
@@ -207,7 +207,7 @@ test2() async {
 
 test3() async {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST3, uri);
+  var compiler = mockCompilerFor(TEST3, uri);
   await compiler.run(uri);
   var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
   checkReturn(compiler, 'test1', const TypeMask.nonNullEmpty());
@@ -220,7 +220,7 @@ test3() async {
 
 test4() async {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST4, uri);
+  var compiler = mockCompilerFor(TEST4, uri);
   await compiler.run(uri);
   var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
   checkReturn(compiler, 'test1', const TypeMask.nonNullEmpty());

@@ -38,7 +38,7 @@ class MyInferrer extends AstTypeGraphInferrer {
 
 void main() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST, uri, analyzeOnly: true);
+  var compiler = mockCompilerFor(TEST, uri, analyzeOnly: true);
   asyncTest(() => compiler.run(uri).then((_) {
         ElementEnvironment elementEnvironment =
             compiler.frontendStrategy.elementEnvironment;

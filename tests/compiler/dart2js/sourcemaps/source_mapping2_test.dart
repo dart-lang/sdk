@@ -14,7 +14,7 @@ import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
 
 import '../mock_compiler.dart';
 
-Future<CodeBuffer> compileAll(SourceFile sourceFile) {
+Future<CodeOutput> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler.internal();
   Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
@@ -23,8 +23,6 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
     // TODO(floitsch): the outputBuffers are only accessible in the full
     // emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;
-    // CodeOutput isn't assignable to CodeBuffer.
-    // ignore: RETURN_OF_INVALID_TYPE_FROM_CLOSURE
     return fullEmitter
         .outputBuffers[compiler.backend.outputUnitData.mainOutputUnit];
   });

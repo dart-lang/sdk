@@ -78,29 +78,29 @@ main() {
   var timesOne = new RegExp(r"\* 1");
   var oneTimes = new RegExp(r"1 \*");
 
-  test(CompileMode compileMode) async {
+  test({bool useKernel}) async {
     await compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne,
-        compileMode: compileMode);
+        useKernel: useKernel);
     await compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes,
-        compileMode: compileMode);
+        useKernel: useKernel);
   }
 
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
-    await test(CompileMode.memory);
+    await test(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await test(CompileMode.kernel);
+    await test(useKernel: true);
   });
 }

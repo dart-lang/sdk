@@ -372,7 +372,7 @@ class MockElement extends FunctionElementX {
 }
 
 // TODO(herhut): Disallow warnings and errors during compilation by default.
-MockCompiler compilerFor(String code, Uri uri,
+MockCompiler mockCompilerFor(String code, Uri uri,
     {bool analyzeAll: false,
     bool analyzeOnly: false,
     Map<String, String> coreSource,

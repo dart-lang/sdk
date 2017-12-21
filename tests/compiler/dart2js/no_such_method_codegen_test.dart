@@ -19,6 +19,6 @@ main() => foo[42];
 
 main() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST, uri);
+  var compiler = mockCompilerFor(TEST, uri);
   compiler.run(uri);
 }

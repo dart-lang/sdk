@@ -54,7 +54,7 @@ void doTest(
     bool bail: false,
     bool initial: false}) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(generateTest(key, value, initial), uri,
+  var compiler = mockCompilerFor(generateTest(key, value, initial), uri,
       expectedErrors: 0, expectedWarnings: 0);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;

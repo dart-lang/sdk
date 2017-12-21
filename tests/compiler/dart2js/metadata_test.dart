@@ -168,7 +168,7 @@ void testLibraryTags() {
 
     Uri uri = new Uri(scheme: 'source', path: 'main.dart');
 
-    var compiler = compilerFor(source, uri, analyzeOnly: true)
+    var compiler = mockCompilerFor(source, uri, analyzeOnly: true)
       ..registerSource(partUri, partSource)
       ..registerSource(libUri, libSource);
 

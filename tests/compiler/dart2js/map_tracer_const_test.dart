@@ -30,7 +30,8 @@ main() {
 
 void main() {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(TEST, uri, expectedErrors: 0, expectedWarnings: 0);
+  var compiler =
+      mockCompilerFor(TEST, uri, expectedErrors: 0, expectedWarnings: 0);
   compiler.stopAfterTypeInference = true;
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;

@@ -9,8 +9,8 @@ import "package:expect/expect.dart";
 
 Future compile(String source) {
   Uri uri = Uri.parse('test:code');
-  var compiler =
-      compilerFor(source, uri, analyzeOnly: true, enableTypeAssertions: true);
+  var compiler = mockCompilerFor(source, uri,
+      analyzeOnly: true, enableTypeAssertions: true);
   compiler.diagnosticHandler = createHandler(compiler, source);
   return compiler.run(uri).then((_) {
     return compiler;

@@ -25,7 +25,7 @@ main() {
 
 main() {
   Uri uri = new Uri(scheme: 'source');
-  dynamic compiler = compilerFor(TEST, uri);
+  dynamic compiler = mockCompilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         String generated = compiler.assembledCode;
         RegExp regexp = new RegExp(r"get\$foo");

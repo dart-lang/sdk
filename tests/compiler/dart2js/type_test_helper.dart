@@ -87,7 +87,7 @@ class TypeEnvironment {
     } else {
       if (compileMode == CompileMode.mock) {
         uri = new Uri(scheme: 'source');
-        mock.MockCompiler mockCompiler = mock.compilerFor(source, uri,
+        mock.MockCompiler mockCompiler = mock.mockCompilerFor(source, uri,
             analyzeAll: !stopAfterTypeInference,
             analyzeOnly: !stopAfterTypeInference);
         mockCompiler.diagnosticHandler =

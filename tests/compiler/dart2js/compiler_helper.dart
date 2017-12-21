@@ -16,12 +16,8 @@ import 'package:compiler/src/elements/entities.dart';
 export 'package:compiler/src/elements/elements.dart';
 
 import 'package:compiler/src/js_backend/js_backend.dart' as js;
-import 'package:compiler/src/js_backend/element_strategy.dart'
-    show ElementCodegenWorkItem;
 
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common/codegen.dart';
-import 'package:compiler/src/common/resolution.dart';
 
 export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
@@ -41,7 +37,7 @@ export 'package:compiler/src/tree/tree.dart';
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';
 
-import 'memory_compiler.dart' hide compilerFor;
+import 'memory_compiler.dart';
 
 import 'output_collector.dart';
 export 'output_collector.dart';
@@ -61,92 +57,55 @@ Future<String> compile(String code,
     bool analyzeAll: false,
     bool disableInlining: true,
     bool trustJSInteropTypeAnnotations: false,
-    CompileMode compileMode: CompileMode.memory,
+    bool useKernel: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
-  if (compileMode == CompileMode.mock) {
-    // TODO(johnniwinther): Remove this when no longer needed by
-    // `arithmetic_simplication_test.dart`.
-    MockCompiler compiler = new MockCompiler.internal(
-        enableTypeAssertions: enableTypeAssertions,
-        // Type inference does not run when manually
-        // compiling a method.
-        disableTypeInference: true,
-        enableMinification: minify,
-        disableInlining: disableInlining,
-        trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
-        outputProvider: outputCollector);
-    await compiler.init();
-    compiler.parseScript(code);
-    ElementEnvironment elementEnvironment =
-        compiler.frontendStrategy.elementEnvironment;
-    MethodElement element = compiler.mainApp.find(entry);
-    if (element == null) return null;
-    compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.processQueue(elementEnvironment, compiler.enqueuer.resolution,
-        element, compiler.libraryLoader.libraries);
-    ResolutionWorkItem resolutionWork =
-        new ResolutionWorkItem(compiler.resolution, element);
-    resolutionWork.run();
-    ClosedWorld closedWorld = compiler.closeResolution(element).closedWorld;
-    CodegenWorkItem work =
-        new ElementCodegenWorkItem(compiler.backend, closedWorld, element);
-    compiler.phase = Compiler.PHASE_COMPILING;
-    work.run();
-    js.JavaScriptBackend backend = compiler.backend;
-    String generated = backend.getGeneratedCode(element);
-    if (check != null) {
-      check(generated);
-    }
-    return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
-  } else {
-    List<String> options = <String>[Flags.disableTypeInference];
-    if (enableTypeAssertions) {
-      options.add(Flags.enableCheckedMode);
-    }
-    if (minify) {
-      options.add(Flags.minify);
-    }
-    if (analyzeAll) {
-      options.add(Flags.analyzeAll);
-    }
-    if (trustJSInteropTypeAnnotations) {
-      options.add(Flags.trustJSInteropTypeAnnotations);
-    }
-    if (compileMode == CompileMode.kernel) {
-      options.add(Flags.useKernel);
-    }
-
-    if (disableInlining) {
-      options.add(Flags.disableInlining);
-    }
-
-    Map<String, String> source;
-    if (entry != 'main') {
-      source = {'main.dart': "$code\n\nmain() => $entry;"};
-    } else {
-      source = {'main.dart': code};
-    }
-
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: source,
-        options: options,
-        outputProvider: outputCollector);
-    Expect.isTrue(result.isSuccess);
-    Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-    FunctionEntity element =
-        elementEnvironment.lookupLibraryMember(mainLibrary, entry);
-    js.JavaScriptBackend backend = compiler.backend;
-    String generated = backend.getGeneratedCode(element);
-    if (check != null) {
-      check(generated);
-    }
-    return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
+  List<String> options = <String>[Flags.disableTypeInference];
+  if (enableTypeAssertions) {
+    options.add(Flags.enableCheckedMode);
   }
+  if (minify) {
+    options.add(Flags.minify);
+  }
+  if (analyzeAll) {
+    options.add(Flags.analyzeAll);
+  }
+  if (trustJSInteropTypeAnnotations) {
+    options.add(Flags.trustJSInteropTypeAnnotations);
+  }
+  if (useKernel) {
+    options.add(Flags.useKernel);
+  }
+
+  if (disableInlining) {
+    options.add(Flags.disableInlining);
+  }
+
+  Map<String, String> source;
+  if (entry != 'main') {
+    source = {'main.dart': "$code\n\nmain() => $entry;"};
+  } else {
+    source = {'main.dart': code};
+  }
+
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: source,
+      options: options,
+      outputProvider: outputCollector);
+  Expect.isTrue(result.isSuccess);
+  Compiler compiler = result.compiler;
+  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+  FunctionEntity element =
+      elementEnvironment.lookupLibraryMember(mainLibrary, entry);
+  js.JavaScriptBackend backend = compiler.backend;
+  String generated = backend.getGeneratedCode(element);
+  if (check != null) {
+    check(generated);
+  }
+  return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
 }
 
 Future<String> compileAll(String code,
@@ -155,32 +114,62 @@ Future<String> compileAll(String code,
     bool trustTypeAnnotations: false,
     bool minify: false,
     int expectedErrors,
-    int expectedWarnings}) {
-  Uri uri = new Uri(scheme: 'source');
+    int expectedWarnings,
+    CompileMode compileMode: CompileMode.mock}) async {
   OutputCollector outputCollector = new OutputCollector();
-  MockCompiler compiler = compilerFor(code, uri,
-      coreSource: coreSource,
-      disableInlining: disableInlining,
-      minify: minify,
-      expectedErrors: expectedErrors,
-      trustTypeAnnotations: trustTypeAnnotations,
-      expectedWarnings: expectedWarnings,
-      outputProvider: outputCollector);
-  compiler.diagnosticHandler = createHandler(compiler, code);
-  return compiler.run(uri).then((compilationSucceded) {
+  if (compileMode == CompileMode.mock) {
+    Uri uri = new Uri(scheme: 'source');
+    MockCompiler compiler = mockCompilerFor(code, uri,
+        coreSource: coreSource,
+        disableInlining: disableInlining,
+        minify: minify,
+        expectedErrors: expectedErrors,
+        trustTypeAnnotations: trustTypeAnnotations,
+        expectedWarnings: expectedWarnings,
+        outputProvider: outputCollector);
+    compiler.diagnosticHandler = createHandler(compiler, code);
+    bool compilationSucceeded = await compiler.run(uri);
     Expect.isTrue(
-        compilationSucceded,
+        compilationSucceeded,
         'Unexpected compilation error(s): '
         '${compiler.diagnosticCollector.errors}');
-    return outputCollector.getOutput('', OutputType.js);
-  });
+  } else {
+    DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+    if (coreSource != null) {
+      throw new UnsupportedError(
+          'coreSource is not supported for $compileMode');
+    }
+    List<String> options = <String>[];
+    if (disableInlining) {
+      options.add(Flags.disableInlining);
+    }
+    if (trustTypeAnnotations) {
+      options.add(Flags.trustTypeAnnotations);
+    }
+    if (minify) {
+      options.add(Flags.minify);
+    }
+    if (compileMode == CompileMode.kernel) {
+      options.add(Flags.useKernel);
+    }
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': code},
+        options: options,
+        outputProvider: outputCollector,
+        diagnosticHandler: diagnosticCollector);
+    Expect.isTrue(
+        result.isSuccess,
+        'Unexpected compilation error(s): '
+        '${diagnosticCollector.errors}');
+  }
+  return outputCollector.getOutput('', OutputType.js);
 }
 
 Future analyzeAndCheck(
     String code, String name, check(MockCompiler compiler, Element element),
     {int expectedErrors, int expectedWarnings}) {
   Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = compilerFor(code, uri,
+  MockCompiler compiler = mockCompilerFor(code, uri,
       expectedErrors: expectedErrors,
       expectedWarnings: expectedWarnings,
       analyzeOnly: true);
@@ -196,7 +185,7 @@ Future compileSources(
   Uri mainUri = base.resolve('main.dart');
   String mainCode = sources['main.dart'];
   Expect.isNotNull(mainCode, 'No source code found for "main.dart"');
-  MockCompiler compiler = compilerFor(mainCode, mainUri);
+  MockCompiler compiler = mockCompilerFor(mainCode, mainUri);
   sources.forEach((String path, String code) {
     if (path == 'main.dart') return;
     compiler.registerSource(base.resolve(path), code);
@@ -239,8 +228,8 @@ void checkNumberOfMatches(Iterator it, int nb) {
 }
 
 Future compileAndMatch(String code, String entry, RegExp regexp,
-    {CompileMode compileMode: CompileMode.memory}) {
-  return compile(code, entry: entry, compileMode: compileMode,
+    {bool useKernel: false}) {
+  return compile(code, entry: entry, useKernel: useKernel,
       check: (String generated) {
     Expect.isTrue(
         regexp.hasMatch(generated), '"$generated" does not match /$regexp/');
@@ -248,8 +237,8 @@ Future compileAndMatch(String code, String entry, RegExp regexp,
 }
 
 Future compileAndDoNotMatch(String code, String entry, RegExp regexp,
-    {CompileMode compileMode: CompileMode.memory}) {
-  return compile(code, entry: entry, compileMode: compileMode,
+    {bool useKernel: false}) {
+  return compile(code, entry: entry, useKernel: useKernel,
       check: (String generated) {
     Expect.isFalse(
         regexp.hasMatch(generated), '"$generated" has a match in /$regexp/');
