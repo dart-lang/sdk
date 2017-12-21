@@ -84,6 +84,7 @@ vars = {
   "html_tag" : "@0.13.2",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
+  "http_retry_tag": "@0.1.0",
   "http_tag" : "@0.11.3+14",
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
@@ -107,7 +108,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.3",
   "protobuf_tag": "@0.5.4",
-  "pub_rev": "@cde958f157d3662bf968bcbed05580d5c0355e89",
+  "pub_rev": "@667281eef93b4be648cceca400e954e000edba38",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.25.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
@@ -227,6 +228,9 @@ deps = {
       Var("http_multi_server_tag"),
   Var("dart_root") + "/third_party/pkg/http_parser":
       Var("github_mirror") + "http_parser.git" + Var("http_parser_tag"),
+  Var("dart_root") + "/third_party/pkg/http_retry":
+      Var("github_mirror") + "http_retry.git" +
+      Var("http_retry_tag"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
       Var("github_mirror") + "http_throttle.git" +
       Var("http_throttle_tag"),
