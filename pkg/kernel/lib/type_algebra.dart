@@ -340,7 +340,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
     substitution[node] = new TypeParameterType(fresh);
-    fresh.bound = node.bound != null ? visit(node.bound) : null;
+    fresh.bound = visit(node.bound);
     return fresh;
   }
 }

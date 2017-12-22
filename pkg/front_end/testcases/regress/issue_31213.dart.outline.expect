@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef C<A extends core::Object, K extends core::Object> = <B extends core::Object>(A, K, B) → core::int;
+typedef D<K extends core::Object> = <A extends core::Object>(core::int) → <B extends core::Object>(A, K, B) → core::int;
+static method producer<K extends core::Object>() → dynamic
+  ;
+static method main() → dynamic
+  ;

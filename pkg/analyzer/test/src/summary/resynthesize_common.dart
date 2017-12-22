@@ -9525,31 +9525,19 @@ class D {
   test_typedef_type_parameters_bound_recursive() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends F>();');
-    if (isSharedFrontEnd) {
-      // Typedefs cannot reference themselves.
-      checkElementText(library, r'''
-typedef F<T extends dynamic> = void Function();
-''');
-    } else {
-      checkElementText(library, r'''
+    // Typedefs cannot reference themselves.
+    checkElementText(library, r'''
 typedef F<T extends () → void> = void Function();
 ''');
-    }
   }
 
   test_typedef_type_parameters_bound_recursive2() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
-    if (isSharedFrontEnd) {
-      // Typedefs cannot reference themselves.
-      checkElementText(library, r'''
-typedef F<T extends List<dynamic>> = void Function();
-''');
-    } else {
-      checkElementText(library, r'''
+    // Typedefs cannot reference themselves.
+    checkElementText(library, r'''
 typedef F<T extends List<() → void>> = void Function();
 ''');
-    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {

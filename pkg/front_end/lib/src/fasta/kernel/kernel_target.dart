@@ -231,11 +231,11 @@ class KernelTarget extends TargetImplementation {
       loader.resolveTypes();
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
+      loader.finishTypeVariables(objectClassBuilder);
       loader.buildProgram();
       installDefaultSupertypes();
       installDefaultConstructors(myClasses);
       loader.resolveConstructors();
-      loader.finishTypeVariables(objectClassBuilder);
       program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       if (metadataCollector != null) {

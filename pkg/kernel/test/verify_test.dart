@@ -104,7 +104,7 @@ main() {
   negativeTest(
       'Class type parameter in static method',
       "Type parameter 'test_lib::TestClass::T' referenced from static context,"
-      " parent is 'test_lib::TestClass'.", (TestHarness test) {
+      " parent is: 'test_lib::TestClass'.", (TestHarness test) {
     return new Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -115,7 +115,7 @@ main() {
   negativeTest(
       'Class type parameter in static field',
       "Type parameter 'test_lib::TestClass::T' referenced from static context,"
-      " parent is 'test_lib::TestClass'.", (TestHarness test) {
+      " parent is: 'test_lib::TestClass'.", (TestHarness test) {
     return new Field(new Name('field'),
         initializer:
             new TypeLiteral(new TypeParameterType(test.classTypeParameter)),

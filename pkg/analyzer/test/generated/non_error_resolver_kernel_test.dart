@@ -199,22 +199,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_genericTypeAlias_invalidGenericFunctionType() async {
     return super.test_genericTypeAlias_invalidGenericFunctionType();

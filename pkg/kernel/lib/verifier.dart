@@ -145,6 +145,10 @@ class VerifyingVisitor extends RecursiveVisitor {
   void declareTypeParameters(List<TypeParameter> parameters) {
     for (int i = 0; i < parameters.length; ++i) {
       var parameter = parameters[i];
+      if (parameter.bound == null) {
+        problem(
+            currentParent, "Missing bound for type parameter '$parameter'.");
+      }
       if (!typeParametersInScope.add(parameter)) {
         problem(parameter, "Type parameter '$parameter' redeclared.");
       }
@@ -577,7 +581,7 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(
           currentParent,
           "Type parameter '$parameter' referenced from"
-          " static context, parent is '${parameter.parent}'.");
+          " static context, parent is: '${parameter.parent}'.");
     }
   }
 
