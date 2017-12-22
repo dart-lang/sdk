@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
@@ -51,17 +50,27 @@ foo(a) {
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        // Make sure we don't introduce a new variable.
-        compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier =")),
+  runTests({bool useKernel}) async {
+    // Make sure we don't introduce a new variable.
+    await compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier ="),
+        useKernel: useKernel);
 
-        compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf")),
+    await compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf"),
+        useKernel: useKernel);
 
-        compile(TEST, entry: 'foo', check: (String generated) {
-          Expect.isFalse(generated.contains('else'));
-          // Regression check to ensure that there is no floating variable
-          // expression.
-          Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
-        }),
-      ]));
+    await compile(TEST, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isFalse(generated.contains('else'));
+      // Regression check to ensure that there is no floating variable
+      // expression.
+      Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

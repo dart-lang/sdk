@@ -7,8 +7,13 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
+import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/selector.dart' show Selector;
+import 'package:compiler/src/world.dart';
+import 'memory_compiler.dart';
 
 const String TEST = r"""
 class A {
@@ -24,20 +29,35 @@ main() {
 """;
 
 main() {
-  Uri uri = new Uri(scheme: 'source');
-  dynamic compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        String generated = compiler.assembledCode;
-        RegExp regexp = new RegExp(r"get\$foo");
-        Iterator matches = regexp.allMatches(generated).iterator;
-        checkNumberOfMatches(matches, 1);
-        dynamic cls = findElement(compiler, 'A');
-        Expect.isNotNull(cls);
-        String name = 'foo';
-        var element = cls.lookupLocalMember(name);
-        Expect.isNotNull(element);
-        Selector selector = new Selector.getter(new PublicName(name));
-        Expect.isFalse(compiler.resolutionWorldBuilder.closedWorldForTesting
-            .hasAnyUserDefinedGetter(selector, null));
-      }));
+  runTests({bool useKernel}) async {
+    OutputCollector outputCollector = new OutputCollector();
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        outputProvider: outputCollector,
+        options: useKernel ? [Flags.useKernel] : []);
+    Compiler compiler = result.compiler;
+    ClosedWorldBase closedWorld =
+        compiler.resolutionWorldBuilder.closedWorldForTesting;
+    var elementEnvironment = closedWorld.elementEnvironment;
+
+    String generated = outputCollector.getOutput('', OutputType.js);
+    RegExp regexp = new RegExp(r"get\$foo");
+    Iterator matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
+    dynamic cls =
+        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'A');
+    Expect.isNotNull(cls);
+    String name = 'foo';
+    var element = elementEnvironment.lookupClassMember(cls, name);
+    Expect.isNotNull(element);
+    Selector selector = new Selector.getter(new PublicName(name));
+    Expect.isFalse(closedWorld.hasAnyUserDefinedGetter(selector, null));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

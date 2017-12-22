@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
@@ -26,23 +25,32 @@ const String TEST_TWO = r"""
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        // Check that one-shot interceptors preserve variable names, see
-        // https://code.google.com/p/dart/issues/detail?id=8106.
-        compile(TEST_ONE, entry: 'foo', check: (String generated) {
-          Expect.isTrue(
-              generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\$\(a\)')));
-          Expect.isTrue(generated.contains('myVariableName'));
-        }),
-        // Check that an intercepted getter that does not need to be
-        // intercepted, is turned into a regular getter call or field
-        // access.
-        compile(TEST_TWO, entry: 'foo', check: (String generated) {
-          Expect.isFalse(generated.contains(r'a.get$length()'));
-          Expect.isTrue(
-              generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
-          Expect.isTrue(
-              generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')));
-        }),
-      ]));
+  runTests({bool useKernel}) async {
+    // Check that one-shot interceptors preserve variable names, see
+    // https://code.google.com/p/dart/issues/detail?id=8106.
+    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(
+          generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\$\(a\)')));
+      Expect.isTrue(generated.contains('myVariableName'));
+    });
+    // Check that an intercepted getter that does not need to be
+    // intercepted, is turned into a regular getter call or field
+    // access.
+    await compile(TEST_TWO, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isFalse(generated.contains(r'a.get$length()'));
+      Expect
+          .isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
+      Expect.isTrue(
+          generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')));
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

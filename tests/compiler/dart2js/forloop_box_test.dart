@@ -40,18 +40,31 @@ main() {
 ''';
 
 main() {
-  asyncTest(() => compileAll(SHOULD_NOT_BE_BOXED_TEST).then((generated) {
-        Expect.isTrue(generated.contains('main_closure(i)'),
-            'for-loop variable should not have been boxed');
-      }));
-  asyncTest(() => compileAll(SHOULD_BE_BOXED_TEST).then((generated) {
-        Expect.isFalse(generated.contains('main_closure(i)'),
-            'for-loop variable should have been boxed');
-      }));
-  asyncTest(() => compileAll(ONLY_UPDATE_LOOP_VAR_TEST).then((generated) {
-        Expect.isFalse(generated.contains('main_closure(i)'),
-            'for-loop variable should have been boxed');
-        Expect.isFalse(generated.contains(', _box_0.b = 3,'),
-            'non for-loop captured variable should not be updated in loop');
-      }));
+  runTests({bool useKernel}) async {
+    CompileMode compileMode =
+        useKernel ? CompileMode.kernel : CompileMode.memory;
+
+    String generated1 =
+        await compileAll(SHOULD_NOT_BE_BOXED_TEST, compileMode: compileMode);
+    Expect.isTrue(generated1.contains('main_closure(i)'),
+        'for-loop variable should not have been boxed');
+
+    String generated2 =
+        await compileAll(SHOULD_BE_BOXED_TEST, compileMode: compileMode);
+    Expect.isFalse(generated2.contains('main_closure(i)'),
+        'for-loop variable should have been boxed');
+
+    String generated3 = await compileAll(ONLY_UPDATE_LOOP_VAR_TEST);
+    Expect.isFalse(generated3.contains('main_closure(i)'),
+        'for-loop variable should have been boxed');
+    Expect.isFalse(generated3.contains(', _box_0.b = 3,'),
+        'non for-loop captured variable should not be updated in loop');
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

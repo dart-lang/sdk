@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
@@ -29,12 +28,19 @@ foo(a) {
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        compile(TEST_ONE, entry: 'foo', check: (String generated) {
-          Expect.isTrue(!generated.contains(r'break'));
-        }),
-        compile(TEST_TWO, entry: 'foo', check: (String generated) {
-          Expect.isTrue(generated.contains(r'continue'));
-        }),
-      ]));
+  runTests({bool useKernel}) async {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
+      Expect.isTrue(!generated.contains(r'break'));
+    }, useKernel: useKernel);
+    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
+      Expect.isTrue(generated.contains(r'continue'));
+    }, useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

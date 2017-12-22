@@ -16,15 +16,25 @@ bool foo(bar) {
 """;
 
 main() {
-  asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-        // Check that no boolify code is generated.
-        RegExp regexp = new RegExp("=== true");
-        Iterator matches = regexp.allMatches(generated).iterator;
-        Expect.isFalse(matches.moveNext());
+  runTest({bool useKernel}) async {
+    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      // Check that no boolify code is generated.
+      RegExp regexp = new RegExp("=== true");
+      Iterator matches = regexp.allMatches(generated).iterator;
+      Expect.isFalse(matches.moveNext());
 
-        regexp = new RegExp("===");
-        matches = regexp.allMatches(generated).iterator;
-        Expect.isTrue(matches.moveNext());
-        Expect.isFalse(matches.moveNext());
-      }));
+      regexp = new RegExp("===");
+      matches = regexp.allMatches(generated).iterator;
+      Expect.isTrue(matches.moveNext());
+      Expect.isFalse(matches.moveNext());
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

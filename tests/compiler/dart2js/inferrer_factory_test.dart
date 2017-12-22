@@ -23,9 +23,18 @@ main() {
 """;
 
 main() {
-  asyncTest(() => compileAll(TEST1).then((generated) {
-        // Check that we're using the index operator on the object returned
-        // by the A factory.
-        Expect.isTrue(generated.contains('[0] = 42'));
-      }));
+  runTest({bool useKernel}) async {
+    String generated = await compileAll(TEST1,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    // Check that we're using the index operator on the object returned
+    // by the A factory.
+    Expect.isTrue(generated.contains('[0] = 42'));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }
