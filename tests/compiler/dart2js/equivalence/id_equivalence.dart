@@ -211,15 +211,6 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   TreeElements get elements => resolvedAst.elements;
 
-  ElementId computeElementId(AstElement element) {
-    String memberName = element.name;
-    if (element.isSetter) {
-      memberName += '=';
-    }
-    String className = element.enclosingClass?.name;
-    return new ElementId.internal(memberName, className);
-  }
-
   ast.Node computeAccessPosition(ast.Send node, AccessSemantics access) {
     switch (access.kind) {
       case AccessKind.THIS_PROPERTY:
@@ -522,6 +513,29 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
   }
 }
 
+/// Compute a canonical [Id] for AST-based nodes.
+ElementId computeElementId(AstElement element) {
+  String memberName = element.name;
+  if (element.isSetter) {
+    memberName += '=';
+  }
+  String className = element.enclosingClass?.name;
+  return new ElementId.internal(memberName, className);
+}
+
+/// Compute a canonical [Id] for kernel-based nodes.
+Id computeEntityId(ir.Member node) {
+  String className;
+  if (node.enclosingClass != null) {
+    className = node.enclosingClass.name;
+  }
+  String memberName = node.name.name;
+  if (node is ir.Procedure && node.kind == ir.ProcedureKind.Setter) {
+    memberName += '=';
+  }
+  return new ElementId.internal(memberName, className);
+}
+
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
 abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
@@ -539,20 +553,9 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   String computeNodeValue(Id id, ir.TreeNode node);
 
   IrDataExtractor(this.reporter, this.actualMap);
-  Id computeElementId(ir.Member node) {
-    String className;
-    if (node.enclosingClass != null) {
-      className = node.enclosingClass.name;
-    }
-    String memberName = node.name.name;
-    if (node is ir.Procedure && node.kind == ir.ProcedureKind.Setter) {
-      memberName += '=';
-    }
-    return new ElementId.internal(memberName, className);
-  }
 
   void computeForMember(ir.Member member) {
-    ElementId id = computeElementId(member);
+    ElementId id = computeEntityId(member);
     if (id == null) return;
     String value = computeMemberValue(id, member);
     registerValue(computeSourceSpan(member), id, value, member);

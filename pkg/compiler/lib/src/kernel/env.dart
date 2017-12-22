@@ -173,7 +173,10 @@ class LibraryData {
         dependencies.forEach((ir.LibraryDependency node) {
           if (node.isExport) return;
           imports[node] = new KImport(
-              node.isDeferred, node.name, node.targetLibrary.importUri);
+              node.isDeferred,
+              node.name,
+              node.targetLibrary.importUri,
+              elementMap.getLibrary(node.enclosingLibrary));
         });
       }
     }

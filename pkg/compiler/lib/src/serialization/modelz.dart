@@ -2330,6 +2330,8 @@ class ImportElementZ extends DeserializedElementZ
     }
   }
 
+  LibraryElement get enclosingLibrary => library;
+
   @override
   bool get isDeferred {
     _ensurePrefixResolved();

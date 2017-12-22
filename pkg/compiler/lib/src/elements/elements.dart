@@ -948,6 +948,7 @@ abstract class CompilationUnitElement extends Element {
 abstract class ImportElement extends Element implements ImportEntity {
   Uri get uri;
   LibraryElement get importedLibrary;
+  LibraryElement get enclosingLibrary => library;
   bool get isDeferred;
   PrefixElement get prefix;
   String get name;

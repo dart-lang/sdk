@@ -69,6 +69,8 @@ class OutputUnit implements Comparable<OutputUnit> {
     return name.compareTo(other.name);
   }
 
+  Set<ImportEntity> get importsForTesting => _imports;
+
   String toString() => "OutputUnit($name, $_imports)";
 }
 
@@ -1091,13 +1093,6 @@ class OutputUnitData {
     if (!isProgramSplit) return mainOutputUnit;
     entity = entity is Element ? entity.implementation : entity;
     OutputUnit unit = _entityToUnit[entity];
-    // TODO(redemption): ensure any entity that is requested is in the map.
-    // Currently closure methods are not handled correctly. The old pipeline
-    // finds the appropriate output unit because the synthetic $call methods
-    // transitively have the member-context as an enclosing element, and those
-    // methods are found. The new pipeline doesn't expose that connection. We
-    // should handle this in the emitter or while translating OutputUnitData to
-    // the J-model.
     if (unit != null) return unit;
     if (entity is Element) {
       Element element = entity;
