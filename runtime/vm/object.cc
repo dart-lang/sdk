@@ -6715,14 +6715,20 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
-  if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
-    const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-    if (isolate->strong()) {
+  if (isolate->strong()) {
+    // In strong mode, 'void Function()' is a subtype of 'Object Function()'.
+    if (!other_res_type.IsTopType()) {
+      const AbstractType& res_type = AbstractType::Handle(zone, result_type());
       if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
                                 space)) {
         return false;
       }
-    } else {
+    }
+  } else {
+    // In Dart 1.0, 'void Function()' is not a subtype of 'Object Function()',
+    // but it is a subtype of 'dynamic Function()' and of 'void Function()'.
+    if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
+      const AbstractType& res_type = AbstractType::Handle(zone, result_type());
       if (res_type.IsVoidType()) {
         return false;
       }
