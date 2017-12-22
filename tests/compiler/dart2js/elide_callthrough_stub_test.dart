@@ -38,23 +38,32 @@ main() {
 ''';
 
 main() {
-  asyncTest(() => compileAll(TEST1).then((generated) {
-        // Direct call through field.
-        Expect.isTrue(generated.contains(r'this._fun.call$1(zzz)'));
-        // No stub.
-        Expect.isFalse(generated.contains(r'_fun$1:'));
-        // No call to stub.
-        Expect.isFalse(generated.contains(r'_fun$1('));
-      }));
+  runTests({bool useKernel}) async {
+    CompileMode compileMode =
+        useKernel ? CompileMode.kernel : CompileMode.memory;
+    String generated1 = await compileAll(TEST1, compileMode: compileMode);
+    // Direct call through field.
+    Expect.isTrue(generated1.contains(r'this._fun.call$1(zzz)'));
+    // No stub.
+    Expect.isFalse(generated1.contains(r'_fun$1:'));
+    // No call to stub.
+    Expect.isFalse(generated1.contains(r'_fun$1('));
 
-  asyncTest(() => compileAll(TEST2).then((generated) {
-        // No call through field.
-        Expect.isFalse(generated.contains(r'this._fun.call$1(zzz)'));
-        // Call through stub.
-        Expect.isTrue(generated.contains(r'this._fun$1(zzz)'));
-        // Stub is generated.
-        Expect.isTrue(generated.contains(r'_fun$1:'));
-        // Call through getter (inside stub).
-        Expect.isTrue(generated.contains(r'get$_fun().call$1'));
-      }));
+    String generated2 = await compileAll(TEST2, compileMode: compileMode);
+    // No call through field.
+    Expect.isFalse(generated2.contains(r'this._fun.call$1(zzz)'));
+    // Call through stub.
+    Expect.isTrue(generated2.contains(r'this._fun$1(zzz)'));
+    // Stub is generated.
+    Expect.isTrue(generated2.contains(r'_fun$1:'));
+    // Call through getter (inside stub).
+    Expect.isTrue(generated2.contains(r'get$_fun().call$1'));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

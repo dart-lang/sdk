@@ -81,16 +81,26 @@ void main() {
 """;
 
 main() {
-  test(String code, Function f) {
-    asyncTest(() => compileAll(code, disableInlining: true).then((generated) {
-          Expect.isTrue(f(generated));
-        }));
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
+}
+
+runTests({bool useKernel}) async {
+  test(String code, Function f) async {
+    String generated = await compileAll(code,
+        disableInlining: true,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    Expect.isTrue(f(generated));
   }
 
-  test(TEST_1, (generated) => generated.contains(r'return this.a++;'));
-  test(TEST_2, (generated) => generated.contains(r'return ++this.a;'));
-  test(TEST_3, (generated) => generated.contains(r'return this.a--;'));
-  test(TEST_4, (generated) => generated.contains(r'return --this.a;'));
-  test(TEST_5, (generated) => generated.contains(r' this.a -= 2;'));
-  test(TEST_6, (generated) => generated.contains(r' this.a *= 2;'));
+  await test(TEST_1, (generated) => generated.contains(r'return this.a++;'));
+  await test(TEST_2, (generated) => generated.contains(r'return ++this.a;'));
+  await test(TEST_3, (generated) => generated.contains(r'return this.a--;'));
+  await test(TEST_4, (generated) => generated.contains(r'return --this.a;'));
+  await test(TEST_5, (generated) => generated.contains(r' this.a -= 2;'));
+  await test(TEST_6, (generated) => generated.contains(r' this.a *= 2;'));
 }

@@ -159,6 +159,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelCodegenWorldBuilder(
         elementMap,
+        _globalLocalsMap,
         closedWorld.elementEnvironment,
         nativeBasicData,
         closedWorld,
@@ -474,7 +475,7 @@ class JsClosedWorldBuilder {
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
-  KernelClosureClass buildClosureClass(
+  KernelClosureClassInfo buildClosureClass(
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
@@ -484,7 +485,7 @@ class JsClosedWorldBuilder {
       KernelToLocalsMap localsMap) {
     ClassEntity superclass = _commonElements.closureClass;
 
-    KernelClosureClass cls = _elementMap.constructClosureClass(
+    KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
         member,
         originalClosureFunctionNode,
         enclosingLibrary,
@@ -497,13 +498,13 @@ class JsClosedWorldBuilder {
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)
     ClassHierarchyNode parentNode = _classHierarchyNodes[superclass];
-    ClassHierarchyNode node = new ClassHierarchyNode(
-        parentNode, cls.closureClassEntity, parentNode.hierarchyDepth + 1);
-    _classHierarchyNodes[cls.closureClassEntity] = node;
-    _classSets[cls.closureClassEntity] = new ClassSet(node);
+    ClassHierarchyNode node = new ClassHierarchyNode(parentNode,
+        closureClassInfo.closureClassEntity, parentNode.hierarchyDepth + 1);
+    _classHierarchyNodes[closureClassInfo.closureClassEntity] = node;
+    _classSets[closureClassInfo.closureClassEntity] = new ClassSet(node);
     node.isDirectlyInstantiated = true;
 
-    return cls;
+    return closureClassInfo;
   }
 }
 

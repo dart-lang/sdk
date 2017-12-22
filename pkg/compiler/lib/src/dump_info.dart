@@ -10,7 +10,7 @@ import 'dart:convert'
 import 'package:dart2js_info/info.dart';
 
 import '../compiler_new.dart';
-import 'closure.dart';
+import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'common_elements.dart';
@@ -219,18 +219,17 @@ class ElementInfoCollector {
     return classInfo;
   }
 
-  ClosureInfo visitClosureClass(ClosureClassElement element) {
+  ClosureInfo visitClosureClass(ClassEntity element) {
     ClosureInfo closureInfo = new ClosureInfo(
         name: element.name,
         outputUnit: _unitInfoForEntity(element),
         size: compiler.dumpInfoTask.sizeOf(element));
     _entityToInfo[element] = closureInfo;
 
-    ClosureRepresentationInfo closureRepresentation =
-        compiler.backendStrategy.closureDataLookup.getClosureInfo(element.node);
-    assert(closureRepresentation.closureClassEntity == element);
+    FunctionEntity callMethod = closedWorld.elementEnvironment
+        .lookupClassMember(element, Identifiers.call);
 
-    FunctionInfo functionInfo = visitFunction(closureRepresentation.callMethod);
+    FunctionInfo functionInfo = visitFunction(callMethod);
     if (functionInfo == null) return null;
     closureInfo.function = functionInfo;
     functionInfo.parent = closureInfo;
@@ -615,6 +614,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
+
     result.program = new ProgramInfo(
         entrypoint: infoCollector
             ._entityToInfo[closedWorld.elementEnvironment.mainFunction],

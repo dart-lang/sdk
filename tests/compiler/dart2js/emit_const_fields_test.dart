@@ -19,8 +19,17 @@ main() {
 """;
 
 main() {
-  asyncTest(() => compileAll(TEST_GUIDE).then((generated) {
-        Expect.isTrue(generated.contains("42"));
-        Expect.isFalse(generated.contains("TITLE"));
-      }));
+  runTest({bool useKernel}) async {
+    String generated = await compileAll(TEST_GUIDE,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    Expect.isTrue(generated.contains("42"));
+    Expect.isFalse(generated.contains("TITLE"));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

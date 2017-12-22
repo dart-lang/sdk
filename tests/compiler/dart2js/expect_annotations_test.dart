@@ -4,8 +4,9 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
@@ -49,86 +50,94 @@ void main(List<String> args) {
 
 main() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
-    Compiler compiler = result.compiler;
-    ClosedWorld closedWorld =
-        compiler.resolutionWorldBuilder.closedWorldForTesting;
-    Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
-    Expect.isNotNull(closedWorld.commonElements.expectNoInlineClass,
-        'NoInlineClass is unresolved.');
-    Expect.isNotNull(closedWorld.commonElements.expectTrustTypeAnnotationsClass,
-        'TrustTypeAnnotations is unresolved.');
-    Expect.isNotNull(closedWorld.commonElements.expectAssumeDynamicClass,
-        'AssumeDynamicClass is unresolved.');
-
-    void testTypeMatch(MethodElement function, TypeMask expectedParameterType,
-        TypeMask expectedReturnType, TypesInferrer inferrer) {
-      for (ParameterElement parameter in function.parameters) {
-        TypeMask type = inferrer.getTypeOfParameter(parameter);
-        Expect.equals(
-            expectedParameterType, simplify(type, closedWorld), "$parameter");
-      }
-      if (expectedReturnType != null) {
-        TypeMask type = inferrer.getReturnTypeOfMember(function);
-        Expect.equals(
-            expectedReturnType, simplify(type, closedWorld), "$function");
-      }
-    }
-
-    void test(String name,
-        {bool expectNoInline: false,
-        bool expectTrustTypeAnnotations: false,
-        TypeMask expectedParameterType: null,
-        TypeMask expectedReturnType: null,
-        bool expectAssumeDynamic: false}) {
-      LibraryElement mainApp =
-          compiler.frontendStrategy.elementEnvironment.mainLibrary;
-      MethodElement method = mainApp.find(name);
-      Expect.isNotNull(method);
-      Expect.equals(
-          expectNoInline,
-          optimizerHints.noInline(closedWorld.elementEnvironment,
-              closedWorld.commonElements, method),
-          "Unexpected annotation of @NoInline on '$method'.");
-      Expect.equals(
-          expectTrustTypeAnnotations,
-          optimizerHints.trustTypeAnnotations(closedWorld.elementEnvironment,
-              closedWorld.commonElements, method),
-          "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
-      Expect.equals(
-          expectAssumeDynamic,
-          optimizerHints.assumeDynamic(closedWorld.elementEnvironment,
-              closedWorld.commonElements, method),
-          "Unexpected annotation of @AssumeDynamic on '$method'.");
-      TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
-      if (expectTrustTypeAnnotations && expectedParameterType != null) {
-        testTypeMatch(
-            method, expectedParameterType, expectedReturnType, inferrer);
-      } else if (expectAssumeDynamic) {
-        testTypeMatch(
-            method, closedWorld.commonMasks.dynamicType, null, inferrer);
-      }
-    }
-
-    TypeMask jsStringType = closedWorld.commonMasks.stringType;
-    TypeMask jsIntType = closedWorld.commonMasks.intType;
-    TypeMask coreStringType = new TypeMask.subtype(
-        closedWorld.commonElements.stringClass, closedWorld);
-
-    test('method');
-    test('methodAssumeDynamic', expectAssumeDynamic: true);
-    test('methodTrustTypeAnnotations',
-        expectTrustTypeAnnotations: true, expectedParameterType: jsStringType);
-    test('methodNoInline', expectNoInline: true);
-    test('methodNoInlineTrustTypeAnnotations',
-        expectNoInline: true,
-        expectTrustTypeAnnotations: true,
-        expectedParameterType: jsStringType,
-        expectedReturnType: jsIntType);
-    test('methodAssumeDynamicTrustTypeAnnotations',
-        expectAssumeDynamic: true,
-        expectTrustTypeAnnotations: true,
-        expectedParameterType: coreStringType);
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
+}
+
+runTest({bool useKernel}) async {
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      options: useKernel ? [Flags.useKernel] : []);
+  Compiler compiler = result.compiler;
+  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
+  Expect.isNotNull(closedWorld.commonElements.expectNoInlineClass,
+      'NoInlineClass is unresolved.');
+  Expect.isNotNull(closedWorld.commonElements.expectTrustTypeAnnotationsClass,
+      'TrustTypeAnnotations is unresolved.');
+  Expect.isNotNull(closedWorld.commonElements.expectAssumeDynamicClass,
+      'AssumeDynamicClass is unresolved.');
+
+  void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
+      TypeMask expectedReturnType, TypesInferrer inferrer) {
+    compiler.codegenWorldBuilder.forEachParameterAsLocal(function,
+        (Local parameter) {
+      TypeMask type = inferrer.getTypeOfParameter(parameter);
+      Expect.equals(
+          expectedParameterType, simplify(type, closedWorld), "$parameter");
+    });
+    if (expectedReturnType != null) {
+      TypeMask type = inferrer.getReturnTypeOfMember(function);
+      Expect.equals(
+          expectedReturnType, simplify(type, closedWorld), "$function");
+    }
+  }
+
+  void test(String name,
+      {bool expectNoInline: false,
+      bool expectTrustTypeAnnotations: false,
+      TypeMask expectedParameterType: null,
+      TypeMask expectedReturnType: null,
+      bool expectAssumeDynamic: false}) {
+    LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary;
+    FunctionEntity method =
+        closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name);
+    Expect.isNotNull(method);
+    Expect.equals(
+        expectNoInline,
+        optimizerHints.noInline(
+            closedWorld.elementEnvironment, closedWorld.commonElements, method),
+        "Unexpected annotation of @NoInline on '$method'.");
+    Expect.equals(
+        expectTrustTypeAnnotations,
+        optimizerHints.trustTypeAnnotations(
+            closedWorld.elementEnvironment, closedWorld.commonElements, method),
+        "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
+    Expect.equals(
+        expectAssumeDynamic,
+        optimizerHints.assumeDynamic(
+            closedWorld.elementEnvironment, closedWorld.commonElements, method),
+        "Unexpected annotation of @AssumeDynamic on '$method'.");
+    TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
+    if (expectTrustTypeAnnotations && expectedParameterType != null) {
+      testTypeMatch(
+          method, expectedParameterType, expectedReturnType, inferrer);
+    } else if (expectAssumeDynamic) {
+      testTypeMatch(
+          method, closedWorld.commonMasks.dynamicType, null, inferrer);
+    }
+  }
+
+  TypeMask jsStringType = closedWorld.commonMasks.stringType;
+  TypeMask jsIntType = closedWorld.commonMasks.intType;
+  TypeMask coreStringType =
+      new TypeMask.subtype(closedWorld.commonElements.stringClass, closedWorld);
+
+  test('method');
+  test('methodAssumeDynamic', expectAssumeDynamic: true);
+  test('methodTrustTypeAnnotations',
+      expectTrustTypeAnnotations: true, expectedParameterType: jsStringType);
+  test('methodNoInline', expectNoInline: true);
+  test('methodNoInlineTrustTypeAnnotations',
+      expectNoInline: true,
+      expectTrustTypeAnnotations: true,
+      expectedParameterType: jsStringType,
+      expectedReturnType: jsIntType);
+  test('methodAssumeDynamicTrustTypeAnnotations',
+      expectAssumeDynamic: true,
+      expectTrustTypeAnnotations: true,
+      expectedParameterType: coreStringType);
 }
