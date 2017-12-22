@@ -10,6 +10,10 @@ import 'dart:convert' show JSON;
 
 import 'dart:io' show File, exitCode;
 
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+
+import 'package:kernel/target/targets.dart' show TargetFlags, targets;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
@@ -38,6 +42,8 @@ const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
+  targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
+
   // Timing results for each iteration
   List<double> elapsedTimes = <double>[];
 
