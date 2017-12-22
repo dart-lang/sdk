@@ -1452,14 +1452,8 @@ class A {
   test_method_async() async {
     addTestSource('class A { foo() ^}');
     await computeSuggestions();
-    if (usingFastaParser) {
-      assertSuggestKeywords([],
-          pseudoKeywords: ['async', 'async*', 'sync*'],
-          relevance: DART_RELEVANCE_HIGH);
-    } else {
-      assertSuggestKeywords(CLASS_BODY_KEYWORDS,
-          pseudoKeywords: ['async', 'async*', 'sync*']);
-    }
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async2() async {

@@ -88,6 +88,17 @@ class CompletionTarget {
   final AstNode containingNode;
 
   /**
+   * The "dropped" identifier or keyword which the completed text will replace,
+   * or `null` if none.
+   *
+   * For the purposes of code completion, a "dropped" token is an identifier
+   * or keyword that is part of the token stream, but that the parser has
+   * skipped and not reported in to the parser listeners, meaning that it is
+   * not part of the AST.
+   */
+  Token droppedToken;
+
+  /**
    * The entity which the completed text will replace (or which will be
    * displaced once the completed text is inserted).  This may be an AstNode or
    * a Token, or it may be null if the cursor is after all tokens in the file.
@@ -235,7 +246,9 @@ class CompletionTarget {
       Object entity, this.isCommentText)
       : this.containingNode = containingNode,
         this.entity = entity,
-        this.argIndex = _computeArgIndex(containingNode, entity);
+        this.argIndex = _computeArgIndex(containingNode, entity),
+        this.droppedToken =
+            _computeDroppedToken(containingNode, entity, offset);
 
   /**
    * Return `true` if the [containingNode] is a cascade
@@ -263,7 +276,8 @@ class CompletionTarget {
     bool isKeywordOrIdentifier(Token token) =>
         token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
-    Token token = entity is AstNode ? (entity as AstNode).beginToken : entity;
+    Token token = droppedToken ??
+        (entity is AstNode ? (entity as AstNode).beginToken : entity);
     if (token != null && requestOffset < token.offset) {
       token = token.previous;
     }
@@ -384,6 +398,52 @@ class CompletionTarget {
         }
         return args.length - 1;
       }
+    }
+    return null;
+  }
+
+  static Token _computeDroppedToken(
+      AstNode containingNode, Object entity, int offset) {
+    // Find the last token of the member before the entity.
+    var previousMember;
+    for (var member in containingNode.childEntities) {
+      if (entity == member) {
+        break;
+      }
+      if (member is! Comment && member is! CommentToken) {
+        previousMember = member;
+      }
+    }
+    Token token;
+    if (previousMember is AstNode) {
+      token = previousMember.endToken;
+    } else if (previousMember is Token) {
+      token = previousMember;
+    }
+    if (token == null) {
+      return null;
+    }
+
+    // Find the first token of the entity (which may be the entity itself).
+    Token endSearch;
+    if (entity is AstNode) {
+      endSearch = entity.beginToken;
+    } else if (entity is Token) {
+      endSearch = entity;
+    }
+    if (endSearch == null) {
+      return null;
+    }
+
+    // Find a dropped token that overlaps the offset.
+    token = token.next;
+    while (token != endSearch && !token.isEof) {
+      if (token.isKeywordOrIdentifier &&
+          token.offset <= offset &&
+          offset <= token.end) {
+        return token;
+      }
+      token = token.next;
     }
     return null;
   }

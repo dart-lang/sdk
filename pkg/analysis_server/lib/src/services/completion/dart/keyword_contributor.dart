@@ -48,6 +48,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       : this.request = request,
         this.entity = request.target.entity;
 
+  Token get droppedToken => request.target.droppedToken;
+
   bool isEmptyBody(FunctionBody body) =>
       body is EmptyFunctionBody ||
       (body is BlockFunctionBody && body.beginToken.isSynthetic);
@@ -336,6 +338,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addCompilationUnitKeywords();
       }
     }
+  }
+
+  @override
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    Expression expression = node.expression;
+    if (expression is Identifier || expression is PropertyAccess) {
+      if (entity == node.rightParenthesis) {
+        var next = expression.endToken.next;
+        if (next == entity || next == droppedToken) {
+          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
+          // stream but not part of the ParenthesizedExpression.
+          _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+          return;
+        }
+      }
+    }
+    _addExpressionKeywords(node);
   }
 
   @override
