@@ -9,7 +9,7 @@ library dart2js.test.import;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''

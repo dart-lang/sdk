@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST = r"""
 foo(param0, param1, param2) {

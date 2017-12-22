@@ -6,8 +6,8 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "package:compiler/src/elements/elements.dart";
 import 'package:compiler/src/elements/entity_utils.dart' as utils;
-import "mock_compiler.dart";
-import "parser_helper.dart";
+import "../mock_compiler.dart";
+import "../parser_helper.dart";
 import 'package:compiler/src/elements/modelx.dart';
 
 String TEST_0 = '''

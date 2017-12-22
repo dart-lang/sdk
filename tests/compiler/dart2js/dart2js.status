@@ -9,7 +9,7 @@ boolified_operator_test: Fail # Issue 8001
 old_frontend/check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
 old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
 equivalence/id_equivalence_test: Pass, Slow
-gvn_dynamic_field_get_test: Fail # Issue 18519
+codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
 inference/inference_test: Slow, Pass
 inference/swarm_test: Slow, Pass
 inlining/inlining_test: Slow, Pass
@@ -85,7 +85,7 @@ dart2js_resolver_test: Pass, Slow
 mirrors/deferred_mirrors_test: Pass, Slow
 old_frontend/duplicate_library_test: Pass, Slow
 end_to_end/exit_code_test: Pass, Slow
-import_mirrors_test: Slow, Pass
+mirrors/import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 jsinterop/declaration_test: Slow, Pass
 jsinterop/world_test: Pass, Slow

@@ -12,7 +12,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show MessageKind, MessageTemplate;
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const DIRECT_IMPORT = const {
   '/main.dart': '''

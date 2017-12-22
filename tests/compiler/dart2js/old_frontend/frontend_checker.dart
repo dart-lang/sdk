@@ -11,11 +11,11 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/uri_extras.dart' show relativize;
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
-import '../../../tools/testing/dart/multitest.dart'
+import '../../../../tools/testing/dart/multitest.dart'
     show extractTestsFromMultitest;
-import '../../../tools/testing/dart/path.dart' show Path;
+import '../../../../tools/testing/dart/path.dart' show Path;
 
 /// Check the analysis of the multitests in [testFiles] to result in the
 /// expected static warnings and compile-time errors.

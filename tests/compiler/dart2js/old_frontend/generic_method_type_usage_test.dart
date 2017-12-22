@@ -16,7 +16,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import "package:compiler/src/diagnostics/messages.dart";
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'type_variable_is_dynamic.dart': '''
