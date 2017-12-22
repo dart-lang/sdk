@@ -32,7 +32,7 @@ Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState}) async {
   try {
     return await _compile(args, compilerState: compilerState);
-  } catch (error) {
+  } catch (error, stackTrace) {
     print('''
 We're sorry, you've found a bug in our compiler.
 You can report this bug at:
@@ -42,6 +42,9 @@ any other information that may help us track it down. Thanks!
 -------------------- %< --------------------
     $_binaryName arguments: ${args.join(' ')}
     dart --version: ${Platform.version}
+
+$error
+$stackTrace
 ''');
     rethrow;
   }
@@ -53,6 +56,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
     'Usage: $_binaryName [options...] <sources...>\n\n'
     '${ddcArgParser.usage}';
 
+/// Resolve [s] as a URI, possibly relative to the current directory.
 Uri stringToUri(String s, {bool windows}) {
   windows ??= Platform.isWindows;
   if (windows) {
@@ -65,6 +69,32 @@ Uri stringToUri(String s, {bool windows}) {
     return new Uri.file(s, windows: true);
   }
   return result;
+}
+
+/// Resolve [s] as a URI, and if the URI is a uri under a directory in [roots],
+/// then return a custom URI containing only the subpath from that root and the
+/// provided [scheme]. For example,
+///
+///    stringToCustomUri('a/b/c.dart', [Uri.base.resolve('a/')], 'foo')
+///
+/// returns:
+///
+///    foo:/b/c.dart
+///
+/// This is used to create machine agnostic URIs both for input files and for
+/// summaries. We do so for input files to ensure we don't leak any
+/// user-specific paths into non-package library names, and we do so for input
+/// summaries to be able to easily derive a module name from the summary path.
+Uri stringToCustomUri(String s, List<Uri> roots, String scheme) {
+  Uri resolvedUri = stringToUri(s);
+  if (resolvedUri.scheme != 'file') return resolvedUri;
+  for (var root in roots) {
+    if (resolvedUri.path.startsWith(root.path)) {
+      var path = resolvedUri.path.substring(root.path.length);
+      return Uri.parse('$scheme:///$path');
+    }
+  }
+  return resolvedUri;
 }
 
 class CompilerResult {
@@ -86,8 +116,13 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
     ..addOption('summary',
-        abbr: 's', help: 'summaries to link to', allowMultiple: true)
-    ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true);
+        abbr: 's',
+        help: 'path to a summary of a transitive dependency of this module.\n'
+            'This path should be under a provided summary-input-dir',
+        allowMultiple: true)
+    ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
+    ..addOption('summary-input-dir', allowMultiple: true)
+    ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app');
 
   addModuleFormatOptions(argParser, singleOutFile: false);
 
@@ -102,8 +137,20 @@ Future<CompilerResult> _compile(List<String> args,
   var moduleFormat = parseModuleFormatOption(argResults).first;
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
 
-  var summaryUris =
-      (argResults['summary'] as List<String>).map(stringToUri).toList();
+  var multiRoots = [];
+  for (var s in argResults['summary-input-dir']) {
+    var uri = stringToUri(s);
+    if (!uri.path.endsWith('/')) {
+      uri = uri.replace(path: '${uri.path}/');
+    }
+    multiRoots.add(uri);
+  }
+  multiRoots.add(Uri.base);
+
+  var customScheme = argResults['custom-app-scheme'];
+  var summaryUris = argResults['summary']
+      .map((s) => stringToCustomUri(s, multiRoots, customScheme))
+      .toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
       path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
@@ -111,7 +158,9 @@ Future<CompilerResult> _compile(List<String> args,
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
 
-  var inputs = argResults.rest.map(stringToUri).toList();
+  var inputs = argResults.rest
+      .map((s) => stringToCustomUri(s, [Uri.base], customScheme))
+      .toList();
 
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
@@ -129,16 +178,13 @@ Future<CompilerResult> _compile(List<String> args,
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  // TODO(sigmund): technically we don't need a "multi-root" file system,
-  // because we are providing a single root, the alternative here is to
-  // implement a new file system with a single root instead.
   var fileSystem = new MultiRootFileSystem(
-      'org-dartlang-app', [Uri.base], PhysicalFileSystem.instance);
+      customScheme, multiRoots, PhysicalFileSystem.instance);
 
   compilerState = await fe.initializeCompiler(
       compilerState,
-      path.toUri(sdkSummaryPath),
-      path.toUri(packageFile),
+      stringToUri(sdkSummaryPath),
+      stringToUri(packageFile),
       summaryUris,
       new DevCompilerTarget(),
       fileSystem: fileSystem);
