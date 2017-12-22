@@ -13,12 +13,14 @@ import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/resolution/class_hierarchy.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
+import '../equivalence/id_equivalence.dart';
 
 main(List<String> args) {
   mainInternal(args);
 }
 
-Future<bool> mainInternal(List<String> args) async {
+Future<bool> mainInternal(List<String> args,
+    {bool whiteList(Uri uri, Id id)}) async {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
@@ -52,7 +54,7 @@ Future<bool> mainInternal(List<String> args) async {
       try {
         print('--$uri------------------------------------------------------');
         bool isSuccess = await runZoned(() {
-          return testUri(uri, verbose: verbose);
+          return testUri(uri, verbose: verbose, whiteList: whiteList);
         }, zoneSpecification: specification);
         if (!isSuccess) {
           success = false;
@@ -69,12 +71,14 @@ Future<bool> mainInternal(List<String> args) async {
   return success;
 }
 
-Future<bool> testUri(Uri uri, {bool verbose: false}) {
+Future<bool> testUri(Uri uri,
+    {bool verbose: false, bool whiteList(Uri uri, Id id)}) {
   return compareData(
       uri, const {}, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
       options: [stopAfterTypeInference],
       forMainLibraryOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
-      verbose: verbose);
+      verbose: verbose,
+      whiteList: whiteList);
 }

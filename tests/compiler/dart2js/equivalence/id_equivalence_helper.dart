@@ -102,6 +102,12 @@ Future<CompiledData> computeData(
   Map<Uri, Map<Id, ActualData>> actualMaps = <Uri, Map<Id, ActualData>>{};
 
   Map<Id, ActualData> actualMapFor(Entity entity) {
+    if (entity is Element) {
+      // TODO(johnniwinther): Remove this when patched members from kernel are
+      // no longer ascribed to the patch file.
+      Element element = entity;
+      entity = element.implementation;
+    }
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
     Uri uri = resolveFastaUri(span.uri);
@@ -480,7 +486,8 @@ Future<bool> compareData(
     bool forMainLibraryOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
-    bool verbose: false}) async {
+    bool verbose: false,
+    bool whiteList(Uri uri, Id id)}) async {
   print('--from ast----------------------------------------------------------');
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData,
@@ -498,12 +505,19 @@ Future<bool> compareData(
       skipFailedCompilations: skipFailedCompilations);
   if (data2 == null) return false;
   await compareCompiledData(data1, data2,
-      skipMissingUris: !forMainLibraryOnly, verbose: verbose);
+      whiteList: whiteList,
+      skipMissingUris: !forMainLibraryOnly,
+      verbose: verbose);
   return true;
 }
 
 Future compareCompiledData(CompiledData data1, CompiledData data2,
-    {bool skipMissingUris: false, bool verbose: false}) async {
+    {bool skipMissingUris: false,
+    bool verbose: false,
+    bool whiteList(Uri uri, Id id)}) async {
+  if (whiteList == null) {
+    whiteList = (uri, id) => false;
+  }
   bool hasErrors = false;
   String libraryRoot1;
 
@@ -549,7 +563,9 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
       if (value1 != value2) {
         reportHere(data1.compiler.reporter, actualData1.sourceSpan,
             '$id: from source:${value1},from dill:${value2}');
-        hasErrors = hasErrorsInUri = true;
+        if (!whiteList(uri1, id)) {
+          hasErrors = hasErrorsInUri = true;
+        }
       }
     });
     actualMap2.forEach((Id id, ActualData actualData2) {
@@ -558,7 +574,9 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
       if (value1 != value2) {
         reportHere(data2.compiler.reporter, actualData2.sourceSpan,
             '$id: from source:${value1},from dill:${value2}');
-        hasErrors = hasErrorsInUri = true;
+        if (!whiteList(uri1, id)) {
+          hasErrors = hasErrorsInUri = true;
+        }
       }
     });
     if (hasErrorsInUri) {
