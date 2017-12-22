@@ -65,11 +65,14 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     {bool debug: false,
     bool verbose: false,
     List<String> options: const <String>[]}) async {
-  Directory dir = new Directory('.');
-  new File('test.dart').writeAsStringSync(annotatedCode.sourceCode);
+  Directory dir = Directory.systemTemp.createTempSync('stepping_test');
+  String path = dir.path;
+  String inputFile = '$path/test.dart';
+  new File(inputFile).writeAsStringSync(annotatedCode.sourceCode);
+  String outputFile = '$path/js.js';
   List<String> arguments = <String>[
-    '--out=js.js',
-    'test.dart',
+    '--out=$outputFile',
+    inputFile,
     Flags.disableInlining,
   ];
   if (config == kernelMarker) {
@@ -81,7 +84,7 @@ Future runTest(AnnotatedCode annotatedCode, String config,
   Expect.isTrue(compilationResult.isSuccess);
   List<String> scriptD8Command = [
     'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
-    'js.js'
+    outputFile
   ];
   ProcessResult result = runD8AndStep(dir.path, annotatedCode, scriptD8Command);
   List<String> d8output = result.stdout.split("\n");
@@ -89,4 +92,5 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     d8output.forEach(print);
   }
   checkD8Steps(dir.path, d8output, annotatedCode, debug: debug);
+  dir.deleteSync(recursive: true);
 }
