@@ -50,7 +50,8 @@ class PubspecValidatorTest {
 
   void setUp() {
     provider = new MemoryResourceProvider();
-    File pubspecFile = provider.getFile('/sample/pubspec.yaml');
+    File pubspecFile =
+        provider.getFile(provider.convertPath('/sample/pubspec.yaml'));
     Source source = pubspecFile.createSource();
     validator = new PubspecValidator(provider, source);
   }
@@ -65,7 +66,7 @@ flutter:
   }
 
   test_assetDoesNotExist_noError() {
-    provider.newFile('/sample/assets/my_icon.png', '');
+    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
     assertNoErrors('''
 name: sample
 flutter:
@@ -91,7 +92,7 @@ flutter:
   }
 
   test_assetFieldNotList_noError() {
-    provider.newFile('/sample/assets/my_icon.png', '');
+    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
     assertNoErrors('''
 name: sample
 flutter:
@@ -121,7 +122,7 @@ flutter:
   }
 
   test_assetNotString_noError() {
-    provider.newFile('/sample/assets/my_icon.png', '');
+    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
     assertNoErrors('''
 name: sample
 flutter:
@@ -189,7 +190,7 @@ flutter:
   }
 
   test_flutterFieldNotMap_noError() {
-    provider.newFile('/sample/assets/my_icon.png', '');
+    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
     assertNoErrors('''
 name: sample
 flutter:
