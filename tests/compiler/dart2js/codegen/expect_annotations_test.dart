@@ -10,8 +10,8 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
-import 'type_mask_test_helper.dart';
-import 'memory_compiler.dart';
+import '../type_mask_test_helper.dart';
+import '../memory_compiler.dart';
 
 const Map MEMORY_SOURCE_FILES = const {
   'main.dart': r"""

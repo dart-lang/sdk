@@ -65,8 +65,8 @@ dart2js_batch_test: Pass, Slow
 deferred/load_graph_segmentation_test: Pass, Slow
 deferred/load_mapping_test: Pass, Slow
 mirrors/deferred_mirrors_test: Pass, Slow
-duplicate_library_test: Pass, Slow
-exit_code_test: Pass, Slow
+old_frontend/duplicate_library_test: Pass, Slow
+end_to_end/exit_code_test: Pass, Slow
 import_mirrors_test: Pass, Slow
 in_user_code_test: Pass, Slow
 message_kind_test: Pass, Slow
@@ -83,8 +83,8 @@ old_frontend/analyze_dart2js_test: Pass, Slow
 old_frontend/analyze_unused_dart2js_test: Pass, Slow
 dart2js_resolver_test: Pass, Slow
 mirrors/deferred_mirrors_test: Pass, Slow
-duplicate_library_test: Pass, Slow
-exit_code_test: Pass, Slow
+old_frontend/duplicate_library_test: Pass, Slow
+end_to_end/exit_code_test: Pass, Slow
 import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 jsinterop/declaration_test: Slow, Pass
@@ -100,7 +100,7 @@ uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 
 [ !$checked ]
-exit_code_test: Skip # This tests requires checked mode.
+end_to_end/exit_code_test: Skip # This tests requires checked mode.
 jsinterop/declaration_test: Slow, Pass
 serialization*: Slow, Pass
 

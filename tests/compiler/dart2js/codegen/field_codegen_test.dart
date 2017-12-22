@@ -5,7 +5,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST_NULL0 = r"""
 class A { static var x; }

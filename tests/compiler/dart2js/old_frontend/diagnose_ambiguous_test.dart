@@ -5,7 +5,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart' show Diagnostic;
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 void main() {
   DiagnosticCollector collector = new DiagnosticCollector();

@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import "package:compiler/src/diagnostics/messages.dart";
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 Future runTest(String code,
     {MessageKind error, int expectedWarningCount: 0}) async {

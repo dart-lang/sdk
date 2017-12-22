@@ -5,7 +5,6 @@
 // Test the exit code of dart2js in case of exceptions, errors, warnings, etc.
 
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -242,7 +241,7 @@ Future testExitCode(
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
-      ..add("--library-root=${Platform.script.resolve('../../../sdk/')}")
+      ..add("--library-root=${Uri.base.resolve('sdk/')}")
       ..add("tests/compiler/dart2js/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {

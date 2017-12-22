@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 // Test for emitting JavaScript pre- and post-increment and assignment ops.
 
