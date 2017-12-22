@@ -30324,8 +30324,8 @@ class RtcPeerConnection extends EventTarget {
     var completer = new Completer();
     _setLocalDescription(description, () {
       completer.complete();
-    }, (error) {
-      completer.completeError(error);
+    }, (exception) {
+      completer.completeError(exception);
     });
     return completer.future;
   }
@@ -30344,8 +30344,8 @@ class RtcPeerConnection extends EventTarget {
     var completer = new Completer();
     _setRemoteDescription(description, () {
       completer.complete();
-    }, (error) {
-      completer.completeError(error);
+    }, (exception) {
+      completer.completeError(exception);
     });
     return completer.future;
   }
@@ -37965,19 +37965,6 @@ class Window extends EventTarget
   @DocsEditable()
   void _moveTo(int x, int y) native;
 
-  /// *Deprecated.*
-  @DomName('Window.openDatabase')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://www.w3.org/TR/webdatabase/
-  @Experimental() // deprecated
-  @Creates('SqlDatabase')
-  SqlDatabase openDatabase(
-      String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback creationCallback]) native;
-
   @DomName('Window.postMessage')
   @DocsEditable()
   void postMessage(/*any*/ message, String targetOrigin,
@@ -38919,6 +38906,28 @@ class Window extends EventTarget
    */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
+  }
+
+  @JSName('openDatabase')
+  @DomName('Window.openDatabase')
+  SqlDatabase _openDatabase(
+      String name, String version, String displayName, int estimatedSize,
+      [DatabaseCallback creationCallback]) native;
+
+  @JSName('openDatabase')
+  @DomName('Window.openDatabase')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  @Creates('SqlDatabase')
+  SqlDatabase openDatabase(
+      String name, String version, String displayName, int estimatedSize) {
+    var db = _openDatabase(name, version, displayName, estimatedSize);
+
+    applyExtension('Database', db);
+
+    return db;
   }
 
   @DomName('Window.pageXOffset')

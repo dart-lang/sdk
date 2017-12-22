@@ -5,127 +5,124 @@ import 'dart:html';
 import 'dart:web_sql';
 
 import 'package:unittest/unittest.dart';
-
-Future<SqlTransaction> transaction(SqlDatabase db) {
-  final completer = new Completer<SqlTransaction>.sync();
-
-  db.transaction((SqlTransaction transaction) {
-    completer.complete(transaction);
-  }, (SqlError error) {
-    completer.completeError(error);
-  });
-
-  return completer.future;
-}
+import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_helper.dart';
 
 Future<SqlResultSet> createTable(
-    SqlTransaction transaction, String tableName, String columnName) {
-  final completer = new Completer<SqlResultSet>.sync();
-
-  final sql = 'CREATE TABLE $tableName ($columnName)';
-  transaction.executeSql(sql, [], (SqlTransaction tx, SqlResultSet rs) {
-    completer.complete(rs);
-  }, (SqlTransaction tx, SqlError error) {
-    completer.completeError(error);
-  });
-
-  return completer.future;
+    SqlTransaction transaction, String tableName, String columnName) async {
+  return transaction.executeSql('CREATE TABLE $tableName ($columnName)', []);
 }
 
-Future<SqlResultSet> insert(
-    SqlTransaction transaction, String tableName, String columnName, value) {
-  final completer = new Completer<SqlResultSet>.sync();
-
+Future<SqlResultSet> insertTable(SqlTransaction transaction, String tableName,
+    String columnName, value) async {
   final sql = 'INSERT INTO $tableName ($columnName) VALUES (?)';
-  transaction.executeSql(sql, [value], (SqlTransaction tx, SqlResultSet rs) {
-    completer.complete(rs);
-  }, (SqlTransaction tx, SqlError error) {
-    completer.completeError(error);
-  });
-
-  return completer.future;
+  return transaction.executeSql(sql, [value]);
 }
 
-Future<SqlResultSet> queryTable(SqlTransaction transaction, String tableName) {
-  final completer = new Completer<SqlResultSet>.sync();
-
+Future<SqlResultSet> queryTable(
+    SqlTransaction transaction, String tableName) async {
   final sql = 'SELECT * FROM $tableName';
-  transaction.executeSql(sql, [], (SqlTransaction tx, SqlResultSet rs) {
-    completer.complete(rs);
-  }, (SqlTransaction tx, SqlError error) {
-    completer.completeError(error);
-  });
-
-  return completer.future;
+  return transaction.executeSql(sql, []);
 }
 
 Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
-    [bool ignoreFailure = false]) {
-  final completer = new Completer<SqlResultSet>.sync();
-
-  final sql = 'DROP TABLE $tableName';
-  transaction.executeSql(sql, [], (SqlTransaction tx, SqlResultSet rs) {
-    completer.complete(rs);
-  }, (SqlTransaction tx, SqlError error) {
-    if (ignoreFailure) {
-      completer.complete(null);
-    } else {
-      completer.completeError(error);
-    }
-  });
-
-  return completer.future;
+    [bool ignoreFailure = false]) async {
+  try {
+    var result = await transaction.executeSql('DROP TABLE $tableName', []);
+    return result;
+  } catch (error) {
+    if (!ignoreFailure) throw error;
+  }
 }
 
-main() {
-  group('supported', () {
+final tableName = 'test_table';
+final columnName = 'test_data';
+
+SqlDatabase db;
+SqlTransaction tx;
+
+Future setup() async {
+  if (SqlDatabase.supported) {
+    db = await window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
+    expect(db, isNotNull, reason: 'Unable to open database');
+
+    tx = await db.transaction();
+    expect(tx, isNotNull, reason: "Transaction not ready");
+  }
+}
+
+main() async {
+  useHtmlConfiguration();
+
+  await setup();
+
+  group('Database', () {
     test('supported', () {
       expect(SqlDatabase.supported, true);
     });
   });
 
-  group('functional', () {
-    test('unsupported throws', () {
-      var expectation = SqlDatabase.supported ? returnsNormally : throws;
-      expect(() {
-        window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
-      }, expectation);
-    });
-    test('Web Database', () {
-      // Skip if not supported.
-      if (!SqlDatabase.supported) {
-        return new Future.value();
+  group('Database', () {
+    test('Open/Transaction', () async {
+      if (!SqlDatabase.supported) return;
+
+      expect(tx, isNotNull, reason: "Transaction not ready");
+
+      // Should not succeed table doesn't exist to be dropped.
+      try {
+        await dropTable(tx, tableName);
+        expect(false, true, reason: "dropTable should fail");
+      } catch (error) {
+        expect(error.message,
+            "could not prepare statement (1 no such table: test_table)");
       }
+    });
 
-      final tableName = 'test_table';
-      final columnName = 'test_data';
+    test('create', () async {
+      if (!SqlDatabase.supported) return;
 
-      final db = window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
+      expect(tx, isNotNull, reason: "Transaction not ready");
+      try {
+        SqlResultSet createResult =
+            await createTable(tx, tableName, columnName);
+        expect(createResult.insertId, 0);
+      } catch (error) {
+        expect(false, true, reason: "createTable failed - ${error.message}");
+      }
+    });
 
-      expect(db, isNotNull, reason: 'Unable to open database');
+    test('insert', () async {
+      if (!SqlDatabase.supported) return;
 
-      var tx;
-      return transaction(db).then((transaction) {
-        tx = transaction;
-      }).then((_) {
-        // Attempt to clear out any tables which may be lurking from previous
-        // runs.
-        return dropTable(tx, tableName, true);
-      }).then((_) {
-        return createTable(tx, tableName, columnName);
-      }).then((_) {
-        return insert(tx, tableName, columnName, 'Some text data');
-      }).then((_) {
-        return queryTable(tx, tableName);
-      }).then((resultSet) {
-        expect(resultSet.rows.length, 1);
-        var row = resultSet.rows.item(0);
-        expect(row.containsKey(columnName), isTrue);
-        expect(row[columnName], 'Some text data');
-        expect(resultSet.rows[0], row);
-      }).then((_) {
-        return dropTable(tx, tableName);
-      });
+      expect(tx, isNotNull, reason: "Transaction not ready");
+      try {
+        SqlResultSet insertResult =
+            await insertTable(tx, tableName, columnName, 'Some text data');
+        expect(insertResult.insertId, 1);
+        expect(insertResult.rowsAffected, 1);
+      } catch (error) {
+        expect(false, true, reason: "insert failed - ${error.message}");
+      }
+    });
+
+    test('query', () async {
+      if (!SqlDatabase.supported) return;
+
+      expect(tx, isNotNull, reason: "Transaction not ready");
+      try {
+        SqlResultSet queryResult = await queryTable(tx, tableName);
+        expect(queryResult.rows.length, 1);
+        expect(queryResult.rows[0]['test_data'], "Some text data");
+      } catch (error) {
+        expect(false, true, reason: "queryTable failed - ${error.message}");
+      }
+    });
+
+    test('cleanup', () async {
+      if (!SqlDatabase.supported) return;
+
+      expect(tx, isNotNull, reason: "Transaction not ready");
+      await dropTable(tx, tableName, true);
     });
   });
 }

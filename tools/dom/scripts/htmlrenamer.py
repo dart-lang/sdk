@@ -173,6 +173,7 @@ for interface in _removed_html_interfaces:
 
 convert_to_future_members = monitored.Set(
     'htmlrenamer.converted_to_future_members', [
+  'Database.transaction',
   'DataTransferItem.getAsString',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
@@ -190,6 +191,7 @@ convert_to_future_members = monitored.Set(
   'Notification.requestPermission',
   'RTCPeerConnection.setLocalDescription',
   'RTCPeerConnection.setRemoteDescription',
+  'SQLTransaction.executeSql',
   'StorageInfo.requestQuota',
   'StorageQuota.requestQuota',
   'Window.webkitRequestFileSystem',
@@ -212,6 +214,17 @@ ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
       'file': [
           'applyExtension(\'Blob\', value);'
       ]
+  },
+  'Database': {
+      'transaction': [
+          'applyExtension(\'SQLTransaction\', value);'
+      ],
+  },
+  'SQLTransaction': {
+      'executeSql': [
+          'applyExtension(\'SQLResultSet\', resultSet);'
+          'applyExtension(\'SQLResultSetRowList\', resultSet.rows);'
+      ],
   },
   'Window': {
       'webkitRequestFileSystem':[

@@ -227,6 +227,28 @@ $!MEMBERS
     _moveTo(p.x, p.y);
   }
 
+  @JSName('openDatabase')
+  @DomName('Window.openDatabase')
+  SqlDatabase _openDatabase(
+      String name, String version, String displayName, int estimatedSize,
+      [DatabaseCallback creationCallback]) native;
+
+  @JSName('openDatabase')
+  @DomName('Window.openDatabase')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  @Creates('SqlDatabase')
+  SqlDatabase openDatabase(
+      String name, String version, String displayName, int estimatedSize) {
+    var db = _openDatabase(name, version, displayName, estimatedSize);
+
+    applyExtension('Database', db);
+
+    return db;
+  }
+
   @DomName('Window.pageXOffset')
   @DocsEditable()
   int get pageXOffset => JS('num', '#.pageXOffset', this).round();
