@@ -645,7 +645,6 @@ generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
-generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
@@ -818,7 +817,6 @@ method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
-method_override_test: RuntimeError
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError
 mixin_illegal_constructor_test/15: MissingCompileTimeError
@@ -1877,7 +1875,6 @@ generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
-generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
@@ -2105,7 +2102,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override6_test/none: Pass
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
-method_override_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError

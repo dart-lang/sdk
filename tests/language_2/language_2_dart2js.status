@@ -414,6 +414,7 @@ method_override6_test/*: MissingCompileTimeError
 method_override6_test/none: Pass
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+method_override_test: RuntimeError
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError
 mixin_illegal_constructor_test/15: MissingCompileTimeError

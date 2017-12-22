@@ -712,7 +712,6 @@ final_field_initialization_order_test: RuntimeError # Issue 31058
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 forwarding_stub_tearoff_generic_test: RuntimeError
 fuzzy_arrows_test/03: RuntimeError # Issue 29630
-generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
@@ -789,13 +788,11 @@ function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
 generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
-generic_method_types_test/02: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-method_override_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_bound_test: RuntimeError
 mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
 mixin_field_test: RuntimeError # NoSuchMethodError: method not found: 'bar'
