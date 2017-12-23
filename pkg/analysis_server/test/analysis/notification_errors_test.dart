@@ -45,6 +45,30 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
     ];
   }
 
+  test_analysisOptionsFile() async {
+    String analysisOptionsFile =
+        addFile('$projectPath/analysis_options.yaml', '''
+linter:
+  rules:
+    - invalid_lint_rule_name
+''');
+
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    List<AnalysisError> errors = filesErrors[analysisOptionsFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, '/project/analysis_options.yaml');
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
   test_importError() async {
     createProject();
 
@@ -126,6 +150,39 @@ main() {
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
     expect(error.message, isNotNull);
+  }
+
+  test_pubspecFile() async {
+    String pubspecFile = addFile('$projectPath/pubspec.yaml', '''
+version: 1.3.2
+''');
+
+    Request setRootsRequest =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(setRootsRequest);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    List<AnalysisError> errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, '/project/pubspec.yaml');
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+    //
+    // Fix the error and verify the new results.
+    //
+    resourceProvider.updateFile(pubspecFile, '''
+name: sample
+version: 1.3.2
+''');
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(0));
   }
 
   test_StaticWarning() async {

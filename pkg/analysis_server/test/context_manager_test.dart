@@ -1786,6 +1786,7 @@ abstract class ContextManagerTest {
     DartSdkManager sdkManager = new DartSdkManager('/', true);
     manager = new ContextManagerImpl(
         resourceProvider,
+        new FileContentOverlay(),
         sdkManager,
         providePackageResolver,
         packageMapProvider,

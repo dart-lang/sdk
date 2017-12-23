@@ -9,7 +9,7 @@ import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'fasta/test_all.dart' as fasta;
 import 'lint/test_all.dart' as lint;
-import 'pubspec//test_all.dart' as pubspec;
+import 'pubspec/test_all.dart' as pubspec;
 import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
 import 'task/test_all.dart' as task;
