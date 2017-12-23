@@ -22037,7 +22037,8 @@
       "open": {},
       "openDatabase": {
         "comment": "http://www.w3.org/TR/webdatabase/",
-        "support_level": "experimental"
+        "dart_action": "experimental",
+        "support_level": "deprecated"
       },
       "opener": {},
       "orientation": {

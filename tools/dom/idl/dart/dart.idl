@@ -304,8 +304,6 @@ interface Window : EventTarget {
   [DartSuppress] void scroll(long x, long y);
   [DartSuppress] void scroll(long x, long y, Dictionary scrollOptions);
   [RaisesException] void scroll(long x, long y, optional Dictionary scrollOptions);
-
-  [DartSuppress] Database openDatabase(DOMString name, DOMString version, DOMString displayName, unsigned long estimatedSize, optional DatabaseCallback creationCallback);
 };
 
 [DartSupplemental]
