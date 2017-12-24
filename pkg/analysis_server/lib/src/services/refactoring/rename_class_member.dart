@@ -19,6 +19,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * Checks if creating a method with the given [name] in [classElement] will
@@ -270,7 +271,9 @@ class _ClassMemberValidator {
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
       for (LocalElement localElement in localElements) {
-        if (localElement.visibleRange.intersects(match.sourceRange)) {
+        SourceRange elementRange = localElement.visibleRange;
+        if (elementRange != null &&
+            elementRange.intersects(match.sourceRange)) {
           return new _MatchShadowedByLocal(match, localElement);
         }
       }
