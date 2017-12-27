@@ -207,7 +207,8 @@ Future<CompilerResult> _compile(List<String> args,
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'],
       jsUrl: path.toUri(output).toString(),
-      mapUrl: path.toUri(output + '.map').toString());
+      mapUrl: path.toUri(output + '.map').toString(),
+      customScheme: customScheme);
   file.writeAsStringSync(jsCode.code);
 
   if (jsCode.sourceMap != null) {
@@ -245,7 +246,10 @@ class JSCode {
 }
 
 JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
-    {bool buildSourceMap: false, String jsUrl, String mapUrl}) {
+    {bool buildSourceMap: false,
+    String jsUrl,
+    String mapUrl,
+    String customScheme}) {
   var opts = new JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   var printer;
@@ -264,8 +268,8 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
-    builtMap =
-        placeSourceMap(sourceMap.build(jsUrl), mapUrl, <String, String>{});
+    builtMap = placeSourceMap(
+        sourceMap.build(jsUrl), mapUrl, <String, String>{}, customScheme);
     var jsDir = path.dirname(path.fromUri(jsUrl));
     var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
     var relativeMapUrl = path.toUri(relative).toString();
@@ -285,18 +289,23 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
 /// and returns the new map.  Relative paths are in terms of URIs ('/'), not
 /// local OS paths (e.g., windows '\').
 // TODO(jmesserly): find a new home for this.
-Map placeSourceMap(
-    Map sourceMap, String sourceMapPath, Map<String, String> bazelMappings) {
+// TODO(sigmund): delete bazelMappings - customScheme should be used instead.
+Map placeSourceMap(Map sourceMap, String sourceMapPath,
+    Map<String, String> bazelMappings, String customScheme) {
   var map = new Map.from(sourceMap);
   // Convert to a local file path if it's not.
-  sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath));
+  sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath, customScheme));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
   var list = new List.from(map['sources']);
   map['sources'] = list;
 
   String makeRelative(String sourcePath) {
-    var uri = _sourceToUri(sourcePath);
-    if (uri.scheme == 'dart' || uri.scheme == 'package') return sourcePath;
+    var uri = _sourceToUri(sourcePath, customScheme);
+    if (uri.scheme == 'dart' ||
+        uri.scheme == 'package' ||
+        uri.scheme == customScheme) {
+      return sourcePath;
+    }
 
     // Convert to a local file path if it's not.
     sourcePath = path.absolute(path.fromUri(uri));
@@ -322,20 +331,19 @@ Map placeSourceMap(
 /// This was copied from module_compiler.dart.
 /// Convert a source string to a Uri.  The [source] may be a Dart URI, a file
 /// URI, or a local win/mac/linux path.
-Uri _sourceToUri(String source) {
+Uri _sourceToUri(String source, customScheme) {
   var uri = Uri.parse(source);
   var scheme = uri.scheme;
-  switch (scheme) {
-    case "dart":
-    case "package":
-    case "file":
-      // A valid URI.
-      return uri;
-    default:
-      // Assume a file path.
-      // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
-      return new Uri.file(path.absolute(source));
+  if (scheme == "dart" ||
+      scheme == "package" ||
+      scheme == "file" ||
+      scheme == customScheme) {
+    // A valid URI.
+    return uri;
   }
+  // Assume a file path.
+  // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
+  return new Uri.file(path.absolute(source));
 }
 
 /// Parses Dart's non-standard `-Dname=value` syntax for declared variables,
