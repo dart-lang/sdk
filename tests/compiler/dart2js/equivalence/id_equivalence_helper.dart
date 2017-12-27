@@ -396,9 +396,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
               Uri.parse('memory:$commonTestPath/libs/$libFileName');
           userFiles.add(libEntity.uri.pathSegments.last);
           String libCode = await new File.fromUri(libEntity.uri).readAsString();
-          memorySourceFiles[libFileUri.path] = libCode;
           AnnotatedCode annotatedLibCode =
               new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
+          memorySourceFiles[libFileUri.path] = annotatedLibCode.sourceCode;
           code[libFileUri] = annotatedLibCode;
           computeExpectedMap(libFileUri, annotatedLibCode, expectedMaps);
         }
