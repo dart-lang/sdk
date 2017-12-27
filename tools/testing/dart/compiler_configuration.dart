@@ -571,18 +571,12 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
         .absolute
         .toNativePath();
 
-    var summaryInputDir = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/pkg")
-        .absolute
-        .toNativePath();
-
     args.addAll([
       "--dart-sdk-summary",
       sdkSummary,
       "-o",
       outputFile,
       inputFile,
-      "--summary-input-dir=$summaryInputDir",
     ]);
 
     // Link to the summaries for the available packages, so that they don't

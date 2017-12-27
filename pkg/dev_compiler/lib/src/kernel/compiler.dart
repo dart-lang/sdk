@@ -340,13 +340,7 @@ class ProgramCompiler
     // TODO(jmesserly): look up the appropriate relative import path if the user
     // specified that on the command line.
     var uri = _summaryToUri[summary];
-    // Note: These URIs do not contain absolute paths from the physical file
-    // system, but only the relevant path within a user's project. This path
-    // will match the path where the .js file is generated, so we use it as
-    // the module name.
-    var summaryPath = uri.path.substring(1);
-    var moduleName = path.join(
-        path.dirname(summaryPath), path.basenameWithoutExtension(summaryPath));
+    var moduleName = path.basenameWithoutExtension(path.fromUri(uri));
     return moduleName;
   }
 
