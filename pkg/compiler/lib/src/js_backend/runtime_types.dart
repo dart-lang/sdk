@@ -137,9 +137,6 @@ abstract class RuntimeTypesEncoder {
   /// is a function type.
   jsAst.Template get templateForIsFunctionType;
 
-  /// Returns the JavaScript template that creates at runtime a new function
-  /// type object.
-  jsAst.Template get templateForCreateFunctionType;
   jsAst.Name get getFunctionThatReturnsNullName;
 
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
@@ -801,13 +798,6 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     return _representationGenerator.templateForIsFunctionType;
   }
 
-  /// Returns the JavaScript template that creates at runtime a new function
-  /// type object.
-  @override
-  jsAst.Template get templateForCreateFunctionType {
-    return _representationGenerator.templateForCreateFunctionType;
-  }
-
   @override
   jsAst.Expression getTypeRepresentation(
       Emitter emitter, DartType type, OnVariableCallback onVariable,
@@ -1053,15 +1043,6 @@ class TypeRepresentationGenerator
   /// is a function type.
   jsAst.Template get templateForIsFunctionType {
     return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
-  }
-
-  /// Returns the JavaScript template that creates at runtime a new function
-  /// type object.
-  jsAst.Template get templateForCreateFunctionType {
-    // The value of the functionTypeTag can be anything. We use "dynaFunc" for
-    // easier debugging.
-    return jsAst.js
-        .expressionTemplateFor('{ ${namer.functionTypeTag}: "dynafunc" }');
   }
 
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {

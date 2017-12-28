@@ -95,14 +95,6 @@ bool isDartFunctionType(Object type) {
       'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
 }
 
-/// Creates a function type object.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
-createDartFunctionTypeRti() {
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
-}
-
 /// Retrieves the class name from type information stored on the constructor of
 /// [type].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
