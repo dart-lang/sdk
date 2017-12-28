@@ -66,9 +66,15 @@ void writeLibraryToText(Library library, {String path}) {
 }
 
 void writeProgramToText(Program program,
-    {String path, bool showExternal: false, bool showOffsets: false}) {
+    {String path,
+    bool showExternal: false,
+    bool showOffsets: false,
+    bool showMetadata: false}) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showExternal: showExternal, showOffsets: showOffsets)
+  new Printer(buffer,
+          showExternal: showExternal,
+          showOffsets: showOffsets,
+          showMetadata: showMetadata)
       .writeProgramFile(program);
   if (path == null) {
     print(buffer);

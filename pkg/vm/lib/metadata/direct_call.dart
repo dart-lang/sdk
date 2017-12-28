@@ -8,10 +8,19 @@ import 'package:kernel/ast.dart';
 
 /// Metadata for annotating method invocations converted to direct calls.
 class DirectCallMetadata {
-  final Member target;
+  final Reference _targetReference;
   final bool checkReceiverForNull;
 
-  DirectCallMetadata(this.target, this.checkReceiverForNull);
+  DirectCallMetadata(Member target, bool checkReceiverForNull)
+      : this.byReference(getMemberReference(target), checkReceiverForNull);
+
+  DirectCallMetadata.byReference(
+      this._targetReference, this.checkReceiverForNull);
+
+  Member get target => _targetReference.asMember;
+
+  @override
+  String toString() => "${target}${checkReceiverForNull ? '??' : ''}";
 }
 
 /// Repository for [DirectCallMetadata].
@@ -32,11 +41,12 @@ class DirectCallMetadataRepository
 
   @override
   DirectCallMetadata readFromBinary(BinarySource source) {
-    var target = source.readCanonicalNameReference()?.getReference()?.asMember;
-    if (target == null) {
+    final targetReference = source.readCanonicalNameReference()?.getReference();
+    if (targetReference == null) {
       throw 'DirectCallMetadata should have a non-null target';
     }
-    var checkReceiverForNull = (source.readByte() != 0);
-    return new DirectCallMetadata(target, checkReceiverForNull);
+    final checkReceiverForNull = (source.readByte() != 0);
+    return new DirectCallMetadata.byReference(
+        targetReference, checkReceiverForNull);
   }
 }
