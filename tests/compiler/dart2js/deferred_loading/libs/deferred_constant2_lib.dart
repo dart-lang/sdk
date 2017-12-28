@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Imported by deferred_class_test.dart.
-
-library deferred_class_library2;
+library deferred_constants2_lib;
 
 class MyClass {
   const MyClass();
@@ -28,8 +26,8 @@ class Constant {
 }
 
 /*element: C1:OutputUnit(1, {lib})*/
-const C1 = const Constant(499);
-/*element: C2:OutputUnit(1, {lib})*/
+const C1 = /*OutputUnit(1, {lib})*/ const Constant(499);
+
 const C2 = const [const Constant(99)];
 
 foo([x = const Constant(42)]) => x;

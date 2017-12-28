@@ -14,6 +14,9 @@ import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
+import 'package:compiler/src/constants/values.dart';
+
+import 'package:kernel/ast.dart' as ir;
 
 const List<String> skipForKernel = const <String>[];
 
@@ -50,7 +53,8 @@ Map<String, Uri> importPrefixes = <String, Uri>{};
 
 /// Create a consistent string representation of [OutputUnit]s for both
 /// KImportEntities and ImportElements.
-String outputUnitString(OutputUnit unit, MemberEntity member) {
+String outputUnitString(OutputUnit unit) {
+  if (unit == null) return 'null';
   StringBuffer sb = new StringBuffer();
   bool first = true;
   for (ImportEntity import in unit.importsForTesting) {
@@ -76,11 +80,24 @@ void computeAstOutputUnitData(
     Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   MemberElement member = _member;
-  String value = outputUnitString(
-      compiler.backend.outputUnitData.outputUnitForEntity(member), member);
+  OutputUnitData data = compiler.backend.outputUnitData;
+  String value = outputUnitString(data.outputUnitForEntity(member));
 
   _registerValue(computeElementId(member), value, member, member.sourcePosition,
       actualMap, compiler.reporter);
+
+  if (member is FieldElement && member.isConst) {
+    var node = member.initializer;
+    var constant = compiler.constants.getConstantValue(member.constant);
+    _registerValue(
+        new NodeId(node.getBeginToken().charOffset, IdKind.node),
+        outputUnitString(data.outputUnitForConstant(constant)),
+        member,
+        new SourceSpan(member.resolvedAst.sourceUri,
+            node.getBeginToken().charOffset, node.getEndToken().charEnd),
+        actualMap,
+        compiler.reporter);
+  }
 }
 
 /// OutputData for [member] as a kernel based element.
@@ -92,8 +109,8 @@ void computeAstOutputUnitData(
 void computeKernelOutputUnitData(
     Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
-  String value = outputUnitString(
-      compiler.backend.outputUnitData.outputUnitForEntity(member), member);
+  OutputUnitData data = compiler.backend.outputUnitData;
+  String value = outputUnitString(data.outputUnitForEntity(member));
 
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
@@ -106,6 +123,29 @@ void computeKernelOutputUnitData(
       computeSourceSpanFromTreeNode(definition.node),
       actualMap,
       compiler.reporter);
+
+  ir.Member memberNode = definition.node;
+  if (memberNode is ir.Field && memberNode.isConst) {
+    ir.Expression node = memberNode.initializer;
+    ConstantValue constant = elementMap.getConstantValue(node);
+    SourceSpan span = computeSourceSpanFromTreeNode(node);
+    if (node is ir.ConstructorInvocation ||
+        node is ir.ListLiteral ||
+        node is ir.MapLiteral) {
+      // Adjust the source-span to match the AST-based location. The kernel FE
+      // skips the "const" keyword for the expression offset (-6 is an
+      // approximation assuming that there is just a single space after "const",
+      // this is likely good enough for our small unit tests).
+      span = new SourceSpan(span.uri, span.begin - 6, span.end - 6);
+    }
+    _registerValue(
+        new NodeId(span.begin, IdKind.node),
+        outputUnitString(data.outputUnitForConstant(constant)),
+        member,
+        computeSourceSpanFromTreeNode(node),
+        actualMap,
+        compiler.reporter);
+  }
 }
 
 /// Set [actualMap] to hold a key of [id] with the computed data [value]

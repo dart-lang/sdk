@@ -247,7 +247,7 @@ class IdData {
 
   IdData(this.code, this.expectedMaps, this.compiledData) {
     for (Uri uri in code.keys) {
-      _actualMaps[uri] = compiledData.actualMaps[uri];
+      _actualMaps[uri] = compiledData.actualMaps[uri] ?? <Id, ActualData>{};
     }
   }
 
