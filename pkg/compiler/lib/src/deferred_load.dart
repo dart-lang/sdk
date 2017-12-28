@@ -548,7 +548,7 @@ abstract class DeferredLoadTask extends CompilerTask {
   ///
   /// The deferred loading algorithm maps elements and constants to an output
   /// unit. Each output unit is identified by a subset of deferred imports (an
-  /// [ImportSet]), and they will contain the elements that are inheretly used
+  /// [ImportSet]), and they will contain the elements that are inherently used
   /// by all those deferred imports. An element is used by a deferred import if
   /// it is either loaded by that import or transitively accessed by an element
   /// that the import loads.  An empty set represents the main output unit,

@@ -1265,6 +1265,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   MemberDefinition getMemberDefinition(MemberEntity member) {
     return _getMemberDefinition(member);
   }
+
+  @override
+  ClassDefinition getClassDefinition(ClassEntity cls) {
+    return _getClassDefinition(cls);
+  }
 }
 
 class KernelElementEnvironment extends ElementEnvironment {
