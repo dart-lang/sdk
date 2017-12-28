@@ -354,6 +354,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     Callback setUpFunction}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
+
+  var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
+  print('Data dir: ${relativeDir}');
   await for (FileSystemEntity entity in dataDir.list()) {
     String name = entity.uri.pathSegments.last;
     if (args.isNotEmpty && !args.contains(name)) continue;
@@ -362,8 +365,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       testOptions.add(Flags.enableAsserts);
     }
     print('----------------------------------------------------------------');
-    print('Checking ${entity.uri}');
-    print('----------------------------------------------------------------');
+    print('Test: $name');
     // Pretend this is a dart2js_native test to allow use of 'native' keyword
     // and import of private libraries.
     String commonTestPath = 'sdk/tests/compiler';
@@ -385,13 +387,12 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     };
 
     if (libDirectory != null) {
-      print('----------------------------------------------------------------');
-      print('Loading support libraries:');
+      print('Supporting libraries:');
       String filePrefix = name.substring(0, name.lastIndexOf('.'));
       await for (FileSystemEntity libEntity in libDirectory.list()) {
         String libFileName = libEntity.uri.pathSegments.last;
         if (libFileName.startsWith(filePrefix)) {
-          print('    - loading ${libEntity.uri}');
+          print('    - libs/$libFileName');
           Uri libFileUri =
               Uri.parse('memory:$commonTestPath/libs/$libFileName');
           userFiles.add(libEntity.uri.pathSegments.last);
@@ -403,13 +404,12 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
           computeExpectedMap(libFileUri, annotatedLibCode, expectedMaps);
         }
       }
-      print('----------------------------------------------------------------');
     }
 
     if (setUpFunction != null) setUpFunction();
 
     if (skipforAst.contains(name)) {
-      print('--skipped for kernel--------------------------------------------');
+      print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');
       CompiledData compiledData1 = await computeData(
