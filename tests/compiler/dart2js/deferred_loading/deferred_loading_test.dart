@@ -18,7 +18,9 @@ import 'package:compiler/src/constants/values.dart';
 
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[];
+const List<String> skipForKernel = const <String>[
+  'dont_inline_deferred_constants.dart',
+];
 
 ///  Add in options to pass to the compiler like
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
