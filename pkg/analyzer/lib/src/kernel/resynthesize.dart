@@ -238,85 +238,11 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     if (kernelType is kernel.FunctionType) {
-      var typedef = kernelType.typedef;
-      if (typedef != null) {
-        GenericTypeAliasElementImpl typedefElement =
-            getElementFromCanonicalName(typedef.canonicalName);
-        GenericFunctionTypeElementImpl functionElement =
-            typedefElement.function;
-        return instantiateFunctionType(
-            context, functionElement, typedef, typedef.type, kernelType);
-      }
-      var typeElement =
-          new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
-      return typeElement.type;
+      return _getFunctionType(context, kernelType);
     }
 
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
-  }
-
-  /// Given the [executable] element that corresponds to the [kernelNode],
-  /// and the [kernelType] that is the instantiated type of [kernelNode],
-  /// return the instantiated type of the [executable].
-  FunctionType instantiateFunctionType(
-      ElementImpl context,
-      FunctionTypedElement executable,
-      kernel.TreeNode kernelNode,
-      kernel.FunctionType kernelRawType,
-      kernel.FunctionType kernelType) {
-    // Prepare all kernel type parameters.
-    var kernelTypeParameters = <kernel.TypeParameter>[];
-    for (kernel.TreeNode node = kernelNode; node != null; node = node.parent) {
-      if (node is kernel.Class) {
-        kernelTypeParameters.addAll(node.typeParameters);
-      } else if (node is kernel.FunctionNode) {
-        kernelTypeParameters.addAll(node.typeParameters);
-      } else if (node is kernel.Typedef) {
-        kernelTypeParameters.addAll(node.typeParameters);
-      }
-    }
-
-    // If no type parameters, the raw type of the element will do.
-    FunctionTypeImpl rawType = executable.type;
-    if (kernelTypeParameters.isEmpty) {
-      return rawType;
-    }
-
-    // Compute type arguments for kernel type parameters.
-    var kernelMap = kernel.unifyTypes(
-        kernelRawType, kernelType, kernelTypeParameters.toSet());
-
-    // Prepare Analyzer type parameters, in the same order as kernel ones.
-    var astTypeParameters = <TypeParameterElement>[];
-    for (Element element = executable;
-        element != null;
-        element = element.enclosingElement) {
-      if (element is TypeParameterizedElement) {
-        astTypeParameters.addAll(element.typeParameters);
-      }
-    }
-
-    // Convert kernel type arguments into Analyzer types.
-    int length = astTypeParameters.length;
-    var usedTypeParameters = <TypeParameterElement>[];
-    var usedTypeArguments = <DartType>[];
-    for (var i = 0; i < length; i++) {
-      var kernelParameter = kernelTypeParameters[i];
-      var kernelArgument = kernelMap[kernelParameter];
-      if (kernelArgument != null) {
-        DartType astArgument = getType(context, kernelArgument);
-        usedTypeParameters.add(astTypeParameters[i]);
-        usedTypeArguments.add(astArgument);
-      }
-    }
-
-    if (usedTypeParameters.isEmpty) {
-      return rawType;
-    }
-
-    // Replace Analyzer type parameters with type arguments.
-    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
   }
 
   void _buildTypeProvider() {
@@ -328,6 +254,44 @@ class KernelResynthesizer implements ElementResynthesizer {
     // Now, when TypeProvider is ready, we can finalize core/async.
     coreLibrary.createLoadLibraryFunction(_typeProvider);
     asyncLibrary.createLoadLibraryFunction(_typeProvider);
+  }
+
+  /// Return the [FunctionType] that corresponds to the given [kernelType].
+  FunctionType _getFunctionType(
+      ElementImpl context, kernel.FunctionType kernelType) {
+    if (kernelType.typedef != null) {
+      return _getTypedefType(context, kernelType);
+    }
+
+    var element = new FunctionElementImpl('', -1);
+    context.encloseElement(element);
+
+    // Set type parameters.
+    {
+      List<kernel.TypeParameter> typeParameters = kernelType.typeParameters;
+      int count = typeParameters.length;
+      var astTypeParameters = new List<TypeParameterElement>(count);
+      for (int i = 0; i < count; i++) {
+        astTypeParameters[i] =
+            new TypeParameterElementImpl.forKernel(element, typeParameters[i]);
+      }
+      element.typeParameters = astTypeParameters;
+    }
+
+    // Set formal parameters.
+    var parameters = _getFunctionTypeParameters(kernelType);
+    var positionalParameters = parameters[0];
+    var namedParameters = parameters[1];
+    var astParameters = ParameterElementImpl.forKernelParameters(
+        element,
+        kernelType.requiredParameterCount,
+        positionalParameters,
+        namedParameters);
+    element.parameters = astParameters;
+
+    element.returnType = getType(element, kernelType.returnType);
+
+    return new FunctionTypeImpl(element);
   }
 
   InterfaceType _getInterfaceType(ElementImpl context,
@@ -356,6 +320,52 @@ class KernelResynthesizer implements ElementResynthesizer {
   Source _getSource(String uri) {
     return _sources.putIfAbsent(
         uri, () => _analysisContext.sourceFactory.forUri(uri));
+  }
+
+  /// Return the [FunctionType] for the given typedef based [kernelType].
+  FunctionType _getTypedefType(
+      ElementImpl context, kernel.FunctionType kernelType) {
+    kernel.Typedef typedef = kernelType.typedef;
+
+    GenericTypeAliasElementImpl typedefElement =
+        getElementFromCanonicalName(typedef.canonicalName);
+    GenericFunctionTypeElementImpl functionElement = typedefElement.function;
+
+    var kernelTypeParameters = typedef.typeParameters;
+
+    // If no type parameters, the raw type of the element will do.
+    FunctionTypeImpl rawType = functionElement.type;
+    if (kernelTypeParameters.isEmpty) {
+      return rawType;
+    }
+
+    // Compute type arguments for kernel type parameters.
+    var kernelMap = kernel.unifyTypes(
+        typedef.type, kernelType, kernelTypeParameters.toSet());
+
+    // Prepare Analyzer type parameters, in the same order as kernel ones.
+    var astTypeParameters = typedefElement.typeParameters;
+
+    // Convert kernel type arguments into Analyzer types.
+    int length = astTypeParameters.length;
+    var usedTypeParameters = <TypeParameterElement>[];
+    var usedTypeArguments = <DartType>[];
+    for (var i = 0; i < length; i++) {
+      var kernelParameter = kernelTypeParameters[i];
+      var kernelArgument = kernelMap[kernelParameter];
+      if (kernelArgument != null) {
+        DartType astArgument = getType(context, kernelArgument);
+        usedTypeParameters.add(astTypeParameters[i]);
+        usedTypeArguments.add(astArgument);
+      }
+    }
+
+    if (usedTypeParameters.isEmpty) {
+      return rawType;
+    }
+
+    // Replace Analyzer type parameters with type arguments.
+    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
   }
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
@@ -390,6 +400,28 @@ class KernelResynthesizer implements ElementResynthesizer {
     libraryElement.publicNamespace = new Namespace({});
     libraryElement.exportNamespace = new Namespace({});
     return libraryElement;
+  }
+
+  /// Return the list with exactly two elements - positional and named
+  /// parameter lists.
+  static List<List<kernel.VariableDeclaration>> _getFunctionTypeParameters(
+      kernel.FunctionType type) {
+    int positionalCount = type.positionalParameters.length;
+    var positionalParameters =
+        new List<kernel.VariableDeclaration>(positionalCount);
+    for (int i = 0; i < positionalCount; i++) {
+      String name = i < type.positionalParameterNames.length
+          ? type.positionalParameterNames[i]
+          : 'arg_$i';
+      positionalParameters[i] = new kernel.VariableDeclaration(name,
+          type: type.positionalParameters[i]);
+    }
+
+    var namedParameters = type.namedParameters
+        .map((k) => new kernel.VariableDeclaration(k.name, type: k.type))
+        .toList(growable: false);
+
+    return [positionalParameters, namedParameters];
   }
 }
 
@@ -1090,22 +1122,7 @@ class _KernelUnitResynthesizerContextImpl
   @override
   List<List<kernel.VariableDeclaration>> getFunctionTypeParameters(
       kernel.FunctionType type) {
-    int positionalCount = type.positionalParameters.length;
-    var positionalParameters =
-        new List<kernel.VariableDeclaration>(positionalCount);
-    for (int i = 0; i < positionalCount; i++) {
-      String name = i < type.positionalParameterNames.length
-          ? type.positionalParameterNames[i]
-          : 'arg_$i';
-      positionalParameters[i] = new kernel.VariableDeclaration(name,
-          type: type.positionalParameters[i]);
-    }
-
-    var namedParameters = type.namedParameters
-        .map((k) => new kernel.VariableDeclaration(k.name, type: k.type))
-        .toList(growable: false);
-
-    return [positionalParameters, namedParameters];
+    return KernelResynthesizer._getFunctionTypeParameters(type);
   }
 
   @override

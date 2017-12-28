@@ -298,27 +298,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_inference_simplePolymorphicRecursion_function() async {
-    // Expected: 'T'
-    await super.test_inference_simplePolymorphicRecursion_function();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_interface() async {
-    // Expected: 'T'
-    await super.test_inference_simplePolymorphicRecursion_interface();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_simple() async {
-    // RangeError (index): Invalid value: Valid value range is empty: 0
-    await super.test_inference_simplePolymorphicRecursion_simple();
-  }
-
-  @override
-  @failingTest
   test_inferGenericInstantiation2() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0

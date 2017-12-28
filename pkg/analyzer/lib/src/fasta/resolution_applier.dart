@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -309,7 +308,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     applyConstructorElement(type, element, constructorName);
 
     ArgumentList argumentList = node.argumentList;
-    _associateArgumentsWithParameters(element?.parameters, argumentList);
     _applyResolutionToArguments(argumentList);
   }
 
@@ -364,7 +362,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       if (node.typeArguments != null) {
         _applyTypeArgumentsToList(invokeType, node.typeArguments.arguments);
       }
-      _associateArgumentsWithParameters(invokeType.parameters, argumentList);
     }
 
     _applyResolutionToArguments(argumentList);
@@ -436,7 +433,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     constructorName?.staticElement = element;
 
     ArgumentList argumentList = node.argumentList;
-    _associateArgumentsWithParameters(element?.parameters, argumentList);
     _applyResolutionToArguments(argumentList);
   }
 
@@ -540,33 +536,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       } else {
         argument.accept(this);
       }
-    }
-  }
-
-  /// Associate arguments of the [argumentList] with the [parameters].
-  void _associateArgumentsWithParameters(
-      List<ParameterElement> parameters, ArgumentList argumentList) {
-    if (parameters != null) {
-      List<Expression> arguments = argumentList.arguments;
-      var correspondingParameters =
-          new List<ParameterElement>(arguments.length);
-      for (int i = 0; i < arguments.length; i++) {
-        var argument = arguments[i];
-        if (argument is NamedExpression) {
-          for (var parameter in parameters) {
-            SimpleIdentifier label = argument.name.label;
-            if (parameter.parameterKind == ParameterKind.NAMED &&
-                parameter.name == label.name) {
-              label.staticElement = parameter;
-              correspondingParameters[i] = parameter;
-              break;
-            }
-          }
-        } else {
-          correspondingParameters[i] = parameters[i];
-        }
-      }
-      argumentList.correspondingStaticParameters = correspondingParameters;
     }
   }
 

@@ -31,6 +31,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
+    // super.m() is not resolved by front-end
+    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
@@ -195,6 +203,22 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
     return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
+    return super
+        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
+    return super
+        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
   }
 
   @override
