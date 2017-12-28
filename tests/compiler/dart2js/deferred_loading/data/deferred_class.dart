@@ -4,9 +4,6 @@
 
 import '../libs/deferred_class_library.dart' deferred as lib;
 
-/*element: isError:OutputUnit(main, {})*/
-bool isError(e) => e is Error;
-
 /*element: main:OutputUnit(main, {})*/
 main() {
   lib.loadLibrary().then((_) {

@@ -503,7 +503,6 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
     if (missingIds.isNotEmpty) {
       combinedAnnotationsDiff.write('Missing in $uri:\n');
       combinedAnnotationsDiff.write('${data.diffCode(uri)}\n');
-      missingIds.clear();
     }
   });
   if (combinedAnnotationsDiff.isNotEmpty) {

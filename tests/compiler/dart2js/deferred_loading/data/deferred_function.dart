@@ -7,9 +7,6 @@
 
 import '../libs/deferred_function_lib.dart' deferred as lib;
 
-/*element: isError:OutputUnit(main, {})*/
-bool isError(e) => e is Error;
-
 /*element: readFoo:OutputUnit(main, {})*/
 readFoo() {
   return lib.foo;
