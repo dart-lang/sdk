@@ -15,6 +15,7 @@ import '../compiler.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../deferred_load.dart' show OutputUnit;
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
@@ -2184,8 +2185,10 @@ class SsaAstGraphBuilder extends ast.Visitor
     ImportElement deferredImport =
         deferredLoadTask.deferredImportElement(node, elements);
     if (deferredImport != null) {
+      OutputUnit unit =
+          compiler.backend.outputUnitData.outputUnitForMember(field);
       instruction = graph.addDeferredConstant(
-          value, deferredImport, sourceInformation, compiler, closedWorld);
+          value, unit, sourceInformation, compiler, closedWorld);
     } else {
       instruction = graph.addConstant(value, closedWorld,
           sourceInformation: sourceInformation);

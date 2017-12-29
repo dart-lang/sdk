@@ -35,6 +35,12 @@ class ConstantValueTypeMasks
   }
 
   @override
+  TypeMask visitDeferredGlobal(
+      DeferredGlobalConstantValue constant, ClosedWorld closedWorld) {
+    return constant.referenced.accept(this, closedWorld);
+  }
+
+  @override
   TypeMask visitDouble(DoubleConstantValue constant, ClosedWorld closedWorld) {
     // We have to recognize double constants that are 'is int'.
     if (closedWorld.constantSystem.isInt(constant)) {

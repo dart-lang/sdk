@@ -11,7 +11,11 @@ import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
-    show ConstantValue, ConstructedConstantValue, DeferredConstantValue;
+    show
+        ConstantValue,
+        ConstructedConstantValue,
+        DeferredConstantValue,
+        DeferredGlobalConstantValue;
 import 'elements/types.dart';
 import 'elements/elements.dart'
     show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
@@ -1168,11 +1172,11 @@ class OutputUnitData {
     return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
   }
 
-  /// Registers that a constant is used in a deferred library.
+  /// Registers that a constant is used in the same deferred output unit as
+  /// [field].
   void registerConstantDeferredUse(
-      DeferredConstantValue constant, ImportEntity import) {
+      DeferredGlobalConstantValue constant, OutputUnit unit) {
     if (!isProgramSplit) return;
-    var unit = _importSets.singleton(import).unit;
     assert(
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;

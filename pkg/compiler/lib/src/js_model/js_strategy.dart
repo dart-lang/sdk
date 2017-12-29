@@ -623,10 +623,13 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitDeferred(DeferredConstantValue constant, _) {
+    throw new UnsupportedError("DeferredConstantValue with --use-kernel");
+  }
+
+  ConstantValue visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
     var referenced = constant.referenced.accept(this, null);
     if (referenced == constant.referenced) return constant;
-    // TODO(sigmund): do we need a JImport entity?
-    return new DeferredConstantValue(referenced, constant.import);
+    return new DeferredGlobalConstantValue(referenced, constant.unit);
   }
 
   DartType _handleType(DartType type) {

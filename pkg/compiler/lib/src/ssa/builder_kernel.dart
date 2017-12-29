@@ -2530,8 +2530,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ConstantValue value = _elementMap.getFieldConstantValue(field);
       if (value != null) {
         if (!field.isAssignable) {
-          stack.add(graph.addConstant(value, closedWorld,
-              sourceInformation: sourceInformation));
+          var unit = compiler.backend.outputUnitData.outputUnitForEntity(field);
+          // TODO(sigmund): this is not equivalent to what the old FE does: if
+          // there is no prefix the old FE wouldn't treat this in any special
+          // way. Also, if the prefix points to a constant in the main output
+          // unit, the old FE would still generate a deferred wrapper here.
+          if (!unit.isMainOutput) {
+            stack.add(graph.addDeferredConstant(
+                value, unit, sourceInformation, compiler, closedWorld));
+          } else {
+            stack.add(graph.addConstant(value, closedWorld,
+                sourceInformation: sourceInformation));
+          }
         } else {
           push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
               sourceInformation));

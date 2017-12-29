@@ -1032,6 +1032,20 @@ class ConstantValueEquivalence
   }
 
   @override
+  bool visitDeferredGlobal(DeferredGlobalConstantValue value1,
+      covariant DeferredGlobalConstantValue value2) {
+    return strategy.testSets(
+            value1,
+            value2,
+            'imports',
+            value1.unit.importsForTesting,
+            value2.unit.importsForTesting,
+            strategy.elementEquivalence) &&
+        strategy.testConstantValues(
+            value1, value2, 'referenced', value1.referenced, value2.referenced);
+  }
+
+  @override
   bool visitNonConstant(
       NonConstantValue value1, covariant NonConstantValue value2) {
     return true;
