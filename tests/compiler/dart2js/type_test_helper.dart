@@ -94,19 +94,23 @@ class TypeEnvironment {
             mock.createHandler(mockCompiler, source);
         collector = mockCompiler.diagnosticCollector;
         compiler = mockCompiler;
+        compiler.stopAfterTypeInference = stopAfterTypeInference;
+        await compiler.run(uri);
       } else {
         collector = new memory.DiagnosticCollector();
         uri = Uri.parse('memory:main.dart');
-        compiler = memory.compilerFor(
+        memory.CompilationResult result = await memory.runCompiler(
             entryPoint: uri,
             memorySourceFiles: {'main.dart': source},
             diagnosticHandler: collector,
             options: stopAfterTypeInference
                 ? []
-                : [Flags.analyzeAll, Flags.analyzeOnly]);
+                : [Flags.analyzeAll, Flags.analyzeOnly],
+            beforeRun: (compiler) {
+              compiler.stopAfterTypeInference = stopAfterTypeInference;
+            });
+        compiler = result.compiler;
       }
-      compiler.stopAfterTypeInference = stopAfterTypeInference;
-      await compiler.run(uri);
     }
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;

@@ -88,14 +88,19 @@ Future<CompiledData> computeData(
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
     bool forUserSourceFilesOnly: false}) async {
-  Compiler compiler =
-      compilerFor(memorySourceFiles: memorySourceFiles, options: options);
-  compiler.stopAfterTypeInference = options.contains(stopAfterTypeInference);
-  await compiler.run(entryPoint);
-  if (compiler.compilationFailed) {
+  CompilationResult result = await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: options,
+      beforeRun: (compiler) {
+        compiler.stopAfterTypeInference =
+            options.contains(stopAfterTypeInference);
+      });
+  if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
-    Expect.isFalse(compiler.compilationFailed, "Unexpected compilation error.");
+    Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
   }
+  Compiler compiler = result.compiler;
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

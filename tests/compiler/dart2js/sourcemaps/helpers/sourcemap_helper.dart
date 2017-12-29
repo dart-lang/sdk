@@ -315,26 +315,31 @@ class SourceMapProcessor {
     if (options.contains(Flags.disableInlining)) {
       if (verbose) print('Inlining disabled');
     }
-    api.CompilerImpl compiler = await compilerFor(
+    CompilationResult result = await runCompiler(
+        entryPoint: inputUri,
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
-          ..addAll(options));
-
-    JavaScriptBackend backend = compiler.backend;
-    dynamic handler = compiler.handler;
-    SourceFileProvider sourceFileProvider = handler.provider;
-    sourceFileManager =
-        new ProviderSourceFileManager(sourceFileProvider, outputProvider);
-    RecordingSourceInformationStrategy strategy =
-        new RecordingSourceInformationStrategy(
-            backend.sourceInformationStrategy);
-    backend.sourceInformationStrategy = strategy;
-    await compiler.run(inputUri);
-    if (compiler.compilationFailed) {
+          ..addAll(options),
+        beforeRun: (compiler) {
+          JavaScriptBackend backend = compiler.backend;
+          dynamic handler = compiler.handler;
+          SourceFileProvider sourceFileProvider = handler.provider;
+          sourceFileManager =
+              new ProviderSourceFileManager(sourceFileProvider, outputProvider);
+          RecordingSourceInformationStrategy strategy =
+              new RecordingSourceInformationStrategy(
+                  backend.sourceInformationStrategy);
+          backend.sourceInformationStrategy = strategy;
+        });
+    if (!result.isSuccess) {
       throw "Compilation failed.";
     }
 
+    api.CompilerImpl compiler = result.compiler;
+    JavaScriptBackend backend = compiler.backend;
+    RecordingSourceInformationStrategy strategy =
+        backend.sourceInformationStrategy;
     SourceMapInfo mainSourceMapInfo;
     Map<MemberEntity, SourceMapInfo> elementSourceMapInfos =
         <MemberEntity, SourceMapInfo>{};

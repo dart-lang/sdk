@@ -38,20 +38,19 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
   List<CompileFunction> compilers = <CompileFunction>[];
   for (String source in sources) {
     compilers.add(() async {
-      Compiler compiler = compilerFor(
+      ElementResolutionWorldBuilder.useInstantiationMap = true;
+      CompilationResult result = await runCompiler(
           entryPoint: entryPoint,
-          memorySourceFiles: {
-            'main.dart': source
-          },
+          memorySourceFiles: {'main.dart': source},
           options: [
             Flags.analyzeOnly,
             Flags.enableAssertMessage,
             Flags.useKernel
-          ]);
-      ElementResolutionWorldBuilder.useInstantiationMap = true;
-      compiler.impactCacheDeleter.retainCachesForTesting = true;
-      await compiler.run(entryPoint);
-      return compiler;
+          ],
+          beforeRun: (compiler) {
+            compiler.impactCacheDeleter.retainCachesForTesting = true;
+          });
+      return result.compiler;
     });
   }
   return compilers;
@@ -66,24 +65,26 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   if (printSteps) {
     print('---- analyze-all -------------------------------------------------');
   }
-  Compiler compiler = compilerFor(
+  CompilationResult result1 = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.enableAssertMessage]);
-  compiler.impactCacheDeleter.retainCachesForTesting = true;
-  await compiler.run(entryPoint);
+      options: [Flags.analyzeAll, Flags.enableAssertMessage],
+      beforeRun: (compiler) {
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+      });
 
   if (printSteps) {
     print('---- closed world from kernel ------------------------------------');
   }
-  Compiler compiler2 = compilerFor(
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  CompilationResult result2 = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler2.impactCacheDeleter.retainCachesForTesting = true;
-  await compiler2.run(entryPoint);
-  return new Pair<Compiler, Compiler>(compiler, compiler2);
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel],
+      beforeRun: (compiler) {
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+      });
+  return new Pair<Compiler, Compiler>(result1.compiler, result2.compiler);
 }
 
 class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
@@ -125,17 +126,18 @@ Future<Compiler> compileWithDill(
   if (printSteps) {
     print('---- compile from dill -------------------------------------------');
   }
-  Compiler compiler = compilerFor(
+  CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       options: [Flags.useKernel]..addAll(options),
       diagnosticHandler: diagnosticHandler,
-      outputProvider: compilerOutput);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler.impactCacheDeleter.retainCachesForTesting = true;
-  if (beforeRun != null) {
-    beforeRun(compiler);
-  }
-  await compiler.run(entryPoint);
-  return compiler;
+      outputProvider: compilerOutput,
+      beforeRun: (compiler) {
+        ElementResolutionWorldBuilder.useInstantiationMap = true;
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+        if (beforeRun != null) {
+          beforeRun(compiler);
+        }
+      });
+  return result.compiler;
 }

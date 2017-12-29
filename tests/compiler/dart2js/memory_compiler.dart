@@ -20,9 +20,11 @@ import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, MemberEntity;
 import 'package:compiler/src/enqueue.dart' show ResolutionEnqueuer;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
-import 'package:compiler/src/library_loader.dart' show LoadedLibraries;
+import 'package:compiler/src/library_loader.dart'
+    show LoadedLibraries, KernelLibraryLoaderTask;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
@@ -70,6 +72,8 @@ CompilerDiagnostics createCompilerDiagnostics(
 Expando<MemorySourceFileProvider> expando =
     new Expando<MemorySourceFileProvider>();
 
+fe.InitializedCompilerState kernelInitializedCompilerState;
+
 /// memorySourceFiles can contain a map of string filename to string file
 /// contents or string file name to binary file contents (hence the `dynamic`
 /// type for the second parameter).
@@ -107,7 +111,13 @@ Future<CompilationResult> runCompiler(
     beforeRun(compiler);
   }
   bool isSuccess = await compiler.run(entryPoint);
-  return new CompilationResult(compiler, isSuccess: isSuccess);
+  if (compiler.libraryLoader is KernelLibraryLoaderTask) {
+    KernelLibraryLoaderTask loader = compiler.libraryLoader;
+    kernelInitializedCompilerState = loader.initializedCompilerState;
+  }
+  return new CompilationResult(compiler,
+      isSuccess: isSuccess,
+      kernelInitializedCompilerState: kernelInitializedCompilerState);
 }
 
 CompilerImpl compilerFor(
@@ -175,7 +185,8 @@ CompilerImpl compilerFor(
           environment: {},
           platformBinaries: platformBinaries,
           packageConfig: packageConfig,
-          packagesDiscoveryProvider: packagesDiscoveryProvider));
+          packagesDiscoveryProvider: packagesDiscoveryProvider)
+        ..kernelInitializedCompilerState = kernelInitializedCompilerState);
 
   if (cachedCompiler != null) {
     Map copiedLibraries = {};
