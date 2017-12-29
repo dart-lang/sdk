@@ -11,7 +11,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
 
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const String CODE = """
 class A {}

@@ -21,8 +21,8 @@ import 'package:compiler/src/typechecker.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/util/util.dart';
 
-import 'old_frontend/mock_compiler.dart';
-import 'old_frontend/parser_helper.dart';
+import 'mock_compiler.dart';
+import 'parser_helper.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
 final MessageKind UNDEFINED_GETTER = MessageKind.UNDEFINED_GETTER;

@@ -10,8 +10,8 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/types/masks.dart';
 import 'package:expect/expect.dart';
 
+import 'type_mask_test_helper.dart';
 import '../compiler_helper.dart';
-import '../type_mask_test_helper.dart';
 
 void compileAndFind(String code, String className, String memberName,
     bool disableInlining, check(compiler, element)) {

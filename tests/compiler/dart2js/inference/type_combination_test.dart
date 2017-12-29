@@ -12,7 +12,7 @@ import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 import 'type_mask_test_helper.dart';
 
 TypeMask nullType;

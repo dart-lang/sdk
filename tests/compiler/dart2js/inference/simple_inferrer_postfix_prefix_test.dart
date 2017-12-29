@@ -7,8 +7,8 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
+import 'type_mask_test_helper.dart';
 import '../compiler_helper.dart';
-import '../type_mask_test_helper.dart';
 
 const String TEST = """
 

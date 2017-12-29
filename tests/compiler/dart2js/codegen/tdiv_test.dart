@@ -6,7 +6,7 @@ library tdiv_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST1 = r"""
 foo(param) {

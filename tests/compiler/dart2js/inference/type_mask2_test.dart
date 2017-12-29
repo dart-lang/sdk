@@ -7,10 +7,10 @@ library type_mask2_test;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'type_test_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
+import '../type_test_helper.dart';
 
 isCheckedMode() {
   try {

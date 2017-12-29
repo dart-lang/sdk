@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/elements/resolution_types.dart';
-import "compiler_helper.dart";
+import "../compiler_helper.dart";
 
 test(compiler, String name1, String name2, {bool expect}) {
   Expect.isTrue((expect != null), 'required parameter "expect" not given');

@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const MAIN_CODE = """
 import 'library.dart';

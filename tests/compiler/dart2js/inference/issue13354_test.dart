@@ -8,8 +8,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
+import 'type_mask_test_helper.dart';
 import '../memory_compiler.dart';
-import '../type_mask_test_helper.dart';
 
 const String TEST = """
 bar() => 42;

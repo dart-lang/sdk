@@ -4,13 +4,14 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST_ONE = r"""
 foo(j) {
-  var a = [1, 2, 3];
+  var array = [1, 2, 3];
+  if (j < 0) j = 0;
   for (var i = j; i < 3; i++) {
-    a[i];
+    array[i];
   }
 }
 """;
@@ -24,10 +25,7 @@ main() {
       Expect.isFalse(generated.contains('iae'));
       // Also make sure that we are not just in bailout mode without speculative
       // types by grepping for the integer-bailout check on argument j.
-      var argname = new RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)')
-          .firstMatch(generated)[1];
-      print(argname);
-      RegExp regexp = new RegExp(getIntTypeCheck("(i|$argname)"));
+      RegExp regexp = new RegExp(getIntTypeCheck('[aji]'));
       Expect.isTrue(regexp.hasMatch(generated));
     });
   }

@@ -14,8 +14,8 @@ import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 
+import 'type_mask_test_helper.dart';
 import '../memory_compiler.dart';
-import '../type_mask_test_helper.dart';
 
 bool isContainer(TypeMask mask) {
   return mask is ContainerTypeMask;
