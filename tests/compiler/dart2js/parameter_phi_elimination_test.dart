@@ -6,6 +6,7 @@
 
 // VMOptions=--enable_asserts
 
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String SOURCE = r"""
@@ -18,5 +19,14 @@ bool baz(int a, int b) {
 """;
 
 main() {
-  compile(SOURCE, entry: "baz");
+  runTest({bool useKernel}) async {
+    await compile(SOURCE, entry: "baz", useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

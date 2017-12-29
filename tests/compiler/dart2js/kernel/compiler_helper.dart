@@ -21,41 +21,6 @@ import 'package:compiler/src/util/util.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 
-typedef Future<Compiler> CompileFunction();
-
-/// Create multiple compilations for a list of [sources].
-///
-/// This methods speeds up testing kernel based compilation by creating the IR
-/// nodes for all [sources] at the same time. The returned list of
-/// [CompileFunction]s compiles one of the [source] at a time using the kernel
-/// based compiler.
-///
-/// Currently, the returned compile function only runs with '--analyze-only'
-/// flag.
-Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
-  Uri entryPoint = Uri.parse('memory:main.dart');
-
-  List<CompileFunction> compilers = <CompileFunction>[];
-  for (String source in sources) {
-    compilers.add(() async {
-      ElementResolutionWorldBuilder.useInstantiationMap = true;
-      CompilationResult result = await runCompiler(
-          entryPoint: entryPoint,
-          memorySourceFiles: {'main.dart': source},
-          options: [
-            Flags.analyzeOnly,
-            Flags.enableAssertMessage,
-            Flags.useKernel
-          ],
-          beforeRun: (compiler) {
-            compiler.impactCacheDeleter.retainCachesForTesting = true;
-          });
-      return result.compiler;
-    });
-  }
-  return compilers;
-}
-
 /// Analyze [memorySourceFiles] with [entryPoint] as entry-point using the
 /// kernel based element model. The returned [Pair] contains the compiler used
 /// to create the IR and the kernel based compiler.

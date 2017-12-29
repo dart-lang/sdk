@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
 
@@ -18,12 +19,19 @@ const MEMORY_SOURCE_FILES = const {
         }'''
 };
 
-Future test({bool minify}) async {
+Future test({bool useKernel, bool minify}) async {
   OutputCollector collector = new OutputCollector();
+  List<String> options = <String>[];
+  if (useKernel) {
+    options.add(Flags.useKernel);
+  }
+  if (minify) {
+    options.add(Flags.minify);
+  }
   await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       outputProvider: collector,
-      options: minify ? ['--minify'] : []);
+      options: options);
 
   // Check that we use the shorter exponential representations.
   String jsOutput = collector.getOutput('', OutputType.js);
@@ -47,8 +55,15 @@ Future test({bool minify}) async {
 }
 
 main() {
+  runTest({bool useKernel}) async {
+    await test(useKernel: useKernel, minify: true);
+    await test(useKernel: useKernel, minify: false);
+  }
+
   asyncTest(() async {
-    await test(minify: true);
-    await test(minify: false);
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }

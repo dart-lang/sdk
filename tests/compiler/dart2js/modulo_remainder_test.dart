@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
@@ -66,16 +65,26 @@ foo(param) {
 """;
 
 main() {
-  Future check(String test) {
-    return compile(test, entry: 'foo', check: checkerForAbsentPresent(test));
+  runTests({bool useKernel}) async {
+    check(String test) async {
+      await compile(test,
+          entry: 'foo',
+          useKernel: useKernel,
+          check: checkerForAbsentPresent(test));
+    }
+
+    await check(MOD1);
+    await check(MOD2);
+    await check(MOD3);
+    await check(REM1);
+    await check(REM2);
+    await check(REM3);
   }
 
-  asyncTest(() => Future.wait([
-        check(MOD1),
-        check(MOD2),
-        check(MOD3),
-        check(REM1),
-        check(REM2),
-        check(REM3),
-      ]));
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

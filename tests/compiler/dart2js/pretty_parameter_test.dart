@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
@@ -73,32 +72,42 @@ int foo(var start, bool test) {
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        compile(FOO, entry: 'foo', check: (String generated) {
-          Expect.isTrue(generated.contains(r"function(a, b) {"));
-        }),
-        compile(BAR, entry: 'bar', check: (String generated) {
-          Expect.isTrue(generated.contains(r"function($eval, $$eval) {"));
-        }),
-        compile(PARAMETER_AND_TEMP, entry: 'bar', check: (String generated) {
-          Expect.isTrue(generated.contains(r"print(t00)"));
-          // Check that the second 't0' got another name.
-          Expect.isTrue(generated.contains(r"print(t01)"));
-        }),
-        compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo',
-            check: (String generated) {
-          Expect.isTrue(generated.contains("var a;"));
-          // Check that there is only one var declaration.
-          checkNumberOfMatches(
-              new RegExp("var").allMatches(generated).iterator, 1);
-        }),
-        compile(NO_LOCAL, entry: 'foo', check: (String generated) {
-          Expect.isFalse(generated.contains('var'));
-        }),
-        compile(PARAMETER_INIT, entry: 'foo', check: (String generated) {
-          // Check that there is only one var declaration.
-          checkNumberOfMatches(
-              new RegExp("var").allMatches(generated).iterator, 1);
-        }),
-      ]));
+  runTests({bool useKernel}) async {
+    await compile(FOO, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(generated.contains(r"function(a, b) {"));
+    });
+    await compile(BAR, entry: 'bar', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(generated.contains(r"function($eval, $$eval) {"));
+    });
+    await compile(PARAMETER_AND_TEMP, entry: 'bar', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(generated.contains(r"print(t00)"));
+      // Check that the second 't0' got another name.
+      Expect.isTrue(generated.contains(r"print(t01)"));
+    });
+    await compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isTrue(generated.contains("var a;"));
+      // Check that there is only one var declaration.
+      checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
+    });
+    await compile(NO_LOCAL, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      Expect.isFalse(generated.contains('var'));
+    });
+    await compile(PARAMETER_INIT, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      // Check that there is only one var declaration.
+      checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

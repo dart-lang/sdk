@@ -16,9 +16,18 @@ main() {
 """;
 
 main() {
-  asyncTest(() => compileAll(CODE).then((generated) {
-        RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-Za-z]+;"');
-        Iterator<Match> matches = regexp.allMatches(generated).iterator;
-        checkNumberOfMatches(matches, 1);
-      }));
+  runTest({bool useKernel}) async {
+    String generated = await compileAll(CODE,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-Za-z]+;"');
+    Iterator<Match> matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

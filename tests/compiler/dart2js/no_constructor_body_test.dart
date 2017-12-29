@@ -18,8 +18,18 @@ main() {
 """;
 
 main() {
-  asyncTest(() => compileAll(TEST).then((generated) {
-        Expect.isTrue(generated
-            .contains(new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));
-      }));
+  runTest({bool useKernel}) async {
+    String generated = await compileAll(TEST,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+
+    Expect.isTrue(generated
+        .contains(new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }
