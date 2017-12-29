@@ -42,10 +42,10 @@ serialization/model4_test: Skip # Skip most serialization tests. These are very 
 serialization/model5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/native_data_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
-simple_inferrer_const_closure2_test: Fail # Issue 16507
-simple_inferrer_const_closure_test: Fail # Issue 16507
-simple_inferrer_global_field_closure_test: Fail # Issue 16507
+codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
+inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
+inference/simple_inferrer_const_closure_test: Fail # Issue 16507
+inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
@@ -69,7 +69,7 @@ in_user_code_test: Pass, Slow
 old_frontend/message_kind_test: Pass, Slow
 mirrors/mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
 show_package_warnings_test: Pass, Slow
-source_map_pub_build_validity_test: Pass, Slow
+sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 
 [ $system == linux ]
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
@@ -91,7 +91,7 @@ mirrors/mirror_final_field_inferrer2_test: Pass, Slow
 output_type_test: Pass, Slow
 mirrors/preserve_uris_test: Pass, Slow
 serialization*: Slow, Pass
-source_map_pub_build_validity_test: Pass, Slow
+sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
 uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
