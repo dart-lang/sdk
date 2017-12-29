@@ -304,6 +304,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     DartType type = _getTypeFor(constructorName);
     ConstructorElement element = _getReferenceFor(constructorName);
 
+    constructorName.staticElement = element;
+
     node.staticElement = element;
     node.staticType = type;
 

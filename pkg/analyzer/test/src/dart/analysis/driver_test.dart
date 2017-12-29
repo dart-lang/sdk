@@ -186,12 +186,19 @@ f() {}
     var atD = AstFinder.getTopLevelFunction(result.unit, 'f').metadata[0];
     InstanceCreationExpression constC = atD.arguments.arguments[0];
 
-    expect(atD.name.staticElement, elementD);
-    expect(atD.element, constructorD);
+    if (previewDart2) {
+      expect(atD.name.staticElement, constructorD);
+      expect(atD.element, constructorD);
+    } else {
+      expect(atD.name.staticElement, elementD);
+      expect(atD.element, constructorD);
+    }
 
     expect(constC.staticElement, constructorC);
     expect(constC.staticType, elementC.type);
+
     expect(constC.constructorName.staticElement, constructorC);
+    expect(constC.constructorName.type.type, elementC.type);
   }
 
   test_annotation_kind_reference() async {
