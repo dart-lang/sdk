@@ -51,13 +51,23 @@ foo() {
 """;
 
 main() {
-  asyncTest(() => compile(TEST, entry: 'foo', check: (String generated) {
-        for (int i = 0; i <= 15; i++) {
-          String predicateCheck = '.\$is_args$i';
-          Expect.isTrue(generated.contains(predicateCheck),
-              'Expected predicate check $predicateCheck');
-        }
-        Expect.isFalse(generated.contains('checkFunctionSubtype'),
-            'Unexpected use of checkFunctionSubtype');
-      }));
+  runTest({bool useKernel}) async {
+    await compile(TEST, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      for (int i = 0; i <= 15; i++) {
+        String predicateCheck = '.\$is_args$i';
+        Expect.isTrue(generated.contains(predicateCheck),
+            'Expected predicate check $predicateCheck');
+      }
+      Expect.isFalse(generated.contains('checkFunctionSubtype'),
+          'Unexpected use of checkFunctionSubtype');
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

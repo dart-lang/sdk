@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
@@ -120,12 +119,19 @@ main() {
   var defOrCase3 = new RegExp(r"(default:|case 3):");
   var case3 = new RegExp(r"case 3:");
 
-  asyncTest(() => Future.wait([
-        compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def),
-        compileAndDoNotMatch(TOTAL, 'main', defOrCase3),
-        compileAndDoNotMatch(OPTIMIZED, 'main', def),
-        compileAndMatch(LABEL, 'main', case3),
-        compileAndMatch(DEFLABEL, 'main', def),
-        compileAndMatch(EMPTYDEFLABEL, 'main', def),
-      ]));
+  runTests({bool useKernel}) async {
+    await compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def, useKernel: useKernel);
+    await compileAndDoNotMatch(TOTAL, 'main', defOrCase3, useKernel: useKernel);
+    await compileAndDoNotMatch(OPTIMIZED, 'main', def, useKernel: useKernel);
+    await compileAndMatch(LABEL, 'main', case3, useKernel: useKernel);
+    await compileAndMatch(DEFLABEL, 'main', def, useKernel: useKernel);
+    await compileAndMatch(EMPTYDEFLABEL, 'main', def, useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

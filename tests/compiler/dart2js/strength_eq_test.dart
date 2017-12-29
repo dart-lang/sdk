@@ -24,8 +24,17 @@ void main() {
 """;
 
 main() {
-  // The `==` is strengthened to a HIdentity instruction.  The HIdentity follows
-  // `x.link`, so x cannot be `null`.
-  var compare = new RegExp(r'x === x\.get\$link\(\)');
-  asyncTest(() => compileAndMatch(CODE, 'main', compare));
+  runTest({bool useKernel}) async {
+    // The `==` is strengthened to a HIdentity instruction.  The HIdentity follows
+    // `x.link`, so x cannot be `null`.
+    var compare = new RegExp(r'x === x\.get\$link\(\)');
+    await compileAndMatch(CODE, 'main', compare, useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

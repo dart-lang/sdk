@@ -44,7 +44,7 @@ export 'output_collector.dart';
 
 enum CompileMode { mock, memory, kernel }
 
-/// Compile [code] and returns either the code for [entry] or, if [returnAll] is
+/// Compile [code] and returns either the code for [methodName] or, if [returnAll] is
 /// true, the code for the entire program.
 ///
 /// If [check] is provided, it is executed on the code for [entry] before
@@ -52,6 +52,7 @@ enum CompileMode { mock, memory, kernel }
 /// compilation, otherwise the memory compiler is used.
 Future<String> compile(String code,
     {String entry: 'main',
+    String methodName,
     bool enableTypeAssertions: false,
     bool minify: false,
     bool analyzeAll: false,
@@ -82,6 +83,7 @@ Future<String> compile(String code,
   }
 
   Map<String, String> source;
+  methodName ??= entry;
   if (entry != 'main') {
     source = {'main.dart': "$code\n\nmain() => $entry;"};
   } else {
@@ -98,7 +100,7 @@ Future<String> compile(String code,
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   FunctionEntity element =
-      elementEnvironment.lookupLibraryMember(mainLibrary, entry);
+      elementEnvironment.lookupLibraryMember(mainLibrary, methodName);
   js.JavaScriptBackend backend = compiler.backend;
   String generated = backend.getGeneratedCode(element);
   if (check != null) {

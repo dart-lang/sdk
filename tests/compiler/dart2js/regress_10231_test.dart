@@ -6,16 +6,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'codegen_helper.dart';
-
-void main() {
-  asyncTest(() => generate(SOURCE).then((result) {
-        var code = result['test'];
-        Expect.isNotNull(code);
-        Expect.equals(0, new RegExp('add').allMatches(code).length);
-        Expect.equals(3, new RegExp('\\+').allMatches(code).length);
-      }));
-}
+import 'compiler_helper.dart';
 
 const String SOURCE = """
 test(a, b, c, d) {
@@ -32,3 +23,20 @@ main() {
   test([], {}, [], {});
 }
 """;
+
+void main() {
+  runTests({bool useKernel}) async {
+    String code =
+        await compile(SOURCE, useKernel: useKernel, methodName: 'test');
+    Expect.isNotNull(code);
+    Expect.equals(0, new RegExp('add').allMatches(code).length);
+    Expect.equals(3, new RegExp('\\+').allMatches(code).length);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
+}
