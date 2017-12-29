@@ -6,7 +6,7 @@
 // condition involves control flow.
 
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST = '''
 var a = [1];

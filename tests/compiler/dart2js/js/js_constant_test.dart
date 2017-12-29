@@ -6,8 +6,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
-import 'compiler_helper.dart';
-import 'memory_compiler.dart';
+import '../compiler_helper.dart';
+import '../memory_compiler.dart';
 
 const String TEST_1 = r"""
   import 'dart:_foreign_helper';

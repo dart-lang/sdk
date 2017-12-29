@@ -15,7 +15,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-import '../launch_helper.dart' show launchDart2Js;
+import '../end_to_end/launch_helper.dart' show launchDart2Js;
 
 Uri pathOfData = Platform.script.resolve('http_launch_data/');
 Directory tempDir;

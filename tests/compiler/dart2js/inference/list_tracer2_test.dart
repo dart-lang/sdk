@@ -1,50 +1,46 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
+
+// We used to always nullify the element type of a list we are tracing in
+// the presence of a fixed length list constructor call.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/types.dart' show TypeMask, ContainerTypeMask;
+import 'package:compiler/src/types/types.dart' show ContainerTypeMask;
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
-import 'type_mask_test_helper.dart';
+import '../memory_compiler.dart';
+import '../type_mask_test_helper.dart';
 
-const TEST = const {
-  'main.dart': r'''
-import 'dart:typed_data';
-
-var myList = new Float32List(42);
-var myOtherList = new Uint8List(32);
-
+const String TEST = r'''
+var myList = [42];
 main() {
-  var a = new Float32List(9);
-  return myList[0] + myOtherList[0];
+  var a = new List(42);
+  return myList[0];
 }
-'''
-};
+''';
 
 void main() {
   runTest({bool useKernel}) async {
     var result = await runCompiler(
-        memorySourceFiles: TEST, options: useKernel ? [Flags.useKernel] : []);
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
     var compiler = result.compiler;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var closedWorld = typesInferrer.closedWorld;
     var elementEnvironment = closedWorld.elementEnvironment;
 
-    checkType(String name, type, length) {
+    checkType(String name, type) {
       MemberEntity element = elementEnvironment.lookupLibraryMember(
           elementEnvironment.mainLibrary, name);
-      TypeMask mask = typesInferrer.getTypeOfMember(element);
-      Expect.isTrue(mask.isContainer);
-      ContainerTypeMask container = mask;
-      Expect.equals(type, simplify(container.elementType, closedWorld), name);
-      Expect.equals(container.length, length);
+      ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
+      Expect.equals(type, simplify(mask.elementType, closedWorld), name);
     }
 
-    checkType('myList', closedWorld.commonMasks.numType, 42);
-    checkType('myOtherList', closedWorld.commonMasks.uint31Type, 32);
+    checkType('myList', typesInferrer.closedWorld.commonMasks.uint31Type);
   }
 
   asyncTest(() async {
