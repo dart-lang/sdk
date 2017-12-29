@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'old_frontend/parser_helper.dart';
+import 'parser_helper.dart';
 import 'package:compiler/src/tree/tree.dart';
 
 testUnparse(String statement) {

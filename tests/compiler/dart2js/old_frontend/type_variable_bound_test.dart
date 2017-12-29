@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 import "package:expect/expect.dart";
 
 Future compile(String source) {

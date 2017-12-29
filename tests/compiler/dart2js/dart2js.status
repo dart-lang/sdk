@@ -4,26 +4,33 @@
 analyze_dart_test: Slow, Pass
 analyze_test: Slow, Pass
 async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
-backend_dart/opt_cyclic_redundant_phi_test: Fail # Issue 20159
 boolified_operator_test: Fail # Issue 8001
-deferred_loading/deferred_loading_test: Slow, Pass
-old_frontend/check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
-old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
-equivalence/id_equivalence_test: Pass, Slow
 codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
+codegen/logical_expression_test: Fail # Issue 17027
+codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
+deferred_loading/deferred_loading_test: Slow, Pass
+equivalence/id_equivalence_test: Pass, Slow
 inference/inference_test: Slow, Pass
+inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
+inference/simple_inferrer_const_closure_test: Fail # Issue 16507
+inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
 inference/swarm_test: Slow, Pass
 inlining/inlining_test: Slow, Pass
 kernel/*: Slow, Pass
-codegen/logical_expression_test: Fail # Issue 17027
+kernel/compile_from_dill_fast_startup_test: RuntimeError # Test must be updated to support FE with patching.
+kernel/compile_from_dill_test: RuntimeError # Test must be updated to support FE with patching.
 mirrors/library_exports_hidden_test: Fail
 mirrors/library_exports_shown_test: Fail
 mirrors/library_imports_hidden_test: Fail
 mirrors/library_imports_prefixed_show_hide_test: Fail
 mirrors/library_imports_prefixed_test: Fail
 mirrors/library_imports_shown_test: Fail
-packages/*: Skip # Skip packages folder
+old_frontend/check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
+old_frontend/check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
+old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
+old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
 old_frontend/patch_test/bug: RuntimeError # Issue 21132
+packages/*: Skip # Skip packages folder
 quarantined/http_test: Pass, Slow
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
@@ -42,10 +49,6 @@ serialization/model4_test: Skip # Skip most serialization tests. These are very 
 serialization/model5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/native_data_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
-inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
-inference/simple_inferrer_const_closure_test: Fail # Issue 16507
-inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
@@ -53,21 +56,21 @@ subtype_test: Slow, Pass
 uri_retention_test: Fail # Issue 26504
 
 [ $mode == debug ]
+deferred/load_graph_segmentation_test: Pass, Slow
+deferred/load_mapping_test: Pass, Slow
+end_to_end/dart2js_batch_test: Pass, Slow
+end_to_end/exit_code_test: Pass, Slow
+in_user_code_test: Pass, Slow
+mirrors/deferred_mirrors_test: Pass, Slow
+mirrors/import_mirrors_test: Pass, Slow
+mirrors/mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
 old_frontend/analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
 old_frontend/analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
 old_frontend/analyze_unused_dart2js_test: Pass, Slow
 old_frontend/check_elements_invariants_test: Skip # Slow and only needs to be run in one configuration
 old_frontend/check_members_test: Pass, Slow
-dart2js_batch_test: Pass, Slow
-deferred/load_graph_segmentation_test: Pass, Slow
-deferred/load_mapping_test: Pass, Slow
-mirrors/deferred_mirrors_test: Pass, Slow
 old_frontend/duplicate_library_test: Pass, Slow
-end_to_end/exit_code_test: Pass, Slow
-mirrors/import_mirrors_test: Pass, Slow
-in_user_code_test: Pass, Slow
 old_frontend/message_kind_test: Pass, Slow
-mirrors/mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
 show_package_warnings_test: Pass, Slow
 sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 
@@ -75,26 +78,25 @@ sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
 
 [ $checked ]
+codegen/value_range_test: Pass, Slow
+end_to_end/exit_code_test: Pass, Slow
+jsinterop/declaration_test: Slow, Pass
+jsinterop/interop_anonymous_unreachable_test: Pass, Slow
+jsinterop/world_test: Pass, Slow
+kernel/visitor_test: Pass, Slow
+mirrors/deferred_mirrors_test: Pass, Slow
+mirrors/import_mirrors_test: Slow, Pass
+mirrors/mirror_final_field_inferrer2_test: Pass, Slow
+mirrors/preserve_uris_test: Pass, Slow
 old_frontend/analyze_dart2js_helpers_test: Pass, Slow
 old_frontend/analyze_dart2js_test: Pass, Slow
 old_frontend/analyze_unused_dart2js_test: Pass, Slow
-dart2js_resolver_test: Pass, Slow
-mirrors/deferred_mirrors_test: Pass, Slow
 old_frontend/duplicate_library_test: Pass, Slow
-end_to_end/exit_code_test: Pass, Slow
-mirrors/import_mirrors_test: Slow, Pass
-jsinterop/interop_anonymous_unreachable_test: Pass, Slow
-jsinterop/declaration_test: Slow, Pass
-jsinterop/world_test: Pass, Slow
-kernel/visitor_test: Pass, Slow
-mirrors/mirror_final_field_inferrer2_test: Pass, Slow
 output_type_test: Pass, Slow
-mirrors/preserve_uris_test: Pass, Slow
 serialization*: Slow, Pass
 sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
 uri_retention_test: Pass, Slow
-value_range_test: Pass, Slow
 
 [ !$checked ]
 end_to_end/exit_code_test: Skip # This tests requires checked mode.

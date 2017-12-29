@@ -6,7 +6,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:compiler/src/types/types.dart";
 import "package:compiler/src/world.dart";
-import 'type_test_helper.dart';
+import '../type_test_helper.dart';
 
 main() {
   runTest(CompileMode compileMode) async {

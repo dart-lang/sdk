@@ -7,7 +7,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 main() {
   runTest({bool useKernel}) async {

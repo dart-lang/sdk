@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const int REMOVED = 0;
 const int ABOVE_ZERO = 1;
