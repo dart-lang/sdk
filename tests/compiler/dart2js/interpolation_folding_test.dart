@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
@@ -39,25 +38,32 @@ const String TEST_4 = r"""
 """;
 
 main() {
-  Future check(String test, String contained) {
-    return compile(test, entry: 'foo').then((String generated) {
+  runTests({bool useKernel}) async {
+    check(String test, String contained) async {
+      String generated =
+          await compile(test, entry: 'foo', useKernel: useKernel);
       Expect.isTrue(generated.contains(contained), contained);
-    });
+    }
+
+    // Full substitution.
+    await check(TEST_1, r'"u120vhellow"');
+
+    // Adjacent string fragments get merged.
+    await check(TEST_2, r'"xxxxxyyyyy"');
+
+    // 1. No merging of fragments that are multi-use.  Prevents exponential code
+    //    and keeps author's manual CSE.
+    // 2. Know string values require no stringification.
+    await check(TEST_3, r'return b + "x" + b');
+
+    // Known int value can be formatted directly.
+    await check(TEST_4, r'return "" + b.length');
   }
 
-  asyncTest(() => Future.wait([
-        // Full substitution.
-        check(TEST_1, r'"u120vhellow"'),
-
-        // Adjacent string fragments get merged.
-        check(TEST_2, r'"xxxxxyyyyy"'),
-
-        // 1. No merging of fragments that are multi-use.  Prevents exponential code
-        //    and keeps author's manual CSE.
-        // 2. Know string values require no stringification.
-        check(TEST_3, r'return b + "x" + b'),
-
-        // Known int value can be formatted directly.
-        check(TEST_4, r'return "" + b.length'),
-      ]));
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

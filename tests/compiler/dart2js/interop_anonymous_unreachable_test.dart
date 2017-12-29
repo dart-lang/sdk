@@ -4,13 +4,14 @@
 
 library tests.dart2js.interop_anonymous_unreachable_test;
 
-import 'package:test/test.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 
-main() {
-  test("unreachable code doesn't crash the compiler", () async {
-    // This test is a regression for Issue #24974
-    String generated = await compile("""
+testUnreachableCrash({bool useKernel}) async {
+  print("-- unreachable code doesn't crash the compiler --");
+  // This test is a regression for Issue #24974
+  String generated = await compile("""
         import 'package:js/js.dart';
 
         @JS() @anonymous
@@ -18,14 +19,15 @@ main() {
           external factory UniqueLongNameForTesting_A();
         }
         main() {}
-    """, returnAll: true);
+    """, returnAll: true, useKernel: useKernel);
 
-    // the code should not be included in the output either.
-    expect(generated, isNot(contains("UniqueLongNameForTesting_A")));
-  });
+  // the code should not be included in the output either.
+  Expect.isFalse(generated.contains("UniqueLongNameForTesting_A"));
+}
 
-  group('tree-shaking interop types', () {
-    String program = """
+testTreeShakingJsInteropTypes({bool useKernel}) async {
+  print('-- tree-shaking interop types --');
+  String program = """
         import 'package:js/js.dart';
 
         // reachable and allocated
@@ -68,30 +70,33 @@ main() {
         }
     """;
 
-    test('no tree-shaking by default', () async {
-      String generated = await compile(program, returnAll: true);
-      expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
-      expect(generated.contains("UniqueLongNameForTesting_D"), isTrue);
+  print(' - no tree-shaking by default -');
+  String generated1 =
+      await compile(program, returnAll: true, useKernel: useKernel);
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_A"));
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_D"));
 
-      expect(generated.contains("UniqueLongNameForTesting_B"), isTrue);
-      expect(generated.contains("UniqueLongNameForTesting_C"), isTrue);
-      expect(generated.contains("UniqueLongNameForTesting_E"), isTrue);
-    });
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_B"));
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_C"));
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_E"));
 
-    test('tree-shake when using flag', () async {
-      String generated = await compile(program,
-          trustJSInteropTypeAnnotations: true, returnAll: true);
-      expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
-      expect(generated.contains("UniqueLongNameForTesting_D"), isTrue);
+  print(' - tree-shake when using flag -');
+  String generated2 = await compile(program,
+      trustJSInteropTypeAnnotations: true,
+      returnAll: true,
+      useKernel: useKernel);
+  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_A"));
+  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_D"));
 
-      expect(generated.contains("UniqueLongNameForTesting_B"), isFalse);
-      expect(generated.contains("UniqueLongNameForTesting_C"), isFalse);
-      expect(generated.contains("UniqueLongNameForTesting_E"), isFalse);
-    });
-  });
+  Expect.isFalse(generated2.contains("UniqueLongNameForTesting_B"));
+  Expect.isFalse(generated2.contains("UniqueLongNameForTesting_C"));
+  Expect.isFalse(generated2.contains("UniqueLongNameForTesting_E"));
+}
 
-  group('tree-shaking other native types', () {
-    String program = """
+testTreeShakingNativeTypes({bool useKernel}) async {
+  print('-- tree-shaking other native types --');
+
+  String program = """
         import 'dart:html';
         import 'package:js/js.dart';
 
@@ -110,63 +115,78 @@ main() {
         }
     """;
 
-    test('allocation effect of dynamic excludes native types', () async {
-      String generated = await compile(program, returnAll: true);
-      expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
-      // any js-interop type could be allocated by `get x`
-      expect(generated.contains("UniqueLongNameForTesting_B"), isTrue);
-      // but we exclude other native types like HTMLAudioElement
-      expect(generated.contains("HTMLAudioElement"), isFalse);
-    });
+  print(' - allocation effect of dynamic excludes native types -');
+  String generated1 =
+      await compile(program, returnAll: true, useKernel: useKernel);
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_A"));
+  // any js-interop type could be allocated by `get x`
+  Expect.isTrue(generated1.contains("UniqueLongNameForTesting_B"));
+  // but we exclude other native types like HTMLAudioElement
+  Expect.isFalse(generated1.contains("HTMLAudioElement"));
 
-    test('allocation effect of dynamic excludes native types [flag]', () async {
-      // Trusting types doesn't make a difference.
-      String generated = await compile(program,
-          trustJSInteropTypeAnnotations: true, returnAll: true);
-      expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
-      expect(generated.contains("UniqueLongNameForTesting_B"), isTrue);
-      expect(generated.contains("HTMLAudioElement"), isFalse);
-    });
+  print(' - allocation effect of dynamic excludes native types [flag] -');
+  // Trusting types doesn't make a difference.
+  String generated2 = await compile(program,
+      trustJSInteropTypeAnnotations: true,
+      returnAll: true,
+      useKernel: useKernel);
+  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_A"));
+  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_B"));
+  Expect.isFalse(generated2.contains("HTMLAudioElement"));
 
-    test('declared native types are included in allocation effect', () async {
-      String program2 = """
-          import 'dart:html';
-          import 'package:js/js.dart';
+  print(' - declared native types are included in allocation effect -');
+  String program2 = """
+        import 'dart:html';
+        import 'package:js/js.dart';
 
-          @JS() @anonymous
-          class UniqueLongNameForTesting_A {
-            external AudioElement get x;
-          }
+        @JS() @anonymous
+        class UniqueLongNameForTesting_A {
+          external AudioElement get x;
+        }
 
-          main() {
-            print(new UniqueLongNameForTesting_A().x is AudioElement);
-          }
-      """;
+        main() {
+          print(new UniqueLongNameForTesting_A().x is AudioElement);
+        }
+    """;
 
-      String generated = await compile(program2, returnAll: true);
-      expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
-      expect(generated.contains("HTMLAudioElement"), isTrue);
+  String generated3 =
+      await compile(program2, returnAll: true, useKernel: useKernel);
+  Expect.isTrue(generated3.contains("UniqueLongNameForTesting_A"));
+  Expect.isTrue(generated3.contains("HTMLAudioElement"));
 
-      program2 = """
-          import 'dart:html';
-          import 'package:js/js.dart';
+  program2 = """
+        import 'dart:html';
+        import 'package:js/js.dart';
 
-          @JS() @anonymous
-          class UniqueLongNameForTesting_A {
-            external dynamic get x;
-          }
+        @JS() @anonymous
+        class UniqueLongNameForTesting_A {
+          external dynamic get x;
+        }
 
-          main() {
-            print(new UniqueLongNameForTesting_A().x is AudioElement);
-          }
-      """;
+        main() {
+          print(new UniqueLongNameForTesting_A().x is AudioElement);
+        }
+    """;
 
-      generated = await compile(program2, returnAll: true);
-      expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
-      // This extra check is to make sure that we don't include HTMLAudioElement
-      // just because of the is-check. It is optimized away in this case because
-      // we believe it was never instantiated.
-      expect(generated.contains("HTMLAudioElement"), isFalse);
-    });
+  generated3 = await compile(program2, returnAll: true, useKernel: useKernel);
+  Expect.isTrue(generated3.contains("UniqueLongNameForTesting_A"));
+  // This extra check is to make sure that we don't include HTMLAudioElement
+  // just because of the is-check. It is optimized away in this case because
+  // we believe it was never instantiated.
+  Expect.isFalse(generated3.contains("HTMLAudioElement"));
+}
+
+main() {
+  runTests({bool useKernel}) async {
+    await testUnreachableCrash(useKernel: useKernel);
+    await testTreeShakingJsInteropTypes(useKernel: useKernel);
+    await testTreeShakingNativeTypes(useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }

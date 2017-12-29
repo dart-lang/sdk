@@ -71,8 +71,9 @@ test(param) {
 }
 """;
 
-Future compileAndTest(String code) {
-  return compile(code, entry: 'test', check: (String generated) {
+Future compileAndTest(String code, {bool useKernel}) {
+  return compile(code, entry: 'test', useKernel: useKernel,
+      check: (String generated) {
     RegExp validAdd =
         new RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
     RegExp invalidAdd = new RegExp("$anyIdentifier \\+ 53");
@@ -82,12 +83,19 @@ Future compileAndTest(String code) {
 }
 
 main() {
-  asyncTest(() => Future.wait([
-        compileAndTest(TEST_IF),
-        compileAndTest(TEST_IF_ELSE),
-        compileAndTest(TEST_IF_RETURN),
-        compileAndTest(TEST_IF_NOT_ELSE),
-        compileAndTest(TEST_IF_NOT_RETURN),
-        compileAndTest(TEST_IF_NOT_ELSE_RETURN),
-      ]));
+  runTests({bool useKernel}) async {
+    await compileAndTest(TEST_IF, useKernel: useKernel);
+    await compileAndTest(TEST_IF_ELSE, useKernel: useKernel);
+    await compileAndTest(TEST_IF_RETURN, useKernel: useKernel);
+    await compileAndTest(TEST_IF_NOT_ELSE, useKernel: useKernel);
+    await compileAndTest(TEST_IF_NOT_RETURN, useKernel: useKernel);
+    await compileAndTest(TEST_IF_NOT_ELSE_RETURN, useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

@@ -17,6 +17,15 @@ main() {
 }""";
 
 main() {
-  // Make sure we don't introduce a new variable.
-  asyncTest(() => compileAndMatchFuzzy(MAIN, 'main', "1 >= x"));
+  runTest({bool useKernel}) async {
+    // Make sure we don't introduce a new variable.
+    await compileAndMatchFuzzy(MAIN, 'main', "1 >= x", useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

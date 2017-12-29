@@ -248,17 +248,22 @@ int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
 
 // Does a compile and then a match where every 'x' is replaced by something
 // that matches any variable, and every space is optional.
-Future compileAndMatchFuzzy(String code, String entry, String regexp) {
-  return compileAndMatchFuzzyHelper(code, entry, regexp, true);
+Future compileAndMatchFuzzy(String code, String entry, String regexp,
+    {bool useKernel: false}) {
+  return compileAndMatchFuzzyHelper(code, entry, regexp,
+      shouldMatch: true, useKernel: useKernel);
 }
 
-Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
-  return compileAndMatchFuzzyHelper(code, entry, regexp, false);
+Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp,
+    {bool useKernel: false}) {
+  return compileAndMatchFuzzyHelper(code, entry, regexp,
+      shouldMatch: false, useKernel: useKernel);
 }
 
-Future compileAndMatchFuzzyHelper(
-    String code, String entry, String regexp, bool shouldMatch) {
-  return compile(code, entry: entry, check: (String generated) {
+Future compileAndMatchFuzzyHelper(String code, String entry, String regexp,
+    {bool shouldMatch, bool useKernel: false}) {
+  return compile(code, entry: entry, useKernel: useKernel,
+      check: (String generated) {
     final xRe = new RegExp('\\bx\\b');
     regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
     final spaceRe = new RegExp('\\s+');

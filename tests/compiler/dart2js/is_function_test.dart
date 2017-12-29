@@ -18,15 +18,18 @@ main(arg) {}
 ''';
 
 main() {
-  asyncTest(() async {
-    var result = await runCompiler(
-        memorySourceFiles: {'main.dart': SOURCE},
-        options: [Flags.enableCheckedMode]);
+  runTest({bool useKernel}) async {
+    List<String> options = [Flags.enableCheckedMode];
+    if (useKernel) {
+      options.add(Flags.useKernel);
+    }
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': SOURCE}, options: options);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     Program program = compiler.backend.emitter.emitter.programForTesting;
-    var name = compiler.backend.namer
-        .operatorIs(compiler.frontendStrategy.commonElements.functionClass);
+    var name = compiler.backend.namer.operatorIs(
+        compiler.backendClosedWorldForTesting.commonElements.functionClass);
     for (Fragment fragment in program.fragments) {
       for (Library library in fragment.libraries) {
         for (Class cls in library.classes) {
@@ -38,5 +41,12 @@ main() {
         }
       }
     }
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }
