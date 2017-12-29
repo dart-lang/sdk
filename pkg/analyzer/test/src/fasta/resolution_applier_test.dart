@@ -74,6 +74,7 @@ f(String s, int i) {
     ], <DartType>[
       typeProvider.stringType,
       new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
+      new TypeArgumentsDartType([]),
       typeProvider.intType,
       typeProvider.stringType,
     ]);
@@ -91,8 +92,10 @@ f(Object a) {
     ], <DartType>[
       typeProvider.objectType,
       typeProvider.objectType,
+      new TypeArgumentsDartType([]),
       typeProvider.objectType,
       typeProvider.objectType,
+      new TypeArgumentsDartType([]),
       typeProvider.objectType
     ]);
   }
@@ -257,6 +260,7 @@ f(String s) {
     ], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
+      new TypeArgumentsDartType([]),
       typeProvider.intType,
       typeProvider.stringType,
       typeProvider.stringType

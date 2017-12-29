@@ -41,15 +41,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   test_constructor_redirected_generic() async {
     await super.test_constructor_redirected_generic();
   }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_methodInvocation_topLevelFunction_generic() async {
-    // This test is failing because we don't get types of explicit type
-    // arguments of invocations. We now see just the final invocation type.
-    await super.test_methodInvocation_topLevelFunction_generic();
-  }
 }
 
 @reflectiveTest

@@ -221,27 +221,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_futureOrNull_no_return() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_no_return();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return_value() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_no_return_value();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_return_null() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_return_null();
-  }
-
-  @override
-  @failingTest
   test_generic_partial() async {
     // AnalysisException: Element mismatch in /test.dart at class A<T>
     await super.test_generic_partial();

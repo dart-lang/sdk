@@ -3322,21 +3322,10 @@ void f<T, U>(T a, U b) {}
       expect(invocation.staticType, VoidTypeImpl.instance);
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
-      Expression aArgument = arguments[0];
-      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
-      ParameterElement aElement = fElement.parameters[0];
-      expect(aArgumentParameter.type, typeProvider.boolType);
-      if (previewDart2) {
-        expect(aArgumentParameter.baseElement, same(aElement));
-      }
-
-      Expression bArgument = arguments[1];
-      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
-      ParameterElement bElement = fElement.parameters[1];
-      expect(bArgumentParameter.type, typeProvider.stringType);
-      if (previewDart2) {
-        expect(bArgumentParameter.baseElement, same(bElement));
-      }
+      _assertArgumentToParameter(arguments[0], fElement.parameters[0],
+          parameterMemberType: typeProvider.boolType);
+      _assertArgumentToParameter(arguments[1], fElement.parameters[1],
+          parameterMemberType: typeProvider.stringType);
     }
 
     // f(1, 2.3);
@@ -3353,21 +3342,10 @@ void f<T, U>(T a, U b) {}
       expect(invocation.staticType, VoidTypeImpl.instance);
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
-      Expression aArgument = arguments[0];
-      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
-      ParameterElement aElement = fElement.parameters[0];
-      expect(aArgumentParameter.type, typeProvider.intType);
-      if (previewDart2) {
-        expect(aArgumentParameter.baseElement, same(aElement));
-      }
-
-      Expression bArgument = arguments[1];
-      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
-      ParameterElement bElement = fElement.parameters[1];
-      expect(bArgumentParameter.type, typeProvider.doubleType);
-      if (previewDart2) {
-        expect(bArgumentParameter.baseElement, same(bElement));
-      }
+      _assertArgumentToParameter(arguments[0], fElement.parameters[0],
+          parameterMemberType: typeProvider.intType);
+      _assertArgumentToParameter(arguments[1], fElement.parameters[1],
+          parameterMemberType: typeProvider.doubleType);
     }
   }
 
@@ -5079,14 +5057,27 @@ typedef void F(int p);
   /// if [previewDart2] is `null`. If the [argument] is a [NamedExpression],
   /// the name must be resolved to the parameter in both cases.
   void _assertArgumentToParameter(
-      Expression argument, ParameterElement expectedParameter) {
+      Expression argument, ParameterElement expectedParameter,
+      {DartType parameterMemberType}) {
     ParameterElement actualParameter = argument.staticParameterElement;
     if (previewDart2) {
       expect(actualParameter, isNull);
     } else {
-      ParameterElement baseActualParameter = actualParameter is ParameterMember
-          ? actualParameter.baseElement
-          : actualParameter;
+      ParameterElement baseActualParameter;
+      if (actualParameter is ParameterMember) {
+        if (parameterMemberType != null) {
+          expect(actualParameter.type, parameterMemberType);
+        }
+        baseActualParameter = actualParameter.baseElement;
+        // Unwrap ParameterMember one more time.
+        // By some reason we wrap in twice.
+        if (baseActualParameter is ParameterMember) {
+          ParameterMember member = baseActualParameter;
+          baseActualParameter = member.baseElement;
+        }
+      } else {
+        baseActualParameter = actualParameter;
+      }
       expect(baseActualParameter, same(expectedParameter));
       // TODO(scheglov) Make this work for previewDart2 too.
       if (argument is NamedExpression) {

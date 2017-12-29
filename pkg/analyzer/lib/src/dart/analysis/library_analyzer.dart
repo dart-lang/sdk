@@ -1227,10 +1227,15 @@ class _ResolutionApplierContext implements TypeContext {
       kernel.VariableDeclaration variable = kernelType.function.variable;
       FunctionElement element = declarationToElement[variable];
       return element.type;
-    } else if (kernelType is kernel.MemberInvocationDartType) {
-      return resynthesizer.getType(context, kernelType.type);
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
+    } else if (kernelType is kernel.TypeArgumentsDartType) {
+      List<kernel.DartType> kernelTypes = kernelType.types;
+      var types = new List<DartType>(kernelTypes.length);
+      for (var i = 0; i < kernelTypes.length; i++) {
+        types[i] = translateType(kernelTypes[i]);
+      }
+      return new TypeArgumentsDartType(types);
     } else {
       return resynthesizer.getType(context, kernelType);
     }

@@ -94,6 +94,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         operatorType != TokenType.BAR_BAR) {
       node.staticElement = _getReferenceFor(node.operator);
       _getTypeFor(node.operator); // function type of the operator
+      _getTypeFor(node.operator); // type arguments
     }
 
     // Record the return type of the expression.
@@ -289,6 +290,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     // We cannot use the detached FunctionType of `[]` or `[]=`.
     _getTypeFor(node.leftBracket);
+    _getTypeFor(node.leftBracket); // type arguments
 
     node.staticType = _getTypeFor(node.leftBracket);
 
@@ -346,6 +348,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     Element invokeElement = _getReferenceFor(node.methodName);
     DartType invokeType = _getTypeFor(node.methodName);
+    DartType typeArgumentsDartType = _getTypeFor(argumentList);
     DartType resultType = _getTypeFor(argumentList);
 
     if (invokeElement is PropertyInducingElement) {
@@ -359,8 +362,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.methodName.staticType = invokeType;
 
     if (invokeType is FunctionType) {
-      if (node.typeArguments != null) {
-        _applyTypeArgumentsToList(invokeType, node.typeArguments.arguments);
+      if (node.typeArguments != null &&
+          typeArgumentsDartType is TypeArgumentsDartType) {
+        _applyTypeArgumentsToList(
+            typeArgumentsDartType, node.typeArguments.arguments);
       }
     }
 
@@ -412,6 +417,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       SyntacticEntity entity = node.operator;
       node.staticElement = _getReferenceFor(entity);
       _getTypeFor(entity); // The function type of the operator.
+      _getTypeFor(entity); // The type arguments (empty).
       node.staticType = _getTypeFor(entity);
     }
   }
@@ -741,6 +747,24 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       throw new StateError('Attempting to apply a non-parameterized type '
           '(${type.runtimeType}) to type arguments');
     }
+  }
+}
+
+/// A container with [typeArguments].
+class TypeArgumentsDartType implements ParameterizedType {
+  @override
+  final List<DartType> typeArguments;
+
+  TypeArgumentsDartType(this.typeArguments);
+
+  @override
+  bool get isUndefined => false;
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '<${typeArguments.join(', ')}>';
   }
 }
 
