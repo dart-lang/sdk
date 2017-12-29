@@ -190,6 +190,7 @@ convert_to_future_members = monitored.Set(
   'Notification.requestPermission',
   'RTCPeerConnection.setLocalDescription',
   'RTCPeerConnection.setRemoteDescription',
+  'SQLTransaction.executeSql',
   'StorageInfo.requestQuota',
   'StorageQuota.requestQuota',
   'Window.webkitRequestFileSystem',
@@ -212,6 +213,12 @@ ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
       'file': [
           'applyExtension(\'Blob\', value);'
       ]
+  },
+  'SQLTransaction': {
+      'executeSql': [
+          'applyExtension(\'SQLResultSet\', resultSet);'
+          'applyExtension(\'SQLResultSetRowList\', resultSet.rows);'
+      ],
   },
   'Window': {
       'webkitRequestFileSystem':[
@@ -447,12 +454,13 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Window.getComputedStyle',
   'Window.clearInterval',
   'Window.clearTimeout',
+  'Window.openDatabase',
   # TODO(tll): These have been converted from int to double in Chrome 39 for
   #            subpixel precision.  Special case for backward compatibility.
-  'Window.scrollX',
-  'Window.scrollY',
   'Window.pageXOffset',
   'Window.pageYOffset',
+  'Window.scrollX',
+  'Window.scrollY',
 
   'WindowTimers.clearInterval',
   'WindowTimers.clearTimeout',

@@ -49,7 +49,6 @@ js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue
 js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 mirrors_js_typed_interop_test: Pass, Slow
 svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
-websql_test/functional: Pass, Timeout # Roll 50 failure
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 
@@ -116,7 +115,7 @@ transition_event_test/functional: Skip # Times out. Issue 22167
 two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 webgl_1_test/functional: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
-websql_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+websql_test: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 wheelevent_test: RuntimeError # Issue 23437
 worker_test/functional: Pass, Fail # Issues 20659.
 xhr_test/json: Fail # IE10 returns string, not JSON object
@@ -208,7 +207,7 @@ speechrecognition_test/supported: Fail # Firefox Feature support statuses - All 
 text_event_test: Fail # Issue 17893
 touchevent_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 webgl_1_test: Pass, Fail # Issue 8219
-websql_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+websql_test: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 xhr_test/xhr: Pass, Fail # Issue 11602
 
 [ $compiler == dart2js && $browser ]
