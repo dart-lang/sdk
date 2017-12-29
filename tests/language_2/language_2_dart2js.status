@@ -1094,6 +1094,7 @@ built_in_identifier_test: RuntimeError # Issue 28815
 call_function_apply_test: RuntimeError
 canonical_const2_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
+checked_method_error_order_test: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
@@ -1190,11 +1191,9 @@ constructor_redirect1_negative_test/none: MissingCompileTimeError
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_setter_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
-covariance_type_parameter_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 cyclic_constructor_test/01: Crash # Stack Overflow
@@ -1354,7 +1353,7 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1426,7 +1425,7 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/01: RuntimeError
 regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
@@ -1637,7 +1636,6 @@ type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
-arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
@@ -1760,6 +1758,7 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
+deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1807,6 +1806,9 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
+full_stacktrace1_test: RuntimeError
+full_stacktrace2_test: RuntimeError
+full_stacktrace3_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -1837,10 +1839,7 @@ function_type_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
-generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
-generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
@@ -2039,6 +2038,9 @@ regress_31057_test: Crash # Unsupported operation: Unsupported type parameter ty
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
+stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
