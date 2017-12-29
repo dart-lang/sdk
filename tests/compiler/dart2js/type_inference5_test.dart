@@ -16,16 +16,26 @@ foo(j) {
 """;
 
 main() {
-  asyncTest(() => compile(TEST_ONE, entry: 'foo', check: (String generated) {
-        // Test for absence of an illegal argument exception. This means that the
-        // arguments are known to be integers.
-        Expect.isFalse(generated.contains('iae'));
-        // Also make sure that we are not just in bailout mode without speculative
-        // types by grepping for the integer-bailout check on argument j.
-        var argname = new RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)')
-            .firstMatch(generated)[1];
-        print(argname);
-        RegExp regexp = new RegExp(getIntTypeCheck("(i|$argname)"));
-        Expect.isTrue(regexp.hasMatch(generated));
-      }));
+  runTest({bool useKernel}) async {
+    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      // Test for absence of an illegal argument exception. This means that the
+      // arguments are known to be integers.
+      Expect.isFalse(generated.contains('iae'));
+      // Also make sure that we are not just in bailout mode without speculative
+      // types by grepping for the integer-bailout check on argument j.
+      var argname = new RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)')
+          .firstMatch(generated)[1];
+      print(argname);
+      RegExp regexp = new RegExp(getIntTypeCheck("(i|$argname)"));
+      Expect.isTrue(regexp.hasMatch(generated));
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

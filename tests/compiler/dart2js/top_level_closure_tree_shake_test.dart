@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
@@ -27,11 +26,17 @@ use(x) {
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        compileAll(TEST_ONE).then((String generated) {
-          Expect.isFalse(
-              generated.contains('Tarantula!'), "failed to remove 'foo'");
-          Expect.isTrue(generated.contains('Coelacanth!'));
-        }),
-      ]));
+  runTest({bool useKernel}) async {
+    String generated = await compileAll(TEST_ONE,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    Expect.isFalse(generated.contains('Tarantula!'), "failed to remove 'foo'");
+    Expect.isTrue(generated.contains('Coelacanth!'));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

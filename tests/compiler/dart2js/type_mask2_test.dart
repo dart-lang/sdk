@@ -8,7 +8,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 
@@ -24,18 +24,25 @@ isCheckedMode() {
 }
 
 void main() {
+  runTests(CompileMode compileMode) async {
+    await testUnionTypeMaskFlatten(compileMode);
+    await testStringSubtypes(compileMode);
+  }
+
   asyncTest(() async {
-    await testUnionTypeMaskFlatten();
-    await testStringSubtypes();
+    print('--test from ast---------------------------------------------------');
+    await runTests(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await runTests(CompileMode.kernel);
   });
 }
 
-checkMasks(ClosedWorld closedWorld, List<ClassElement> allClasses,
+checkMasks(ClosedWorld closedWorld, List<ClassEntity> allClasses,
     List<FlatTypeMask> masks,
     {FlatTypeMask result,
     List<FlatTypeMask> disjointMasks,
     FlatTypeMask flattened,
-    List<ClassElement> containedClasses}) {
+    List<ClassEntity> containedClasses}) {
   List<FlatTypeMask> disjoint = <FlatTypeMask>[];
   UnionTypeMask.unionOfHelper(masks, disjoint, closedWorld);
   Expect.listEquals(disjointMasks, disjoint,
@@ -72,7 +79,7 @@ checkMasks(ClosedWorld closedWorld, List<ClassElement> allClasses,
         result, union, 'Unexpected union of $masks: $union, expected $result.');
   }
   if (containedClasses != null) {
-    for (ClassElement cls in allClasses) {
+    for (ClassEntity cls in allClasses) {
       if (containedClasses.contains(cls)) {
         Expect.isTrue(union.contains(cls, closedWorld),
             'Expected $union to contain $cls.');
@@ -85,7 +92,7 @@ checkMasks(ClosedWorld closedWorld, List<ClassElement> allClasses,
   return union;
 }
 
-Future testUnionTypeMaskFlatten() async {
+Future testUnionTypeMaskFlatten(CompileMode compileMode) async {
   TypeEnvironment env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
@@ -100,24 +107,24 @@ Future testUnionTypeMaskFlatten() async {
         new D();
         new E();
       }
-      """, compileMode: CompileMode.memory);
+      """, compileMode: compileMode);
 
   ClosedWorld closedWorld = env.closedWorld;
 
-  ClassElement Object_ = env.getElement("Object");
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement E = env.getElement("E");
+  ClassEntity Object_ = env.getElement("Object");
+  ClassEntity A = env.getElement("A");
+  ClassEntity B = env.getElement("B");
+  ClassEntity C = env.getElement("C");
+  ClassEntity D = env.getElement("D");
+  ClassEntity E = env.getElement("E");
 
-  List<ClassElement> allClasses = <ClassElement>[Object_, A, B, C, D, E];
+  List<ClassEntity> allClasses = <ClassEntity>[Object_, A, B, C, D, E];
 
   check(List<FlatTypeMask> masks,
       {FlatTypeMask result,
       List<FlatTypeMask> disjointMasks,
       FlatTypeMask flattened,
-      List<ClassElement> containedClasses}) {
+      List<ClassEntity> containedClasses}) {
     return checkMasks(closedWorld, allClasses, masks,
         result: result,
         disjointMasks: disjointMasks,
@@ -203,19 +210,19 @@ Future testUnionTypeMaskFlatten() async {
       containedClasses: [A, B, E]);
 }
 
-Future testStringSubtypes() async {
+Future testStringSubtypes(CompileMode compileMode) async {
   TypeEnvironment env = await TypeEnvironment.create('',
       mainSource: r"""
       main() {
         '' is String;
       }
       """,
-      compileMode: CompileMode.memory);
+      compileMode: compileMode);
   ClosedWorld closedWorld = env.closedWorld;
 
-  ClassElement Object_ = env.getElement("Object");
-  ClassElement String_ = env.getElement("String");
-  ClassElement JSString = closedWorld.commonElements.jsStringClass;
+  ClassEntity Object_ = env.getElement("Object");
+  ClassEntity String_ = env.getElement("String");
+  ClassEntity JSString = closedWorld.commonElements.jsStringClass;
 
   Expect.isFalse(closedWorld.isDirectlyInstantiated(Object_));
   Expect.isTrue(closedWorld.isIndirectlyInstantiated(Object_));

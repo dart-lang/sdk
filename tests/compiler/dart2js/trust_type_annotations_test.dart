@@ -4,7 +4,10 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'compiler_helper.dart';
+import 'memory_compiler.dart';
 
 const String TEST = """
 class A {
@@ -47,34 +50,48 @@ main () {
 """;
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri, trustTypeAnnotations: true);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
+  runTest({bool useKernel}) async {
+    var options = [Flags.trustTypeAnnotations];
+    if (useKernel) {
+      options.add(Flags.useKernel);
+    }
+    var result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST}, options: options);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var elementEnvironment = closedWorld.elementEnvironment;
 
-        ClassElement classA = findElement(compiler, "A");
+    ClassEntity classA =
+        elementEnvironment.lookupClass(elementEnvironment.mainLibrary, "A");
 
-        checkReturn(String name, TypeMask type) {
-          MemberElement element = classA.lookupMember(name);
-          var mask = typesInferrer.getReturnTypeOfMember(element);
-          Expect.isTrue(type.containsMask(mask, closedWorld));
-        }
+    checkReturn(String name, TypeMask type) {
+      MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
+      var mask = typesInferrer.getReturnTypeOfMember(element);
+      Expect.isTrue(type.containsMask(mask, closedWorld));
+    }
 
-        checkType(String name, type) {
-          MemberElement element = classA.lookupMember(name);
-          Expect.isTrue(type.containsMask(
-              typesInferrer.getTypeOfMember(element), closedWorld));
-        }
+    checkType(String name, type) {
+      MemberEntity element = elementEnvironment.lookupClassMember(classA, name);
+      Expect.isTrue(type.containsMask(
+          typesInferrer.getTypeOfMember(element), closedWorld));
+    }
 
-        var intMask = new TypeMask.subtype(
-            closedWorld.commonElements.intClass, closedWorld);
+    var intMask =
+        new TypeMask.subtype(closedWorld.commonElements.intClass, closedWorld);
 
-        checkReturn('foo', intMask);
-        checkReturn('faa', intMask);
-        checkType('aField', intMask);
-        checkReturn('bar', intMask);
-        checkReturn('baz', intMask);
-        checkReturn('tear', intMask);
-      }));
+    checkReturn('foo', intMask);
+    checkReturn('faa', intMask);
+    checkType('aField', intMask);
+    checkReturn('bar', intMask);
+    checkReturn('baz', intMask);
+    checkReturn('tear', intMask);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }
