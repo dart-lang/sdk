@@ -6,7 +6,7 @@ library tests.dart2js.interop_anonymous_unreachable_test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 testUnreachableCrash({bool useKernel}) async {
   print("-- unreachable code doesn't crash the compiler --");
