@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
@@ -235,33 +234,41 @@ void main() {
 """;
 
 main() {
-  test(String code, String expected) {
-    return () => compileAll(code, disableInlining: false).then((generated) {
-          Expect.isTrue(
-              generated.contains(expected),
-              "Generated code didn't contain '$expected'.\n"
-              "Test:\n$code, Generated:\n$generated");
-        });
+  runTests({bool useKernel}) async {
+    test(String code, String expected) async {
+      String generated = await compileAll(code,
+          disableInlining: false,
+          compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+      Expect.isTrue(
+          generated.contains(expected),
+          "Generated code didn't contain '$expected'.\n"
+          "Test:\n$code, Generated:\n$generated");
+    }
+
+    await test(TEST_1, 'return 42');
+    await test(TEST_2, 'return 42');
+    await test(TEST_3, 'return 84');
+    await test(TEST_4, 'return t1 + t1');
+    await test(TEST_5, 'return 84');
+    await test(TEST_6, 'return 84');
+    await test(TEST_7, 'return 32');
+    await test(TEST_8, 'return a.a');
+    await test(TEST_9, 'return a.a');
+    await test(TEST_10, 'return 2');
+    await test(TEST_11, 'return a.a');
+    await test(TEST_12, 'return 6');
+    await test(TEST_13, 'return 6');
+    await test(TEST_14, 'return t1[0]');
+    await test(TEST_15, 'return 42');
+    await test(TEST_16, 'return \$.a');
+    await test(TEST_17, 'return t1');
+    await test(TEST_18, 'return t1');
   }
 
-  asyncTest(() => Future.forEach([
-        test(TEST_1, 'return 42'),
-        test(TEST_2, 'return 42'),
-        test(TEST_3, 'return 84'),
-        test(TEST_4, 'return t1 + t1'),
-        test(TEST_5, 'return 84'),
-        test(TEST_6, 'return 84'),
-        test(TEST_7, 'return 32'),
-        test(TEST_8, 'return a.a'),
-        test(TEST_9, 'return a.a'),
-        test(TEST_10, 'return 2'),
-        test(TEST_11, 'return a.a'),
-        test(TEST_12, 'return 6'),
-        test(TEST_13, 'return 6'),
-        test(TEST_14, 'return t1[0]'),
-        test(TEST_15, 'return 42'),
-        test(TEST_16, 'return \$.a'),
-        test(TEST_17, 'return t1'),
-        test(TEST_18, 'return t1'),
-      ], (f) => f()));
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

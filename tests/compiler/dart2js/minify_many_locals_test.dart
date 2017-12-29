@@ -7,46 +7,49 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 
-// TODO(johnniwinther): This value is some what arbitrary. With the old
-// [ResolvedVisitor] we could handle 2000, with the new [ResolvedVisitor] build
-// upon the [SemanticVisitor] we can handle <=1000. Update (increase) the value
-// when the [SssBuilder] is no longer build upon the [ResolvedVisitor] .
-const int NUMBER_OF_PARAMETERS = 1000;
-
 main() {
-  var buffer = new StringBuffer();
-  buffer.write("foo(");
-  for (int i = 0; i < NUMBER_OF_PARAMETERS; i++) {
-    buffer.write("x$i, ");
+  runTests({bool useKernel, int numberOfParameters}) async {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("foo(");
+    for (int i = 0; i < numberOfParameters; i++) {
+      buffer.write("x$i, ");
+    }
+    buffer.write("x) { int i = ");
+    for (int i = 0; i < numberOfParameters; i++) {
+      buffer.write("x$i+");
+    }
+    buffer.write("$numberOfParameters; return i; }");
+    String code = buffer.toString();
+
+    String generated =
+        await compile(code, entry: 'foo', minify: true, useKernel: useKernel);
+    RegExp re = new RegExp(r"\(a,b,c");
+    Expect.isTrue(re.hasMatch(generated));
+
+    re = new RegExp(r"x,y,z,a0,a1,a2");
+    Expect.isTrue(re.hasMatch(generated));
+
+    re = new RegExp(r"y,z,a0,a1,a2,a3,a4,a5,a6");
+    Expect.isTrue(re.hasMatch(generated));
+
+    re = new RegExp(r"g8,g9,h0,h1");
+    Expect.isTrue(re.hasMatch(generated));
+
+    re = new RegExp(r"z8,z9,aa0,aa1,aa2");
+    Expect.isTrue(re.hasMatch(generated));
+
+    re = new RegExp(r"aa9,ab0,ab1");
+    Expect.isTrue(re.hasMatch(generated));
+
+    re = new RegExp(r"az9,ba0,ba1");
+    Expect.isTrue(re.hasMatch(generated));
   }
-  buffer.write("x) { int i = ");
-  for (int i = 0; i < NUMBER_OF_PARAMETERS; i++) {
-    buffer.write("x$i+");
-  }
-  buffer.write("$NUMBER_OF_PARAMETERS; return i; }");
-  String code = buffer.toString();
 
-  asyncTest(
-      () => compile(code, entry: 'foo', minify: true).then((String generated) {
-            RegExp re = new RegExp(r"\(a,b,c");
-            Expect.isTrue(re.hasMatch(generated));
-
-            re = new RegExp(r"x,y,z,a0,a1,a2");
-            Expect.isTrue(re.hasMatch(generated));
-
-            re = new RegExp(r"y,z,a0,a1,a2,a3,a4,a5,a6");
-            Expect.isTrue(re.hasMatch(generated));
-
-            re = new RegExp(r"g8,g9,h0,h1");
-            Expect.isTrue(re.hasMatch(generated));
-
-            re = new RegExp(r"z8,z9,aa0,aa1,aa2");
-            Expect.isTrue(re.hasMatch(generated));
-
-            re = new RegExp(r"aa9,ab0,ab1");
-            Expect.isTrue(re.hasMatch(generated));
-
-            re = new RegExp(r"az9,ba0,ba1");
-            Expect.isTrue(re.hasMatch(generated));
-          }));
+  asyncTest(() async {
+    // The [numberOfParameters] values are somewhat arbitrary.
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false, numberOfParameters: 1800);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true, numberOfParameters: 2000);
+  });
 }

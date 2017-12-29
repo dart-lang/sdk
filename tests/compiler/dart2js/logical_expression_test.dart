@@ -4,7 +4,6 @@
 
 // Test that logical or-expressions don't introduce unnecessary nots.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
@@ -25,24 +24,38 @@ void foo(list, bar) {
 """;
 
 main() {
-  asyncTest(() => Future.wait([
-        // We want something like:
-        //     var t1 = bar.call$0() === true;
-        //     if (t1 || gee.call$0() === true) gee.call$0();
-        //     if (t1 || gee.call$0() === true) gee.call$0();
-        compileAndDoNotMatchFuzzy(
-            TEST_ONE, 'foo', r"""var x = [a-zA-Z0-9$.]+\(\) == true;
+  runTests({bool useKernel}) async {
+    // We want something like:
+    //     var t1 = bar.call$0() === true;
+    //     if (t1 || gee.call$0() === true) gee.call$0();
+    //     if (t1 || gee.call$0() === true) gee.call$0();
+    await compileAndDoNotMatchFuzzy(
+        TEST_ONE,
+        'foo',
+        r"""var x = [a-zA-Z0-9$.]+\(\) == true;
             if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;
-            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;"""),
+            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;""",
+        useKernel: useKernel);
 
-        // We want something like:
-        //     var t1 = list == null;
-        //     if (t1) bar.call$0();
-        //     if (t1 || bar.call$0() === true) bar.call$0();
-        //     if (t1 || bar.call$0() === true) bar.call$0();
-        compileAndMatchFuzzy(TEST_TWO, 'foo', r"""var x = x == null;
+    // We want something like:
+    //     var t1 = list == null;
+    //     if (t1) bar.call$0();
+    //     if (t1 || bar.call$0() === true) bar.call$0();
+    //     if (t1 || bar.call$0() === true) bar.call$0();
+    await compileAndMatchFuzzy(
+        TEST_TWO,
+        'foo',
+        r"""var x = x == null;
             if \(x\) [^;]+;
             if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;
-            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;"""),
-      ]));
+            if \(x \|\| [a-zA-Z0-9$.]+\(\) === true\) [^;]+;""",
+        useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

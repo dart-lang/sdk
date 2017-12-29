@@ -8,6 +8,7 @@
 // value `_SECRET` will not be visible and compilation will fail.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'memory_compiler.dart';
 
 const Map MEMORY_SOURCE_FILES = const {
@@ -41,5 +42,16 @@ const Map MEMORY_SOURCE_FILES = const {
 };
 
 main() {
-  asyncTest(() => runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES));
+  runTest({bool useKernel}) async {
+    await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        options: useKernel ? [Flags.useKernel] : []);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

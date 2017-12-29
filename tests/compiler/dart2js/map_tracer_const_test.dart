@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-
-import 'compiler_helper.dart';
+import 'memory_compiler.dart';
 import 'type_mask_test_helper.dart';
 
 const String TEST = '''
@@ -29,16 +30,26 @@ main() {
 ''';
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler =
-      mockCompilerFor(TEST, uri, expectedErrors: 0, expectedWarnings: 0);
-  compiler.stopAfterTypeInference = true;
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
-        var commonMasks = closedWorld.commonMasks;
-        MemberElement element = findElement(compiler, 'closure');
-        var mask = typesInferrer.getReturnTypeOfMember(element);
-        Expect.equals(commonMasks.numType, simplify(mask, closedWorld));
-      }));
+  runTest({bool useKernel}) async {
+    var result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var elementEnvironment = closedWorld.elementEnvironment;
+    var commonMasks = closedWorld.commonMasks;
+
+    MemberEntity element = elementEnvironment.lookupLibraryMember(
+        elementEnvironment.mainLibrary, 'closure');
+    var mask = typesInferrer.getReturnTypeOfMember(element);
+    Expect.equals(commonMasks.numType, simplify(mask, closedWorld));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

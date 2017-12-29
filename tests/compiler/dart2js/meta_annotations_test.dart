@@ -4,8 +4,10 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'memory_compiler.dart';
@@ -32,12 +34,14 @@ void main(List<String> args) {
 };
 
 main() {
-  asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+  runTests({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        options: useKernel ? [Flags.useKernel] : []);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
+    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     Expect.isNotNull(closedWorld.commonElements.metaNoInlineClass,
         'NoInlineClass is unresolved.');
@@ -46,9 +50,9 @@ main() {
 
     void test(String name,
         {bool expectNoInline: false, bool expectTryInline: false}) {
-      LibraryElement mainApp =
-          compiler.frontendStrategy.elementEnvironment.mainLibrary;
-      MethodElement method = mainApp.find(name);
+      LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+      FunctionEntity method =
+          elementEnvironment.lookupLibraryMember(mainLibrary, name);
       Expect.isNotNull(method);
       Expect.equals(
           expectNoInline,
@@ -65,5 +69,12 @@ main() {
     test('method');
     test('methodNoInline', expectNoInline: true);
     test('methodTryInline', expectTryInline: true);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }
