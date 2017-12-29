@@ -13,7 +13,7 @@ import 'package:compiler/src/diagnostics/messages.dart'
     show MessageKind, MessageTemplate;
 import 'package:compiler/compiler_new.dart' show Diagnostic;
 
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 

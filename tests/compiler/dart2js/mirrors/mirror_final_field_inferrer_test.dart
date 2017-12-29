@@ -6,9 +6,9 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'memory_compiler.dart' show runCompiler;
-import 'compiler_helper.dart' show findElement;
-import 'type_mask_test_helper.dart';
+import '../memory_compiler.dart' show runCompiler;
+import '../compiler_helper.dart' show findElement;
+import '../type_mask_test_helper.dart';
 
 const MEMORY_SOURCE_FILES = const <String, String>{
   'main.dart': """

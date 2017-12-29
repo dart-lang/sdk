@@ -9,7 +9,7 @@ library dart2js.test.malformed_uri;
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''

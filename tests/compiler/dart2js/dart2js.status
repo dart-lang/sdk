@@ -15,7 +15,7 @@ inference/inference_test: Slow, Pass
 inference/swarm_test: Slow, Pass
 inlining/inlining_test: Slow, Pass
 kernel/*: Slow, Pass
-logical_expression_test: Fail # Issue 17027
+codegen/logical_expression_test: Fail # Issue 17027
 mirrors/library_exports_hidden_test: Fail
 mirrors/library_exports_shown_test: Fail
 mirrors/library_imports_hidden_test: Fail

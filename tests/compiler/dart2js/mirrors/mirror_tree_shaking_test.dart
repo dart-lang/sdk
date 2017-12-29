@@ -9,7 +9,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/mirrors_analysis.dart';
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 main() {
   DiagnosticCollector collector = new DiagnosticCollector();

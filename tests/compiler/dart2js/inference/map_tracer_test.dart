@@ -9,8 +9,8 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/types/types.dart' show MapTypeMask, TypeMask;
 
-import 'compiler_helper.dart';
-import 'type_mask_test_helper.dart';
+import '../compiler_helper.dart';
+import '../type_mask_test_helper.dart';
 
 String generateTest(String mapAllocation) {
   return """

@@ -11,7 +11,7 @@ import 'package:compiler/src/js/js.dart' as jsAst;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
-import 'memory_compiler.dart' show runCompiler;
+import '../memory_compiler.dart' show runCompiler;
 
 import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 

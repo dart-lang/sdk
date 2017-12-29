@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
+
 // Ensure that the inferrer looks at default values for parameters in
 // synthetic constructors using the correct context. If the constructor call
 // to D without optional parameters is inferred using D's context, the default
@@ -9,7 +11,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const Map MEMORY_SOURCE_FILES = const {
   "main.dart": r"""

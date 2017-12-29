@@ -6,7 +6,7 @@
 // language tests. This ensures that the analyzer and dart2js agrees on the
 // tests.
 
-import 'warnings_checker.dart';
+import '../warnings_checker.dart';
 
 /// Map from test files to a map of their expected status. If the status map is
 /// `null` no warnings must be missing or unexpected, otherwise the status map

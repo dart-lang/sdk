@@ -5,7 +5,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/constants/values.dart' show PrimitiveConstantValue;
 import 'package:expect/expect.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 import 'package:compiler/src/parser/partial_elements.dart'
     show PartialMetadataAnnotation;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart'

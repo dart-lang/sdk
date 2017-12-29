@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 String generateTest(String key, String value, bool initial) {
   return """

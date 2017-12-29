@@ -5,7 +5,7 @@
 // Test that logical or-expressions don't introduce unnecessary nots.
 
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST_ONE = r"""
 foo(bar, gee) {
