@@ -533,13 +533,20 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   void forEachLocalClassMember(
       covariant ClassElement cls, void f(MemberElement member)) {
     cls.ensureResolved(_resolution);
-    cls.forEachLocalMember((_member) {
+
+    void handleMember(_member) {
       MemberElement member = _member;
       if (member.isSynthesized) return;
       if (member.isMalformed) return;
       if (member.isConstructor) return;
+      if (!member.isDeclaration) return;
       f(member);
-    });
+    }
+
+    cls.forEachLocalMember(handleMember);
+    if (cls.isPatched) {
+      cls.implementation.forEachLocalMember(handleMember);
+    }
   }
 
   @override
