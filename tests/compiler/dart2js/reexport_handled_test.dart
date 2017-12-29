@@ -7,7 +7,7 @@ library reexport_handled_test;
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/elements/elements.dart' show LibraryElement;
-import 'mock_compiler.dart';
+import 'old_frontend/mock_compiler.dart';
 
 final exportingLibraryUri = Uri.parse('exporting.dart');
 const String EXPORTING_LIBRARY_SOURCE = '''

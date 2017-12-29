@@ -14,8 +14,8 @@ import 'package:compiler/compiler.dart' show PackagesDiscoveryProvider;
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:package_config/packages.dart';
 
-import 'memory_compiler.dart';
-import 'memory_source_file_helper.dart';
+import '../memory_compiler.dart';
+import '../memory_source_file_helper.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''

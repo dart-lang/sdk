@@ -5,7 +5,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String FOO = r"""
 void foo(var a, var b) {

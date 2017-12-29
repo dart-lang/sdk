@@ -34,8 +34,8 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 
 export 'package:compiler/src/tree/tree.dart';
 
-import 'mock_compiler.dart';
-export 'mock_compiler.dart';
+import 'old_frontend/mock_compiler.dart';
+export 'old_frontend/mock_compiler.dart';
 
 import 'memory_compiler.dart';
 

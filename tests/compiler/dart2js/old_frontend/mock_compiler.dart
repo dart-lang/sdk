@@ -42,9 +42,9 @@ import 'package:compiler/src/resolution/deferred_load.dart'
     show AstDeferredLoadTask;
 
 import 'mock_libraries.dart';
-import 'diagnostic_helper.dart';
+import '../diagnostic_helper.dart';
 
-export 'diagnostic_helper.dart';
+export '../diagnostic_helper.dart';
 
 final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
 

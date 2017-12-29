@@ -9,8 +9,8 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/options.dart';
 import 'package:front_end/src/fasta/scanner.dart';
-import '../options_helper.dart';
 
 abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   DiagnosticReporter get reporter;

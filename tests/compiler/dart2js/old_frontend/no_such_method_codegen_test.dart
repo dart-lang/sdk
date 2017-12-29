@@ -11,7 +11,7 @@
 // As a consequence, all operator[] had to be compiled, and due to
 // missing backend dependencies, some of them were not resolved.
 
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
 const String TEST = '''
 main() => foo[42];

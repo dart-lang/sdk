@@ -1,33 +1,26 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'compiler_helper.dart';
+import "package:expect/expect.dart";
+import '../compiler_helper.dart';
 import "package:async_helper/async_helper.dart";
 
-const String CODE = """
-var x = 0;
-class A {
-  A() { x++; }
-}
-
-class B extends A {
-  B();
-}
-
+const String TEST1 = r"""
 main() {
-  new B();
-  new A();
+  var foo;
+  if (main() == 5) {
+    foo = [0];
+  }
+  return foo[0];
 }
 """;
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(CODE,
+    String generated = await compileAll(TEST1,
         compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
-    RegExp regexp = new RegExp(r'A\$0: function');
-    Iterator<Match> matches = regexp.allMatches(generated).iterator;
-    checkNumberOfMatches(matches, 1);
+    Expect.isFalse(generated.contains('foo.length'));
   }
 
   asyncTest(() async {

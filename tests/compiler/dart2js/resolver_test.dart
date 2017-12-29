@@ -22,7 +22,7 @@ import 'package:compiler/src/universe/world_impact.dart';
 
 import 'compiler_helper.dart';
 import 'link_helper.dart';
-import 'parser_helper.dart';
+import 'old_frontend/parser_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 

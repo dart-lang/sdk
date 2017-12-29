@@ -2,37 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../compiler_helper.dart';
 import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
 
-const String TEST = r"""
+const String CODE = """
+var x = 0;
 class A {
-  foo({a, b}) {}
+  A() { x++; }
 }
 
 class B extends A {
+  B();
 }
 
 main() {
-  var a = [bar, baz];
-  a[0](new A());
-  a[1](new A());
-}
-
-bar(a) {
-  if (a is A) a.foo(a: 42);
-}
-
-baz(a) {
-  if (a is B) a.foo(a: 42);
+  new B();
+  new A();
 }
 """;
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
+    String generated = await compileAll(CODE,
         compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
-    RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
+    RegExp regexp = new RegExp(r'A\$0: function');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
   }

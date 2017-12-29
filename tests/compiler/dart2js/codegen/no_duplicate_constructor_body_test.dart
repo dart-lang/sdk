@@ -2,28 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
+import '../compiler_helper.dart';
 
-const String TEST = r"""
+const String CODE = """
 class A {
-  A.foo() {}
-  A();
+  A(String b) { b.length; }
 }
+
 main() {
-  new A();
-  new A.foo();
+  new A("foo");
 }
 """;
 
 main() {
   runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
+    String generated = await compileAll(CODE,
         compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
-
-    Expect.isTrue(generated
-        .contains(new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));
+    RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-Za-z]+;"');
+    Iterator<Match> matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 1);
   }
 
   asyncTest(() async {

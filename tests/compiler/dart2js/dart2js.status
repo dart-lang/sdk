@@ -23,7 +23,7 @@ mirrors/library_imports_prefixed_show_hide_test: Fail
 mirrors/library_imports_prefixed_test: Fail
 mirrors/library_imports_shown_test: Fail
 packages/*: Skip # Skip packages folder
-patch_test/bug: RuntimeError # Issue 21132
+old_frontend/patch_test/bug: RuntimeError # Issue 21132
 quarantined/http_test: Pass, Slow
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
@@ -64,10 +64,10 @@ deferred/load_mapping_test: Pass, Slow
 mirrors/deferred_mirrors_test: Pass, Slow
 old_frontend/duplicate_library_test: Pass, Slow
 end_to_end/exit_code_test: Pass, Slow
-import_mirrors_test: Pass, Slow
+mirrors/import_mirrors_test: Pass, Slow
 in_user_code_test: Pass, Slow
-message_kind_test: Pass, Slow
-mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
+old_frontend/message_kind_test: Pass, Slow
+mirrors/mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
 show_package_warnings_test: Pass, Slow
 source_map_pub_build_validity_test: Pass, Slow
 
@@ -83,13 +83,13 @@ mirrors/deferred_mirrors_test: Pass, Slow
 old_frontend/duplicate_library_test: Pass, Slow
 end_to_end/exit_code_test: Pass, Slow
 mirrors/import_mirrors_test: Slow, Pass
-interop_anonymous_unreachable_test: Pass, Slow
+jsinterop/interop_anonymous_unreachable_test: Pass, Slow
 jsinterop/declaration_test: Slow, Pass
 jsinterop/world_test: Pass, Slow
 kernel/visitor_test: Pass, Slow
-mirror_final_field_inferrer2_test: Pass, Slow
+mirrors/mirror_final_field_inferrer2_test: Pass, Slow
 output_type_test: Pass, Slow
-preserve_uris_test: Pass, Slow
+mirrors/preserve_uris_test: Pass, Slow
 serialization*: Slow, Pass
 source_map_pub_build_validity_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
