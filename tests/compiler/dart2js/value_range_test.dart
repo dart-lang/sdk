@@ -242,11 +242,8 @@ main(value) {
   BELOW_ZERO_CHECK,
 ];
 
-// TODO(ahe): It would probably be better if this test used the real
-// core library sources, as its purpose is to detect failure to
-// optimize fixed-sized arrays.
-Future expect(String code, int kind) {
-  return compile(code, check: (String generated) {
+Future expect(String code, int kind, {bool useKernel}) {
+  return compile(code, useKernel: useKernel, check: (String generated) {
     switch (kind) {
       case REMOVED:
         Expect.isTrue(!generated.contains('ioore'));
@@ -288,13 +285,16 @@ Future expect(String code, int kind) {
 }
 
 main() {
-  int i = 0;
-  Future testNext() {
-    return expect(TESTS[i], TESTS[i + 1]).then((_) {
-      i += 2;
-      if (i < TESTS.length) return testNext();
-    });
+  runTests({bool useKernel}) async {
+    for (int i = 0; i < TESTS.length; i += 2) {
+      await expect(TESTS[i], TESTS[i + 1], useKernel: useKernel);
+    }
   }
 
-  asyncTest(() => testNext());
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

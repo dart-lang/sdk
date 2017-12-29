@@ -8,22 +8,28 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
 import 'package:compiler/src/common/names.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show ClassElement, LibraryElement;
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
 
 void main() {
+  runTests(CompileMode compileMode) async {
+    await testClassSets(compileMode);
+    await testProperties(compileMode);
+    await testNativeClasses(compileMode);
+    await testCommonSubclasses(compileMode);
+  }
+
   asyncTest(() async {
-    await testClassSets();
-    await testProperties();
-    await testNativeClasses();
-    await testCommonSubclasses();
+    print('--test from ast---------------------------------------------------');
+    await runTests(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await runTests(CompileMode.kernel);
   });
 }
 
-testClassSets() async {
+testClassSets(CompileMode compileMode) async {
   var env = await TypeEnvironment.create(r"""
       class A implements X {}
       class B {}
@@ -32,7 +38,7 @@ testClassSets() async {
       class D implements A {}
       class E extends B implements A {}
       class F extends Object with A implements B {}
-      class G extends Object with A, B {}
+      class G extends Object with B, A {}
       class X {}
       """, mainSource: r"""
       import 'dart:html' as html;
@@ -47,18 +53,19 @@ testClassSets() async {
         html.window;
         new html.Worker('');
       }
-      """, compileMode: CompileMode.memory);
+      """, compileMode: compileMode);
   ClosedWorld closedWorld = env.closedWorld;
+  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-  ClassElement Object_ = env.getElement("Object");
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement E = env.getElement("E");
-  ClassElement F = env.getElement("F");
-  ClassElement G = env.getElement("G");
-  ClassElement X = env.getElement("X");
+  ClassEntity Object_ = env.getElement("Object");
+  ClassEntity A = env.getElement("A");
+  ClassEntity B = env.getElement("B");
+  ClassEntity C = env.getElement("C");
+  ClassEntity D = env.getElement("D");
+  ClassEntity E = env.getElement("E");
+  ClassEntity F = env.getElement("F");
+  ClassEntity G = env.getElement("G");
+  ClassEntity X = env.getElement("X");
 
   void checkClasses(String property, ClassEntity cls,
       Iterable<ClassEntity> foundClasses, List<ClassEntity> expectedClasses,
@@ -168,8 +175,12 @@ testClassSets() async {
   testStrictSubtypes(X, [A, C, D, E, F, G]);
 
   testMixinUses(Object_, []);
-  testMixinUses(A, [F.superclass, G.superclass.superclass]);
-  testMixinUses(B, [G.superclass]);
+  testMixinUses(A, [
+    elementEnvironment.getSuperClass(F),
+    elementEnvironment.getSuperClass(G)
+  ]);
+  testMixinUses(B,
+      [elementEnvironment.getSuperClass(elementEnvironment.getSuperClass(G))]);
   testMixinUses(C, []);
   testMixinUses(D, []);
   testMixinUses(E, []);
@@ -178,7 +189,7 @@ testClassSets() async {
   testMixinUses(X, []);
 }
 
-testProperties() async {
+testProperties(CompileMode compileMode) async {
   var env = await TypeEnvironment.create(r"""
       class A {}
       class A1 extends A {}
@@ -233,11 +244,11 @@ testProperties() async {
         new G3();
         new H4();
       }
-      """, compileMode: CompileMode.memory);
+      """, compileMode: compileMode);
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
-    ClassElement cls = env.getElement(name);
+    ClassEntity cls = env.getElement(name);
     Expect.equals(hasStrictSubtype, closedWorld.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.");
     Expect.equals(hasOnlySubclasses, closedWorld.hasOnlySubclasses(cls),
@@ -299,7 +310,7 @@ testProperties() async {
   check("H4", hasStrictSubtype: false, hasOnlySubclasses: true);
 }
 
-testNativeClasses() async {
+testNativeClasses(CompileMode compileMode) async {
   var env = await TypeEnvironment.create('',
       mainSource: r"""
       import 'dart:html' as html;
@@ -310,20 +321,23 @@ testNativeClasses() async {
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
       """,
-      compileMode: CompileMode.memory);
+      compileMode: compileMode);
   ClosedWorld closedWorld = env.closedWorld;
-  LibraryElement dart_html =
-      env.compiler.libraryLoader.lookupLibrary(Uris.dart_html);
+  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
 
-  ClassElement clsEventTarget = dart_html.findExported('EventTarget');
-  ClassElement clsWindow = dart_html.findExported('Window');
-  ClassElement clsAbstractWorker = dart_html.findExported('AbstractWorker');
-  ClassElement clsWorker = dart_html.findExported('Worker');
-  ClassElement clsCanvasElement = dart_html.findExported('CanvasElement');
-  ClassElement clsCanvasRenderingContext =
-      dart_html.findExported('CanvasRenderingContext');
-  ClassElement clsCanvasRenderingContext2D =
-      dart_html.findExported('CanvasRenderingContext2D');
+  ClassEntity clsEventTarget =
+      elementEnvironment.lookupClass(dart_html, 'EventTarget');
+  ClassEntity clsWindow = elementEnvironment.lookupClass(dart_html, 'Window');
+  ClassEntity clsAbstractWorker =
+      elementEnvironment.lookupClass(dart_html, 'AbstractWorker');
+  ClassEntity clsWorker = elementEnvironment.lookupClass(dart_html, 'Worker');
+  ClassEntity clsCanvasElement =
+      elementEnvironment.lookupClass(dart_html, 'CanvasElement');
+  ClassEntity clsCanvasRenderingContext =
+      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext');
+  ClassEntity clsCanvasRenderingContext2D =
+      elementEnvironment.lookupClass(dart_html, 'CanvasRenderingContext2D');
 
   List<ClassEntity> allClasses = [
     clsEventTarget,
@@ -506,7 +520,7 @@ testNativeClasses() async {
       instantiatedSubtypeCount: 0);
 }
 
-testCommonSubclasses() async {
+testCommonSubclasses(CompileMode compileMode) async {
   var env = await TypeEnvironment.create('',
       mainSource: r"""
       class A {}
@@ -532,18 +546,18 @@ testCommonSubclasses() async {
         new J();
       }
       """,
-      compileMode: CompileMode.memory);
+      compileMode: compileMode);
   ClosedWorld closedWorld = env.closedWorld;
 
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement F = env.getElement("F");
-  ClassElement G = env.getElement("G");
-  ClassElement H = env.getElement("H");
-  ClassElement I = env.getElement("I");
-  ClassElement J = env.getElement("J");
+  ClassEntity A = env.getElement("A");
+  ClassEntity B = env.getElement("B");
+  ClassEntity C = env.getElement("C");
+  ClassEntity D = env.getElement("D");
+  ClassEntity F = env.getElement("F");
+  ClassEntity G = env.getElement("G");
+  ClassEntity H = env.getElement("H");
+  ClassEntity I = env.getElement("I");
+  ClassEntity J = env.getElement("J");
 
   void check(ClassEntity cls1, ClassQuery query1, ClassEntity cls2,
       ClassQuery query2, List<ClassEntity> expectedResult) {

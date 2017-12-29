@@ -6,16 +6,18 @@ library dart2js.test.uri_retention_test;
 
 import 'dart:async';
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-
+import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/expect.dart';
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
-Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
+Future<String> compileSources(sources,
+    {bool minify, bool preserveUri, bool useKernel}) async {
   var options = [];
-  if (minify) options.add("--minify");
-  if (preserveUri) options.add("--preserve-uris");
+  if (minify) options.add(Flags.minify);
+  if (preserveUri) options.add(Flags.preserveUris);
+  if (useKernel) options.add(Flags.useKernel);
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
       memorySourceFiles: sources,
@@ -24,9 +26,9 @@ Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
   return outputCollector.getOutput('', OutputType.js);
 }
 
-Future test(sources, {bool libName, bool fileName}) {
-  return compileSources(sources, minify: false, preserveUri: false)
-      .then((output) {
+Future test(sources, {bool libName, bool fileName, bool useKernel}) {
+  return compileSources(sources,
+      minify: false, preserveUri: false, useKernel: useKernel).then((output) {
     // Unminified the sources should always contain the library name and the
     // file name.
     Expect.isTrue(output.contains("main_lib"));
@@ -45,12 +47,22 @@ Future test(sources, {bool libName, bool fileName}) {
 }
 
 void main() {
-  asyncTest(() {
-    return new Future.value()
-        .then(
-            (_) => test(MEMORY_SOURCE_FILES1, libName: false, fileName: false))
-        .then((_) => test(MEMORY_SOURCE_FILES2, libName: true, fileName: false))
-        .then((_) => test(MEMORY_SOURCE_FILES3, libName: true, fileName: true));
+  runTests({bool useKernel}) async {
+    await test(MEMORY_SOURCE_FILES1,
+        libName: false, fileName: false, useKernel: useKernel);
+    if (!useKernel) {
+      await test(MEMORY_SOURCE_FILES2,
+          libName: true, fileName: false, useKernel: useKernel);
+      await test(MEMORY_SOURCE_FILES3,
+          libName: true, fileName: true, useKernel: useKernel);
+    }
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }
 

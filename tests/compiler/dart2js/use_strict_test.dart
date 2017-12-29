@@ -4,6 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
@@ -47,10 +48,12 @@ const MEMORY_SOURCE_FILES = const {
 };
 
 main() {
-  OutputCollector collector = new OutputCollector();
-  asyncTest(() async {
+  runTest({bool useKernel}) async {
+    OutputCollector collector = new OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector,
+        options: useKernel ? [Flags.useKernel] : []);
     String jsOutput = collector.getOutput('', OutputType.js);
 
     // Skip comments.
@@ -64,5 +67,12 @@ main() {
     // 'arguments'.
     RegExp re = new RegExp(r'[^\w$](arguments|eval)[^\w$]');
     Expect.isFalse(re.hasMatch(filtered));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }

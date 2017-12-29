@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -23,13 +24,22 @@ main (x, y) {
 };
 
 main() {
-  asyncTest(() async {
+  runTest({bool useKernel}) async {
+    var options = [Flags.enableCheckedMode];
+    if (useKernel) options.add(Flags.useKernel);
     var result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        options: ['--enable-checked-mode']);
+        memorySourceFiles: MEMORY_SOURCE_FILES, options: options);
     var compiler = result.compiler;
-    var element = compiler.frontendStrategy.elementEnvironment.mainFunction;
+    var element =
+        compiler.backendClosedWorldForTesting.elementEnvironment.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);
     Expect.isTrue(code.contains('+'), code);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }

@@ -5,20 +5,29 @@
 // Test that no parts are emitted when deferred loading isn't used.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 main() {
-  asyncTest(() async {
+  runTest({bool useKernel}) async {
     DiagnosticCollector diagnostics = new DiagnosticCollector();
     OutputCollector output = new OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES,
         diagnosticHandler: diagnostics,
-        outputProvider: output);
+        outputProvider: output,
+        options: useKernel ? [Flags.useKernel] : []);
     Expect.isFalse(diagnostics.hasRegularMessages);
     Expect.isFalse(output.hasExtraOutput);
     Expect.isTrue(result.isSuccess);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }
 
