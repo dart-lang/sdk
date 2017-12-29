@@ -50,7 +50,8 @@ class ElementInfoCollector {
     compiler.dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
       var size = compiler.dumpInfoTask._nodeToSize[node];
-      var code = jsAst.prettyPrint(node, compiler.options);
+      var code = jsAst.prettyPrint(node,
+          enableMinification: compiler.options.enableMinification);
       var info = new ConstantInfo(
           size: size, code: code, outputUnit: _unitInfoForConstant(constant));
       _constantToInfo[constant] = info;
@@ -543,7 +544,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     // Concatenate rendered ASTs.
     StringBuffer sb = new StringBuffer();
     for (jsAst.Node ast in code) {
-      sb.writeln(jsAst.prettyPrint(ast, compiler.options));
+      sb.writeln(jsAst.prettyPrint(ast,
+          enableMinification: compiler.options.enableMinification));
     }
     return sb.toString();
   }

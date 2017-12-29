@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
-import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
-
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/types/types.dart' show TypeMask, ContainerTypeMask;
+import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
-import 'compiler_helper.dart' show findElement;
 import 'type_mask_test_helper.dart';
 
 const TEST = const {
@@ -28,14 +25,17 @@ main() {
 };
 
 void main() {
-  asyncTest(() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: TEST);
-    Compiler compiler = result.compiler;
+  runTest({bool useKernel}) async {
+    var result = await runCompiler(
+        memorySourceFiles: TEST, options: useKernel ? [Flags.useKernel] : []);
+    var compiler = result.compiler;
     var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    ClosedWorld closedWorld = typesInferrer.closedWorld;
+    var closedWorld = typesInferrer.closedWorld;
+    var elementEnvironment = closedWorld.elementEnvironment;
 
     checkType(String name, type, length) {
-      MemberElement element = findElement(compiler, name);
+      MemberEntity element = elementEnvironment.lookupLibraryMember(
+          elementEnvironment.mainLibrary, name);
       TypeMask mask = typesInferrer.getTypeOfMember(element);
       Expect.isTrue(mask.isContainer);
       ContainerTypeMask container = mask;
@@ -45,5 +45,12 @@ void main() {
 
     checkType('myList', closedWorld.commonMasks.numType, 42);
     checkType('myOtherList', closedWorld.commonMasks.uint31Type, 32);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }

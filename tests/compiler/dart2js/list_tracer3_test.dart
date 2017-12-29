@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
+/// Currently it only works with the mock compiler.
+
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 

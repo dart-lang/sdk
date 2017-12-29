@@ -24,6 +24,16 @@ main() {
 ''';
 
 main() {
-  asyncTest(() => compileAndMatch(TEST, 'main',
-      new RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while')));
+  runTest({bool useKernel}) async {
+    await compileAndMatch(TEST, 'main',
+        new RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'),
+        useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

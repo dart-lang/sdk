@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
+import 'memory_compiler.dart';
 
 const String TEST_1 = r"""
   import 'dart:_foreign_helper';
@@ -84,23 +87,37 @@ const String TEST_5 = r"""
 """;
 
 main() {
-  Future check(String test) {
-    var checker = checkerForAbsentPresent(test);
-    Uri uri = new Uri(scheme: 'dart', path: 'test');
-    var compiler = mockCompilerFor(test, uri, expectedErrors: 0);
-    return compiler.run(uri).then((_) {
-      MemberElement element = findElement(compiler, 'main');
+  runTests({bool useKernel}) async {
+    check(String test) async {
+      var checker = checkerForAbsentPresent(test);
+      String main = 'sdk/tests/compiler/dart2js_native/main.dart';
+      Uri entryPoint = Uri.parse('memory:$main');
+      var result = await runCompiler(
+          entryPoint: entryPoint,
+          memorySourceFiles: {main: test},
+          options: useKernel ? [Flags.useKernel] : []);
+      Expect.isTrue(result.isSuccess);
+      var compiler = result.compiler;
+      var closedWorld = compiler.backendClosedWorldForTesting;
+      var elementEnvironment = closedWorld.elementEnvironment;
+
+      MemberEntity element = elementEnvironment.mainFunction;
       var backend = compiler.backend;
       String generated = backend.getGeneratedCode(element);
       checker(generated);
-    });
+    }
+
+    await check(TEST_1);
+    await check(TEST_2);
+    await check(TEST_3);
+    await check(TEST_4);
+    await check(TEST_5);
   }
 
-  asyncTest(() => Future.wait([
-        check(TEST_1),
-        check(TEST_2),
-        check(TEST_3),
-        check(TEST_4),
-        check(TEST_5),
-      ]));
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

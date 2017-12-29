@@ -15,12 +15,22 @@ foo() {
 """;
 
 main() {
-  asyncTest(() => compile(TEST, entry: 'foo', check: (String generated) {
-        // Make sure we have all the type information we need.
-        Expect.isFalse(generated.contains('bailout'));
-        Expect.isFalse(generated.contains('interceptor'));
-        // Make sure we don't go through an interceptor.
-        Expect.isTrue(generated.contains(r'a.$indexSet(a') ||
-            generated.contains(r'.$indexSet(0'));
-      }));
+  runTest({bool useKernel}) async {
+    await compile(TEST, entry: 'foo', useKernel: useKernel,
+        check: (String generated) {
+      // Make sure we have all the type information we need.
+      Expect.isFalse(generated.contains('bailout'));
+      Expect.isFalse(generated.contains('interceptor'));
+      // Make sure we don't go through an interceptor.
+      Expect.isTrue(generated.contains(r'a.$indexSet(a') ||
+          generated.contains(r'.$indexSet(0'));
+    });
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

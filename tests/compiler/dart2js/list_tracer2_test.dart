@@ -5,11 +5,12 @@
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/types/types.dart' show ContainerTypeMask;
-
-import 'compiler_helper.dart';
+import 'package:expect/expect.dart';
+import 'memory_compiler.dart';
 import 'type_mask_test_helper.dart';
 
 const String TEST = r'''
@@ -21,18 +22,29 @@ main() {
 ''';
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
+  runTest({bool useKernel}) async {
+    var result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var elementEnvironment = closedWorld.elementEnvironment;
 
-        checkType(String name, type) {
-          MemberElement element = findElement(compiler, name);
-          ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
-          Expect.equals(type, simplify(mask.elementType, closedWorld), name);
-        }
+    checkType(String name, type) {
+      MemberEntity element = elementEnvironment.lookupLibraryMember(
+          elementEnvironment.mainLibrary, name);
+      ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
+      Expect.equals(type, simplify(mask.elementType, closedWorld), name);
+    }
 
-        checkType('myList', typesInferrer.closedWorld.commonMasks.uint31Type);
-      }));
+    checkType('myList', typesInferrer.closedWorld.commonMasks.uint31Type);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

@@ -58,7 +58,8 @@ void testTypeRepresentations() {
         }
 
         String stringify(Expression expression) {
-          return prettyPrint(expression, env.compiler.options);
+          return prettyPrint(expression,
+              enableMinification: env.compiler.options.enableMinification);
         }
 
         void expect(ResolutionDartType type, String expectedRepresentation,
