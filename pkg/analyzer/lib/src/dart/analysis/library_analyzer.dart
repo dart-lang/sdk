@@ -551,6 +551,7 @@ class LibraryAnalyzer {
         for (ImportElement importElement in _libraryElement.imports) {
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
+            directive.prefix?.staticElement = importElement.prefix;
             Source source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
               ErrorCode errorCode = importElement.isDeferred

@@ -89,13 +89,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_suffix() async {
-    // Bad state: Expected element reference for analyzer offset 46; got one for kernel offset 48
-    await super.test_async_used_as_identifier_in_suffix();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_switch_label() async {
     // Bad state: No reference information for async at 31
     await super.test_async_used_as_identifier_in_switch_label();

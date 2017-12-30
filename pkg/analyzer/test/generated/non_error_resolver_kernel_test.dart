@@ -46,13 +46,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_assignmentToFinals_importWithPrefix() async {
-    return super.test_assignmentToFinals_importWithPrefix();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
@@ -140,13 +133,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_constDeferredClass_new() async {
     return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constEval_propertyExtraction_fieldStatic_targetType() async {
-    return super.test_constEval_propertyExtraction_fieldStatic_targetType();
   }
 
   @override
@@ -240,13 +226,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_genericTypeAlias_typeParameters() async {
     return super.test_genericTypeAlias_typeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_importPrefixes_withFirstLetterDifference() async {
-    return super.test_importPrefixes_withFirstLetterDifference();
   }
 
   @override
@@ -346,29 +325,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_sharedDeferredPrefix() async {
-    return super.test_sharedDeferredPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeType_class_prefixed() async {
-    return super.test_typeType_class_prefixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeType_functionTypeAlias_prefixed() async {
-    return super.test_typeType_functionTypeAlias_prefixed();
   }
 
   @override
@@ -397,12 +355,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedMethod_functionExpression_directCall() async {
     return super.test_undefinedMethod_functionExpression_directCall();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedSetter_importWithPrefix() async {
-    return super.test_undefinedSetter_importWithPrefix();
   }
 }

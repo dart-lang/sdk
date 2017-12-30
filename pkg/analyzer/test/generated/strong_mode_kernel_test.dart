@@ -392,13 +392,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_max_doubleDouble_prefixed() async {
-    // Bad state: Expected element reference for analyzer offset 49; got one for kernel offset 54
-    await super.test_genericMethod_max_doubleDouble_prefixed();
-  }
-
-  @override
-  @failingTest
   test_genericMethod_nestedCapture() async {
     // Bad state: Found 2 argument types for 1 type arguments
     await super.test_genericMethod_nestedCapture();

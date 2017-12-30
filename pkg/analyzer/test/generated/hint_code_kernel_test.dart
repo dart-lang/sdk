@@ -164,13 +164,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_importDeferredLibraryWithLoadFunction() async {
-    // ad state: Expected element reference for analyzer offset 60; got one for kernel offset 65
-    return super.test_importDeferredLibraryWithLoadFunction();
-  }
-
-  @failingTest
-  @override
   test_invalidAssignment_instanceVariable() async {
     // Expected 1 errors of type HintCode.INVALID_ASSIGNMENT, found 0
     return super.test_invalidAssignment_instanceVariable();

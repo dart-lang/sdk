@@ -52,14 +52,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     await super.test_duplicateImport_as();
   }
 
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_importDeferredLibraryWithLoadFunction() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_importDeferredLibraryWithLoadFunction();
-  }
-
   @override
   test_unnecessaryCast_generics() async {
     // dartbug.com/18953
@@ -88,21 +80,5 @@ void g(bool c) {
   @potentialAnalyzerProblem
   test_unusedImport_metadata() async {
     await super.test_unusedImport_metadata();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_prefix_topLevelFunction() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_unusedImport_prefix_topLevelFunction();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_prefix_topLevelFunction2() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_unusedImport_prefix_topLevelFunction2();
   }
 }
