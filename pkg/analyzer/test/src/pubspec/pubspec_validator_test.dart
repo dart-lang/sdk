@@ -4,10 +4,10 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
@@ -20,8 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class PubspecValidatorTest {
-  MemoryResourceProvider provider;
+class PubspecValidatorTest extends Object with ResourceProviderMixin {
   PubspecValidator validator;
 
   /**
@@ -49,11 +48,9 @@ class PubspecValidatorTest {
   }
 
   void setUp() {
-    provider = new MemoryResourceProvider();
-    File pubspecFile =
-        provider.getFile(provider.convertPath('/sample/pubspec.yaml'));
+    File pubspecFile = getFile('/sample/pubspec.yaml');
     Source source = pubspecFile.createSource();
-    validator = new PubspecValidator(provider, source);
+    validator = new PubspecValidator(resourceProvider, source);
   }
 
   test_assetDoesNotExist_error() {
@@ -66,7 +63,7 @@ flutter:
   }
 
   test_assetDoesNotExist_noError() {
-    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
+    newFile('/sample/assets/my_icon.png');
     assertNoErrors('''
 name: sample
 flutter:
@@ -92,7 +89,7 @@ flutter:
   }
 
   test_assetFieldNotList_noError() {
-    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
+    newFile('/sample/assets/my_icon.png');
     assertNoErrors('''
 name: sample
 flutter:
@@ -122,7 +119,7 @@ flutter:
   }
 
   test_assetNotString_noError() {
-    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
+    newFile('/sample/assets/my_icon.png');
     assertNoErrors('''
 name: sample
 flutter:
@@ -190,7 +187,7 @@ flutter:
   }
 
   test_flutterFieldNotMap_noError() {
-    provider.newFile(provider.convertPath('/sample/assets/my_icon.png'), '');
+    newFile('/sample/assets/my_icon.png');
     assertNoErrors('''
 name: sample
 flutter:
