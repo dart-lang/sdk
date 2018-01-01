@@ -46,12 +46,12 @@ main() {
   test_errorInPart() async {
     String libPath = '$testFolder/main.dart';
     String partPath = '$testFolder/main_part.dart';
-    addFile(libPath, r'''
+    newFile(libPath, content: r'''
 library main;
 part 'main_part.dart';
 class A {}
 ''');
-    addFile(partPath, r'''
+    newFile(partPath, content: r'''
 part of main;
 class A {}
 ''');
@@ -77,7 +77,7 @@ class A {}
   test_fileWithoutContext() {
     // Broken under the new driver.
     String file = '/outside.dart';
-    addFile(file, '''
+    newFile(file, content: '''
 main() {
   print(42);
 }
@@ -124,7 +124,7 @@ main() {
     Request request = _createGetErrorsRequest(testFile);
     server.handleRequest(request);
     // remove context, causes sending an "invalid file" error
-    resourceProvider.deleteFolder(projectPath);
+    deleteFolder(projectPath);
     // wait for an error response
     Response response = await serverChannel.waitForResponse(request);
     expect(response.error, isNotNull);

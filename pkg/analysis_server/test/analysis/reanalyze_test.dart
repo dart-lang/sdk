@@ -46,8 +46,8 @@ class ReanalyzeTest extends AbstractAnalysisTest {
 
   test_reanalyze_with_overlay() async {
     createProject();
-    resourceProvider.newFolder(testFolder);
-    resourceProvider.newFile(testFile, 'main() {}');
+    newFolder(testFolder);
+    newFile(testFile, content: 'main() {}');
     // Update the content with an overlay that contains a syntax error.
     server.updateContent('1', {testFile: new AddContentOverlay('main() {')});
     await _resultsAvailable.future;

@@ -74,12 +74,12 @@ class CompletionTestCase extends CompletionDomainHandlerTest {
     super.setUp();
     return new Future(() {
       String content = spec.source;
-      addFile(testFile, content);
+      newFile(testFile, content: content);
       this.testCode = content;
       completionOffset = spec.testLocation;
       if (extraFiles != null) {
         extraFiles.forEach((String fileName, String content) {
-          addFile(fileName, content);
+          newFile(fileName, content: content);
         });
       }
     }).then((_) => getSuggestions()).then((_) {

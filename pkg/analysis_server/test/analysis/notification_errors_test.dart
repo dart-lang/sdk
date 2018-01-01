@@ -47,11 +47,11 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
 
   test_analysisOptionsFile() async {
     String analysisOptionsFile =
-        addFile('$projectPath/analysis_options.yaml', '''
+        newFile('$projectPath/analysis_options.yaml', content: '''
 linter:
   rules:
     - invalid_lint_rule_name
-''');
+''').path;
 
     Request request =
         new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
@@ -90,7 +90,7 @@ import 'does_not_exist.dart';
   test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    addFile('$projectPath/.analysis_options', '''
+    newFile('$projectPath/.analysis_options', content: '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -105,7 +105,7 @@ linter:
     await waitForTasksFinished();
     List<Linter> lints;
     AnalysisDriver testDriver = (server.contextManager as ContextManagerImpl)
-        .getContextInfoFor(resourceProvider.getFolder(projectPath))
+        .getContextInfoFor(getFolder(projectPath))
         .analysisDriver;
     lints = testDriver.analysisOptions.lintRules;
     // Registry should only contain single lint rule.
@@ -124,8 +124,7 @@ linter:
 
   test_notInAnalysisRoot() async {
     createProject();
-    String otherFile = '/other.dart';
-    addFile(otherFile, 'UnknownType V;');
+    String otherFile = newFile('/other.dart', content: 'UnknownType V;').path;
     addTestFile('''
 import '/other.dart';
 main() {
@@ -153,9 +152,9 @@ main() {
   }
 
   test_pubspecFile() async {
-    String pubspecFile = addFile('$projectPath/pubspec.yaml', '''
+    String pubspecFile = newFile('$projectPath/pubspec.yaml', content: '''
 version: 1.3.2
-''');
+''').path;
 
     Request setRootsRequest =
         new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
@@ -174,7 +173,7 @@ version: 1.3.2
     //
     // Fix the error and verify the new results.
     //
-    resourceProvider.updateFile(pubspecFile, '''
+    modifyFile(pubspecFile, '''
 name: sample
 version: 1.3.2
 ''');

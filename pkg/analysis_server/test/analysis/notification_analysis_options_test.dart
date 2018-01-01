@@ -43,11 +43,7 @@ main() {
   List<AnalysisError> get testFileErrors => filesErrors[testFile];
 
   void addOptionsFile(String contents) {
-    addFile(optionsFilePath, contents);
-  }
-
-  void deleteFile(String filePath) {
-    resourceProvider.deleteFile(filePath);
+    newFile(optionsFilePath, content: contents);
   }
 
   @override

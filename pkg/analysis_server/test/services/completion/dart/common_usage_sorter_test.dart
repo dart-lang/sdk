@@ -84,8 +84,8 @@ main() {
 
   test_PrefixedIdentifier_field_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addFile('/project/bin/myLib.dart',
-        'library L; part "$testFile"; class A {static int s2;}');
+    newFile('/project/bin/myLib.dart',
+        content: 'library L; part "$testFile"; class A {static int s2;}');
     addTestFile('part of L; foo() {A.^}');
     await getSuggestionsWith({
       'L.A': ['s2']

@@ -239,7 +239,7 @@ class A {
     //
     // We no longer support the analysis of non-dart files.
     //
-    testFile = '/project/web/test.html';
+    testFile = resourceProvider.convertPath('/project/web/test.html');
     addTestFile('''
       <html>^</html>
     ''');
@@ -251,7 +251,7 @@ class A {
   }
 
   test_import_uri_with_trailing() {
-    addFile('/project/bin/testA.dart', 'library libA;');
+    newFile('/project/bin/testA.dart', content: 'library libA;');
     addTestFile('''
       import '/project/bin/t^.dart';
       main() {}''');
@@ -499,7 +499,7 @@ class A {
   }
 
   test_inDartDoc_reference1() async {
-    addFile('/testA.dart', '''
+    newFile('/testA.dart', content: '''
   part of libA;
   foo(bar) => 0;''');
     addTestFile('''
@@ -528,7 +528,7 @@ class A {
   }
 
   test_inherited() {
-    addFile('/libA.dart', 'class A {m() {}}');
+    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
 import '/libA.dart';
 class B extends A {
@@ -606,7 +606,7 @@ class B extends A {
   }
 
   test_local_override() {
-    addFile('/libA.dart', 'class A {m() {}}');
+    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
 import '/libA.dart';
 class B extends A {
@@ -649,7 +649,7 @@ class B extends A {
   }
 
   test_overrides() {
-    addFile('/libA.dart', 'class A {m() {}}');
+    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
 import '/libA.dart';
 class B extends A {m() {^}}
@@ -663,7 +663,7 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    addFile('/project/bin/testA.dart', '''
+    newFile('/project/bin/testA.dart', content: '''
       library libA;
       part "$testFile";
       import 'dart:html';
@@ -683,7 +683,7 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    addFile('/testA.dart', '''
+    newFile('/testA.dart', content: '''
       part of libA;
       class A { }''');
     addTestFile('''

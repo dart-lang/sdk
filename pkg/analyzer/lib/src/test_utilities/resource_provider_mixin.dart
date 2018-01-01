@@ -18,6 +18,11 @@ class ResourceProviderMixin {
     resourceProvider.deleteFile(convertedPath);
   }
 
+  void deleteFolder(String path) {
+    String convertedPath = resourceProvider.convertPath(path);
+    resourceProvider.deleteFolder(convertedPath);
+  }
+
   File getFile(String path) {
     String convertedPath = resourceProvider.convertPath(path);
     return resourceProvider.getFile(convertedPath);

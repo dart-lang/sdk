@@ -49,18 +49,15 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setAnalysisRoots_excludedFolder() async {
-    String fileA = '/project/aaa/a.dart';
-    String fileB = '/project/bbb/b.dart';
-    resourceProvider.newFile(fileA, '// a');
-    resourceProvider.newFile(fileB, '// b');
+    newFile('/project/aaa/a.dart', content: '// a');
+    newFile('/project/bbb/b.dart', content: '// b');
     var response = testSetAnalysisRoots(['/project'], ['/project/bbb']);
     expect(response, isResponseSuccess('0'));
   }
 
   test_setAnalysisRoots_included_newFolder() async {
-    String file = '/project/bin/test.dart';
-    resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
-    resourceProvider.newFile(file, 'main() {}');
+    newFile('/project/pubspec.yaml', content: 'name: project');
+    String file = newFile('/project/bin/test.dart', content: 'main() {}').path;
     var response = testSetAnalysisRoots(['/project'], []);
     var serverRef = server;
     expect(response, isResponseSuccess('0'));
@@ -71,8 +68,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setAnalysisRoots_included_nonexistentFolder() async {
-    String fileB = '/project_b/b.dart';
-    resourceProvider.newFile(fileB, '// b');
+    String fileB = newFile('/project_b/b.dart', content: '// b').path;
     var response = testSetAnalysisRoots(['/project_a', '/project_b'], []);
     var serverRef = server;
     expect(response, isResponseSuccess('0'));
@@ -115,11 +111,9 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setPriorityFiles_valid() {
-    resourceProvider.newFolder('/p1');
-    resourceProvider.newFile('/p1/a.dart', 'library a;');
-    resourceProvider.newFolder('/p2');
-    resourceProvider.newFile('/p2/b.dart', 'library b;');
-    resourceProvider.newFile('/p2/c.dart', 'library c;');
+    newFile('/p1/a.dart', content: 'library a;');
+    newFile('/p2/b.dart', content: 'library b;');
+    newFile('/p2/c.dart', content: 'library c;');
 
     var setRootsRequest =
         new AnalysisSetAnalysisRootsParams(['/p1', '/p2'], []).toRequest('0');
@@ -263,7 +257,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   xtest_getReachableSources_invalidSource() async {
     // TODO(brianwilkerson) Re-enable this test if we re-enable the
     // analysis.getReachableSources request.
-    resourceProvider.newFile('/project/a.dart', 'import "b.dart";');
+    newFile('/project/a.dart', content: 'import "b.dart";');
     server.setAnalysisRoots('0', ['/project/'], [], {});
 
     await server.onAnalysisComplete;
@@ -279,10 +273,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   xtest_getReachableSources_validSources() async {
     // TODO(brianwilkerson) Re-enable this test if we re-enable the
     // analysis.getReachableSources request.
-    String fileA = '/project/a.dart';
-    String fileB = '/project/b.dart';
-    resourceProvider.newFile(fileA, 'import "b.dart";');
-    resourceProvider.newFile(fileB, '');
+    String fileA = newFile('/project/a.dart', content: 'import "b.dart";').path;
+    newFile('/project/b.dart');
 
     server.setAnalysisRoots('0', ['/project/'], [], {});
 
@@ -314,13 +306,11 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 
   test_setRoots_packages() {
     // prepare package
-    String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    String pkgFile = newFile('/packages/pkgA/libA.dart', content: '''
 library lib_a;
 class A {}
-''');
-    resourceProvider.newFile(
-        '/project/.packages', 'pkgA:file:///packages/pkgA');
+''').path;
+    newFile('/project/.packages', content: 'pkgA:file:///packages/pkgA');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -589,13 +579,11 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   test_afterAnalysis_packageFile_external() async {
-    String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    String pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
-''');
-    resourceProvider.newFile(
-        '/project/.packages', 'pkgA:file:///packages/pkgA/lib');
+''').path;
+    newFile('/project/.packages', content: 'pkgA:file:///packages/pkgA/lib');
     //
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -617,30 +605,23 @@ main() {
   test_afterAnalysis_packageFile_inRoot() async {
     String pkgA = '/pkgA';
     String pkgB = '/pkgA';
-    String pkgFileA = '$pkgA/lib/libA.dart';
-    String pkgFileB = '$pkgA/lib/libB.dart';
-    resourceProvider.newFile(pkgFileA, '''
+    String pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
-''');
-    resourceProvider.newFile(pkgFileB, '''
+''').path;
+    newFile('$pkgA/lib/libB.dart', content: '''
 import 'package:pkgA/libA.dart';
 main() {
   new A();
 }
 ''');
     packageMapProvider.packageMap = {
-      'pkgA': [
-        resourceProvider.newFolder('$pkgA/lib'),
-        resourceProvider.newFolder('$pkgB/lib')
-      ]
+      'pkgA': [newFolder('$pkgA/lib'), newFolder('$pkgB/lib')]
     };
     // add 'pkgA' and 'pkgB' as projects
-    {
-      resourceProvider.newFolder(projectPath);
-      handleSuccessfulRequest(
-          new AnalysisSetAnalysisRootsParams([pkgA, pkgB], []).toRequest('0'));
-    }
+    newFolder(projectPath);
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams([pkgA, pkgB], []).toRequest('0'));
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[pkgFileA], isNull);
@@ -652,12 +633,11 @@ main() {
   }
 
   test_afterAnalysis_packageFile_notUsed() async {
-    String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    String pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
-''');
-    resourceProvider.newFile('/project/.packages', 'pkgA:/packages/pkgA/lib');
+''').path;
+    newFile('/project/.packages', content: 'pkgA:/packages/pkgA/lib');
     //
     addTestFile('// no "pkgA" reference');
     createProject();

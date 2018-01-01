@@ -26,9 +26,8 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   }
 
   test_getDiagnostics() async {
-    String file = '/project/bin/test.dart';
-    resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
-    resourceProvider.newFile(file, 'main() {}');
+    newFile('/project/pubspec.yaml', content: 'name: project');
+    newFile('/project/bin/test.dart', content: 'main() {}');
 
     server.setAnalysisRoots('0', ['/project/'], [], {});
 

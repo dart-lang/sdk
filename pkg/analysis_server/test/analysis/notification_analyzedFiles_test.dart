@@ -73,9 +73,7 @@ class A {}
   }
 
   test_beforeAnalysis_excludeYamlFiles() async {
-    File yamlFile = resourceProvider
-        .getFolder(projectPath)
-        .getChildAssumingFile('sample.yaml');
+    File yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
     yamlFile.writeAsStringSync('');
     addTestFile('''
 class A {}
@@ -117,7 +115,7 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    addFile('/foo.dart', 'library foo;');
+    newFile('/foo.dart', content: 'library foo;');
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
 
