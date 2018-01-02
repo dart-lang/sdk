@@ -323,8 +323,13 @@ class TypeInferenceListener
           DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
-  void methodInvocationExitCall(Expression expression, Arguments arguments,
-          bool isImplicitCall, DartType inferredType) =>
+  void methodInvocationExitCall(
+          Expression expression,
+          Arguments arguments,
+          bool isImplicitCall,
+          FunctionType calleeType,
+          Substitution substitution,
+          DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
   bool namedFunctionExpressionEnter(Let expression, DartType typeContext) =>

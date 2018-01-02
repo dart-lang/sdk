@@ -344,6 +344,22 @@ class TypePropagationTest_Kernel extends TypePropagationTest_Driver {
 
   @override
   @failingTest
+  test_objectMethodInference_disabled_for_library_prefix() async {
+    // Expected: DynamicTypeImpl:<dynamic>
+    // Actual: FunctionTypeImpl:<() → dynamic>
+    await super.test_objectMethodInference_disabled_for_library_prefix();
+  }
+
+  @override
+  @failingTest
+  test_objectMethodInference_disabled_for_local_function() async {
+    // Expected: DynamicTypeImpl:<dynamic>
+    // Actual: FunctionTypeImpl:<() → dynamic>
+    await super.test_objectMethodInference_disabled_for_local_function();
+  }
+
+  @override
+  @failingTest
   test_objectMethodInference_enabled_for_cascades() async {
     // Expected: DynamicTypeImpl:<dynamic>
     await super.test_objectMethodInference_enabled_for_cascades();

@@ -1702,6 +1702,30 @@ class A {
     expect(parameterNode.identifier.staticType, typeProvider.intType);
   }
 
+  test_functionExpressionInvocation() async {
+    addTestFile(r'''
+typedef Foo<S> = S Function<T>(T x);
+void main(f) {
+  (f as Foo<int>)<String>('hello');
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    FunctionExpressionInvocation invocation = statement.expression;
+
+    expect(invocation.staticElement, isNull);
+    expect(invocation.staticInvokeType.toString(), '(String) → int');
+    expect(invocation.staticType, typeProvider.intType);
+
+    List<TypeAnnotation> typeArguments = invocation.typeArguments.arguments;
+    expect(typeArguments, hasLength(1));
+    _assertTypeNameSimple(typeArguments[0], typeProvider.stringType);
+  }
+
   test_indexExpression() async {
     String content = r'''
 main() {
@@ -3098,7 +3122,7 @@ main(f) {
     ExpressionStatement statement = mainStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    _assertDynamicFunctionType(invocation.staticInvokeType);
     expect(invocation.staticType, DynamicTypeImpl.instance);
 
     List<Expression> arguments = invocation.argumentList.arguments;
@@ -3152,7 +3176,7 @@ main() {
     ExpressionStatement statement = mainStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement.getter));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    _assertDynamicFunctionType(invocation.staticInvokeType);
     expect(invocation.staticType, DynamicTypeImpl.instance);
 
     List<Expression> arguments = invocation.argumentList.arguments;
@@ -5103,9 +5127,12 @@ typedef void F(int p);
   }
 
   /// Assert that the [type] is a function type `() -> dynamic`.
-  void _assertDynamicFunctionType(FunctionType type) {
-    expect(type.parameters, isEmpty);
-    expect(type.returnType, DynamicTypeImpl.instance);
+  void _assertDynamicFunctionType(DartType type) {
+    if (previewDart2) {
+      expect(type.toString(), '() → dynamic');
+    } else {
+      expect(type, DynamicTypeImpl.instance);
+    }
   }
 
   void _assertParameterElement(ParameterElement element,

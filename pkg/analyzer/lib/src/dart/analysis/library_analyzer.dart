@@ -792,6 +792,8 @@ class LibraryAnalyzer {
         applier.checkDone();
       } else if (declaration is FunctionTypeAlias) {
         // No bodies to resolve.
+      } else if (declaration is GenericTypeAlias) {
+        // No bodies to resolve.
       } else if (declaration is TopLevelVariableDeclaration) {
         List<VariableDeclaration> variables = declaration.variables.variables;
         var context = variables[0].element as ElementImpl;
@@ -1224,10 +1226,6 @@ class _ResolutionApplierContext implements TypeContext {
   DartType translateType(kernel.DartType kernelType) {
     if (kernelType is kernel.NullType) {
       return null;
-    } else if (kernelType is kernel.FunctionReferenceDartType) {
-      kernel.VariableDeclaration variable = kernelType.function.variable;
-      FunctionElement element = declarationToElement[variable];
-      return element.type;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
     } else if (kernelType is kernel.TypeArgumentsDartType) {

@@ -173,59 +173,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
-    return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
-    return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
-    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_genericTypeAlias_invalidGenericFunctionType() async {
     return super.test_genericTypeAlias_invalidGenericFunctionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_noTypeParameters() async {
-    return super.test_genericTypeAlias_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_typeParameters() async {
-    return super.test_genericTypeAlias_typeParameters();
   }
 
   @override
@@ -348,12 +297,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedMethod_functionExpression_callMethod() async {
     return super.test_undefinedMethod_functionExpression_callMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedMethod_functionExpression_directCall() async {
-    return super.test_undefinedMethod_functionExpression_directCall();
   }
 }

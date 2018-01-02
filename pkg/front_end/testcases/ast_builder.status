@@ -25,7 +25,6 @@ inference/bug30251: Crash
 inference/bug30624: Crash
 inference/bug31133: Crash
 inference/bug31436: Crash
-inference/call_corner_cases: Crash
 inference/closure_param_null_to_object: Crash
 inference/constructors_infer_from_arguments_redirecting: Crash
 inference/constructors_too_many_positional_arguments: Crash
@@ -50,8 +49,6 @@ inference/field_initializer_parameter: Crash
 inference/for_loop_initializer_expression: Crash
 inference/future_then_explicit_future: Fail
 inference/generic_functions_return_typedef: Fail
-inference/generic_methods_basic_downward_inference: Crash
-inference/generic_methods_downwards_inference_fold: Crash
 inference/generic_methods_infer_js_builtin: Fail
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
@@ -69,15 +66,10 @@ inference/top_level_return_and_yield: Fail
 inference/try_catch: Crash
 inference/try_catch_finally: Crash
 inference/try_catch_promotion: Crash
-inference/unsafe_block_closure_inference_closure_call: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Crash
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Crash
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
-inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: Crash
-inference/unsafe_block_closure_inference_function_call_no_type_param_via_expr: Crash
-inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
-inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail
 invalid_cast: Crash
 invocations: Crash
 metadata_enum: Crash
@@ -90,7 +82,6 @@ rasta/bad_default_constructor: Crash
 rasta/bad_interpolation: Crash
 rasta/bad_redirection: Crash
 rasta/breaking_bad: Crash
-rasta/cascades: Crash
 rasta/class_hierarchy: Crash
 rasta/deferred_load: Crash
 rasta/generic_factory: Crash
@@ -111,10 +102,8 @@ rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: Crash
 rasta/parser_error: Crash
 rasta/static: Crash
-rasta/super: Crash
 rasta/super_initializer: Crash
 rasta/supports_reflection: VerificationError
-rasta/this_invoke: Crash
 rasta/try_label: Crash
 rasta/type_literals: Crash
 rasta/typedef: Crash
@@ -132,7 +121,6 @@ regress/issue_29979: Crash
 regress/issue_29983: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
-regress/issue_30838: Crash
 regress/issue_31155: Crash # Issue 31155.
 regress/issue_31157: Crash
 regress/issue_31180: Crash
@@ -147,6 +135,5 @@ runtime_checks/implicit_downcast_constructor_initializer: Crash
 runtime_checks_new/for_in_call_kinds: Crash
 statements: Crash
 super_call: Crash
-super_rasta_copy: Crash
 type_variable_as_super: Crash
 uninitialized_fields: Crash

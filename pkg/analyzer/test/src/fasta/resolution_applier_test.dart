@@ -74,6 +74,7 @@ f(String s, int i) {
     ], <DartType>[
       typeProvider.stringType,
       new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
+      new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
       new TypeArgumentsDartType([]),
       typeProvider.intType,
       typeProvider.stringType,
@@ -92,7 +93,9 @@ f(Object a) {
     ], <DartType>[
       typeProvider.objectType,
       typeProvider.objectType,
+      typeProvider.objectType,
       new TypeArgumentsDartType([]),
+      typeProvider.objectType,
       typeProvider.objectType,
       typeProvider.objectType,
       new TypeArgumentsDartType([]),
@@ -250,6 +253,8 @@ f(String s) {
   }
 
   void test_methodInvocation_method() {
+    var substringType =
+        new FunctionTypeImpl(new FunctionElementImpl('substring', -1));
     applyTypes(r'''
 f(String s) {
   return s.substring(3, 7);
@@ -259,7 +264,8 @@ f(String s) {
       new MethodElementImpl('length', -1)
     ], <DartType>[
       typeProvider.stringType,
-      typeProvider.intType,
+      substringType,
+      substringType,
       new TypeArgumentsDartType([]),
       typeProvider.intType,
       typeProvider.stringType,

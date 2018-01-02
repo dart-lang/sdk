@@ -93,7 +93,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         operatorType != TokenType.AMPERSAND_AMPERSAND &&
         operatorType != TokenType.BAR_BAR) {
       node.staticElement = _getReferenceFor(node.operator);
-      _getTypeFor(node.operator); // function type of the operator
+      _getTypeFor(node.operator); // callee type
+      _getTypeFor(node.operator); // invocation type
       _getTypeFor(node.operator); // type arguments
     }
 
@@ -270,9 +271,21 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function.accept(this);
-    // TODO(brianwilkerson) Visit node.typeArguments.
+
+    DartType invokeType = _getTypeFor(node.argumentList);
+    node.staticInvokeType = invokeType;
+
+    DartType typeArgumentsDartType = _getTypeFor(node.argumentList);
+    if (node.typeArguments != null &&
+        typeArgumentsDartType is TypeArgumentsDartType) {
+      _applyTypeArgumentsToList(
+          typeArgumentsDartType, node.typeArguments.arguments);
+    }
+
+    DartType resultType = _getTypeFor(node.argumentList);
+    node.staticType = resultType;
+
     node.argumentList.accept(this);
-    node.staticElement = _getReferenceFor(node);
   }
 
   @override
@@ -288,8 +301,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.staticElement = member;
     }
 
-    // We cannot use the detached FunctionType of `[]` or `[]=`.
-    _getTypeFor(node.leftBracket);
+    _getTypeFor(node.leftBracket); // callee type
+    _getTypeFor(node.leftBracket); // invoke type
     _getTypeFor(node.leftBracket); // type arguments
 
     node.staticType = _getTypeFor(node.leftBracket);
@@ -349,7 +362,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     ArgumentList argumentList = node.argumentList;
 
     Element invokeElement = _getReferenceFor(node.methodName);
-    DartType invokeType = _getTypeFor(node.methodName);
+    _getTypeFor(node.methodName); // static element type
+    DartType invokeType = _getTypeFor(argumentList);
     DartType typeArgumentsDartType = _getTypeFor(argumentList);
     DartType resultType = _getTypeFor(argumentList);
 
@@ -418,7 +432,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       // This is a method invocation, it is associated with the operator.
       SyntacticEntity entity = node.operator;
       node.staticElement = _getReferenceFor(entity);
-      _getTypeFor(entity); // The function type of the operator.
+      _getTypeFor(entity); // The static function type of the operator.
+      _getTypeFor(entity); // The invoke function type of the operator.
       _getTypeFor(entity); // The type arguments (empty).
       node.staticType = _getTypeFor(entity);
     }

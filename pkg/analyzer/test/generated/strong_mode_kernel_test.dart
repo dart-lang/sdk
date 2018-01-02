@@ -65,13 +65,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_constrainedByBounds4() async {
-    // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
-    await super.test_constrainedByBounds4();
-  }
-
-  @override
-  @failingTest
   test_constrainedByBounds5() async {
     // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
     await super.test_constrainedByBounds5();

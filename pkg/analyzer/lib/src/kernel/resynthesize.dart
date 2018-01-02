@@ -331,7 +331,9 @@ class KernelResynthesizer implements ElementResynthesizer {
         getElementFromCanonicalName(typedef.canonicalName);
     GenericFunctionTypeElementImpl functionElement = typedefElement.function;
 
-    var kernelTypeParameters = typedef.typeParameters;
+    kernel.FunctionType typedefType = typedef.type;
+    var kernelTypeParameters = typedef.typeParameters.toList();
+    kernelTypeParameters.addAll(typedefType.typeParameters);
 
     // If no type parameters, the raw type of the element will do.
     FunctionTypeImpl rawType = functionElement.type;
@@ -340,11 +342,12 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     // Compute type arguments for kernel type parameters.
-    var kernelMap = kernel.unifyTypes(
-        typedef.type, kernelType, kernelTypeParameters.toSet());
+    var kernelMap = kernel.unifyTypes(typedefType.withoutTypeParameters,
+        kernelType.withoutTypeParameters, kernelTypeParameters.toSet());
 
     // Prepare Analyzer type parameters, in the same order as kernel ones.
-    var astTypeParameters = typedefElement.typeParameters;
+    var astTypeParameters = typedefElement.typeParameters.toList();
+    astTypeParameters.addAll(functionElement.typeParameters);
 
     // Convert kernel type arguments into Analyzer types.
     int length = astTypeParameters.length;
@@ -353,11 +356,15 @@ class KernelResynthesizer implements ElementResynthesizer {
     for (var i = 0; i < length; i++) {
       var kernelParameter = kernelTypeParameters[i];
       var kernelArgument = kernelMap[kernelParameter];
-      if (kernelArgument != null) {
-        DartType astArgument = getType(context, kernelArgument);
-        usedTypeParameters.add(astTypeParameters[i]);
-        usedTypeArguments.add(astArgument);
+      if (kernelArgument == null ||
+          kernelArgument is kernel.TypeParameterType &&
+              kernelArgument.parameter.parent == null) {
+        continue;
       }
+      TypeParameterElement astParameter = astTypeParameters[i];
+      DartType astArgument = getType(context, kernelArgument);
+      usedTypeParameters.add(astParameter);
+      usedTypeArguments.add(astArgument);
     }
 
     if (usedTypeParameters.isEmpty) {

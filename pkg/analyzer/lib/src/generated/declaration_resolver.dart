@@ -392,6 +392,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       if (type != null) {
         Element element = type.element;
         if (element is GenericFunctionTypeElement) {
+          if (_applyKernelTypes) {
+            if (node.returnType != null) {
+              ResolutionApplier.applyToTypeAnnotation(
+                  element.returnType, node.returnType);
+            }
+          }
           _setGenericFunctionType(node.returnType, element.returnType);
           _walk(new ElementWalker.forGenericFunctionType(element), () {
             super.visitGenericFunctionType(node);
