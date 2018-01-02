@@ -84,6 +84,7 @@ vars = {
   "html_tag" : "@0.13.2",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
+  "http_retry_tag": "@0.1.0",
   "http_tag" : "@0.11.3+14",
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
@@ -107,13 +108,13 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.3",
   "protobuf_tag": "@0.5.4",
-  "pub_rev": "@cde958f157d3662bf968bcbed05580d5c0355e89",
+  "pub_rev": "@667281eef93b4be648cceca400e954e000edba38",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.25.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
   "scheduled_test_tag": "@0.12.11+1",
-  "shelf_static_tag": "@0.2.5",
+  "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
   "shelf_packages_handler_tag": "@1.0.3",
   "shelf_tag": "@0.7.1",
   "shelf_web_socket_tag": "@0.2.2",
@@ -227,6 +228,9 @@ deps = {
       Var("http_multi_server_tag"),
   Var("dart_root") + "/third_party/pkg/http_parser":
       Var("github_mirror") + "http_parser.git" + Var("http_parser_tag"),
+  Var("dart_root") + "/third_party/pkg/http_retry":
+      Var("github_mirror") + "http_retry.git" +
+      Var("http_retry_tag"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
       Var("github_mirror") + "http_throttle.git" +
       Var("http_throttle_tag"),
@@ -289,7 +293,7 @@ deps = {
       Var("github_mirror") + "shelf_packages_handler.git"
       + Var("shelf_packages_handler_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
-      Var("github_mirror") + "shelf_static.git" + Var("shelf_static_tag"),
+      Var("github_mirror") + "shelf_static.git" + Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       Var("github_mirror") + "shelf_web_socket.git" +
       Var("shelf_web_socket_tag"),

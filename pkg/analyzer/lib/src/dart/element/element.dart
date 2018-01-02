@@ -8603,11 +8603,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   String get name {
-    if (_kernel != null) {
-      return _kernel.name;
-    }
-    if (_unlinkedImport != null) {
-      if (_name == null) {
+    if (_name == null) {
+      if (_kernel != null) {
+        return _name = _kernel.name;
+      }
+      if (_unlinkedImport != null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
         int prefixId = _unlinkedImport.prefixReference;
         return _name = library._unlinkedDefiningUnit.references[prefixId].name;

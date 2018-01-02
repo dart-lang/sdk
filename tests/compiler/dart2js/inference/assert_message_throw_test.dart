@@ -11,8 +11,8 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/types/masks.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'package:expect/expect.dart';
+import 'type_mask_test_helper.dart';
 import '../memory_compiler.dart';
-import '../type_mask_test_helper.dart';
 
 const String SOURCE = '''
 main(args) {

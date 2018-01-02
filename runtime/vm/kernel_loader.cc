@@ -986,6 +986,10 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                      true,   // is_method
                                      false,  // is_closure
                                      &function_node_helper);
+    if (constructor_helper.IsSyntheticDefault()) {
+      function.set_is_debuggable(false);
+    }
+
     function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);

@@ -233,6 +233,13 @@ class _ConstantOrdering
     // TODO(sra): What kind of Entity is `prefix`?
     return compareElements(a.import, b.import);
   }
+
+  int visitDeferredGlobal(
+      DeferredGlobalConstantValue a, DeferredGlobalConstantValue b) {
+    int r = compareValues(a.referenced, b.referenced);
+    if (r != 0) return r;
+    return a.unit.compareTo(b.unit);
+  }
 }
 
 class _KindVisitor implements ConstantValueVisitor<int, Null> {
@@ -251,6 +258,7 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int INTERCEPTOR = 11;
   static const int SYNTHETIC = 12;
   static const int DEFERRED = 13;
+  static const int DEFERRED_GLOBAL = 14;
   static const int NONCONSTANT = 13;
 
   static int kind(ConstantValue constant) =>
@@ -270,6 +278,7 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   int visitInterceptor(InterceptorConstantValue a, _) => INTERCEPTOR;
   int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
   int visitDeferred(DeferredConstantValue a, _) => DEFERRED;
+  int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
 }
 
 /// Visitor for distinguishing types by kind.

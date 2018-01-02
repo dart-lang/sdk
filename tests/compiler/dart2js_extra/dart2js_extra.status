@@ -124,6 +124,10 @@ deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loadin
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 js_interop_test: RuntimeError # Issue 31082
 
+[ $compiler == dart2js && $dart2js_with_kernel ]
+dummy_compiler_test: Crash # Issue 31715
+recursive_import_test: Crash # Issue 31715
+
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 23056_test: Pass
 closure_capture2_test: RuntimeError

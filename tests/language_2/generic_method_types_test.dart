@@ -32,9 +32,9 @@ test1() {
 test2() {
   var val = new Class<String>();
   Expect.isTrue(val.convert2 is Convert2);
-  Expect.isFalse(val.convert2 is Convert1);
+  Expect.isTrue(val.convert2 is Convert1);
   Expect.isTrue(val.convert2 is Convert2<String>);
-  Expect.isFalse(val.convert2 is Convert2<int>);
+  Expect.isTrue(val.convert2 is Convert2<int>);
   Expect.isFalse(val.convert2 is Convert1<String>);
   Expect.isFalse(val.convert2 is Other);
 }

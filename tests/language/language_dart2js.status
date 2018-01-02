@@ -391,9 +391,9 @@ regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22936_test/01: RuntimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
+regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_26133_test: RuntimeError # Issue 26429
 regress_27572_test: RuntimeError
@@ -775,9 +775,9 @@ regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22936_test/01: RuntimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
+regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -1093,9 +1093,9 @@ regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22936_test/01: RuntimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
+regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -1431,9 +1431,9 @@ regress_17382_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
 regress_22936_test/01: RuntimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
+regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
+regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant

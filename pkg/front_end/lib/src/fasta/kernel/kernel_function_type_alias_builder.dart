@@ -66,7 +66,8 @@ class KernelFunctionTypeAliasBuilder
       builtType.typedefReference = target.reference;
       if (typeVariables != null) {
         for (KernelTypeVariableBuilder tv in typeVariables) {
-          tv.parameter.bound = tv?.bound?.build(library);
+          // Follow bound in order to find all cycles
+          tv.bound?.build(library);
           target.typeParameters.add(tv.parameter..parent = target);
         }
       }

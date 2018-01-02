@@ -8,6 +8,7 @@ import '../common_elements.dart' show CommonElements;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
+import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -273,15 +274,12 @@ class HGraph {
 
   HConstant addDeferredConstant(
       ConstantValue constant,
-      ImportEntity import,
+      OutputUnit unit,
       SourceInformation sourceInformation,
       Compiler compiler,
       ClosedWorld closedWorld) {
-    // TODO(sigurdm,johnniwinther): These deferred constants should be created
-    // by the constant evaluator.
-    ConstantValue wrapper = new DeferredConstantValue(constant, import);
-    compiler.backend.outputUnitData
-        .registerConstantDeferredUse(wrapper, import);
+    ConstantValue wrapper = new DeferredGlobalConstantValue(constant, unit);
+    compiler.backend.outputUnitData.registerConstantDeferredUse(wrapper, unit);
     return addConstant(wrapper, closedWorld,
         sourceInformation: sourceInformation);
   }

@@ -344,6 +344,7 @@ String _getJsBreakpointLine(SingleMapping sourceMap, int breakOnLine) {
   List<_PointMapping> mappingsOnLines = [];
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
+      if (entry.sourceLine == null) continue;
       if (entry.sourceLine >= breakOnLine &&
           entry.sourceLine < breakOnLine + 4) {
         mappingsOnLines.add(new _PointMapping(

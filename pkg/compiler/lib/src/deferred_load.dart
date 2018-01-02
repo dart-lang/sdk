@@ -11,7 +11,11 @@ import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
-    show ConstantValue, ConstructedConstantValue, DeferredConstantValue;
+    show
+        ConstantValue,
+        ConstructedConstantValue,
+        DeferredConstantValue,
+        DeferredGlobalConstantValue;
 import 'elements/types.dart';
 import 'elements/elements.dart'
     show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
@@ -68,6 +72,8 @@ class OutputUnit implements Comparable<OutputUnit> {
     // deferred imports themselves (e.g. their declaration location).
     return name.compareTo(other.name);
   }
+
+  Set<ImportEntity> get importsForTesting => _imports;
 
   String toString() => "OutputUnit($name, $_imports)";
 }
@@ -496,6 +502,8 @@ abstract class DeferredLoadTask extends CompilerTask {
     for (ImportEntity import in allDeferredImports) {
       String result = computeImportDeferName(import, compiler);
       assert(result != null);
+      // Note: tools that process the json file to build multi-part initial load
+      // bundles depend on the fact that makeUnique appends only digits.
       _importDeferName[import] = makeUnique(result, usedImportNames);
     }
 
@@ -544,7 +552,7 @@ abstract class DeferredLoadTask extends CompilerTask {
   ///
   /// The deferred loading algorithm maps elements and constants to an output
   /// unit. Each output unit is identified by a subset of deferred imports (an
-  /// [ImportSet]), and they will contain the elements that are inheretly used
+  /// [ImportSet]), and they will contain the elements that are inherently used
   /// by all those deferred imports. An element is used by a deferred import if
   /// it is either loaded by that import or transitively accessed by an element
   /// that the import loads.  An empty set represents the main output unit,
@@ -1091,13 +1099,6 @@ class OutputUnitData {
     if (!isProgramSplit) return mainOutputUnit;
     entity = entity is Element ? entity.implementation : entity;
     OutputUnit unit = _entityToUnit[entity];
-    // TODO(redemption): ensure any entity that is requested is in the map.
-    // Currently closure methods are not handled correctly. The old pipeline
-    // finds the appropriate output unit because the synthetic $call methods
-    // transitively have the member-context as an enclosing element, and those
-    // methods are found. The new pipeline doesn't expose that connection. We
-    // should handle this in the emitter or while translating OutputUnitData to
-    // the J-model.
     if (unit != null) return unit;
     if (entity is Element) {
       Element element = entity;
@@ -1171,11 +1172,11 @@ class OutputUnitData {
     return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
   }
 
-  /// Registers that a constant is used in a deferred library.
+  /// Registers that a constant is used in the same deferred output unit as
+  /// [field].
   void registerConstantDeferredUse(
-      DeferredConstantValue constant, ImportEntity import) {
+      DeferredGlobalConstantValue constant, OutputUnit unit) {
     if (!isProgramSplit) return;
-    var unit = _importSets.singleton(import).unit;
     assert(
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;

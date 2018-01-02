@@ -551,6 +551,7 @@ class LibraryAnalyzer {
         for (ImportElement importElement in _libraryElement.imports) {
           if (matchNodeElement(directive, importElement)) {
             directive.element = importElement;
+            directive.prefix?.staticElement = importElement.prefix;
             Source source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
               ErrorCode errorCode = importElement.isDeferred
@@ -1227,22 +1228,15 @@ class _ResolutionApplierContext implements TypeContext {
       kernel.VariableDeclaration variable = kernelType.function.variable;
       FunctionElement element = declarationToElement[variable];
       return element.type;
-    } else if (kernelType is kernel.MemberInvocationDartType) {
-      kernel.Member member = kernelType.member;
-      if (member is kernel.Procedure &&
-          member.kind == kernel.ProcedureKind.Method) {
-        ExecutableElementImpl element =
-            resynthesizer.getElementFromCanonicalName(member.canonicalName);
-        return resynthesizer.instantiateFunctionType(
-            context,
-            element,
-            member.function,
-            member.function.functionType.withoutTypeParameters,
-            kernelType.type);
-      }
-      return DynamicTypeImpl.instance;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
+    } else if (kernelType is kernel.TypeArgumentsDartType) {
+      List<kernel.DartType> kernelTypes = kernelType.types;
+      var types = new List<DartType>(kernelTypes.length);
+      for (var i = 0; i < kernelTypes.length; i++) {
+        types[i] = translateType(kernelTypes[i]);
+      }
+      return new TypeArgumentsDartType(types);
     } else {
       return resynthesizer.getType(context, kernelType);
     }

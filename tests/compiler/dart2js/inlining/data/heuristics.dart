@@ -11,6 +11,10 @@ main() {
   outsideLoopNoArgsCalledTwice();
   outsideLoopOneArgCalledOnce();
   outsideLoopOneArgCalledTwice();
+  insideLoopNoArgsCalledOnce();
+  insideLoopNoArgsCalledTwice();
+  insideLoopOneArgCalledOnce();
+  insideLoopOneArgCalledTwice();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,4 +148,178 @@ outsideLoopOneArgCalledTwice() {
   _outsideLoopOneArg1(0);
   _outsideLoopOneArg2(0);
   _outsideLoopOneArg2(0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Inline a method with no parameters called once based regardless the number of
+// static no-arg calls in its body.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method5:[insideLoopNoArgsCalledOnce]*/
+_method5() {}
+
+/*element: _insideLoopNoArgsCalledOnce:[insideLoopNoArgsCalledOnce]*/
+_insideLoopNoArgsCalledOnce() {
+  _method5();
+  _method5();
+  _method5();
+  _method5();
+  _method5();
+  _method5();
+  _method5();
+  _method5();
+  _method5();
+  // This would be one too many calls if this method were called twice.
+  _method5();
+}
+
+/*element: insideLoopNoArgsCalledOnce:loop*/
+@NoInline()
+insideLoopNoArgsCalledOnce() {
+  // ignore: UNUSED_LOCAL_VARIABLE
+  for (var e in [1, 2, 3, 4]) {
+    _insideLoopNoArgsCalledOnce();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Inline a method with no parameters called twice based on the number of
+// static no-arg calls in its body.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method6:[_insideLoopNoArgs2,insideLoopNoArgsCalledTwice]*/
+_method6() {}
+
+/*element: _insideLoopNoArgs1:[insideLoopNoArgsCalledTwice]*/
+_insideLoopNoArgs1() {
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+}
+
+/*element: _insideLoopNoArgs2:[]*/
+_insideLoopNoArgs2() {
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  _method6();
+  // One too many calls:
+  _method6();
+}
+
+/*element: insideLoopNoArgsCalledTwice:loop*/
+@NoInline()
+insideLoopNoArgsCalledTwice() {
+  // ignore: UNUSED_LOCAL_VARIABLE
+  for (var e in [1, 2, 3, 4]) {
+    _insideLoopNoArgs1();
+    _insideLoopNoArgs1();
+    _insideLoopNoArgs2();
+    _insideLoopNoArgs2();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Inline a method with one parameter called once based regardless the number of
+// static no-arg calls in its body.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method7:[insideLoopOneArgCalledOnce]*/
+_method7() {}
+
+/*element: _insideLoopOneArgCalledOnce:[insideLoopOneArgCalledOnce]*/
+_insideLoopOneArgCalledOnce(arg) {
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  // This would be too many calls if this method were called twice.
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+  _method7();
+}
+
+/*element: insideLoopOneArgCalledOnce:loop*/
+@NoInline()
+insideLoopOneArgCalledOnce() {
+  for (var e in [1, 2, 3, 4]) {
+    _insideLoopOneArgCalledOnce(e);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Inline a method with one parameter called twice based on the number of
+// static no-arg calls in its body.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _method8:[_insideLoopOneArg2,insideLoopOneArgCalledTwice]*/
+_method8() {}
+
+/*element: _insideLoopOneArg1:[insideLoopOneArgCalledTwice]*/
+_insideLoopOneArg1(arg) {
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  // Extra calls granted by one parameter.
+  _method8();
+  _method8();
+}
+
+/*element: _insideLoopOneArg2:[]*/
+_insideLoopOneArg2(arg) {
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  _method8();
+  // Extra calls granted by one parameter.
+  _method8();
+  _method8();
+  // One too many calls:
+  _method8();
+}
+
+/*element: insideLoopOneArgCalledTwice:loop*/
+@NoInline()
+insideLoopOneArgCalledTwice() {
+  for (var e in [1, 2, 3, 4]) {
+    _insideLoopOneArg1(e);
+    _insideLoopOneArg1(e);
+    _insideLoopOneArg2(e);
+    _insideLoopOneArg2(e);
+  }
 }

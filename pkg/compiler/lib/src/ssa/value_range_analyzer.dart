@@ -684,6 +684,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     NumConstantValue constantNum;
     if (constant is DeferredConstantValue) {
       constantNum = constant.referenced;
+    } else if (constant is DeferredGlobalConstantValue) {
+      constantNum = constant.referenced;
     } else {
       constantNum = constant;
     }

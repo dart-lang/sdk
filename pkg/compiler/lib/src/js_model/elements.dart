@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../kernel/indexed.dart';
-import 'closure.dart' show KernelClosureClass;
+import 'closure.dart' show KernelClosureClassInfo;
 
 /// Map from 'frontend' to 'backend' elements.
 ///
@@ -522,11 +522,11 @@ class JField extends JMember implements FieldEntity, IndexedField {
 }
 
 class JClosureCallMethod extends JMethod {
-  JClosureCallMethod(KernelClosureClass containingClass,
+  JClosureCallMethod(KernelClosureClassInfo closureClassInfo,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker)
       : super(
-            containingClass.closureClassEntity.library,
-            containingClass.closureClassEntity,
+            closureClassInfo.closureClassEntity.library,
+            closureClassInfo.closureClassEntity,
             Names.call,
             parameterStructure,
             asyncMarker,

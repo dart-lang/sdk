@@ -25,18 +25,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_constructor_withNestedConstructorInvocation() async {
-    // This test is failing because analyzer and kernel disagree about how to
-    // resolve annotations and constructors. Kernel is consistent between
-    // annotations that invoke a constructor and other constructor invocations,
-    // while analyzer treats them differently. They also differ in terms of the
-    // resolution of the constructor name's element.
-    await super.test_annotation_constructor_withNestedConstructorInvocation();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
   test_constructor_redirected_generic() async {
     await super.test_constructor_redirected_generic();

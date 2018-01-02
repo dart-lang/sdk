@@ -111,20 +111,21 @@ print(1)
 
   test_suggestImportFromDifferentAnalysisRoot() async {
     // Set up two projects.
-    resourceProvider..newFolder("/project1")..newFolder("/project2");
+    newFolder("/project1");
+    newFolder("/project2");
     handleSuccessfulRequest(
         new AnalysisSetAnalysisRootsParams(["/project1", "/project2"], [])
             .toRequest('0'),
         handler: analysisHandler);
 
     // Set up files.
-    testFile = "/project1/main.dart";
-    testCode = "main() { print(new Foo()); }";
+    testFile = resourceProvider.convertPath('/project1/main.dart');
+    testCode = 'main() { print(new Foo()); }';
     _addOverlay(testFile, testCode);
     // Add another file in the same project that imports the target file.
     // This ensures it will be analyzed as an implicit Source.
-    _addOverlay("/project1/another.dart", 'import "../project2/target.dart";');
-    _addOverlay("/project2/target.dart", "class Foo() {}");
+    _addOverlay('/project1/another.dart', 'import "../project2/target.dart";');
+    _addOverlay('/project2/target.dart', 'class Foo() {}');
 
     await waitForTasksFinished();
 

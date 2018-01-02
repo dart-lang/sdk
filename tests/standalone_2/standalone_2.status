@@ -58,9 +58,6 @@ io/addlatexhash_test: Skip
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
 
-[ $arch == simdbc64 && $strong && ($compiler == dartk || $compiler == dartkp) ]
-io/*: Skip # Issue 31695
-
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
@@ -107,7 +104,6 @@ io/http_proxy_advanced_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
-io/http_session_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/skipping_dart2js_compilations_test: CompileTimeError
 io/socket_upgrade_to_secure_test: RuntimeError

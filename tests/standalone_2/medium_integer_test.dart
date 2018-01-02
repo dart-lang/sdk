@@ -28,7 +28,7 @@ class MediumIntegerTest {
     Expect.equals(1234567890123456791, a + b);
     Expect.equals(1234567890123456791, b + a);
     a = 9223372036854775807;
-    Expect.equals(9223372036854775808, a + 1);
+    Expect.equals(-9223372036854775808, a + 1);
 
     // Mint and Mint.
     a = 100000000000000001;

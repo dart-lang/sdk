@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -95,6 +94,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         operatorType != TokenType.BAR_BAR) {
       node.staticElement = _getReferenceFor(node.operator);
       _getTypeFor(node.operator); // function type of the operator
+      _getTypeFor(node.operator); // type arguments
     }
 
     // Record the return type of the expression.
@@ -290,6 +290,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     // We cannot use the detached FunctionType of `[]` or `[]=`.
     _getTypeFor(node.leftBracket);
+    _getTypeFor(node.leftBracket); // type arguments
 
     node.staticType = _getTypeFor(node.leftBracket);
 
@@ -303,13 +304,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     DartType type = _getTypeFor(constructorName);
     ConstructorElement element = _getReferenceFor(constructorName);
 
+    constructorName.staticElement = element;
+
     node.staticElement = element;
     node.staticType = type;
 
     applyConstructorElement(type, element, constructorName);
 
     ArgumentList argumentList = node.argumentList;
-    _associateArgumentsWithParameters(element?.parameters, argumentList);
     _applyResolutionToArguments(argumentList);
   }
 
@@ -348,6 +350,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     Element invokeElement = _getReferenceFor(node.methodName);
     DartType invokeType = _getTypeFor(node.methodName);
+    DartType typeArgumentsDartType = _getTypeFor(argumentList);
     DartType resultType = _getTypeFor(argumentList);
 
     if (invokeElement is PropertyInducingElement) {
@@ -361,10 +364,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.methodName.staticType = invokeType;
 
     if (invokeType is FunctionType) {
-      if (node.typeArguments != null) {
-        _applyTypeArgumentsToList(invokeType, node.typeArguments.arguments);
+      if (node.typeArguments != null &&
+          typeArgumentsDartType is TypeArgumentsDartType) {
+        _applyTypeArgumentsToList(
+            typeArgumentsDartType, node.typeArguments.arguments);
       }
-      _associateArgumentsWithParameters(invokeType.parameters, argumentList);
     }
 
     _applyResolutionToArguments(argumentList);
@@ -415,6 +419,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       SyntacticEntity entity = node.operator;
       node.staticElement = _getReferenceFor(entity);
       _getTypeFor(entity); // The function type of the operator.
+      _getTypeFor(entity); // The type arguments (empty).
       node.staticType = _getTypeFor(entity);
     }
   }
@@ -436,7 +441,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     constructorName?.staticElement = element;
 
     ArgumentList argumentList = node.argumentList;
-    _associateArgumentsWithParameters(element?.parameters, argumentList);
     _applyResolutionToArguments(argumentList);
   }
 
@@ -540,33 +544,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       } else {
         argument.accept(this);
       }
-    }
-  }
-
-  /// Associate arguments of the [argumentList] with the [parameters].
-  void _associateArgumentsWithParameters(
-      List<ParameterElement> parameters, ArgumentList argumentList) {
-    if (parameters != null) {
-      List<Expression> arguments = argumentList.arguments;
-      var correspondingParameters =
-          new List<ParameterElement>(arguments.length);
-      for (int i = 0; i < arguments.length; i++) {
-        var argument = arguments[i];
-        if (argument is NamedExpression) {
-          for (var parameter in parameters) {
-            SimpleIdentifier label = argument.name.label;
-            if (parameter.parameterKind == ParameterKind.NAMED &&
-                parameter.name == label.name) {
-              label.staticElement = parameter;
-              correspondingParameters[i] = parameter;
-              break;
-            }
-          }
-        } else {
-          correspondingParameters[i] = parameters[i];
-        }
-      }
-      argumentList.correspondingStaticParameters = correspondingParameters;
     }
   }
 
@@ -772,6 +749,24 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       throw new StateError('Attempting to apply a non-parameterized type '
           '(${type.runtimeType}) to type arguments');
     }
+  }
+}
+
+/// A container with [typeArguments].
+class TypeArgumentsDartType implements ParameterizedType {
+  @override
+  final List<DartType> typeArguments;
+
+  TypeArgumentsDartType(this.typeArguments);
+
+  @override
+  bool get isUndefined => false;
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '<${typeArguments.join(', ')}>';
   }
 }
 

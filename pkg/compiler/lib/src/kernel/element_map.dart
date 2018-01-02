@@ -180,6 +180,9 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Returns the definition information for [member].
   MemberDefinition getMemberDefinition(covariant MemberEntity member);
 
+  /// Returns the definition information for [cls].
+  ClassDefinition getClassDefinition(covariant ClassEntity cls);
+
   /// Return the [ImportEntity] corresponding to [node].
   ImportEntity getImport(ir.LibraryDependency node);
 }
@@ -276,7 +279,7 @@ abstract class MemberDefinition {
 enum ClassKind {
   regular,
   closure,
-  // TODO(efortuna, johnniwinther): Container is not a class, but is
+  // TODO(efortuna, johnniwinther): Record is not a class, but is
   // masquerading as one currently for consistency with the old element model.
   record,
 }

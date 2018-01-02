@@ -10,7 +10,7 @@ import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/old_to_new_api.dart";
 import "package:expect/expect.dart";
 
-import "../mock_compiler.dart";
+import "mock_compiler.dart";
 
 Future testErrorHandling() {
   // Test that compiler.currentElement is set correctly when

@@ -1002,6 +1002,9 @@ class ImportElementX extends LibraryDependencyElementX
   Import get node => super.node;
 
   @override
+  LibraryElement get enclosingLibrary => library;
+
+  @override
   LibraryElement get importedLibrary => libraryDependency;
 
   @override

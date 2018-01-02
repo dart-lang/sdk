@@ -667,10 +667,12 @@ class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
 }
 
 class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
-  KernelToWorldBuilder _elementMap;
+  final KernelToWorldBuilder _elementMap;
+  final GlobalLocalsMap _globalLocalsMap;
 
   KernelCodegenWorldBuilder(
       this._elementMap,
+      this._globalLocalsMap,
       ElementEnvironment elementEnvironment,
       NativeBasicData nativeBasicData,
       ClosedWorld world,
@@ -697,8 +699,7 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
   @override
   void forEachParameterAsLocal(
       FunctionEntity function, void f(Local parameter)) {
-    throw new UnimplementedError(
-        'KernelCodegenWorldBuilder.forEachParameterAsLocal');
+    forEachOrderedParameter(_globalLocalsMap, _elementMap, function, f);
   }
 
   @override

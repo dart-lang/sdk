@@ -2530,8 +2530,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ConstantValue value = _elementMap.getFieldConstantValue(field);
       if (value != null) {
         if (!field.isAssignable) {
-          stack.add(graph.addConstant(value, closedWorld,
-              sourceInformation: sourceInformation));
+          var unit = compiler.backend.outputUnitData.outputUnitForEntity(field);
+          // TODO(sigmund): this is not equivalent to what the old FE does: if
+          // there is no prefix the old FE wouldn't treat this in any special
+          // way. Also, if the prefix points to a constant in the main output
+          // unit, the old FE would still generate a deferred wrapper here.
+          if (!unit.isMainOutput) {
+            stack.add(graph.addDeferredConstant(
+                value, unit, sourceInformation, compiler, closedWorld));
+          } else {
+            stack.add(graph.addConstant(value, closedWorld,
+                sourceInformation: sourceInformation));
+          }
         } else {
           push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
               sourceInformation));
@@ -4790,7 +4800,7 @@ class InlineWeeder extends ir.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 15;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
-  static const INLINING_NODES_INSIDE_LOOP = 42;
+  static const INLINING_NODES_INSIDE_LOOP = 34;
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
   static bool canBeInlined(KernelToElementMapForBuilding elementMap,
@@ -4838,6 +4848,7 @@ class InlineWeeder extends ir.Visitor {
     return true;
   }
 
+  @override
   defaultNode(ir.Node node) {
     if (tooDifficult) return;
     if (!registerNode()) return;
@@ -4848,6 +4859,7 @@ class InlineWeeder extends ir.Visitor {
     node.visitChildren(this);
   }
 
+  @override
   visitReturnStatement(ir.ReturnStatement node) {
     if (!registerNode()) return;
     if (seenReturn) {
@@ -4858,6 +4870,7 @@ class InlineWeeder extends ir.Visitor {
     seenReturn = true;
   }
 
+  @override
   visitThrow(ir.Throw node) {
     if (!registerNode()) return;
     if (seenReturn) {
@@ -4876,48 +4889,87 @@ class InlineWeeder extends ir.Visitor {
     // isn't in the AST based inline weeder.
   }
 
+  @override
   visitForStatement(ir.ForStatement node) {
     _handleLoop();
   }
 
+  @override
   visitForInStatement(ir.ForInStatement node) {
     _handleLoop();
   }
 
+  @override
   visitWhileStatement(ir.WhileStatement node) {
     _handleLoop();
   }
 
+  @override
   visitDoStatement(ir.DoStatement node) {
     _handleLoop();
   }
 
+  @override
   visitTryCatch(ir.TryCatch node) {
     if (tooDifficult) return;
     tooDifficultReason = 'try';
   }
 
+  @override
   visitTryFinally(ir.TryFinally node) {
     if (tooDifficult) return;
     tooDifficultReason = 'try';
   }
 
+  @override
   visitFunctionExpression(ir.FunctionExpression node) {
     if (!registerNode()) return;
     tooDifficultReason = 'closure';
   }
 
+  @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     if (!registerNode()) return;
     tooDifficultReason = 'closure';
   }
 
+  @override
   visitFunctionNode(ir.FunctionNode node) {
     if (node.asyncMarker != ir.AsyncMarker.Sync) {
       tooDifficultReason = 'async/await';
       return;
     }
     node.visitChildren(this);
+  }
+
+  @override
+  visitConditionalExpression(ir.ConditionalExpression node) {
+    // Heuristic: In "parameter ? A : B" there is a high probability that
+    // parameter is a constant. Assuming the parameter is constant, we can
+    // compute a count that is bounded by the largest arm rather than the sum of
+    // both arms.
+    ir.Expression condition = node.condition;
+    condition.accept(this);
+    if (tooDifficult) return;
+    int commonPrefixCount = nodeCount;
+
+    node.then.accept(this);
+    if (tooDifficult) return;
+    int thenCount = nodeCount - commonPrefixCount;
+
+    nodeCount = commonPrefixCount;
+    node.otherwise.accept(this);
+    if (tooDifficult) return;
+    int elseCount = nodeCount - commonPrefixCount;
+
+    nodeCount = commonPrefixCount + thenCount + elseCount;
+    if (condition is ir.VariableGet &&
+        condition.variable.parent is ir.FunctionNode) {
+      nodeCount =
+          commonPrefixCount + (thenCount > elseCount ? thenCount : elseCount);
+    }
+    // This is last so that [tooDifficult] is always updated.
+    if (!registerNode()) return;
   }
 }
 

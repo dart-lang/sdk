@@ -12,66 +12,82 @@ import 'package:compiler/src/elements/entities.dart'
 import 'type_test_helper.dart';
 
 void main() {
-  asyncTest(() => Future.forEach([
-        () => test("class Class {}", ["Class"]),
-        () => test("""abstract class A {}
-                  class Class extends A {}""", ["Class"]),
-        () => test("""class A {}
-                  class Class extends A {}""", ["Class"]),
-        () => test("""class A {}
+  Future runTests({bool useKernel}) async {
+    Future test(String source, List<String> directlyInstantiatedClasses,
+        [List<String> newClasses = const <String>["Class"]]) async {
+      StringBuffer mainSource = new StringBuffer();
+      mainSource.write('main() {\n');
+      for (String newClass in newClasses) {
+        mainSource.write('  new $newClass();\n');
+      }
+      mainSource.write('}');
+      dynamic env = await TypeEnvironment.create(source,
+          mainSource: mainSource.toString(),
+          compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+      LibraryEntity mainLibrary =
+          env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
+      Iterable<ClassEntity> expectedClasses =
+          directlyInstantiatedClasses.map(env.getElement);
+      Iterable<ClassEntity> actualClasses = env
+          .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
+          .where((c) => c.library == mainLibrary);
+      Expect.setEquals(
+          expectedClasses,
+          actualClasses,
+          "Instantiated classes mismatch: "
+          "Expected $expectedClasses, actual: $actualClasses");
+    }
+
+    await test("class Class {}", ["Class"]);
+    await test("""abstract class A {}
+                  class Class extends A {}""", ["Class"]);
+    await test("""class A {}
+                  class Class extends A {}""", ["Class"]);
+    await test("""class A {}
                   class B {}
-                  class Class extends A {}""", ["Class"]),
-        () => test("""class A {}
-                  class Class implements A {}""", ["Class"]),
-        () => test("""class A {}
-                  class Class extends Object with A {}""", ["Class"]),
-        () => test("""class A {}
+                  class Class extends A {}""", ["Class"]);
+    await test("""class A {}
+                  class Class implements A {}""", ["Class"]);
+    await test("""class A {}
+                  class Class extends Object with A {}""", ["Class"]);
+    await test("""class A {}
                   class B {}
                   class Class extends Object with B implements A {}""",
-            ["Class"]),
+        ["Class"]);
 
-        () => test("""class A {}
-                  class Class {}""", ["Class", "A"], ["Class", "A"]),
-        () => test("""class A {}
-                  class Class extends A {}""", ["Class", "A"], ["Class", "A"]),
-        () => test("""class A {}
+    await test("""class A {}
+                  class Class {}""", ["Class", "A"], ["Class", "A"]);
+    await test("""class A {}
+                  class Class extends A {}""", ["Class", "A"], ["Class", "A"]);
+    await test("""class A {}
                   class Class implements A {}""", ["Class", "A"],
-            ["Class", "A"]),
-        () => test("""class A {}
+        ["Class", "A"]);
+    await test("""class A {}
                   class B extends A {}
-                  class Class extends B {}""", ["Class", "A"], ["Class", "A"]),
-        () => test("""class A {}
+                  class Class extends B {}""", ["Class", "A"], ["Class", "A"]);
+    await test("""class A {}
                   class B {}
                   class Class extends B with A {}""", ["Class", "A"],
-            ["Class", "A"]),
+        ["Class", "A"]);
 
-        // TODO(johnniwinther): Avoid registration of `Class` as instantiated.
-        () => test("""class A {}
-                  class Class implements A {
-                    factory Class() = A;
-                  }""", ["Class", "A"], ["Class"]),
-      ], (f) => f()));
-}
-
-Future test(String source, List<String> directlyInstantiatedClasses,
-    [List<String> newClasses = const <String>["Class"]]) {
-  StringBuffer mainSource = new StringBuffer();
-  mainSource.write('main() {\n');
-  for (String newClass in newClasses) {
-    mainSource.write('  new $newClass();\n');
+    if (!useKernel) {
+      // TODO(johnniwinther): Avoid registration of `Class` as instantiated.
+      await test("""class A {}
+                    class Class implements A {
+                      factory Class() = A;
+                    }""", ["Class", "A"], ["Class"]);
+    } else {
+      await test("""class A {}
+                    class Class implements A {
+                      factory Class() = A;
+                    }""", ["A"], ["Class"]);
+    }
   }
-  mainSource.write('}');
-  return TypeEnvironment
-      .create(source,
-          mainSource: mainSource.toString(), compileMode: CompileMode.mock)
-      .then((dynamic env) {
-    LibraryEntity mainLibrary =
-        env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
-    Iterable<ClassEntity> expectedClasses =
-        directlyInstantiatedClasses.map(env.getElement);
-    Iterable<ClassEntity> actualClasses = env
-        .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
-        .where((c) => c.library == mainLibrary);
-    Expect.setEquals(expectedClasses, actualClasses);
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }

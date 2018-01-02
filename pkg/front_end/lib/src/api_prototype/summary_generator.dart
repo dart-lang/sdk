@@ -35,9 +35,14 @@ import '../kernel_generator_impl.dart';
 /// are also listed in the build unit sources, otherwise an error results.  (It
 /// is not permitted to refer to a part file declared in another build unit).
 ///
+/// If [truncate] is true, the resulting summary doesn't include any references
+/// to libraries loaded from the input summaries, and only contains code that
+/// was compiled from sources.
+///
 /// The return value is a list of bytes to write to the summary file.
-Future<List<int>> summaryFor(List<Uri> sources, CompilerOptions options) async {
+Future<List<int>> summaryFor(List<Uri> sources, CompilerOptions options,
+    {bool truncate: false}) async {
   return (await generateKernel(new ProcessedOptions(options, true, sources),
-          buildSummary: true, buildProgram: false))
+          buildSummary: true, buildProgram: false, truncateSummary: truncate))
       ?.summary;
 }

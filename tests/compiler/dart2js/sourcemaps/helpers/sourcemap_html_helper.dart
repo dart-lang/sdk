@@ -623,7 +623,7 @@ String computeJsTraceHtmlPart(
       buffer.write('<tr>');
     }
     buffer.write('<td>${codePoint.kind}</td>');
-    buffer.write('<td class="code">${jsCode}</td>');
+    buffer.write('<td class="code">${codePoint.targetOffset}:${jsCode}</td>');
     if (codePoint.sourceLocation == null) {
       //buffer.write('<td></td>');
     } else {

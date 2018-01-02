@@ -9,9 +9,9 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -105,7 +105,6 @@ class BuiltInPluginInfoTest {
 
 @reflectiveTest
 class DiscoveredPluginInfoTest {
-  MemoryResourceProvider resourceProvider;
   TestNotificationManager notificationManager;
   String pluginPath = '/pluginDir';
   String executionPath = '/pluginDir/bin/plugin.dart';
@@ -113,7 +112,6 @@ class DiscoveredPluginInfoTest {
   DiscoveredPluginInfo plugin;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
     plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
@@ -401,15 +399,13 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 }
 
 @reflectiveTest
-class PluginManagerTest {
-  MemoryResourceProvider resourceProvider;
+class PluginManagerTest extends Object with ResourceProviderMixin {
   String byteStorePath;
   String sdkPath;
   TestNotificationManager notificationManager;
   PluginManager manager;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
     byteStorePath = resourceProvider.convertPath('/byteStore');
     sdkPath = resourceProvider.convertPath('/sdk');
     notificationManager = new TestNotificationManager();
@@ -433,16 +429,13 @@ class PluginManagerTest {
   }
 
   void test_pathsFor_withPackagesFile() {
-    path.Context context = resourceProvider.pathContext;
     //
     // Build the minimal directory structure for a plugin package that includes
     // a .packages file.
     //
-    String pluginDirPath = resourceProvider.convertPath('/plugin');
-    String pluginFilePath = context.join(pluginDirPath, 'bin', 'plugin.dart');
-    resourceProvider.newFile(pluginFilePath, '');
-    String packagesFilePath = context.join(pluginDirPath, '.packages');
-    resourceProvider.newFile(packagesFilePath, '');
+    String pluginDirPath = newFolder('/plugin').path;
+    String pluginFilePath = newFile('/plugin/bin/plugin.dart').path;
+    String packagesFilePath = newFile('/plugin/.packages').path;
     //
     // Test path computation.
     //
@@ -453,20 +446,17 @@ class PluginManagerTest {
   }
 
   void test_pathsFor_withPubspec_inBazelWorkspace() {
-    path.Context context = resourceProvider.pathContext;
     //
     // Build a Bazel workspace containing four packages, including the plugin.
     //
-    String rootPath = resourceProvider.convertPath('/workspaceRoot');
-    resourceProvider.newFile(context.join(rootPath, 'WORKSPACE'), '');
-    resourceProvider.newFolder(context.join(rootPath, 'bazel-bin'));
-    resourceProvider.newFolder(context.join(rootPath, 'bazel-genfiles'));
+    newFile('/workspaceRoot/WORKSPACE');
+    newFolder('/workspaceRoot/bazel-bin');
+    newFolder('/workspaceRoot/bazel-genfiles');
 
     String newPackage(String packageName, [List<String> dependencies]) {
       String packageRoot =
-          context.join(rootPath, 'third_party', 'dart', packageName);
-      resourceProvider.newFile(
-          context.join(packageRoot, 'lib', packageName + '.dart'), '');
+          newFolder('/workspaceRoot/third_party/dart/$packageName').path;
+      newFile('$packageRoot/lib/$packageName.dart');
       StringBuffer buffer = new StringBuffer();
       if (dependencies != null) {
         buffer.writeln('dependencies:');
@@ -474,8 +464,7 @@ class PluginManagerTest {
           buffer.writeln('  $dependency: any');
         }
       }
-      resourceProvider.newFile(
-          context.join(packageRoot, 'pubspec.yaml'), buffer.toString());
+      newFile('$packageRoot/pubspec.yaml', content: buffer.toString());
       return packageRoot;
     }
 
@@ -483,15 +472,14 @@ class PluginManagerTest {
     newPackage('b', ['d']);
     newPackage('c', ['d']);
     newPackage('d');
-    String pluginFilePath = context.join(pluginDirPath, 'bin', 'plugin.dart');
-    resourceProvider.newFile(pluginFilePath, '');
+    String pluginFilePath = newFile('$pluginDirPath/bin/plugin.dart').path;
     //
     // Test path computation.
     //
     List<String> paths = manager.pathsFor(pluginDirPath);
     expect(paths, hasLength(2));
     expect(paths[0], pluginFilePath);
-    File packagesFile = resourceProvider.getFile(paths[1]);
+    File packagesFile = getFile(paths[1]);
     expect(packagesFile.exists, isTrue);
     String content = packagesFile.readAsStringSync();
     List<String> lines = content.split('\n');
@@ -539,8 +527,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
 }
 
 @reflectiveTest
-class PluginSessionTest {
-  MemoryResourceProvider resourceProvider;
+class PluginSessionTest extends Object with ResourceProviderMixin {
   TestNotificationManager notificationManager;
   String pluginPath;
   String executionPath;
@@ -550,7 +537,6 @@ class PluginSessionTest {
   PluginSession session;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
     notificationManager = new TestNotificationManager();
     pluginPath = resourceProvider.convertPath('/pluginDir');
     executionPath = resourceProvider.convertPath('/pluginDir/bin/plugin.dart');

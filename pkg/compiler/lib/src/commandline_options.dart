@@ -37,6 +37,7 @@ class Flags {
   /// using the kernel representation.
   /// See [CompilerOptions.useKernel] for details.
   static const String useKernel = '--use-kernel';
+  static const String strongMode = '--strong';
   static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';

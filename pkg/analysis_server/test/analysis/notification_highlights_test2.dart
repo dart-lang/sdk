@@ -345,7 +345,7 @@ part "my_part.dart";
 main() {
   var part = 42;
 }''');
-    addFile('/project/bin/my_part.dart', 'part of lib;');
+    newFile('/project/bin/my_part.dart', content: 'part of lib;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
@@ -1085,7 +1085,7 @@ class A {
   }
 
   void _addLibraryForTestPart() {
-    addFile('$testFolder/my_lib.dart', '''
+    newFile('$testFolder/my_lib.dart', content: '''
 library lib;
 part 'test.dart';
     ''');

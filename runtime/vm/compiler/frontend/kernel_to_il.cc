@@ -2676,35 +2676,53 @@ void CollectTokenPositionsFor(const Script& const_script) {
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         entry_script = klass.script();
-        if (!entry_script.IsNull() && script.kernel_script_index() ==
-                                          entry_script.kernel_script_index()) {
+        if (!entry_script.IsNull() &&
+            (script.kernel_script_index() ==
+             entry_script.kernel_script_index()) &&
+            (script.kernel_string_offsets() ==
+             entry_script.kernel_string_offsets())) {
           token_positions.Add(klass.token_pos().value());
         }
-        Array& array = Array::Handle(zone_, klass.fields());
-        Field& field = Field::Handle(Z);
-        for (intptr_t i = 0; i < array.Length(); ++i) {
-          field ^= array.At(i);
-          if (field.kernel_offset() <= 0) {
-            // Skip artificially injected fields.
-            continue;
+        if (klass.is_finalized()) {
+          Array& array = Array::Handle(Z, klass.fields());
+          Field& field = Field::Handle(Z);
+          for (intptr_t i = 0; i < array.Length(); ++i) {
+            field ^= array.At(i);
+            if (field.kernel_offset() <= 0) {
+              // Skip artificially injected fields.
+              continue;
+            }
+            data = field.KernelData();
+            entry_script = field.Script();
+            ProcessTokenPositionsEntry(
+                data, script, entry_script, field.kernel_offset(),
+                field.KernelDataProgramOffset(), Z, &helper, &token_positions,
+                &yield_positions);
           }
-          data = field.KernelData();
-          entry_script = field.Script();
-          ProcessTokenPositionsEntry(
-              data, script, entry_script, field.kernel_offset(),
-              field.KernelDataProgramOffset(), zone_, &helper, &token_positions,
-              &yield_positions);
-        }
-        array = klass.functions();
-        Function& function = Function::Handle(Z);
-        for (intptr_t i = 0; i < array.Length(); ++i) {
-          function ^= array.At(i);
-          data = function.KernelData();
-          entry_script = function.script();
-          ProcessTokenPositionsEntry(
-              data, script, entry_script, function.kernel_offset(),
-              function.KernelDataProgramOffset(), zone_, &helper,
-              &token_positions, &yield_positions);
+          array = klass.functions();
+          Function& function = Function::Handle(Z);
+          for (intptr_t i = 0; i < array.Length(); ++i) {
+            function ^= array.At(i);
+            data = function.KernelData();
+            entry_script = function.script();
+            ProcessTokenPositionsEntry(
+                data, script, entry_script, function.kernel_offset(),
+                function.KernelDataProgramOffset(), Z, &helper,
+                &token_positions, &yield_positions);
+          }
+        } else {
+          // Class isn't finalized yet: read the data attached to it.
+          ASSERT(klass.kernel_offset() > 0);
+          data = lib.kernel_data();
+          ASSERT(!data.IsNull());
+          const intptr_t library_kernel_offset = lib.kernel_offset();
+          ASSERT(library_kernel_offset > 0);
+          const intptr_t class_offset = klass.kernel_offset();
+
+          entry_script = klass.script();
+          ProcessTokenPositionsEntry(data, script, entry_script, class_offset,
+                                     library_kernel_offset, Z, &helper,
+                                     &token_positions, &yield_positions);
         }
       } else if (entry.IsFunction()) {
         const Function& function = Function::Cast(entry);
@@ -2712,7 +2730,7 @@ void CollectTokenPositionsFor(const Script& const_script) {
         entry_script = function.script();
         ProcessTokenPositionsEntry(data, script, entry_script,
                                    function.kernel_offset(),
-                                   function.KernelDataProgramOffset(), zone_,
+                                   function.KernelDataProgramOffset(), Z,
                                    &helper, &token_positions, &yield_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
@@ -2724,8 +2742,8 @@ void CollectTokenPositionsFor(const Script& const_script) {
         entry_script = field.Script();
         ProcessTokenPositionsEntry(data, script, entry_script,
                                    field.kernel_offset(),
-                                   field.KernelDataProgramOffset(), zone_,
-                                   &helper, &token_positions, &yield_positions);
+                                   field.KernelDataProgramOffset(), Z, &helper,
+                                   &token_positions, &yield_positions);
       }
     }
   }

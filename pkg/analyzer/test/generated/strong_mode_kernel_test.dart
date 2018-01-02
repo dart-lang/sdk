@@ -221,27 +221,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_futureOrNull_no_return() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_no_return();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return_value() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_no_return_value();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_return_null() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_return_null();
-  }
-
-  @override
-  @failingTest
   test_generic_partial() async {
     // AnalysisException: Element mismatch in /test.dart at class A<T>
     await super.test_generic_partial();
@@ -294,27 +273,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_inference_error_returnContext() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0
     await super.test_inference_error_returnContext();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_function() async {
-    // Expected: 'T'
-    await super.test_inference_simplePolymorphicRecursion_function();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_interface() async {
-    // Expected: 'T'
-    await super.test_inference_simplePolymorphicRecursion_interface();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_simple() async {
-    // RangeError (index): Invalid value: Valid value range is empty: 0
-    await super.test_inference_simplePolymorphicRecursion_simple();
   }
 
   @override
@@ -430,13 +388,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   test_genericMethod_implicitDynamic() async {
     // Expected: '<T>((dynamic) → T) → T'
     await super.test_genericMethod_implicitDynamic();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_max_doubleDouble_prefixed() async {
-    // Bad state: Expected element reference for analyzer offset 49; got one for kernel offset 54
-    await super.test_genericMethod_max_doubleDouble_prefixed();
   }
 
   @override

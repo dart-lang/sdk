@@ -15,7 +15,6 @@ import 'fasta/severity.dart' show Severity;
 import 'fasta/compiler_context.dart' show CompilerContext;
 import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
 import 'fasta/dill/dill_target.dart' show DillTarget;
-import 'fasta/kernel/kernel_outline_shaker.dart';
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 import 'fasta/kernel/utils.dart';
 import 'fasta/kernel/verifier.dart';
@@ -27,19 +26,19 @@ import 'fasta/uri_translator.dart' show UriTranslator;
 Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
     bool buildProgram: true,
-    bool trimDependencies: false}) async {
+    bool truncateSummary: false}) async {
   return await CompilerContext.runWithOptions(options, (_) async {
     return await generateKernelInternal(
         buildSummary: buildSummary,
         buildProgram: buildProgram,
-        trimDependencies: trimDependencies);
+        truncateSummary: truncateSummary);
   });
 }
 
 Future<CompilerResult> generateKernelInternal(
     {bool buildSummary: false,
     bool buildProgram: true,
-    bool trimDependencies: false}) async {
+    bool truncateSummary: false}) async {
   var options = CompilerContext.current.options;
   var fs = options.fileSystem;
   if (!await options.validateOptions()) return null;
@@ -100,17 +99,6 @@ Future<CompilerResult> generateKernelInternal(
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
     List<int> summary = null;
     if (buildSummary) {
-      if (trimDependencies) {
-        // TODO(sigmund): see if it is worth supporting this. Note: trimming the
-        // program is destructive, so if we are emitting summaries and the
-        // program in a single API call, we would need to clone the program here
-        // to avoid deleting pieces that are needed by kernelTarget.buildProgram
-        // below.
-        assert(!buildProgram);
-        var excluded =
-            dillTarget.loader.libraries.map((lib) => lib.importUri).toSet();
-        trimProgram(summaryProgram, (uri) => !excluded.contains(uri));
-      }
       if (options.verify) {
         for (var error in verifyProgram(summaryProgram)) {
           options.report(error, Severity.error);
@@ -120,20 +108,23 @@ Future<CompilerResult> generateKernelInternal(
         printProgramText(summaryProgram,
             libraryFilter: kernelTarget.isSourceLibrary);
       }
-      if (kernelTarget.errors.isEmpty) {
-        summary = serializeProgram(summaryProgram, excludeUriToSource: true);
-      }
+
+      // Copy the program to exclude the uriToSource map from the summary.
+      //
+      // Note: we don't pass the library argument to the constructor to
+      // preserve the the libraries parent pointer (it should continue to point
+      // to the program within KernelTarget).
+      var trimmedSummaryProgram = new Program(nameRoot: summaryProgram.root)
+        ..libraries.addAll(truncateSummary
+            ? kernelTarget.loader.libraries
+            : summaryProgram.libraries);
+      summary = serializeProgram(trimmedSummaryProgram);
       options.ticker.logMs("Generated outline");
     }
 
     Program program;
     if (buildProgram && kernelTarget.errors.isEmpty) {
       program = await kernelTarget.buildProgram(verify: options.verify);
-      if (trimDependencies) {
-        var excluded =
-            dillTarget.loader.libraries.map((lib) => lib.importUri).toSet();
-        trimProgram(program, (uri) => !excluded.contains(uri));
-      }
       if (options.debugDump) {
         printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
       }

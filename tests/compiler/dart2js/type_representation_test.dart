@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(johnniwinther): Port this test to be frontend agnostic.
+
 library type_representation_test;
 
 import 'package:expect/expect.dart';
@@ -58,7 +60,8 @@ void testTypeRepresentations() {
         }
 
         String stringify(Expression expression) {
-          return prettyPrint(expression, env.compiler.options);
+          return prettyPrint(expression,
+              enableMinification: env.compiler.options.enableMinification);
         }
 
         void expect(ResolutionDartType type, String expectedRepresentation,

@@ -31,16 +31,17 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
-  test_ambiguousImport_showCombinator() async {
-    return super.test_ambiguousImport_showCombinator();
+  @potentialAnalyzerProblem
+  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
+    // super.m() is not resolved by front-end
+    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_assignmentToFinals_importWithPrefix() async {
-    return super.test_assignmentToFinals_importWithPrefix();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
+  test_ambiguousImport_showCombinator() async {
+    return super.test_ambiguousImport_showCombinator();
   }
 
   @override
@@ -136,13 +137,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constEval_propertyExtraction_fieldStatic_targetType() async {
-    return super.test_constEval_propertyExtraction_fieldStatic_targetType();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
@@ -199,7 +193,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
+  @potentialAnalyzerProblem
   test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
@@ -207,7 +201,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30838')
+  @potentialAnalyzerProblem
   test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
@@ -232,13 +226,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_genericTypeAlias_typeParameters() async {
     return super.test_genericTypeAlias_typeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_importPrefixes_withFirstLetterDifference() async {
-    return super.test_importPrefixes_withFirstLetterDifference();
   }
 
   @override
@@ -338,29 +325,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_sharedDeferredPrefix() async {
-    return super.test_sharedDeferredPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeType_class_prefixed() async {
-    return super.test_typeType_class_prefixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeType_functionTypeAlias_prefixed() async {
-    return super.test_typeType_functionTypeAlias_prefixed();
   }
 
   @override
@@ -389,12 +355,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedMethod_functionExpression_directCall() async {
     return super.test_undefinedMethod_functionExpression_directCall();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedSetter_importWithPrefix() async {
-    return super.test_undefinedSetter_importWithPrefix();
   }
 }

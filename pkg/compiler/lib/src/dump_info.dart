@@ -10,7 +10,7 @@ import 'dart:convert'
 import 'package:dart2js_info/info.dart';
 
 import '../compiler_new.dart';
-import 'closure.dart';
+import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'common_elements.dart';
@@ -50,7 +50,8 @@ class ElementInfoCollector {
     compiler.dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
       var size = compiler.dumpInfoTask._nodeToSize[node];
-      var code = jsAst.prettyPrint(node, compiler.options);
+      var code = jsAst.prettyPrint(node,
+          enableMinification: compiler.options.enableMinification);
       var info = new ConstantInfo(
           size: size, code: code, outputUnit: _unitInfoForConstant(constant));
       _constantToInfo[constant] = info;
@@ -219,18 +220,17 @@ class ElementInfoCollector {
     return classInfo;
   }
 
-  ClosureInfo visitClosureClass(ClosureClassElement element) {
+  ClosureInfo visitClosureClass(ClassEntity element) {
     ClosureInfo closureInfo = new ClosureInfo(
         name: element.name,
         outputUnit: _unitInfoForEntity(element),
         size: compiler.dumpInfoTask.sizeOf(element));
     _entityToInfo[element] = closureInfo;
 
-    ClosureRepresentationInfo closureRepresentation =
-        compiler.backendStrategy.closureDataLookup.getClosureInfo(element.node);
-    assert(closureRepresentation.closureClassEntity == element);
+    FunctionEntity callMethod = closedWorld.elementEnvironment
+        .lookupClassMember(element, Identifiers.call);
 
-    FunctionInfo functionInfo = visitFunction(closureRepresentation.callMethod);
+    FunctionInfo functionInfo = visitFunction(callMethod);
     if (functionInfo == null) return null;
     closureInfo.function = functionInfo;
     functionInfo.parent = closureInfo;
@@ -544,7 +544,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     // Concatenate rendered ASTs.
     StringBuffer sb = new StringBuffer();
     for (jsAst.Node ast in code) {
-      sb.writeln(jsAst.prettyPrint(ast, compiler.options));
+      sb.writeln(jsAst.prettyPrint(ast,
+          enableMinification: compiler.options.enableMinification));
     }
     return sb.toString();
   }
@@ -615,6 +616,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
+
     result.program = new ProgramInfo(
         entrypoint: infoCollector
             ._entityToInfo[closedWorld.elementEnvironment.mainFunction],

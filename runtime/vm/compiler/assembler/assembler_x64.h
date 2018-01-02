@@ -406,6 +406,7 @@ class Assembler : public ValueObject {
   RA(Q, movq, 0x8B)
   RR(L, movl, 0x8B)
   RA(Q, leaq, 0x8D)
+  RA(L, leal, 0x8D)
   AR(L, cmpxchgl, 0xB1, 0x0F)
   AR(Q, cmpxchgq, 0xB1, 0x0F)
   RA(L, cmpxchgl, 0xB1, 0x0F)

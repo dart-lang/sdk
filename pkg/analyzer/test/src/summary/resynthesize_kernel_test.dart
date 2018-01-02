@@ -383,7 +383,7 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31213')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31711')
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
   }

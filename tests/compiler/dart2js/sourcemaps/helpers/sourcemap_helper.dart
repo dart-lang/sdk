@@ -315,26 +315,31 @@ class SourceMapProcessor {
     if (options.contains(Flags.disableInlining)) {
       if (verbose) print('Inlining disabled');
     }
-    api.CompilerImpl compiler = await compilerFor(
+    CompilationResult result = await runCompiler(
+        entryPoint: inputUri,
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
-          ..addAll(options));
-
-    JavaScriptBackend backend = compiler.backend;
-    dynamic handler = compiler.handler;
-    SourceFileProvider sourceFileProvider = handler.provider;
-    sourceFileManager =
-        new ProviderSourceFileManager(sourceFileProvider, outputProvider);
-    RecordingSourceInformationStrategy strategy =
-        new RecordingSourceInformationStrategy(
-            backend.sourceInformationStrategy);
-    backend.sourceInformationStrategy = strategy;
-    await compiler.run(inputUri);
-    if (compiler.compilationFailed) {
+          ..addAll(options),
+        beforeRun: (compiler) {
+          JavaScriptBackend backend = compiler.backend;
+          dynamic handler = compiler.handler;
+          SourceFileProvider sourceFileProvider = handler.provider;
+          sourceFileManager =
+              new ProviderSourceFileManager(sourceFileProvider, outputProvider);
+          RecordingSourceInformationStrategy strategy =
+              new RecordingSourceInformationStrategy(
+                  backend.sourceInformationStrategy);
+          backend.sourceInformationStrategy = strategy;
+        });
+    if (!result.isSuccess) {
       throw "Compilation failed.";
     }
 
+    api.CompilerImpl compiler = result.compiler;
+    JavaScriptBackend backend = compiler.backend;
+    RecordingSourceInformationStrategy strategy =
+        backend.sourceInformationStrategy;
     SourceMapInfo mainSourceMapInfo;
     Map<MemberEntity, SourceMapInfo> elementSourceMapInfos =
         <MemberEntity, SourceMapInfo>{};
@@ -509,7 +514,8 @@ class CodePointComputer extends TraceListener {
           .trim();
     }
 
-    void addLocation(SourceLocation sourceLocation, String jsCode) {
+    void addLocation(
+        SourceLocation sourceLocation, String jsCode, int targetOffset) {
       if (sourceLocation == null) {
         if (expectInfo) {
           SourceInformation sourceInformation = node.sourceInformation;
@@ -519,23 +525,24 @@ class CodePointComputer extends TraceListener {
             sourceLocation = sourceInformation.sourceLocations.first;
             dartCode = dartCodeFromSourceLocation(sourceLocation);
           }
-          codePoints.add(new CodePoint(kind, jsCode, sourceLocation, dartCode,
+          codePoints.add(new CodePoint(
+              kind, jsCode, targetOffset, sourceLocation, dartCode,
               isMissing: true));
         }
       } else {
-        codePoints.add(new CodePoint(kind, jsCode, sourceLocation,
+        codePoints.add(new CodePoint(kind, jsCode, targetOffset, sourceLocation,
             dartCodeFromSourceLocation(sourceLocation)));
       }
     }
 
     Map<int, List<SourceLocation>> locationMap = nodeMap[node];
     if (locationMap == null) {
-      addLocation(null, nodeToString(node));
+      addLocation(null, nodeToString(node), null);
     } else {
       locationMap.forEach((int targetOffset, List<SourceLocation> locations) {
         String jsCode = nodeToString(node);
         for (SourceLocation location in locations) {
-          addLocation(location, jsCode);
+          addLocation(location, jsCode, targetOffset);
         }
       });
     }
@@ -546,11 +553,13 @@ class CodePointComputer extends TraceListener {
 class CodePoint {
   final StepKind kind;
   final String jsCode;
+  final int targetOffset;
   final SourceLocation sourceLocation;
   final String dartCode;
   final bool isMissing;
 
-  CodePoint(this.kind, this.jsCode, this.sourceLocation, this.dartCode,
+  CodePoint(this.kind, this.jsCode, this.targetOffset, this.sourceLocation,
+      this.dartCode,
       {this.isMissing: false});
 
   String toString() {

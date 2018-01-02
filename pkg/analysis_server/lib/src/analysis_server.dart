@@ -387,6 +387,7 @@ class AnalysisServer {
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
+        fileContentOverlay,
         sdkManager,
         packageResolverProvider,
         packageMapProvider,
@@ -442,7 +443,8 @@ class AnalysisServer {
         '**/*.${AnalysisEngine.SUFFIX_HTML}',
         '**/*.${AnalysisEngine.SUFFIX_HTM}',
         '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
-        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
+        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
+        '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
       ];
       for (String pattern in patterns) {
         try {

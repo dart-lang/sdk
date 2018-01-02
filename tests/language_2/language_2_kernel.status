@@ -12,14 +12,9 @@
 # ===== Skip dartk and darkp in !$strong mode ====
 
 [ $compiler == dartkp ]
-bit_operations_test: CompileTimeError # Issue 31339
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-identical_closure2_test: CompileTimeError # Issue 31339
-mint_arithmetic_test: CompileTimeError # Issue 31339
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
-vm/unaligned_integer_access_literal_index_test: CompileTimeError # Issue 31339
-vm/unaligned_integer_access_register_index_test: CompileTimeError # Issue 31339
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 bad_named_parameters_test/01: Crash # Issue(http://dartbug.com/31630)
@@ -648,10 +643,8 @@ generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, iss
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
-generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
@@ -687,7 +680,6 @@ import_self_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instanceof2_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: CompileTimeError
@@ -803,7 +795,6 @@ malformed_test/22: MissingCompileTimeError
 malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
@@ -826,7 +817,6 @@ method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
-method_override_test: RuntimeError
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError
 mixin_illegal_constructor_test/15: MissingCompileTimeError
@@ -1197,9 +1187,6 @@ wrong_number_type_arguments_test/none: Pass
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-bit_operations_test/03: CompileTimeError # Please triage.
-bit_operations_test/04: CompileTimeError # Please triage.
-bit_operations_test/none: CompileTimeError # Please triage.
 class_cycle_test/02: MissingCompileTimeError # Please triage.
 class_cycle_test/03: MissingCompileTimeError # Please triage.
 duplicate_implements_test/01: MissingCompileTimeError # Please triage.
@@ -1207,15 +1194,13 @@ duplicate_implements_test/02: MissingCompileTimeError # Please triage.
 duplicate_implements_test/03: MissingCompileTimeError # Please triage.
 duplicate_implements_test/04: MissingCompileTimeError # Please triage.
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Please triage.
-identical_closure2_test: CompileTimeError # Please triage.
+int64_literal_test/03: Pass
+int64_literal_test/30: Pass
 issue23244_test: RuntimeError # Please triage.
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
-mint_arithmetic_test: CompileTimeError # Please triage.
 mixin_black_listed_test/02: MissingCompileTimeError # Please triage.
 null_test/02: MissingCompileTimeError # Please triage.
 null_test/03: MissingCompileTimeError # Please triage.
-vm/unaligned_integer_access_literal_index_test: CompileTimeError # Please triage.
-vm/unaligned_integer_access_register_index_test: CompileTimeError # Please triage.
 
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
@@ -1887,11 +1872,9 @@ generic_function_typedef2_test/04: MissingCompileTimeError
 generic_function_typedef_test/01: Pass
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof2_test: RuntimeError
-generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
-generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
@@ -1961,7 +1944,6 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
-instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/01: Pass
 instanceof4_test/none: Pass
@@ -1969,8 +1951,6 @@ instanceof4_test/none: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: CompileTimeError
-int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
-int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interface_test/00: MissingCompileTimeError
 invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
@@ -2087,7 +2067,6 @@ malformed_test/22: MissingCompileTimeError
 malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
-many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: SkipByDesign
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
@@ -2123,7 +2102,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override6_test/none: Pass
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
-method_override_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError

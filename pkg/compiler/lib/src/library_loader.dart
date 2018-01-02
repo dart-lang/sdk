@@ -863,7 +863,8 @@ class KernelLibraryLoaderTask extends CompilerTask
       } else {
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
-            new Dart2jsTarget(new TargetFlags()),
+            new Dart2jsTarget(
+                new TargetFlags(strongMode: _elementMap.options.strongMode)),
             platformBinaries.resolve("dart2js_platform.dill"),
             _packageConfig);
         program = await fe.compile(

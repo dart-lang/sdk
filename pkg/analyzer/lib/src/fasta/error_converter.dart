@@ -18,8 +18,10 @@ class FastaErrorReporter {
   /// [errorReporter].
   FastaErrorReporter(this.errorReporter);
 
-  void reportByCode(String analyzerCode, int offset, int length,
-      Map<String, dynamic> arguments) {
+  void reportByCode(
+      String analyzerCode, int offset, int length, Message message) {
+    Map<String, dynamic> arguments = message.arguments;
+
     String stringOrTokenLexeme() {
       var text = arguments['string'];
       if (text == null) {
@@ -293,8 +295,8 @@ class FastaErrorReporter {
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
       case "INVALID_MODIFIER_ON_SETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
+        _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,
+            offset, length);
         return;
       case "INVALID_OPERATOR":
         String text = stringOrTokenLexeme();
@@ -302,8 +304,8 @@ class FastaErrorReporter {
             ParserErrorCode.INVALID_OPERATOR, offset, length, [text]);
         return;
       case "INVALID_OPERATOR_FOR_SUPER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);
+        _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
+            offset, length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
@@ -547,6 +549,19 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
 
-    reportByCode(code.analyzerCode, offset, length, message.arguments);
+    reportByCode(code.analyzerCode, offset, length, message);
+  }
+
+  void _reportByCode(
+      ErrorCode errorCode, Message message, int offset, int length) {
+    if (errorReporter != null) {
+      errorReporter.reportError(new AnalysisError.forValues(
+          errorReporter.source,
+          offset,
+          length,
+          errorCode,
+          message.message,
+          null));
+    }
   }
 }

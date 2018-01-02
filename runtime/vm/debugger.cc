@@ -2827,6 +2827,10 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
   BreakpointLocation* bpt_location = SetBreakpoint(
       script, target_function.token_pos(), target_function.end_token_pos(), -1,
       -1 /* no requested line/col */);
+  if (bpt_location == NULL) {
+    return NULL;
+  }
+
   if (single_shot) {
     return bpt_location->AddSingleShot(this);
   } else {

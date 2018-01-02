@@ -19,8 +19,8 @@ class MapBase<K, V> implements Map<K, V> {
 
     Expect.isTrue(remove is RemoveFunctionType);
     Expect.isTrue(remove is RemoveFunctionType<int, int>);
-    Expect.isTrue(remove is! RemoveFunctionType<String, int>);
-    Expect.isTrue(remove is! RemoveFunctionType<MapBase<int, int>, int>);
+    Expect.isTrue(remove is RemoveFunctionType<String, int>);
+    Expect.isTrue(remove is RemoveFunctionType<MapBase<int, int>, int>);
   }
 }
 

@@ -89,13 +89,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_suffix() async {
-    // Bad state: Expected element reference for analyzer offset 46; got one for kernel offset 48
-    await super.test_async_used_as_identifier_in_suffix();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_switch_label() async {
     // Bad state: No reference information for async at 31
     await super.test_async_used_as_identifier_in_switch_label();
@@ -1712,48 +1705,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_invalidModifierOnConstructor_syncStar() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, found 0
     await super.test_invalidModifierOnConstructor_syncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_async() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_syncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_async() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_syncStar();
   }
 
   @override

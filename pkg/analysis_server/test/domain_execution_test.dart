@@ -178,8 +178,7 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   }
 
   void test_mapUri_file() {
-    String path = '/a/b.dart';
-    resourceProvider.newFile(path, '');
+    String path = newFile('/a/b.dart').path;
     // map the file
     ExecutionMapUriResult result = _mapUri(file: path);
     expect(result.file, isNull);
@@ -189,7 +188,7 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   void test_mapUri_file_dartUriKind() {
     String path = server.findSdk().mapDartUri('dart:async').fullName;
     // hack - pretend that the SDK file exists in the project FS
-    resourceProvider.newFile(path, '// hack');
+    newFile(path, content: '// hack');
     // map file
     ExecutionMapUriResult result = _mapUri(file: path);
     expect(result.file, isNull);
@@ -198,7 +197,7 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
 
   void test_mapUri_uri() {
     String path = '/a/b.dart';
-    resourceProvider.newFile(path, '');
+    newFile(path);
     // map the uri
     ExecutionMapUriResult result = _mapUri(uri: 'file://$path');
     expect(result.file, '/a/b.dart');

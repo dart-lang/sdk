@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import 'annotation_test.dart' as annotation;
 import 'assert_statement_test.dart' as assert_statement;
 import 'break_statement_test.dart' as break_statement;
 import 'class_declaration_test.dart' as class_declaration;
@@ -23,11 +24,13 @@ import 'part_of_directive_test.dart' as part_of_directive;
 import 'return_statement_test.dart' as return_statement;
 import 'switch_statement_test.dart' as switch_statement;
 import 'top_level_variable_test.dart' as top_level_variable;
+import 'try_statement_test.dart' as try_statement;
 import 'while_statement_test.dart' as while_statement;
 import 'yield_statement_test.dart' as yield_statement;
 
 main() {
   group('partial_code', () {
+    annotation.main();
     assert_statement.main();
     break_statement.main();
     class_declaration.main();
@@ -47,6 +50,7 @@ main() {
     return_statement.main();
     switch_statement.main();
     top_level_variable.main();
+    try_statement.main();
     while_statement.main();
     yield_statement.main();
   });

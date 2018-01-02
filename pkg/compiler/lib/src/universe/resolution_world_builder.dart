@@ -296,17 +296,28 @@ abstract class ResolutionWorldBuilderBase
   Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
 
   /// Map of registered usage of static members of live classes.
-  final Map<Entity, _MemberUsage> _staticMemberUsage = <Entity, _MemberUsage>{};
-
-  Map<Entity, _MemberUsage> get staticMemberUsageForTesting =>
-      _staticMemberUsage;
-
-  /// Map of registered usage of instance members of live classes.
-  final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
+  final Map<MemberEntity, _MemberUsage> _memberUsage =
       <MemberEntity, _MemberUsage>{};
 
-  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting =>
-      _instanceMemberUsage;
+  Map<MemberEntity, _MemberUsage> get staticMemberUsageForTesting {
+    Map<MemberEntity, _MemberUsage> map = <MemberEntity, _MemberUsage>{};
+    _memberUsage.forEach((MemberEntity member, _MemberUsage usage) {
+      if (!member.isInstanceMember) {
+        map[member] = usage;
+      }
+    });
+    return map;
+  }
+
+  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting {
+    Map<MemberEntity, _MemberUsage> map = <MemberEntity, _MemberUsage>{};
+    _memberUsage.forEach((MemberEntity member, _MemberUsage usage) {
+      if (member.isInstanceMember) {
+        map[member] = usage;
+      }
+    });
+    return map;
+  }
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.
@@ -616,7 +627,7 @@ abstract class ResolutionWorldBuilderBase
 
     MemberEntity element = staticUse.element;
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
-    _MemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
+    _MemberUsage usage = _memberUsage.putIfAbsent(element, () {
       _MemberUsage usage = new _MemberUsage(element);
       useSet.addAll(usage.appliedUse);
       return usage;
@@ -749,7 +760,7 @@ abstract class ResolutionWorldBuilderBase
     // its metadata parsed and analyzed.
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
-    _instanceMemberUsage.putIfAbsent(member, () {
+    _memberUsage.putIfAbsent(member, () {
       bool isNative = _nativeBasicData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
@@ -816,12 +827,7 @@ abstract class ResolutionWorldBuilderBase
 
   @override
   bool isMemberUsed(MemberEntity member) {
-    if (member.isInstanceMember) {
-      _MemberUsage usage = _instanceMemberUsage[member];
-      if (usage != null && usage.hasUse) return true;
-    }
-    _MemberUsage usage = _staticMemberUsage[member];
-    return usage != null && usage.hasUse;
+    return _memberUsage[member]?.hasUse ?? false;
   }
 
   Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {

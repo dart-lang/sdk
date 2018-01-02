@@ -55,14 +55,57 @@ class BuilderProxy implements Builder {
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
-    with ClassMemberParserTestMixin {}
+    with ClassMemberParserTestMixin {
+  @override
+  void test_parseClassMember_method_generic_comment_noReturnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_parameterType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_returnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_returnType_bound() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_returnType_complex() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_void() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_static_generic_comment_returnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].
  */
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
-    with ComplexParserTestMixin {}
+    with ComplexParserTestMixin {
+  @override
+  @failingTest
+  void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
+    // Fasta does not support the generic comment syntax.
+    super
+        .test_assignableExpression_arguments_normal_chain_typeArgumentComments();
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ErrorParserTest].
@@ -711,14 +754,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     createParser('int operator unary- => 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-  }
-
-  @override
-  @failingTest
-  void test_invalidOperatorAfterSuper_assignableExpression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, found 0
-    super.test_invalidOperatorAfterSuper_assignableExpression();
   }
 
   @override
@@ -1698,11 +1733,113 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
   @override
+  void
+      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseAssignableExpression_identifier_args_dot_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseCascadeSection_ia_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseCascadeSection_ii_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseCascadeSection_pa_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseCascadeSection_paa_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseCascadeSection_paapaa_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseConstExpression_listLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseConstExpression_mapLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseExpression_superMethodInvocation_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseFunctionExpression_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
   @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
     // TODO(brianwilkerson) Does not inject generic type arguments.
     super
         .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
+  }
+
+  @override
+  void test_parseInstanceCreationExpression_type_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
@@ -1742,7 +1879,8 @@ class FastaParserTestCase extends Object
   /**
    * Whether generic method comments should be enabled for the test.
    */
-  bool enableGenericMethodComments = false;
+  bool get enableGenericMethodComments => false;
+  void set enableGenericMethodComments(bool enable) {}
 
   @override
   set enableLazyAssignmentOperators(bool value) {
@@ -2216,6 +2354,21 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
+  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
   @failingTest
   void test_parseNormalFormalParameter_simple_const_noType() {
     // TODO(brianwilkerson) Wrong errors:
@@ -2547,13 +2700,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteForEach() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteForEach();
-  }
-
-  @override
-  @failingTest
   void test_incompleteLocalVariable_beforeIdentifier() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeIdentifier();
@@ -2707,6 +2853,42 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
     super.test_parseContinueStatement_noLabel();
   }
+
+  @override
+  void test_parseFunctionDeclarationStatement_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
 }
 
 /**
@@ -2799,5 +2981,15 @@ class A native 'something' {
     // TODO(danrubel): should not be generating an error
     super.test_parseCompilationUnitMember_abstractAsPrefix();
     assertNoErrors();
+  }
+
+  @override
+  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 }

@@ -100,7 +100,9 @@ class WebCompileCommand extends Command {
 
     try {
       sdkRequest = await HttpRequest.request(sdkUrl,
-          responseType: "arraybuffer", mimeType: "application/octet-stream");
+          responseType: "arraybuffer",
+          mimeType: "application/octet-stream",
+          withCredentials: true);
     } catch (error) {
       onError('Dart sdk summaries failed to load: $error. url: $sdkUrl');
       return null;

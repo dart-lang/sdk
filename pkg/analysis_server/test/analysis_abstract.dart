@@ -14,11 +14,11 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -47,10 +47,9 @@ int findIdentifierLength(String search) {
 /**
  * An abstract base for all 'analysis' domain tests.
  */
-class AbstractAnalysisTest {
+class AbstractAnalysisTest extends Object with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
-  MemoryResourceProvider resourceProvider;
   MockPackageMapProvider packageMapProvider;
   TestPluginManager pluginManager;
   AnalysisServer server;
@@ -89,12 +88,6 @@ class AbstractAnalysisTest {
     handleSuccessfulRequest(request);
   }
 
-  String addFile(String path, String content) {
-    path = resourceProvider.convertPath(path);
-    resourceProvider.newFile(path, content);
-    return path;
-  }
-
   void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.add(service);
     Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
@@ -103,7 +96,7 @@ class AbstractAnalysisTest {
   }
 
   String addTestFile(String content) {
-    addFile(testFile, content);
+    newFile(testFile, content: content);
     this.testCode = content;
     return testFile;
   }
@@ -137,7 +130,7 @@ class AbstractAnalysisTest {
    * Creates a project `/project`.
    */
   void createProject({Map<String, String> packageRoots}) {
-    resourceProvider.newFolder(projectPath);
+    newFolder(projectPath);
     Request request = new AnalysisSetAnalysisRootsParams([projectPath], [],
             packageRoots: packageRoots)
         .toRequest('0');
@@ -149,7 +142,7 @@ class AbstractAnalysisTest {
    * Fails if not found.
    */
   int findFileOffset(String path, String search) {
-    File file = resourceProvider.getResource(path) as File;
+    File file = getFile(path);
     String code = file.createSource().contents.data;
     int offset = code.indexOf(search);
     expect(offset, isNot(-1), reason: '"$search" in\n$code');
@@ -177,8 +170,7 @@ class AbstractAnalysisTest {
   }
 
   String modifyTestFile(String content) {
-    String path = resourceProvider.convertPath(testFile);
-    resourceProvider.updateFile(path, content);
+    modifyFile(testFile, content);
     this.testCode = content;
     return testFile;
   }
@@ -204,7 +196,6 @@ class AbstractAnalysisTest {
 
   void setUp() {
     serverChannel = new MockServerChannel();
-    resourceProvider = new MemoryResourceProvider();
     projectPath = resourceProvider.convertPath('/project');
     testFolder = resourceProvider.convertPath('/project/bin');
     testFile = resourceProvider.convertPath('/project/bin/test.dart');
@@ -225,7 +216,6 @@ class AbstractAnalysisTest {
     server.done();
     handler = null;
     server = null;
-    resourceProvider = null;
     serverChannel = null;
   }
 

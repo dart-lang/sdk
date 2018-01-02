@@ -10,9 +10,6 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
-[ $compiler == dartkp ]
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339
-
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 mirrors/variable_is_const_test/01: Crash
@@ -29,7 +26,6 @@ mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter
 mirrors/variable_is_const_test/01: Crash # Please triage.
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
-mirrors/invocation_fuzz_test/smi: Crash
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
@@ -127,7 +123,6 @@ mirrors/empty_test: Crash
 mirrors/empty_test: RuntimeError
 mirrors/enum_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
-mirrors/fake_function_without_call_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
@@ -154,7 +149,6 @@ mirrors/intercepted_object_test: CompileTimeError # Issue 31402 (Invocation argu
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
-mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
@@ -287,13 +281,7 @@ async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
 async/zone_run_unary_test: RuntimeError
-convert/chunked_conversion_json_decode1_test: RuntimeError
-convert/json_chunk_test: RuntimeError
-convert/json_test: RuntimeError
 convert/json_toEncodable_reviver_test: CompileTimeError
-convert/json_utf8_chunk_test: RuntimeError
-convert/streamed_conversion_json_encode1_test: RuntimeError
-convert/streamed_conversion_json_utf8_encode_test: RuntimeError
 isolate/count_test: Timeout
 isolate/cross_isolate_message_test: RuntimeError
 isolate/illegal_msg_function_test: RuntimeError
@@ -334,7 +322,6 @@ mirrors/class_mirror_type_variables_test: RuntimeError
 mirrors/closures_test: RuntimeError
 mirrors/constructors_test: RuntimeError
 mirrors/fake_function_with_call_test: RuntimeError
-mirrors/function_apply_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError
 mirrors/generic_bounded_test/none: RuntimeError
 mirrors/generic_class_declaration_test: RuntimeError
@@ -355,9 +342,7 @@ mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/intercepted_class_test: RuntimeError
-mirrors/invocation_fuzz_test/smi: Pass
 mirrors/invoke_closurization2_test: RuntimeError
-mirrors/invoke_named_test/none: RuntimeError
 mirrors/library_declarations_test/01: RuntimeError
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
 mirrors/metadata_const_map_test: Crash
@@ -375,7 +360,6 @@ mirrors/reflected_type_test/01: MissingCompileTimeError
 mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/regress_16321_test/none: Crash
-mirrors/regress_19731_test: RuntimeError
 mirrors/return_type_test: RuntimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 mirrors/type_argument_is_type_variable_test: RuntimeError
@@ -384,19 +368,18 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 isolate/*: Skip
-mirrors/invocation_fuzz_test/emptyarray: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/false: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/emptyarray: CompileTimeError, Pass # Please triage.
+mirrors/invocation_fuzz_test/false: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/smi: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/string: CompileTimeError # Please triage.
+mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash, Crash, Pass # Please triage.
+mirrors/invocation_fuzz_test/string: CompileTimeError, Pass # Please triage.
 mirrors/library_uri_io_test: CompileTimeError # Please triage.
 mirrors/spawn_function_root_library_test: Skip
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Please triage.
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]
@@ -446,13 +429,7 @@ async/timer_not_available_test: RuntimeError
 async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/zone_run_unary_test: CompileTimeError # Issue 31537
-convert/chunked_conversion_json_decode1_test: RuntimeError
-convert/json_chunk_test: RuntimeError
-convert/json_test: RuntimeError
 convert/json_toEncodable_reviver_test: CompileTimeError
-convert/json_utf8_chunk_test: RuntimeError
-convert/streamed_conversion_json_encode1_test: RuntimeError
-convert/streamed_conversion_json_utf8_encode_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
 isolate/compile_time_error_test/01: MissingCompileTimeError

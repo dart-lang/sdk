@@ -122,59 +122,93 @@ used as the type in an instance check. For example:
     }
     ```
 
-* Pub
+#### Pub
 
-  * Git dependencies may now include a `path` parameter, indicating that the
-    package exists in a subdirectory of the Git repository. For example:
+##### SDK Constraints
 
-    ```yaml
-    dependencies:
-      foobar:
-        git:
-          url: git://github.com/dart-lang/multi_package_repo
-          path: pkg/foobar
-    ```
+There is now a default SDK constraint of `<2.0.0` for any package with no
+existing upper bound. This allows us to move more safely to 2.0.0. All new
+packages published on pub will now require an upper bound SDK constraint so
+future major releases of Dart don't destabilize the package ecosystem.
 
-  * `pub get` and `pub upgrade` properly produce an error message and exit code
-    when no network is present.
+All SDK constraint exclusive upper bounds are now treated as though they allow
+pre-release versions of that upper bound. For example, the SDK constraint
+`>=1.8.0 <2.0.0` now allows pre-release SDK versions such as `2.0.0-beta.3.0`.
+This allows early adopters to try out packages that don't explicitly declare
+support for the new version yet. You can disable this functionality by setting
+the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
-  * `pub serve` now waits for file watcher events to stabilize before scheduling
-     new builds. This helps specifically with `safe-write` features in editors,
-     as well as other situations such as `save all` which cause many fast edits.
+##### Other Features
 
-  * Added the `--build-delay` argument to `pub serve` which sets the amount of
-    time (in ms) to wait between file watcher events before scheduling a build.
-    Defaults to 50.
+* Git dependencies may now include a `path` parameter, indicating that the
+  package exists in a subdirectory of the Git repository. For example:
 
-  * Removed require.js module loading timeout for dartdevc, which resolves an
-    issue where the initial load of an app might give a timeout error.
+  ```yaml
+  dependencies:
+    foobar:
+      git:
+        url: git://github.com/dart-lang/multi_package_repo
+        path: pkg/foobar
+  ```
 
-  * There is now a default SDK constraint of `<2.0.0` for any package with
-    no existing upper bound. This allows us to move more safely to 2.0.0.
+* Added an `--executables` option to `pub deps` command. This will list all
+  available executables that can be run with `pub run`.
 
-  * All new packages published on pub will now require an upper bound SDK
-    constraint so future major releases of Dart don't destabilize the package
-    ecosystem.
+* Added a `PUB_MAX_WORKERS_PER_TASK` environment variable which can be set to
+  configure the number of dartdevc/analyzer workers that are used when compiling
+  with `--web-compiler=dartdevc`.
 
-  * When on a pre-release SDK build, all upper bounds matching exactly the
-    current SDK version but with no pre-release or build modifier will be
-    upgraded to be <= the current SDK version. This allows early adopters to
-    try out packages that don't explicitly declare support yet. You can disable
-    this functionality by setting the PUB_ALLOW_PRERELEASE_SDK system
-    environment variable to `false`.
+* Pub will now automatically retry HTTP requests that fail with a 502, 503, of
+  504 error code ([issue 1556][pub#1556]).
 
-  * Added `--executables` option to `pub deps` command. This will list all
-    available executables that can be run with `pub run`.
+* Emit exit code 66 when a path dependency doesn't exist ([issue 1747][pub#1747]).
 
-  * Fixed https://github.com/dart-lang/pub/issues/1684 so root package analysis
-    options are not enforced for dependencies when compiling with dartdevc.
+[pub#1556]: https://github.com/dart-lang/pub/issues/1556
+[pub#1747]: https://github.com/dart-lang/pub/issues/1747
 
-  * Fixed https://github.com/dart-lang/sdk/issues/30246 so you can include dart
-    scripts from subdirectories with dartdevc.
+##### Bug Fixes
 
-  * Added a PUB_MAX_WORKERS_PER_TASK system environment variable which can be
-    set to configure the number of dartdevc/analyzer workers that are used
-    when compiling with --web-compiler=dartdevc.
+* Added a `--build-delay` argument to `pub serve` which sets the amount of time
+  (in ms) to wait between file watcher events before scheduling a build.
+  Defaults to 50.
+
+* `pub get` and `pub upgrade` properly produce an error message and exit code
+  when no network is present.
+
+* `pub serve` now waits for file watcher events to stabilize before scheduling
+   new builds. This helps specifically with `safe-write` features in editors,
+   as well as other situations such as `save all` which cause many fast edits.
+
+* Removed the require.js module loading timeout for dartdevc, which resolves an
+  issue where the initial load of an app might give a timeout error.
+
+* Root package analysis options are no longer enforced for dependencies when
+  compiling with dartdevc ([issue 1684][pub#1684]).
+
+* Dart scripts can be included from subdirectories with dartdevc
+  ([issue 30246][]).
+
+* The `barback` infrastructure now supports `async` 2.0.0.
+
+* Print a more informative error message when the Flutter SDK isn't
+  available ([issue 1719][pub#1719]).
+
+* Don't crash when publishing a package that contains an empty submodule
+  ([issue 1679][pub#1679]).
+
+* Emit exit code 69 for TLS errors ([issue 1729][pub#1729]).
+
+* Fix `pub global run` for packages activated from a local path that also have
+  relative path dependencies ([issue 1751][pub#1751]).
+
+[pub#1684]: https://github.com/dart-lang/pub/issues/1684
+[pub#1719]: https://github.com/dart-lang/pub/issues/1719
+[pub#1679]: https://github.com/dart-lang/pub/issues/1679
+[pub#1729]: https://github.com/dart-lang/pub/issues/1729
+[pub#1751]: https://github.com/dart-lang/pub/issues/1751
+[issue 30246]: https://github.com/dart-lang/sdk/issues/30246
+
+#### Other Tools
 
 * dartfmt
 

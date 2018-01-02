@@ -99,6 +99,10 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
             reporter: elementMap.reporter,
             objectType: elementMap.commonElements.objectType);
 
+  // TODO(sigmund): delete once Issue #31118 is fixed.
+  @override
+  bool get reportMultiInheritanceIssue => false;
+
   InterfaceType getThisType(ClassEntity cls) {
     return elementMap._getThisType(cls);
   }

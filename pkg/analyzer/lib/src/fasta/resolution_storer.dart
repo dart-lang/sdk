@@ -160,21 +160,6 @@ class MemberGetterNode implements TreeNode {
   }
 }
 
-/// Information about invocation of the [member] and its instantiated [type].
-class MemberInvocationDartType implements DartType {
-  final Member member;
-  final FunctionType type;
-
-  MemberInvocationDartType(this.member, this.type);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '($member, $type)';
-  }
-}
-
 /// A reference to the setter represented by the [member].
 /// The [member] might be either a setter itself, or a field.
 class MemberSetterNode implements TreeNode {
@@ -381,6 +366,7 @@ class ResolutionStorer extends TypeInferenceListener {
   void indexAssignAfterReceiver(Expression write, DartType typeContext) {
     _deferReference(write.fileOffset);
     _recordType(const IndexAssignNullFunctionType(), write.fileOffset);
+    _recordType(new TypeArgumentsDartType(<DartType>[]), write.fileOffset);
     _deferType(write.fileOffset);
   }
 
@@ -438,6 +424,7 @@ class ResolutionStorer extends TypeInferenceListener {
       _deferType(expression.fileOffset);
     }
     _deferType(expression.fileOffset);
+    _deferType(expression.fileOffset);
     super.methodInvocationBeforeArgs(expression, isImplicitCall);
   }
 
@@ -450,11 +437,11 @@ class ResolutionStorer extends TypeInferenceListener {
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType) {
-    _replaceType(
-        inferredType,
-        arguments.fileOffset != -1
-            ? arguments.fileOffset
-            : expression.fileOffset);
+    int resultOffset = arguments.fileOffset != -1
+        ? arguments.fileOffset
+        : expression.fileOffset;
+    _replaceType(inferredType, resultOffset);
+    _replaceType(new TypeArgumentsDartType(arguments.types), resultOffset);
     if (!isImplicitCall) {
       if (interfaceMember is ForwardingStub) {
         interfaceMember = ForwardingStub.getInterfaceTarget(interfaceMember);
@@ -463,7 +450,7 @@ class ResolutionStorer extends TypeInferenceListener {
       FunctionType invokeType = substitution == null
           ? calleeType
           : substitution.substituteType(calleeType.withoutTypeParameters);
-      _replaceType(new MemberInvocationDartType(interfaceMember, invokeType));
+      _replaceType(invokeType);
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -471,11 +458,11 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void methodInvocationExitCall(Expression expression, Arguments arguments,
       bool isImplicitCall, DartType inferredType) {
-    _replaceType(
-        inferredType,
-        arguments.fileOffset != -1
-            ? arguments.fileOffset
-            : expression.fileOffset);
+    int resultOffset = arguments.fileOffset != -1
+        ? arguments.fileOffset
+        : expression.fileOffset;
+    _replaceType(inferredType, resultOffset);
+    _replaceType(new TypeArgumentsDartType(arguments.types), resultOffset);
     if (!isImplicitCall) {
       throw new UnimplementedError(); // TODO(scheglov): handle this case
     }
@@ -620,6 +607,7 @@ class ResolutionStorer extends TypeInferenceListener {
     // type later.
     _deferType(expression.fileOffset);
     _deferType(expression.arguments.fileOffset);
+    _deferType(expression.arguments.fileOffset);
     return super.staticInvocationEnter(
         expression, prefixName, targetOffset, targetClass, typeContext);
   }
@@ -632,10 +620,11 @@ class ResolutionStorer extends TypeInferenceListener {
       DartType inferredType) {
     _replaceType(inferredType);
     _replaceReference(expression.target);
+    _replaceType(new TypeArgumentsDartType(expression.arguments.types));
     FunctionType invokeType = substitution == null
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
-    _replaceType(new MemberInvocationDartType(expression.target, invokeType));
+    _replaceType(invokeType);
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
@@ -766,5 +755,19 @@ class ResolutionStorer extends TypeInferenceListener {
   void _replaceType(DartType type, [int newOffset = -1]) {
     int slot = _deferredTypeSlots.removeLast();
     _types[slot] = type;
+  }
+}
+
+/// A [DartType] wrapper around invocation type arguments.
+class TypeArgumentsDartType implements DartType {
+  final List<DartType> types;
+
+  TypeArgumentsDartType(this.types);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '<${types.join(', ')}>';
   }
 }

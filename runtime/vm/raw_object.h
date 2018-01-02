@@ -223,6 +223,7 @@ enum ObjectAlignment {
   // Alignment offsets are used to determine object age.
   kNewObjectAlignmentOffset = kWordSize,
   kOldObjectAlignmentOffset = 0,
+  kNewObjectBitPosition = kWordSizeLog2,
   // Object sizes are aligned to kObjectAlignment.
   kObjectAlignment = 2 * kWordSize,
   kObjectAlignmentLog2 = kWordSizeLog2 + 1,

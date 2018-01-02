@@ -61,21 +61,18 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_multiple_contexts() async {
-    String fooPath = '/project1/foo.dart';
-    resourceProvider.newFile(fooPath, '''
+    String fooPath = newFile('/project1/foo.dart', content: '''
 library foo;
 import '../project2/baz.dart';
-main() { f(); }''');
-    String barPath = '/project2/bar.dart';
-    resourceProvider.newFile(barPath, '''
+main() { f(); }''').path;
+    String barPath = newFile('/project2/bar.dart', content: '''
 library bar;
 import 'baz.dart';
-main() { f(); }''');
-    String bazPath = '/project2/baz.dart';
-    resourceProvider.newFile(bazPath, '''
+main() { f(); }''').path;
+    String bazPath = newFile('/project2/baz.dart', content: '''
 library baz;
 f(int i) {}
-''');
+''').path;
     Request request =
         new AnalysisSetAnalysisRootsParams(['/project1', '/project2'], [])
             .toRequest('0');
@@ -106,7 +103,7 @@ f() {}
   @failingTest
   test_overlay_addPreviouslyImported() async {
     // The list of errors doesn't include errors for '/project/target.dart'.
-    Folder project = resourceProvider.newFolder('/project');
+    Folder project = newFolder('/project');
     handleSuccessfulRequest(
         new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
 
@@ -130,8 +127,8 @@ f() {}
 
   test_overlayOnly() async {
     String filePath = '/User/project1/test.dart';
-    Folder folder1 = resourceProvider.newFolder('/User/project1');
-    Folder folder2 = resourceProvider.newFolder('/User/project2');
+    Folder folder1 = newFolder('/User/project1');
+    Folder folder2 = newFolder('/User/project2');
     Request request =
         new AnalysisSetAnalysisRootsParams([folder1.path, folder2.path], [])
             .toRequest('0');

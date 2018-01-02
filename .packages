@@ -45,6 +45,7 @@ html:third_party/pkg/html/lib
 http:third_party/pkg/http/lib
 http_multi_server:third_party/pkg/http_multi_server/lib
 http_parser:third_party/pkg/http_parser/lib
+http_retry:third_party/pkg/http_retry/lib
 http_throttle:third_party/pkg/http_throttle/lib
 intl:third_party/pkg/intl/lib
 isolate:third_party/pkg/isolate/lib

@@ -63,13 +63,6 @@ symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
-[ $compiler == dartkp ]
-bit_twiddling_test/int64: CompileTimeError # Issue 31339
-integer_to_radix_string_test/01: CompileTimeError # Issue 31339
-integer_to_radix_string_test/02: CompileTimeError # Issue 31339
-integer_to_string_test/01: CompileTimeError # Issue 31339
-num_sign_test: CompileTimeError, Crash # Issue 31339
-
 [ $compiler == precompiler ]
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
@@ -116,12 +109,6 @@ string_case_test/01: RuntimeError
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simdbc64 && $compiler == dartk && $strong ]
-iterable_to_set_test: RuntimeError # Please triage.
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
@@ -427,15 +414,11 @@ bigint_test: Pass, Timeout # Please triage.
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
-collection_removes_test: RuntimeError
 compare_to2_test: RuntimeError
-hash_set_test/01: RuntimeError
-hash_set_test/none: RuntimeError
 int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
 int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)
 iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
-iterable_mapping_test/none: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
@@ -445,9 +428,7 @@ list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-set_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
-splay_tree_test/none: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
@@ -463,27 +444,14 @@ symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-bit_twiddling_test/int64: CompileTimeError # Please triage.
-integer_to_radix_string_test/02: CompileTimeError # Please triage.
-integer_to_string_test/01: CompileTimeError # Please triage.
-num_sign_test: CompileTimeError # Please triage.
-
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
-collection_removes_test: RuntimeError
 compare_to2_test: RuntimeError
-hash_set_test/01: RuntimeError
-hash_set_test/none: RuntimeError
 int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
 int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)
 iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
-iterable_mapping_test/none: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
@@ -494,9 +462,7 @@ list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
-set_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
-splay_tree_test/none: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
@@ -686,7 +652,7 @@ regexp/pcre_test: Pass, Slow, Timeout
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 integer_parsed_arith_vm_test/01: RuntimeError # Issue 31346
-integer_parsed_arith_vm_test/02: RuntimeError # Issue 31369
+integer_parsed_arith_vm_test/02: RuntimeError # Issue 31346
 integer_parsed_div_rem_vm_test/01: RuntimeError # Issue 31346
 integer_to_radix_string_test/01: RuntimeError # Issue 31346
 string_split_test: RuntimeError # does not return List<String>

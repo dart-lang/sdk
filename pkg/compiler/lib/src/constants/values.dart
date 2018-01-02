@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../deferred_load.dart' show OutputUnit;
 import '../util/util.dart' show Hashing;
 
 enum ConstantValueKind {
@@ -24,6 +25,7 @@ enum ConstantValueKind {
   INTERCEPTOR,
   SYNTHETIC,
   DEFERRED,
+  DEFERRED_GLOBAL,
   NON_CONSTANT,
 }
 
@@ -45,6 +47,8 @@ abstract class ConstantValueVisitor<R, A> {
       covariant InterceptorConstantValue constant, covariant A arg);
   R visitSynthetic(covariant SyntheticConstantValue constant, covariant A arg);
   R visitDeferred(covariant DeferredConstantValue constant, covariant A arg);
+  R visitDeferredGlobal(
+      covariant DeferredGlobalConstantValue constant, covariant A arg);
   R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
 }
 
@@ -94,8 +98,8 @@ abstract class ConstantValue {
   /// expression from the value so the unparse of these is best effort.
   ///
   /// For the synthetic constants, [DeferredConstantValue],
-  /// [SyntheticConstantValue], [InterceptorConstantValue] the unparse is
-  /// descriptive only.
+  /// [DeferredGlobalConstantValue], [SyntheticConstantValue],
+  /// [InterceptorConstantValue] the unparse is descriptive only.
   String toDartText();
 
   /// Returns a structured representation of this constant suited for debugging.
@@ -752,7 +756,8 @@ class ConstructedConstantValue extends ObjectConstantValue {
 }
 
 /// A reference to a constant in another output unit.
-/// Used for referring to deferred constants.
+///
+/// Used for referring to deferred constants when evaluating constant values.
 class DeferredConstantValue extends ConstantValue {
   DeferredConstantValue(this.referenced, this.import);
 
@@ -781,6 +786,50 @@ class DeferredConstantValue extends ConstantValue {
 
   String toStructuredText() {
     return 'DeferredConstant(${referenced.toStructuredText()})';
+  }
+}
+
+/// A reference to a constant in another output unit.
+///
+/// Used for referring to deferred constants that appear as initializers of
+/// final (non-const) global fields.
+///
+// TODO(sigmund): this should eventually not be a constant value. In particular,
+// [DeferredConstantValue] is introduced by the constant evaluator when it first
+// sees constants used in the program. [DeferredGlobalConstantValue] are
+// introduced later by the SSA builder and should be represented
+// with a dedicated JEntity instead. We currently model them as a regular
+// constant to take advantage of the machinery we already have in place to
+// generate deferred constants in the emitter.
+class DeferredGlobalConstantValue extends ConstantValue {
+  DeferredGlobalConstantValue(this.referenced, this.unit);
+
+  final ConstantValue referenced;
+  final OutputUnit unit;
+
+  bool get isReference => true;
+
+  bool operator ==(other) {
+    return other is DeferredGlobalConstantValue &&
+        referenced == other.referenced &&
+        unit == other.unit;
+  }
+
+  get hashCode => (referenced.hashCode * 17 + unit.hashCode) & 0x3fffffff;
+
+  List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
+
+  accept(ConstantValueVisitor visitor, arg) =>
+      visitor.visitDeferredGlobal(this, arg);
+
+  DartType getType(CommonElements types) => referenced.getType(types);
+
+  ConstantValueKind get kind => ConstantValueKind.DEFERRED_GLOBAL;
+
+  String toDartText() => 'deferred_global(${referenced.toDartText()})';
+
+  String toStructuredText() {
+    return 'DeferredGlobalConstant(${referenced.toStructuredText()})';
   }
 }
 

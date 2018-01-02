@@ -196,13 +196,15 @@ Future<ResultKind> mainInternal(List<String> args,
 
   print('---- analyze-only ------------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
-  Compiler compiler1 = compilerFor(
+  CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
-  compiler1.impactCacheDeleter.retainCachesForTesting = true;
-  await compiler1.run(entryPoint);
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage],
+      beforeRun: (compiler) {
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+      });
+  Compiler compiler1 = result.compiler;
   if (collector.crashes.isNotEmpty) {
     print('Skipping due to crashes.');
     return ResultKind.crashes;

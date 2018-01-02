@@ -1995,6 +1995,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   void visitDeferred(DeferredConstantValue constant, [_]) {
     addRoot('Deferred');
   }
+
+  @override
+  void visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
+    addRoot('Deferred');
+  }
 }
 
 /**
@@ -2113,6 +2118,12 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     // TODO(sra): Investigate that the use of hashCode here is probably a source
     // of instability.
     int hash = constant.import.hashCode;
+    return _combine(hash, _visit(constant.referenced));
+  }
+
+  @override
+  int visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
+    int hash = constant.unit.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }
 

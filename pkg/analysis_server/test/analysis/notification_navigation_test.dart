@@ -229,7 +229,7 @@ main() {
   }
 
   test_annotationConstructor_importPrefix() async {
-    addFile('$testFolder/my_annotation.dart', r'''
+    newFile('$testFolder/my_annotation.dart', content: r'''
 library an;
 class MyAnnotation {
   const MyAnnotation();
@@ -304,7 +304,7 @@ main() {
   }
 
   test_annotationField_importPrefix() async {
-    addFile('$testFolder/mayn.dart', r'''
+    newFile('$testFolder/mayn.dart', content: r'''
 library an;
 const myan = new Object();
 ''');
@@ -697,8 +697,8 @@ library my.lib;
   }
 
   test_multiplyDefinedElement() async {
-    addFile('$projectPath/bin/libA.dart', 'library A; int TEST = 1;');
-    addFile('$projectPath/bin/libB.dart', 'library B; int TEST = 2;');
+    newFile('$projectPath/bin/libA.dart', content: 'library A; int TEST = 1;');
+    newFile('$projectPath/bin/libB.dart', content: 'library B; int TEST = 2;');
     addTestFile('''
 import 'libA.dart';
 import 'libB.dart';
@@ -776,7 +776,7 @@ main() {
 
   test_partOf() async {
     var libCode = 'library lib; part "test.dart";';
-    var libFile = addFile('$projectPath/bin/lib.dart', libCode);
+    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
     addTestFile('part of lib;');
     await prepareNavigation();
     assertHasRegionString('lib');
@@ -808,7 +808,7 @@ class A {
 
   test_string_export() async {
     var libCode = 'library lib;';
-    var libFile = addFile('$projectPath/bin/lib.dart', libCode);
+    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
     addTestFile('export "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -823,7 +823,7 @@ class A {
 
   test_string_import() async {
     var libCode = 'library lib;';
-    var libFile = addFile('$projectPath/bin/lib.dart', libCode);
+    var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;
     addTestFile('import "lib.dart";');
     await prepareNavigation();
     assertHasRegionString('"lib.dart"');
@@ -844,7 +844,8 @@ class A {
 
   test_string_part() async {
     var unitCode = 'part of lib;  f() {}';
-    var unitFile = addFile('$projectPath/bin/test_unit.dart', unitCode);
+    var unitFile =
+        newFile('$projectPath/bin/test_unit.dart', content: unitCode).path;
     addTestFile('''
 library lib;
 part "test_unit.dart";

@@ -40,7 +40,7 @@ function(a, b) {
 }""",
     TestMode.DELIMITER: """
 function(a, b) {
-  return null;
+  return null@4;
 @0}""",
     TestMode.EXIT: """
 function(a@1, b@2) {

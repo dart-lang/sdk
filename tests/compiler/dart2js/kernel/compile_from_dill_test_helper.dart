@@ -388,15 +388,17 @@ Future<ResultKind> runTest(
   print('---- compile from ast ----------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
   OutputCollector collector1 = new OutputCollector();
-  Compiler compiler1 = compilerFor(
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
       outputProvider: collector1,
-      options: <String>[]..addAll(commonOptions)..addAll(options));
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler1.impactCacheDeleter.retainCachesForTesting = true;
-  await compiler1.run(entryPoint);
+      options: <String>[]..addAll(commonOptions)..addAll(options),
+      beforeRun: (compiler) {
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+      });
+  Compiler compiler1 = result.compiler;
   if (collector.crashes.isNotEmpty) {
     print('Skipping due to crashes.');
     return ResultKind.crashes;

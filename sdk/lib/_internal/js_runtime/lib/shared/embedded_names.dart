@@ -387,11 +387,6 @@ enum JsBuiltin {
   ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
   isFunctionType,
 
-  /// Returns a new function type object.
-  ///
-  ///     JS_BUILTIN('=Object', JsBuiltin.createFunctionType)
-  createFunctionTypeRti,
-
   /// Returns the JavaScript-constructor name given an rti encoding.
   ///
   ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)

@@ -978,7 +978,7 @@ TEST_CASE(DartAPI_IntegerFitsIntoInt64) {
   EXPECT_VALID(result);
   EXPECT(fits);
 
-  Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x8000000000000000");
+  Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x10000000000000000");
   if (FLAG_limit_ints_to_64_bits) {
     EXPECT(Dart_IsApiError(above_max));
   } else {
@@ -996,7 +996,7 @@ TEST_CASE(DartAPI_IntegerFitsIntoInt64) {
   EXPECT_VALID(result);
   EXPECT(fits);
 
-  Dart_Handle below_min = Dart_NewIntegerFromHexCString("-0x8000000000000001");
+  Dart_Handle below_min = Dart_NewIntegerFromHexCString("-0x10000000000000001");
   if (FLAG_limit_ints_to_64_bits) {
     EXPECT(Dart_IsApiError(below_min));
   } else {

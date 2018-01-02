@@ -21,6 +21,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -28,10 +29,12 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -432,6 +435,11 @@ class ContextManagerImpl implements ContextManager {
   final ResourceProvider resourceProvider;
 
   /**
+   * The file content overlay.
+   */
+  final FileContentOverlay fileContentOverlay;
+
+  /**
    * The manager used to access the SDK that should be associated with a
    * particular context.
    */
@@ -522,6 +530,7 @@ class ContextManagerImpl implements ContextManager {
 
   ContextManagerImpl(
       this.resourceProvider,
+      this.fileContentOverlay,
       this.sdkManager,
       this.packageResolverProvider,
       this._packageMapProvider,
@@ -885,19 +894,54 @@ class ContextManagerImpl implements ContextManager {
    * options file at the given [path].
    */
   void _analyzeAnalysisOptionsFile(AnalysisDriver driver, String path) {
-    String content = driver.fsState.getFileForPath(path).content;
-    List<AnalysisError> errors =
-        GenerateOptionsErrorsTask.analyzeAnalysisOptions(
-            resourceProvider.getFile(path).createSource(),
-            content,
-            driver.sourceFactory);
-    AnalyzerConverter converter = new AnalyzerConverter();
-    LineInfo lineInfo = _computeLineInfo(content);
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      String content = _readFile(path);
+      LineInfo lineInfo = _computeLineInfo(content);
+      List<AnalysisError> errors =
+          GenerateOptionsErrorsTask.analyzeAnalysisOptions(
+              resourceProvider.getFile(path).createSource(),
+              content,
+              driver.sourceFactory);
+      AnalyzerConverter converter = new AnalyzerConverter();
+      convertedErrors = converter.convertAnalysisErrors(errors,
+          lineInfo: lineInfo, options: driver.analysisOptions);
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
     callbacks.notificationManager.recordAnalysisErrors(
         NotificationManager.serverId,
         path,
-        converter.convertAnalysisErrors(errors,
-            lineInfo: lineInfo, options: driver.analysisOptions));
+        convertedErrors ?? <protocol.AnalysisError>[]);
+  }
+
+  /**
+   * Use the given analysis [driver] to analyze the content of the pubspec file
+   * at the given [path].
+   */
+  void _analyzePubspecFile(AnalysisDriver driver, String path) {
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      String content = _readFile(path);
+      YamlNode node = loadYamlNode(content);
+      if (node is YamlMap) {
+        PubspecValidator validator = new PubspecValidator(
+            resourceProvider, resourceProvider.getFile(path).createSource());
+        LineInfo lineInfo = _computeLineInfo(content);
+        List<AnalysisError> errors = validator.validate(node.nodes);
+        AnalyzerConverter converter = new AnalyzerConverter();
+        convertedErrors = converter.convertAnalysisErrors(errors,
+            lineInfo: lineInfo, options: driver.analysisOptions);
+      }
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
+    callbacks.notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId,
+        path,
+        convertedErrors ?? <protocol.AnalysisError>[]);
   }
 
   void _checkForAnalysisOptionsUpdate(
@@ -938,6 +982,20 @@ class ContextManagerImpl implements ContextManager {
             builder.createSourceFactory(contextRoot, options);
         driver.configure(analysisOptions: options, sourceFactory: factory);
       }
+    }
+  }
+
+  void _checkForPubspecUpdate(
+      String path, ContextInfo info, ChangeType changeType) {
+    if (_isPubspec(path)) {
+      AnalysisDriver driver = info.analysisDriver;
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
+      }
+      _analyzePubspecFile(driver, path);
     }
   }
 
@@ -1106,6 +1164,10 @@ class ContextManagerImpl implements ContextManager {
         callbacks.addAnalysisDriver(folder, contextRoot, options);
     if (optionsFile != null) {
       _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
+    }
+    File pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
+    if (pubspecFile.exists) {
+      _analyzePubspecFile(info.analysisDriver, pubspecFile.path);
     }
     return info;
   }
@@ -1425,6 +1487,7 @@ class ContextManagerImpl implements ContextManager {
     }
     _checkForPackagespecUpdate(path, info, info.folder);
     _checkForAnalysisOptionsUpdate(path, info, type);
+    _checkForPubspecUpdate(path, info, type);
   }
 
   /**
@@ -1513,6 +1576,15 @@ class ContextManagerImpl implements ContextManager {
       });
       callbacks.applyChangesToContext(parentInfo.folder, changeSet);
     }
+  }
+
+  /**
+   * Read the contents of the file at the given [path], or throw an exception if
+   * the contents cannot be read.
+   */
+  String _readFile(String path) {
+    return fileContentOverlay[path] ??
+        resourceProvider.getFile(path).readAsStringSync();
   }
 
   Packages _readPackagespec(File specFile) {

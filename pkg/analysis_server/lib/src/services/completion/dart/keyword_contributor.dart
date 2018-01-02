@@ -48,6 +48,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       : this.request = request,
         this.entity = request.target.entity;
 
+  Token get droppedToken => request.target.droppedToken;
+
+  bool isEmptyBody(FunctionBody body) =>
+      body is EmptyFunctionBody ||
+      (body is BlockFunctionBody && body.beginToken.isSynthetic);
+
   @override
   visitArgumentList(ArgumentList node) {
     if (request is DartCompletionRequestImpl) {
@@ -150,7 +156,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       _addClassBodyKeywords();
       int index = node.members.indexOf(entity);
       ClassMember previous = index > 0 ? node.members[index - 1] : null;
-      if (previous is MethodDeclaration && previous.body is EmptyFunctionBody) {
+      if (previous is MethodDeclaration && isEmptyBody(previous.body)) {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
@@ -202,7 +208,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
           previousMember.functionExpression is FunctionExpression &&
-          previousMember.functionExpression.body is EmptyFunctionBody) {
+          isEmptyBody(previousMember.functionExpression.body)) {
         _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
         _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
         _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
@@ -335,6 +341,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    Expression expression = node.expression;
+    if (expression is Identifier || expression is PropertyAccess) {
+      if (entity == node.rightParenthesis) {
+        var next = expression.endToken.next;
+        if (next == entity || next == droppedToken) {
+          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
+          // stream but not part of the ParenthesizedExpression.
+          _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+          return;
+        }
+      }
+    }
+    _addExpressionKeywords(node);
+  }
+
+  @override
   visitIfStatement(IfStatement node) {
     if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
       // Actual: if (x i^)
@@ -390,7 +413,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     if (entity == node.body) {
-      if (node.body is EmptyFunctionBody) {
+      if (isEmptyBody(node.body)) {
         _addClassBodyKeywords();
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);

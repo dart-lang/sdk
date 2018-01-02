@@ -228,6 +228,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     }
   }
 
+  // TODO(sigmund): delete once Issue #31118 is fixed.
+  bool get reportMultiInheritanceIssue => true;
+
   void _addAtDepth(InterfaceType type, int depth) {
     LinkEntry<InterfaceType> prev = null;
     LinkEntry<InterfaceType> link = map[depth];
@@ -236,11 +239,13 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       if (existingType == type) return;
       if (existingType.element == type.element) {
         if (reporter != null) {
-          reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
-            'thisType': getThisType(cls),
-            'firstType': existingType,
-            'secondType': type
-          });
+          if (reportMultiInheritanceIssue) {
+            reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
+              'thisType': getThisType(cls),
+              'firstType': existingType,
+              'secondType': type
+            });
+          }
         } else {
           assert(false, failedAt(cls, 'Invalid ordered typeset for $cls'));
         }

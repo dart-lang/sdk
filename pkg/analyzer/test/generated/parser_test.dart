@@ -834,6 +834,32 @@ Function(int, String) v;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_generic_parameterType() {
+    createParser('m<T>(T p) => null;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+
+    FormalParameterList parameters = method.parameters;
+    expect(parameters, isNotNull);
+    expect(parameters.parameters, hasLength(1));
+    var parameter = parameters.parameters[0] as SimpleFormalParameter;
+    var parameterType = parameter.type as TypeName;
+    expect(parameterType.name.name, 'T');
+
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_generic_returnType() {
     createParser('T m<T>() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -846,6 +872,79 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_returnType_bound() {
+    createParser('T m<T extends num>() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect((method.returnType as TypeName).name.name, 'T');
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    TypeParameter tp = method.typeParameters.typeParameters[0];
+    expect(tp.name.name, 'T');
+    expect(tp.extendsKeyword, isNotNull);
+    expect((tp.bound as TypeName).name.name, 'num');
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_returnType_complex() {
+    createParser('Map<int, T> m<T>() => null;');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+
+    {
+      var returnType = method.returnType as TypeName;
+      expect(returnType, isNotNull);
+      expect(returnType.name.name, 'Map');
+
+      List<TypeAnnotation> typeArguments = returnType.typeArguments.arguments;
+      expect(typeArguments, hasLength(2));
+      expect((typeArguments[0] as TypeName).name.name, 'int');
+      expect((typeArguments[1] as TypeName).name.name, 'T');
+    }
+
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_returnType_static() {
+    createParser('static T m<T>() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<MethodDeclaration>());
+    MethodDeclaration method = member;
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect((method.returnType as TypeName).name.name, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
@@ -4659,6 +4758,21 @@ m() {
                   ]);
   }
 
+  void test_switchCase_missingColon() {
+    SwitchStatement statement = parseStatement('switch (a) {case 1 return 0;}');
+    expect(statement, isNotNull);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 19, 6)]);
+  }
+
+  void test_switchDefault_missingColon() {
+    SwitchStatement statement =
+        parseStatement('switch (a) {default return 0;}');
+    expect(statement, isNotNull);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 6)]);
+  }
+
   void test_switchHasCaseAfterDefaultCase() {
     SwitchStatement statement =
         parseStatement('switch (a) {default: return 0; case 1: return 1;}');
@@ -4695,21 +4809,6 @@ m() {
       expectedError(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, 31, 7),
       expectedError(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, 50, 7)
     ]);
-  }
-
-  void test_switchCase_missingColon() {
-    SwitchStatement statement = parseStatement('switch (a) {case 1 return 0;}');
-    expect(statement, isNotNull);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 19, 6)]);
-  }
-
-  void test_switchDefault_missingColon() {
-    SwitchStatement statement =
-        parseStatement('switch (a) {default return 0;}');
-    expect(statement, isNotNull);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 6)]);
   }
 
   void test_switchMissingBlock() {
@@ -10502,7 +10601,8 @@ class C {
     ForStatement statement = parseStatement('for (String item i) {}');
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
+      expectedError(
+          ParserErrorCode.EXPECTED_TOKEN, usingFastaParser ? 18 : 17, 1)
     ]);
     expect(statement, new isInstanceOf<ForStatement>());
     expect(statement.toSource(), 'for (String item; i;) {}');
