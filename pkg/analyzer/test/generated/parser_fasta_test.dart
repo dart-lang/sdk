@@ -758,14 +758,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_invalidOperatorAfterSuper_assignableExpression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, found 0
-    super.test_invalidOperatorAfterSuper_assignableExpression();
-  }
-
-  @override
-  @failingTest
   void test_invalidOperatorAfterSuper_primaryExpression() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true

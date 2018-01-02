@@ -1709,48 +1709,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidModifierOnSetter_member_async() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_syncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_async() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_syncStar();
-  }
-
-  @override
-  @failingTest
   test_invalidReferenceToThis_factoryConstructor() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
     await super.test_invalidReferenceToThis_factoryConstructor();

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_hint_code_driver_test.dart';
@@ -17,6 +18,11 @@ main() {
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
 
 @reflectiveTest
 class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
@@ -66,6 +72,15 @@ void g(bool c) {
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
+  test_unusedImport_annotationOnDirective() async {
+    // TODO(scheglov) We don't yet parse annotations on import directives.
+    fail('This test fails in checked mode (indirectly)');
+//    await super.test_unusedImport_annotationOnDirective();
   }
 
   @failingTest
