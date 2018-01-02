@@ -328,8 +328,10 @@ class _ElementWriter {
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
     } else if (e is InstanceCreationExpression) {
-      buffer.write(e.keyword.lexeme);
-      buffer.write(' ');
+      if (e.keyword != null) {
+        buffer.write(e.keyword.lexeme);
+        buffer.write(' ');
+      }
       writeExpression(e.constructorName);
       writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
           includeEmpty: true);

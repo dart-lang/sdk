@@ -2244,8 +2244,13 @@ class FixProcessor {
       var instanceCreation = coveredNode as InstanceCreationExpression;
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(
-            range.token(instanceCreation.keyword), 'const');
+        if (instanceCreation.keyword == null) {
+          builder.addSimpleInsertion(
+              instanceCreation.constructorName.offset, 'const');
+        } else {
+          builder.addSimpleReplacement(
+              range.token(instanceCreation.keyword), 'const');
+        }
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.USE_CONST);
     }

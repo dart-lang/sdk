@@ -6373,7 +6373,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   /**
    * The 'new' or 'const' keyword used to indicate how an object should be
-   * created.
+   * created, or `null` if the keyword is implicit.
    */
   @override
   Token keyword;
@@ -6414,7 +6414,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => keyword ?? _constructorName.beginToken;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()

@@ -4268,12 +4268,29 @@ class A {
 ''');
   }
 
-  test_replaceWithConstInstanceCreation() async {
+  test_replaceWithConstInstanceCreation_explicitNew() async {
     await resolveTestUnit('''
 class A {
   const A();
 }
 const a = new A();
+''');
+    await assertHasFix(DartFixKind.USE_CONST, '''
+class A {
+  const A();
+}
+const a = const A();
+''');
+  }
+
+  @failingTest
+  test_replaceWithConstInstanceCreation_implicitNew() async {
+    // This test fails because the implicit `new` isn't yet recognized.
+    await resolveTestUnit('''
+class A {
+  const A();
+}
+const a = A();
 ''');
     await assertHasFix(DartFixKind.USE_CONST, '''
 class A {
