@@ -1199,6 +1199,21 @@ fff() {
 ''');
   }
 
+  test_convertToBlockBody_OK_throw() async {
+    await resolveTestUnit('''
+class A {
+  mmm() => throw 'error';
+}
+''');
+    await assertHasAssistAt('mmm()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
+class A {
+  mmm() {
+    throw 'error';
+  }
+}
+''');
+  }
+
   test_convertToExpressionBody_BAD_already() async {
     await resolveTestUnit('''
 fff() => 42;
