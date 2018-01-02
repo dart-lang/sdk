@@ -24,7 +24,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   setUp() {
     super.setUp();
-    sourcePath = provider.convertPath('/p/lib/source.dart');
+    sourcePath = resourceProvider.convertPath('/p/lib/source.dart');
   }
 
   test_dartAsync_noPrefix() async {
@@ -391,7 +391,7 @@ class A {
 
   Future<List<ImportedElements>> _computeElements(
       String sourceContent, int offset, int length) async {
-    provider.newFile(sourcePath, sourceContent);
+    newFile(sourcePath, content: sourceContent);
     ResolveResult result = await driver.getResult(sourcePath);
     ImportedElementsComputer computer =
         new ImportedElementsComputer(result.unit, offset, length);

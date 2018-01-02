@@ -48,7 +48,7 @@ part '$testFile';
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         await driver.getResult(testFile),
-        provider,
+        resourceProvider,
         testSource,
         completionOffset,
         new CompletionPerformance());

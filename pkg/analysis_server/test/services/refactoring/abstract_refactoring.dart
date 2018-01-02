@@ -59,7 +59,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
     expect(fileEdit, isNotNull, reason: 'No file edit for $path');
     // validate resulting code
-    File file = provider.getResource(path);
+    File file = getFile(path);
     String ini = file.readAsStringSync();
     String actualCode = SourceEdit.applySequence(ini, fileEdit.edits);
     expect(actualCode, expectedCode);

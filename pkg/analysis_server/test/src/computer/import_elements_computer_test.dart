@@ -48,14 +48,14 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   Future<Null> createBuilder(String content) async {
     originalContent = content;
-    provider.newFile(path, content);
+    newFile(path, content: content);
     AnalysisResult result = await driver.getResult(path);
-    computer = new ImportElementsComputer(provider, result);
+    computer = new ImportElementsComputer(resourceProvider, result);
   }
 
   void setUp() {
     super.setUp();
-    path = provider.convertPath('/test.dart');
+    path = resourceProvider.convertPath('/test.dart');
   }
 
   test_createEdits_addImport_noDirectives() async {

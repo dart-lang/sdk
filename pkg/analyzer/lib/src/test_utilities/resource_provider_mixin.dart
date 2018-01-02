@@ -11,7 +11,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
  * path and convert it as appropriate for the actual platform.
  */
 class ResourceProviderMixin {
-  final MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
   void deleteFile(String path) {
     String convertedPath = resourceProvider.convertPath(path);

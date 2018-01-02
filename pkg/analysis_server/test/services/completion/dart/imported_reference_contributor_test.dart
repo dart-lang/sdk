@@ -3310,7 +3310,7 @@ class C extends B with M1, M2 {
         new SourceFactory([new DartUriResolver(sdk), resourceResolver]);
     String content2 = 'class ClassFromAnotherContext { }';
     Source source2 =
-        provider.newFile('/context2/foo.dart', content2).createSource();
+        newFile('/context2/foo.dart', content: content2).createSource();
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source2);
     context2.applyChanges(changeSet);
