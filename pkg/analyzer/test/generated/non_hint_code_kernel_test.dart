@@ -41,15 +41,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
   }
 
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_duplicateImport_as() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (38)
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_duplicateImport_as();
-  }
-
   @override
   test_unnecessaryCast_generics() async {
     // dartbug.com/18953
@@ -73,13 +64,6 @@ void g(bool c) {
     // TODO(scheglov) We don't yet parse annotations on import directives.
     fail('This test fails in checked mode (indirectly)');
 //    await super.test_unusedImport_annotationOnDirective();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_as_equalPrefixes() async {
-    await super.test_unusedImport_as_equalPrefixes();
   }
 
   @failingTest

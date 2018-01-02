@@ -5172,6 +5172,56 @@ class C {
     _assertTypeNameSimple(typeArguments[0], typeProvider.intType);
   }
 
+  test_typeAnnotation_prefixed() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "export 'a.dart';");
+    provider.newFile(c, "export 'a.dart';");
+    addTestFile(r'''
+import 'b.dart' as b;
+import 'c.dart' as c;
+b.A a1;
+c.A a2;
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement bImport = unit.element.library.imports[0];
+    ImportElement cImport = unit.element.library.imports[1];
+
+    LibraryElement bLibrary = bImport.importedLibrary;
+    LibraryElement aLibrary = bLibrary.exports[0].exportedLibrary;
+    ClassElement aClass = aLibrary.getType('A');
+
+    {
+      TopLevelVariableDeclaration declaration = unit.declarations[0];
+      TypeName typeName = declaration.variables.type;
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, aClass);
+
+      expect(typeIdentifier.prefix.name, 'b');
+      expect(typeIdentifier.prefix.staticElement, same(bImport.prefix));
+
+      expect(typeIdentifier.identifier.staticElement, aClass);
+    }
+
+    {
+      TopLevelVariableDeclaration declaration = unit.declarations[1];
+      TypeName typeName = declaration.variables.type;
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, aClass);
+
+      expect(typeIdentifier.prefix.name, 'c');
+      expect(typeIdentifier.prefix.staticElement, same(cImport.prefix));
+
+      expect(typeIdentifier.identifier.staticElement, aClass);
+    }
+  }
+
   test_typeLiteral() async {
     addTestFile(r'''
 void main() {

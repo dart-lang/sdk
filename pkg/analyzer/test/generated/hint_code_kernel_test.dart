@@ -164,13 +164,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_duplicateImport3() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 2 (18, 57)
-    return super.test_duplicateImport3();
-  }
-
-  @failingTest
-  @override
   test_invalidAssignment_instanceVariable() async {
     // Expected 1 errors of type HintCode.INVALID_ASSIGNMENT, found 0
     return super.test_invalidAssignment_instanceVariable();
@@ -433,15 +426,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_undefinedSetter() async {
     // Expected 1 errors of type HintCode.UNDEFINED_SETTER, found 0
     return super.test_undefinedSetter();
-  }
-
-  @failingTest
-  @override
-  test_unusedImport_as() async {
-    // Failed to resolve 2 nodes:
-    //   one (/test.dart : 53)
-    //   one (/test.dart : 58)
-    return super.test_unusedImport_as();
   }
 
   @failingTest

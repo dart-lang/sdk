@@ -36,6 +36,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   CompilationUnitElementImpl _enclosingUnit;
 
   /**
+   * The library element containing the compilation unit.
+   */
+  LibraryElement _enclosingLibrary;
+
+  /**
    * The type provider used to access the known types.
    */
   TypeProvider _typeProvider;
@@ -57,6 +62,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * if the element model and compilation unit do not match each other.
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
+    _enclosingLibrary = element.enclosingElement;
     _enclosingUnit = element;
     _typeProvider = _enclosingUnit.context?.typeProvider;
     _walker = new ElementWalker.forCompilationUnit(element);
@@ -107,8 +113,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (_applyKernelTypes) {
       node.name.staticType = _typeProvider.typeType;
       if (node.extendsClause != null) {
-        ResolutionApplier.applyToTypeAnnotation(
-            element.supertype, node.extendsClause.superclass);
+        _applyType(element.supertype, node.extendsClause.superclass);
       }
       if (node.withClause != null) {
         _applyTypeList(node.withClause.mixinTypes, element.mixins);
@@ -129,8 +134,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ClassElement element = _match(node.name, _walker.getClass());
     if (_applyKernelTypes) {
       node.name.staticType = _typeProvider.typeType;
-      ResolutionApplier.applyToTypeAnnotation(
-          element.supertype, node.superclass);
+      _applyType(element.supertype, node.superclass);
       if (node.withClause != null) {
         _applyTypeList(node.withClause.mixinTypes, element.mixins);
       }
@@ -177,8 +181,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       normalParameter.element = element;
       if (_applyKernelTypes) {
         if (normalParameter.type != null) {
-          ResolutionApplier.applyToTypeAnnotation(
-              element.type, normalParameter.type);
+          _applyType(element.type, normalParameter.type);
         }
         node.identifier?.staticType = element.type;
       }
@@ -265,8 +268,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     FieldElement firstFieldElement = node.fields.variables[0].element;
     if (_applyKernelTypes) {
       if (node.fields.type != null) {
-        ResolutionApplier.applyToTypeAnnotation(
-            firstFieldElement.type, node.fields.type);
+        _applyType(firstFieldElement.type, node.fields.type);
       }
     }
     _resolveMetadata(node, node.metadata, firstFieldElement);
@@ -293,7 +295,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitFormalParameterList(FormalParameterList node) {
     if (_applyKernelTypes) {
-      ResolutionApplier.applyParameters(_walker._parameters, node);
+      ResolutionApplier.applyParameters(
+          _enclosingLibrary, _walker._parameters, node);
       _walker.consumeParameters();
       return null;
     } else {
@@ -321,8 +324,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
     if (_applyKernelTypes) {
       if (node.returnType != null) {
-        ResolutionApplier.applyToTypeAnnotation(
-            element.returnType, node.returnType);
+        _applyType(element.returnType, node.returnType);
       }
       if (node.isGetter) {
         node.name.staticType = element.returnType;
@@ -357,8 +359,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     FunctionTypeAliasElement element = _match(node.name, _walker.getTypedef());
     if (_applyKernelTypes) {
       if (node.returnType != null) {
-        ResolutionApplier.applyToTypeAnnotation(
-            element.returnType, node.returnType);
+        _applyType(element.returnType, node.returnType);
       }
     }
     _walk(new ElementWalker.forTypedef(element), () {
@@ -394,8 +395,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         if (element is GenericFunctionTypeElement) {
           if (_applyKernelTypes) {
             if (node.returnType != null) {
-              ResolutionApplier.applyToTypeAnnotation(
-                  element.returnType, node.returnType);
+              _applyType(element.returnType, node.returnType);
             }
           }
           _setGenericFunctionType(node.returnType, element.returnType);
@@ -482,8 +482,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
     if (_applyKernelTypes) {
       if (node.returnType != null) {
-        ResolutionApplier.applyToTypeAnnotation(
-            element.returnType, node.returnType);
+        _applyType(element.returnType, node.returnType);
       }
       if (node.isGetter) {
         node.name.staticType = element.returnType;
@@ -532,7 +531,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       (node as SimpleFormalParameterImpl).element = element;
       if (_applyKernelTypes) {
         if (node.type != null) {
-          ResolutionApplier.applyToTypeAnnotation(element.type, node.type);
+          _applyType(element.type, node.type);
         }
         node.identifier?.staticType = element.type;
       }
@@ -566,7 +565,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (_applyKernelTypes) {
       TypeAnnotation type = node.variables.type;
       if (type != null) {
-        ResolutionApplier.applyToTypeAnnotation(firstElement.type, type);
+        _applyType(firstElement.type, type);
       }
     }
     _resolveMetadata(node, node.metadata, firstElement);
@@ -588,7 +587,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _match(node.name, _walker.getTypeParameter());
     if (_applyKernelTypes) {
       if (node.bound != null) {
-        ResolutionApplier.applyToTypeAnnotation(element.bound, node.bound);
+        _applyType(element.bound, node.bound);
       }
     }
     super.visitTypeParameter(node);
@@ -630,6 +629,25 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _resolveMetadata(node, node.metadata, firstVariable);
       }
       return null;
+    }
+  }
+
+  /// Apply [type] to the [typeAnnotation].
+  void _applyType(DartType type, TypeAnnotation typeAnnotation) {
+    ResolutionApplier.applyToTypeAnnotation(
+        _enclosingLibrary, type, typeAnnotation);
+  }
+
+  /**
+   * Apply [types] to [nodes].
+   * Both lists must have the same length.
+   */
+  void _applyTypeList(List<TypeName> nodes, List<InterfaceType> types) {
+    if (nodes.length != types.length) {
+      throw new StateError('$nodes != $types');
+    }
+    for (int i = 0; i < nodes.length; i++) {
+      _applyType(types[i], nodes[i]);
     }
   }
 
@@ -748,19 +766,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     callback();
     walker.validate();
     _walker = outerWalker;
-  }
-
-  /**
-   * Apply [types] to [nodes].
-   * Both lists must have the same length.
-   */
-  static void _applyTypeList(List<TypeName> nodes, List<InterfaceType> types) {
-    if (nodes.length != types.length) {
-      throw new StateError('$nodes != $types');
-    }
-    for (int i = 0; i < nodes.length; i++) {
-      ResolutionApplier.applyToTypeAnnotation(types[i], nodes[i]);
-    }
   }
 
   static bool _isBodyToCreateElementsFor(FunctionBody node) {

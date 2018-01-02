@@ -43,6 +43,7 @@ class ResolutionApplierTest extends FastaParserTestCase {
     FunctionDeclaration function = unit.declarations[0];
     FunctionBody body = function.functionExpression.body;
     ResolutionApplier applier = new ResolutionApplier(
+        null,
         new _TestTypeContext(),
         declaredElements,
         referencedElements,

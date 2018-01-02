@@ -744,6 +744,7 @@ class LibraryAnalyzer {
               redirectName.staticElement = redirectedConstructor;
               // TODO(scheglov) Support for import prefix?
               ResolutionApplier.applyConstructorElement(
+                  _libraryElement,
                   null,
                   redirectedConstructor,
                   redirectedConstructor.returnType,
@@ -1137,6 +1138,7 @@ class _ResolutionApplierContext implements TypeContext {
     }
 
     applier = new ValidatingResolutionApplier(
+        libraryElement,
         this,
         declaredElements,
         referencedElements,

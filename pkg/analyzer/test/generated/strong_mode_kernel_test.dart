@@ -427,13 +427,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_then_prefixed() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (7)
-    await super.test_genericMethod_then_prefixed();
-  }
-
-  @override
-  @failingTest
   test_implicitBounds() async {
     // Expected: 'B<num>'
     await super.test_implicitBounds();

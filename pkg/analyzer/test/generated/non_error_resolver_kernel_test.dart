@@ -237,13 +237,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_prefixCollidesWithTopLevelMembers() async {
-    return super.test_prefixCollidesWithTopLevelMembers();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_returnOfInvalidType_typeParameter_18468() async {
     return super.test_returnOfInvalidType_typeParameter_18468();
   }
