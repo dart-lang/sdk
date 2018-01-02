@@ -1920,6 +1920,126 @@ var b = new C.named(2);
     }
   }
 
+  test_instanceCreation_prefixed() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class C<T> {
+  C(T p);
+  C.named(T p);
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+main() {
+  new p.C(0);
+  new p.C.named(1.2);
+  new p.C<bool>.named(false);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    ClassElement cElement = aLibrary.getType('C');
+    ConstructorElement defaultConstructor = cElement.constructors[0];
+    ConstructorElement namedConstructor = cElement.constructors[1];
+    InterfaceType cType = cElement.type;
+    var cTypeDynamic = cType.instantiate([DynamicTypeImpl.instance]);
+
+    var statements = _getMainStatements(result);
+    {
+      var cTypeInt = cType.instantiate([typeProvider.intType]);
+
+      ExpressionStatement statement = statements[0];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, defaultConstructor);
+      expect(creation.staticType, cTypeInt);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, same(cElement));
+      if (previewDart2) {
+        expect(typeIdentifier.staticType, cTypeInt);
+      } else {
+        expect(typeIdentifier.staticType, cTypeDynamic);
+      }
+
+      SimpleIdentifier typePrefix = typeIdentifier.prefix;
+      expect(typePrefix.name, 'p');
+      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticType, isNull);
+
+      expect(typeIdentifier.identifier.staticElement, same(cElement));
+
+      expect(creation.constructorName.name, isNull);
+    }
+
+    {
+      var cTypeDouble = cType.instantiate([typeProvider.doubleType]);
+
+      ExpressionStatement statement = statements[1];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, namedConstructor);
+      expect(creation.staticType, cTypeDouble);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      if (previewDart2) {
+        expect(typeIdentifier.staticType, cTypeDouble);
+      } else {
+        expect(typeIdentifier.staticType, cTypeDynamic);
+      }
+
+      SimpleIdentifier typePrefix = typeIdentifier.prefix;
+      expect(typePrefix.name, 'p');
+      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticType, isNull);
+
+      expect(typeIdentifier.identifier.staticElement, same(cElement));
+
+      SimpleIdentifier constructorName = creation.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+    }
+
+    {
+      var cTypeBool = cType.instantiate([typeProvider.boolType]);
+
+      ExpressionStatement statement = statements[2];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, namedConstructor);
+      expect(creation.staticType, cTypeBool);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments.arguments, hasLength(1));
+      _assertTypeNameSimple(
+          typeName.typeArguments.arguments[0], typeProvider.boolType);
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cTypeBool);
+
+      SimpleIdentifier typePrefix = typeIdentifier.prefix;
+      expect(typePrefix.name, 'p');
+      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticType, isNull);
+
+      expect(typeIdentifier.identifier.staticElement, same(cElement));
+
+      SimpleIdentifier constructorName = creation.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+    }
+  }
+
   test_instanceCreation_withTypeArguments() async {
     String content = r'''
 class C<K, V> {

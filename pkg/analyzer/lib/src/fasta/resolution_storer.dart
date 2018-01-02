@@ -242,8 +242,9 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool constructorInvocationEnter(
-      InvocationExpression expression, DartType typeContext) {
+  bool constructorInvocationEnter(InvocationExpression expression,
+      String prefixName, DartType typeContext) {
+    _recordImportPrefix(prefixName);
     _deferReference(expression.fileOffset);
     _deferType(expression.fileOffset);
     return true;
@@ -512,10 +513,7 @@ class ResolutionStorer extends TypeInferenceListener {
       Expression write,
       DartType typeContext) {
     // if there was an import prefix, record it.
-    if (prefixName != null) {
-      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
-      _recordType(const NullType(), UNKNOWN_OFFSET);
-    }
+    _recordImportPrefix(prefixName);
     // If the static target is explicit (and is a class), record it.
     if (targetClass != null) {
       _recordReference(targetClass, targetOffset);
@@ -547,10 +545,7 @@ class ResolutionStorer extends TypeInferenceListener {
   bool staticGetEnter(StaticGet expression, String prefixName, int targetOffset,
       Class targetClass, DartType typeContext) {
     // if there was an import prefix, record it.
-    if (prefixName != null) {
-      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
-      _recordType(const NullType(), UNKNOWN_OFFSET);
-    }
+    _recordImportPrefix(prefixName);
     // If the static target is explicit (and is a class), record it.
     if (targetClass != null) {
       _recordReference(targetClass, targetOffset);
@@ -571,10 +566,7 @@ class ResolutionStorer extends TypeInferenceListener {
   bool staticInvocationEnter(StaticInvocation expression, String prefixName,
       int targetOffset, Class targetClass, DartType typeContext) {
     // if there was an import prefix, record it.
-    if (prefixName != null) {
-      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
-      _recordType(const NullType(), UNKNOWN_OFFSET);
-    }
+    _recordImportPrefix(prefixName);
     // If the static target is explicit (and is a class), record it.
     if (targetClass != null) {
       _recordReference(targetClass, targetOffset);
@@ -633,10 +625,7 @@ class ResolutionStorer extends TypeInferenceListener {
   bool typeLiteralEnter(@override TypeLiteral expression, String prefixName,
       DartType typeContext) {
     // if there was an import prefix, record it.
-    if (prefixName != null) {
-      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
-      _recordType(const NullType(), UNKNOWN_OFFSET);
-    }
+    _recordImportPrefix(prefixName);
     return super.typeLiteralEnter(expression, prefixName, typeContext);
   }
 
@@ -718,6 +707,14 @@ class ResolutionStorer extends TypeInferenceListener {
 
   void _recordDeclaration(TreeNode declaration, int offset) {
     _declarations.add(declaration);
+  }
+
+  /// If the [prefixName] is not `null` record the reference to it.
+  void _recordImportPrefix(String prefixName) {
+    if (prefixName != null) {
+      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
+      _recordType(const NullType(), UNKNOWN_OFFSET);
+    }
   }
 
   int _recordReference(Node target, int offset) {

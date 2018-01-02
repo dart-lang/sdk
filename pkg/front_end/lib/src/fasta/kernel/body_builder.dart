@@ -2364,7 +2364,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      return new ShadowConstructorInvocation(target, initialTarget, arguments,
+      return new ShadowConstructorInvocation(
+          prefixName, target, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2374,7 +2375,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
         return new ShadowFactoryConstructorInvocation(
-            target, initialTarget, arguments,
+            prefixName, target, initialTarget, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
@@ -2459,11 +2460,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     ShadowArguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
+
+    String prefixName;
     var type = pop();
     if (type is TypeDeclarationAccessor) {
       TypeDeclarationAccessor accessor = type;
+      prefixName = accessor.prefix?.name;
       type = accessor.declaration;
     }
+
     bool savedConstantExpressionRequired = pop();
     () {
       if (arguments == null) {
@@ -2538,6 +2543,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           push(buildStaticInvocation(target, arguments,
               isConst: optional("const", token) || optional("@", token),
               charOffset: nameToken.charOffset,
+              prefixName: prefixName,
               initialTarget: initialTarget));
           return;
         } else {

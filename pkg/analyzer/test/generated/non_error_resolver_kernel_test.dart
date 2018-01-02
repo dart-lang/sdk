@@ -130,13 +130,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constDeferredClass_new() async {
-    return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();

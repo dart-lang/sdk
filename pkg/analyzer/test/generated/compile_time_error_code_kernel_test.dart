@@ -75,13 +75,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_prefix() async {
-    // 'package:analyzer/src/fasta/resolution_applier.dart': Failed assertion: line 632 pos 14: 'constructorName.name == null': is not true.
-    await super.test_async_used_as_identifier_in_prefix();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_statement_label() async {
     // Bad state: Expected element reference for analyzer offset 14; got one for kernel offset 21
     await super.test_async_used_as_identifier_in_statement_label();

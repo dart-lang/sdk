@@ -742,9 +742,11 @@ class LibraryAnalyzer {
             if (redirectName != null) {
               var redirectedConstructor = context.redirectedConstructor;
               redirectName.staticElement = redirectedConstructor;
+              // TODO(scheglov) Support for import prefix?
               ResolutionApplier.applyConstructorElement(
-                  redirectedConstructor.returnType,
+                  null,
                   redirectedConstructor,
+                  redirectedConstructor.returnType,
                   redirectName);
               // TODO(scheglov) Add support for type parameterized redirects.
             } else {

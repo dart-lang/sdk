@@ -160,8 +160,8 @@ class TypeInferenceListener
           ConditionalExpression expression, DartType inferredType) =>
       genericExpressionExit("conditionalExpression", expression, inferredType);
 
-  bool constructorInvocationEnter(
-          InvocationExpression expression, DartType typeContext) =>
+  bool constructorInvocationEnter(InvocationExpression expression,
+          String prefixName, DartType typeContext) =>
       genericExpressionEnter("constructorInvocation", expression, typeContext);
 
   void constructorInvocationExit(

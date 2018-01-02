@@ -314,15 +314,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructorName = node.constructorName;
 
+    // Peek forward and check if the next element is a PrefixElement.
+    PrefixElement prefix;
+    if (_referencedElements[_referencedElementIndex] is PrefixElement) {
+      prefix = _getReferenceFor(constructorName);
+      _getTypeFor(constructorName); // prefix type
+    }
+
+    ConstructorElement constructor = _getReferenceFor(constructorName);
     DartType type = _getTypeFor(constructorName);
-    ConstructorElement element = _getReferenceFor(constructorName);
 
-    constructorName.staticElement = element;
+    applyConstructorElement(prefix, constructor, type, constructorName);
 
-    node.staticElement = element;
+    node.staticElement = constructor;
     node.staticType = type;
-
-    applyConstructorElement(type, element, constructorName);
 
     ArgumentList argumentList = node.argumentList;
     _applyResolutionToArguments(argumentList);
@@ -608,32 +613,39 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   /// Apply the [type] that is created by the [constructorName] and the
   /// [constructorElement] it references.
-  static void applyConstructorElement(DartType type,
-      ConstructorElement constructorElement, ConstructorName constructorName) {
+  static void applyConstructorElement(
+      PrefixElement prefixElement,
+      ConstructorElement constructorElement,
+      DartType type,
+      ConstructorName constructorName) {
+    constructorName.staticElement = constructorElement;
+
     ClassElement classElement = constructorElement?.enclosingElement;
 
     Identifier typeIdentifier = constructorName.type.name;
-    if (typeIdentifier is SimpleIdentifier) {
-      applyToTypeAnnotation(type, constructorName.type);
-      if (constructorName.name != null) {
-        constructorName.name.staticElement = constructorElement;
-      }
-    } else if (typeIdentifier is PrefixedIdentifier) {
-      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
-      // TODO(scheglov) Add support for `new prefix.Type()`.
-      // TODO(scheglov) Add support for `new prefix.Type.name()`.
-      assert(constructorName.name == null);
-      constructorName.period = typeIdentifier.period;
-      constructorName.name = typeIdentifier.identifier;
+    if (prefixElement != null) {
+      PrefixedIdentifier prefixedTypeIdentifier = typeIdentifier;
+      prefixedTypeIdentifier.staticType = type;
 
-      SimpleIdentifier classNode = typeIdentifier.prefix;
+      prefixedTypeIdentifier.prefix.staticElement = prefixElement;
+
+      SimpleIdentifier classNode = prefixedTypeIdentifier.identifier;
       classNode.staticElement = classElement;
       classNode.staticType = type;
-
-      constructorName.type = astFactory.typeName(classNode, null);
-      constructorName.type.type = type;
-      constructorName.name.staticElement = constructorElement;
+    } else {
+      if (typeIdentifier is SimpleIdentifier) {
+        typeIdentifier.staticElement = classElement;
+        typeIdentifier.staticType = type;
+      } else if (typeIdentifier is PrefixedIdentifier) {
+        constructorName.type = astFactory.typeName(typeIdentifier.prefix, null);
+        constructorName.period = typeIdentifier.period;
+        constructorName.name = typeIdentifier.identifier;
+      }
     }
+
+    constructorName.name?.staticElement = constructorElement;
+
+    applyToTypeAnnotation(type, constructorName.type);
   }
 
   /// Apply the types of the [parameterElements] to the [parameterList] that
