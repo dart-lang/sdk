@@ -77,7 +77,7 @@ vars = {
   "fixnum_tag": "@0.10.5",
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
-  "html_tag" : "@0.13.2",
+  "html_tag" : "@0.13.2+1",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
   "http_retry_tag": "@0.1.0",
