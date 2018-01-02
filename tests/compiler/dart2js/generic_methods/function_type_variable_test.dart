@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:expect/expect.dart';
-import 'type_test_helper.dart';
+import '../type_test_helper.dart';
 
 const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
   // TODO(johnniwinther): Test generic bounds when #31531 is fixed.
@@ -21,13 +21,12 @@ const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
 ];
 
 main() {
-  DartTypeConverter.enableFunctionTypeVariables = true;
   asyncTest(() async {
     var env = await TypeEnvironment
         .create(createTypedefs(existentialTypeData, additionalData: """
     class C1 {}
     class C2 {}
-  """), compileMode: CompileMode.kernel);
+  """), compileMode: CompileMode.kernel, options: [Flags.strongMode]);
 
     testToString(FunctionType type, String expectedToString) {
       Expect.equals(expectedToString, type.toString());

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:expect/expect.dart';
-import 'type_test_helper.dart';
+import '../type_test_helper.dart';
 
 List<FunctionTypeData> signatures = const <FunctionTypeData>[
   const FunctionTypeData("void", "0", "()"),
@@ -21,13 +21,14 @@ List<FunctionTypeData> signatures = const <FunctionTypeData>[
 ];
 
 main() {
-  DartTypeConverter.enableFunctionTypeVariables = true;
-
   asyncTest(() async {
-    TypeEnvironment env = await TypeEnvironment.create("""
+    TypeEnvironment env = await TypeEnvironment.create(
+        """
       ${createTypedefs(signatures, prefix: 't')}
       ${createMethods(signatures, prefix: 'm')}
-    """, compileMode: CompileMode.kernel);
+    """,
+        compileMode: CompileMode.kernel,
+        options: [Flags.strongMode]);
 
     for (FunctionTypeData data in signatures) {
       FunctionType functionType = env.getElementType('t${data.name}');

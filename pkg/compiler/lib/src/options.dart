@@ -213,10 +213,15 @@ class CompilerOptions implements DiagnosticOptions {
   /// sources to kernel, and then continue compilation from the kernel
   /// representation.
   ///
-  /// When this flag is on, the compiler also acccepts reading .dill files from
+  /// When this flag is on, the compiler also accepts reading .dill files from
   /// disk. The compiler reads the sources differently depending on the
   /// extension format.
   final bool useKernel;
+
+  /// Enables strong mode in dart2js.
+  ///
+  /// This is work-in-progress and will only be supported for [useKernel].
+  final bool strongMode;
 
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
@@ -325,6 +330,7 @@ class CompilerOptions implements DiagnosticOptions {
         resolveOnly: _hasOption(options, Flags.resolveOnly),
         sourceMapUri: _extractUriOption(options, '--source-map='),
         strips: _extractCsvOption(options, '--force-strip='),
+        strongMode: _hasOption(options, Flags.strongMode),
         testMode: _hasOption(options, Flags.testMode),
         trustJSInteropTypeAnnotations:
             _hasOption(options, Flags.trustJSInteropTypeAnnotations),
@@ -390,6 +396,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool resolveOnly: false,
       Uri sourceMapUri: null,
       List<String> strips: const [],
+      bool strongMode: false,
       bool testMode: false,
       bool trustJSInteropTypeAnnotations: false,
       bool trustPrimitives: false,
@@ -470,6 +477,7 @@ class CompilerOptions implements DiagnosticOptions {
         resolveOnly: resolveOnly,
         sourceMapUri: sourceMapUri,
         strips: strips,
+        strongMode: strongMode,
         testMode: testMode,
         trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
         trustPrimitives: trustPrimitives,
@@ -522,6 +530,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.compileOnly: false,
       this.sourceMapUri: null,
       this.strips: const [],
+      this.strongMode: false,
       this.testMode: false,
       this.trustJSInteropTypeAnnotations: false,
       this.trustPrimitives: false,
@@ -582,6 +591,7 @@ class CompilerOptions implements DiagnosticOptions {
       compileOnly,
       sourceMapUri,
       strips,
+      strongMode,
       testMode,
       trustJSInteropTypeAnnotations,
       trustPrimitives,
@@ -649,6 +659,7 @@ class CompilerOptions implements DiagnosticOptions {
         compileOnly: compileOnly ?? options.compileOnly,
         sourceMapUri: sourceMapUri ?? options.sourceMapUri,
         strips: strips ?? options.strips,
+        strongMode: strongMode ?? options.strongMode,
         testMode: testMode ?? options.testMode,
         trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations ??
             options.trustJSInteropTypeAnnotations,

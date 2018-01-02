@@ -71,6 +71,7 @@ abstract class KernelToWorldBuilder implements KernelToElementMapForBuilding {
 }
 
 abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
+  final CompilerOptions options;
   final DiagnosticReporter reporter;
   CommonElements _commonElements;
   ElementEnvironment _elementEnvironment;
@@ -92,7 +93,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   final EntityDataMap<IndexedTypedef, TypedefData> _typedefs =
       new EntityDataMap<IndexedTypedef, TypedefData>();
 
-  KernelToElementMapBase(this.reporter, Environment environment) {
+  KernelToElementMapBase(this.options, this.reporter, Environment environment) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElements(_elementEnvironment);
     _constantEnvironment = new KernelConstantEnvironment(this, environment);
@@ -438,8 +439,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       namedParameterTypes.add(getDartType(variable.type));
     }
     List<FunctionTypeVariable> typeVariables;
-    if (node.typeParameters.isNotEmpty &&
-        DartTypeConverter.enableFunctionTypeVariables) {
+    if (node.typeParameters.isNotEmpty && options.strongMode) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
         typeParameters
@@ -793,7 +793,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 }
 
 /// Mixin that implements the abstract methods in [KernelToElementMapBase].
-abstract class ElementCreatorMixin {
+abstract class ElementCreatorMixin implements KernelToElementMapBase {
   ProgramEnv get _env;
   EntityDataEnvMap<IndexedLibrary, LibraryData, LibraryEnv> get _libraries;
   EntityDataEnvMap<IndexedClass, ClassData, ClassEnv> get _classes;
@@ -1015,11 +1015,8 @@ abstract class ElementCreatorMixin {
     int typeParameters = node.typeParameters.length;
     List<String> namedParameters =
         node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(
-        requiredParameters,
-        positionalParameters,
-        namedParameters,
-        DartTypeConverter.enableFunctionTypeVariables ? typeParameters : 0);
+    return new ParameterStructure(requiredParameters, positionalParameters,
+        namedParameters, options.strongMode ? typeParameters : 0);
   }
 
   IndexedLibrary createLibrary(String name, Uri canonicalUri);
@@ -1145,11 +1142,10 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
-  CompilerOptions _options;
 
   KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
-      Environment environment, this._frontendStrategy, this._options)
-      : super(reporter, environment);
+      Environment environment, this._frontendStrategy, CompilerOptions options)
+      : super(options, reporter, environment);
 
   @override
   bool checkFamily(Entity entity) {
@@ -1181,7 +1177,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   @override
   native.BehaviorBuilder get nativeBehaviorBuilder =>
       _nativeBehaviorBuilder ??= new KernelBehaviorBuilder(elementEnvironment,
-          commonElements, nativeBasicData, reporter, _options);
+          commonElements, nativeBasicData, reporter, options);
 
   ResolutionImpact computeWorldImpact(KMember member) {
     return buildKernelImpact(
@@ -1190,7 +1186,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = _members.getData(member).definition.node;
-    return KernelClosureAnalysis.computeScopeModel(member, node, _options);
+    return KernelClosureAnalysis.computeScopeModel(member, node, options);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].
@@ -1548,8 +1544,6 @@ class KernelElementEnvironment extends ElementEnvironment {
 
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
-  static bool enableFunctionTypeVariables = false;
-
   final KernelToElementMapBase elementMap;
   final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
       <ir.TypeParameter, DartType>{};
@@ -1602,7 +1596,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     int index = 0;
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
-      if (enableFunctionTypeVariables) {
+      if (elementMap.options.strongMode) {
         // TODO(johnniwinther): Support recursive type variable bounds, like
         // `void Function<T extends Foo<T>>(T t)` when #31531 is fixed.
         DartType bound = typeParameter.bound.accept(this);
@@ -2068,7 +2062,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
       KernelToElementMapForImpactImpl _elementMap)
-      : super(reporter, environment) {
+      : super(_elementMap.options, reporter, environment) {
     _env = _elementMap._env;
     for (int libraryIndex = 0;
         libraryIndex < _elementMap._libraries.length;

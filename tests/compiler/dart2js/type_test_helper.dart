@@ -49,6 +49,7 @@ class TypeEnvironment {
       bool stopAfterTypeInference: false,
       String mainSource,
       bool testBackendWorld: false,
+      List<String> options: const <String>[],
       Map<String, String> fieldTypeMap: const <String, String>{}}) async {
     Uri uri;
     Compiler compiler;
@@ -75,12 +76,12 @@ class TypeEnvironment {
           memorySourceFiles: {'main.dart': source},
           diagnosticHandler: collector,
           options: stopAfterTypeInference
-              ? [Flags.disableTypeInference]
-              : [
+              ? ([Flags.disableTypeInference]..addAll(options))
+              : ([
                   Flags.disableTypeInference,
                   Flags.analyzeAll,
                   Flags.analyzeOnly
-                ],
+                ]..addAll(options)),
           beforeRun: (Compiler compiler) {
             compiler.stopAfterTypeInference = stopAfterTypeInference;
           });
@@ -104,8 +105,8 @@ class TypeEnvironment {
             memorySourceFiles: {'main.dart': source},
             diagnosticHandler: collector,
             options: stopAfterTypeInference
-                ? []
-                : [Flags.analyzeAll, Flags.analyzeOnly],
+                ? options
+                : ([Flags.analyzeAll, Flags.analyzeOnly]..addAll(options)),
             beforeRun: (compiler) {
               compiler.stopAfterTypeInference = stopAfterTypeInference;
             });
