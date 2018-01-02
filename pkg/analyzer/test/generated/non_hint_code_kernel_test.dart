@@ -35,14 +35,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_deadCode_deadBlock_if_debugConst_propertyAccessor() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_deadCode_deadBlock_if_debugConst_propertyAccessor();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_deprecatedMemberUse_inDeprecatedLibrary() async {
     // LibraryAnalyzer is not applying resolution data to annotations on
     // directives.

@@ -180,22 +180,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constantVariable_topLevel_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidAnnotation_constConstructor_importWithPrefix() async {
     return super.test_invalidAnnotation_constConstructor_importWithPrefix();
   }

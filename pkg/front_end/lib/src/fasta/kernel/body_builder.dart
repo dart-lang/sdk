@@ -2316,7 +2316,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       var prefix = type[0];
       identifier = type[1];
       if (prefix is PrefixBuilder) {
-        type = scopeLookup(prefix.exportScope, identifier.name, start,
+        type = scopeLookup(
+            prefix.exportScope, identifier.name, identifier.token,
             isQualified: true, prefix: prefix);
         identifier = null;
       } else if (prefix is TypeDeclarationAccessor) {

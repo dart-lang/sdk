@@ -1099,6 +1099,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         }
         accessor = new StaticAccessor.fromBuilder(
             helper, builder, send.token, setter,
+            prefix: prefix,
             targetOffset: declarationReferenceOffset,
             targetClass: declaration.target);
       }
