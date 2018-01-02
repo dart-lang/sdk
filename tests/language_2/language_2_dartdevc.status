@@ -399,7 +399,7 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 instantiate_tearoff_after_contravariance_check_test: Crash
-instantiate_tearoff_of_call_test: Crash
+instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: Crash
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue13179_test: CompileTimeError # Issue 31537

@@ -1257,8 +1257,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var replacedExpression = handlePropertyGetContravariance(receiver,
         interfaceMember, desugaredGet, expression, inferredType, fileOffset);
     if ((interfaceMember is Procedure &&
-            interfaceMember.kind == ProcedureKind.Method) ||
-        interfaceMember == 'call') {
+        interfaceMember.kind == ProcedureKind.Method)) {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
     }
