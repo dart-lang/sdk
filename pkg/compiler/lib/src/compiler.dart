@@ -926,6 +926,7 @@ abstract class Compiler {
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
   bool inUserCode(Entity element, {bool assumeInUserCode: false}) {
+    if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
     Iterable<CodeLocation> userCodeLocations =

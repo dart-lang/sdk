@@ -640,6 +640,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return data.getFunctionType(this);
   }
 
+  List<TypeVariableType> _getFunctionTypeVariables(IndexedFunction function) {
+    assert(checkFamily(function));
+    FunctionData data = _members.getData(function);
+    return data.getFunctionTypeVariables(this);
+  }
+
   DartType _getFieldType(IndexedField field) {
     assert(checkFamily(field));
     FieldData data = _members.getData(field);
@@ -1341,6 +1347,11 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
+    return elementMap._getFunctionTypeVariables(function);
+  }
+
+  @override
   DartType getFieldType(FieldEntity field) {
     return elementMap._getFieldType(field);
   }
@@ -1583,7 +1594,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         node.parameter.parent.parent is ir.Procedure) {
       // Special case for Dart 1 compatibility in checked mode.
       ir.Procedure typeParameterParent = node.parameter.parent.parent;
-      if (typeParameterParent.kind != ir.ProcedureKind.Factory) {
+      if (typeParameterParent.kind != ir.ProcedureKind.Factory &&
+          !elementMap.options.strongMode) {
         return new Dart1MethodTypeVariableType(
             elementMap.getTypeVariable(node.parameter));
       }

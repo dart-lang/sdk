@@ -39,6 +39,7 @@ abstract class RuntimeTypesNeed {
   bool classNeedsRti(ClassEntity cls);
   bool classNeedsRtiField(ClassEntity cls);
   bool methodNeedsRti(FunctionEntity function);
+  bool methodNeedsGenericRti(FunctionEntity function);
   // TODO(redemption): Remove this when the old frontend is deleted.
   bool localFunctionNeedsRti(Local function);
   bool classUsesTypeVariableExpression(ClassEntity cls);
@@ -252,6 +253,10 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
     return methodsNeedingRti.contains(function) ||
         _backendUsage.isRuntimeTypeUsed;
   }
+
+  // TODO(johnniwinther): Optimize to only include generic methods that really
+  // need the RTI.
+  bool methodNeedsGenericRti(FunctionEntity function) => true;
 
   bool localFunctionNeedsRti(Local function) {
     if (localFunctionsNeedingRti == null) {

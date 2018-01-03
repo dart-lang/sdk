@@ -1401,6 +1401,9 @@ abstract class ElementEnvironment {
   /// Returns the type of [function].
   FunctionType getFunctionType(FunctionEntity function);
 
+  /// Returns the function type variables defined on [function].
+  List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function);
+
   /// Returns the type of [field].
   DartType getFieldType(FieldEntity field);
 

@@ -564,11 +564,38 @@ abstract class MemberDataImpl implements MemberData {
 abstract class FunctionData implements MemberData {
   FunctionType getFunctionType(KernelToElementMap elementMap);
 
+  List<TypeVariableType> getFunctionTypeVariables(
+      KernelToElementMap elementMap);
+
   void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue));
 }
 
-class FunctionDataImpl extends MemberDataImpl implements FunctionData {
+abstract class FunctionDataMixin implements FunctionData {
+  ir.FunctionNode get functionNode;
+  List<TypeVariableType> _typeVariables;
+
+  List<TypeVariableType> getFunctionTypeVariables(
+      covariant KernelToElementMapBase elementMap) {
+    if (_typeVariables == null) {
+      if (functionNode.typeParameters.isEmpty ||
+          !elementMap.options.strongMode) {
+        _typeVariables = const <TypeVariableType>[];
+      } else {
+        _typeVariables = functionNode.typeParameters
+            .map<TypeVariableType>((ir.TypeParameter typeParameter) {
+          return elementMap
+              .getDartType(new ir.TypeParameterType(typeParameter));
+        }).toList();
+      }
+    }
+    return _typeVariables;
+  }
+}
+
+class FunctionDataImpl extends MemberDataImpl
+    with FunctionDataMixin
+    implements FunctionData {
   final ir.FunctionNode functionNode;
   FunctionType _type;
 

@@ -6,14 +6,9 @@
 library dart2js.kernel.run_from_dill_test;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/dart2js.dart' as dart2js;
-import 'package:compiler/src/filenames.dart';
-import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 
 import 'compiler_helper.dart';
 import '../serialization/helper.dart';
@@ -104,28 +99,11 @@ Future<ResultKind> mainInternal(List<String> args,
     memorySourceFiles = SOURCE;
   }
 
-  Uri mainFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
-  String output = uriPathToNative(mainFile.resolve('out.js').path);
-  List<String> dart2jsArgs = [
-    mainFile.toString(),
-    '-o$output',
-    Flags.useKernel,
-    Flags.enableAssertMessage,
-    '--packages=${Platform.packageConfig}',
-  ];
-  print('Running: dart2js ${dart2jsArgs.join(' ')}');
-
-  await dart2js.internalMain(dart2jsArgs);
-
-  print('---- run from dill --------------------------------------------');
-  ProcessResult runResult = Process.runSync(d8executable,
-      ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js', output]);
-  String out = '${runResult.stderr}\n${runResult.stdout}';
-  print('d8 output:');
-  print(out);
-  Expect.equals(0, runResult.exitCode);
-  Expect.equals(OUTPUT, runResult.stdout.replaceAll('\r\n', '\n'));
+  await runWithD8(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      options: [Flags.useKernel, Flags.enableAssertMessage],
+      expectedOutput: OUTPUT);
 
   return ResultKind.success;
 }

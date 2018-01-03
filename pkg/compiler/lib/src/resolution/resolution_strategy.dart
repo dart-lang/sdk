@@ -730,6 +730,12 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
+    throw new UnsupportedError(
+        "_CompilerElementEnvironment.getFunctionTypeVariables");
+  }
+
+  @override
   DartType getFieldType(covariant FieldElement field) {
     field.computeType(_resolution);
     return field.type;

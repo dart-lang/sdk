@@ -624,7 +624,9 @@ abstract class ClosureMemberData implements MemberData {
   }
 }
 
-class ClosureFunctionData extends ClosureMemberData implements FunctionData {
+class ClosureFunctionData extends ClosureMemberData
+    with FunctionDataMixin
+    implements FunctionData {
   final FunctionType functionType;
   final ir.FunctionNode functionNode;
   final ClassTypeVariableAccess classTypeVariableAccess;
