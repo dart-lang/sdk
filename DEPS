@@ -108,7 +108,7 @@ vars = {
   "protobuf_tag": "@0.5.4",
   "pub_rev": "@667281eef93b4be648cceca400e954e000edba38",
   "pub_semver_tag": "@1.3.2",
-  "quiver_tag": "@0.25.0",
+  "quiver_tag": "@0.27.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
   "scheduled_test_tag": "@0.12.11+1",
