@@ -2789,16 +2789,16 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
   virtual bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  // TODO(sjindel): Implement Canonicalize to finalize dst_type when the
-  // instantiator and function type args are constant.
  private:
   const TokenPosition token_pos_;
-  const AbstractType& sub_type_;
-  const AbstractType& super_type_;
+  AbstractType& sub_type_;
+  AbstractType& super_type_;
   const String& dst_name_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);

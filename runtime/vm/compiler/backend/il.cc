@@ -408,6 +408,42 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   return dst_type().raw() == other_assert->dst_type().raw();
 }
 
+Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If all values for type parameters are known (i.e. from instantiator and
+  // function) we can instantiate the sub and super type and remove this
+  // instruction if the subtype test succeeds.
+  ConstantInstr* constant_instantiator_type_args =
+      instantiator_type_arguments()->definition()->AsConstant();
+  ConstantInstr* constant_function_type_args =
+      function_type_arguments()->definition()->AsConstant();
+  if ((constant_instantiator_type_args != NULL) &&
+      (constant_function_type_args != NULL)) {
+    ASSERT(constant_instantiator_type_args->value().IsNull() ||
+           constant_instantiator_type_args->value().IsTypeArguments());
+    ASSERT(constant_function_type_args->value().IsNull() ||
+           constant_function_type_args->value().IsTypeArguments());
+
+    Zone* Z = Thread::Current()->zone();
+    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
+        Z,
+        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+
+    const TypeArguments& function_type_args = TypeArguments::Handle(
+        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
+
+    Error& error_bound = Error::Handle(Z);
+
+    AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
+    AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
+    if (AbstractType::InstantiateAndTestSubtype(
+            &sub_type, &super_type, &error_bound, instantiator_type_args,
+            function_type_args)) {
+      return NULL;
+    }
+  }
+  return this;
+}
+
 bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
   AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
   ASSERT(other_assert != NULL);
