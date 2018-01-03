@@ -26,12 +26,24 @@ const List<String> dataDirectories = const <String>[
   '../jumps/data',
 ];
 
+const List<String> skipList = const <String>[
+  // TODO(johnniwinther): Fix these when kernel provides a unique offset for
+  // `()` in `foo[0]()`.
+  'closure_tracer.dart',
+  'closure_tracer_28919.dart',
+  'index_call.dart',
+];
+
 main(List<String> args) {
   asyncTest(() async {
     for (String path in dataDirectories) {
       Directory dataDir = new Directory.fromUri(Platform.script.resolve(path));
       await for (FileSystemEntity entity in dataDir.list()) {
         if (args.isNotEmpty && !args.contains(entity.uri.pathSegments.last)) {
+          continue;
+        }
+        if (skipList.contains(entity.uri.pathSegments.last)) {
+          print('Skipping ${entity.uri}');
           continue;
         }
         print('Checking ${entity.uri}');
