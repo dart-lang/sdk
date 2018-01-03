@@ -349,7 +349,7 @@ class ComputeSpannableMixin {
           }
         }
         return true;
-      }, failedAt(currentElement, message));
+      }(), failedAt(currentElement, message));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
