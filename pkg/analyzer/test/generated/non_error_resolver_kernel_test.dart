@@ -277,13 +277,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstantValueInInitializer_namedArgument() async {
-    return super.test_nonConstantValueInInitializer_namedArgument();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31628')
   test_nonConstCaseExpression_constField() async {
     return super.test_nonConstCaseExpression_constField();

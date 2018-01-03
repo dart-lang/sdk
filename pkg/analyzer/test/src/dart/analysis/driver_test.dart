@@ -1304,11 +1304,11 @@ class C {
     addTestFile(r'''
 class A {
   A(int a);
-  A.named(int a);
+  A.named(int a, {int b});
 }
 class B extends A {
-  B.one(int b) : super(b + 1);
-  B.two(int b) : super.named(b + 1);
+  B.one(int p) : super(p + 1);
+  B.two(int p) : super.named(p + 1, b: p + 2);
 }
 ''');
     AnalysisResult result = await driver.getResult(testFile);
@@ -1335,6 +1335,10 @@ class B extends A {
       var constructorName = initializer.constructorName;
       expect(constructorName.staticElement, same(namedConstructor));
       expect(constructorName.staticType, isNull);
+
+      List<Expression> arguments = initializer.argumentList.arguments;
+      _assertArgumentToParameter(arguments[0], namedConstructor.parameters[0]);
+      _assertArgumentToParameter(arguments[1], namedConstructor.parameters[1]);
     }
   }
 
@@ -3222,6 +3226,42 @@ class C {
 
     Expression argument = arguments[0];
     expect(argument.staticParameterElement, isNull);
+  }
+
+  test_methodInvocation_notFunction_getter_typedef() async {
+    addTestFile(r'''
+typedef String Fun(int a, {int b});
+class C {
+  Fun get f => null;
+  foo() {
+    f(1, b: 2);
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionTypeAlias funDeclaration = result.unit.declarations[0];
+    FunctionTypeAliasElement funElement = funDeclaration.element;
+
+    ClassDeclaration cDeclaration = result.unit.declarations[1];
+
+    MethodDeclaration fDeclaration = cDeclaration.members[0];
+    PropertyAccessorElement fElement = fDeclaration.element;
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+    List<Statement> fooStatements = fooBody.block.statements;
+
+    ExpressionStatement statement = fooStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement));
+    expect(invocation.staticInvokeType.toString(), '(int, {b: int}) → String');
+    expect(invocation.staticType, typeProvider.stringType);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+    _assertArgumentToParameter(arguments[0], funElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], funElement.parameters[1]);
   }
 
   test_methodInvocation_notFunction_local_dynamic() async {
@@ -5263,6 +5303,10 @@ typedef void F(int p);
     ParameterElement actualParameter = argument.staticParameterElement;
     if (previewDart2) {
       expect(actualParameter, isNull);
+      if (argument is NamedExpression) {
+        SimpleIdentifier name = argument.name.label;
+        expect(name.staticElement, same(expectedParameter));
+      }
     } else {
       ParameterElement baseActualParameter;
       if (actualParameter is ParameterMember) {
@@ -5280,9 +5324,9 @@ typedef void F(int p);
         baseActualParameter = actualParameter;
       }
       expect(baseActualParameter, same(expectedParameter));
-      // TODO(scheglov) Make this work for previewDart2 too.
       if (argument is NamedExpression) {
-        expect(argument.name.label.staticElement, same(expectedParameter));
+        SimpleIdentifier name = argument.name.label;
+        expect(name.staticElement, same(actualParameter));
       }
     }
   }

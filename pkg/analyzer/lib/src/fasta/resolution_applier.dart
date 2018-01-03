@@ -339,6 +339,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
     _applyResolutionToArguments(argumentList);
+    _resolveNamedArguments(argumentList, constructor?.parameters);
   }
 
   @override
@@ -402,6 +403,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
 
     _applyResolutionToArguments(argumentList);
+
+    {
+      var elementForParameters = invokeElement;
+      if (elementForParameters is PropertyAccessorElement) {
+        PropertyAccessorElement accessor = elementForParameters;
+        elementForParameters = accessor.returnType.element;
+      }
+      if (elementForParameters is FunctionTypedElement) {
+        List<ParameterElement> parameters = elementForParameters.parameters;
+        _resolveNamedArguments(argumentList, parameters);
+      }
+    }
   }
 
   @override
@@ -473,6 +486,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
     _applyResolutionToArguments(argumentList);
+    _resolveNamedArguments(argumentList, element?.parameters);
   }
 
   @override
@@ -499,16 +513,19 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SimpleIdentifier constructorName = node.constructorName;
     var superElement = _typeContext.enclosingClassElement.supertype.element;
+    ConstructorElement element;
     if (constructorName == null) {
-      node.staticElement = superElement.unnamedConstructor;
+      element = superElement.unnamedConstructor;
     } else {
       String name = constructorName.name;
-      var superConstructor = superElement.getNamedConstructor(name);
-      node.staticElement = superConstructor;
-      constructorName.staticElement = superConstructor;
+      element = superElement.getNamedConstructor(name);
+      constructorName.staticElement = element;
     }
+    node.staticElement = element;
 
-    node.argumentList.accept(this);
+    ArgumentList argumentList = node.argumentList;
+    _applyResolutionToArguments(argumentList);
+    _resolveNamedArguments(argumentList, element?.parameters);
   }
 
   @override
@@ -620,6 +637,24 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     assert(!synthetic || entity == null);
     kernel.DartType kernelType = _types[_typeIndex++];
     return _typeContext.translateType(kernelType);
+  }
+
+  /// Apply resolution to named arguments of the [argumentList].
+  void _resolveNamedArguments(
+      ArgumentList argumentList, List<ParameterElement> parameters) {
+    if (parameters != null) {
+      for (var argument in argumentList.arguments) {
+        if (argument is NamedExpression) {
+          SimpleIdentifier identifier = argument.name.label;
+          for (var parameter in parameters) {
+            if (parameter.name == identifier.name) {
+              identifier.staticElement = parameter;
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 
   /// Apply the [type] that is created by the [constructorName] and the
