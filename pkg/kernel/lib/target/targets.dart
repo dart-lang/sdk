@@ -72,6 +72,16 @@ abstract class Target {
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
 
+  /// Perform target-specific transformations on the outlines stored in
+  /// [Program] when generating summaries.
+  ///
+  /// This transformation is used to add metadata on outlines and to filter
+  /// unnecessary information before generating program summaries. This
+  /// transformation is not applied when compiling full kernel programs to
+  /// prevent affecting the internal invariants of the compiler and accidentally
+  /// slowing down compilation.
+  void performOutlineTransformations(Program program) {}
+
   /// Perform target-specific modular transformations on the given program.
   ///
   /// These transformations should not be whole-program transformations.  They
