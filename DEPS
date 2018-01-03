@@ -53,7 +53,7 @@ vars = {
   "charcode_tag": "@v1.1.1",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.1.2+1",
-  "collection_tag": "@1.14.3",
+  "collection_tag": "@1.14.5",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.2+1",
   "csslib_tag" : "@0.14.1",
