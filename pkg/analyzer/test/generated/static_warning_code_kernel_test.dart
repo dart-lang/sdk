@@ -12,12 +12,12 @@ main() {
   });
 }
 
+const potentialAnalyzerProblem = const Object();
+
 /// Tests marked with this annotation fail because of a Fasta problem.
 class FastaProblem {
   const FastaProblem(String issueUri);
 }
-
-const potentialAnalyzerProblem = const Object();
 
 @reflectiveTest
 class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
@@ -26,34 +26,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   bool get previewDart2 => true;
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
-  test_finalNotInitialized_inConstructor_1() async {
-    return super.test_finalNotInitialized_inConstructor_1();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
-  test_finalNotInitialized_inConstructor_2() async {
-    return super.test_finalNotInitialized_inConstructor_2();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
-  test_finalNotInitialized_inConstructor_3() async {
-    return super.test_finalNotInitialized_inConstructor_3();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
-  test_importOfNonLibrary() async {
-    return super.test_importOfNonLibrary();
-  }
 
   @override
   @failingTest
@@ -743,6 +715,27 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
+  test_finalNotInitialized_inConstructor_1() async {
+    return super.test_finalNotInitialized_inConstructor_1();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
+  test_finalNotInitialized_inConstructor_2() async {
+    return super.test_finalNotInitialized_inConstructor_2();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31073')
+  test_finalNotInitialized_inConstructor_3() async {
+    return super.test_finalNotInitialized_inConstructor_3();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_finalNotInitialized_instanceField_final() async {
     return super.test_finalNotInitialized_instanceField_final();
@@ -823,6 +816,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_importDuplicatedLibraryNamed() async {
     return super.test_importDuplicatedLibraryNamed();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
+  test_importOfNonLibrary() async {
+    return super.test_importOfNonLibrary();
   }
 
   @override
@@ -1494,13 +1494,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_nonVoidReturnForSetter_method() async {
     return super.test_nonVoidReturnForSetter_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_notAType() async {
-    return super.test_notAType();
   }
 
   @override

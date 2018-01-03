@@ -530,7 +530,7 @@ class FastaErrorReporter {
       return words;
     }).join('_');
 
-    final code = errorCodeByUniqueName(analyzerCode);
+    final code = _getErrorCode(analyzerCode);
     if (code != null) {
       errorReporter.reportError(new AnalysisError.forValues(
           errorReporter.source,
@@ -563,5 +563,23 @@ class FastaErrorReporter {
           message.message,
           null));
     }
+  }
+
+  /// Return the [ErrorCode] for the given [shortName], or `null` if not found.
+  static ErrorCode _getErrorCode(String shortName) {
+    const prefixes = const {
+      CompileTimeErrorCode: 'CompileTimeErrorCode',
+      ParserErrorCode: 'ParserErrorCode',
+      StaticTypeWarningCode: 'StaticTypeWarningCode',
+      StaticWarningCode: 'StaticWarningCode'
+    };
+    for (var prefix in prefixes.values) {
+      var uniqueName = '$prefix.$shortName';
+      var errorCode = errorCodeByUniqueName(uniqueName);
+      if (errorCode != null) {
+        return errorCode;
+      }
+    }
+    return null;
   }
 }

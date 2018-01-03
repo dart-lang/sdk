@@ -212,14 +212,13 @@ class LibraryAnalyzer {
 
         // Invalid part URIs can result in an element with a null source
         if (unit.element.source != null) {
-          final errorListener = new FastaErrorReporter(
-              new ErrorReporter(_getErrorListener(file), unit.element.source));
+          final reporter = new FastaErrorReporter(_getErrorReporter(file));
           final libraryKernelResult = kernelResult.results
               .expand((r) => r.libraryResults)
               .where((r) => r.library.importUri == unit.element.source.uri)
               .firstWhere((_) => true, orElse: () => null);
-          libraryKernelResult?.errors?.forEach((kernelError) =>
-              errorListener.reportCompilationMessage(kernelError));
+          libraryKernelResult?.errors?.forEach(
+              (kernelError) => reporter.reportCompilationMessage(kernelError));
         }
       });
 

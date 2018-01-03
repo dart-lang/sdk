@@ -15,6 +15,11 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, or disabled for Dart 2.0 altogether.
+const notForDart2 = const Object();
+
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
@@ -39,6 +44,55 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     // LibraryAnalyzer is not applying resolution data to annotations on
     // directives.
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedGetter_inSubtype() async {
+    await super.test_undefinedGetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedMethod_inSubtype() async {
+    await super.test_undefinedMethod_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_binaryExpression_inSubtype() async {
+    await super.test_undefinedOperator_binaryExpression_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexBoth_inSubtype() async {
+    await super.test_undefinedOperator_indexBoth_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexGetter_inSubtype() async {
+    await super.test_undefinedOperator_indexGetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexSetter_inSubtype() async {
+    await super.test_undefinedOperator_indexSetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedSetter_inSubtype() async {
+    await super.test_undefinedSetter_inSubtype();
   }
 
   @override

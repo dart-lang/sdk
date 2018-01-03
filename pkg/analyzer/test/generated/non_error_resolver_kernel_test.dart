@@ -12,6 +12,11 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, or disabled for Dart 2.0 altogether.
+const notForDart2 = const Object();
+
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
@@ -42,6 +47,21 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_argumentTypeNotAssignable_classWithCall_Function() async {
+    return super.test_argumentTypeNotAssignable_classWithCall_Function();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_async_return_flattens_futures() async {
+    // Only FutureOr is flattened.
+    return super.test_async_return_flattens_futures();
   }
 
   @override
@@ -194,6 +214,41 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_2() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_2();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_3() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_3();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_4() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_4();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invocationOfNonFunction_Object() async {
+    return super.test_invocationOfNonFunction_Object();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_loadLibraryDefined() async {
     return super.test_loadLibraryDefined();
@@ -216,6 +271,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_nonBoolExpression_functionType() async {
+    return super.test_nonBoolExpression_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_nonConstantValueInInitializer_namedArgument() async {
     return super.test_nonConstantValueInInitializer_namedArgument();
   }
@@ -232,6 +294,20 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31627')
   test_nonConstMapKey_constField() async {
     return super.test_nonConstMapKey_constField();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_null_callMethod() async {
+    return super.test_null_callMethod();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_null_callOperator() async {
+    return super.test_null_callOperator();
   }
 
   @override

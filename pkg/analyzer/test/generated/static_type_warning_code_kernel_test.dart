@@ -43,20 +43,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_await_flattened() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_await_flattened();
-  }
-
-  @override
-  @failingTest
-  test_await_simple() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_await_simple();
-  }
-
-  @override
-  @failingTest
   test_awaitForIn_declaredVariableWrongType() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
     await super.test_awaitForIn_declaredVariableWrongType();
@@ -74,13 +60,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_awaitForIn_notStream() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, found 0
     await super.test_awaitForIn_notStream();
-  }
-
-  @override
-  @failingTest
-  test_bug21912() async {
-    // Expected 2 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_bug21912();
   }
 
   @override
@@ -275,13 +254,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_invalidAssignment_compoundAssignment() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_compoundAssignment();
-  }
-
-  @override
-  @failingTest
   test_invalidAssignment_defaultValue_named() async {
     // UnimplementedError: kernel: (Let) let final dynamic #t1 = 0 in let ...
     await super.test_invalidAssignment_defaultValue_named();
@@ -299,69 +271,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_invalidAssignment_dynamic() async {
     // Bad state: No reference information for dynamic at 11
     await super.test_invalidAssignment_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_functionExpressionInvocation() async {
-    // Bad state: No reference information for (() => 5)() at 22
-    await super.test_invalidAssignment_functionExpressionInvocation();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_ifNullAssignment() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_ifNullAssignment();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_instanceVariable() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_instanceVariable();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_localVariable() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_localVariable();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_regressionInIssue18468Fix() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_regressionInIssue18468Fix();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_staticVariable() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_staticVariable();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_topLevelVariableDeclaration() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_topLevelVariableDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_typeParameter() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_typeParameter();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_variableDeclaration() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_invalidAssignment_variableDeclaration();
   }
 
   @override
@@ -758,14 +667,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super
-        .test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated();
-  }
-
-  @override
-  @failingTest
   test_typePromotion_booleanAnd_useInRight_mutatedInLeft() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
     await super.test_typePromotion_booleanAnd_useInRight_mutatedInLeft();
@@ -773,118 +674,9 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_typePromotion_booleanAnd_useInRight_mutatedInRight() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_booleanAnd_useInRight_mutatedInRight();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super
-        .test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super
-        .test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_conditional_useInThen_hasAssignment() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_conditional_useInThen_hasAssignment();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_accessedInClosure_hasAssignment() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_accessedInClosure_hasAssignment();
-  }
-
-  @override
-  @failingTest
   test_typePromotion_if_and_right_hasAssignment() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
     await super.test_typePromotion_if_and_right_hasAssignment();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_extends_notMoreSpecific_dynamic() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_extends_notMoreSpecific_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super
-        .test_typePromotion_if_extends_notMoreSpecific_notMoreSpecificTypeArg();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_hasAssignment_after() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_hasAssignment_after();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_hasAssignment_before() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_hasAssignment_before();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_hasAssignment_inClosure_anonymous_after() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_hasAssignment_inClosure_anonymous_after();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_hasAssignment_inClosure_anonymous_before() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super
-        .test_typePromotion_if_hasAssignment_inClosure_anonymous_before();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_hasAssignment_inClosure_function_after() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_hasAssignment_inClosure_function_after();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_hasAssignment_inClosure_function_before() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_hasAssignment_inClosure_function_before();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_implements_notMoreSpecific_dynamic() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_implements_notMoreSpecific_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_typePromotion_if_with_notMoreSpecific_dynamic() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_typePromotion_if_with_notMoreSpecific_dynamic();
   }
 
   @override
@@ -910,30 +702,9 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedGetter() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_undefinedGetter();
-  }
-
-  @override
-  @failingTest
   test_undefinedGetter_generic_function_call() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
     await super.test_undefinedGetter_generic_function_call();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_object_call() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_undefinedGetter_object_call();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_proxy_annotation_fakeProxy() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_undefinedGetter_proxy_annotation_fakeProxy();
   }
 
   @override
@@ -945,23 +716,9 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedGetter_typeLiteral_cascadeTarget() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_undefinedGetter_typeLiteral_cascadeTarget();
-  }
-
-  @override
-  @failingTest
   test_undefinedGetter_typeLiteral_conditionalAccess() async {
     // Bad state: No reference information for A at 18
     await super.test_undefinedGetter_typeLiteral_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_void() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
-    await super.test_undefinedGetter_void();
   }
 
   @override
@@ -983,20 +740,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedGetter_wrongOfTypeArgument() async {
     // Expected 1 errors of type StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, found 0
     await super.test_undefinedGetter_wrongOfTypeArgument();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethod() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
-    await super.test_undefinedMethod();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethod_assignmentExpression() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
-    await super.test_undefinedMethod_assignmentExpression();
   }
 
   @override
@@ -1032,13 +775,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedMethod_ofNull() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
     await super.test_undefinedMethod_ofNull();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethod_private() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
-    await super.test_undefinedMethod_private();
   }
 
   @override
@@ -1113,30 +849,9 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedSetter() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SETTER, found 0
-    await super.test_undefinedSetter();
-  }
-
-  @override
-  @failingTest
   test_undefinedSetter_static() async {
     // Bad state: No reference information for A at 17
     await super.test_undefinedSetter_static();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSetter_typeLiteral_cascadeTarget() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SETTER, found 0
-    await super.test_undefinedSetter_typeLiteral_cascadeTarget();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSetter_void() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SETTER, found 0
-    await super.test_undefinedSetter_void();
   }
 
   @override
