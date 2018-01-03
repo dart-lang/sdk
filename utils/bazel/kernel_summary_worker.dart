@@ -16,6 +16,7 @@ import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:front_end/src/api_unstable/summary_worker.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
+import 'package:kernel/ast.dart' show Program, Library;
 import 'package:kernel/target/targets.dart';
 
 main(List<String> args) async {
@@ -82,6 +83,10 @@ List<String> preprocessArgs(List<String> args) {
 /// An [ArgParser] for generating kernel summaries.
 final summaryArgsParser = new ArgParser()
   ..addFlag('help', negatable: false)
+  ..addFlag('exclude-non-sources',
+      negatable: false,
+      help: 'Whether source files loaded implicitly should be included as '
+          'part of the summary.')
   ..addOption('dart-sdk-summary')
   ..addOption('input-summary', allowMultiple: true)
   ..addOption('multi-root', allowMultiple: true)
@@ -115,14 +120,15 @@ Future<bool> computeSummary(List<String> args,
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.PhysicalFileSystem.instance);
-
+  var sources = parsedArgs['source'].map(Uri.parse).toList();
   var state = await fe.initializeCompiler(
       // TODO(sigmund): pass an old state once we can make use of it.
       null,
       Uri.base.resolve(parsedArgs['dart-sdk-summary']),
       Uri.base.resolve(parsedArgs['packages-file']),
       parsedArgs['input-summary'].map(Uri.base.resolve).toList(),
-      new NoneTarget(new TargetFlags()),
+      new SummaryTarget(sources, parsedArgs['exclude-non-sources'],
+          new TargetFlags(strongMode: true)),
       fileSystem);
 
   void onProblem(problem, severity, String formatted, line, column) {
@@ -136,7 +142,6 @@ Future<bool> computeSummary(List<String> args,
     }
   }
 
-  var sources = parsedArgs['source'].map(Uri.parse).toList();
   var summary = await fe.compile(state, sources, onProblem);
 
   if (summary != null) {
@@ -148,4 +153,45 @@ Future<bool> computeSummary(List<String> args,
   }
 
   return succeeded;
+}
+
+/// A target that transforms outlines to meet the requirements of summaries in
+/// bazel and package-build.
+///
+/// Build systems like package-build may provide the same input file twice to
+/// the summary worker, but only intends to have it in one output summary.  The
+/// convention is that if it is listed as a source, it is intended to be part of
+/// the output, if the source file was loaded as a dependency, then it was
+/// already included in a different summary.  The transformation below ensures
+/// that the output summary doesn't include those implicit inputs.
+///
+/// Note: this transformation is destructive and is only intended to be used
+/// when generating summaries.
+class SummaryTarget extends NoneTarget {
+  final List<Uri> sources;
+  final bool excludeNonSources;
+
+  SummaryTarget(this.sources, this.excludeNonSources, TargetFlags flags)
+      : super(flags);
+
+  @override
+  void performOutlineTransformations(Program program) {
+    if (!excludeNonSources) return;
+
+    List<Library> libraries = new List.from(program.libraries);
+    program.libraries.clear();
+    Set<Uri> include = sources.toSet();
+    for (var lib in libraries) {
+      if (include.contains(lib.importUri)) {
+        program.libraries.add(lib);
+      } else {
+        // Excluding the library also means that their canonical names will not
+        // be computed as part of serialization, so we need to do that
+        // preemtively here to avoid errors when serializing references to
+        // elements of these libraries.
+        program.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
+        lib.computeCanonicalNames();
+      }
+    }
+  }
 }
