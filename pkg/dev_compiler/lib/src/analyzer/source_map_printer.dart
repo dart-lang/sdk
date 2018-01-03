@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, CompilationUnit, Identifier;
 import 'package:analyzer/dart/element/element.dart'
     show Element, CompilationUnitElement;
-import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
+import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
