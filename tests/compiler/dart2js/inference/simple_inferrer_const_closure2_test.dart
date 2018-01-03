@@ -4,9 +4,12 @@
 
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import '../compiler_helper.dart';
+import 'type_mask_test_helper.dart';
+import '../memory_compiler.dart';
 
 const String TEST = """
 
@@ -27,19 +30,29 @@ main() {
 """;
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    Expect.isTrue(result.isSuccess);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
 
-        checkReturn(String name, type) {
-          MemberElement element = findElement(compiler, name);
-          dynamic returnType = typesInferrer.getReturnTypeOfMember(element);
-          Expect.equals(type, returnType.simplify(compiler), name);
-        }
+    checkReturn(String name, type) {
+      MemberEntity element = findMember(closedWorld, name);
+      TypeMask returnType = typesInferrer.getReturnTypeOfMember(element);
+      Expect.equals(type, simplify(returnType, closedWorld), name);
+    }
 
-        checkReturn('method', closedWorld.commonMasks.numType);
-        checkReturn('returnNum', closedWorld.commonMasks.numType);
-      }));
+    checkReturn('method', closedWorld.commonMasks.numType);
+    checkReturn('returnNum', closedWorld.commonMasks.numType);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

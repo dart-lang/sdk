@@ -4,12 +4,12 @@
 
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
 
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
-import '../compiler_helper.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:expect/expect.dart';
 import 'type_mask_test_helper.dart';
-
-import 'dart:async';
+import '../memory_compiler.dart';
 
 const String TEST1 = r"""
 foo(int x) {
@@ -132,31 +132,39 @@ main() {
 }
 """;
 
-Future runTest(String test, checker) {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(test, uri);
-  return compiler.run(uri).then((_) {
-    var typesInferrer = compiler.globalInference.typesInferrerInternal;
-    var closedWorld = typesInferrer.closedWorld;
-    var commonMasks = closedWorld.commonMasks;
+main() {
+  runTests({bool useKernel}) async {
+    runTest(String test, checker) async {
+      CompilationResult result = await runCompiler(
+          memorySourceFiles: {'main.dart': test},
+          options: useKernel ? [Flags.useKernel] : []);
+      Expect.isTrue(result.isSuccess);
+      var compiler = result.compiler;
+      var typesInferrer = compiler.globalInference.typesInferrerInternal;
+      var closedWorld = typesInferrer.closedWorld;
+      var commonMasks = closedWorld.commonMasks;
 
-    checkTypeOf(String name, TypeMask type) {
-      MemberElement element = findElement(compiler, name);
-      var mask = typesInferrer.getReturnTypeOfMember(element);
-      Expect.equals(type, simplify(mask, closedWorld));
+      checkTypeOf(String name, TypeMask type) {
+        FunctionEntity element = findMember(closedWorld, name);
+        var mask = typesInferrer.getReturnTypeOfMember(element);
+        Expect.equals(type, simplify(mask, closedWorld));
+      }
+
+      checker(commonMasks, checkTypeOf);
     }
 
-    checker(commonMasks, checkTypeOf);
-  });
-}
-
-main() {
-  asyncTest(() async {
     await runTest(TEST1, (t, c) => c("foo", t.stringType));
     await runTest(TEST2, (t, c) => c("foo", t.stringType.nullable()));
     await runTest(TEST3, (t, c) => c("foo", t.uint31Type.nullable()));
     await runTest(TEST4, (t, c) => c("foo", t.uint31Type));
     await runTest(TEST5, (t, c) => c("foo", t.uint31Type.nullable()));
     await runTest(TEST6, (t, c) => c("foo", t.uint31Type.nullable()));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }

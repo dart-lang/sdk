@@ -4,10 +4,12 @@
 
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 import 'type_mask_test_helper.dart';
-import '../compiler_helper.dart';
+import '../memory_compiler.dart';
 
 const String TEST = """
 class X {}
@@ -95,35 +97,43 @@ main() {
 """;
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    Expect.isTrue(result.isSuccess);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
 
-        checkReturn(String name, type) {
-          MemberElement element = findElement(compiler, name);
-          Expect.equals(
-              type,
-              simplify(
-                  typesInferrer.getReturnTypeOfMember(element), closedWorld));
-        }
+    checkReturn(String name, type) {
+      MemberEntity element = findMember(closedWorld, name);
+      Expect.equals(type,
+          simplify(typesInferrer.getReturnTypeOfMember(element), closedWorld));
+    }
 
-        var subclassOfInterceptor = closedWorld.commonMasks.interceptorType;
+    var subclassOfInterceptor = interceptorOrComparable(closedWorld);
 
-        checkReturn('returnDyn1', subclassOfInterceptor);
-        checkReturn('returnDyn2', subclassOfInterceptor);
-        checkReturn('returnDyn3', subclassOfInterceptor);
-        checkReturn(
-            'returnDyn4', closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn(
-            'returnDyn5', closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn(
-            'returnDyn6', closedWorld.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnDyn7', subclassOfInterceptor);
-        checkReturn('returnDyn7b', subclassOfInterceptor);
-        checkReturn('returnDyn8', subclassOfInterceptor);
-        checkReturn('returnDyn9', subclassOfInterceptor);
-        checkReturn('returnString', closedWorld.commonMasks.stringType);
-      }));
+    checkReturn('returnDyn1', subclassOfInterceptor);
+    checkReturn('returnDyn2', subclassOfInterceptor);
+    checkReturn('returnDyn3', subclassOfInterceptor);
+    checkReturn(
+        'returnDyn4', closedWorld.commonMasks.dynamicType.nonNullable());
+    checkReturn(
+        'returnDyn5', closedWorld.commonMasks.dynamicType.nonNullable());
+    checkReturn(
+        'returnDyn6', closedWorld.commonMasks.dynamicType.nonNullable());
+    checkReturn('returnDyn7', subclassOfInterceptor);
+    checkReturn('returnDyn7b', subclassOfInterceptor);
+    checkReturn('returnDyn8', subclassOfInterceptor);
+    checkReturn('returnDyn9', subclassOfInterceptor);
+    checkReturn('returnString', closedWorld.commonMasks.stringType);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

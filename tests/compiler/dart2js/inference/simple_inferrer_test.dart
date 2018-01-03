@@ -4,12 +4,12 @@
 
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart' show TypeMask;
-
 import 'type_mask_test_helper.dart';
-import '../compiler_helper.dart';
+import '../memory_compiler.dart';
 
 const String TEST = """
 returnNum1(a) {
@@ -521,19 +521,19 @@ testReturnNull3(a) {
 }
 
 testReturnNull4() {
-  var a = topLeveGetter();
+  var a = topLevelGetter();
   if (a == null) return a;
   return null;
 }
 
 testReturnNull5() {
-  var a = topLeveGetter();
+  var a = topLevelGetter();
   if (a != null) return null;
   return a;
 }
 
 testReturnNull6() {
-  var a = topLeveGetter();
+  var a = topLevelGetter();
   if (a == null) return 42;
   return a;
 }
@@ -725,168 +725,164 @@ main() {
 """;
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  compiler.diagnosticHandler = createHandler(compiler, TEST);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
-        var commonMasks = closedWorld.commonMasks;
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    Expect.isTrue(result.isSuccess);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
+    var commonMasks = closedWorld.commonMasks;
 
-        checkReturn(String name, type) {
-          MemberElement element = findElement(compiler, name);
-          Expect.equals(
-              type,
-              simplify(
-                  typesInferrer.getReturnTypeOfMember(element), closedWorld),
-              name);
-        }
+    checkReturn(String name, type) {
+      MemberEntity element = findMember(closedWorld, name);
+      Expect.equals(
+          type,
+          simplify(typesInferrer.getReturnTypeOfMember(element), closedWorld),
+          name);
+    }
 
-        var interceptorType = commonMasks.interceptorType;
+    var interceptorType = commonMasks.interceptorType;
+    var interceptorOrComparableType = interceptorOrComparable(closedWorld);
 
-        checkReturn('returnNum1', commonMasks.numType);
-        checkReturn('returnNum2', commonMasks.numType);
-        checkReturn('returnInt1', commonMasks.uint31Type);
-        checkReturn('returnInt2', commonMasks.uint31Type);
-        checkReturn('returnDouble', commonMasks.doubleType);
-        checkReturn('returnGiveUp', interceptorType);
-        checkReturn(
-            'returnInt5', commonMasks.uint32Type); // uint31+uint31->uint32
-        checkReturn(
-            'returnInt6', commonMasks.uint32Type); // uint31+uint31->uint32
-        checkReturn('returnIntOrNull', commonMasks.uint31Type.nullable());
-        checkReturn('returnInt3', commonMasks.uint31Type);
-        checkReturn('returnDynamic', commonMasks.dynamicType);
-        checkReturn('returnInt4', commonMasks.uint31Type);
-        checkReturn('returnInt7', commonMasks.positiveIntType);
-        checkReturn('returnInt8', commonMasks.positiveIntType);
-        checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
-        checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
-        TypeMask intType = new TypeMask.nonNullSubtype(
-            closedWorld.commonElements.intClass, closedWorld);
-        checkReturn('testIsCheck1', intType);
-        checkReturn('testIsCheck2', intType);
-        checkReturn('testIsCheck3', intType.nullable());
-        checkReturn('testIsCheck4', intType);
-        checkReturn('testIsCheck5', intType);
-        checkReturn('testIsCheck6', commonMasks.dynamicType);
-        checkReturn('testIsCheck7', intType);
-        checkReturn('testIsCheck8', commonMasks.dynamicType);
-        checkReturn('testIsCheck9', intType);
-        checkReturn('testIsCheck10', commonMasks.dynamicType);
-        checkReturn('testIsCheck11', intType);
-        checkReturn('testIsCheck12', commonMasks.dynamicType);
-        checkReturn('testIsCheck13', intType);
-        checkReturn('testIsCheck14', commonMasks.dynamicType);
-        // TODO(29309): Re-enable when 29309 is fixed.
-        // checkReturn('testIsCheck15', intType);
-        checkReturn('testIsCheck16', commonMasks.dynamicType);
-        checkReturn('testIsCheck17', intType);
-        checkReturn('testIsCheck18', commonMasks.dynamicType);
-        checkReturn('testIsCheck19', commonMasks.dynamicType);
-        checkReturn('testIsCheck20', interceptorType);
-        checkReturn('testIsCheck21', commonMasks.dynamicType);
-        checkReturn('testIsCheck22', commonMasks.dynamicType);
-        checkReturn('testIsCheck23', intType);
-        checkReturn('testIsCheck24', intType);
-        checkReturn('testIsCheck25', commonMasks.dynamicType);
-        checkReturn('testIsCheck26', intType);
-        checkReturn('testIsCheck27', intType);
-        checkReturn('testIsCheck28', commonMasks.dynamicType);
-        checkReturn('testIsCheck29', commonMasks.dynamicType);
-        checkReturn('testIf1', commonMasks.uint31Type.nullable());
-        checkReturn('testIf2', commonMasks.uint31Type.nullable());
-        checkReturn(
-            'returnAsString',
-            new TypeMask.subtype(
-                closedWorld.commonElements.stringClass, closedWorld));
-        checkReturn('returnIntAsNum', commonMasks.uint31Type);
-        checkReturn('returnAsTypedef', commonMasks.functionType.nullable());
-        checkReturn('returnTopLevelGetter', commonMasks.uint31Type);
-        checkReturn('testDeadCode', commonMasks.uint31Type);
-        checkReturn('testLabeledIf', commonMasks.uint31Type.nullable());
-        checkReturn(
-            'testSwitch1',
-            simplify(
-                commonMasks.intType
-                    .union(commonMasks.doubleType, closedWorld)
-                    .nullable(),
-                closedWorld));
-        checkReturn('testSwitch2', commonMasks.uint31Type);
-        checkReturn('testSwitch3', interceptorType.nullable());
-        checkReturn('testSwitch4', commonMasks.uint31Type);
-        checkReturn('testSwitch5', commonMasks.uint31Type);
-        checkReturn('testContinue1', interceptorType.nullable());
-        checkReturn('testBreak1', interceptorType.nullable());
-        checkReturn('testContinue2', interceptorType.nullable());
-        checkReturn('testBreak2', commonMasks.uint32Type.nullable());
-        checkReturn('testReturnElementOfConstList1', commonMasks.uint31Type);
-        checkReturn('testReturnElementOfConstList2', commonMasks.uint31Type);
-        checkReturn('testReturnItselfOrInt', commonMasks.uint31Type);
-        checkReturn('testReturnInvokeDynamicGetter', commonMasks.dynamicType);
+    checkReturn('returnNum1', commonMasks.numType);
+    checkReturn('returnNum2', commonMasks.numType);
+    checkReturn('returnInt1', commonMasks.uint31Type);
+    checkReturn('returnInt2', commonMasks.uint31Type);
+    checkReturn('returnDouble', commonMasks.doubleType);
+    checkReturn('returnGiveUp', interceptorOrComparableType);
+    checkReturn('returnInt5', commonMasks.uint32Type); // uint31+uint31->uint32
+    checkReturn('returnInt6', commonMasks.uint32Type); // uint31+uint31->uint32
+    checkReturn('returnIntOrNull', commonMasks.uint31Type.nullable());
+    checkReturn('returnInt3', commonMasks.uint31Type);
+    checkReturn('returnDynamic', commonMasks.dynamicType);
+    checkReturn('returnInt4', commonMasks.uint31Type);
+    checkReturn('returnInt7', commonMasks.positiveIntType);
+    checkReturn('returnInt8', commonMasks.positiveIntType);
+    checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
+    checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
+    TypeMask intType = new TypeMask.nonNullSubtype(
+        closedWorld.commonElements.intClass, closedWorld);
+    checkReturn('testIsCheck1', intType);
+    checkReturn('testIsCheck2', intType);
+    checkReturn('testIsCheck3', intType.nullable());
+    checkReturn('testIsCheck4', intType);
+    checkReturn('testIsCheck5', intType);
+    checkReturn('testIsCheck6', commonMasks.dynamicType);
+    checkReturn('testIsCheck7', intType);
+    checkReturn('testIsCheck8', commonMasks.dynamicType);
+    checkReturn('testIsCheck9', intType);
+    checkReturn('testIsCheck10', commonMasks.dynamicType);
+    checkReturn('testIsCheck11', intType);
+    checkReturn('testIsCheck12', commonMasks.dynamicType);
+    checkReturn('testIsCheck13', intType);
+    checkReturn('testIsCheck14', commonMasks.dynamicType);
+    // TODO(29309): Re-enable when 29309 is fixed.
+    // checkReturn('testIsCheck15', intType);
+    checkReturn('testIsCheck16', commonMasks.dynamicType);
+    checkReturn('testIsCheck17', intType);
+    checkReturn('testIsCheck18', commonMasks.dynamicType);
+    checkReturn('testIsCheck19', commonMasks.dynamicType);
+    checkReturn('testIsCheck20', interceptorOrComparableType);
+    checkReturn('testIsCheck21', commonMasks.dynamicType);
+    checkReturn('testIsCheck22', commonMasks.dynamicType);
+    checkReturn('testIsCheck23', intType);
+    checkReturn('testIsCheck24', intType);
+    checkReturn('testIsCheck25', commonMasks.dynamicType);
+    checkReturn('testIsCheck26', intType);
+    checkReturn('testIsCheck27', intType);
+    checkReturn('testIsCheck28', commonMasks.dynamicType);
+    checkReturn('testIsCheck29', commonMasks.dynamicType);
+    checkReturn('testIf1', commonMasks.uint31Type.nullable());
+    checkReturn('testIf2', commonMasks.uint31Type.nullable());
+    checkReturn(
+        'returnAsString',
+        new TypeMask.subtype(
+            closedWorld.commonElements.stringClass, closedWorld));
+    checkReturn('returnIntAsNum', commonMasks.uint31Type);
+    checkReturn('returnAsTypedef', commonMasks.functionType.nullable());
+    checkReturn('returnTopLevelGetter', commonMasks.uint31Type);
+    checkReturn('testDeadCode', commonMasks.uint31Type);
+    checkReturn('testLabeledIf', commonMasks.uint31Type.nullable());
+    checkReturn(
+        'testSwitch1',
+        simplify(
+            commonMasks.intType
+                .union(commonMasks.doubleType, closedWorld)
+                .nullable(),
+            closedWorld));
+    checkReturn('testSwitch2', commonMasks.uint31Type);
+    checkReturn('testSwitch3', interceptorOrComparableType.nullable());
+    checkReturn('testSwitch4', commonMasks.uint31Type);
+    checkReturn('testSwitch5', commonMasks.uint31Type);
+    checkReturn('testContinue1', interceptorOrComparableType.nullable());
+    checkReturn('testBreak1', interceptorOrComparableType.nullable());
+    checkReturn('testContinue2', interceptorOrComparableType.nullable());
+    checkReturn('testBreak2', commonMasks.uint32Type.nullable());
+    checkReturn('testReturnElementOfConstList1', commonMasks.uint31Type);
+    checkReturn('testReturnElementOfConstList2', commonMasks.uint31Type);
+    checkReturn('testReturnItselfOrInt', commonMasks.uint31Type);
+    checkReturn('testReturnInvokeDynamicGetter', commonMasks.dynamicType);
 
-        checkReturn('testDoWhile1', commonMasks.stringType);
-        checkReturn('testDoWhile2', commonMasks.nullType);
-        checkReturn('testDoWhile3', commonMasks.uint31Type);
-        checkReturn('testDoWhile4', commonMasks.numType);
+    checkReturn('testDoWhile1', commonMasks.stringType);
+    checkReturn('testDoWhile2', commonMasks.nullType);
+    checkReturn('testDoWhile3', commonMasks.uint31Type);
+    checkReturn('testDoWhile4', commonMasks.numType);
 
-        checkReturnInClass(String className, String methodName, type) {
-          dynamic cls = findElement(compiler, className);
-          var element = cls.lookupLocalMember(methodName);
-          Expect.equals(
-              type,
-              simplify(
-                  typesInferrer.getReturnTypeOfMember(element), closedWorld),
-              '$className:$methodName');
-        }
+    checkReturnInClass(String className, String methodName, type) {
+      var element = findClassMember(closedWorld, className, methodName);
+      Expect.equals(
+          type,
+          simplify(typesInferrer.getReturnTypeOfMember(element), closedWorld),
+          '$className:$methodName');
+    }
 
-        checkReturnInClass('A', 'returnInt1', commonMasks.uint32Type);
-        checkReturnInClass('A', 'returnInt2', commonMasks.uint32Type);
-        checkReturnInClass('A', 'returnInt3', commonMasks.uint32Type);
-        checkReturnInClass('A', 'returnInt4', commonMasks.uint32Type);
-        checkReturnInClass('A', 'returnInt5', commonMasks.uint32Type);
-        checkReturnInClass('A', 'returnInt6', commonMasks.uint32Type);
-        checkReturnInClass('A', '==', interceptorType);
+    checkReturnInClass('A', 'returnInt1', commonMasks.uint32Type);
+    checkReturnInClass('A', 'returnInt2', commonMasks.uint32Type);
+    checkReturnInClass('A', 'returnInt3', commonMasks.uint32Type);
+    checkReturnInClass('A', 'returnInt4', commonMasks.uint32Type);
+    checkReturnInClass('A', 'returnInt5', commonMasks.uint32Type);
+    checkReturnInClass('A', 'returnInt6', commonMasks.uint32Type);
+    checkReturnInClass('A', '==', interceptorType);
 
-        checkReturnInClass('B', 'returnInt1', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt2', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt3', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt4', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt5', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt6', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt7', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt8', commonMasks.uint32Type);
-        checkReturnInClass('B', 'returnInt9', commonMasks.uint31Type);
+    checkReturnInClass('B', 'returnInt1', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt2', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt3', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt4', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt5', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt6', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt7', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt8', commonMasks.uint32Type);
+    checkReturnInClass('B', 'returnInt9', commonMasks.uint31Type);
 
-        checkReturnInClass('C', 'returnInt1', commonMasks.positiveIntType);
-        checkReturnInClass('C', 'returnInt2', commonMasks.positiveIntType);
-        checkReturnInClass('C', 'returnInt3', commonMasks.positiveIntType);
-        checkReturnInClass('C', 'returnInt4', commonMasks.positiveIntType);
-        checkReturnInClass('C', 'returnInt5', commonMasks.positiveIntType);
-        checkReturnInClass('C', 'returnInt6', commonMasks.positiveIntType);
+    checkReturnInClass('C', 'returnInt1', commonMasks.positiveIntType);
+    checkReturnInClass('C', 'returnInt2', commonMasks.positiveIntType);
+    checkReturnInClass('C', 'returnInt3', commonMasks.positiveIntType);
+    checkReturnInClass('C', 'returnInt4', commonMasks.positiveIntType);
+    checkReturnInClass('C', 'returnInt5', commonMasks.positiveIntType);
+    checkReturnInClass('C', 'returnInt6', commonMasks.positiveIntType);
 
-        checkFactoryConstructor(String className, String factoryName) {
-          dynamic cls = findElement(compiler, className);
-          var element = cls.localLookup(factoryName);
-          Expect.equals(new TypeMask.nonNullExact(cls, closedWorld),
-              typesInferrer.getReturnTypeOfMember(element));
-        }
+    checkReturn('testCascade1', commonMasks.growableListType);
+    ClassEntity clsCascadeHelper = findClass(closedWorld, 'CascadeHelper');
+    checkReturn('testCascade2',
+        new TypeMask.nonNullExact(clsCascadeHelper, closedWorld));
+    checkReturn('testSpecialization1', commonMasks.numType);
+    checkReturn('testSpecialization2', commonMasks.dynamicType);
+    checkReturn('testSpecialization3', commonMasks.uint31Type.nullable());
+    checkReturn('testReturnNull1', commonMasks.nullType);
+    checkReturn('testReturnNull2', commonMasks.nullType);
+    checkReturn('testReturnNull3', commonMasks.dynamicType);
+    checkReturn('testReturnNull4', commonMasks.nullType);
+    checkReturn('testReturnNull5', commonMasks.nullType);
+    checkReturn('testReturnNull6', commonMasks.dynamicType);
+    checkReturn('testReturnNotEquals', commonMasks.boolType);
+  }
 
-        checkFactoryConstructor('A', '');
-
-        checkReturn('testCascade1', commonMasks.growableListType);
-        ClassElement clsCascadeHelper = findElement(compiler, 'CascadeHelper');
-        checkReturn('testCascade2',
-            new TypeMask.nonNullExact(clsCascadeHelper, closedWorld));
-        checkReturn('testSpecialization1', commonMasks.numType);
-        checkReturn('testSpecialization2', commonMasks.dynamicType);
-        checkReturn('testSpecialization3', commonMasks.uint31Type.nullable());
-        checkReturn('testReturnNull1', commonMasks.nullType);
-        checkReturn('testReturnNull2', commonMasks.nullType);
-        checkReturn('testReturnNull3', commonMasks.dynamicType);
-        checkReturn('testReturnNull4', commonMasks.nullType);
-        checkReturn('testReturnNull5', commonMasks.nullType);
-        checkReturn('testReturnNull6', commonMasks.dynamicType);
-        checkReturn('testReturnNotEquals', commonMasks.boolType);
-      }));
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }
