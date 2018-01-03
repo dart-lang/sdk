@@ -748,21 +748,14 @@ class _ExprBuilder {
   }
 
   TypeAnnotation _buildType(DartType type) {
-    if (type is InterfaceType) {
-      var name = AstTestFactory.identifier3(type.element.name)
-        ..staticElement = type.element
-        ..staticType = type;
-      List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
-      return AstTestFactory.typeName3(name, arguments)..type = type;
+    List<TypeAnnotation> argumentNodes;
+    if (type is ParameterizedType) {
+      argumentNodes = _buildTypeArguments(type.typeArguments);
     }
-    if (type is DynamicTypeImpl || type is TypeParameterType) {
-      var identifier = AstTestFactory.identifier3(type.name)
-        ..staticElement = type.element
-        ..staticType = type;
-      return AstTestFactory.typeName3(identifier)..type = type;
-    }
-    // TODO(scheglov) Implement for other types.
-    throw new UnimplementedError('type: (${type.runtimeType}) $type');
+    TypeName node = AstTestFactory.typeName4(type.name, argumentNodes);
+    node.type = type;
+    (node.name as SimpleIdentifier).staticElement = type.element;
+    return node;
   }
 
   TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {

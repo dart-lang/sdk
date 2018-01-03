@@ -2263,20 +2263,20 @@ class C {
     }
   }
 
+  test_class_setter_invalid_named_parameter() async {
+    var library = await checkLibrary('class C { void set x({a}) {} }');
+    checkElementText(library, r'''
+class C {
+  void set x({dynamic a}) {}
+}
+''');
+  }
+
   test_class_setter_invalid_no_parameter() async {
     var library = await checkLibrary('class C { void set x() {} }');
     checkElementText(library, r'''
 class C {
   void set x() {}
-}
-''');
-  }
-
-  test_class_setter_invalid_too_many_parameters() async {
-    var library = await checkLibrary('class C { void set x(a, b) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic a, dynamic b) {}
 }
 ''');
   }
@@ -2290,11 +2290,11 @@ class C {
 ''');
   }
 
-  test_class_setter_invalid_named_parameter() async {
-    var library = await checkLibrary('class C { void set x({a}) {} }');
+  test_class_setter_invalid_too_many_parameters() async {
+    var library = await checkLibrary('class C { void set x(a, b) {} }');
     checkElementText(library, r'''
 class C {
-  void set x({dynamic a}) {}
+  void set x(dynamic a, dynamic b) {}
 }
 ''');
   }
@@ -4273,6 +4273,27 @@ const List<C> v = const <
 import 'a.dart' as p;
 const dynamic v = const <
         C/*location: a.dart;C*/>[];
+''');
+    }
+  }
+
+  test_const_topLevel_typedList_typedefArgument() async {
+    shouldCompareLibraryElements = false;
+    var library = await checkLibrary(r'''
+typedef int F(String id);
+const v = const <F>[];
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+typedef F = int Function(String id);
+const List<(String) → int> v = const <
+        null/*location: test.dart;F;-*/>[];
+''');
+    } else {
+      checkElementText(library, r'''
+typedef F = int Function(String id);
+const dynamic v = const <
+        null/*location: test.dart;F;-*/>[];
 ''');
     }
   }
