@@ -321,6 +321,8 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_redirectingConstructor_propagation() async {
     // AnalysisException: Element mismatch in /test.dart at class A
     await super.test_redirectingConstructor_propagation();
+    // TODO(brianwilkerson) Figure out why this test is flaky.
+    fail('Flaky test');
   }
 }
 
