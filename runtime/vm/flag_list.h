@@ -80,7 +80,7 @@
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
   R(error_on_bad_override, false, bool, false,                                 \
-    "Report error for bad overrides.")                                         \
+    "Report error for bad overrides. Ignored in strong mode.")                 \
   R(error_on_bad_type, false, bool, false,                                     \
     "Report error for malformed types.")                                       \
   P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                     \
