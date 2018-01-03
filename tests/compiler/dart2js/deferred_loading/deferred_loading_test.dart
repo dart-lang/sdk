@@ -66,8 +66,16 @@ String outputUnitString(OutputUnit unit) {
     Expect.isTrue(import.isDeferred);
 
     if (importPrefixes.containsKey(import.name)) {
+      var existing = importPrefixes[import.name];
+      var current = import.enclosingLibrary.canonicalUri;
       Expect.equals(
-          importPrefixes[import.name], import.enclosingLibrary.canonicalUri);
+          existing,
+          current,
+          '\n    Duplicate prefix \'${import.name}\' used in both:\n'
+          '     - $existing and\n'
+          '     - $current.\n'
+          '    We require using unique prefixes on these tests to make '
+          'the expectations more readable.');
     }
     importPrefixes[import.name] = import.enclosingLibrary.canonicalUri;
   }
