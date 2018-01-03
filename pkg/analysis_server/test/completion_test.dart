@@ -2153,7 +2153,7 @@ class Q {
           "6+for",
           "7+switch",
           "8+case",
-          "9+default",
+          "9+default:",
           "A+try",
           "B+on",
           "C+catch",

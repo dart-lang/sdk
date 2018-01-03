@@ -15,6 +15,7 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 const ASYNC_STAR = 'async*';
 const DEFERRED_AS = 'deferred as';
+const DEFAULT_COLON = 'default:';
 const EXPORT_STATEMENT = "export '';";
 const IMPORT_STATEMENT = "import '';";
 const PART_STATEMENT = "part '';";
@@ -482,17 +483,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
       if (node.members.isEmpty) {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT], DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.CASE, DART_RELEVANCE_HIGH);
+        _addSuggestion2(DEFAULT_COLON, relevance: DART_RELEVANCE_HIGH);
       } else {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT]);
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion2(DEFAULT_COLON);
         _addStatementKeywords(node);
       }
     }
     if (node.members.contains(entity)) {
       if (entity == node.members.first) {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT], DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.CASE, DART_RELEVANCE_HIGH);
+        _addSuggestion2(DEFAULT_COLON, relevance: DART_RELEVANCE_HIGH);
       } else {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT]);
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion2(DEFAULT_COLON);
         _addStatementKeywords(node);
       }
     }

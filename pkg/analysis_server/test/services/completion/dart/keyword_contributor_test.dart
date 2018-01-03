@@ -217,13 +217,15 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
-    ['import', 'export', 'part'].forEach((s) {
-      if (expectedCompletions.contains(s)) {
-        expectedCompletions.remove(s);
-        expectedCompletions.add('$s \'\';');
+    expectedCompletions.addAll(expectedKeywords.map((keyword) {
+      String text = keyword.lexeme;
+      if (['import', 'export', 'part'].contains(text)) {
+        return '$text \'\';';
+      } else if (text == 'default') {
+        return '$text:';
       }
-    });
+      return text;
+    }));
 
     expectedCompletions.addAll(pseudoKeywords);
     for (CompletionSuggestion s in suggestions) {
