@@ -424,12 +424,11 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
            constant_function_type_args->value().IsTypeArguments());
 
     Zone* Z = Thread::Current()->zone();
-    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
-        Z,
-        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+    TypeArguments& instantiator_type_args = TypeArguments::Handle(Z);
+    instantiator_type_args ^= constant_instantiator_type_args->value().raw();
 
-    const TypeArguments& function_type_args = TypeArguments::Handle(
-        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
+    TypeArguments& function_type_args = TypeArguments::Handle(Z);
+    function_type_args ^= constant_function_type_args->value().raw();
 
     Error& error_bound = Error::Handle(Z);
 
