@@ -451,62 +451,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_recursion_self() async {
-    return super.test_instantiateToBounds_class_error_recursion_self();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_recursion_self2() async {
-    return super.test_instantiateToBounds_class_error_recursion_self2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_typedef() async {
-    return super.test_instantiateToBounds_class_error_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
-    return super.test_instantiateToBounds_class_ok_implicitDynamic_multi();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_after() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_after();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_after2() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_after2();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_before() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_before();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_multi() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_multi();
-  }
-
-  @override
-  @failingTest
   test_instantiateToBounds_class_ok_simpleBounds() async {
     // Expected: 'B<num>'
     await super.test_instantiateToBounds_class_ok_simpleBounds();

@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
+import 'package:kernel/type_algebra.dart' show instantiateToBounds;
+
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneVisitor;
@@ -1714,6 +1716,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         typeArgument = null;
         warningNotError(fasta.messageListLiteralTooManyTypeArguments,
             beginToken.charOffset);
+      } else {
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     }
     bool isConst = constKeyword != null;
@@ -1762,8 +1766,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         warningNotError(fasta.messageListLiteralTypeArgumentMismatch,
             beginToken.charOffset);
       } else {
-        keyType = typeArguments[0];
-        valueType = typeArguments[1];
+        keyType = instantiateToBounds(typeArguments[0], coreTypes.objectClass);
+        valueType =
+            instantiateToBounds(typeArguments[1], coreTypes.objectClass);
       }
     }
 

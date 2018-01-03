@@ -7196,7 +7196,7 @@ F f;
     if (isStrongMode) {
       checkElementText(library, r'''
 typedef F<T extends num> = dynamic Function(T p);
-(dynamic) → dynamic f;
+(num) → dynamic f;
 ''');
     } else {
       checkElementText(library, r'''

@@ -229,6 +229,9 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
+      if (loader.target.strongMode) {
+        loader.instantiateToBound(dynamicType, objectClassBuilder);
+      }
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
       loader.finishTypeVariables(objectClassBuilder);
