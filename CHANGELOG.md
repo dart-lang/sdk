@@ -112,13 +112,23 @@
 
 * Analyzer
 
-The analyzer will no longer issue a warning when a generic type parameter is
-used as the type in an instance check. For example:
+  * The analyzer will no longer issue a warning when a generic type parameter
+    is used as the type in an instance check. For example:
+
     ```dart
     test<T>() {
       print(3 is T); // No warning
     }
     ```
+
+  * New static checking of `@visibleForTesting` elements. Accessing a method,
+    function, class, etc. annotated with `@visibleForTesting` from a file _not_
+    in a `test/` directory will result in a new hint ([issue 28273]).
+  * Static analysis now respects functions annotated with `@alwaysThrows`
+    ([issue 31384]).
+
+[issue 28273]: https://github.com/dart-lang/sdk/issues/28273
+[issue 31384]: https://github.com/dart-lang/sdk/issues/31384
 
 #### Pub
 
@@ -232,7 +242,7 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
 * Fix for constructing a new SecurityContext that contains the built-in
   certificate authority roots
-    (https://github.com/dart-lang/sdk/issues/24693).
+  ([issue 24693](https://github.com/dart-lang/sdk/issues/24693)).
 
 ### Core library changes
 
@@ -246,9 +256,9 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
 * Fixes for debugging in Dartium.
   * Fix DevConsole crash with JS
-      (https://github.com/dart-lang/sdk/issues/29873).
+    ([issue 29873](https://github.com/dart-lang/sdk/issues/29873)).
   * Fix debugging in WebStorm, NULL returned for JS objects
-      (https://github.com/dart-lang/sdk/issues/29854).
+    ([issue 29854](https://github.com/dart-lang/sdk/issues/29854)).
 
 ## 1.24.1 - 14-06-2017
 
@@ -262,7 +272,7 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
   * Fixed a Safari issue during bootstrapping (note that Safari is still not
     officially supported but does work for trivial examples).
 * Fix for a Dartium issue where there was no sound in checked mode
-    (https://github.com/dart-lang/sdk/issues/29810).
+  ([issue 29810](https://github.com/dart-lang/sdk/issues/29810)).
 
 ## 1.24.0 - 12-06-2017
 
