@@ -4672,6 +4672,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
     }
+    if (rtiNeed.methodNeedsGenericRti(function) && options.strongMode) {
+      for (TypeVariableType typeVariable in _elementMap.elementEnvironment
+          .getFunctionTypeVariables(function)) {
+        HInstruction argument = compiledArguments[argumentIndex++];
+        localsHandler.updateLocal(
+            localsHandler.getTypeVariableAsLocal(typeVariable), argument);
+      }
+    }
     assert(argumentIndex == compiledArguments.length);
 
     _returnType =

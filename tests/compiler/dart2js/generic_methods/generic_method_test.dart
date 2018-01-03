@@ -13,8 +13,13 @@ import 'package:expect/expect.dart';
 import '../kernel/compiler_helper.dart';
 
 const String SOURCE = r'''
+import 'package:meta/dart2js.dart';
+
+// TODO(johnniwinther): Remove these when the needed RTI is correctly computed
+// for function type variables.
 test(o) => o is double || o is String || o is int;
 
+@noInline
 genericMethod1<T>(T t) {
   test(t);
   print('genericMethod1:');
@@ -23,6 +28,7 @@ genericMethod1<T>(T t) {
   print('');
 }
 
+@noInline
 genericMethod2<T, S>(S s, T t) {
   test(t);
   test(s);
@@ -34,9 +40,22 @@ genericMethod2<T, S>(S s, T t) {
   print('');
 }
 
+@tryInline
+genericMethod3<T, S>(T t, S s) {
+  test(t);
+  test(s);
+  print('genericMethod3:');
+  print('$t is $T = ${t is T}');
+  print('$s is $T = ${s is T}');
+  print('$t is $S = ${t is S}');
+  print('$s is $S = ${s is S}');
+  print('');
+}
+
 main() {
   genericMethod1<int>(0);
   genericMethod2<String, double>(0.5, 'foo');
+  genericMethod3<double, String>(1.5, 'bar');
 }
 ''';
 
@@ -51,13 +70,19 @@ foo is String = true
 foo is double = false
 0.5 is double = true
 
+genericMethod3:
+1.5 is double = true
+bar is double = false
+1.5 is String = false
+bar is String = true
+
 ''';
 
 main(List<String> args) {
   asyncTest(() async {
     Compiler compiler = await runWithD8(
         memorySourceFiles: {'main.dart': SOURCE},
-        options: [Flags.useKernel, Flags.strongMode, Flags.disableInlining],
+        options: [Flags.useKernel, Flags.strongMode],
         expectedOutput: OUTPUT,
         printJs: args.contains('-v'));
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
