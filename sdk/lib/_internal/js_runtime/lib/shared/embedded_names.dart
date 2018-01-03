@@ -327,6 +327,11 @@ enum JsGetName {
   /// Name used to tag a function type.
   FUNCTION_TYPE_TAG,
 
+  /// Name used to tag bounds of a generic function type. If bounds are present,
+  /// the property value is an Array of bounds (the length gives the number of
+  /// type parameters). If absent, the type is not a generic function type.
+  FUNCTION_TYPE_GENERIC_BOUNDS_TAG,
+
   /// Name used to tag void return in function type representations in
   /// JavaScript.
   FUNCTION_TYPE_VOID_RETURN_TAG,

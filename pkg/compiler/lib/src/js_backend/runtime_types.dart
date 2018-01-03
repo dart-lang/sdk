@@ -961,6 +961,7 @@ class TypeRepresentationGenerator
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
+  List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
   TypeRepresentationGenerator(this.namer);
 
@@ -981,6 +982,7 @@ class TypeRepresentationGenerator
     jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
     this.shouldEncodeTypedef = null;
+    assert(functionTypeVariables.isEmpty);
     return representation;
   }
 
@@ -1011,9 +1013,9 @@ class TypeRepresentationGenerator
 
   jsAst.Expression visitFunctionTypeVariable(
       FunctionTypeVariable type, Emitter emitter) {
-    // TODO(johnniwinther): Create a runtime representation for existential
-    // types.
-    return getDynamicValue();
+    int position = functionTypeVariables.indexOf(type);
+    assert(position >= 0);
+    return js.number(functionTypeVariables.length - position - 1);
   }
 
   jsAst.Expression visitDynamicType(DynamicType type, Emitter emitter) {
@@ -1060,6 +1062,20 @@ class TypeRepresentationGenerator
     // Type representations for functions have a property which is a tag marking
     // them as function types. The value is not used, so '1' is just a dummy.
     addProperty(namer.functionTypeTag, js.number(1));
+
+    if (type.typeVariables.isNotEmpty) {
+      // Generic function types have type parameters which are reduced to de
+      // Bruijn indexes.
+      for (FunctionTypeVariable variable in type.typeVariables.reversed) {
+        functionTypeVariables.add(variable);
+      }
+      // TODO(sra): This emits `P.Object` for the common unbounded case. We
+      // could replace the Object bounds with an array hole for a compact `[,,]`
+      // representation.
+      addProperty(namer.functionTypeGenericBoundsTag,
+          visitList(type.typeVariables.map((v) => v.bound).toList(), emitter));
+    }
+
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
@@ -1087,6 +1103,12 @@ class TypeRepresentationGenerator
       addProperty(namer.functionTypeNamedParametersTag,
           new jsAst.ObjectInitializer(namedArguments));
     }
+
+    // Exit generic function scope.
+    if (type.typeVariables.isNotEmpty) {
+      functionTypeVariables.length -= type.typeVariables.length;
+    }
+
     return new jsAst.ObjectInitializer(properties);
   }
 
