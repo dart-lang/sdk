@@ -217,7 +217,6 @@
     },
     {
       "builders": [
-        "vm-asan-linux-release-ia32",
         "vm-asan-linux-release-x64"
       ],
       "meta": {
