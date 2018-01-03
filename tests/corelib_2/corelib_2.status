@@ -106,6 +106,9 @@ unicode_test: Fail
 [ $runtime == vm ]
 string_case_test/01: RuntimeError
 
+[ !$strong ]
+cast_test: SkipByDesign # Uses generic method parameters.
+
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
