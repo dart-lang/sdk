@@ -104,7 +104,7 @@ vars = {
   "path_tag": "@1.4.2",
   "plugin_tag": "@0.2.0+2",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_tag": "@1.3.3",
+  "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.5.4",
   "pub_rev": "@667281eef93b4be648cceca400e954e000edba38",
   "pub_semver_tag": "@1.3.2",
