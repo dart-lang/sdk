@@ -18,7 +18,6 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
 
@@ -2809,7 +2808,6 @@ const int v = p.a.length;
     ]);
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/31768
   test_constExpr_pushLongInt() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
@@ -2829,7 +2827,6 @@ const int v = p.a.length;
     ]);
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/31768
   test_constExpr_pushLongInt_min3() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');

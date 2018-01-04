@@ -4076,7 +4076,6 @@ const dynamic vIfNull = 1 ?? 2.0;
     }
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/31768
   test_const_topLevel_literal() async {
     var library = await checkLibrary(r'''
 const vNull = null;

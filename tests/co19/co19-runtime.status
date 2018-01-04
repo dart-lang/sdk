@@ -273,15 +273,8 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager lo
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
-Language/Expressions/Constants/literal_number_t01: CompileTimeError # Large integer literal
-Language/Expressions/Constants/math_operators_t01: CompileTimeError # Large integer literal
-Language/Expressions/Constants/math_operators_t06: CompileTimeError # Large integer literal
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
-Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError # Large integer literal
-Language/Expressions/Numbers/syntax_t06: CompileTimeError # Large integer literal
-Language/Expressions/Numbers/syntax_t09: CompileTimeError # Large integer literal
-Language/Expressions/Numbers/syntax_t10: CompileTimeError # Large integer literal
 Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError, Fail # Dart issue 12916
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Skip # Issue 29895
 Language/Statements/Assert/execution_t02: Skip # co19 issue 734
@@ -293,14 +286,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
-LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Large integers
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Large integers
-LibTest/core/Duration/inDays_A01_t01: RuntimeError # Large integers
-LibTest/core/Duration/inHours_A01_t01: RuntimeError # Large integers
-LibTest/core/Duration/inMilliseconds_A01_t01: RuntimeError # Large integers
-LibTest/core/Duration/inMinutes_A01_t01: RuntimeError # Large integers
-LibTest/core/Duration/inSeconds_A01_t01: RuntimeError # Large integers
-LibTest/core/List/List_class_A01_t01: RuntimeError # Large integers
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Issue 1296
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError, Fail # Issue 22200
@@ -308,52 +293,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Ru
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 1296
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
-LibTest/core/double/ceil_A01_t04: RuntimeError # Large integers
-LibTest/core/double/floor_A01_t04: RuntimeError # Large integers
-LibTest/core/double/isInfinite_A01_t03: CompileTimeError # Large integer literal
-LibTest/core/double/round_A01_t03: RuntimeError # Large integers
-LibTest/core/double/toInt_A01_t05: RuntimeError # Large integers
-LibTest/core/double/truncate_A01_t05: RuntimeError # Large integers
-LibTest/core/int/abs_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/ceil_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/compareTo_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/floorToDouble_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/floor_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/isEven_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/isInfinite_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/isNaN_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/isNegative_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/isOdd_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_AND_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_GE_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_GT_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_LE_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_LT_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_NOT_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_OR_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_XOR_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_addition_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_division_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_left_shift_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_multiplication_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_remainder_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_remainder_A01_t02: CompileTimeError # Large integer literal
-LibTest/core/int/operator_right_shift_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_subtraction_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_truncating_division_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/operator_truncating_division_A01_t02: CompileTimeError # Large integer literal
-LibTest/core/int/operator_unary_minus_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/parse_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/remainder_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/remainder_A01_t02: CompileTimeError # Large integer literal
-LibTest/core/int/roundToDouble_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/round_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/toDouble_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/toInt_A01_t01: CompileTimeError # Large integer literal
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
-LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError # Large integer literal
-LibTest/core/int/truncate_A01_t01: CompileTimeError # Large integer literal
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Issue 15974
@@ -364,15 +304,8 @@ LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
 LibTest/isolate/Isolate/spawn_A04_t04: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A06_t03: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A06_t05: Skip # Issue 15974
-LibTest/math/pow_A10_t01: CompileTimeError # Large integer literal
-LibTest/typed_data/ByteData/getUint64_A01_t01: CompileTimeError # Large integer literal
-LibTest/typed_data/ByteData/setUint64_A01_t01: CompileTimeError # Large integer literal
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
-LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t01: CompileTimeError # Large integer literal
-LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError # Large integer literal
-LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError # Large integer literal
-LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError # Large integer literal
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
 [ $runtime == flutter || $hot_reload || $hot_reload_rollback ]

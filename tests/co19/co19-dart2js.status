@@ -32,12 +32,8 @@ Language/Expressions/Await_Expressions/evaluation_throws_t03: RuntimeError # Ple
 Language/Expressions/Await_Expressions/evaluation_throws_t04: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError # Please triage this failure
 Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError # Please triage this failure
-Language/Expressions/Constants/exception_t02: Crash # Issue 31762
 Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError # Issue 26580
 Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError # Issue 26580
-Language/Expressions/Constants/literal_number_t01: Crash # Issue 31762
-Language/Expressions/Constants/math_operators_t01: Crash # Issue 31762
-Language/Expressions/Constants/math_operators_t06: Crash # Issue 31762
 Language/Expressions/Function_Invocation/async_cleanup_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_cleanup_t03: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_cleanup_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -54,12 +50,8 @@ Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Plea
 Language/Expressions/Maps/static_type_dynamic_t01: CompileTimeError # Maybe ok. Issue 17207
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
-Language/Expressions/Numbers/static_type_of_int_t01: Crash # Issue 31762
-Language/Expressions/Numbers/syntax_t06: Crash # Issue 31762
 Language/Expressions/Numbers/syntax_t06: Fail # Issue 21098
-Language/Expressions/Numbers/syntax_t09: Crash # Issue 31762
 Language/Expressions/Numbers/syntax_t09: Fail # Issue 21098
-Language/Expressions/Numbers/syntax_t10: Crash # Issue 31762
 Language/Expressions/Object_Identity/Object_Identity/constant_objects_t01: Fail # Issue 11551, also related to issue 563, 18738
 Language/Expressions/Object_Identity/Object_Identity/double_t02: Fail # Issue 11551, also related to issue 563, 18738
 Language/Expressions/Object_Identity/constant_objects_t01: RuntimeError # Please triage this failure
@@ -191,64 +183,19 @@ LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # Expected to fail because double.INFINITY is int.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # Expected to fail because double.NEGATIVE_INFINITY is int.
-LibTest/core/double/isInfinite_A01_t03: Crash # Issue 31762
-LibTest/core/double/operator_GE_A01_t02: Crash # Issue 31762
-LibTest/core/double/operator_GT_A01_t02: Crash # Issue 31762
-LibTest/core/double/operator_LE_A01_t02: Crash # Issue 31762
-LibTest/core/double/operator_LT_A01_t02: Crash # Issue 31762
-LibTest/core/int/abs_A01_t01: Crash # Issue 31762
-LibTest/core/int/ceilToDouble_A01_t01: Crash # Issue 31762
-LibTest/core/int/ceil_A01_t01: Crash # Issue 31762
-LibTest/core/int/compareTo_A01_t01: Crash # Issue 31762
-LibTest/core/int/floorToDouble_A01_t01: Crash # Issue 31762
-LibTest/core/int/floor_A01_t01: Crash # Issue 31762
-LibTest/core/int/hashCode_A01_t01: Crash # Issue 31762
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
-LibTest/core/int/isEven_A01_t01: Crash # Issue 31762
-LibTest/core/int/isInfinite_A01_t01: Crash # Issue 31762
-LibTest/core/int/isNaN_A01_t01: Crash # Issue 31762
-LibTest/core/int/isNegative_A01_t01: Crash # Issue 31762
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
-LibTest/core/int/isOdd_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_AND_A01_t01: RuntimeError, OK # Requires bigints.
-LibTest/core/int/operator_AND_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_GE_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_GT_A01_t01: RuntimeError, OK # co19 issue 200
-LibTest/core/int/operator_GT_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_LE_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_LT_A01_t01: RuntimeError, OK # co19 issue 200
-LibTest/core/int/operator_LT_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_NOT_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_NOT_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/operator_OR_A01_t01: RuntimeError, OK # Requires bigints.
-LibTest/core/int/operator_OR_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_XOR_A01_t01: RuntimeError, OK # Requires bigints.
-LibTest/core/int/operator_XOR_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
-LibTest/core/int/operator_addition_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_division_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_left_shift_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_multiplication_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_remainder_A01_t01: Crash # Issue 31762
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
-LibTest/core/int/operator_remainder_A01_t02: Crash # Issue 31762
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
-LibTest/core/int/operator_right_shift_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_subtraction_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_truncating_division_A01_t01: Crash # Issue 31762
-LibTest/core/int/operator_truncating_division_A01_t02: Crash # Issue 31762
-LibTest/core/int/operator_unary_minus_A01_t01: Crash # Issue 31762
-LibTest/core/int/parse_A01_t01: Crash # Issue 31762
-LibTest/core/int/remainder_A01_t01: Crash # Issue 31762
-LibTest/core/int/remainder_A01_t02: Crash # Issue 31762
-LibTest/core/int/roundToDouble_A01_t01: Crash # Issue 31762
-LibTest/core/int/round_A01_t01: Crash # Issue 31762
-LibTest/core/int/toDouble_A01_t01: Crash # Issue 31762
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
-LibTest/core/int/toInt_A01_t01: Crash # Issue 31762
-LibTest/core/int/truncateToDouble_A01_t01: Crash # Issue 31762
-LibTest/core/int/truncate_A01_t01: Crash # Issue 31762
 LibTest/html/Element/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -271,8 +218,6 @@ LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/pow_A04_t01: Fail # co19-roll r587: Please triage this failure
-LibTest/math/pow_A09_t01: Crash # Issue 31762
-LibTest/math/pow_A10_t01: Crash # Issue 31762
 LibTest/math/pow_A14_t01: Fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A16_t01: Fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/ByteData/*Int64*: Fail # co19-roll r569: Please triage this failure
@@ -293,7 +238,6 @@ LibTest/typed_data/ByteData/getInt16_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/getInt16_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getInt32_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/getInt32_A02_t02: Fail # co19-roll r569: Please triage this failure
-LibTest/typed_data/ByteData/getInt64_A01_t01: Crash # Issue 31762
 LibTest/typed_data/ByteData/getInt64_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getInt8_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/getInt8_A02_t02: Fail # Issue 12989
@@ -301,7 +245,6 @@ LibTest/typed_data/ByteData/getUint16_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/getUint16_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getUint32_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/getUint32_A02_t02: Fail # co19-roll r569: Please triage this failure
-LibTest/typed_data/ByteData/getUint64_A01_t01: Crash # Issue 31762
 LibTest/typed_data/ByteData/getUint64_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getUint8_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/getUint8_A02_t02: Fail # Issue 12989
@@ -313,7 +256,6 @@ LibTest/typed_data/ByteData/setInt16_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/setInt16_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/setInt32_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/setInt32_A02_t02: Fail # co19-roll r569: Please triage this failure
-LibTest/typed_data/ByteData/setInt64_A01_t01: Crash # Issue 31762
 LibTest/typed_data/ByteData/setInt64_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/setInt8_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/setInt8_A02_t02: Fail # Issue 12989
@@ -321,7 +263,6 @@ LibTest/typed_data/ByteData/setUint16_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/setUint16_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/setUint32_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/setUint32_A02_t02: Fail # co19-roll r569: Please triage this failure
-LibTest/typed_data/ByteData/setUint64_A01_t01: Crash # Issue 31762
 LibTest/typed_data/ByteData/setUint64_A02_t02: Fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/setUint8_A02_t01: Fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: Fail # Issue 12989
@@ -361,10 +302,6 @@ LibTest/typed_data/Int32List/Int32List.view_A05_t02: RuntimeError # co19-roll r5
 LibTest/typed_data/Int32List/Int32List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/Int32List_A02_t01: Fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/Int64List/*: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int64List/Int64List.fromList_A01_t01: Crash # Issue 31762
-LibTest/typed_data/Int64List/Int64List.fromList_A01_t02: Crash # Issue 31762
-LibTest/typed_data/Int64List/Int64List.view_A01_t01: Crash # Issue 31762
-LibTest/typed_data/Int64List/Int64List.view_A01_t02: Crash # Issue 31762
 LibTest/typed_data/Int64List/Int64List_A02_t01: Pass # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/Int8List.view_A05_t01: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/Int8List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
@@ -379,10 +316,6 @@ LibTest/typed_data/Uint32List/Uint32List.view_A05_t02: RuntimeError # co19-roll 
 LibTest/typed_data/Uint32List/Uint32List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List_A02_t01: Fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/Uint64List/*: Fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t01: Crash # Issue 31762
-LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: Crash # Issue 31762
-LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: Crash # Issue 31762
-LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: Crash # Issue 31762
 LibTest/typed_data/Uint64List/Uint64List_A02_t01: Pass # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.view_A05_t01: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
