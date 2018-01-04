@@ -8,7 +8,7 @@
 
 DeltaBlue: Fail
 accessors: Fail
-argument_mismatch: TypeCheckError
+argument_mismatch: Fail # Test assumes Dart 1.0 semantics
 async_function: Fail
 await: Fail
 bug21938: TypeCheckError
@@ -22,6 +22,7 @@ closure: Fail
 covariant_generic: Fail
 cycles: Fail
 default_values: Fail
+dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
 expressions: Fail
 external: Fail
@@ -60,7 +61,7 @@ typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
-warn_unresolved_sends: RuntimeError # Test assumes Dart 1.0 semantics
+warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/block_bodied_lambdas_infer_bottom_async_star: RuntimeError

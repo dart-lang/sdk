@@ -16,6 +16,7 @@ class D extends self::C {
   method m(dynamic x) → dynamic
     return x;
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:56: Error: Declared type variables of 'D::m' doesn't match those on overridden method 'C::m'.\n/*error:INVALID_METHOD_OVERRIDE*/ /*@topType=dynamic*/ m(\n                                                       ^"]/* from null */;
 static method main() → dynamic {
   core::int y = new self::D::•().{self::D::m}<core::int>(42) as{TypeError} core::int;
   core::print(y);

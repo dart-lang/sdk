@@ -72,6 +72,7 @@ abstract class Compiler {
           (message, Severity severity, String formatted, int line, int column) {
         switch (severity) {
           case Severity.error:
+          case Severity.errorLegacyWarning:
           case Severity.internalProblem:
             // TODO(sigmund): support emitting code with errors as long as they
             // are handled in the generated code (issue #30194).

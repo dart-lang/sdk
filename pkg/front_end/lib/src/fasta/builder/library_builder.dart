@@ -83,16 +83,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         wasHandled: wasHandled, context: context);
   }
 
-  void addWarning(Message message, int charOffset, Uri fileUri,
+  /// Add a problem with a severity determined by the severity of the message.
+  void addProblem(Message message, int charOffset, Uri fileUri,
       {LocatedMessage context}) {
     fileUri ??= this.fileUri;
-    loader.addWarning(message, charOffset, fileUri, context: context);
-  }
-
-  void addNit(Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
-    fileUri ??= this.fileUri;
-    loader.addNit(message, charOffset, fileUri, context: context);
+    loader.addProblem(message, charOffset, fileUri, context: context);
   }
 
   /// Returns true if the export scope was modified.
