@@ -43,6 +43,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
+  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
+    // Expected 1 errors of type HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE, found 0
+    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
+  }
+
+  @failingTest
+  @override
   test_argumentTypeNotAssignable_functionType() async {
     // Expected 1 errors of type HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     return super.test_argumentTypeNotAssignable_functionType();

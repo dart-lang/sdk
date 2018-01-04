@@ -48,6 +48,7 @@
       "^tests/compiler/dart2js/serialization/equivalence_test\\.dart",
       "^tests/compiler/dart2js/serialization/model_test_helper\\.dart",
       "^tests/compiler/dart2js/serialization/test_helper\\.dart",
+      "^tests/compiler/dart2js/inference/data/super_invoke\\.dart",
       "^tests/compiler/dart2js/inference/simple_inferrer_closure_test\\.dart",
       "^tests/compiler/dart2js/inference/simple_inferrer_const_closure2_test\\.dart",
       "^tests/compiler/dart2js/inference/simple_inferrer_const_closure_test\\.dart",
