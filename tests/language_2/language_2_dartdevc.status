@@ -17,7 +17,6 @@ assertion_initializer_const_error2_test/cc11: Pass # Issue #31319
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
-await_test: Crash # Issue 31540
 black_listed_test/none: Fail # Issue 14228
 bug31436_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError

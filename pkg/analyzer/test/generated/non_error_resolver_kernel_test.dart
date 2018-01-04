@@ -314,4 +314,11 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_undefinedMethod_functionExpression_callMethod() async {
     return super.test_undefinedMethod_functionExpression_callMethod();
   }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_forEach_genericFunctionType() async {
+    return super.test_forEach_genericFunctionType();
+  }
 }

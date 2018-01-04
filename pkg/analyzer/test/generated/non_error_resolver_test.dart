@@ -1166,6 +1166,18 @@ f() {
     verify([source]);
   }
 
+  test_forEach_genericFunctionType() async {
+    Source source = addSource(r'''
+main() {
+  for (Null Function<T>(T, Null) e in []) {
+    e;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_caseBlockNotTerminated() async {
     Source source = addSource(r'''
 f(int p) {
