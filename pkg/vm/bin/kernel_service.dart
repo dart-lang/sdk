@@ -47,7 +47,8 @@ abstract class Compiler {
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, Uri platformKernel, {this.strongMode: false}) {
+  Compiler(this.fileSystem, Uri platformKernel,
+      {this.strongMode: false, bool suppressWarnings: false}) {
     Uri packagesUri = (Platform.packageConfig != null)
         ? Uri.parse(Platform.packageConfig)
         : null;
@@ -80,7 +81,7 @@ abstract class Compiler {
           case Severity.nit:
             break;
           case Severity.warning:
-            stderr.writeln(formatted);
+            if (!suppressWarnings) stderr.writeln(formatted);
             break;
         }
       };
@@ -97,8 +98,9 @@ class IncrementalCompiler extends Compiler {
   IncrementalKernelGenerator generator;
 
   IncrementalCompiler(FileSystem fileSystem, Uri platformKernel,
-      {strongMode: false})
-      : super(fileSystem, platformKernel, strongMode: strongMode);
+      {bool strongMode: false, bool suppressWarnings: false})
+      : super(fileSystem, platformKernel,
+            strongMode: strongMode, suppressWarnings: suppressWarnings);
 
   @override
   Future<Program> compileInternal(Uri script) async {
@@ -120,8 +122,11 @@ class SingleShotCompiler extends Compiler {
   final bool requireMain;
 
   SingleShotCompiler(FileSystem fileSystem, Uri platformKernel,
-      {this.requireMain: false, strongMode: false})
-      : super(fileSystem, platformKernel, strongMode: strongMode);
+      {this.requireMain: false,
+      bool strongMode: false,
+      bool suppressWarnings: false})
+      : super(fileSystem, platformKernel,
+            strongMode: strongMode, suppressWarnings: suppressWarnings);
 
   @override
   Future<Program> compileInternal(Uri script) async {
@@ -135,7 +140,7 @@ final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     int isolateId, List sourceFiles, Uri platformKernel,
-    {strongMode: false}) async {
+    {bool strongMode: false, bool suppressWarnings: false}) async {
   IncrementalCompiler compiler;
   if (isolateCompilers.containsKey(isolateId)) {
     compiler = isolateCompilers[isolateId];
@@ -159,7 +164,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
     compiler = new IncrementalCompiler(fileSystem, platformKernel,
-        strongMode: strongMode);
+        strongMode: strongMode, suppressWarnings: suppressWarnings);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -185,8 +190,7 @@ Future _processLoadRequest(request) async {
   final bool strong = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
-  // TODO(bkonyi): this still needs to be hooked in.
-  // final bool suppressWarnings = request[8];
+  final bool suppressWarnings = request[8];
 
   Compiler compiler;
   // TODO(aam): There should be no need to have an option to choose
@@ -195,13 +199,16 @@ Future _processLoadRequest(request) async {
   // watch the performance though.
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
-        isolateId, sourceFiles, platformKernel);
+        isolateId, sourceFiles, platformKernel,
+        suppressWarnings: suppressWarnings);
   } else {
     final FileSystem fileSystem = sourceFiles == null
         ? PhysicalFileSystem.instance
         : _buildFileSystem(sourceFiles);
     compiler = new SingleShotCompiler(fileSystem, platformKernel,
-        requireMain: sourceFiles == null, strongMode: strong);
+        requireMain: sourceFiles == null,
+        strongMode: strong,
+        suppressWarnings: suppressWarnings);
   }
 
   CompilationResult result;
