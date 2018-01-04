@@ -7,8 +7,21 @@ switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
 # VM specific tests that should not be run by dart2js.
 [ $compiler == dart2js ]
+arithmetic_test: Crash # Issue 31762
 assertion_initializer_test: Crash
+bit_operations_test/01: Crash # Issue 31762
+bit_operations_test/02: Crash # Issue 31762
+bit_operations_test/03: Crash # Issue 31762
+bit_operations_test/04: Crash # Issue 31762
+bit_operations_test/none: Crash # Issue 31762
+deopt_inlined_function_lazy_test: Crash # Issue 31762
+deopt_smi_op_test: RuntimeError # Issue 31762
 generalized_void_syntax_test: CompileTimeError
+guess_cid_test: Crash # Issue 31762
+identical_closure2_test: Crash # Issue 31762
+int2_test: Crash # Issue 31762
+mint_compares_test: Crash # Issue 31762
+number_identity_test: Crash # Issue 31762
 vm/*: Skip # Issue 12699
 
 [ $arch == ia32 && $compiler == dart2js && $runtime == d8 ]

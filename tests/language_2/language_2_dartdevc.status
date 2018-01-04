@@ -11,6 +11,7 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
+arithmetic_test: RuntimeError # Issue 31763
 assertion_initializer_const_error2_test/*: Crash # Issue #27809
 assertion_initializer_const_error2_test/cc10: Pass # Issue #31319
 assertion_initializer_const_error2_test/cc11: Pass # Issue #31319
@@ -65,6 +66,7 @@ instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 method_override_test: CompileTimeError # Negative test
+mint_compares_test: RuntimeError # Issue 31763
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
@@ -130,6 +132,7 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
+arithmetic_test: RuntimeError # Issue 31763
 assert_message_test: CompileTimeError
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
@@ -428,6 +431,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+mint_compares_test: RuntimeError # Issue 31763
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
