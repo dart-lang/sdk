@@ -2948,34 +2948,4 @@ class A native 'something' {
     allowNativeClause = false;
     test_parseClassDeclaration_native();
   }
-
-  @override
-  void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
-    // Fasta correctly parses these, while analyzer does not.
-    super.test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_exportAsPrefix() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_exportAsPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_exportAsPrefix_parameterized();
-  }
-
-  @override
-  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
 }

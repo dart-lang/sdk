@@ -15206,12 +15206,14 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     }
   }
 
-  @failingTest
   void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
-    for (Keyword keyword in Keyword.values) {
-      if (keyword.isBuiltIn) {
-        String lexeme = keyword.lexeme;
-        parseCompilationUnit('$lexeme<T>(x) => 0;');
+    // Fasta correctly parses these, while analyzer does not.
+    if (usingFastaParser) {
+      for (Keyword keyword in Keyword.values) {
+        if (keyword.isBuiltIn) {
+          String lexeme = keyword.lexeme;
+          parseCompilationUnit('$lexeme<T>(x) => 0;');
+        }
       }
     }
   }
@@ -15263,7 +15265,13 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('export<dynamic> _export = new export.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
-    assertNoErrors();
+    if (usingFastaParser) {
+      // This used to be deferred to later in the pipeline, but is now being
+      // reported by the parser.
+      assertErrorsWithCodes([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    } else {
+      assertNoErrors();
+    }
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -16133,6 +16141,10 @@ enum E {
   }
 
   void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
+    if (usingFastaParser) {
+      // Ignored: Fasta does not support the generic comment syntax.
+      return;
+    }
     enableGenericMethodComments = true;
     createParser('/// Doc\nT f/*<E>*/() {}');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
@@ -16170,6 +16182,10 @@ enum E {
   }
 
   void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
+    if (usingFastaParser) {
+      // Ignored: Fasta does not support the generic comment syntax.
+      return;
+    }
     enableGenericMethodComments = true;
     createParser('/*=T*/ f/*<S, T>*/(/*=S*/ s) => null;');
     var member = parseFullCompilationUnitMember();

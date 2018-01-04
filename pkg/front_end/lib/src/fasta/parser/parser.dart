@@ -513,19 +513,21 @@ class Parser {
       return parseEnum(previous);
     } else if (identical(value, 'typedef')) {
       Token next = token.next;
+      directiveState?.checkDeclaration();
       if (next.isIdentifier || optional("void", next)) {
-        directiveState?.checkDeclaration();
         return parseTypedef(previous);
       } else {
-        directiveState?.checkDeclaration();
         return parseTopLevelMember(previous);
       }
     } else {
       // The remaining top level keywords are built-in keywords
-      // and can be used as an identifier in a top level declaration
-      // such as "abstract<T>() => 0;".
+      // and can be used in a top level declaration
+      // as an identifier such as "abstract<T>() => 0;"
+      // or as a prefix such as "abstract.A b() => 0;".
       String nextValue = token.next.stringValue;
-      if (identical(nextValue, '(') || identical(nextValue, '<')) {
+      if (identical(nextValue, '(') ||
+          identical(nextValue, '<') ||
+          identical(nextValue, '.')) {
         directiveState?.checkDeclaration();
         return parseTopLevelMember(previous);
       } else if (identical(value, 'library')) {
