@@ -75,6 +75,9 @@ abstract class FrontendStrategy {
   /// this strategy.
   NoSuchMethodResolver createNoSuchMethodResolver();
 
+  /// Returns the [RuntimeTypesNeedBuilder] used by this frontend strategy.
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting;
+
   /// Creates the [ResolutionWorldBuilder] corresponding to the element model
   /// used in this strategy.
   ResolutionWorldBuilder createResolutionWorldBuilder(

@@ -91,14 +91,14 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder);
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks);
 
   /// Compute type arguments of classes that use one of their type variables in
   /// is-checks and add the is-checks that they imply.
   ///
   /// This function must be called after all is-checks have been registered.
-  void registerImplicitChecks(
-      WorldBuilder worldBuilder, Iterable<ClassEntity> classesUsingChecks);
+  void registerImplicitChecks(Set<InterfaceType> instantiatedTypes,
+      Iterable<ClassEntity> classesUsingChecks, Set<DartType> implicitIsChecks);
 }
 
 /// Interface for computing substitutions need for runtime type checks.
@@ -170,16 +170,17 @@ abstract class _RuntimeTypesBase {
    * immutable datastructure.
    */
   void registerImplicitChecks(
-      WorldBuilder worldBuilder, Iterable<ClassEntity> classesUsingChecks) {
+      Set<InterfaceType> instantiatedTypes,
+      Iterable<ClassEntity> classesUsingChecks,
+      Set<DartType> implicitIsChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    Set<InterfaceType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
       for (InterfaceType type in instantiatedTypes) {
         do {
           for (DartType argument in type.typeArguments) {
-            worldBuilder.registerIsCheck(argument);
+            implicitIsChecks.add(argument.unaliased);
           }
           // TODO(johnniwinther): This seems wrong; the type arguments of [type]
           // are not substituted - `List<int>` yields `Iterable<E>` and not
@@ -202,7 +203,7 @@ abstract class _RuntimeTypesBase {
             InterfaceType instance = _types.asInstanceOf(type, cls);
             if (instance == null) break;
             for (DartType argument in instance.typeArguments) {
-              worldBuilder.registerIsCheck(argument);
+              implicitIsChecks.add(argument.unaliased);
             }
             // TODO(johnniwinther): This seems wrong; the type arguments of
             // [type] are not substituted - `List<int>` yields `Iterable<E>` and
@@ -302,6 +303,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   final Set<ClassEntity> classesUsingTypeVariableExpression =
       new Set<ClassEntity>();
 
+  final Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
+
+  Set<DartType> isChecks;
+
+  final Set<DartType> implicitIsChecks = new Set<DartType>();
+
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
       : super(types);
 
@@ -325,6 +332,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions}) {
+    isChecks = new Set<DartType>.from(resolutionWorldBuilder.isChecks);
     Set<ClassEntity> classesNeedingRti = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingRti = new Set<FunctionEntity>();
     Set<Local> localFunctionsNeedingRti = new Set<Local>();
@@ -353,8 +361,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       }
     }
 
-    Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
-    resolutionWorldBuilder.isChecks.forEach((DartType type) {
+    isChecks.forEach((DartType type) {
       if (type.isTypeVariable) {
         TypeVariableType typeVariableType = type;
         TypeVariableEntity variable = typeVariableType.element;
@@ -367,8 +374,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       }
     });
     // Add is-checks that result from classes using type variables in checks.
-    registerImplicitChecks(
-        resolutionWorldBuilder, classesUsingTypeVariableTests);
+    registerImplicitChecks(resolutionWorldBuilder.instantiatedTypes,
+        classesUsingTypeVariableTests, implicitIsChecks);
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to
@@ -411,25 +418,32 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
     // Compute the set of all classes and methods that need runtime type
     // information.
-    resolutionWorldBuilder.isChecks.forEach((DartType type) {
-      if (type.isInterfaceType) {
-        InterfaceType itf = type;
-        if (!itf.treatAsRaw) {
-          potentiallyAddForRti(itf.element);
+
+    void processChecks(Set<DartType> checks) {
+      checks.forEach((DartType type) {
+        if (type.isInterfaceType) {
+          InterfaceType itf = type;
+          if (!itf.treatAsRaw) {
+            potentiallyAddForRti(itf.element);
+          }
+        } else {
+          ClassEntity contextClass = DartTypes.getClassContext(type);
+          if (contextClass != null) {
+            // [type] contains type variables (declared in [contextClass]) if
+            // [contextClass] is non-null. This handles checks against type
+            // variables and function types containing type variables.
+            potentiallyAddForRti(contextClass);
+          }
+          if (type.isFunctionType) {
+            checkClosures(potentialSubtypeOf: type);
+          }
         }
-      } else {
-        ClassEntity contextClass = DartTypes.getClassContext(type);
-        if (contextClass != null) {
-          // [type] contains type variables (declared in [contextClass]) if
-          // [contextClass] is non-null. This handles checks against type
-          // variables and function types containing type variables.
-          potentiallyAddForRti(contextClass);
-        }
-        if (type.isFunctionType) {
-          checkClosures(potentialSubtypeOf: type);
-        }
-      }
-    });
+      });
+    }
+
+    processChecks(isChecks);
+    processChecks(implicitIsChecks);
+
     if (enableTypeAssertions) {
       checkClosures();
     }
@@ -567,8 +581,10 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder) {
-    Set<DartType> isChecks = codegenWorldBuilder.isChecks;
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    Set<DartType> isChecks =
+        new Set<DartType>.from(codegenWorldBuilder.isChecks);
+    isChecks.addAll(implicitIsChecks);
     // These types are needed for is-checks against function types.
     Set<DartType> instantiatedTypesAndClosures =
         computeInstantiatedTypesAndClosures(codegenWorldBuilder);

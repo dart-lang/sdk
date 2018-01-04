@@ -58,6 +58,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   final Compiler _compiler;
   final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
+  RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   AnnotationProcessor _annotationProcessor;
 
@@ -128,9 +129,13 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       new MirrorsResolutionAnalysisImpl(backend, _compiler.resolution);
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new ResolutionRuntimeTypesNeedBuilderImpl(
-        elementEnvironment, dartTypes);
+    return _runtimeTypesNeedBuilder ??=
+        new ResolutionRuntimeTypesNeedBuilderImpl(
+            elementEnvironment, dartTypes);
   }
+
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
+      _runtimeTypesNeedBuilder;
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
