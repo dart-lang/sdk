@@ -90,7 +90,7 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   ic_data.AddCheck(cids, dummy_instance_function);
 
   // For the non-Smi tests.
-  cids[0] = kBigintCid;
+  cids[0] = kMintCid;
   ic_data.AddCheck(cids, dummy_instance_function);
   ICData* call_ic_data = &ICData::ZoneHandle(ic_data.Original());
 
@@ -211,7 +211,7 @@ ASSEMBLER_TEST_RUN(AddTOSOverflow, test) {
 
 ASSEMBLER_TEST_GENERATE(AddTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ AddTOS();
@@ -252,7 +252,7 @@ ASSEMBLER_TEST_RUN(SubTOSOverflow, test) {
 
 ASSEMBLER_TEST_GENERATE(SubTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ SubTOS();
@@ -293,7 +293,7 @@ ASSEMBLER_TEST_RUN(MulTOSOverflow, test) {
 
 ASSEMBLER_TEST_GENERATE(MulTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(1)));
   __ MulTOS();
@@ -321,7 +321,7 @@ ASSEMBLER_TEST_RUN(BitOrTOS, test) {
 
 ASSEMBLER_TEST_GENERATE(BitOrTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitOrTOS();
@@ -349,7 +349,7 @@ ASSEMBLER_TEST_RUN(BitAndTOS, test) {
 
 ASSEMBLER_TEST_GENERATE(BitAndTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(0x08)));
   __ BitAndTOS();
@@ -390,7 +390,7 @@ ASSEMBLER_TEST_RUN(EqualTOSFalse, test) {
 
 ASSEMBLER_TEST_GENERATE(EqualTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ EqualTOS();
@@ -431,7 +431,7 @@ ASSEMBLER_TEST_RUN(LessThanTOSFalse, test) {
 
 ASSEMBLER_TEST_GENERATE(LessThanTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ LessThanTOS();
@@ -472,7 +472,7 @@ ASSEMBLER_TEST_RUN(GreaterThanTOSFalse, test) {
 
 ASSEMBLER_TEST_GENERATE(GreaterThanTOSNonSmi, assembler) {
   const String& numstr =
-      String::Handle(String::New("98765432198765432100", Heap::kOld));
+      String::Handle(String::New("9176543219876543210", Heap::kOld));
   __ PushConstant(Integer::Handle(Integer::New(numstr, Heap::kOld)));
   __ PushConstant(Smi::Handle(Smi::New(-42)));
   __ GreaterThanTOS();
