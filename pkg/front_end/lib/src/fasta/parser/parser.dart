@@ -1738,8 +1738,13 @@ class Parser {
         reportRecoverableErrorWithToken(
             next, fasta.templateBuiltInIdentifierInDeclaration);
       } else if (!optional("dynamic", next)) {
-        reportRecoverableErrorWithToken(
-            next, fasta.templateBuiltInIdentifierAsType);
+        if (context == IdentifierContext.typeReference &&
+            optional('.', next.next)) {
+          // Built in identifiers may be used as a prefix
+        } else {
+          reportRecoverableErrorWithToken(
+              next, fasta.templateBuiltInIdentifierAsType);
+        }
       }
       token = next;
     } else if (!inPlainSync && next.type.isPseudo) {

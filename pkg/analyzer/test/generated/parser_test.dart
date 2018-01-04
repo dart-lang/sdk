@@ -15323,13 +15323,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     createParser('typedef.A _typedef = new typedef.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
-    if (usingFastaParser) {
-      // This used to be deferred to later in the pipeline, but is now being
-      // reported by the parser.
-      assertErrorsWithCodes([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
-    } else {
-      assertNoErrors();
-    }
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));

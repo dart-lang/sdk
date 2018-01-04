@@ -2970,20 +2970,6 @@ class A native 'something' {
   }
 
   @override
-  @failingTest
-  void test_parseCompilationUnitMember_abstractAsPrefix() {
-    // TODO(danrubel): built-in "abstract" cannot be used as a prefix
-    super.test_parseCompilationUnitMember_abstractAsPrefix();
-  }
-
-  @failingTest
-  void test_parseCompilationUnitMember_abstractAsPrefix2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseCompilationUnitMember_abstractAsPrefix();
-    assertNoErrors();
-  }
-
-  @override
   void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
     // Ignored: Fasta does not support the generic comment syntax.
   }
