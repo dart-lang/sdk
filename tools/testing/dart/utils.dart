@@ -387,13 +387,17 @@ class TestUtils {
   }
 
   /**
+   * Keep a map of files copied to avoid race conditions.
+   */
+  static Map<String, Future> _copyFilesMap = {};
+
+  /**
    * Copy a [source] file to a new place.
    * Assumes that the directory for [dest] already exists.
    */
   static Future copyFile(Path source, Path dest) {
-    return new File(source.toNativePath())
-        .openRead()
-        .pipe(new File(dest.toNativePath()).openWrite());
+    return _copyFilesMap.putIfAbsent(dest.toNativePath(),
+        () => new File(source.toNativePath()).copy(dest.toNativePath()));
   }
 
   static Future copyDirectory(String source, String dest) {
