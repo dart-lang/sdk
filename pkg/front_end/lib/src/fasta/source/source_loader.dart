@@ -557,7 +557,8 @@ class SourceLoader<L> extends Loader<L> {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.checkOverrides(hierarchy);
+        builder.checkOverrides(
+            hierarchy, typeInferenceEngine?.typeSchemaEnvironment);
       }
     }
     ticker.logMs("Checked overrides");

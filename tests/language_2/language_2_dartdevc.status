@@ -428,6 +428,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+method_override_test: CompileTimeError # Issue 31616
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -581,19 +582,11 @@ override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
 override_inheritance_field_test/53: MissingCompileTimeError
 override_inheritance_field_test/54: MissingCompileTimeError
-override_inheritance_generic_test/04: MissingCompileTimeError
-override_inheritance_generic_test/06: MissingCompileTimeError
-override_inheritance_generic_test/07: MissingCompileTimeError
-override_inheritance_generic_test/08: MissingCompileTimeError
-override_inheritance_generic_test/09: MissingCompileTimeError
-override_inheritance_generic_test/10: MissingCompileTimeError
+override_inheritance_generic_test/02: CompileTimeError # Issue 31616
 override_inheritance_method_test/17: CompileTimeError
 override_inheritance_method_test/18: CompileTimeError
-override_inheritance_method_test/27: MissingCompileTimeError
-override_inheritance_method_test/30: MissingCompileTimeError
-override_inheritance_method_test/31: MissingCompileTimeError
-override_inheritance_method_test/32: MissingCompileTimeError
-override_inheritance_method_test/33: MissingCompileTimeError
+override_inheritance_method_test/28: CompileTimeError # Issue 31616
+override_inheritance_method_test/29: CompileTimeError # Issue 31616
 override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
@@ -631,6 +624,8 @@ setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 string_interpolate_test: CompileTimeError # Issue 31533
+string_split_test: CompileTimeError # Issue 31616
+string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test: CompileTimeError
 super_from_constructor_test: Crash
@@ -707,6 +702,7 @@ final_field_initialization_order_test: RuntimeError # Issue 31058
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 forwarding_stub_tearoff_generic_test: RuntimeError
 fuzzy_arrows_test/03: RuntimeError # Issue 29630
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
@@ -946,7 +942,6 @@ generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_list_checked_test: CompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 internal_library_test/02: Crash

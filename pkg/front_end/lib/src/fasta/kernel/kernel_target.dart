@@ -246,11 +246,11 @@ class KernelTarget extends TargetImplementation {
       }
       loader.computeHierarchy(program);
       computeCoreTypes();
-      loader.checkOverrides(myClasses);
       if (!loader.target.disableTypeInference) {
         loader.prepareTopLevelInference(myClasses);
         loader.performTopLevelInference(myClasses);
       }
+      loader.checkOverrides(myClasses);
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
       handleInputError(e, isFullProgram: false);

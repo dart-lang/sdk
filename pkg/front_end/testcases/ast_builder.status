@@ -49,6 +49,8 @@ inference/field_initializer_parameter: Crash
 inference/for_loop_initializer_expression: Crash
 inference/future_then_explicit_future: Fail
 inference/generic_functions_return_typedef: Fail
+inference/generic_methods_do_not_infer_invalid_override_of_generic_method: Fail
+inference/generic_methods_handle_override_of_non_generic_with_generic: Fail
 inference/generic_methods_infer_js_builtin: Fail
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
@@ -74,6 +76,9 @@ invocations: Crash
 metadata_enum: Crash
 metadata_named_mixin_application: Crash
 micro: Crash
+override_check_after_inference: Fail
+override_check_basic: Fail
+override_check_with_covariant_modifier: Fail
 qualified: Crash
 rasta/abstract_constructor: Crash
 rasta/bad_continue: Crash

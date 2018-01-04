@@ -1165,6 +1165,18 @@ OverrideFewerPositionalArguments:
 OverrideMoreRequiredArguments:
   template: "The method '#name' has more required arguments than those of overridden method '#name2'."
 
+OverrideTypeMismatchParameter:
+  template: "The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2)."
+  tip: "Change to a supertype of #type2 (or, for a covariant parameter, a subtype)."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+  dart2jsCode: "*ignored*"
+
+OverrideTypeMismatchReturnType:
+  template: "The return type of the method '#name' is #type, which does not match the return type of the overridden method (#type2)."
+  tip: "Change to a subtype of #type2."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+  dart2jsCode: "*ignored*"
+
 IllegalMethodName:
   template: "'#name' isn't a legal method name."
   tip: "Did you mean '#name2'?"

@@ -294,6 +294,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
+      case "INVALID_METHOD_OVERRIDE":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_METHOD_OVERRIDE, offset, length);
+        return;
       case "INVALID_MODIFIER_ON_SETTER":
         _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,
             offset, length);

@@ -35,6 +35,7 @@ mirrors/reflected_type_generics_test/02: Pass
 async/async_await_sync_completer_test: RuntimeError
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
+async/future_value_chain4_test: CompileTimeError # Issue 31616
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -396,6 +397,7 @@ async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
+async/future_value_chain4_test: CompileTimeError # Issue 31616
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer_test: CompileTimeError # Issue 31402 (Invocation arguments)

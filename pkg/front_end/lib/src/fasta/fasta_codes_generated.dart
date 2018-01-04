@@ -3545,6 +3545,97 @@ Message _withArgumentsOverrideMoreRequiredArguments(String name, String name2) {
 const Template<
     Message Function(
         String name,
+        String name2,
+        DartType _type,
+        DartType
+            _type2)> templateOverrideTypeMismatchParameter = const Template<
+        Message Function(String name, String name2, DartType _type,
+            DartType _type2)>(
+    messageTemplate:
+        r"""The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2).""",
+    tipTemplate:
+        r"""Change to a supertype of #type2 (or, for a covariant parameter, a subtype).""",
+    withArguments: _withArgumentsOverrideTypeMismatchParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, String name2, DartType _type, DartType _type2)>
+    codeOverrideTypeMismatchParameter = const Code<
+            Message Function(
+                String name, String name2, DartType _type, DartType _type2)>(
+        "OverrideTypeMismatchParameter", templateOverrideTypeMismatchParameter,
+        analyzerCode: "INVALID_METHOD_OVERRIDE", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeMismatchParameter(
+    String name, String name2, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeOverrideTypeMismatchParameter,
+      message:
+          """The parameter '$name' of the method '$name2' has type $type, which does not match the corresponding type in the overridden method ($type2).""",
+      tip: """Change to a supertype of $type2 (or, for a covariant parameter, a subtype).""",
+      arguments: {
+        'name': name,
+        'name2': name2,
+        'type': _type,
+        'type2': _type2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        DartType
+            _type2)> templateOverrideTypeMismatchReturnType = const Template<
+        Message Function(String name, DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The return type of the method '#name' is #type, which does not match the return type of the overridden method (#type2).""",
+    tipTemplate: r"""Change to a subtype of #type2.""",
+    withArguments: _withArgumentsOverrideTypeMismatchReturnType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeOverrideTypeMismatchReturnType =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "OverrideTypeMismatchReturnType",
+        templateOverrideTypeMismatchReturnType,
+        analyzerCode: "INVALID_METHOD_OVERRIDE",
+        dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeMismatchReturnType(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeOverrideTypeMismatchReturnType,
+      message:
+          """The return type of the method '$name' is $type, which does not match the return type of the overridden method ($type2).""",
+      tip: """Change to a subtype of $type2.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
         String
             name2)> templateOverrideTypeVariablesMismatch = const Template<
         Message Function(String name, String name2)>(
