@@ -248,32 +248,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedExecutable_topLevel_afterType() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected CompilationUnit, but found [CompilationUnit, TopLevelMember]
-    //   package:test                                                       fail
-    //   test/generated/parser_fasta_listener.dart 50:7                     ForwardingTestListener.expectIn
-    //   test/generated/parser_fasta_listener.dart 1030:5                   ForwardingTestListener.endTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 264:14              Parser.parseTopLevelDeclaration
-    //   test/generated/parser_fasta_test.dart 2815:22                      ParserProxy.parseTopLevelDeclaration
-    super.test_expectedExecutable_topLevel_afterType();
-  }
-
-  @override
-  @failingTest
-  void test_expectedExecutable_topLevel_afterVoid() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected CompilationUnit, but found [CompilationUnit, TopLevelMember]
-    //   package:test                                                       fail
-    //   test/generated/parser_fasta_listener.dart 50:7                     ForwardingTestListener.expectIn
-    //   test/generated/parser_fasta_listener.dart 1030:5                   ForwardingTestListener.endTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 264:14              Parser.parseTopLevelDeclaration
-    //   test/generated/parser_fasta_test.dart 2815:22                      ParserProxy.parseTopLevelDeclaration
-    super.test_expectedExecutable_topLevel_afterVoid();
-  }
-
-  @override
-  @failingTest
   void test_expectedExecutable_topLevel_beforeType() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true

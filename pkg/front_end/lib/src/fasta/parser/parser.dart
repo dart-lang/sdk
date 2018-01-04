@@ -471,9 +471,8 @@ class Parser {
       return parseTopLevelMember(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
-    reportRecoverableErrorWithToken(next, fasta.templateExpectedDeclaration);
-    listener.handleInvalidTopLevelDeclaration(next);
-    return next;
+    listener.beginTopLevelMember(next);
+    return reportInvalidTopLevelDeclaration(next);
   }
 
   // Report an error for the given modifier preceding a top level keyword
@@ -2703,16 +2702,14 @@ class Parser {
             token, IdentifierContext.topLevelVariableDeclaration);
         return parseFields(beforeStart, const Link<Token>(), token, true);
       } else {
-        return reportUnrecoverableErrorWithToken(
-            token, fasta.templateExpectedDeclaration);
+        return reportInvalidTopLevelDeclaration(token);
       }
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableErrorWithToken(
-          token, fasta.templateExpectedDeclaration);
+      return reportInvalidTopLevelDeclaration(token);
     }
     Token beforeName = identifiers.head;
     identifiers = identifiers.tail;
@@ -6117,6 +6114,12 @@ class Parser {
       return token.next;
     }
     return nextToken;
+  }
+
+  Token reportInvalidTopLevelDeclaration(Token token) {
+    reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
+    listener.handleInvalidTopLevelDeclaration(token);
+    return token;
   }
 
   Token reportUnmatchedToken(BeginToken token) {

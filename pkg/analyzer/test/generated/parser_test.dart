@@ -2917,19 +2917,39 @@ class Foo {
   }
 
   void test_expectedExecutable_topLevel_afterType() {
-    createParser('heart 2 heart');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 5)]);
+    CompilationUnit unit = parseCompilationUnit('heart 2 heart',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 5),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 0),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 0)
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 5)
+              ]);
+    expect(unit, isNotNull);
   }
 
   void test_expectedExecutable_topLevel_afterVoid() {
-    createParser('void 2 void');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 5, 1)]);
+    CompilationUnit unit = parseCompilationUnit('void 2 void',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 4),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 5, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 0),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 0)
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 5)
+              ]);
+    expect(unit, isNotNull);
   }
 
   void test_expectedExecutable_topLevel_beforeType() {
