@@ -4140,6 +4140,29 @@ class Wrong<T> {
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]);
   }
 
+  void test_missingIdentifier_inParameterGroupNamed() {
+    createParser('(a, {})');
+    FormalParameterList list = parser.parseFormalParameterList();
+    expectNotNullIfNoErrors(list);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1)]);
+  }
+
+  void test_missingIdentifier_inParameterGroupOptional() {
+    createParser('(a, [])');
+    FormalParameterList list = parser.parseFormalParameterList();
+    expectNotNullIfNoErrors(list);
+    if (usingFastaParser) {
+      listener.assertErrors(
+          [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1)]);
+    } else {
+      listener.assertErrors([
+        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1)
+      ]);
+    }
+  }
+
   void test_missingIdentifier_inSymbol_afterPeriod() {
     SymbolLiteral literal = parseSymbolLiteral('#a.');
     expectNotNullIfNoErrors(literal);

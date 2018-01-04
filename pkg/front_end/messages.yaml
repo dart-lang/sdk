@@ -93,6 +93,7 @@ Encoding:
 EmptyNamedParameterList:
   template: "Named parameter lists cannot be empty."
   tip: "Try adding a named parameter to the list."
+  analyzerCode: "MISSING_IDENTIFIER"
   dart2jsCode: EMPTY_NAMED_PARAMETER_LIST
   script: >
     foo({}) {}
@@ -104,6 +105,7 @@ EmptyNamedParameterList:
 EmptyOptionalParameterList:
   template: "Optional parameter lists cannot be empty."
   tip: "Try adding an optional parameter to the list."
+  analyzerCode: "MISSING_IDENTIFIER"
   dart2jsCode: EMPTY_OPTIONAL_PARAMETER_LIST
   script: >
     foo([]) {}

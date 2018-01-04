@@ -1064,6 +1064,7 @@ const Code<Null> codeEmptyNamedParameterList = messageEmptyNamedParameterList;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyNamedParameterList = const MessageCode(
     "EmptyNamedParameterList",
+    analyzerCode: "MISSING_IDENTIFIER",
     dart2jsCode: "EMPTY_NAMED_PARAMETER_LIST",
     message: r"""Named parameter lists cannot be empty.""",
     tip: r"""Try adding a named parameter to the list.""");
@@ -1075,6 +1076,7 @@ const Code<Null> codeEmptyOptionalParameterList =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyOptionalParameterList = const MessageCode(
     "EmptyOptionalParameterList",
+    analyzerCode: "MISSING_IDENTIFIER",
     dart2jsCode: "EMPTY_OPTIONAL_PARAMETER_LIST",
     message: r"""Optional parameter lists cannot be empty.""",
     tip: r"""Try adding an optional parameter to the list.""");

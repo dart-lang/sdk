@@ -1096,9 +1096,10 @@ class Parser {
         token = ensureCloseParen(token, begin);
         break;
       } else if (identical(value, '[]')) {
-        --parameterCount;
-        reportRecoverableError(next, fasta.messageEmptyOptionalParameterList);
-        token = ensureCloseParen(next, begin);
+        // Recovery
+        token = rewriteSquareBrackets(token);
+        token = parseOptionalPositionalParameters(token, kind);
+        token = ensureCloseParen(token, begin);
         break;
       }
       token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
@@ -1164,21 +1165,42 @@ class Parser {
     assert(optional('[', token));
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
-    do {
+    while (true) {
       Token next = token.next;
       if (optional(']', next)) {
-        token = next;
         break;
       }
       token = parseFormalParameter(
-              token, FormalParameterKind.optionalPositional, kind)
-          .next;
+          token, FormalParameterKind.optionalPositional, kind);
+      next = token.next;
       ++parameterCount;
-    } while (optional(',', token));
-    if (parameterCount == 0) {
-      reportRecoverableError(token, fasta.messageEmptyOptionalParameterList);
+      if (!optional(',', next)) {
+        if (!optional(']', next)) {
+          // Recovery
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments(']'));
+          // Scanner guarantees a closing bracket.
+          next = begin.endGroup;
+          while (token.next != next) {
+            token = token.next;
+          }
+        }
+        break;
+      }
+      token = next;
     }
-    expect(']', token);
+    if (parameterCount == 0) {
+      token = rewriteAndRecover(
+          token,
+          fasta.messageEmptyOptionalParameterList,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', token.next.charOffset, 0));
+      token = parseFormalParameter(
+          token, FormalParameterKind.optionalPositional, kind);
+      ++parameterCount;
+    }
+    token = token.next;
+    assert(optional(']', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
   }
@@ -1194,21 +1216,42 @@ class Parser {
     assert(optional('{', token));
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
-    do {
+    while (true) {
       Token next = token.next;
       if (optional('}', next)) {
-        token = next;
         break;
       }
       token =
-          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind)
-              .next;
+          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind);
+      next = token.next;
       ++parameterCount;
-    } while (optional(',', token));
-    if (parameterCount == 0) {
-      reportRecoverableError(token, fasta.messageEmptyNamedParameterList);
+      if (!optional(',', next)) {
+        if (!optional('}', next)) {
+          // Recovery
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing bracket.
+          next = begin.endGroup;
+          while (token.next != next) {
+            token = token.next;
+          }
+        }
+        break;
+      }
+      token = next;
     }
-    expect('}', token);
+    if (parameterCount == 0) {
+      token = rewriteAndRecover(
+          token,
+          fasta.messageEmptyNamedParameterList,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', token.next.charOffset, 0));
+      token =
+          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind);
+      ++parameterCount;
+    }
+    token = token.next;
+    assert(optional('}', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
   }
@@ -3220,6 +3263,18 @@ class Parser {
     return token;
   }
 
+  /// Replace the token after [token] with `[` followed by `]`
+  /// and return [token].
+  Token rewriteSquareBrackets(Token token) {
+    Token next = token.next;
+    assert(optional('[]', next));
+    Token replacement = link(
+        new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+        new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
+    rewriter.replaceTokenFollowing(token, replacement);
+    return token;
+  }
+
   void rewriteGtCompositeOrRecover(Token token, Token next, String value) {
     assert(value != '>');
     Token replacement = new Token(TokenType.GT, next.charOffset);
@@ -4756,14 +4811,9 @@ class Parser {
       expect(']', token);
       return token;
     }
-    BeginToken replacement = link(
-        new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
-        new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
-    rewriter.replaceTokenFollowing(beforeToken, replacement);
-    replacement.endToken = replacement.next;
-    token = replacement.next;
-    listener.handleLiteralList(0, replacement, constKeyword, token);
-    return token;
+    token = rewriteSquareBrackets(beforeToken).next;
+    listener.handleLiteralList(0, token, constKeyword, token.next);
+    return token.next;
   }
 
   /// This method parses the portion of a map literal that starts with the left
