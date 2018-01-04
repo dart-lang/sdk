@@ -424,11 +424,12 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
            constant_function_type_args->value().IsTypeArguments());
 
     Zone* Z = Thread::Current()->zone();
-    TypeArguments& instantiator_type_args = TypeArguments::Handle(Z);
-    instantiator_type_args ^= constant_instantiator_type_args->value().raw();
+    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
+        Z,
+        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
 
-    TypeArguments& function_type_args = TypeArguments::Handle(Z);
-    function_type_args ^= constant_function_type_args->value().raw();
+    const TypeArguments& function_type_args = TypeArguments::Handle(
+        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
 
     Error& error_bound = Error::Handle(Z);
 
@@ -2145,15 +2146,21 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
            constant_instantiator_type_args->value().IsTypeArguments());
     ASSERT(constant_function_type_args->value().IsNull() ||
            constant_function_type_args->value().IsTypeArguments());
-    TypeArguments& instantiator_type_args = TypeArguments::Handle();
-    instantiator_type_args ^= constant_instantiator_type_args->value().raw();
-    TypeArguments& function_type_args = TypeArguments::Handle();
-    function_type_args ^= constant_function_type_args->value().raw();
-    Error& bound_error = Error::Handle();
-    AbstractType& new_dst_type =
-        AbstractType::Handle(dst_type().InstantiateFrom(
-            instantiator_type_args, function_type_args, kAllFree, &bound_error,
-            NULL, NULL, Heap::kOld));
+
+    Zone* Z = Thread::Current()->zone();
+    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
+        Z,
+        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+
+    const TypeArguments& function_type_args = TypeArguments::Handle(
+        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
+
+    Error& bound_error = Error::Handle(Z);
+
+    AbstractType& new_dst_type = AbstractType::Handle(
+        Z, dst_type().InstantiateFrom(instantiator_type_args,
+                                      function_type_args, kAllFree,
+                                      &bound_error, NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }

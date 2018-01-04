@@ -128,7 +128,7 @@ class Symbols;
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
   static Raw##object* RawCast(RawObject* raw) {                                \
-    ASSERT(Object::Handle(raw).Is##object());                                  \
+    ASSERT(Object::Handle(raw).IsNull() || Object::Handle(raw).Is##object());  \
     return reinterpret_cast<Raw##object*>(raw);                                \
   }                                                                            \
   static Raw##object* null() {                                                 \
