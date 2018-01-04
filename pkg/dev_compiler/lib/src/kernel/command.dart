@@ -164,7 +164,11 @@ Future<CompilerResult> _compile(List<String> args,
 
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
-    if (error.severity == fe.Severity.error) {
+    // TODO(jmesserly): front end warning levels do not seem to follow the
+    // Strong Mode/Dart 2 spec. So for now, we treat all warnings as
+    // compile time errors.
+    if (error.severity == fe.Severity.error ||
+        error.severity == fe.Severity.warning) {
       succeeded = false;
     }
   }

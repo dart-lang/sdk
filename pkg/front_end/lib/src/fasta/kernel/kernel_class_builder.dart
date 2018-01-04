@@ -158,7 +158,7 @@ abstract class KernelClassBuilder
               if (builder.isConst) {
                 addCompileTimeError(message, builder.charOffset);
               } else {
-                addProblem(message, builder.charOffset);
+                addWarning(message, builder.charOffset);
               }
               // CoreTypes aren't computed yet, and this is the outline
               // phase. So we can't and shouldn't create a method body.
@@ -234,7 +234,7 @@ abstract class KernelClassBuilder
     FunctionNode interfaceFunction = interfaceMember.function;
     if (declaredFunction.typeParameters?.length !=
         interfaceFunction.typeParameters?.length) {
-      addProblem(
+      addWarning(
           templateOverrideTypeVariablesMismatch.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -249,7 +249,7 @@ abstract class KernelClassBuilder
             interfaceFunction.requiredParameterCount ||
         declaredFunction.positionalParameters.length <
             interfaceFunction.positionalParameters.length) {
-      addProblem(
+      addWarning(
           templateOverrideFewerPositionalArguments.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -262,7 +262,7 @@ abstract class KernelClassBuilder
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
-      addProblem(
+      addWarning(
           templateOverrideMoreRequiredArguments.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -279,7 +279,7 @@ abstract class KernelClassBuilder
     }
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
-      addProblem(
+      addWarning(
           templateOverrideFewerNamedArguments.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -300,7 +300,7 @@ abstract class KernelClassBuilder
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
-          addProblem(
+          addWarning(
               templateOverrideMismatchNamedParameter.withArguments(
                   "$name::${declaredMember.name.name}",
                   interfaceNamedParameters.current.name,

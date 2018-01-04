@@ -59,7 +59,7 @@ class ConstructorReferenceBuilder extends Builder {
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }
     if (target == null) {
-      accessingLibrary.addProblem(
+      accessingLibrary.addWarning(
           templateConstructorNotFound.withArguments(fullNameForErrors),
           charOffset,
           fileUri);

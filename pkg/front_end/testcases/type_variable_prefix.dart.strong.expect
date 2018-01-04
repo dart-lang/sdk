@@ -9,7 +9,6 @@ class C<T extends core::Object> extends core::Object {
   method method() → invalid-type
     return let final dynamic #t1 = "Hello, World!" in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/type_variable_prefix.dart:8:24: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'invalid-type'.\nTry changing the type of the left hand side, or casting the right hand side to 'invalid-type'.\n  T.String method() => \"Hello, World!\";\n                       ^";
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: Type 'T.String' not found.\n  T.String method() => \"Hello, World!\";\n  ^"]/* from null */;
 static method main() → dynamic {
   core::String s = let final dynamic #t2 = new self::C::•<dynamic>().{self::C::method}() in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/type_variable_prefix.dart:12:24: Error: A value of type 'invalid-type' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  T.String s = new C().method();\n                       ^";
   core::print(s);

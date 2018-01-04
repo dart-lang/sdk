@@ -1053,8 +1053,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      addProblemErrorIfConst(message, charOffset, name.name.length,
-          context: context);
+      addWarning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1066,8 +1065,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      addProblemErrorIfConst(message, charOffset, name.name.length,
-          context: context);
+      addWarning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1079,15 +1077,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
         : fasta.templateMethodNotFound.withArguments(name.name);
     if (reportWarning) {
-      addProblemErrorIfConst(message, charOffset, name.name.length,
-          context: context);
+      addWarning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
 
   @override
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
-    addProblemErrorIfConst(
+    addWarning(
         fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
         charOffset,
         name.length);
@@ -1717,7 +1714,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       typeArgument = typeArguments.first;
       if (typeArguments.length > 1) {
         typeArgument = null;
-        addProblem(fasta.messageListLiteralTooManyTypeArguments,
+        warningNotError(fasta.messageListLiteralTooManyTypeArguments,
             beginToken.charOffset);
       } else {
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
@@ -1766,7 +1763,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (typeArguments.length != 2) {
         keyType = null;
         valueType = null;
-        addProblem(fasta.messageListLiteralTypeArgumentMismatch,
+        warningNotError(fasta.messageListLiteralTypeArgumentMismatch,
             beginToken.charOffset);
       } else {
         keyType = instantiateToBounds(typeArguments[0], coreTypes.objectClass);
@@ -1838,7 +1835,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             isQualified: true, prefix: prefix);
       } else {
         String displayName = debugName(getNodeName(prefix), suffix.name);
-        addProblem(fasta.templateNotAType.withArguments(displayName),
+        warningNotError(fasta.templateNotAType.withArguments(displayName),
             beginToken.charOffset);
         push(const InvalidType());
         return;
@@ -1847,13 +1844,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (name is TypeDeclarationAccessor) {
       push(name.buildType(arguments));
     } else if (name is FastaAccessor) {
-      addProblem(fasta.templateNotAType.withArguments(beginToken.lexeme),
+      warningNotError(fasta.templateNotAType.withArguments(beginToken.lexeme),
           beginToken.charOffset);
       push(const InvalidType());
     } else if (name is TypeBuilder) {
       push(name.build(library));
     } else if (name is PrefixBuilder) {
-      addProblem(fasta.templateNotAType.withArguments(name.name),
+      warningNotError(fasta.templateNotAType.withArguments(name.name),
           beginToken.charOffset);
       push(const InvalidType());
     } else {
@@ -3219,9 +3216,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     DartType bound = pop();
     if (bound != null) {
       // TODO(ahe): To handle F-bounded types, this needs to be a TypeBuilder.
-      // TODO(askesc): Remove message type when no longer needed.
-      // https://github.com/dart-lang/sdk/issues/31766
-      addProblem(fasta.messageUnimplementedBoundsOnTypeVariables,
+      warningNotError(
+          fasta.templateInternalProblemUnimplemented
+              .withArguments("bounds on type variables"),
           offsetForToken(extendsOrSuper.next));
     }
     Identifier name = pop();
@@ -3323,7 +3320,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Expression buildFallThroughError(int charOffset) {
-    addProblem(fasta.messageSwitchCaseFallThrough, charOffset);
+    warningNotError(fasta.messageSwitchCaseFallThrough, charOffset);
 
     Location location = messages.getLocationFromUri(uri, charOffset);
 
@@ -3339,7 +3336,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Expression buildAbstractClassInstantiationError(
       Message message, String className,
       [int charOffset = -1]) {
-    addProblemErrorIfConst(message, charOffset, className.length);
+    addWarning(message, charOffset, className.length);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
         new ShadowArguments(<Expression>[new StringLiteral(className)])));
@@ -3399,11 +3396,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (builder.isFinal && builder.hasInitializer) {
         // TODO(ahe): If CL 2843733002 is landed, this becomes a compile-time
         // error. Also, this is a compile-time error in strong mode.
-        addProblem(
+        warningNotError(
             fasta.templateFinalInstanceVariableAlreadyInitialized
                 .withArguments(name),
             offset);
-        addProblem(
+        warningNotError(
             fasta.templateFinalInstanceVariableAlreadyInitializedCause
                 .withArguments(name),
             builder.charOffset);
@@ -3500,7 +3497,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (nonInstanceAccessIsError) {
         addCompileTimeError(message, offset, length);
       } else {
-        addProblemErrorIfConst(message, offset, length);
+        addWarning(message, offset, length);
       }
       return const InvalidType();
     } else if (constantExpressionRequired) {
@@ -3553,7 +3550,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           warnUnresolvedMethod(name, offset, isSuper: true);
         } else if (!areArgumentsCompatible(target.function, arguments)) {
           target = null;
-          addProblemErrorIfConst(
+          addWarning(
               fasta.templateSuperclassMethodArgumentMismatch
                   .withArguments(name.name),
               offset,
@@ -3594,21 +3591,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     library.addCompileTimeError(message, charOffset, uri);
   }
 
-  void addProblem(Message message, int charOffset) {
-    library.addProblem(message, charOffset, uri);
+  void warningNotError(Message message, int charOffset) {
+    library.addWarning(message, charOffset, uri);
   }
 
   @override
-  void addProblemErrorIfConst(Message message, int charOffset, int length,
+  void addWarning(Message message, int charOffset, int length,
       {LocatedMessage context}) {
-    // TODO(askesc): Instead of deciding on the severity, this method should
-    // take two messages: one to use when a constant expression is
-    // required and one to use otherwise.
     if (constantExpressionRequired) {
       addCompileTimeError(message, charOffset, length);
     } else {
-      library.addProblem(message, charOffset, uri, context: context);
+      library.addWarning(message, charOffset, uri, context: context);
     }
+  }
+
+  @override
+  void addNit(Message message, int charOffset) {
+    library.addNit(message, charOffset, uri);
   }
 
   @override

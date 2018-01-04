@@ -184,7 +184,7 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          library.addProblem(
+          library.addWarning(
               messageNonInstanceTypeVariableUse, charOffset, fileUri);
           return substitute(type, substitution);
         }

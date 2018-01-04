@@ -499,7 +499,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is a warning, but the part is still included.
-        addProblem(
+        addWarning(
             templatePartOfUriMismatch.withArguments(
                 part.fileUri, uri, part.partOfUri),
             -1,
@@ -509,7 +509,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       if (name != null) {
         if (part.partOfName != name) {
           // This is a warning, but the part is still included.
-          addProblem(
+          addWarning(
               templatePartOfLibraryNameMismatch.withArguments(
                   part.fileUri, name, part.partOfName),
               -1,
@@ -517,7 +517,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         }
       } else {
         // This is a warning, but the part is still included.
-        addProblem(
+        addWarning(
             templatePartOfUseUri.withArguments(
                 part.fileUri, fileUri, part.partOfName),
             -1,

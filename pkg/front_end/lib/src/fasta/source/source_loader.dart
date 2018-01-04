@@ -709,12 +709,6 @@ class SourceLoader<L> extends Loader<L> {
       case Severity.warning:
         severityString = "warning";
         break;
-
-      case Severity.errorLegacyWarning:
-        // Should have been resolved to either error or warning at this point.
-        // Use a property name expressing that, in case it slips through.
-        severityString = "unresolved severity";
-        break;
     }
     instrumentation.record(
         fileUri,

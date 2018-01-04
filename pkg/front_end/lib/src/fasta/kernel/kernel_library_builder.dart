@@ -20,9 +20,7 @@ import '../fasta_codes.dart'
         messageTypeVariableSameNameAsEnclosing,
         templateConflictsWithTypeVariable,
         templateDuplicatedExport,
-        templateDuplicatedExportInType,
         templateDuplicatedImport,
-        templateDuplicatedImportInType,
         templateExportHidesExport,
         templateIllegalMethodName,
         templateImportHidesImport,
@@ -926,15 +924,14 @@ class KernelLibraryBuilder
         var template = isExport
             ? templateLocalDefinitionHidesExport
             : templateLocalDefinitionHidesImport;
-        addProblem(
-            template.withArguments(name, hiddenUri), charOffset, fileUri);
+        addNit(template.withArguments(name, hiddenUri), charOffset, fileUri);
       } else if (isLoadLibrary) {
-        addProblem(templateLoadLibraryHidesMember.withArguments(preferredUri),
+        addNit(templateLoadLibraryHidesMember.withArguments(preferredUri),
             charOffset, fileUri);
       } else {
         var template =
             isExport ? templateExportHidesExport : templateImportHidesImport;
-        addProblem(template.withArguments(name, preferredUri, hiddenUri),
+        addNit(template.withArguments(name, preferredUri, hiddenUri),
             charOffset, fileUri);
       }
       return preferred;
@@ -954,12 +951,8 @@ class KernelLibraryBuilder
     var template =
         isExport ? templateDuplicatedExport : templateDuplicatedImport;
     Message message = template.withArguments(name, uri, otherUri);
-    addProblem(message, charOffset, fileUri);
-    var builderTemplate = isExport
-        ? templateDuplicatedExportInType
-        : templateDuplicatedImportInType;
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri,
-        builderTemplate.withArguments(name, uri, otherUri));
+    addNit(message, charOffset, fileUri);
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
   }
 
   int finishDeferredLoadTearoffs() {

@@ -23,7 +23,7 @@ import 'fasta_codes.dart' show LocatedMessage, Message;
 
 import 'messages.dart' show getLocation, getSourceLine, isVerbose;
 
-import 'problems.dart' show unexpected;
+import 'problems.dart' show unhandled;
 
 import 'severity.dart' show Severity;
 
@@ -59,9 +59,6 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset,
         case Severity.warning:
           text = magenta(text);
           break;
-
-        default:
-          return unexpected("$severity", "formatInternal", -1, null);
       }
     }
 
@@ -105,10 +102,8 @@ bool isHidden(Severity severity) {
 
     case Severity.warning:
       return hideWarnings;
-
-    default:
-      return unexpected("$severity", "isHidden", -1, null);
   }
+  return unhandled("$severity", "isHidden", -1, null);
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
@@ -126,10 +121,8 @@ bool shouldThrowOn(Severity severity) {
 
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
-
-    default:
-      return unexpected("$severity", "shouldThrowOn", -1, null);
   }
+  return unhandled("$severity", "shouldThrowOn", -1, null);
 }
 
 /// Convert [severity] to a name that can be used to prefix a message.
@@ -146,10 +139,8 @@ String severityName(Severity severity, {bool capitalized: false}) {
 
     case Severity.warning:
       return capitalized ? "Warning" : "warning";
-
-    default:
-      return unexpected("$severity", "severityName", -1, null);
   }
+  return unhandled("$severity", "severityName", -1, null);
 }
 
 /// Print a formatted message and throw when errors are treated as fatal.

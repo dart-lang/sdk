@@ -10,14 +10,6 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-Map<String, String> severityEnumNames = <String, String>{
-  'NIT': 'nit',
-  'WARNING': 'warning',
-  'ERROR': 'error',
-  'ERROR_LEGACY_WARNING': 'errorLegacyWarning',
-  'INTERNAL_PROBLEM': 'internalProblem',
-};
-
 main(List<String> arguments) async {
   var port = new ReceivePort();
   Uri messagesFile = Platform.script.resolve("../../messages.yaml");
@@ -48,7 +40,7 @@ part of fasta.codes;
       throw "No 'template:' in key $name.";
     }
     sb.writeln(compileTemplate(name, map['template'], map['tip'],
-        map['analyzerCode'], map['dart2jsCode'], map['severity']));
+        map['analyzerCode'], map['dart2jsCode']));
   }
 
   String dartfmtedText = new DartFormatter().format("$sb");
@@ -63,7 +55,7 @@ part of fasta.codes;
 final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
 
 String compileTemplate(String name, String template, String tip,
-    String analyzerCode, String dart2jsCode, String severity) {
+    String analyzerCode, String dart2jsCode) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
@@ -194,13 +186,6 @@ String type2 = '$buffer';
   }
   if (dart2jsCode != null) {
     codeArguments.add('dart2jsCode: "$dart2jsCode"');
-  }
-  if (severity != null) {
-    String severityEnumName = severityEnumNames[severity];
-    if (severityEnumName == null) {
-      throw "Unknown severity '$severity'";
-    }
-    codeArguments.add('severity: Severity.$severityEnumName');
   }
 
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {

@@ -30,7 +30,7 @@ class KernelInvalidTypeBuilder
   /// [Arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    library.addProblem(message.messageObject, message.charOffset, message.uri);
+    library.addWarning(message.messageObject, message.charOffset, message.uri);
     return const InvalidType();
   }
 }

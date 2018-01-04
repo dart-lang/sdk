@@ -45,7 +45,7 @@ class KernelTypeVariableBuilder
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
-      library.addProblem(
+      library.addWarning(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
           fileUri);

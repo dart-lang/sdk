@@ -8,5 +8,4 @@ class Typed<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31190.dart: Error: Can't use type arguments with type variable 'T'.", "pkg/front_end/testcases/regress/issue_31190.dart:6:5: Error: 'U' isn't a type.\n  T<U> v;\n    ^", "pkg/front_end/testcases/regress/issue_31190.dart:6:3: Error: 'T' expects 0 type arguments.\n  T<U> v;\n  ^"]/* from null */;
 static method main() → dynamic {}

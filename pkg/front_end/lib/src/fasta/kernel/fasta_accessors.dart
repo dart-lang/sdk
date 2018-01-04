@@ -149,7 +149,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void addProblemErrorIfConst(Message message, int charOffset, int length);
+  void addWarning(Message message, int charOffset, int length);
 
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
@@ -814,7 +814,7 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
 
   Expression doInvocation(int offset, Arguments arguments) {
     if (arguments.positional.length > 0 || arguments.named.length > 0) {
-      helper.addProblemErrorIfConst(
+      helper.addWarning(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset);
@@ -1043,7 +1043,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       int offset = offsetForToken(token);
       if (declaration is KernelInvalidTypeBuilder) {
         KernelInvalidTypeBuilder declaration = this.declaration;
-        helper.addProblemErrorIfConst(
+        helper.addWarning(
             declaration.message.messageObject, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)
