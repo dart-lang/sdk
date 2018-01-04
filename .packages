@@ -95,8 +95,10 @@ telemetry:pkg/telemetry/lib
 term_glyph:third_party/pkg/term_glyph/lib
 test:third_party/pkg/test/lib
 test_dart:tools/testing/dart
-testing:pkg/testing/lib
+test_descriptor:third_party/pkg/test_descriptor/lib
+test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
+testing:pkg/testing/lib
 tuple:third_party/pkg/tuple/lib
 typed_data:third_party/pkg/typed_data/lib
 typed_mock:pkg/typed_mock/lib
