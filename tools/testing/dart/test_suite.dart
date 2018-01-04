@@ -851,12 +851,13 @@ class StandardTestSuite extends TestSuite {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
+    var dart2jsOptions = info.optionsFromFile['dart2jsOptions'] as List<String>;
 
     var compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions, sharedOptions, args);
+          vmOptions, sharedOptions, dart2jsOptions, args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
       if (vmOptionsVariant != 0) {
@@ -1236,6 +1237,9 @@ class StandardTestSuite extends TestSuite {
 
     var options = optionsFromFile['sharedOptions'] as List<String>;
     if (options != null) args.addAll(options);
+    options = optionsFromFile['dart2jsOptions'] as List<String>;
+    if (options != null) args.addAll(options);
+    print('options = ${args}');
 
     return Command.compilation(Compiler.dart2js.name, outputFile,
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
@@ -1309,10 +1313,14 @@ class StandardTestSuite extends TestSuite {
    *
    *     // VMOptions=--flag1 --flag2
    *
-   *   - Flags can be passed to dart2js or vm by adding a comment
-   *   to the test file:
+   *   - Flags can be passed to dart2js, vm or dartdevc by adding a comment to
+   *   the test file:
    *
    *     // SharedOptions=--flag1 --flag2
+   *
+   *   - Flags can be passed to dart2js by adding a comment to the test file:
+   *
+   *     // dart2jsOptions=--flag1 --flag2
    *
    *   - Flags can be passed to the dart script that contains the test also
    *   using comments, as follows:
@@ -1376,8 +1384,6 @@ class StandardTestSuite extends TestSuite {
       return readOptionsFromCo19File(filePath);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
-    RegExp sharedOptionsRegExp = new RegExp(r"// SharedOptions=(.*)");
-    RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
@@ -1397,33 +1403,36 @@ class StandardTestSuite extends TestSuite {
     var result = <List<String>>[];
     List<String> dartOptions;
     List<String> sharedOptions;
+    List<String> dart2jsOptions;
     Map<String, String> environment;
     String packageRoot;
     String packages;
 
+    List<String> wordSplit(String s) =>
+        s.split(' ').where((e) => e != '').toList();
+
+    List<String> singleListOfOptions(String name) {
+      var matches = new RegExp('// $name=(.*)').allMatches(contents);
+      var options;
+      for (var match in matches) {
+        if (options != null) {
+          throw new Exception(
+              'More than one "// $name=" line in test $filePath');
+        }
+        options = wordSplit(match[1]);
+      }
+      return options;
+    }
+
     var matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
-      result.add(match[1].split(' ').where((e) => e != '').toList());
+      result.add(wordSplit(match[1]));
     }
     if (result.isEmpty) result.add([]);
 
-    matches = dartOptionsRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (dartOptions != null) {
-        throw new Exception(
-            'More than one "// DartOptions=" line in test $filePath');
-      }
-      dartOptions = match[1].split(' ').where((e) => e != '').toList();
-    }
-
-    matches = sharedOptionsRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (sharedOptions != null) {
-        throw new Exception(
-            'More than one "// SharedOptions=" line in test $filePath');
-      }
-      sharedOptions = match[1].split(' ').where((e) => e != '').toList();
-    }
+    dartOptions = singleListOfOptions('DartOptions');
+    sharedOptions = singleListOfOptions('SharedOptions');
+    dart2jsOptions = singleListOfOptions('dart2jsOptions');
 
     matches = environmentRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1468,13 +1477,13 @@ class StandardTestSuite extends TestSuite {
     var otherScripts = <String>[];
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
-      otherScripts.addAll(match[1].split(' ').where((e) => e != '').toList());
+      otherScripts.addAll(wordSplit(match[1]));
     }
 
     var otherResources = <String>[];
     matches = otherResourcesRegExp.allMatches(contents);
     for (var match in matches) {
-      otherResources.addAll(match[1].split(' ').where((e) => e != '').toList());
+      otherResources.addAll(wordSplit(match[1]));
     }
 
     var isMultitest = multiTestRegExp.hasMatch(contents);
@@ -1519,7 +1528,8 @@ class StandardTestSuite extends TestSuite {
 
     return {
       "vmOptions": result,
-      "sharedOptions": sharedOptions ?? [],
+      "sharedOptions": sharedOptions ?? <String>[],
+      "dart2jsOptions": dart2jsOptions ?? <String>[],
       "dartOptions": dartOptions,
       "environment": environment,
       "packageRoot": packageRoot,
@@ -1540,8 +1550,9 @@ class StandardTestSuite extends TestSuite {
 
   Map<String, dynamic> optionsFromKernelFile() {
     return const {
-      "vmOptions": const [const []],
-      "sharedOptions": const [],
+      "vmOptions": const [const <String>[]],
+      "sharedOptions": const <String>[],
+      "dart2jsOptions": const <String>[],
       "dartOptions": null,
       "packageRoot": null,
       "packages": null,
@@ -1609,6 +1620,7 @@ class StandardTestSuite extends TestSuite {
     return {
       "vmOptions": <List>[[]],
       "sharedOptions": <String>[],
+      "dart2jsOptions": <String>[],
       "dartOptions": null,
       "packageRoot": null,
       "hasSyntaxError": hasSyntaxError,
