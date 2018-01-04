@@ -922,6 +922,8 @@ TypeArgumentMismatch:
 
 NotAType:
   template: "'#name' isn't a type."
+  analyzerCode: NOT_A_TYPE
+  dart2jsCode: "*ignored*"
 
 FastaUsageShort:
   template: |
@@ -1502,6 +1504,8 @@ SuperclassHasNoSetter:
 
 SuperclassHasNoMethod:
   template: "Superclass has no method named '#name'."
+  analyzerCode: UNDEFINED_SUPER_METHOD
+  dart2jsCode: "*ignored*"
 
 SuperclassHasNoDefaultConstructor:
   template: "The superclass, '#name', has no unnamed constructor that takes no arguments."

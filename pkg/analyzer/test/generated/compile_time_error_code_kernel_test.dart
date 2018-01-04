@@ -3327,20 +3327,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_function_named() async {
-    return super.test_wrongNumberOfParametersForSetter_function_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_function_optional() async {
-    return super.test_wrongNumberOfParametersForSetter_function_optional();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
   test_wrongNumberOfParametersForSetter_function_tooFew() async {
     return super.test_wrongNumberOfParametersForSetter_function_tooFew();
   }
@@ -3350,20 +3336,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
   test_wrongNumberOfParametersForSetter_function_tooMany() async {
     return super.test_wrongNumberOfParametersForSetter_function_tooMany();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_method_named() async {
-    return super.test_wrongNumberOfParametersForSetter_method_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_method_optional() async {
-    return super.test_wrongNumberOfParametersForSetter_method_optional();
   }
 
   @override

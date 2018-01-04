@@ -521,26 +521,14 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
-    // TODO(mfairhurst) Disable this once the codes are already analyzer
-    // format (#31644)
-    final analyzerCode =
-        message.code.runes.fold<List<String>>(<String>[], (words, charcode) {
-      final char = new String.fromCharCode(charcode);
-      if (char.toUpperCase() == char) {
-        words.add(char);
-      } else {
-        words[words.length - 1] = words.last + char.toUpperCase();
-      }
-      return words;
-    }).join('_');
-
-    final code = _getErrorCode(analyzerCode);
-    if (code != null) {
+    String errorCodeStr = message.analyzerCode;
+    ErrorCode errorCode = _getErrorCode(errorCodeStr);
+    if (errorCode != null) {
       errorReporter.reportError(new AnalysisError.forValues(
           errorReporter.source,
           message.span.start.offset,
           message.span.length,
-          code,
+          errorCode,
           message.message,
           message.tip));
     } else {

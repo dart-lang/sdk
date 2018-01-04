@@ -513,7 +513,9 @@ class LibraryAnalyzer {
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit _parse(FileState file) {
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    AnalysisErrorListener errorListener = _previewDart2
+        ? AnalysisErrorListener.NULL_LISTENER
+        : _getErrorListener(file);
     String content = file.content;
     CompilationUnit unit = file.parse(errorListener);
 

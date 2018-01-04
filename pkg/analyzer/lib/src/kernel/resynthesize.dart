@@ -507,7 +507,10 @@ class _ExprBuilder {
       return invocation;
     }
 
-    // TODO(scheglov) Support other kernel initializer types.
+    if (k is kernel.ShadowInvalidInitializer) {
+      return null;
+    }
+
     throw new UnimplementedError('For ${k.runtimeType}');
   }
 

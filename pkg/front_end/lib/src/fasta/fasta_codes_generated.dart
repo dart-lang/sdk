@@ -3280,10 +3280,8 @@ const Template<Message Function(String name)> templateNotAType =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeNotAType =
-    const Code<Message Function(String name)>(
-  "NotAType",
-  templateNotAType,
-);
+    const Code<Message Function(String name)>("NotAType", templateNotAType,
+        analyzerCode: "NOT_A_TYPE");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAType(String name) {
@@ -4344,9 +4342,8 @@ const Template<Message Function(String name)> templateSuperclassHasNoMethod =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSuperclassHasNoMethod =
     const Code<Message Function(String name)>(
-  "SuperclassHasNoMethod",
-  templateSuperclassHasNoMethod,
-);
+        "SuperclassHasNoMethod", templateSuperclassHasNoMethod,
+        analyzerCode: "UNDEFINED_SUPER_METHOD");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoMethod(String name) {
