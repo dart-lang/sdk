@@ -2470,7 +2470,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     var type = pop();
     if (type is TypeDeclarationAccessor) {
       TypeDeclarationAccessor accessor = type;
-      prefixName = accessor.prefix?.name;
+      if (accessor.prefix != null) {
+        prefixName = accessor.prefix.name;
+        nameToken = nameToken.next.next;
+      }
       type = accessor.declaration;
     }
 

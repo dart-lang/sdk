@@ -323,13 +323,16 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     // Peek forward and check if the next element is a PrefixElement.
     PrefixElement prefix;
+    AstNode constructorEntity = constructorName;
     if (_referencedElements[_referencedElementIndex] is PrefixElement) {
-      prefix = _getReferenceFor(constructorName);
-      _getTypeFor(constructorName); // prefix type
+      PrefixedIdentifier typeIdentifier = constructorName.type.name;
+      prefix = _getReferenceFor(typeIdentifier.prefix);
+      _getTypeFor(typeIdentifier.prefix); // prefix type
+      constructorEntity = typeIdentifier.identifier;
     }
 
-    ConstructorElement constructor = _getReferenceFor(constructorName);
-    DartType type = _getTypeFor(constructorName);
+    ConstructorElement constructor = _getReferenceFor(constructorEntity);
+    DartType type = _getTypeFor(constructorEntity);
 
     applyConstructorElement(
         _enclosingLibraryElement, prefix, constructor, type, constructorName);
@@ -340,6 +343,52 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     ArgumentList argumentList = node.argumentList;
     _applyResolutionToArguments(argumentList);
     _resolveNamedArguments(argumentList, constructor?.parameters);
+  }
+
+  @override
+  void visitAnnotation(Annotation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+
+    // Peek forward and check if the next element is a PrefixElement.
+    SimpleIdentifier topEntity;
+    if (_referencedElements[_referencedElementIndex] is PrefixElement) {
+      PrefixedIdentifier prefixedIdentifier = node.name;
+
+      SimpleIdentifier prefix = prefixedIdentifier.prefix;
+      PrefixElement prefixElement = _getReferenceFor(prefix);
+      _getTypeFor(prefix); // prefix type
+      prefix.staticElement = prefixElement;
+
+      topEntity = prefixedIdentifier.identifier;
+    } else {
+      topEntity = node.name;
+    }
+
+    Element element = _getReferenceFor(topEntity);
+    DartType type = _getTypeFor(topEntity);
+    node.element = element;
+
+    if (element is ConstructorElement) {
+      topEntity.staticElement = element.enclosingElement;
+
+      if (constructorName != null) {
+        constructorName.staticElement = element;
+        constructorName.staticType = element.type;
+      }
+
+      ArgumentList argumentList = node.arguments;
+      if (argumentList != null) {
+        _applyResolutionToArguments(argumentList);
+        _resolveNamedArguments(argumentList, element.parameters);
+      }
+    } else {
+      topEntity.staticElement = element;
+      topEntity.staticType = type;
+      if (constructorName != null) {
+        constructorName.accept(this);
+        node.element = constructorName.staticElement;
+      }
+    }
   }
 
   @override

@@ -199,21 +199,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constConstructor_importWithPrefix() async {
-    return super.test_invalidAnnotation_constConstructor_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
     return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();

@@ -186,13 +186,8 @@ f() {}
     var atD = AstFinder.getTopLevelFunction(result.unit, 'f').metadata[0];
     InstanceCreationExpression constC = atD.arguments.arguments[0];
 
-    if (previewDart2) {
-      expect(atD.name.staticElement, constructorD);
-      expect(atD.element, constructorD);
-    } else {
-      expect(atD.name.staticElement, elementD);
-      expect(atD.element, constructorD);
-    }
+    expect(atD.name.staticElement, elementD);
+    expect(atD.element, constructorD);
 
     expect(constC.staticElement, constructorC);
     expect(constC.staticType, elementC.type);
@@ -239,6 +234,168 @@ void main() {
     SimpleIdentifier identifier_2 = annotation_2.name;
     expect(identifier_2.staticElement, same(element_2.getter));
     expect(identifier_2.staticType, typeProvider.intType);
+  }
+
+  test_annotation_prefixed_classConstructor() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A {
+  const A(int a, {int b});
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.A(1, b: 2)
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    ClassElement aClass = aUnitElement.getType('A');
+    ConstructorElement constructor = aClass.unnamedConstructor;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(constructor));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(annotation.constructorName, isNull);
+
+    var arguments = annotation.arguments.arguments;
+    var parameters = constructor.parameters;
+    _assertArgumentToParameter(arguments[0], parameters[0]);
+    _assertArgumentToParameter(arguments[1], parameters[1]);
+  }
+
+  test_annotation_prefixed_classConstructorNamed() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A {
+  const A.named(int a, {int b});
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.A.named(1, b: 2)
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    ClassElement aClass = aUnitElement.getType('A');
+    ConstructorElement constructor = aClass.getNamedConstructor('named');
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(constructor));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, isNull);
+
+    SimpleIdentifier constructorName = annotation.constructorName;
+    expect(constructorName.staticElement, same(constructor));
+    expect(constructorName.staticType.toString(), '(int, {b: int}) → A');
+
+    var arguments = annotation.arguments.arguments;
+    var parameters = constructor.parameters;
+    _assertArgumentToParameter(arguments[0], parameters[0]);
+    _assertArgumentToParameter(arguments[1], parameters[1]);
+  }
+
+  test_annotation_prefixed_classField() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A {
+  static const a = 1;
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.A.a
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    ClassElement aClass = aUnitElement.getType('A');
+    var aGetter = aClass.getField('a').getter;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(aGetter));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(annotation.constructorName.staticElement, aGetter);
+    expect(annotation.constructorName.staticType, typeProvider.intType);
+
+    expect(annotation.arguments, isNull);
+  }
+
+  test_annotation_prefixed_topLevelVariable() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+const topAnnotation = 1;
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.topAnnotation
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    var topAnnotation = aUnitElement.topLevelVariables[0].getter;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(topAnnotation));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(topAnnotation));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
   }
 
   test_asExpression() async {
