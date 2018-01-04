@@ -1018,6 +1018,9 @@ class Printer extends Visitor<Null> {
 
   visitInvalidExpression(InvalidExpression node) {
     writeWord('invalid-expression');
+    if (node.message != null) {
+      writeWord('"${escapeString(node.message)}"');
+    }
   }
 
   visitMethodInvocation(MethodInvocation node) {
@@ -1420,11 +1423,6 @@ class Printer extends Visitor<Null> {
     writeMemberReferenceFromReference(node.targetReference);
     writeSpaced('=');
     writeExpression(node.value);
-  }
-
-  visitInvalidStatement(InvalidStatement node) {
-    writeIndentation();
-    endLine('invalid-statement;');
   }
 
   visitExpressionStatement(ExpressionStatement node) {

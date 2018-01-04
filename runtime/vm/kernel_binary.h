@@ -87,7 +87,6 @@ enum Tag {
   kConstListLiteral = 58,
   kConstMapLiteral = 59,
 
-  kInvalidStatement = 60,
   kExpressionStatement = 61,
   kBlock = 62,
   kEmptyStatement = 63,

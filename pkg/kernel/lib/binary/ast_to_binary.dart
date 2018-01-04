@@ -870,6 +870,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   visitInvalidExpression(InvalidExpression node) {
     writeByte(Tag.InvalidExpression);
+    writeOffset(node.fileOffset);
+    writeStringReference(node.message ?? '');
   }
 
   visitVariableGet(VariableGet node) {
@@ -1241,10 +1243,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     } else {
       writeNode(node);
     }
-  }
-
-  visitInvalidStatement(InvalidStatement node) {
-    writeByte(Tag.InvalidStatement);
   }
 
   visitExpressionStatement(ExpressionStatement node) {

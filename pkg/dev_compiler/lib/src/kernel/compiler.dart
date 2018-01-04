@@ -3007,9 +3007,6 @@ class ProgramCompiler
   defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
 
   @override
-  visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
-
-  @override
   visitExpressionStatement(ExpressionStatement node) =>
       _visitAndMarkExpression(node.expression).toStatement();
 
@@ -4767,6 +4764,11 @@ class ProgramCompiler
       _letVariables.add(temp);
     }
     return new JS.Binary(',', init, body);
+  }
+
+  @override
+  visitInstantiation(Instantiation node) {
+    return defaultExpression(node);
   }
 
   @override

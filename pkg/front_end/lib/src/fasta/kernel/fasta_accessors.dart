@@ -4,8 +4,7 @@
 
 library fasta.fasta_accessors;
 
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
 import '../../scanner/token.dart' show Token;
 

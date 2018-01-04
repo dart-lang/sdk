@@ -821,17 +821,17 @@ class ExpressionScope extends TypeScope {
     if (annotation.arguments == null) {
       var target = resolveConcreteGet(element, null);
       return target == null
-          ? new ast.InvalidExpression()
+          ? new ast.InvalidExpression(null)
           : new ast.StaticGet(target);
     } else if (element is ConstructorElement && element.isConst) {
       var target = resolveConstructor(element);
       return target == null
-          ? new ast.InvalidExpression()
+          ? new ast.InvalidExpression(null)
           : new ast.ConstructorInvocation(
               target, _expressionBuilder.buildArguments(annotation.arguments),
               isConst: true);
     } else {
-      return new ast.InvalidExpression();
+      return new ast.InvalidExpression(null);
     }
   }
 
@@ -2440,6 +2440,12 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
   }
 }
 
+/// A utility to build a function with a static error in its body.
+ast.FunctionNode _brokenFunction() {
+  return new ast.FunctionNode(
+      new ast.ExpressionStatement(new ast.InvalidExpression(null)));
+}
+
 /// Brings a class from hierarchy level to body level.
 //
 // TODO(asgerf): Error recovery during class construction is currently handled
@@ -2474,9 +2480,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   void buildBrokenClass() {
     currentClass.name = element.name;
     currentClass.supertype = scope.getRootClassReference().asRawSupertype;
-    currentClass.constructors.add(
-        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement()))
-          ..fileOffset = element.nameOffset);
+    currentClass.constructors.add(new ast.Constructor(_brokenFunction())
+      ..fileOffset = element.nameOffset);
   }
 
   void addAnnotations(List<Annotation> annotations) {
@@ -2747,11 +2752,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     var member = currentMember;
     member.name = new ast.Name(element.name, scope.currentLibrary);
     if (member is ast.Procedure) {
-      member.function = new ast.FunctionNode(new ast.InvalidStatement())
-        ..parent = member;
+      member.function = _brokenFunction()..parent = member;
     } else if (member is ast.Constructor) {
-      member.function = new ast.FunctionNode(new ast.InvalidStatement())
-        ..parent = member;
+      member.function = _brokenFunction()..parent = member;
     }
   }
 
@@ -2896,7 +2899,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         assert(target != null);
         expression = new ast.Let(
             new ast.VariableDeclaration.forValue(new ast.StaticGet(target)),
-            new ast.InvalidExpression());
+            new ast.InvalidExpression(null));
         ast.Name constructors =
             new ast.Name("_redirecting#", scope.currentLibrary);
         ast.Field constructorsField;

@@ -9,7 +9,7 @@ class C extends core::Object {
     ;
   constructor missingFactoryKeyword() → void
     : super core::Object::•()
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000044.dart:14:31: Error: Can't return from a constructor.\n  C.missingFactoryKeyword() = C.constant;\n                              ^"));
+    invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:14:31: Error: Can't return from a constructor.\n  C.missingFactoryKeyword() = C.constant;\n                              ^";
   static factory good() → self::C
     let dynamic #redirecting_factory = self::C::constant in invalid-expression;
   method notEvenAConstructor(dynamic a) → self::C
@@ -20,7 +20,7 @@ static method b(dynamic c) → invalid-type
 static method main() → dynamic {
   self::C c = null;
   core::print(const self::C::constant());
-  core::print(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Not a const constructor.\n  print(const C.missingFactoryKeyword());\n              ^")));
+  core::print(invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Not a const constructor.\n  print(const C.missingFactoryKeyword());\n              ^");
   core::print(const self::C::constant());
   core::print(new self::C::constant().notEvenAConstructor(null));
 }

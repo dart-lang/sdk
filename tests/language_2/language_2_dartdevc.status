@@ -305,7 +305,6 @@ final_attempt_reinitialization_test/01: Crash
 final_attempt_reinitialization_test/02: Crash
 final_syntax_test/09: Crash
 function_propagation_test: CompileTimeError
-function_subtype_bound_closure7_test: Crash
 function_type/function_type10_test: CompileTimeError
 function_type/function_type11_test: CompileTimeError
 function_type/function_type14_test: CompileTimeError
@@ -376,12 +375,9 @@ function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generalized_void_syntax_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
-generic_function_dcall_test: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_tearoff_specialization_test: Crash
-generic_methods_unused_parameter_test: Crash
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 getter_override2_test/02: MissingCompileTimeError
@@ -398,9 +394,7 @@ implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
-instantiate_tearoff_after_contravariance_check_test: Crash
 instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_tearoff_test: Crash
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError
@@ -787,9 +781,13 @@ function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
 function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
 generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
+generic_function_dcall_test: RuntimeError
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
+generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor

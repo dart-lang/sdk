@@ -568,14 +568,14 @@ class _ExprBuilder {
     // Invalid annotations are represented as Let.
     if (expr is kernel.Let) {
       kernel.Let let = expr;
-      if (_isConstantExpressionErrorThrow(let.variable.initializer) ||
-          _isConstantExpressionErrorThrow(let.body)) {
+      if (_isStaticError(let.variable.initializer) ||
+          _isStaticError(let.body)) {
         throw const _CompilationErrorFound();
       }
     }
 
     // Stop if there is an error.
-    if (_isConstantExpressionErrorThrow(expr)) {
+    if (_isStaticError(expr)) {
       throw const _CompilationErrorFound();
     }
 
@@ -834,18 +834,8 @@ class _ExprBuilder {
    * Return `true` if the given [expr] throws an instance of
    * `_ConstantExpressionError` defined in `dart:core`.
    */
-  static bool _isConstantExpressionErrorThrow(kernel.Expression expr) {
-    if (expr is kernel.MethodInvocation) {
-      if (expr.name.name == '_throw') {
-        var receiver = expr.receiver;
-        if (receiver is kernel.ConstructorInvocation) {
-          kernel.Class targetClass = receiver.target.enclosingClass;
-          return targetClass.name == '_ConstantExpressionError' &&
-              targetClass.enclosingLibrary.importUri.toString() == 'dart:core';
-        }
-      }
-    }
-    return false;
+  static bool _isStaticError(kernel.Expression expr) {
+    return expr is kernel.InvalidExpression;
   }
 }
 

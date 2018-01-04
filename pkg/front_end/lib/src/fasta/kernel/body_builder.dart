@@ -4,8 +4,7 @@
 
 library fasta.body_builder;
 
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 

@@ -16,7 +16,7 @@ class B extends self::A {
   method call(core::int x) → core::int
     return x.*(3);
   method call_super() → core::int {
-    return const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/super_call.dart:14:12: Error: Can't use 'super' as an expression.\nTo delegate a constructor to a super constructor, put the super call as an initializer.\n    return super(5);\n           ^"));
+    return invalid-expression "pkg/front_end/testcases/super_call.dart:14:12: Error: Can't use 'super' as an expression.\nTo delegate a constructor to a super constructor, put the super call as an initializer.\n    return super(5);\n           ^";
   }
 }
 static method main() → dynamic {

@@ -392,7 +392,7 @@ class ClosureConverter extends Transformer {
     /// Is this closure itself captured by a closure?
     bool isCaptured = capturedVariables.contains(node.variable);
     if (isCaptured) {
-      context.extend(node.variable, new InvalidExpression());
+      context.extend(node.variable, new InvalidExpression(null));
     }
     Context parent = context;
     return saveContext(() {
@@ -635,7 +635,7 @@ class ClosureConverter extends Transformer {
   }
 
   Expression cloneContext() {
-    InvalidExpression placeHolder = new InvalidExpression();
+    InvalidExpression placeHolder = new InvalidExpression(null);
     contextClonePlaceHolders.add(placeHolder);
     return placeHolder;
   }

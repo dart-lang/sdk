@@ -95,7 +95,6 @@ class SwitchContinueAnalysis extends ir.Visitor<bool> {
   bool defaultStatement(ir.Statement node) {
     if (node is ir.ExpressionStatement ||
         node is ir.EmptyStatement ||
-        node is ir.InvalidStatement ||
         node is ir.BreakStatement ||
         node is ir.ReturnStatement ||
         node is ir.AssertStatement ||

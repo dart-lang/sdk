@@ -1150,6 +1150,8 @@ void StreamingScopeBuilder::VisitExpression() {
   Tag tag = builder_->ReadTag(&payload);
   switch (tag) {
     case kInvalidExpression:
+      builder_->ReadPosition();
+      builder_->SkipStringReference();
       return;
     case kVariableGet: {
       builder_->ReadPosition();  // read position.
@@ -1424,8 +1426,6 @@ void StreamingScopeBuilder::VisitExpression() {
 void StreamingScopeBuilder::VisitStatement() {
   Tag tag = builder_->ReadTag();  // read tag.
   switch (tag) {
-    case kInvalidStatement:
-      return;
     case kExpressionStatement:
       VisitExpression();  // read expression.
       return;
@@ -4498,8 +4498,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
 Fragment StreamingFlowGraphBuilder::BuildStatement() {
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
-    case kInvalidStatement:
-      return BuildInvalidStatement();
     case kExpressionStatement:
       return BuildExpressionStatement();
     case kBlock:
@@ -4815,6 +4813,8 @@ void StreamingFlowGraphBuilder::SkipExpression() {
   Tag tag = ReadTag(&payload);
   switch (tag) {
     case kInvalidExpression:
+      ReadPosition();
+      SkipStringReference();
       return;
     case kVariableGet:
       ReadPosition();          // read position.
@@ -5044,8 +5044,6 @@ void StreamingFlowGraphBuilder::SkipExpression() {
 void StreamingFlowGraphBuilder::SkipStatement() {
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
-    case kInvalidStatement:
-      return;
     case kExpressionStatement:
       SkipExpression();  // read expression.
       return;
@@ -5866,28 +5864,27 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
 
 Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
     TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
   // The frontend will take care of emitting normal errors (like
   // [NoSuchMethodError]s) and only emit [InvalidExpression]s in very special
   // situations (e.g. an invalid annotation).
-  return ThrowNoSuchMethodError();
+  TokenPosition pos = ReadPosition();
+  if (position != NULL) *position = pos;
+  const String& message = H.DartString(ReadStringReference());
+  H.ReportError(script(), pos, "%s", message.ToCString());
+  return Fragment();
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGet(TokenPosition* position) {
-  (position != NULL) ? * position = ReadPosition()
-                     : ReadPosition();             // read position.
+  (position != NULL) ? * position = ReadPosition() : ReadPosition();
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   ReadUInt();              // read relative variable index.
   SkipOptionalDartType();  // read promoted type.
-
   return LoadLocal(LookupVariable(variable_kernel_position));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGet(uint8_t payload,
                                                      TokenPosition* position) {
-  (position != NULL) ? * position = ReadPosition()
-                     : ReadPosition();             // read position.
+  (position != NULL) ? * position = ReadPosition() : ReadPosition();
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   return LoadLocal(LookupVariable(variable_kernel_position));
 }
@@ -7828,11 +7825,6 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
   if (position != NULL) *position = TokenPosition::kNoSource;
   const intptr_t constant_index = ReadUInt();
   return Constant(Object::ZoneHandle(Z, H.constants().At(constant_index)));
-}
-
-Fragment StreamingFlowGraphBuilder::BuildInvalidStatement() {
-  H.ReportError("Invalid statements not implemented yet!");
-  return Fragment();
 }
 
 Fragment StreamingFlowGraphBuilder::BuildExpressionStatement() {
