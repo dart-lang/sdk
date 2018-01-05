@@ -1363,8 +1363,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       // Contains more than just \' or \".
       if (first.lexeme.length > 1) {
         String value = unescapeFirstStringPart(first.lexeme, quote);
-        expressions.add(
-            new ShadowStringLiteral(value)..fileOffset = offsetForToken(first));
+        if (value.isNotEmpty) {
+          expressions.add(new ShadowStringLiteral(value)
+            ..fileOffset = offsetForToken(first));
+        }
       }
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
@@ -1381,8 +1383,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       // Contains more than just \' or \".
       if (last.lexeme.length > 1) {
         String value = unescapeLastStringPart(last.lexeme, quote);
-        expressions.add(
-            new ShadowStringLiteral(value)..fileOffset = offsetForToken(last));
+        if (value.isNotEmpty) {
+          expressions.add(new ShadowStringLiteral(value)
+            ..fileOffset = offsetForToken(last));
+        }
       }
       push(new ShadowStringConcatenation(expressions)
         ..fileOffset = offsetForToken(endToken));

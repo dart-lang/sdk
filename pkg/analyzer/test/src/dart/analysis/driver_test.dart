@@ -4210,6 +4210,17 @@ void main() {
     }
   }
 
+  test_stringInterpolation_multiLine_emptyBeforeAfter() async {
+    addTestFile(r"""
+void main() {
+  var v = 42;
+  '''$v''';
+}
+""");
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+  }
+
   test_super() async {
     String content = r'''
 class A {
