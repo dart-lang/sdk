@@ -321,4 +321,11 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_forEach_genericFunctionType() async {
     return super.test_forEach_genericFunctionType();
   }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_typeArgument_boundToFunctionType() async {
+    return super.test_typeArgument_boundToFunctionType();
+  }
 }
