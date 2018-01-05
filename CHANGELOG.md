@@ -11,6 +11,8 @@
 
 #### Strong Mode
 
+#### Bill is Awesome
+
 ### Core library changes
 
 * `dart:async`
