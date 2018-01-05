@@ -51,6 +51,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   static final _testDir = '${path.separator}test${path.separator}';
 
+  static final _testingDir = '${path.separator}testing${path.separator}';
+
   /**
    * The class containing the AST nodes being visited, or `null` if we are not in the scope of
    * a class.
@@ -879,10 +881,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     bool inCurrentLibrary(Element element) =>
         element.library == _currentLibrary;
 
+    bool inExportDirective(SimpleIdentifier identifier) =>
+        identifier.parent is Combinator &&
+        identifier.parent.parent is ExportDirective;
+
     bool inTestDirectory(LibraryElement library) =>
-        library.definingCompilationUnit.source.fullName.contains(_testDir);
+        library.definingCompilationUnit.source.fullName.contains(_testDir) ||
+        library.definingCompilationUnit.source.fullName.contains(_testingDir);
 
     Element element = identifier.bestElement;
+    if (!isProtected(element) && !isVisibleForTesting(element)) {
+      return;
+    }
+
     if (isProtected(element)) {
       if (inCurrentLibrary(element) || inCommentReference(identifier)) {
         // The access is valid; even if [element] is also marked
@@ -894,18 +905,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
       if (_hasTypeOrSuperType(accessingClass?.element, definingClass.type)) {
         return;
-      } else {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
       }
     }
-    if (isVisibleForTesting(element) &&
-        !inCurrentLibrary(element) &&
-        !inTestDirectory(_currentLibrary) &&
-        !inCommentReference(identifier)) {
-      Element definingClass = element.enclosingElement;
+    if (isVisibleForTesting(element)) {
+      if (inCurrentLibrary(element) ||
+          inTestDirectory(_currentLibrary) ||
+          inExportDirective(identifier) ||
+          inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked
+        // `protected`, the "visibilities" are unioned.
+        return;
+      }
+    }
+
+    // At this point, [identifier] was not cleared as protected access, nor
+    // cleared as access for testing. Report the appropriate violation(s).
+    Element definingClass = element.enclosingElement;
+    if (isProtected(element)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
+    }
+    if (isVisibleForTesting(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
           identifier,

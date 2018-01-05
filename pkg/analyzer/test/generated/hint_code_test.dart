@@ -1998,10 +1998,19 @@ class B {
   void b() => new A().a();
 }
 ''');
+    Source source3 = addNamedSource('/testing/lib1.dart', r'''
+import '../lib1.dart';
+
+class C {
+  void b() => new A().a();
+}
+''');
     await computeAnalysisResult(source);
     await computeAnalysisResult(source2);
+    await computeAnalysisResult(source3);
     assertNoErrors(source2);
-    verify([source, source2]);
+    assertNoErrors(source3);
+    verify([source, source2, source3]);
   }
 
   test_invalidUseOfVisibleForTestingMember_propertyAccess() async {
@@ -2052,7 +2061,23 @@ void main() {
     verify([source, source2]);
   }
 
-  test_invalidUseProtectedAndForTesting_method_OK() async {
+  test_invalidUseOfVisibleForTestingMember_OK_export() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+export 'lib1.dart' show fn0;
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTesting_asProtected_OK() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 class A {
@@ -2066,6 +2091,28 @@ import 'lib1.dart';
 
 class B extends A {
   void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTesting_asTesting_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/test/test1.dart', r'''
+import '../lib1.dart';
+
+void main() {
+  new A().a();
 }
 ''');
     await computeAnalysisResult(source);
