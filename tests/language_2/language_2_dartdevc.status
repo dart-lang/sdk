@@ -190,7 +190,6 @@ call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
 callable_test/none: CompileTimeError
-cascade_on_static_field_test: Crash
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -681,7 +680,6 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
-typedef_class_in_other_file_test: Crash
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError

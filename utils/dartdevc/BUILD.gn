@@ -353,7 +353,7 @@ compiled_action("dartdevc_test_pkg") {
   ]
 }
 
-# Compiles the DDC SDK's kernel summary.
+# Compiles the DDC SDK's kernel summary and JS code.
 compiled_action("dartdevc_sdk_kernel_summary") {
   tool = "../../runtime/bin:dart"
 
@@ -367,10 +367,12 @@ compiled_action("dartdevc_sdk_kernel_summary") {
 
   outputs = [
     "$target_gen_dir/ddc_sdk.dill",
+    "$target_gen_dir/dart_sdk.kernel.js"
   ]
 
   args = [
     rebase_path("../../pkg/dev_compiler/tool/kernel_sdk.dart"),
+    "--generate-javascript",
     rebase_path("$target_gen_dir/ddc_sdk.dill"),
   ]
 }

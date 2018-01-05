@@ -398,7 +398,7 @@ class ProgramCompiler
     if (bootstrap) _emitLibraryProcedures(library);
 
     library.classes.forEach(_emitClass);
-    _moduleItems.addAll(library.typedefs.map(_emitTypedef));
+    library.typedefs.forEach(_emitTypedef);
     if (bootstrap) {
       _moduleItems.add(_emitInternalSdkFields(library.fields));
     } else {
@@ -1884,7 +1884,7 @@ class ProgramCompiler
     var jsMethods = <JS.Method>[];
     if (field.isStatic) return jsMethods;
 
-    var name = getAnnotationName(field, isJSName) ?? field.name;
+    var name = getAnnotationName(field, isJSName) ?? field.name.name;
     // Generate getter
     var fn = new JS.Fun([], js.statement('{ return this.#; }', [name]));
     var method = new JS.Method(_declareMemberName(field), fn, isGetter: true);
@@ -2012,16 +2012,18 @@ class ProgramCompiler
     return js.statement('# = #;', [_emitTopLevelName(c), jsTypeName]);
   }
 
-  JS.Statement _emitTypedef(Typedef t) {
+  void _emitTypedef(Typedef t) {
     var body = _callHelper(
         'typedef(#, () => #)', [js.string(t.name, "'"), _emitType(t.type)]);
 
+    JS.Statement result;
     if (t.typeParameters.isNotEmpty) {
-      return _defineClassTypeArguments(
+      result = _defineClassTypeArguments(
           t, t.typeParameters, js.statement('const # = #;', [t.name, body]));
     } else {
-      return js.statement('# = #;', [_emitTopLevelName(t), body]);
+      result = js.statement('# = #;', [_emitTopLevelName(t), body]);
     }
+    _moduleItems.add(result);
   }
 
   /// Treat dart:_runtime fields as safe to eagerly evaluate.
@@ -2057,11 +2059,7 @@ class ProgramCompiler
     for (var field in fields) {
       var name = field.name.name;
       var access = _emitStaticMemberName(name);
-      accessors.add(new JS.Method(
-          access,
-          js.call('function() { return #; }',
-                  _visitInitializer(field.initializer, field.annotations))
-              as JS.Fun,
+      accessors.add(new JS.Method(access, _emitStaticFieldInitializer(field),
           isGetter: true));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
@@ -2075,6 +2073,20 @@ class ProgramCompiler
         target is Class ? _emitTopLevelName(target) : emitLibraryName(target);
 
     return _callHelperStatement('defineLazy(#, { # });', [objExpr, accessors]);
+  }
+
+  JS.Fun _emitStaticFieldInitializer(Field field) {
+    var savedLetVariables = _letVariables;
+    _letVariables = [];
+
+    var body = [
+      new JS.Return(_visitInitializer(field.initializer, field.annotations))
+    ];
+    _initTempVars(body);
+
+    _letVariables = savedLetVariables;
+
+    return new JS.Fun([], new JS.Block(body));
   }
 
   JS.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix: ''}) {
