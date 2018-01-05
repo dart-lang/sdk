@@ -6,6 +6,13 @@
 # Before adding or updating dependencies, please review the documentation here:
 # https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
 
+allowed_hosts = [
+  'boringssl.googlesource.com',
+  'chromium.googlesource.com',
+  'dart.googlesource.com',
+  'fuchsia.googlesource.com',
+]
+
 vars = {
   # The dart_root is the root of our sdk checkout. This is normally
   # simply sdk, but if using special gclient specs it can be different.
