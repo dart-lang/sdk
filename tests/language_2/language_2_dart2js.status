@@ -1273,7 +1273,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 implicit_downcast_during_assert_initializer_test: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
@@ -1397,7 +1396,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
@@ -1869,7 +1867,6 @@ getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
@@ -1995,7 +1992,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 no_such_method_test: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
@@ -2301,7 +2297,6 @@ getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
-infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
@@ -2425,7 +2420,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
-nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
@@ -2726,7 +2720,6 @@ getters_setters2_test/none: RuntimeError
 identical_closure2_test: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instanceof2_test: RuntimeError
@@ -2846,7 +2839,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 no_such_method_native_test: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError

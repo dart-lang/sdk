@@ -222,7 +222,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -376,7 +375,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
@@ -616,7 +614,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -768,7 +765,6 @@ named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 no_such_method_test: RuntimeError
 null_test/02: MissingCompileTimeError
@@ -937,7 +933,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -1086,7 +1081,6 @@ named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
@@ -1275,7 +1269,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -1425,7 +1418,6 @@ named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
