@@ -116,6 +116,10 @@ inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
+instantiate_to_bound/typedef_literal_map: Fail
+instantiate_to_bound/typedef_literal_list: Fail
+instantiate_to_bound/typedef_super_bounded_type: Fail
+
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
