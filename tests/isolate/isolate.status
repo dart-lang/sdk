@@ -4,7 +4,6 @@
 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
-mint_maker_test: StaticWarning
 
 [ $compiler == dart2js ]
 browser/issue_12474_test: CompileTimeError # Issue 22529

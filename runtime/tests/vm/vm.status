@@ -132,12 +132,6 @@ cc/IsolateReload_MainLibModified: Fail # Please triage.
 cc/IsolateReload_NoLibsModified: Fail # Please triage.
 cc/IsolateReload_PrefixImportedLibModified: Fail # Please triage.
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simdbc64 && $compiler == dartk ]
-dart/truncating_ints_test: RuntimeError # Please triage.
-
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Pass, Fail # Issue 31137
@@ -348,7 +342,6 @@ dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
 dart/spawn_infinite_loop_test: Crash # Please triage.
-dart/truncating_ints_test: CompileTimeError # Please triage.
 
 [ $compiler == dartkp && !$strong ]
 dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
