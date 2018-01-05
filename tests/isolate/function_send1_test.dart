@@ -97,7 +97,7 @@ SendPort expectMessagePort(message) {
 // Creates a new isolate and a pair of ports that expect a single message
 // to be sent to the other isolate and back to the callback function.
 Future<SendPort> echoPort(callback(value)) {
-  Completer completer = new Completer<SendPort>();
+  Completer<SendPort> completer = new Completer<SendPort>();
   SendPort replyPort = singleMessagePort(callback);
   RawReceivePort initPort;
   initPort = new RawReceivePort((p) {
@@ -121,7 +121,7 @@ void _echo(msg) {
 // Creates other isolate that waits for a single message, `msg`, on the returned
 // port, and executes it as `msg[0](msg[1],msg[2])` in the other isolate.
 Future<SendPort> callPort() {
-  Completer completer = new Completer<SendPort>();
+  Completer<SendPort> completer = new Completer<SendPort>();
   SendPort initPort = singleMessagePort(completer.complete);
   return Isolate.spawn(_call, initPort).then((_) => completer.future);
 }
