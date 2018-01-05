@@ -114,10 +114,19 @@ abstract class RuntimeTypesNeedBuilder {
   ///     class B<T> {}
   ///     main() => new A<String>().m() is B<int>;
   ///
-  /// Here `A` need reified runtime type information because `B` needs it in
-  /// order to generate the check against `B<int>`.
-  void registerClassTypeArgumentDependency(
-      ClassEntity element, ClassEntity dependency);
+  /// Here `A` need type arguments at runtime because `B` needs it in order to
+  /// generate the check against `B<int>`.
+  ///
+  /// This can also involve generic methods:
+  ///
+  ///    class A<T> {}
+  ///    method<T>() => new A<T>();
+  ///    main() => method<int>() is A<int>();
+  ///
+  /// Here `method` need type arguments at runtime because `A` needs it in order
+  /// to generate the check against `A<int>`.
+  ///
+  void registerTypeArgumentDependency(Entity element, Entity dependency);
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -358,8 +367,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final ElementEnvironment _elementEnvironment;
 
-  final Map<ClassEntity, Set<ClassEntity>> classTypeArgumentDependencies =
-      <ClassEntity, Set<ClassEntity>>{};
+  final Map<Entity, Set<Entity>> typeArgumentDependencies =
+      <Entity, Set<Entity>>{};
 
   final Set<ClassEntity> classesUsingTypeVariableExpression =
       new Set<ClassEntity>();
@@ -381,12 +390,10 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   }
 
   @override
-  void registerClassTypeArgumentDependency(
-      ClassEntity element, ClassEntity dependency) {
-    // We're not dealing with typedef for now.
+  void registerTypeArgumentDependency(Entity element, Entity dependency) {
     assert(element != null);
-    Set<ClassEntity> classes = classTypeArgumentDependencies.putIfAbsent(
-        element, () => new Set<ClassEntity>());
+    Set<Entity> classes =
+        typeArgumentDependencies.putIfAbsent(element, () => new Set<Entity>());
     classes.add(dependency);
   }
 
@@ -405,20 +412,25 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // (1) used in an is check with type variables,
     // (2) dependencies of classes in (1),
     // (3) subclasses of (2) and (3).
-    void potentiallyNeedTypeArguments(ClassEntity cls) {
-      assert(checkClass(cls));
-      if (!_elementEnvironment.isGenericClass(cls)) return;
-      if (classesNeedingTypeArguments.contains(cls)) return;
-      classesNeedingTypeArguments.add(cls);
+    void potentiallyNeedTypeArguments(Entity entity) {
+      if (entity is ClassEntity) {
+        ClassEntity cls = entity;
+        assert(checkClass(cls));
+        if (!_elementEnvironment.isGenericClass(cls)) return;
+        if (classesNeedingTypeArguments.contains(cls)) return;
+        classesNeedingTypeArguments.add(cls);
 
-      // TODO(ngeoffray): This should use subclasses, not subtypes.
-      closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity sub) {
-        potentiallyNeedTypeArguments(sub);
-      });
+        // TODO(ngeoffray): This should use subclasses, not subtypes.
+        closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity sub) {
+          potentiallyNeedTypeArguments(sub);
+        });
+      } else {
+        methodsNeedTypeArguments.add(entity);
+      }
 
-      Set<ClassEntity> dependencies = classTypeArgumentDependencies[cls];
+      Set<Entity> dependencies = typeArgumentDependencies[entity];
       if (dependencies != null) {
-        dependencies.forEach((ClassEntity other) {
+        dependencies.forEach((Entity other) {
           potentiallyNeedTypeArguments(other);
         });
       }
@@ -447,7 +459,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // TODO(karlklose): make this dependency visible from code.
     if (closedWorld.commonElements.jsArrayClass != null) {
       ClassEntity listClass = closedWorld.commonElements.listClass;
-      registerClassTypeArgumentDependency(
+      registerTypeArgumentDependency(
           closedWorld.commonElements.jsArrayClass, listClass);
     }
 
@@ -495,11 +507,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
             // This handles checks against type variables and function types
             // containing type variables.
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
-            if (typeDeclaration is ClassEntity) {
-              potentiallyNeedTypeArguments(typeDeclaration);
-            } else {
-              methodsNeedTypeArguments.add(typeDeclaration);
-            }
+            potentiallyNeedTypeArguments(typeDeclaration);
           });
           if (type.isFunctionType) {
             checkClosures(potentialSubtypeOf: type);

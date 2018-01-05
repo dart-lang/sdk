@@ -52,10 +52,32 @@ genericMethod3<T, S>(T t, S s) {
   print('');
 }
 
+class Class<T> {
+  final int index;
+
+  Class(this.index);
+
+  String toString() => 'c$index';
+}
+
+genericMethod4<T>(int index) => new Class<T>(index);
+
+testGenericMethod4() {
+  print('genericMethod4:');
+  var c1 = genericMethod4<int>(1);
+  var c2 = genericMethod4<String>(2);
+  print('$c1 is Class<int> = ${c1 is Class<int>}');
+  print('$c2 is Class<int> = ${c2 is Class<int>}');
+  print('$c1 is Class<String> = ${c1 is Class<String>}');
+  print('$c2 is Class<String> = ${c2 is Class<String>}');
+  print('');
+}
+
 main() {
   genericMethod1<int>(0);
   genericMethod2<String, double>(0.5, 'foo');
   genericMethod3<double, String>(1.5, 'bar');
+  testGenericMethod4();
 }
 ''';
 
@@ -75,6 +97,12 @@ genericMethod3:
 bar is double = false
 1.5 is String = false
 bar is String = true
+
+genericMethod4:
+c1 is Class<int> = true
+c2 is Class<int> = false
+c1 is Class<String> = false
+c2 is Class<String> = true
 
 ''';
 

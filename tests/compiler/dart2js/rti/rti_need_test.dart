@@ -79,19 +79,10 @@ abstract class ComputeValueMixin<T> {
       }
     }
 
-    if (backendMember is ConstructorEntity &&
-        backendMember.isGenerativeConstructor) {
-      ClassEntity backendClass = backendMember.enclosingClass;
-      if (rtiNeed.classNeedsTypeArguments(backendClass)) {
-        sb.write('${comma}needsArgs');
-        comma = ',';
-      }
-      ClassEntity frontendClass = frontendMember?.enclosingClass;
+    void findDependencies(Entity entity) {
       Iterable<String> dependencies;
-      if (rtiNeedBuilder.classTypeArgumentDependencies
-          .containsKey(frontendClass)) {
-        dependencies = rtiNeedBuilder
-            .classTypeArgumentDependencies[frontendClass]
+      if (rtiNeedBuilder.typeArgumentDependencies.containsKey(entity)) {
+        dependencies = rtiNeedBuilder.typeArgumentDependencies[entity]
             .map((d) => d.name)
             .toList()
               ..sort();
@@ -100,6 +91,17 @@ abstract class ComputeValueMixin<T> {
         sb.write('${comma}deps=[${dependencies.join(',')}]');
         comma = ',';
       }
+    }
+
+    if (backendMember is ConstructorEntity &&
+        backendMember.isGenerativeConstructor) {
+      ClassEntity backendClass = backendMember.enclosingClass;
+      if (rtiNeed.classNeedsTypeArguments(backendClass)) {
+        sb.write('${comma}needsArgs');
+        comma = ',';
+      }
+      ClassEntity frontendClass = frontendMember?.enclosingClass;
+      findDependencies(frontendClass);
       if (rtiNeedBuilder.classesUsingTypeVariableExpression
           .contains(frontendClass)) {
         sb.write('${comma}exp');
@@ -127,6 +129,7 @@ abstract class ComputeValueMixin<T> {
         sb.write('${comma}needsSignature');
         comma = ',';
       }
+      findDependencies(frontendMember);
       findChecks('explicit', frontendMember, rtiNeedBuilder.isChecks);
       findChecks('implicit', frontendMember, rtiNeedBuilder.implicitIsChecks);
     }
