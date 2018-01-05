@@ -73,7 +73,7 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
+  "dart_style_tag": "@1.0.9",  # Please see the note above before updating.
 
   "dartdoc_tag" : "@v0.15.0+1",
   "fixnum_tag": "@0.10.5",
@@ -111,7 +111,6 @@ vars = {
   "quiver_tag": "@0.27.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
-  "scheduled_test_tag": "@0.12.11+1",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
   "shelf_packages_handler_tag": "@1.0.3",
   "shelf_tag": "@0.7.1",
@@ -124,6 +123,8 @@ vars = {
   "stream_channel_tag": "@1.6.2",
   "string_scanner_tag": "@1.0.2",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
+  "test_descriptor_tag": "@1.0.3",
+  "test_process_tag": "@1.0.1",
   "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.3",
   "test_tag": "@0.12.24+6",
@@ -283,8 +284,6 @@ deps = {
       + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
       Var("dart_git") + "resource.git" + Var("resource_rev"),
-  Var("dart_root") + "/third_party/pkg/scheduled_test":
-      Var("dart_git") + "scheduled_test.git" + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + Var("shelf_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
@@ -318,6 +317,10 @@ deps = {
       Var("dart_git") + "term_glyph.git" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + Var("test_tag"),
+  Var("dart_root") + "/third_party/pkg/test_descriptor":
+      Var("dart_git") + "test_descriptor.git" + Var("test_descriptor_tag"),
+  Var("dart_root") + "/third_party/pkg/test_process":
+      Var("dart_git") + "test_process.git" + Var("test_process_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       Var("test_reflective_loader_tag"),
