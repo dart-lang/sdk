@@ -90,9 +90,8 @@ void main() {
   asyncTest(() async {
     print('--test from ast---------------------------------------------------');
     await runTest(useKernel: false);
-    // TODO(sigmund): Handle this for kernel.
-    //print('--test from kernel------------------------------------------------');
-    //await runTest(useKernel: true);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
   });
 }
 

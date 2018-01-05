@@ -27,7 +27,7 @@ void main() {
       lib2.foo();
       print(lib1.C1);
       print(lib1.C2);
-      print(lib1.C.C3);
+      print(lib1.D.C3);
       print(c);
       print(lib1.C4);
       print(lib2.C4);

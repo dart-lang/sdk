@@ -143,16 +143,17 @@ void computeKernelOutputUnitData(
         node is ir.ListLiteral ||
         node is ir.MapLiteral) {
       // Adjust the source-span to match the AST-based location. The kernel FE
-      // skips the "const" keyword for the expression offset (-6 is an
-      // approximation assuming that there is just a single space after "const",
-      // this is likely good enough for our small unit tests).
+      // skips the "const" keyword for the expression offset and any prefix in
+      // front of the constructor. The "-6" is an approximation assuming that
+      // there is just a single space after "const" and no prefix.
+      // TODO(sigmund): offsets should be fixed in the FE instead.
       span = new SourceSpan(span.uri, span.begin - 6, span.end - 6);
     }
     _registerValue(
         new NodeId(span.begin, IdKind.node),
         outputUnitString(data.outputUnitForConstant(constant)),
         member,
-        computeSourceSpanFromTreeNode(node),
+        span,
         actualMap,
         compiler.reporter);
   }
