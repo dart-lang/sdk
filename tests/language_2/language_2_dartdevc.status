@@ -132,7 +132,6 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 arithmetic_test: RuntimeError # Issue 31763
-assert_message_test: CompileTimeError
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc03: MissingCompileTimeError
@@ -144,7 +143,6 @@ assertion_initializer_const_error2_test/cc09: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
-assertion_test: CompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -685,6 +683,7 @@ void_type_callbacks_test/none: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
+assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
 async_star_test/01: RuntimeError
 async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
@@ -829,7 +828,6 @@ unhandled_exception_negative_test: Fail
 # dartdevc and dartdevk, then expectations for dartdevc, and then expectations
 # for dartdevk.
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
-assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
 async_star_test/02: RuntimeError
