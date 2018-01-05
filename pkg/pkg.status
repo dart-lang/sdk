@@ -85,7 +85,6 @@ dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
-dev_compiler/test/codegen_test: MissingCompileTimeError # Issue 30245
 
 [ $compiler == none && $runtime == drt ]
 mutation_observer: Skip # Issue 21149
@@ -132,8 +131,6 @@ analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
-kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
-kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $compiler == dart2js ]

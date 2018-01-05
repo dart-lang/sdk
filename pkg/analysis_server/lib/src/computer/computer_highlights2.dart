@@ -632,7 +632,9 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    if (node.keyword != null) {
+      computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    }
     return super.visitInstanceCreationExpression(node);
   }
 

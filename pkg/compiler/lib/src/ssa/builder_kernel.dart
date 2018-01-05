@@ -371,6 +371,34 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
   }
 
+  /// Extend current method parameters with parameters for the function type
+  /// variables.
+  ///
+  /// TODO(johnniwinther): Do we need this?
+  /// If the method has type variables but does not need them, bind to `dynamic`
+  /// (represented as `null`).
+  void _addFunctionTypeVariablesIfNeeded(MemberEntity member) {
+    if (member is! FunctionEntity) return;
+
+    List<TypeVariableType> typeVariables =
+        _elementMap.elementEnvironment.getFunctionTypeVariables(member);
+    if (typeVariables.isEmpty) {
+      return;
+    }
+    bool needsRti = rtiNeed.methodNeedsGenericRti(member);
+    typeVariables.forEach((TypeVariableType typeVariableType) {
+      HInstruction param;
+      if (needsRti) {
+        param = addParameter(typeVariableType.element, commonMasks.nonNullType);
+      } else {
+        // Unused, so bind to `dynamic`.
+        param = graph.addConstantNull(closedWorld);
+      }
+      localsHandler.directLocals[
+          localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
+    });
+  }
+
   /// Builds a generative constructor.
   ///
   /// Generative constructors are built in stages, in effect inlining the
@@ -1023,6 +1051,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     open(block);
 
     _addClassTypeVariablesIfNeeded(member);
+    _addFunctionTypeVariablesIfNeeded(member);
+
     if (function != null) {
       _potentiallyAddFunctionParameterTypeChecks(function);
     }
@@ -2808,8 +2838,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Build argument list in canonical order for a static [target], including
   /// filling in the default argument value.
-  List<HInstruction> _visitArgumentsForStaticTarget(
-      ir.FunctionNode target, ir.Arguments arguments) {
+  List<HInstruction> _visitArgumentsForStaticTarget(ir.FunctionNode target,
+      ir.Arguments arguments, SourceInformation sourceInformation,
+      {bool addFunctionTypeArguments: false}) {
     // Visit arguments in source order, then re-order and fill in defaults.
     var values = _visitPositionalArguments(arguments);
 
@@ -2848,6 +2879,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       assert(arguments.named.isEmpty);
     }
 
+    if (options.strongMode && addFunctionTypeArguments) {
+      _addTypeArguments(values, arguments, sourceInformation);
+    }
     return values;
   }
 
@@ -2883,7 +2917,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<HInstruction> arguments = closedWorld.nativeData
             .isJsInteropMember(function)
         ? _visitArgumentsForNativeStaticTarget(target.function, node.arguments)
-        : _visitArgumentsForStaticTarget(target.function, node.arguments);
+        : _visitArgumentsForStaticTarget(
+            target.function, node.arguments, sourceInformation,
+            addFunctionTypeArguments: rtiNeed.methodNeedsGenericRti(function));
 
     // Error in the arguments provided. Do not process further.
     if (arguments == null) {
@@ -3913,7 +3949,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
     List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        node.interfaceTarget.function, node.arguments);
+        node.interfaceTarget.function, node.arguments, sourceInformation);
     _buildInvokeSuper(
         _elementMap.getSelector(node),
         _elementMap.getClass(_containingClass(node)),
@@ -4037,8 +4073,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Native class generative constructors take a pre-constructed object.
       arguments.add(graph.addConstantNull(closedWorld));
     }
-    arguments.addAll(
-        _visitArgumentsForStaticTarget(target.function, node.arguments));
+    arguments.addAll(_visitArgumentsForStaticTarget(
+        target.function, node.arguments, sourceInformation));
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }
@@ -4635,6 +4671,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
         localsHandler.updateLocal(
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
+    }
+    if (rtiNeed.methodNeedsGenericRti(function) && options.strongMode) {
+      for (TypeVariableType typeVariable in _elementMap.elementEnvironment
+          .getFunctionTypeVariables(function)) {
+        HInstruction argument = compiledArguments[argumentIndex++];
+        localsHandler.updateLocal(
+            localsHandler.getTypeVariableAsLocal(typeVariable), argument);
+      }
     }
     assert(argumentIndex == compiledArguments.length);
 

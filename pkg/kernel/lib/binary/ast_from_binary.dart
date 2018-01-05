@@ -1155,7 +1155,9 @@ class BinaryBuilder {
       case Tag.CheckLibraryIsLoaded:
         return new CheckLibraryIsLoaded(readLibraryDependencyReference());
       case Tag.InvalidExpression:
-        return new InvalidExpression();
+        int offset = readOffset();
+        return new InvalidExpression(readStringOrNullIfEmpty())
+          ..fileOffset = offset;
       case Tag.VariableGet:
         int offset = readOffset();
         readUInt(); // offset of the variable declaration in the binary.
@@ -1434,8 +1436,6 @@ class BinaryBuilder {
   Statement readStatement() {
     int tag = readByte();
     switch (tag) {
-      case Tag.InvalidStatement:
-        return new InvalidStatement();
       case Tag.ExpressionStatement:
         return new ExpressionStatement(readExpression());
       case Tag.Block:

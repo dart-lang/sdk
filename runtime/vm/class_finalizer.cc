@@ -393,7 +393,8 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (Isolate::Current()->error_on_bad_override()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->error_on_bad_override() && !isolate->strong()) {
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
@@ -1518,8 +1519,9 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // functions of a class, so we do not need to consider fields as implicitly
   // generating getters and setters.
   // Most overriding conflicts are only static warnings, i.e. they are not
-  // reported as compile-time errors by the vm. However, signature conflicts in
-  // overrides can be reported if the flag --error_on_bad_override is specified.
+  // reported as compile-time errors by the vm. However, in non-strong mode,
+  // signature conflicts in overrides can be reported if the flag
+  // --error_on_bad_override is specified.
   // Static warning examples are:
   // - a static getter 'v' conflicting with an inherited instance setter 'v='.
   // - a static setter 'v=' conflicting with an inherited instance member 'v'.
@@ -1648,7 +1650,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // If we check for bad overrides, collect interfaces, super interfaces, and
   // super classes of this class.
   GrowableArray<const Class*> interfaces(zone, 4);
-  if (Isolate::Current()->error_on_bad_override()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->error_on_bad_override() && !isolate->strong()) {
     CollectInterfaces(cls, &interfaces);
     // Include superclasses in list of interfaces and super interfaces.
     super_class = cls.SuperClass();
@@ -1670,8 +1673,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     FinalizeSignature(cls, function);
     name = function.name();
     // Report signature conflicts only.
-    if (Isolate::Current()->error_on_bad_override() && !function.is_static() &&
-        !function.IsGenerativeConstructor()) {
+    if (isolate->error_on_bad_override() && !isolate->strong() &&
+        !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.length(); i++) {
         const Class* interface = interfaces.At(i);
@@ -2648,7 +2651,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     FinalizeClass(super);
   }
   // Ensure interfaces are finalized in case we check for bad overrides.
-  if (Isolate::Current()->error_on_bad_override()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->error_on_bad_override() && !isolate->strong()) {
     GrowableArray<const Class*> interfaces(4);
     CollectInterfaces(cls, &interfaces);
     for (intptr_t i = 0; i < interfaces.length(); i++) {

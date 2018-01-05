@@ -10,6 +10,7 @@ import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:math' show Random;
 
+part 'cast.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'print.dart';

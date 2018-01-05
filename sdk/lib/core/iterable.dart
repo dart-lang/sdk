@@ -111,6 +111,17 @@ abstract class Iterable<E> {
   const factory Iterable.empty() = EmptyIterable<E>;
 
   /**
+   * Adapts [source] to be an `Iterable<T>`.
+   *
+   * Any time the iterable would produce an element that is not a [T],
+   * the element access will throw. If all elements of [source] are actually
+   * instances of [T], or if only elements that are actually instances of [T]
+   * are accessed, then the resulting iterable can be used as an `Iterable<T>`.
+   */
+  static Iterable<T> castTo<S, T>(Iterable<S> source) =>
+      new CastIterable<S, T>(source);
+
+  /**
    * Returns a new `Iterator` that allows iterating the elements of this
    * `Iterable`.
    *

@@ -50,13 +50,16 @@ class Simulator {
   // architecture specification and is off by 8 from the currently executing
   // instruction.
   void set_register(Register reg, int32_t value);
-  int32_t get_register(Register reg) const;
+  DART_FORCE_INLINE int32_t get_register(Register reg) const {
+    ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+    return registers_[reg] + ((reg == PC) ? Instr::kPCReadOffset : 0);
+  }
 
   int32_t get_sp() const { return get_register(SPREG); }
 
   // Special case of set_register and get_register to access the raw PC value.
   void set_pc(int32_t value);
-  int32_t get_pc() const;
+  DART_FORCE_INLINE int32_t get_pc() const { return registers_[PC]; }
 
   // Accessors for VFP register state.
   void set_sregister(SRegister reg, float value);
@@ -232,6 +235,7 @@ class Simulator {
 
   // Executes one instruction.
   void InstructionDecode(Instr* instr);
+  void InstructionDecodeImpl(Instr* instr);
 
   // Executes ARM instructions until the PC reaches kEndSimulatingPC.
   void Execute();

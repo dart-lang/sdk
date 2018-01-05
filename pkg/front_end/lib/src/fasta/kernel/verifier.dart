@@ -10,9 +10,7 @@ import 'package:kernel/ast.dart'
         Class,
         ExpressionStatement,
         Field,
-        InvalidExpression,
         InvalidInitializer,
-        InvalidStatement,
         Library,
         Member,
         Procedure,
@@ -151,16 +149,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   visitProcedure(Procedure node) {
     fileUri = checkLocation(node, node.name.name, node.fileUri);
     super.visitProcedure(node);
-  }
-
-  @override
-  visitInvalidExpression(InvalidExpression node) {
-    problem(node, "Invalid expression.");
-  }
-
-  @override
-  visitInvalidStatement(InvalidStatement node) {
-    problem(node, "Invalid statement.");
   }
 
   @override

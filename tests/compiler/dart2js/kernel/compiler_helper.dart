@@ -14,11 +14,15 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/dart2js.dart' as dart2js;
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
+import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import '../memory_compiler.dart';
 
 /// Analyze [memorySourceFiles] with [entryPoint] as entry-point using the
@@ -78,6 +82,47 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     entryPoint = dir.uri.resolve(entryPoint.path);
   }
   return entryPoint;
+}
+
+Future<Compiler> runWithD8(
+    {Uri entryPoint,
+    Map<String, String> memorySourceFiles: const <String, String>{},
+    List<String> options: const <String>[],
+    String expectedOutput,
+    bool printJs: false}) async {
+  entryPoint ??= Uri.parse('memory:main.dart');
+  Uri mainFile =
+      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
+  String output = uriPathToNative(mainFile.resolve('out.js').path);
+  List<String> dart2jsArgs = [
+    mainFile.toString(),
+    '-o$output',
+    '--packages=${Platform.packageConfig}',
+  ]..addAll(options);
+  print('Running: dart2js ${dart2jsArgs.join(' ')}');
+
+  CompilationResult result = await dart2js.internalMain(dart2jsArgs);
+  Expect.isTrue(result.isSuccess);
+  if (printJs) {
+    print('dart2js output:');
+    print(new File(output).readAsStringSync());
+  }
+
+  List<String> d8Args = [
+    'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
+    output
+  ];
+  print('Running: d8 ${d8Args.join(' ')}');
+  ProcessResult runResult = Process.runSync(d8executable, d8Args);
+  String out = '${runResult.stderr}\n${runResult.stdout}';
+  print('d8 output:');
+  print(out);
+  if (expectedOutput != null) {
+    Expect.equals(0, runResult.exitCode);
+    Expect.stringEquals(
+        expectedOutput, runResult.stdout.replaceAll('\r\n', '\n'));
+  }
+  return result.compiler;
 }
 
 Future<Compiler> compileWithDill(

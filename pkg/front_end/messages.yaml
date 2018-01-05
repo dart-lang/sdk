@@ -93,6 +93,7 @@ Encoding:
 EmptyNamedParameterList:
   template: "Named parameter lists cannot be empty."
   tip: "Try adding a named parameter to the list."
+  analyzerCode: "MISSING_IDENTIFIER"
   dart2jsCode: EMPTY_NAMED_PARAMETER_LIST
   script: >
     foo({}) {}
@@ -104,6 +105,7 @@ EmptyNamedParameterList:
 EmptyOptionalParameterList:
   template: "Optional parameter lists cannot be empty."
   tip: "Try adding an optional parameter to the list."
+  analyzerCode: "MISSING_IDENTIFIER"
   dart2jsCode: EMPTY_OPTIONAL_PARAMETER_LIST
   script: >
     foo([]) {}
@@ -920,6 +922,8 @@ TypeArgumentMismatch:
 
 NotAType:
   template: "'#name' isn't a type."
+  analyzerCode: NOT_A_TYPE
+  dart2jsCode: "*ignored*"
 
 FastaUsageShort:
   template: |
@@ -1162,6 +1166,18 @@ OverrideFewerPositionalArguments:
 
 OverrideMoreRequiredArguments:
   template: "The method '#name' has more required arguments than those of overridden method '#name2'."
+
+OverrideTypeMismatchParameter:
+  template: "The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2)."
+  tip: "Change to a supertype of #type2 (or, for a covariant parameter, a subtype)."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+  dart2jsCode: "*ignored*"
+
+OverrideTypeMismatchReturnType:
+  template: "The return type of the method '#name' is #type, which does not match the return type of the overridden method (#type2)."
+  tip: "Change to a subtype of #type2."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+  dart2jsCode: "*ignored*"
 
 IllegalMethodName:
   template: "'#name' isn't a legal method name."
@@ -1488,6 +1504,8 @@ SuperclassHasNoSetter:
 
 SuperclassHasNoMethod:
   template: "Superclass has no method named '#name'."
+  analyzerCode: UNDEFINED_SUPER_METHOD
+  dart2jsCode: "*ignored*"
 
 SuperclassHasNoDefaultConstructor:
   template: "The superclass, '#name', has no unnamed constructor that takes no arguments."

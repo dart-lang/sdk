@@ -180,18 +180,26 @@ class TypeTestRegistry {
   void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {
     assert(checkedClasses == null && checkedFunctionTypes == null);
 
+    Set<DartType> implicitIsChecks = new Set<DartType>();
     rtiChecksBuilder.registerImplicitChecks(
-        _codegenWorldBuilder, classesUsingTypeVariableTests);
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder);
+        _codegenWorldBuilder.instantiatedTypes,
+        classesUsingTypeVariableTests,
+        implicitIsChecks);
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(
+        _codegenWorldBuilder, implicitIsChecks);
 
     checkedClasses = new Set<ClassEntity>();
     checkedFunctionTypes = new Set<FunctionType>();
-    _codegenWorldBuilder.isChecks.forEach((DartType t) {
+
+    processType(DartType t) {
       if (t is InterfaceType) {
         checkedClasses.add(t.element);
       } else if (t is FunctionType) {
         checkedFunctionTypes.add(t);
       }
-    });
+    }
+
+    _codegenWorldBuilder.isChecks.forEach(processType);
+    implicitIsChecks.forEach(processType);
   }
 }

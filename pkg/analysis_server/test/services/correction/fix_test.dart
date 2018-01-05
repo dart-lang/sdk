@@ -88,7 +88,7 @@ bool test() {
     String fileContent = testCode;
     if (target != null) {
       expect(target, fileEdits.first.file);
-      fileContent = provider.getFile(target).readAsStringSync();
+      fileContent = getFile(target).readAsStringSync();
     }
 
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
@@ -161,8 +161,8 @@ bool test() {
    * Computes fixes for the given [error] in [testUnit].
    */
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    DartFixContext fixContext = new _DartFixContextImpl(
-        provider, driver, new AstProviderForDriver(driver), testUnit, error);
+    DartFixContext fixContext = new _DartFixContextImpl(resourceProvider,
+        driver, new AstProviderForDriver(driver), testUnit, error);
     return await new DefaultFixContributor().internalComputeFixes(fixContext);
   }
 
@@ -172,11 +172,11 @@ bool test() {
    */
   void _configureMyPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('$myPkgLibPath/$path', code);
+      newFile('$myPkgLibPath/$path', content: code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(myPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+    Folder myPkgFolder = getFolder(myPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
       'my_pkg': [myPkgFolder]
     });
     SourceFactory sourceFactory = new SourceFactory(
@@ -2060,7 +2060,7 @@ import 'my_file.dart';
   }
 
   test_createFile_forImport_BAD_inPackage_lib_justLib() async {
-    provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
+    newFile('/projects/my_package/pubspec.yaml', content: 'name: my_package');
     testFile = '/projects/my_package/test.dart';
     await resolveTestUnit('''
 import 'lib';
@@ -2077,9 +2077,9 @@ import 'my_file.txt';
   }
 
   test_createFile_forImport_inPackage_lib() async {
-    provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
+    newFile('/projects/my_package/pubspec.yaml', content: 'name: my_package');
     testFile = '/projects/my_package/lib/test.dart';
-    provider.newFolder('/projects/my_package/lib');
+    newFolder('/projects/my_package/lib');
     await resolveTestUnit('''
 import 'a/bb/c_cc/my_lib.dart';
 ''');
@@ -2098,7 +2098,7 @@ import 'a/bb/c_cc/my_lib.dart';
   }
 
   test_createFile_forImport_inPackage_test() async {
-    provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
+    newFile('/projects/my_package/pubspec.yaml', content: 'name: my_package');
     testFile = '/projects/my_package/test/misc/test_all.dart';
     await resolveTestUnit('''
 import 'a/bb/my_lib.dart';
@@ -2137,7 +2137,7 @@ part 'my_part.dart';
   }
 
   test_createFile_forPart_inPackageLib() async {
-    provider.newFile('/my/pubspec.yaml', r'''
+    newFile('/my/pubspec.yaml', content: r'''
 name: my_test
 ''');
     testFile = '/my/lib/test.dart';
@@ -2146,8 +2146,8 @@ library my.lib;
 part 'my_part.dart';
 ''', Uri.parse('package:my/test.dart'));
     // configure SourceFactory
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my': <Folder>[provider.getResource('/my/lib')],
+    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
+      'my': <Folder>[getFolder('/my/lib')],
     });
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
@@ -3498,8 +3498,8 @@ main() {
 
   test_importLibraryProject_BAD_notInLib_BUILD() async {
     testFile = '/aaa/bin/test.dart';
-    provider.newFile('/aaa/BUILD', '');
-    provider.newFile('/bbb/BUILD', '');
+    newFile('/aaa/BUILD');
+    newFile('/bbb/BUILD');
     addSource('/bbb/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
 main() {
@@ -3511,8 +3511,8 @@ main() {
 
   test_importLibraryProject_BAD_notInLib_pubspec() async {
     testFile = '/aaa/bin/test.dart';
-    provider.newFile('/aaa/pubspec.yaml', 'name: aaa');
-    provider.newFile('/bbb/pubspec.yaml', 'name: bbb');
+    newFile('/aaa/pubspec.yaml', content: 'name: aaa');
+    newFile('/bbb/pubspec.yaml', content: 'name: bbb');
     addSource('/bbb/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
 main() {
@@ -4268,12 +4268,29 @@ class A {
 ''');
   }
 
-  test_replaceWithConstInstanceCreation() async {
+  test_replaceWithConstInstanceCreation_explicitNew() async {
     await resolveTestUnit('''
 class A {
   const A();
 }
 const a = new A();
+''');
+    await assertHasFix(DartFixKind.USE_CONST, '''
+class A {
+  const A();
+}
+const a = const A();
+''');
+  }
+
+  @failingTest
+  test_replaceWithConstInstanceCreation_implicitNew() async {
+    // This test fails because the implicit `new` isn't yet recognized.
+    await resolveTestUnit('''
+class A {
+  const A();
+}
+const a = A();
 ''');
     await assertHasFix(DartFixKind.USE_CONST, '''
 class A {
@@ -5584,11 +5601,11 @@ class Required {
    */
   void _configureFlutterPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
+      newFile('$flutterPkgLibPath/$path', content: code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+    Folder myPkgFolder = getFolder(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
       'flutter': [myPkgFolder]
     });
     SourceFactory sourceFactory = new SourceFactory(

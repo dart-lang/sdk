@@ -39,6 +39,24 @@ class MethodTest extends PartialCodeTest {
           new TestDescriptor('noType_params', 'm(b, c)',
               [ParserErrorCode.EXPECTED_TOKEN], "m(b, c);",
               allFailing: true),
+          new TestDescriptor(
+              'noType_emptyOptional',
+              'm(B b, [])',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_FUNCTION_BODY
+              ],
+              "m(B b, [_s_]){}",
+              failing: ['fieldConst']),
+          new TestDescriptor(
+              'noType_emptyNamed',
+              'm(B b, {})',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_FUNCTION_BODY
+              ],
+              "m(B b, {_s_}){}",
+              failing: ['fieldConst']),
           new TestDescriptor('type_leftParen', 'A m(',
               [ParserErrorCode.EXPECTED_TOKEN], "A m();",
               allFailing: true),
@@ -63,6 +81,24 @@ class MethodTest extends PartialCodeTest {
           new TestDescriptor('type_params', 'A m(b, c)',
               [ParserErrorCode.EXPECTED_TOKEN], "A m(b, c);",
               allFailing: true),
+          new TestDescriptor(
+              'type_emptyOptional',
+              'A m(B b, [])',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_FUNCTION_BODY
+              ],
+              "A m(B b, [_s_]){}",
+              failing: ['fieldConst']),
+          new TestDescriptor(
+              'type_emptyNamed',
+              'A m(B b, {})',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_FUNCTION_BODY
+              ],
+              "A m(B b, {_s_}){}",
+              failing: ['fieldConst']),
         ],
         PartialCodeTest.classMemberSuffixes,
         head: 'class C { ',

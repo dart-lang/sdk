@@ -6,10 +6,11 @@
 
 // Test that we are analyzing field parameters correctly.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 import 'type_mask_test_helper.dart';
-import '../compiler_helper.dart';
+import '../memory_compiler.dart';
 
 const String TEST = """
 
@@ -26,20 +27,29 @@ main() {
 """;
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    Expect.isTrue(result.isSuccess);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
 
-        checkFieldTypeInClass(String className, String fieldName, type) {
-          dynamic cls = findElement(compiler, className);
-          var element = cls.lookupLocalMember(fieldName);
-          Expect.equals(type,
-              simplify(typesInferrer.getTypeOfMember(element), closedWorld));
-        }
+    checkFieldTypeInClass(String className, String fieldName, type) {
+      var element = findClassMember(closedWorld, className, fieldName);
+      Expect.equals(
+          type, simplify(typesInferrer.getTypeOfMember(element), closedWorld));
+    }
 
-        checkFieldTypeInClass(
-            'A', 'dynamicField', closedWorld.commonMasks.interceptorType);
-      }));
+    checkFieldTypeInClass(
+        'A', 'dynamicField', interceptorOrComparable(closedWorld));
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

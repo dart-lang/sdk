@@ -8,9 +8,10 @@
 // inferring types for fields.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
-
-import '../compiler_helper.dart';
+import 'type_mask_test_helper.dart';
+import '../memory_compiler.dart';
 
 const String TEST = """
 
@@ -27,21 +28,30 @@ main() {
 """;
 
 void main() {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(TEST, uri);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
+  runTest({bool useKernel}) async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': TEST},
+        options: useKernel ? [Flags.useKernel] : []);
+    Expect.isTrue(result.isSuccess);
+    var compiler = result.compiler;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
+    var closedWorld = typesInferrer.closedWorld;
 
-        checkFieldTypeInClass(String className, String fieldName, type) {
-          dynamic cls = findElement(compiler, className);
-          var element = cls.lookupLocalMember(fieldName);
-          Expect.isTrue(
-              typesInferrer.getTypeOfMember(element).containsOnly(type));
-        }
+    checkFieldTypeInClass(String className, String fieldName, type) {
+      var element = findClassMember(closedWorld, className, fieldName);
+      Expect.isTrue(typesInferrer.getTypeOfMember(element).containsOnly(type));
+    }
 
-        checkFieldTypeInClass('A', 'intField',
-            typesInferrer.closedWorld.commonElements.jsUInt31Class);
-        checkFieldTypeInClass('A', 'stringField',
-            typesInferrer.closedWorld.commonElements.jsStringClass);
-      }));
+    checkFieldTypeInClass('A', 'intField',
+        typesInferrer.closedWorld.commonElements.jsUInt31Class);
+    checkFieldTypeInClass('A', 'stringField',
+        typesInferrer.closedWorld.commonElements.jsStringClass);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

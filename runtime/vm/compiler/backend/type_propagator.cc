@@ -136,7 +136,11 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
 
   const intptr_t rollback_point = rollback_.length();
 
-  if (Isolate::Current()->type_checks()) {
+  // When having assertions enabled or when running in strong-mode the IR graphs
+  // can contain [AssertAssignableInstr]s and we therefore enable this
+  // optimization.
+  Isolate* isolate = Isolate::Current();
+  if (isolate->type_checks() || isolate->strong()) {
     StrengthenAsserts(block);
   }
 

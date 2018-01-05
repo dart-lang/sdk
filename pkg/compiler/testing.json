@@ -15,6 +15,7 @@
 
     "exclude": [
       "^tests/compiler/dart2js/data/.*",
+      "^tests/compiler/dart2js/inference/data/super_invoke\\.dart",
       "^tests/compiler/dart2js/path with spaces/.*"
     ]
   }

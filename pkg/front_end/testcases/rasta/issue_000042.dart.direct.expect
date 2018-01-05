@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  for (final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: Expected lvalue, but got [x, y]\n  for (var x, y in []) {}\n       ^")) in <dynamic>[]) {
+  for (final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/rasta/issue_000042.dart:6:8: Error: Expected lvalue, but got [x, y]\n  for (var x, y in []) {}\n       ^" in <dynamic>[]) {
   }
   #L1:
   {

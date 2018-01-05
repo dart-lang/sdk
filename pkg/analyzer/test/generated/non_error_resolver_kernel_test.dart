@@ -12,6 +12,11 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, or disabled for Dart 2.0 altogether.
+const notForDart2 = const Object();
+
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
@@ -31,17 +36,24 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
-    // super.m() is not resolved by front-end
-    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
+  test_ambiguousImport_showCombinator() async {
+    return super.test_ambiguousImport_showCombinator();
   }
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
-  test_ambiguousImport_showCombinator() async {
-    return super.test_ambiguousImport_showCombinator();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_argumentTypeNotAssignable_classWithCall_Function() async {
+    return super.test_argumentTypeNotAssignable_classWithCall_Function();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_async_return_flattens_futures() async {
+    // Only FutureOr is flattened.
+    return super.test_async_return_flattens_futures();
   }
 
   @override
@@ -130,13 +142,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constDeferredClass_new() async {
-    return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
@@ -173,59 +178,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
-    return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
-    return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
-    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() async {
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() async {
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_genericTypeAlias_invalidGenericFunctionType() async {
     return super.test_genericTypeAlias_invalidGenericFunctionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_noTypeParameters() async {
-    return super.test_genericTypeAlias_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_typeParameters() async {
-    return super.test_genericTypeAlias_typeParameters();
   }
 
   @override
@@ -237,33 +191,37 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constantVariable_topLevel_importWithPrefix();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_2() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_2();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constConstructor_importWithPrefix() async {
-    return super.test_invalidAnnotation_constConstructor_importWithPrefix();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_3() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_3();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
-    return super
-        .test_invalidAnnotation_constConstructor_named_importWithPrefix();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_4() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_4();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invocationOfNonFunction_Object() async {
+    return super.test_invocationOfNonFunction_Object();
   }
 
   @override
@@ -290,8 +248,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstantValueInInitializer_namedArgument() async {
-    return super.test_nonConstantValueInInitializer_namedArgument();
+  test_nonBoolExpression_functionType() async {
+    return super.test_nonBoolExpression_functionType();
   }
 
   @override
@@ -310,9 +268,16 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_prefixCollidesWithTopLevelMembers() async {
-    return super.test_prefixCollidesWithTopLevelMembers();
+  @notForDart2
+  test_null_callMethod() async {
+    return super.test_null_callMethod();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_null_callOperator() async {
+    return super.test_null_callOperator();
   }
 
   @override
@@ -353,7 +318,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_undefinedMethod_functionExpression_directCall() async {
-    return super.test_undefinedMethod_functionExpression_directCall();
+  test_forEach_genericFunctionType() async {
+    return super.test_forEach_genericFunctionType();
   }
 }

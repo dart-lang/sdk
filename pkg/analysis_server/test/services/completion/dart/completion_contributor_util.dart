@@ -463,7 +463,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,
-        provider,
+        resourceProvider,
         testSource,
         completionOffset,
         new CompletionPerformance());
@@ -503,11 +503,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   void configureFlutterPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
+      newFile('$flutterPkgLibPath/$path', content: code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+    Folder myPkgFolder = getFolder(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
       'flutter': [myPkgFolder]
     });
     SourceFactory sourceFactory = new SourceFactory(
@@ -586,7 +586,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/completionTest.dart');
+    testFile = resourceProvider.convertPath('/completionTest.dart');
     contributor = createContributor();
   }
 }

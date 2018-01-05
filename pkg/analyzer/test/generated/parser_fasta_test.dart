@@ -248,32 +248,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedExecutable_topLevel_afterType() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected CompilationUnit, but found [CompilationUnit, TopLevelMember]
-    //   package:test                                                       fail
-    //   test/generated/parser_fasta_listener.dart 50:7                     ForwardingTestListener.expectIn
-    //   test/generated/parser_fasta_listener.dart 1030:5                   ForwardingTestListener.endTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 264:14              Parser.parseTopLevelDeclaration
-    //   test/generated/parser_fasta_test.dart 2815:22                      ParserProxy.parseTopLevelDeclaration
-    super.test_expectedExecutable_topLevel_afterType();
-  }
-
-  @override
-  @failingTest
-  void test_expectedExecutable_topLevel_afterVoid() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected CompilationUnit, but found [CompilationUnit, TopLevelMember]
-    //   package:test                                                       fail
-    //   test/generated/parser_fasta_listener.dart 50:7                     ForwardingTestListener.expectIn
-    //   test/generated/parser_fasta_listener.dart 1030:5                   ForwardingTestListener.endTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 264:14              Parser.parseTopLevelDeclaration
-    //   test/generated/parser_fasta_test.dart 2815:22                      ParserProxy.parseTopLevelDeclaration
-    super.test_expectedExecutable_topLevel_afterVoid();
-  }
-
-  @override
-  @failingTest
   void test_expectedExecutable_topLevel_beforeType() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
@@ -2947,49 +2921,5 @@ class A native 'something' {
   void test_parseClassDeclaration_native_not_allowed() {
     allowNativeClause = false;
     test_parseClassDeclaration_native();
-  }
-
-  @override
-  void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
-    // Fasta correctly parses these, while analyzer does not.
-    super.test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_exportAsPrefix() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_exportAsPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_exportAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_abstractAsPrefix() {
-    // TODO(danrubel): built-in "abstract" cannot be used as a prefix
-    super.test_parseCompilationUnitMember_abstractAsPrefix();
-  }
-
-  @failingTest
-  void test_parseCompilationUnitMember_abstractAsPrefix2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseCompilationUnitMember_abstractAsPrefix();
-    assertNoErrors();
-  }
-
-  @override
-  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
-    // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
-    // Ignored: Fasta does not support the generic comment syntax.
   }
 }

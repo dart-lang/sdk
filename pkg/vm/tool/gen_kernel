@@ -8,12 +8,8 @@
 
 set -e
 
-# Enable Dart 2.0 fixed-size integers for gen_kernel if running in strong mode.
-for arg in "$@"; do
-  if [ "$arg" == "--strong-mode" ]; then
-    DART_VM_FLAGS="--limit-ints-to-64-bits $DART_VM_FLAGS"
-  fi
-done
+# Enable Dart 2.0 fixed-size integers for gen_kernel
+DART_VM_FLAGS="--limit-ints-to-64-bits $DART_VM_FLAGS"
 
 function follow_links() {
   file="$1"

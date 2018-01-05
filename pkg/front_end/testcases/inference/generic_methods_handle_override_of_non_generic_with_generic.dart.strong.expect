@@ -20,6 +20,7 @@ class D extends self::C {
   method g<T extends core::Object>(self::D::g::T x) → self::D::g::T
     return x;
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:53: Error: The parameter 'x' of the method 'D::m' has type test::D::m::T, which does not match the corresponding type in the overridden method (dynamic).\nChange to a supertype of dynamic (or, for a covariant parameter, a subtype).\n  T m<T>(T /*@error=OverrideTypeMismatchParameter*/ x) => x;\n                                                    ^", "pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:15:53: Error: The parameter 'x' of the method 'D::g' has type test::D::g::T, which does not match the corresponding type in the overridden method (dart.core::int).\nChange to a supertype of dart.core::int (or, for a covariant parameter, a subtype).\n  T g<T>(T /*@error=OverrideTypeMismatchParameter*/ x) => x;\n                                                    ^"]/* from null */;
 static method main() → dynamic {
   core::int y = (new self::D::•() as self::C).{self::C::m}(42) as{TypeError} core::int;
   core::print(y);

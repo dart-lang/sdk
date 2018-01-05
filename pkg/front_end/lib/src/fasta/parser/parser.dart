@@ -471,9 +471,8 @@ class Parser {
       return parseTopLevelMember(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
-    reportRecoverableErrorWithToken(next, fasta.templateExpectedDeclaration);
-    listener.handleInvalidTopLevelDeclaration(next);
-    return next;
+    listener.beginTopLevelMember(next);
+    return reportInvalidTopLevelDeclaration(next);
   }
 
   // Report an error for the given modifier preceding a top level keyword
@@ -513,19 +512,21 @@ class Parser {
       return parseEnum(previous);
     } else if (identical(value, 'typedef')) {
       Token next = token.next;
+      directiveState?.checkDeclaration();
       if (next.isIdentifier || optional("void", next)) {
-        directiveState?.checkDeclaration();
         return parseTypedef(previous);
       } else {
-        directiveState?.checkDeclaration();
         return parseTopLevelMember(previous);
       }
     } else {
       // The remaining top level keywords are built-in keywords
-      // and can be used as an identifier in a top level declaration
-      // such as "abstract<T>() => 0;".
+      // and can be used in a top level declaration
+      // as an identifier such as "abstract<T>() => 0;"
+      // or as a prefix such as "abstract.A b() => 0;".
       String nextValue = token.next.stringValue;
-      if (identical(nextValue, '(') || identical(nextValue, '<')) {
+      if (identical(nextValue, '(') ||
+          identical(nextValue, '<') ||
+          identical(nextValue, '.')) {
         directiveState?.checkDeclaration();
         return parseTopLevelMember(previous);
       } else if (identical(value, 'library')) {
@@ -1096,9 +1097,10 @@ class Parser {
         token = ensureCloseParen(token, begin);
         break;
       } else if (identical(value, '[]')) {
-        --parameterCount;
-        reportRecoverableError(next, fasta.messageEmptyOptionalParameterList);
-        token = ensureCloseParen(next, begin);
+        // Recovery
+        token = rewriteSquareBrackets(token);
+        token = parseOptionalPositionalParameters(token, kind);
+        token = ensureCloseParen(token, begin);
         break;
       }
       token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
@@ -1164,21 +1166,42 @@ class Parser {
     assert(optional('[', token));
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
-    do {
+    while (true) {
       Token next = token.next;
       if (optional(']', next)) {
-        token = next;
         break;
       }
       token = parseFormalParameter(
-              token, FormalParameterKind.optionalPositional, kind)
-          .next;
+          token, FormalParameterKind.optionalPositional, kind);
+      next = token.next;
       ++parameterCount;
-    } while (optional(',', token));
-    if (parameterCount == 0) {
-      reportRecoverableError(token, fasta.messageEmptyOptionalParameterList);
+      if (!optional(',', next)) {
+        if (!optional(']', next)) {
+          // Recovery
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments(']'));
+          // Scanner guarantees a closing bracket.
+          next = begin.endGroup;
+          while (token.next != next) {
+            token = token.next;
+          }
+        }
+        break;
+      }
+      token = next;
     }
-    expect(']', token);
+    if (parameterCount == 0) {
+      token = rewriteAndRecover(
+          token,
+          fasta.messageEmptyOptionalParameterList,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', token.next.charOffset, 0));
+      token = parseFormalParameter(
+          token, FormalParameterKind.optionalPositional, kind);
+      ++parameterCount;
+    }
+    token = token.next;
+    assert(optional(']', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
   }
@@ -1194,21 +1217,42 @@ class Parser {
     assert(optional('{', token));
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
-    do {
+    while (true) {
       Token next = token.next;
       if (optional('}', next)) {
-        token = next;
         break;
       }
       token =
-          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind)
-              .next;
+          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind);
+      next = token.next;
       ++parameterCount;
-    } while (optional(',', token));
-    if (parameterCount == 0) {
-      reportRecoverableError(token, fasta.messageEmptyNamedParameterList);
+      if (!optional(',', next)) {
+        if (!optional('}', next)) {
+          // Recovery
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing bracket.
+          next = begin.endGroup;
+          while (token.next != next) {
+            token = token.next;
+          }
+        }
+        break;
+      }
+      token = next;
     }
-    expect('}', token);
+    if (parameterCount == 0) {
+      token = rewriteAndRecover(
+          token,
+          fasta.messageEmptyNamedParameterList,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', token.next.charOffset, 0));
+      token =
+          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind);
+      ++parameterCount;
+    }
+    token = token.next;
+    assert(optional('}', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
   }
@@ -1695,8 +1739,13 @@ class Parser {
         reportRecoverableErrorWithToken(
             next, fasta.templateBuiltInIdentifierInDeclaration);
       } else if (!optional("dynamic", next)) {
-        reportRecoverableErrorWithToken(
-            next, fasta.templateBuiltInIdentifierAsType);
+        if (context == IdentifierContext.typeReference &&
+            optional('.', next.next)) {
+          // Built in identifiers may be used as a prefix
+        } else {
+          reportRecoverableErrorWithToken(
+              next, fasta.templateBuiltInIdentifierAsType);
+        }
       }
       token = next;
     } else if (!inPlainSync && next.type.isPseudo) {
@@ -1756,6 +1805,8 @@ class Parser {
       followingValues = ['<', 'extends', 'with', 'implements', '{'];
     } else if (context == IdentifierContext.combinator) {
       followingValues = [';'];
+    } else if (context == IdentifierContext.constructorReferenceContinuation) {
+      followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
     } else if (context == IdentifierContext.fieldDeclaration) {
       followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.enumDeclaration) {
@@ -2651,16 +2702,14 @@ class Parser {
             token, IdentifierContext.topLevelVariableDeclaration);
         return parseFields(beforeStart, const Link<Token>(), token, true);
       } else {
-        return reportUnrecoverableErrorWithToken(
-            token, fasta.templateExpectedDeclaration);
+        return reportInvalidTopLevelDeclaration(token);
       }
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableErrorWithToken(
-          token, fasta.templateExpectedDeclaration);
+      return reportInvalidTopLevelDeclaration(token);
     }
     Token beforeName = identifiers.head;
     identifiers = identifiers.tail;
@@ -2919,7 +2968,8 @@ class Parser {
         // A field or abstract getter.
         identifiers = identifiers.prepend(previous);
         return identifiers;
-      } else if (optional('native', token) &&
+      } else if (hasName &&
+          optional('native', token) &&
           (token.next.kind == STRING_TOKEN || optional(';', token.next))) {
         // Skip.
         previous = token;
@@ -3215,6 +3265,18 @@ class Parser {
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
     reportRecoverableError(token.next, message);
     rewriter.insertTokenAfter(token, newToken);
+    return token;
+  }
+
+  /// Replace the token after [token] with `[` followed by `]`
+  /// and return [token].
+  Token rewriteSquareBrackets(Token token) {
+    Token next = token.next;
+    assert(optional('[]', next));
+    Token replacement = link(
+        new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+        new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
+    rewriter.replaceTokenFollowing(token, replacement);
     return token;
   }
 
@@ -4754,14 +4816,9 @@ class Parser {
       expect(']', token);
       return token;
     }
-    BeginToken replacement = link(
-        new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
-        new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
-    rewriter.replaceTokenFollowing(beforeToken, replacement);
-    replacement.endToken = replacement.next;
-    token = replacement.next;
-    listener.handleLiteralList(0, replacement, constKeyword, token);
-    return token;
+    token = rewriteSquareBrackets(beforeToken).next;
+    listener.handleLiteralList(0, token, constKeyword, token.next);
+    return token.next;
   }
 
   /// This method parses the portion of a map literal that starts with the left
@@ -6058,6 +6115,12 @@ class Parser {
       return token.next;
     }
     return nextToken;
+  }
+
+  Token reportInvalidTopLevelDeclaration(Token token) {
+    reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
+    listener.handleInvalidTopLevelDeclaration(token);
+    return token;
   }
 
   Token reportUnmatchedToken(BeginToken token) {

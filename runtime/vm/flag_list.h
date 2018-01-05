@@ -80,7 +80,7 @@
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \
   R(error_on_bad_override, false, bool, false,                                 \
-    "Report error for bad overrides.")                                         \
+    "Report error for bad overrides. Ignored in strong mode.")                 \
   R(error_on_bad_type, false, bool, false,                                     \
     "Report error for malformed types.")                                       \
   P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                     \
@@ -100,7 +100,7 @@
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
-  P(limit_ints_to_64_bits, bool, false, "Truncate integers to 64 bits")        \
+  P(limit_ints_to_64_bits, bool, true, "Truncate integers to 64 bits")         \
   C(load_deferred_eagerly, true, true, bool, false,                            \
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \

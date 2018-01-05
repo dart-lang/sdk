@@ -217,7 +217,6 @@
     },
     {
       "builders": [
-        "vm-asan-linux-release-ia32",
         "vm-asan-linux-release-x64"
       ],
       "meta": {
@@ -350,7 +349,7 @@
           "exclude_tests": ["language_2","corelib_2","lib_2","standalone_2"]
         },
         {
-          "name": "checked vm tests",
+          "name": "strong vm tests",
           "arguments": ["--runtime=vm","--compiler=dartk","--strong"],
           "tests": ["language_2","corelib_2","lib_2","standalone_2"]
         }

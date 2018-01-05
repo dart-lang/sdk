@@ -27,6 +27,8 @@ import 'package:kernel/target/vm.dart' show VmTarget;
 final whitelistMessageCode = new Set<String>.from(<String>[
   // Code names in this list should match the key used in messages.yaml
   codeInvalidAssignment.name,
+  codeOverrideTypeMismatchParameter.name,
+  codeOverriddenMethodCause.name,
 
   // The following errors are not covered by unit tests in the SDK repo because
   // they are only seen today in the flutter-gallery benchmark (external to

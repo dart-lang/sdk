@@ -302,7 +302,7 @@ class RuntimeTypeSupportBuilder {
       return new ConstructorInvocation(
           rtiLibrary.voidTypeConstructor, new Arguments(<Expression>[]));
     }
-    return new InvalidExpression();
+    return new InvalidExpression(null);
   }
 
   Expression createCallAsInstanceOf(Expression receiver, Class cls) {

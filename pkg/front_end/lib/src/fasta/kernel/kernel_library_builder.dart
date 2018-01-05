@@ -51,6 +51,7 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
         InvalidTypeBuilder,
+        KernelClassBuilder,
         KernelConstructorBuilder,
         KernelEnumBuilder,
         KernelFieldBuilder,
@@ -74,12 +75,15 @@ import 'kernel_builder.dart'
         QualifiedName,
         Scope,
         TypeBuilder,
+        TypeDeclarationBuilder,
         TypeVariableBuilder,
         VoidTypeBuilder,
         compareProcedures,
         toKernelCombinators;
 
 import 'metadata_collector.dart';
+
+import 'type_algorithms.dart' show calculateBounds;
 
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
@@ -1002,6 +1006,38 @@ class KernelLibraryBuilder
       builder.finish(this, object);
     }
     boundlessTypeVariables.clear();
+    return count;
+  }
+
+  /// Instantiates the type parameters in all raw generic types in [types] to
+  /// their bounds.  The list of types is cleared when done.
+  int instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
+    int count = 0;
+
+    for (var type in types) {
+      if (type.builder is! NamedTypeBuilder) {
+        continue;
+      }
+      NamedTypeBuilder typeBuilder = type.builder as NamedTypeBuilder;
+      TypeDeclarationBuilder typeDeclarationBuilder = typeBuilder.builder;
+      List<TypeVariableBuilder> typeParameters;
+
+      if (typeDeclarationBuilder is KernelClassBuilder) {
+        typeParameters = typeDeclarationBuilder.typeVariables;
+      } else if (typeDeclarationBuilder is KernelFunctionTypeAliasBuilder) {
+        typeParameters = typeDeclarationBuilder.typeVariables;
+      }
+
+      if (typeParameters != null &&
+          typeParameters.length > 0 &&
+          typeBuilder.arguments == null) {
+        typeBuilder.arguments =
+            calculateBounds(typeParameters, dynamicType, objectClass);
+        count += typeParameters.length;
+      }
+    }
+    types.clear();
+
     return count;
   }
 

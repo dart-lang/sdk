@@ -131,14 +131,18 @@ class PubspecValidator {
           if (entryValue is YamlScalar) {
             Object entry = entryValue.value;
             if (entry is String) {
-              String normalizedEntry = context.joinAll(path.posix.split(entry));
-              String assetPath = context.join(packageRoot, normalizedEntry);
-              if (!provider.getFile(assetPath).exists) {
-                _reportErrorForNode(
-                    reporter,
-                    entryValue,
-                    PubspecWarningCode.ASSET_DOES_NOT_EXIST,
-                    [entryValue.value]);
+              if (!entry.startsWith('packages/')) {
+                // TODO(brianwilkerson) Add validation of package references.
+                String normalizedEntry =
+                    context.joinAll(path.posix.split(entry));
+                String assetPath = context.join(packageRoot, normalizedEntry);
+                if (!provider.getFile(assetPath).exists) {
+                  _reportErrorForNode(
+                      reporter,
+                      entryValue,
+                      PubspecWarningCode.ASSET_DOES_NOT_EXIST,
+                      [entryValue.value]);
+                }
               }
             } else {
               _reportErrorForNode(

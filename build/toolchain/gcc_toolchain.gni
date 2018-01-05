@@ -40,6 +40,9 @@ concurrent_links = exec_script("get_concurrent_links.py", [], "value")
 #      Location of the strip executable. When specified, strip will be run on
 #      all executables as they are built. The stripped artifacts will be put in
 #      exe.stripped/.
+#  - llvm_objcopy
+#      Location of the llvm-objcopy executable. Used as strip instead of strip
+#      when specified.
 template("gcc_toolchain") {
   toolchain(target_name) {
     assert(defined(invoker.cc), "gcc_toolchain() must specify a \"cc\" value")
@@ -193,7 +196,7 @@ template("gcc_toolchain") {
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
 
-      if (defined(invoker.strip)) {
+      if (defined(invoker.strip) || defined(invoker.llvm_objcopy)) {
         stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
       }
 
@@ -202,6 +205,11 @@ template("gcc_toolchain") {
         strip = invoker.strip
         strip_command =
             "${strip} --strip-unneeded -o $stripped_outfile $outfile"
+        command += " && " + strip_command
+      } else if (defined(invoker.llvm_objcopy)) {
+        strip = invoker.llvm_objcopy
+        strip_command =
+            "${strip} --strip-all $outfile $stripped_outfile"
         command += " && " + strip_command
       }
       if (defined(invoker.postlink)) {
@@ -212,7 +220,7 @@ template("gcc_toolchain") {
       outputs = [
         outfile,
       ]
-      if (defined(invoker.strip)) {
+      if (defined(invoker.strip) || defined(invoker.llvm_objcopy)) {
         outputs += [ stripped_outfile ]
       }
       if (defined(invoker.link_outputs)) {

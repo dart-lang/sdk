@@ -649,6 +649,8 @@ class Namer {
         return asName(typedefTag);
       case JsGetName.FUNCTION_TYPE_TAG:
         return asName(functionTypeTag);
+      case JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG:
+        return asName(functionTypeGenericBoundsTag);
       case JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG:
         return asName(functionTypeVoidReturnTag);
       case JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG:
@@ -1616,6 +1618,8 @@ class Namer {
   String get functionTypeOptionalParametersTag => r'opt';
 
   String get functionTypeNamedParametersTag => r'named';
+
+  String get functionTypeGenericBoundsTag => r'bounds';
 
   Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
       new HashMap<ResolutionFunctionType, jsAst.Name>();

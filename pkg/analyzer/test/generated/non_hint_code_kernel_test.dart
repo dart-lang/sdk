@@ -15,6 +15,11 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, or disabled for Dart 2.0 altogether.
+const notForDart2 = const Object();
+
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
@@ -35,27 +40,59 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_deadCode_deadBlock_if_debugConst_propertyAccessor() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_deadCode_deadBlock_if_debugConst_propertyAccessor();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_deprecatedMemberUse_inDeprecatedLibrary() async {
     // LibraryAnalyzer is not applying resolution data to annotations on
     // directives.
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
   }
 
-  @failingTest
   @override
-  @potentialAnalyzerProblem
-  test_duplicateImport_as() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (38)
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_duplicateImport_as();
+  @failingTest
+  @notForDart2
+  test_undefinedGetter_inSubtype() async {
+    await super.test_undefinedGetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedMethod_inSubtype() async {
+    await super.test_undefinedMethod_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_binaryExpression_inSubtype() async {
+    await super.test_undefinedOperator_binaryExpression_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexBoth_inSubtype() async {
+    await super.test_undefinedOperator_indexBoth_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexGetter_inSubtype() async {
+    await super.test_undefinedOperator_indexGetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexSetter_inSubtype() async {
+    await super.test_undefinedOperator_indexSetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedSetter_inSubtype() async {
+    await super.test_undefinedSetter_inSubtype();
   }
 
   @override
@@ -81,13 +118,6 @@ void g(bool c) {
     // TODO(scheglov) We don't yet parse annotations on import directives.
     fail('This test fails in checked mode (indirectly)');
 //    await super.test_unusedImport_annotationOnDirective();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_as_equalPrefixes() async {
-    await super.test_unusedImport_as_equalPrefixes();
   }
 
   @failingTest

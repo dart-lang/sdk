@@ -3841,7 +3841,7 @@ class Message {
     assert(() {
       computeMessage();
       return true;
-    });
+    }());
   }
 
   MessageKind get kind => template.kind;

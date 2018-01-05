@@ -541,7 +541,9 @@ class Parser {
    */
   bool isInitializedVariableDeclaration() {
     Keyword keyword = _currentToken.keyword;
-    if (keyword == Keyword.FINAL || keyword == Keyword.VAR) {
+    if (keyword == Keyword.FINAL ||
+        keyword == Keyword.VAR ||
+        keyword == Keyword.VOID) {
       // An expression cannot start with a keyword other than 'const',
       // 'rethrow', or 'throw'.
       return true;

@@ -1123,7 +1123,7 @@ class AstBuilder extends ScopeListener {
     Token rightDelimiter;
     for (Object raw in rawParameters) {
       if (raw is _OptionalFormalParameters) {
-        parameters.addAll(raw.parameters);
+        parameters.addAll(raw.parameters ?? const <FormalParameter>[]);
         leftDelimiter = raw.leftDelimiter;
         rightDelimiter = raw.rightDelimiter;
       } else {

@@ -118,6 +118,15 @@ Future<CompilerResult> generateKernelInternal(
         ..libraries.addAll(truncateSummary
             ? kernelTarget.loader.libraries
             : summaryProgram.libraries);
+      trimmedSummaryProgram.metadata.addAll(summaryProgram.metadata);
+
+      // As documented, we only run outline transformations when we are building
+      // summaries without building a full program (at this time, that's
+      // the only need we have for these transformations).
+      if (!buildProgram) {
+        options.target.performOutlineTransformations(trimmedSummaryProgram);
+        options.ticker.logMs("Transformed outline");
+      }
       summary = serializeProgram(trimmedSummaryProgram);
       options.ticker.logMs("Generated outline");
     }

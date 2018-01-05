@@ -1218,7 +1218,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildClosureCreation(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position);
 
-  Fragment BuildInvalidStatement();
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();
   Fragment BuildEmptyStatement();

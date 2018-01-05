@@ -11,12 +11,9 @@ import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
-import 'package:logging/logging.dart' as logger;
 
 import 'ast_builder.dart';
 import 'element_helpers.dart' show isInlineJS;
-
-final _log = new logger.Logger('dev_compiler.reify_coercions');
 
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.

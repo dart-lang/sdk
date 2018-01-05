@@ -331,7 +331,9 @@ class KernelResynthesizer implements ElementResynthesizer {
         getElementFromCanonicalName(typedef.canonicalName);
     GenericFunctionTypeElementImpl functionElement = typedefElement.function;
 
-    var kernelTypeParameters = typedef.typeParameters;
+    kernel.FunctionType typedefType = typedef.type;
+    var kernelTypeParameters = typedef.typeParameters.toList();
+    kernelTypeParameters.addAll(typedefType.typeParameters);
 
     // If no type parameters, the raw type of the element will do.
     FunctionTypeImpl rawType = functionElement.type;
@@ -340,11 +342,12 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     // Compute type arguments for kernel type parameters.
-    var kernelMap = kernel.unifyTypes(
-        typedef.type, kernelType, kernelTypeParameters.toSet());
+    var kernelMap = kernel.unifyTypes(typedefType.withoutTypeParameters,
+        kernelType.withoutTypeParameters, kernelTypeParameters.toSet());
 
     // Prepare Analyzer type parameters, in the same order as kernel ones.
-    var astTypeParameters = typedefElement.typeParameters;
+    var astTypeParameters = typedefElement.typeParameters.toList();
+    astTypeParameters.addAll(functionElement.typeParameters);
 
     // Convert kernel type arguments into Analyzer types.
     int length = astTypeParameters.length;
@@ -353,11 +356,15 @@ class KernelResynthesizer implements ElementResynthesizer {
     for (var i = 0; i < length; i++) {
       var kernelParameter = kernelTypeParameters[i];
       var kernelArgument = kernelMap[kernelParameter];
-      if (kernelArgument != null) {
-        DartType astArgument = getType(context, kernelArgument);
-        usedTypeParameters.add(astTypeParameters[i]);
-        usedTypeArguments.add(astArgument);
+      if (kernelArgument == null ||
+          kernelArgument is kernel.TypeParameterType &&
+              kernelArgument.parameter.parent == null) {
+        continue;
       }
+      TypeParameterElement astParameter = astTypeParameters[i];
+      DartType astArgument = getType(context, kernelArgument);
+      usedTypeParameters.add(astParameter);
+      usedTypeArguments.add(astArgument);
     }
 
     if (usedTypeParameters.isEmpty) {
@@ -500,7 +507,10 @@ class _ExprBuilder {
       return invocation;
     }
 
-    // TODO(scheglov) Support other kernel initializer types.
+    if (k is kernel.ShadowInvalidInitializer) {
+      return null;
+    }
+
     throw new UnimplementedError('For ${k.runtimeType}');
   }
 
@@ -561,14 +571,14 @@ class _ExprBuilder {
     // Invalid annotations are represented as Let.
     if (expr is kernel.Let) {
       kernel.Let let = expr;
-      if (_isConstantExpressionErrorThrow(let.variable.initializer) ||
-          _isConstantExpressionErrorThrow(let.body)) {
+      if (_isStaticError(let.variable.initializer) ||
+          _isStaticError(let.body)) {
         throw const _CompilationErrorFound();
       }
     }
 
     // Stop if there is an error.
-    if (_isConstantExpressionErrorThrow(expr)) {
+    if (_isStaticError(expr)) {
       throw const _CompilationErrorFound();
     }
 
@@ -741,21 +751,14 @@ class _ExprBuilder {
   }
 
   TypeAnnotation _buildType(DartType type) {
-    if (type is InterfaceType) {
-      var name = AstTestFactory.identifier3(type.element.name)
-        ..staticElement = type.element
-        ..staticType = type;
-      List<TypeAnnotation> arguments = _buildTypeArguments(type.typeArguments);
-      return AstTestFactory.typeName3(name, arguments)..type = type;
+    List<TypeAnnotation> argumentNodes;
+    if (type is ParameterizedType) {
+      argumentNodes = _buildTypeArguments(type.typeArguments);
     }
-    if (type is DynamicTypeImpl || type is TypeParameterType) {
-      var identifier = AstTestFactory.identifier3(type.name)
-        ..staticElement = type.element
-        ..staticType = type;
-      return AstTestFactory.typeName3(identifier)..type = type;
-    }
-    // TODO(scheglov) Implement for other types.
-    throw new UnimplementedError('type: (${type.runtimeType}) $type');
+    TypeName node = AstTestFactory.typeName4(type.name, argumentNodes);
+    node.type = type;
+    (node.name as SimpleIdentifier).staticElement = type.element;
+    return node;
   }
 
   TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {
@@ -834,18 +837,8 @@ class _ExprBuilder {
    * Return `true` if the given [expr] throws an instance of
    * `_ConstantExpressionError` defined in `dart:core`.
    */
-  static bool _isConstantExpressionErrorThrow(kernel.Expression expr) {
-    if (expr is kernel.MethodInvocation) {
-      if (expr.name.name == '_throw') {
-        var receiver = expr.receiver;
-        if (receiver is kernel.ConstructorInvocation) {
-          kernel.Class targetClass = receiver.target.enclosingClass;
-          return targetClass.name == '_ConstantExpressionError' &&
-              targetClass.enclosingLibrary.importUri.toString() == 'dart:core';
-        }
-      }
-    }
-    return false;
+  static bool _isStaticError(kernel.Expression expr) {
+    return expr is kernel.InvalidExpression;
   }
 }
 

@@ -4,14 +4,15 @@
 
 import 'dart:collection';
 import 'dart:math' show max, min;
-import 'package:kernel/kernel.dart' hide ConstantVisitor;
+
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart' hide ConstantVisitor;
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:path/path.dart' as path;
+
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
@@ -340,7 +341,13 @@ class ProgramCompiler
     // TODO(jmesserly): look up the appropriate relative import path if the user
     // specified that on the command line.
     var uri = _summaryToUri[summary];
-    var moduleName = path.basenameWithoutExtension(path.fromUri(uri));
+    var summaryPath = uri.path;
+    var extensionIndex = summaryPath.lastIndexOf('.');
+    // Note: These URIs do not contain absolute paths from the physical file
+    // system, but only the relevant path within a user's project. This path
+    // will match the path where the .js file is generated, so we use it as
+    // the module name.
+    var moduleName = summaryPath.substring(1, extensionIndex);
     return moduleName;
   }
 
@@ -3000,9 +3007,6 @@ class ProgramCompiler
   defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
 
   @override
-  visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
-
-  @override
   visitExpressionStatement(ExpressionStatement node) =>
       _visitAndMarkExpression(node.expression).toStatement();
 
@@ -4760,6 +4764,11 @@ class ProgramCompiler
       _letVariables.add(temp);
     }
     return new JS.Binary(',', init, body);
+  }
+
+  @override
+  visitInstantiation(Instantiation node) {
+    return defaultExpression(node);
   }
 
   @override

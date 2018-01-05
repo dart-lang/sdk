@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
+/*@testedFeatures=inference,error*/
 library test;
 
 class C {
@@ -11,8 +11,8 @@ class C {
 }
 
 class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/ T m<T>(T x) => x;
-  /*error:INVALID_METHOD_OVERRIDE*/ T g<T>(T x) => x;
+  T m<T>(T /*@error=OverrideTypeMismatchParameter*/ x) => x;
+  T g<T>(T /*@error=OverrideTypeMismatchParameter*/ x) => x;
 }
 
 main() {

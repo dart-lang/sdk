@@ -79,6 +79,29 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
 
   /**
+   * Adapts [source] to be a `Set<T>`.
+   *
+   * If [newSet] is provided, it is used to create the new sets returned
+   * by [toSet], [union], and is also used for [intersection] and [difference].
+   * If [newSet] is omitted, it defaults to creating a new set using the
+   * default [Set] constructor, and [intersection] and [difference]
+   * returns an adapted version of calling the same method on the source.
+   *
+   * Any time the set would produce an element that is not a [T],
+   * the element access will throw.
+   *
+   * Any time a [T] value is attempted added into the adapted set,
+   * the store will throw unless the value is also an instance of [S].
+   *
+   * If all accessed elements of [source] are actually instances of [T],
+   * and if all elements added to the returned set are actually instance
+   * of [S],
+   * then the returned set can be used as a `Set<T>`.
+   */
+  static Set<T> castTo<S, T>(Set<S> source, {Set<R> Function<R>() newSet}) =>
+      new CastSet<S, T>(source, newSet);
+
+  /**
    * Provides an iterator that iterates over the elements of this set.
    *
    * The order of iteration is defined by the individual `Set` implementation,

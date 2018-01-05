@@ -53,7 +53,7 @@ class PubspecValidatorTest extends Object with ResourceProviderMixin {
     validator = new PubspecValidator(resourceProvider, source);
   }
 
-  test_assetDoesNotExist_error() {
+  test_assetDoesNotExist_path_error() {
     assertErrors('''
 name: sample
 flutter:
@@ -62,13 +62,34 @@ flutter:
 ''', [PubspecWarningCode.ASSET_DOES_NOT_EXIST]);
   }
 
-  test_assetDoesNotExist_noError() {
+  test_assetDoesNotExist_path_noError() {
     newFile('/sample/assets/my_icon.png');
     assertNoErrors('''
 name: sample
 flutter:
   assets:
     - assets/my_icon.png
+''');
+  }
+
+  @failingTest
+  test_assetDoesNotExist_uri_error() {
+    assertErrors('''
+name: sample
+flutter:
+  assets:
+    - packages/icons/my_icon.png
+''', [PubspecWarningCode.ASSET_DOES_NOT_EXIST]);
+  }
+
+  test_assetDoesNotExist_uri_noError() {
+    // TODO(brianwilkerson) Create a package named `icons` that contains the
+    // referenced file, and a `.packages` file that references that package.
+    assertNoErrors('''
+name: sample
+flutter:
+  assets:
+    - packages/icons/my_icon.png
 ''');
   }
 

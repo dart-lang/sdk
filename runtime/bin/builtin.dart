@@ -50,10 +50,10 @@ const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
 // Make a request to the loader. Future will complete with result which is
 // either a Uri or a List<int>.
-Future _makeLoaderRequest(int tag, String uri) {
+Future<T> _makeLoaderRequest<T>(int tag, String uri) {
   assert(_isolateId != null);
   assert(_loadPort != null);
-  Completer completer = new Completer();
+  Completer completer = new Completer<T>();
   RawReceivePort port = new RawReceivePort();
   port.handler = (msg) {
     // Close the port.
@@ -318,7 +318,8 @@ _setupHooks() {
 
 // Handling of Resource class by dispatching to the load port.
 Future<List<int>> _resourceReadAsBytes(Uri uri) async {
-  List response = await _makeLoaderRequest(_Dart_kResourceLoad, uri.toString());
+  List response =
+      await _makeLoaderRequest<List<int>>(_Dart_kResourceLoad, uri.toString());
   if (response[4] is String) {
     // Throw the error.
     throw response[4];
@@ -331,7 +332,7 @@ Future<Uri> _getPackageRootFuture() {
   if (_traceLoading) {
     _log("Request for package root from user code.");
   }
-  return _makeLoaderRequest(_Dart_kGetPackageRootUri, null);
+  return _makeLoaderRequest<Uri>(_Dart_kGetPackageRootUri, null);
 }
 
 Future<Uri> _getPackageConfigFuture() {
@@ -339,7 +340,7 @@ Future<Uri> _getPackageConfigFuture() {
     _log("Request for package config from user code.");
   }
   assert(_loadPort != null);
-  return _makeLoaderRequest(_Dart_kGetPackageConfigUri, null);
+  return _makeLoaderRequest<Uri>(_Dart_kGetPackageConfigUri, null);
 }
 
 Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
@@ -353,8 +354,8 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
     // Return the incoming parameter if not passed a package: URI.
     return packageUri;
   }
-  var result =
-      await _makeLoaderRequest(_Dart_kResolvePackageUri, packageUri.toString());
+  var result = await _makeLoaderRequest<Uri>(
+      _Dart_kResolvePackageUri, packageUri.toString());
   if (result is! Uri) {
     if (_traceLoading) {
       _log("Exception when resolving package URI: $packageUri");

@@ -185,6 +185,7 @@ class AnalyzerDietListener extends DietListener {
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
     var resolutionApplier = new ValidatingResolutionApplier(
+        null,
         new _TestTypeContext(),
         translatedDeclarations,
         translatedReferences,
@@ -243,6 +244,7 @@ class AnalyzerDietListener extends DietListener {
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
     var resolutionApplier = new ValidatingResolutionApplier(
+        null,
         new _TestTypeContext(),
         translatedDeclarations,
         translatedReferences,

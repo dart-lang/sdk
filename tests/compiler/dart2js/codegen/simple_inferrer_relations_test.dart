@@ -50,10 +50,19 @@ main() {
 """;
 
 void main() {
-  asyncTest(() => compileAll(TEST).then((generated) {
-        if (generated.contains(r'=== true')) {
-          print(generated);
-          Expect.fail("missing elision of '=== true'");
-        }
-      }));
+  runTest({bool useKernel}) async {
+    String generated = await compileAll(TEST,
+        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+    if (generated.contains(r'=== true')) {
+      print(generated);
+      Expect.fail("missing elision of '=== true'");
+    }
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }

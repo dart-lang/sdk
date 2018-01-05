@@ -2041,6 +2041,10 @@ abstract class Expression extends TreeNode {
 ///
 /// Should throw a runtime error when evaluated.
 class InvalidExpression extends Expression {
+  String message;
+
+  InvalidExpression(this.message);
+
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitInvalidExpression(this);
@@ -3720,17 +3724,6 @@ class ClosureCreation extends Expression {
 abstract class Statement extends TreeNode {
   accept(StatementVisitor v);
   accept1(StatementVisitor1 v, arg);
-}
-
-/// A statement with a compile-time error.
-///
-/// Should throw an exception at runtime.
-class InvalidStatement extends Statement {
-  accept(StatementVisitor v) => v.visitInvalidStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitInvalidStatement(this, arg);
-
-  visitChildren(Visitor v) {}
-  transformChildren(Transformer v) {}
 }
 
 @coq

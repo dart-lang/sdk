@@ -30,8 +30,7 @@ import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -571,19 +570,23 @@ class ShadowConditionalExpression extends ConditionalExpression
 /// Shadow object for [ConstructorInvocation].
 class ShadowConstructorInvocation extends ConstructorInvocation
     implements ShadowExpression {
+  /// The name of the import prefix preceding the instantiated type; or `null`
+  /// if the type is not prefixed.
+  final String _prefixName;
+
   final Member _initialTarget;
 
-  ShadowConstructorInvocation(
-      Constructor target, this._initialTarget, Arguments arguments,
+  ShadowConstructorInvocation(this._prefixName, Constructor target,
+      this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.constructorInvocationEnter(this, typeContext) ||
-            typeNeeded;
+    typeNeeded = inferrer.listener
+            .constructorInvocationEnter(this, _prefixName, typeContext) ||
+        typeNeeded;
     var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,
@@ -680,19 +683,23 @@ class ShadowExpressionStatement extends ExpressionStatement
 /// factory constructor.
 class ShadowFactoryConstructorInvocation extends StaticInvocation
     implements ShadowExpression {
+  /// The name of the import prefix preceding the instantiated type; or `null`
+  /// if the type is not prefixed.
+  final String _prefixName;
+
   final Member _initialTarget;
 
-  ShadowFactoryConstructorInvocation(
-      Procedure target, this._initialTarget, Arguments arguments,
+  ShadowFactoryConstructorInvocation(this._prefixName, Procedure target,
+      this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.constructorInvocationEnter(this, typeContext) ||
-            typeNeeded;
+    typeNeeded = inferrer.listener
+            .constructorInvocationEnter(this, _prefixName, typeContext) ||
+        typeNeeded;
     var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,

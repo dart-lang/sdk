@@ -233,7 +233,7 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
       sb.write(sourceCode.substring(end, offset));
     }
     for (String annotation in annotations[offset]) {
-      sb.write(colorizeAnnotation('/* ', annotation, ' */'));
+      sb.write(colorizeAnnotation('/*', annotation, '*/'));
     }
     end = offset;
   }
@@ -579,8 +579,10 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
       IdValue idValue = IdValue.decode(annotation.offset, text);
-      Expect.isFalse(expectedValues.containsKey(idValue.id),
-          "Duplicate annotations for ${idValue.id}.");
+      Expect.isFalse(
+          expectedValues.containsKey(idValue.id),
+          "Duplicate annotations for ${idValue.id}: ${idValue} and "
+          "${expectedValues[idValue.id]}.");
       expectedValues[idValue.id] = idValue;
     }
   });

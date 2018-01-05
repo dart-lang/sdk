@@ -143,6 +143,23 @@ abstract class Map<K, V> {
       LinkedHashMap<K, V>.fromIterables;
 
   /**
+   * Adapts [source] to be a `Map<K2, V2>`.
+   *
+   * Any time the set would produce a key or value that is not a [K2] or [V2],
+   * the access will throw.
+   *
+   * Any time [K2] key or [V2] value is attempted added into the adapted map,
+   * the store will throw unless the key is also an instance of [K] and
+   * the value is also an instance of [V].
+   *
+   * If all accessed entries of [source] are have [K2] keys and [V2] values
+   * and if all entries added to the returned map have [K] keys and [V]] values,
+   * then the returned map can be used as a `Map<K2, V2>`.
+   */
+  static Map<K2, V2> castTo<K, V, K2, V2>(Map<K, V> source) =>
+      new CastMap<K, V, K2, V2>(source);
+
+  /**
    * Returns true if this map contains the given [value].
    *
    * Returns true if any of the values in the map are equal to `value`

@@ -31,6 +31,10 @@ vm_restart_test: Crash
 [ $compiler == dartkp ]
 *: Skip # Non-kernel also skips precompiled mode.
 
+[ $arch == simdbc64 && $compiler == dartk ]
+pause_on_unhandled_async_exceptions2_test: RuntimeError, Timeout # Issue 31765
+pause_on_unhandled_async_exceptions_test: RuntimeError, Timeout # Issue 31765
+
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky

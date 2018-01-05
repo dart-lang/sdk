@@ -268,20 +268,8 @@ class C {
 
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_boundRefersToItself() async {
-    await super.test_instantiateToBounds_boundRefersToItself();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
     await super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_simple() async {
-    await super.test_instantiateToBounds_simple();
   }
 
   @override
@@ -393,6 +381,16 @@ class C {
   test_typedef_type_parameters_bound() async {
     // https://github.com/dart-lang/sdk/issues/29561
     await super.test_typedef_type_parameters_bound();
+  }
+
+  @failingTest
+  test_typedef_type_parameters_bound_recursive() async {
+    await super.test_typedef_type_parameters_bound_recursive();
+  }
+
+  @failingTest
+  test_typedef_type_parameters_bound_recursive2() async {
+    await super.test_typedef_type_parameters_bound_recursive2();
   }
 
   @failingTest

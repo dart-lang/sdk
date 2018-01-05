@@ -704,7 +704,7 @@ class AssistProcessor {
           builder.write('async ');
         }
         builder.write('{$eol$prefix$indent');
-        if (!returnValueType.isVoid) {
+        if (!returnValueType.isVoid && !returnValueType.isBottom) {
           builder.write('return ');
         }
         builder.write(returnValueCode);

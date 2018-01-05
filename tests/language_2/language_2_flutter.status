@@ -4,8 +4,9 @@
 # Sections in this file should contain "$runtime == flutter".
 # What tests does this comment apply to?  Please add it to each test's line
 # or file an issue an put it there, and add the issue to the relevant tests:
-# flutter uses --error_on_bad_type, --error_on_bad_override
-# and --await_is_keyword so the following tests fail with a Compilation Error
+# flutter uses --error_on_bad_type and --await_is_keyword so the following tests
+# fail with a Compilation Error.
+# Note that --error_on_bad_override is ignored in strong mode.
 
 [ $runtime == flutter ]
 async_await_syntax_test/a05c: CompileTimeError

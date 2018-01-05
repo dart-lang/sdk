@@ -6475,6 +6475,7 @@ const char* Function::ToQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
   ASSERT(Isolate::Current()->error_on_bad_override());
+  ASSERT(!Isolate::Current()->strong());
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -6483,15 +6484,6 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // Note that type parameters declared by a generic signature are preserved.
   Function& this_fun = Function::Handle(raw());
   if (!this_fun.HasInstantiatedSignature(kCurrentClass)) {
-    // HasCompatibleParametersWith is called at compile time to check for bad
-    // overrides and can only detect some obviously wrong overrides, but it
-    // should never give false negatives.
-    if (Isolate::Current()->strong()) {
-      // Instantiating all type parameters to dynamic is not the right thing
-      // to do in strong mode, because of contravariance of parameter types.
-      // It is better to skip the test than to give a false negative.
-      return true;
-    }
     this_fun = this_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
         kNoneFree,  // Keep function type parameters, do not map to dynamic.
@@ -6499,10 +6491,6 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   }
   Function& other_fun = Function::Handle(other.raw());
   if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
-    if (Isolate::Current()->strong()) {
-      // See comment above.
-      return true;
-    }
     other_fun = other_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
         kNoneFree,  // Keep function type parameters, do not map to dynamic.

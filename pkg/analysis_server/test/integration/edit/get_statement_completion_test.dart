@@ -42,6 +42,11 @@ void foo() { }''';
     for (SourceEdit edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
+    expect(text, r'''
+void bar() { foo(); } // missing semi-colon
+
+void foo() { }''');
+
     await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
 
     await analysisFinished;

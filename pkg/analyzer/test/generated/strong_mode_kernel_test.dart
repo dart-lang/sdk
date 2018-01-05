@@ -65,13 +65,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_constrainedByBounds4() async {
-    // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
-    await super.test_constrainedByBounds4();
-  }
-
-  @override
-  @failingTest
   test_constrainedByBounds5() async {
     // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
     await super.test_constrainedByBounds5();
@@ -277,6 +270,14 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31759')
+  test_inference_simplePolymorphicRecursion_function() async {
+    // Expected 0 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 2 (114, 99)
+    await super.test_inference_simplePolymorphicRecursion_function();
+  }
+
+  @override
+  @failingTest
   test_inferGenericInstantiation2() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
@@ -320,6 +321,8 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_redirectingConstructor_propagation() async {
     // AnalysisException: Element mismatch in /test.dart at class A
     await super.test_redirectingConstructor_propagation();
+    // TODO(brianwilkerson) Figure out why this test is flaky.
+    fail('Flaky test');
   }
 }
 
@@ -434,13 +437,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_then_prefixed() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (7)
-    await super.test_genericMethod_then_prefixed();
-  }
-
-  @override
-  @failingTest
   test_implicitBounds() async {
     // Expected: 'B<num>'
     await super.test_implicitBounds();
@@ -451,62 +447,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion() async {
     return super.test_instantiateToBounds_class_error_recursion();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_recursion_self() async {
-    return super.test_instantiateToBounds_class_error_recursion_self();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_recursion_self2() async {
-    return super.test_instantiateToBounds_class_error_recursion_self2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_typedef() async {
-    return super.test_instantiateToBounds_class_error_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
-    return super.test_instantiateToBounds_class_ok_implicitDynamic_multi();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_after() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_after();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_after2() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_after2();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_before() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_before();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_multi() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_multi();
   }
 
   @override

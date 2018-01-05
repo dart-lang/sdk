@@ -174,6 +174,14 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   int finishTypeVariables(ClassBuilder object) => 0;
 
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
+  int instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
+    return 0;
+  }
+
   void becomeCoreLibrary(dynamicType) {
     if (scope.local["dynamic"] == null) {
       addBuilder("dynamic",

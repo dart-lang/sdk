@@ -471,7 +471,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
-    return const BottomType();
+    return const DynamicType();
   }
 
   @override
@@ -919,9 +919,6 @@ class TypeCheckingVisitor
       visitStatement(node.otherwise);
     }
   }
-
-  @override
-  visitInvalidStatement(InvalidStatement node) {}
 
   @override
   visitLabeledStatement(LabeledStatement node) {

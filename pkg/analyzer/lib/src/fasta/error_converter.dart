@@ -294,6 +294,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
+      case "INVALID_METHOD_OVERRIDE":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_METHOD_OVERRIDE, offset, length);
+        return;
       case "INVALID_MODIFIER_ON_SETTER":
         _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,
             offset, length);
@@ -517,26 +521,14 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
-    // TODO(mfairhurst) Disable this once the codes are already analyzer
-    // format (#31644)
-    final analyzerCode =
-        message.code.runes.fold<List<String>>(<String>[], (words, charcode) {
-      final char = new String.fromCharCode(charcode);
-      if (char.toUpperCase() == char) {
-        words.add(char);
-      } else {
-        words[words.length - 1] = words.last + char.toUpperCase();
-      }
-      return words;
-    }).join('_');
-
-    final code = errorCodeByUniqueName(analyzerCode);
-    if (code != null) {
+    String errorCodeStr = message.analyzerCode;
+    ErrorCode errorCode = _getErrorCode(errorCodeStr);
+    if (errorCode != null) {
       errorReporter.reportError(new AnalysisError.forValues(
           errorReporter.source,
           message.span.start.offset,
           message.span.length,
-          code,
+          errorCode,
           message.message,
           message.tip));
     } else {
@@ -563,5 +555,23 @@ class FastaErrorReporter {
           message.message,
           null));
     }
+  }
+
+  /// Return the [ErrorCode] for the given [shortName], or `null` if not found.
+  static ErrorCode _getErrorCode(String shortName) {
+    const prefixes = const {
+      CompileTimeErrorCode: 'CompileTimeErrorCode',
+      ParserErrorCode: 'ParserErrorCode',
+      StaticTypeWarningCode: 'StaticTypeWarningCode',
+      StaticWarningCode: 'StaticWarningCode'
+    };
+    for (var prefix in prefixes.values) {
+      var uniqueName = '$prefix.$shortName';
+      var errorCode = errorCodeByUniqueName(uniqueName);
+      if (errorCode != null) {
+        return errorCode;
+      }
+    }
+    return null;
   }
 }

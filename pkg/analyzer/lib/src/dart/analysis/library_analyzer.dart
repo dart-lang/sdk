@@ -212,14 +212,13 @@ class LibraryAnalyzer {
 
         // Invalid part URIs can result in an element with a null source
         if (unit.element.source != null) {
-          final errorListener = new FastaErrorReporter(
-              new ErrorReporter(_getErrorListener(file), unit.element.source));
+          final reporter = new FastaErrorReporter(_getErrorReporter(file));
           final libraryKernelResult = kernelResult.results
               .expand((r) => r.libraryResults)
               .where((r) => r.library.importUri == unit.element.source.uri)
               .firstWhere((_) => true, orElse: () => null);
-          libraryKernelResult?.errors?.forEach((kernelError) =>
-              errorListener.reportCompilationMessage(kernelError));
+          libraryKernelResult?.errors?.forEach(
+              (kernelError) => reporter.reportCompilationMessage(kernelError));
         }
       });
 
@@ -514,7 +513,9 @@ class LibraryAnalyzer {
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit _parse(FileState file) {
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    AnalysisErrorListener errorListener = _previewDart2
+        ? AnalysisErrorListener.NULL_LISTENER
+        : _getErrorListener(file);
     String content = file.content;
     CompilationUnit unit = file.parse(errorListener);
 
@@ -742,9 +743,12 @@ class LibraryAnalyzer {
             if (redirectName != null) {
               var redirectedConstructor = context.redirectedConstructor;
               redirectName.staticElement = redirectedConstructor;
+              // TODO(scheglov) Support for import prefix?
               ResolutionApplier.applyConstructorElement(
-                  redirectedConstructor.returnType,
+                  _libraryElement,
+                  null,
                   redirectedConstructor,
+                  redirectedConstructor.returnType,
                   redirectName);
               // TODO(scheglov) Add support for type parameterized redirects.
             } else {
@@ -791,6 +795,8 @@ class LibraryAnalyzer {
         applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else if (declaration is FunctionTypeAlias) {
+        // No bodies to resolve.
+      } else if (declaration is GenericTypeAlias) {
         // No bodies to resolve.
       } else if (declaration is TopLevelVariableDeclaration) {
         List<VariableDeclaration> variables = declaration.variables.variables;
@@ -1133,6 +1139,7 @@ class _ResolutionApplierContext implements TypeContext {
     }
 
     applier = new ValidatingResolutionApplier(
+        libraryElement,
         this,
         declaredElements,
         referencedElements,
@@ -1224,10 +1231,6 @@ class _ResolutionApplierContext implements TypeContext {
   DartType translateType(kernel.DartType kernelType) {
     if (kernelType is kernel.NullType) {
       return null;
-    } else if (kernelType is kernel.FunctionReferenceDartType) {
-      kernel.VariableDeclaration variable = kernelType.function.variable;
-      FunctionElement element = declarationToElement[variable];
-      return element.type;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
     } else if (kernelType is kernel.TypeArgumentsDartType) {

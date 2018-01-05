@@ -7,11 +7,8 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:logging/logging.dart' as logger;
 
 export 'package:analyzer/dart/ast/standard_ast_factory.dart';
-
-final _log = new logger.Logger('dev_compiler.ast_builder');
 
 final ast = new AstBuilder();
 

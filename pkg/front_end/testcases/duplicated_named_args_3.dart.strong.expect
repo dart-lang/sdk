@@ -9,6 +9,6 @@ class C extends core::Object {
   static method m({core::int a = 0}) → dynamic {}
 }
 static method test() → void {
-  self::C::m(a: const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/duplicated_named_args_3.dart:13:19: Error: Duplicated named argument 'a'.\n  C.m(a: 1, a: 2, a: 3);\n                  ^")) as{TypeError} core::int);
+  self::C::m(a: invalid-expression "pkg/front_end/testcases/duplicated_named_args_3.dart:13:19: Error: Duplicated named argument 'a'.\n  C.m(a: 1, a: 2, a: 3);\n                  ^" as{TypeError} core::int);
 }
 static method main() → dynamic {}

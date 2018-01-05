@@ -448,24 +448,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         !_currentLibrary.context.analysisOptions.enableSuperMixins) {
       Element element = name.staticElement;
       if (element is ExecutableElement && element.isAbstract) {
-        if (!_enclosingClass.hasNoSuchMethod) {
-          ExecutableElement concrete = null;
-          if (element.kind == ElementKind.METHOD) {
-            concrete = _enclosingClass.lookUpInheritedConcreteMethod(
-                element.displayName, _currentLibrary);
-          } else if (element.kind == ElementKind.GETTER) {
-            concrete = _enclosingClass.lookUpInheritedConcreteGetter(
-                element.displayName, _currentLibrary);
-          } else if (element.kind == ElementKind.SETTER) {
-            concrete = _enclosingClass.lookUpInheritedConcreteSetter(
-                element.displayName, _currentLibrary);
-          }
-          if (concrete == null) {
-            _errorReporter.reportTypeErrorForNode(
-                HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                name,
-                [element.kind.displayName, name.name]);
-          }
+        ExecutableElement concrete = null;
+        if (element.kind == ElementKind.METHOD) {
+          concrete = _enclosingClass.lookUpInheritedConcreteMethod(
+              element.displayName, _currentLibrary);
+        } else if (element.kind == ElementKind.GETTER) {
+          concrete = _enclosingClass.lookUpInheritedConcreteGetter(
+              element.displayName, _currentLibrary);
+        } else if (element.kind == ElementKind.SETTER) {
+          concrete = _enclosingClass.lookUpInheritedConcreteSetter(
+              element.displayName, _currentLibrary);
+        }
+        if (concrete == null) {
+          _errorReporter.reportTypeErrorForNode(
+              HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+              name,
+              [element.kind.displayName, name.name]);
         }
       }
     }
@@ -830,81 +828,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * This verifies that the passed left hand side and right hand side represent a valid assignment.
-   *
-   * This method corresponds to ErrorVerifier.checkForInvalidAssignment.
-   *
-   * @param lhs the left hand side expression
-   * @param rhs the right hand side expression
-   * @return `true` if and only if an error code is generated on the passed node
-   * See [HintCode.INVALID_ASSIGNMENT].
-   */
-  bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
-    if (lhs == null || rhs == null) {
-      return false;
-    }
-    VariableElement leftVariableElement = ErrorVerifier.getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? ErrorVerifier.getStaticType(lhs)
-        : leftVariableElement.type;
-    DartType staticRightType = ErrorVerifier.getStaticType(rhs);
-    if (!_typeSystem.isAssignableTo(staticRightType, leftType,
-        isDeclarationCast: true)) {
-      // The warning was generated on this rhs
-      return false;
-    }
-    // Test for, and then generate the hint
-    DartType bestRightType = rhs.bestType;
-    if (leftType != null && bestRightType != null) {
-      if (!_typeSystem.isAssignableTo(bestRightType, leftType,
-          isDeclarationCast: true)) {
-        _errorReporter.reportTypeErrorForNode(
-            HintCode.INVALID_ASSIGNMENT, rhs, [bestRightType, leftType]);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void _checkForInvalidFactory(MethodDeclaration decl) {
-    // Check declaration.
-    // Note that null return types are expected to be flagged by other analyses.
-    DartType returnType = decl.returnType?.type;
-    if (returnType is VoidType) {
-      _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_DECL,
-          decl.name, [decl.name.toString()]);
-      return;
-    }
-
-    // Check implementation.
-
-    FunctionBody body = decl.body;
-    if (body is EmptyFunctionBody) {
-      // Abstract methods are OK.
-      return;
-    }
-
-    // `new Foo()` or `null`.
-    bool factoryExpression(Expression expression) =>
-        expression is InstanceCreationExpression || expression is NullLiteral;
-
-    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
-      return;
-    } else if (body is BlockFunctionBody) {
-      NodeList<Statement> statements = body.block.statements;
-      if (statements.isNotEmpty) {
-        Statement last = statements.last;
-        if (last is ReturnStatement && factoryExpression(last.expression)) {
-          return;
-        }
-      }
-    }
-
-    _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
-        decl.name, [decl.name.toString()]);
-  }
-
   /// Produces a hint if [identifier] is accessed from an invalid location. In
   /// particular:
   ///
@@ -988,6 +911,81 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           identifier,
           [identifier.name.toString(), definingClass.name]);
     }
+  }
+
+  /**
+   * This verifies that the passed left hand side and right hand side represent a valid assignment.
+   *
+   * This method corresponds to ErrorVerifier.checkForInvalidAssignment.
+   *
+   * @param lhs the left hand side expression
+   * @param rhs the right hand side expression
+   * @return `true` if and only if an error code is generated on the passed node
+   * See [HintCode.INVALID_ASSIGNMENT].
+   */
+  bool _checkForInvalidAssignment(Expression lhs, Expression rhs) {
+    if (lhs == null || rhs == null) {
+      return false;
+    }
+    VariableElement leftVariableElement = ErrorVerifier.getVariableElement(lhs);
+    DartType leftType = (leftVariableElement == null)
+        ? ErrorVerifier.getStaticType(lhs)
+        : leftVariableElement.type;
+    DartType staticRightType = ErrorVerifier.getStaticType(rhs);
+    if (!_typeSystem.isAssignableTo(staticRightType, leftType,
+        isDeclarationCast: true)) {
+      // The warning was generated on this rhs
+      return false;
+    }
+    // Test for, and then generate the hint
+    DartType bestRightType = rhs.bestType;
+    if (leftType != null && bestRightType != null) {
+      if (!_typeSystem.isAssignableTo(bestRightType, leftType,
+          isDeclarationCast: true)) {
+        _errorReporter.reportTypeErrorForNode(
+            HintCode.INVALID_ASSIGNMENT, rhs, [bestRightType, leftType]);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _checkForInvalidFactory(MethodDeclaration decl) {
+    // Check declaration.
+    // Note that null return types are expected to be flagged by other analyses.
+    DartType returnType = decl.returnType?.type;
+    if (returnType is VoidType) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_DECL,
+          decl.name, [decl.name.toString()]);
+      return;
+    }
+
+    // Check implementation.
+
+    FunctionBody body = decl.body;
+    if (body is EmptyFunctionBody) {
+      // Abstract methods are OK.
+      return;
+    }
+
+    // `new Foo()` or `null`.
+    bool factoryExpression(Expression expression) =>
+        expression is InstanceCreationExpression || expression is NullLiteral;
+
+    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
+      return;
+    } else if (body is BlockFunctionBody) {
+      NodeList<Statement> statements = body.block.statements;
+      if (statements.isNotEmpty) {
+        Statement last = statements.last;
+        if (last is ReturnStatement && factoryExpression(last.expression)) {
+          return;
+        }
+      }
+    }
+
+    _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
+        decl.name, [decl.name.toString()]);
   }
 
   /**

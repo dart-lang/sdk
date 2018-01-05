@@ -29,20 +29,6 @@ class StaticTypeAnalyzer2Test_Kernel extends StaticTypeAnalyzer2Test_Driver {
 
   @override
   @failingTest
-  test_FunctionExpressionInvocation_curried() async {
-    // Bad state: No reference information for f()() at 53
-    await super.test_FunctionExpressionInvocation_curried();
-  }
-
-  @override
-  @failingTest
-  test_FunctionExpressionInvocation_expression() async {
-    // Bad state: No reference information for (() => 1)() at 21
-    await super.test_FunctionExpressionInvocation_expression();
-  }
-
-  @override
-  @failingTest
   test_MethodInvocation_nameType_parameter_propagatedType() async {
     // Expected: DynamicTypeImpl:<dynamic>
     await super.test_MethodInvocation_nameType_parameter_propagatedType();

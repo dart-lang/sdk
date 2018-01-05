@@ -4,8 +4,7 @@
 
 library fasta.fasta_accessors;
 
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
 import '../../scanner/token.dart' show Token;
 
@@ -1099,6 +1098,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         }
         accessor = new StaticAccessor.fromBuilder(
             helper, builder, send.token, setter,
+            prefix: prefix,
             targetOffset: declarationReferenceOffset,
             targetClass: declaration.target);
       }

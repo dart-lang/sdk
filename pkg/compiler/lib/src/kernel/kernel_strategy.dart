@@ -51,6 +51,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   CompilerOptions _options;
   CompilerTask _compilerTask;
   KernelToElementMapForImpactImpl _elementMap;
+  RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   KernelAnnotationProcessor _annotationProcesser;
 
@@ -133,9 +134,12 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   }
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new RuntimeTypesNeedBuilderImpl(
-        elementEnvironment, _elementMap.types);
+    return _runtimeTypesNeedBuilder ??=
+        new RuntimeTypesNeedBuilderImpl(elementEnvironment, _elementMap.types);
   }
+
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
+      _runtimeTypesNeedBuilder;
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,

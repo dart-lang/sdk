@@ -43,6 +43,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
+  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
+    // Expected 1 errors of type HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE, found 0
+    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
+  }
+
+  @failingTest
+  @override
   test_argumentTypeNotAssignable_functionType() async {
     // Expected 1 errors of type HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     return super.test_argumentTypeNotAssignable_functionType();
@@ -88,6 +95,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_deadCode_deadFinalStatementInCase() async {
     // Expected 1 errors of type StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, found 0
     return super.test_deadCode_deadFinalStatementInCase();
+  }
+
+  @failingTest
+  @override
+  test_deprecatedAnnotationUse_call() async {
+    // Expected 1 errors of type HintCode.DEPRECATED_MEMBER_USE, found 0
+    return super.test_deprecatedAnnotationUse_call();
   }
 
   @failingTest
@@ -153,13 +167,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_divisionOptimization_propagatedType() async {
     // Expected 1 errors of type HintCode.DIVISION_OPTIMIZATION, found 0
     return super.test_divisionOptimization_propagatedType();
-  }
-
-  @failingTest
-  @override
-  test_duplicateImport3() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 2 (18, 57)
-    return super.test_duplicateImport3();
   }
 
   @failingTest
@@ -426,15 +433,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_undefinedSetter() async {
     // Expected 1 errors of type HintCode.UNDEFINED_SETTER, found 0
     return super.test_undefinedSetter();
-  }
-
-  @failingTest
-  @override
-  test_unusedImport_as() async {
-    // Failed to resolve 2 nodes:
-    //   one (/test.dart : 53)
-    //   one (/test.dart : 58)
-    return super.test_unusedImport_as();
   }
 
   @failingTest

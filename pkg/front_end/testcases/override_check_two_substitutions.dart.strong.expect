@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f<U extends core::Object>(generic-covariant-impl generic-covariant-interface core::Map<self::A::T, self::A::f::U> m) → void {}
+}
+class B extends self::A<core::String> {
+  default constructor •() → void
+    : super self::A::•()
+    ;
+  method f<V extends core::Object>(generic-covariant-impl core::Map<core::String, self::B::f::V> m) → void {}
+}
+static method main() → dynamic {}

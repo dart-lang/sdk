@@ -369,22 +369,6 @@ class C extends A with B {
     verify([source]);
   }
 
-  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
-    Source source = addSource('''
-abstract class A {
-  int m();
-  noSuchMethod(_) => 42;
-}
-
-class B extends A {
-  int m() => super.m();
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_abstractSuperMemberReference_superSuperHasConcrete_getter() async {
     Source source = addSource('''
 abstract class A {
@@ -1176,6 +1160,18 @@ typedef Foo(param);
     Source source = addSource(r'''
 f() {
   dynamic x;
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_forEach_genericFunctionType() async {
+    Source source = addSource(r'''
+main() {
+  for (Null Function<T>(T, Null) e in []) {
+    e;
+  }
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
