@@ -313,7 +313,13 @@ abstract class AbstractConstExprSerializer {
    */
   void _serialize(Expression expr) {
     if (expr is IntegerLiteral) {
-      _pushInt(expr.value);
+      int value = expr.value ?? 0;
+      if (value >= 0) {
+        _pushInt(value);
+      } else {
+        _pushInt(-value);
+        operations.add(UnlinkedExprOperation.negate);
+      }
     } else if (expr is DoubleLiteral) {
       operations.add(UnlinkedExprOperation.pushDouble);
       doubles.add(expr.value);

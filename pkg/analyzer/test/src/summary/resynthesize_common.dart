@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -480,6 +481,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(r.value, o.value, reason: desc);
       } else if (o is IntegerLiteral && r is IntegerLiteral) {
         expect(r.value ?? 0, o.value ?? 0, reason: desc);
+      } else if (o is IntegerLiteral && r is PrefixExpression) {
+        expect(r.operator.type, TokenType.MINUS);
+        IntegerLiteral ri = r.operand;
+        expect(-ri.value, o.value, reason: desc);
       } else if (o is DoubleLiteral && r is DoubleLiteral) {
         if (r.value != null &&
             r.value.isNaN &&
@@ -4076,14 +4081,14 @@ const dynamic vIfNull = 1 ?? 2.0;
     }
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/31768
   test_const_topLevel_literal() async {
     var library = await checkLibrary(r'''
 const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
 const vInt = 1;
-const vIntLong = 0x9876543210987654321;
+const vIntLong1 = 0x7FFFFFFFFFFFFFFF;
+const vIntLong2 = 0xFFFFFFFFFFFFFFFF;
 const vDouble = 2.3;
 const vString = 'abc';
 const vStringConcat = 'aaa' 'bbb';
@@ -4096,7 +4101,8 @@ const dynamic vNull = null;
 const bool vBoolFalse = false;
 const bool vBoolTrue = true;
 const int vInt = 1;
-const int vIntLong = 44998905507923676709665;
+const int vIntLong1 = 9223372036854775807;
+const int vIntLong2 = -1;
 const double vDouble = 2.3;
 const String vString = 'abc';
 const String vStringConcat = 'aaabbb';
@@ -4109,7 +4115,8 @@ const dynamic vNull = null;
 const dynamic vBoolFalse = false;
 const dynamic vBoolTrue = true;
 const dynamic vInt = 1;
-const dynamic vIntLong = 44998905507923676709665;
+const dynamic vIntLong1 = 9223372036854775807;
+const dynamic vIntLong2 = -1;
 const dynamic vDouble = 2.3;
 const dynamic vString = 'abc';
 const dynamic vStringConcat = 'aaabbb';
