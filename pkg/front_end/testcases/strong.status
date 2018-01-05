@@ -66,7 +66,6 @@ void_methods: Fail
 warn_unresolved_sends: RuntimeError # Test assumes Dart 1.0 semantics
 
 inference/abstract_class_instantiation: Fail # Issue #30040
-inference/block_bodied_lambdas_infer_bottom_async_star: RuntimeError
 inference/conflicts_can_happen: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
@@ -99,7 +98,6 @@ inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeC
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
 inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue #31304
-inference/generic_methods_uses_greatest_lower_bound: RuntimeError
 inference/infer_field_override_multiple: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
