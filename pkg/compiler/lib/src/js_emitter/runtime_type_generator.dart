@@ -312,7 +312,7 @@ class RuntimeTypeGenerator {
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
       while (superclass != null) {
-        if (_rtiNeed.classNeedsRti(superclass)) {
+        if (_rtiNeed.classNeedsTypeArguments(superclass)) {
           generateSubstitution(superclass, emitNull: true);
           generated.add(superclass);
         }

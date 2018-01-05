@@ -375,7 +375,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.mapClass);
       // For map literals, the dependency between the implementation class
       // and [Map] is not visible, so we have to add it manually.
-      _rtiNeedBuilder.registerRtiDependency(
+      _rtiNeedBuilder.registerClassTypeArgumentDependency(
           _commonElements.mapLiteralClass, cls);
     } else if (cls == _commonElements.boundClosureClass) {
       _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);

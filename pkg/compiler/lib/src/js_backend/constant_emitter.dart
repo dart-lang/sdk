@@ -341,7 +341,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       InterfaceType type, jsAst.Expression value) {
     if (type is InterfaceType &&
         !type.treatAsRaw &&
-        _rtiNeed.classNeedsRti(type.element)) {
+        _rtiNeed.classNeedsTypeArguments(type.element)) {
       return new jsAst.Call(
           getHelperProperty(_commonElements.setRuntimeTypeInfo),
           [value, _reifiedTypeArguments(type)]);

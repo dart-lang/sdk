@@ -356,11 +356,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (thisType.typeArguments.isEmpty) {
       return;
     }
-    bool needsRti = rtiNeed.classNeedsRti(cls);
+    bool needsTypeArguments = rtiNeed.classNeedsTypeArguments(cls);
     thisType.typeArguments.forEach((DartType _typeVariable) {
       TypeVariableType typeVariableType = _typeVariable;
       HInstruction param;
-      if (needsRti) {
+      if (needsTypeArguments) {
         param = addParameter(typeVariableType.element, commonMasks.nonNullType);
       } else {
         // Unused, so bind to `dynamic`.
@@ -385,10 +385,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (typeVariables.isEmpty) {
       return;
     }
-    bool needsRti = rtiNeed.methodNeedsGenericRti(member);
+    bool needsTypeArguments = rtiNeed.methodNeedsTypeArguments(member);
     typeVariables.forEach((TypeVariableType typeVariableType) {
       HInstruction param;
-      if (needsRti) {
+      if (needsTypeArguments) {
         param = addParameter(typeVariableType.element, commonMasks.nonNullType);
       } else {
         // Unused, so bind to `dynamic`.
@@ -556,7 +556,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
         // Pass type arguments.
         ClassEntity inlinedConstructorClass = inlinedConstructor.enclosingClass;
-        if (closedWorld.rtiNeed.classNeedsRti(inlinedConstructorClass)) {
+        if (closedWorld.rtiNeed
+            .classNeedsTypeArguments(inlinedConstructorClass)) {
           InterfaceType thisType = _elementMap.elementEnvironment
               .getThisType(inlinedConstructorClass);
           for (DartType typeVariable in thisType.typeArguments) {
@@ -620,7 +621,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _collectFieldValues(ir.Class clazz, ConstructorData constructorData) {
     void ensureTypeVariablesForInitializers(ClassEntity enclosingClass) {
       if (!constructorData.includedClasses.add(enclosingClass)) return;
-      if (rtiNeed.classNeedsRti(enclosingClass)) {
+      if (rtiNeed.classNeedsTypeArguments(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its type
         // parameters. For a super constructor call, the type is the supertype
         // of current class. For a redirecting constructor, the type is the
@@ -2378,7 +2379,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Set the runtime type information if necessary.
   HInstruction _setListRuntimeTypeInfoIfNeeded(HInstruction object,
       InterfaceType type, SourceInformation sourceInformation) {
-    if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!rtiNeed.classNeedsTypeArguments(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
@@ -2457,7 +2458,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _elementMap.getDartType(node.valueType)));
     ClassEntity cls = constructor.enclosingClass;
 
-    if (rtiNeed.classNeedsRti(cls)) {
+    if (rtiNeed.classNeedsTypeArguments(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
         typeInputs
@@ -2919,7 +2920,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         ? _visitArgumentsForNativeStaticTarget(target.function, node.arguments)
         : _visitArgumentsForStaticTarget(
             target.function, node.arguments, sourceInformation,
-            addFunctionTypeArguments: rtiNeed.methodNeedsGenericRti(function));
+            addFunctionTypeArguments:
+                rtiNeed.methodNeedsTypeArguments(function));
 
     // Error in the arguments provided. Do not process further.
     if (arguments == null) {
@@ -3057,14 +3059,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(sra): Instead of calling the identity-like factory constructor,
       // simply select the single argument.
       // Factory constructors take type parameters.
-      if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
+      if (closedWorld.rtiNeed
+          .classNeedsTypeArguments(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments, sourceInformation);
       }
       _pushStaticInvocation(function, arguments, typeMask,
           sourceInformation: sourceInformation);
     } else {
       // Factory constructors take type parameters.
-      if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
+      if (closedWorld.rtiNeed
+          .classNeedsTypeArguments(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments, sourceInformation);
       }
       instanceType = localsHandler.substInContext(instanceType);
@@ -3083,7 +3087,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       graph.allocatedFixedLists.add(newInstance);
     }
 
-    if (rtiNeed.classNeedsRti(commonElements.listClass) &&
+    if (rtiNeed.classNeedsTypeArguments(commonElements.listClass) &&
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
@@ -4078,7 +4082,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }
-    if (closedWorld.rtiNeed.classNeedsRti(cls)) {
+    if (closedWorld.rtiNeed.classNeedsTypeArguments(cls)) {
       _addTypeArguments(arguments, node.arguments, sourceInformation);
     }
     addImplicitInstantiation(instanceType);
@@ -4662,7 +4666,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ClassEntity enclosing = function.enclosingClass;
     if ((function.isConstructor || function is ConstructorBodyEntity) &&
-        rtiNeed.classNeedsRti(enclosing)) {
+        rtiNeed.classNeedsTypeArguments(enclosing)) {
       InterfaceType thisType =
           _elementMap.elementEnvironment.getThisType(enclosing);
       thisType.typeArguments.forEach((_typeVariable) {
@@ -4672,7 +4676,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
     }
-    if (rtiNeed.methodNeedsGenericRti(function) && options.strongMode) {
+    if (rtiNeed.methodNeedsTypeArguments(function) && options.strongMode) {
       for (TypeVariableType typeVariable in _elementMap.elementEnvironment
           .getFunctionTypeVariables(function)) {
         HInstruction argument = compiledArguments[argumentIndex++];

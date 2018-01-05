@@ -5,7 +5,7 @@
 /*element: A.:*/
 class A<T> {}
 
-/*element: B.:classNeedsRti,test,explicit=[B.T],implicit=[List<B.T>]*/
+/*element: B.:needsArgs,test,explicit=[B.T],implicit=[List<B.T>]*/
 class B<T> extends A<List<T>> {
   /*element: B.m:*/
   m(T t) => t is T;

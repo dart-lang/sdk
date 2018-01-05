@@ -267,27 +267,34 @@ class JsClosedWorldBuilder {
     RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
     Set<ir.Node> localFunctionsNodes = new Set<ir.Node>();
     for (KLocalFunction localFunction
-        in kernelRtiNeed.localFunctionsNeedingRti) {
+        in kernelRtiNeed.localFunctionsNeedingSignature) {
       localFunctionsNodes.add(localFunction.node);
     }
 
-    var classesNeedingRti =
-        map.toBackendClassSet(kernelRtiNeed.classesNeedingRti);
+    Set<ClassEntity> classesNeedingTypeArguments =
+        map.toBackendClassSet(kernelRtiNeed.classesNeedingTypeArguments);
     Iterable<FunctionEntity> callMethods =
         _closureConversionTask.createClosureEntities(
             this,
             map.toBackendMemberMap(closureModels, identity),
             localFunctionsNodes,
-            classesNeedingRti);
+            classesNeedingTypeArguments);
 
-    List<FunctionEntity> callMethodsNeedingRti = <FunctionEntity>[];
+    List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
+    // TODO(johnniwinther): Collect call methods that need type arguments.
+    List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
     for (ir.Node node in localFunctionsNodes) {
-      callMethodsNeedingRti
+      callMethodsNeedingSignature
           .add(_closureConversionTask.getClosureInfo(node).callMethod);
     }
 
-    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(map, backendUsage,
-        kernelRtiNeed, callMethodsNeedingRti, classesNeedingRti);
+    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(
+        map,
+        backendUsage,
+        kernelRtiNeed,
+        callMethodsNeedingSignature,
+        callMethodsNeedingTypeArguments,
+        classesNeedingTypeArguments);
 
     NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
     NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
@@ -457,18 +464,23 @@ class JsClosedWorldBuilder {
       JsToFrontendMap map,
       BackendUsage backendUsage,
       RuntimeTypesNeedImpl rtiNeed,
-      List<FunctionEntity> callMethodsNeedingRti,
-      Set<ClassEntity> classesNeedingRti) {
-    Set<FunctionEntity> methodsNeedingRti =
-        map.toBackendFunctionSet(rtiNeed.methodsNeedingRti);
-    methodsNeedingRti.addAll(callMethodsNeedingRti);
+      List<FunctionEntity> callMethodsNeedingSignature,
+      List<FunctionEntity> callMethodsNeedingTypeArguments,
+      Set<ClassEntity> classesNeedingTypeArguments) {
+    Set<FunctionEntity> methodsNeedingSignature =
+        map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
+    methodsNeedingSignature.addAll(callMethodsNeedingSignature);
+    Set<FunctionEntity> methodsNeedingTypeArguments =
+        map.toBackendFunctionSet(rtiNeed.methodsNeedingTypeArguments);
+    methodsNeedingTypeArguments.addAll(callMethodsNeedingTypeArguments);
     Set<ClassEntity> classesUsingTypeVariableExpression =
         map.toBackendClassSet(rtiNeed.classesUsingTypeVariableExpression);
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
-        classesNeedingRti,
-        methodsNeedingRti,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
         null,
         classesUsingTypeVariableExpression);
   }

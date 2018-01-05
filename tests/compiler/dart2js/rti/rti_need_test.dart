@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -26,7 +27,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeAstRtiNeed, computeKernelRtiNeed,
-        args: args);
+        args: args, options: [Flags.strongMode]);
   });
 }
 
@@ -81,14 +82,16 @@ abstract class ComputeValueMixin<T> {
     if (backendMember is ConstructorEntity &&
         backendMember.isGenerativeConstructor) {
       ClassEntity backendClass = backendMember.enclosingClass;
-      if (rtiNeed.classNeedsRti(backendClass)) {
-        sb.write('${comma}classNeedsRti');
+      if (rtiNeed.classNeedsTypeArguments(backendClass)) {
+        sb.write('${comma}needsArgs');
         comma = ',';
       }
       ClassEntity frontendClass = frontendMember?.enclosingClass;
       Iterable<String> dependencies;
-      if (rtiNeedBuilder.rtiDependencies.containsKey(frontendClass)) {
-        dependencies = rtiNeedBuilder.rtiDependencies[frontendClass]
+      if (rtiNeedBuilder.classTypeArgumentDependencies
+          .containsKey(frontendClass)) {
+        dependencies = rtiNeedBuilder
+            .classTypeArgumentDependencies[frontendClass]
             .map((d) => d.name)
             .toList()
               ..sort();
@@ -111,13 +114,17 @@ abstract class ComputeValueMixin<T> {
       findChecks('implicit', frontendClass, rtiNeedBuilder.implicitIsChecks);
     }
     if (backendMember is FunctionEntity) {
-      if (rtiNeed.methodNeedsRti(backendMember)) {
-        sb.write('${comma}methodNeedsRti');
+      if (rtiNeed.methodNeedsTypeArguments(backendMember)) {
+        sb.write('${comma}needsArgs');
+        comma = ',';
+      }
+      if (rtiNeed.methodNeedsSignature(backendMember)) {
+        sb.write('${comma}needsSignature');
         comma = ',';
       }
       if (frontendClosure != null &&
-          rtiNeed.localFunctionNeedsRti(frontendClosure)) {
-        sb.write('${comma}methodNeedsRti');
+          rtiNeed.localFunctionNeedsSignature(frontendClosure)) {
+        sb.write('${comma}needsSignature');
         comma = ',';
       }
       findChecks('explicit', frontendMember, rtiNeedBuilder.isChecks);

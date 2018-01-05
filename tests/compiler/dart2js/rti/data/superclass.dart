@@ -5,7 +5,7 @@
 /*element: A.:*/
 class A<T> {}
 
-/*element: B.:classNeedsRti,explicit=[B<int>]*/
+/*element: B.:needsArgs,explicit=[B<int>]*/
 class B<T> extends A<T> {}
 
 /*element: main:*/

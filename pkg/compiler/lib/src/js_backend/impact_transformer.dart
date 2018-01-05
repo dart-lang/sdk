@@ -298,7 +298,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     // then the class of the type variable does too.
     ClassEntity contextClass = DartTypes.getClassContext(interfaceType);
     if (contextClass != null) {
-      _rtiNeedBuilder.registerRtiDependency(
+      _rtiNeedBuilder.registerClassTypeArgumentDependency(
           interfaceType.element, contextClass);
     }
   }
@@ -428,11 +428,11 @@ class CodegenImpactTransformer {
     for (StaticUse staticUse in impact.staticUses) {
       if (staticUse.kind == StaticUseKind.CALL_METHOD) {
         FunctionEntity callMethod = staticUse.element;
-        if (_rtiNeed.methodNeedsRti(callMethod)) {
+        if (_rtiNeed.methodNeedsSignature(callMethod)) {
           _impacts.computeSignature
               .registerImpact(transformed, _elementEnvironment);
         } else if (callMethod is SynthesizedCallMethodElementX) {
-          if (_rtiNeed.localFunctionNeedsRti(callMethod.expression)) {
+          if (_rtiNeed.localFunctionNeedsSignature(callMethod.expression)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);
           }

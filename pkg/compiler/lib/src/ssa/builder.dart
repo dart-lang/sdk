@@ -873,7 +873,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     ClassElement enclosing = function.enclosingClass;
     if ((function.isConstructor || function.isGenerativeConstructorBody) &&
-        rtiNeed.classNeedsRti(enclosing)) {
+        rtiNeed.classNeedsTypeArguments(enclosing)) {
       enclosing.typeVariables.forEach((_typeVariable) {
         ResolutionTypeVariableType typeVariable = _typeVariable;
         HInstruction argument = compiledArguments[argumentIndex++];
@@ -961,7 +961,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         ClassElement enclosingClass = member.enclosingClass;
         if (!includedClasses.add(enclosingClass)) return;
 
-        if (rtiNeed.classNeedsRti(enclosingClass)) {
+        if (rtiNeed.classNeedsTypeArguments(enclosingClass)) {
           // If [enclosingClass] needs RTI, we have to give a value to its
           // type parameters.
           // For a super constructor call, the type is the supertype of
@@ -1402,7 +1402,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       // Type variables arguments must come after the box (if there is one).
       ClassElement currentClass = constructor.enclosingClass;
-      if (rtiNeed.classNeedsRti(currentClass)) {
+      if (rtiNeed.classNeedsTypeArguments(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
         currentClass.typeVariables.forEach((_argument) {
@@ -1473,7 +1473,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // may contain references to type variables.
     ClassElement cls = element.enclosingClass;
     if ((element.isConstructor || element.isGenerativeConstructorBody) &&
-        rtiNeed.classNeedsRti(cls)) {
+        rtiNeed.classNeedsTypeArguments(cls)) {
       cls.typeVariables.forEach((_typeVariable) {
         ResolutionTypeVariableType typeVariable = _typeVariable;
         HParameterValue param =
@@ -3383,7 +3383,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   HInstruction handleListConstructor(ResolutionInterfaceType type,
       HInstruction newObject, SourceInformation sourceInformation) {
-    if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!rtiNeed.classNeedsTypeArguments(type.element) || type.treatAsRaw) {
       return newObject;
     }
     List<HInstruction> inputs = <HInstruction>[];
@@ -3623,7 +3623,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (rtiNeed.classNeedsRti(commonElements.listClass) &&
+    if (rtiNeed.classNeedsTypeArguments(commonElements.listClass) &&
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
@@ -3645,7 +3645,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void potentiallyAddTypeArguments(List<HInstruction> inputs, ClassElement cls,
       ResolutionInterfaceType expectedType,
       {SourceInformation sourceInformation}) {
-    if (!rtiNeed.classNeedsRti(cls)) return;
+    if (!rtiNeed.classNeedsTypeArguments(cls)) return;
     assert(cls.typeVariables.length == expectedType.typeArguments.length);
     expectedType.typeArguments.forEach((ResolutionDartType argument) {
       inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
@@ -5247,7 +5247,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     ClassElement targetClass = targetConstructor.enclosingClass;
-    if (rtiNeed.classNeedsRti(targetClass)) {
+    if (rtiNeed.classNeedsTypeArguments(targetClass)) {
       ClassElement cls = redirectingConstructor.enclosingClass;
       ResolutionDartType targetType =
           redirectingConstructor.computeEffectiveTargetType(cls.thisType);
@@ -5367,7 +5367,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction object, ast.Node node, SourceInformation sourceInformation) {
     ResolutionInterfaceType type =
         localsHandler.substInContext(elements.getType(node));
-    if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
+    if (!rtiNeed.classNeedsTypeArguments(type.element) || type.treatAsRaw) {
       return object;
     }
     List<HInstruction> arguments = <HInstruction>[];
@@ -5841,7 +5841,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     ClassElement cls = listConstructor.enclosingClass;
 
     MethodElement createFunction = listConstructor;
-    if (expectedType is ResolutionInterfaceType && rtiNeed.classNeedsRti(cls)) {
+    if (expectedType is ResolutionInterfaceType &&
+        rtiNeed.classNeedsTypeArguments(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
       expectedType.typeArguments.forEach((ResolutionDartType argument) {
         typeInputs
