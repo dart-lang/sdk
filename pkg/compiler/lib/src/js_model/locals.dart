@@ -299,9 +299,10 @@ class JumpVisitor extends ir.Visitor {
   @override
   visitSwitchStatement(ir.SwitchStatement node) {
     node.expression.accept(this);
-    if (node.cases.isNotEmpty && !node.cases.last.isDefault) {
-      // Ensure that [node] has a corresponding target. We generate a break in
-      // case of a missing break on the last case if it isn't a default case.
+    if (node.cases.isNotEmpty) {
+      // Ensure that [node] has a corresponding target. We generate a break if:
+      //   - a switch case calls a function that always throws
+      //   - there's a missing break on the last case if it isn't a default case
       _getJumpTarget(node);
     }
     super.visitSwitchStatement(node);
