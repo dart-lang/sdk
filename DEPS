@@ -73,7 +73,7 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "@1.0.9",  # Please see the note above before updating.
+  "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
 
   "dartdoc_tag" : "@v0.15.0+1",
   "fixnum_tag": "@0.10.5",
@@ -124,8 +124,6 @@ vars = {
   "stream_channel_tag": "@1.6.2",
   "string_scanner_tag": "@1.0.2",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_descriptor_tag": "@1.0.3",
-  "test_process_tag": "@1.0.1",
   "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.3",
   "test_tag": "@0.12.24+6",
@@ -320,13 +318,6 @@ deps = {
       Var("dart_git") + "term_glyph.git" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + Var("test_tag"),
-
-# TODO(31772): Use "dart_git" once these are mirrored.
-  Var("dart_root") + "/third_party/pkg/test_descriptor":
-      "http://github.com/dart-lang/test_descriptor.git" + Var("test_descriptor_tag"),
-  Var("dart_root") + "/third_party/pkg/test_process":
-      "http://github.com/dart-lang/test_process.git" + Var("test_process_tag"),
-
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       Var("test_reflective_loader_tag"),
