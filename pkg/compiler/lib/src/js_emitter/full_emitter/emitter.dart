@@ -851,7 +851,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression laziesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
-    return js.statement('''
+    return js.statement("""
       function init() {
         $isolatePropertiesName = Object.create(null);
         #allClasses = map();
@@ -955,7 +955,7 @@ class Emitter extends js_emitter.EmitterBase {
           return Isolate;
       }
 
-      }''', {
+      }""", {
       'allClasses': allClassesAccess,
       'getTypeFromName': getTypeFromNameAccess,
       'interceptorsByTag': interceptorsByTagAccess,
@@ -1735,47 +1735,57 @@ class Emitter extends js_emitter.EmitterBase {
           generateEmbeddedGlobalAccess(embeddedNames.DEFERRED_INITIALIZED)
     }));
 
-    // Write a javascript mapping from Deferred import load ids (derrived
-    // from the import prefix.) to a list of lists of uris of hunks to load,
-    // and a corresponding mapping to a list of hashes used by
-    // INITIALIZE_LOADED_HUNK and IS_HUNK_LOADED.
-    Map<String, List<jsAst.LiteralString>> deferredLibraryUris =
-        new Map<String, List<jsAst.LiteralString>>();
-    Map<String, List<_DeferredOutputUnitHash>> deferredLibraryHashes =
-        new Map<String, List<_DeferredOutputUnitHash>>();
-    compiler.deferredLoadTask.hunksToLoad
-        .forEach((String loadId, List<OutputUnit> outputUnits) {
-      List<jsAst.LiteralString> uris = new List<jsAst.LiteralString>();
-      List<_DeferredOutputUnitHash> hashes =
-          new List<_DeferredOutputUnitHash>();
-      deferredLibraryHashes[loadId] = new List<_DeferredOutputUnitHash>();
-      for (OutputUnit outputUnit in outputUnits) {
-        uris.add(js.escapedString(
-            compiler.deferredLoadTask.deferredPartFileName(outputUnit.name)));
-        hashes.add(deferredLoadHashes[outputUnit]);
+    void store(
+        jsAst.Expression map, jsAst.Expression uris, jsAst.Expression hashes) {
+      void assign(String name, jsAst.Expression value) {
+        parts.add(
+            js.statement('# = #', [generateEmbeddedGlobalAccess(name), value]));
       }
 
-      deferredLibraryUris[loadId] = uris;
-      deferredLibraryHashes[loadId] = hashes;
-    });
-
-    void emitMapping(String name, Map<String, List<jsAst.Expression>> mapping) {
-      List<jsAst.Property> properties = new List<jsAst.Property>();
-      mapping.forEach((String key, List<jsAst.Expression> values) {
-        properties.add(new jsAst.Property(
-            js.escapedString(key), new jsAst.ArrayInitializer(values)));
-      });
-      jsAst.Node initializer =
-          new jsAst.ObjectInitializer(properties, isOneLiner: true);
-
-      jsAst.Node globalName = generateEmbeddedGlobalAccess(name);
-      parts.add(js.statement("# = #", [globalName, initializer]));
+      assign(embeddedNames.DEFERRED_LIBRARY_PARTS, map);
+      assign(embeddedNames.DEFERRED_PART_URIS, uris);
+      assign(embeddedNames.DEFERRED_PART_HASHES, hashes);
     }
 
-    emitMapping(embeddedNames.DEFERRED_LIBRARY_URIS, deferredLibraryUris);
-    emitMapping(embeddedNames.DEFERRED_LIBRARY_HASHES, deferredLibraryHashes);
+    createDeferredLoadingData(
+        compiler.deferredLoadTask.hunksToLoad, deferredLoadHashes, store);
 
     return new jsAst.Block(parts);
+  }
+
+  // Create data used for loading and initializing the hunks for a deferred
+  // import. There are three parts: a map from loadId to list of parts, where
+  // parts are represented as an index; an array of uris indexed by part; and an
+  // array of hashes indexed by part.
+  void createDeferredLoadingData(
+      Map<String, List<OutputUnit>> loadMap,
+      Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes,
+      void finish(jsAst.Expression map, jsAst.Expression uris,
+          jsAst.Expression hashes)) {
+    Map<OutputUnit, int> fragmentIndexes = <OutputUnit, int>{};
+    var uris = <jsAst.Expression>[];
+    var hashes = <jsAst.Expression>[];
+
+    List<jsAst.Property> libraryPartsMapEntries = <jsAst.Property>[];
+
+    loadMap.forEach((String loadId, List<OutputUnit> fragmentList) {
+      List<jsAst.Expression> indexes = <jsAst.Expression>[];
+      for (OutputUnit fragment in fragmentList) {
+        int index = fragmentIndexes[fragment];
+        if (index == null) {
+          index = fragmentIndexes[fragment] = fragmentIndexes.length;
+          uris.add(js.escapedString(
+              compiler.deferredLoadTask.deferredPartFileName(fragment.name)));
+          hashes.add(deferredLoadHashes[fragment]);
+        }
+        indexes.add(js.number(index));
+      }
+      libraryPartsMapEntries.add(new jsAst.Property(
+          js.string(loadId), new jsAst.ArrayInitializer(indexes)));
+    });
+
+    finish(new jsAst.ObjectInitializer(libraryPartsMapEntries),
+        new jsAst.ArrayInitializer(uris), new jsAst.ArrayInitializer(hashes));
   }
 
   Map<OutputUnit, jsAst.Program> buildOutputAstForDeferredCode(

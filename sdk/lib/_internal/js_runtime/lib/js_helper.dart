@@ -6,8 +6,9 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
-        DEFERRED_LIBRARY_URIS,
-        DEFERRED_LIBRARY_HASHES,
+        DEFERRED_LIBRARY_PARTS,
+        DEFERRED_PART_URIS,
+        DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
@@ -3642,14 +3643,21 @@ typedef void DeferredLoadCallback();
 DeferredLoadCallback deferredLoadHook;
 
 Future<Null> loadDeferredLibrary(String loadId) {
-  // For each loadId there is a list of hunk-uris to load, and a corresponding
-  // list of hashes. These are stored in the app-global scope.
-  var urisMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_URIS);
-  List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
-  if (uris == null) return new Future.value(null);
-
-  var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
-  List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
+  // For each loadId there is a list of parts to load. The parts are represented
+  // by an index. There are two arrays, one that maps the index into a Uri and
+  // another that maps the index to a hash.
+  var partsMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_PARTS);
+  List indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
+  if (indexes == null) return new Future.value(null);
+  List<String> uris = <String>[];
+  List<String> hashes = <String>[];
+  List index2uri = JS_EMBEDDED_GLOBAL('JSArray', DEFERRED_PART_URIS);
+  List index2hash = JS_EMBEDDED_GLOBAL('JSArray', DEFERRED_PART_HASHES);
+  for (int i = 0; i < indexes.length; i++) {
+    int index = JS('int', '#[#]', indexes, i);
+    uris.add(JS('String', '#[#]', index2uri, index));
+    hashes.add(JS('String', '#[#]', index2hash, index));
+  }
 
   int total = hashes.length;
   assert(total == uris.length);

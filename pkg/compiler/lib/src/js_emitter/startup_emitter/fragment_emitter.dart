@@ -1256,32 +1256,6 @@ class FragmentEmitter {
 
     List<js.Property> globals = <js.Property>[];
 
-    js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
-      return js.stringArray(fragments.map((Fragment fragment) =>
-          "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
-    }
-
-    js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
-      return new js.ArrayInitializer(fragments
-          .map((fragment) => deferredLoadHashes[fragment])
-          .toList(growable: false));
-    }
-
-    List<js.Property> uris = new List<js.Property>(loadMap.length);
-    List<js.Property> hashes = new List<js.Property>(loadMap.length);
-    int count = 0;
-    loadMap.forEach((String loadId, List<Fragment> fragmentList) {
-      uris[count] =
-          new js.Property(js.string(loadId), fragmentUris(fragmentList));
-      hashes[count] =
-          new js.Property(js.string(loadId), fragmentHashes(fragmentList));
-      count++;
-    });
-
-    globals.add(new js.Property(
-        js.string(DEFERRED_LIBRARY_URIS), new js.ObjectInitializer(uris)));
-    globals.add(new js.Property(
-        js.string(DEFERRED_LIBRARY_HASHES), new js.ObjectInitializer(hashes)));
     globals.add(new js.Property(
         js.string(DEFERRED_INITIALIZED), js.js("Object.create(null)")));
 
@@ -1316,7 +1290,49 @@ class FragmentEmitter {
     globals.add(new js.Property(
         js.string(INITIALIZE_LOADED_HUNK), initializeLoadedHunkFunction));
 
+    createDeferredLoadingData(loadMap, deferredLoadHashes,
+        (js.Expression map, js.Expression uris, js.Expression hashes) {
+      globals.add(new js.Property(js.string(DEFERRED_LIBRARY_PARTS), map));
+      globals.add(new js.Property(js.string(DEFERRED_PART_URIS), uris));
+      globals.add(new js.Property(js.string(DEFERRED_PART_HASHES), hashes));
+    });
+
     return globals;
+  }
+
+  // Create data used for loading and initializing the hunks for a deferred
+  // import. There are three parts: a map from loadId to list of parts, where
+  // parts are represented as an index; an array of uris indexed by part; and an
+  // array of hashes indexed by part.
+  static void createDeferredLoadingData(
+      Map<String, List<Fragment>> loadMap,
+      Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes,
+      void finish(
+          js.Expression map, js.Expression uris, js.Expression hashes)) {
+    Map<Fragment, int> fragmentIndexes = <Fragment, int>{};
+    List<String> fragmentUris = <String>[];
+    List<js.Expression> fragmentHashes = <js.Expression>[];
+
+    List<js.Property> libraryPartsMapEntries = <js.Property>[];
+
+    loadMap.forEach((String loadId, List<Fragment> fragmentList) {
+      List<js.Expression> indexes = <js.Expression>[];
+      for (Fragment fragment in fragmentList) {
+        int index = fragmentIndexes[fragment];
+        if (index == null) {
+          index = fragmentIndexes[fragment] = fragmentIndexes.length;
+          fragmentUris.add(
+              "${fragment.outputFileName}.${ModelEmitter.deferredExtension}");
+          fragmentHashes.add(deferredLoadHashes[fragment]);
+        }
+        indexes.add(js.number(index));
+      }
+      libraryPartsMapEntries.add(
+          new js.Property(js.string(loadId), new js.ArrayInitializer(indexes)));
+    });
+
+    finish(new js.ObjectInitializer(libraryPartsMapEntries),
+        js.stringArray(fragmentUris), new js.ArrayInitializer(fragmentHashes));
   }
 
   /// Emits the [MANGLED_GLOBAL_NAMES] embedded global.
