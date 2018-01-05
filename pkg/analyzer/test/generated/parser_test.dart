@@ -13884,6 +13884,22 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseForStatement_each_genericFunctionType() {
+    var forStatement =
+        parseStatement('for (void Function<T>(T) element in list) {}')
+            as ForEachStatement;
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    expect(forStatement.loopVariable, isNotNull);
+    expect(forStatement.identifier, isNull);
+    expect(forStatement.inKeyword, isNotNull);
+    expect(forStatement.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
   void test_parseForStatement_loop_c() {
     var forStatement = parseStatement('for (; i < count;) {}') as ForStatement;
     assertNoErrors();
