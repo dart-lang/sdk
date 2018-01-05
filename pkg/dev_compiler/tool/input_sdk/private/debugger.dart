@@ -32,6 +32,8 @@ class JsonMLConfig {
   static const skipDart = const JsonMLConfig("skipDart");
   static const keyToString = const JsonMLConfig("keyToString");
   static const asClass = const JsonMLConfig("asClass");
+  static const asObject = const JsonMLConfig("asObject");
+  toString() => "JsonMLConfig($name)";
 }
 
 int _maxSpanLength = 100;
@@ -454,6 +456,7 @@ class DartFormatter {
     // The order of formatters matters as formatters earlier in the list take
     // precedence.
     _formatters = [
+      new ObjectInternalsFormatter(),
       new ClassFormatter(),
       new TypeFormatter(),
       new NamedConstructorFormatter(),
@@ -555,12 +558,30 @@ class ObjectFormatter extends Formatter {
     var type = dart.getType(object);
     var ret = new LinkedHashSet<NameValuePair>();
     // We use a Set rather than a List to avoid duplicates.
-    var properties = new Set<NameValuePair>();
-    addPropertiesFromSignature(dart.getFields(type), properties, object, true);
-    addPropertiesFromSignature(dart.getGetters(type), properties, object, true);
-    ret.addAll(sortProperties(properties));
+    var fields = new Set<NameValuePair>();
+    addPropertiesFromSignature(dart.getFields(type), fields, object, true);
+    var getters = new Set<NameValuePair>();
+    addPropertiesFromSignature(dart.getGetters(type), getters, object, true);
+    ret.addAll(sortProperties(fields));
+    ret.addAll(sortProperties(getters));
     addMetadataChildren(object, ret);
     return ret.toList();
+  }
+}
+
+/// Show the object instance members and a reduced preview.
+///
+/// Used as a sub-entry to show the internals of objects that have a different
+/// primary format. For example, a Map shows the key-value pairs, but this makes
+/// the internals of the map visible for debugging.
+class ObjectInternalsFormatter extends ObjectFormatter {
+  bool accept(object, config) =>
+      super.accept(object, config) && config == JsonMLConfig.asObject;
+
+  // A minimal preview because we expect a full preview is already shown in a
+  // parent formatter.
+  String preview(object) {
+    return getObjectTypeName(object);
   }
 }
 
@@ -674,8 +695,19 @@ class MapFormatter implements Formatter {
       entries.add(new NameValuePair(
           name: entries.length.toString(), value: entryWrapper));
     });
+    addInstanceMembers(object, entries);
     addMetadataChildren(object, entries);
     return entries.toList();
+  }
+
+  // We've formatted as a Map, but we may want to see the internals
+  // of the Map, particularly for domain objects that implement Map.
+  // Add an ObjectFormatter view underneath.
+  void addInstanceMembers(object, Set<NameValuePair> ret) {
+    ret.add(new NameValuePair(
+        name: "[[instance members]]",
+        value: object,
+        config: JsonMLConfig.asObject));
   }
 }
 
