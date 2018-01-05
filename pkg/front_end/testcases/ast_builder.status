@@ -76,6 +76,7 @@ invocations: Crash
 metadata_enum: Crash
 metadata_named_mixin_application: Crash
 micro: Crash
+native_as_name: Crash
 override_check_after_inference: Fail
 override_check_basic: Fail
 override_check_with_covariant_modifier: Fail

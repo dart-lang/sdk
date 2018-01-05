@@ -2968,7 +2968,8 @@ class Parser {
         // A field or abstract getter.
         identifiers = identifiers.prepend(previous);
         return identifiers;
-      } else if (optional('native', token) &&
+      } else if (hasName &&
+          optional('native', token) &&
           (token.next.kind == STRING_TOKEN || optional(';', token.next))) {
         // Skip.
         previous = token;
