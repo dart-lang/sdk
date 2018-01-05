@@ -2358,7 +2358,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
       JLibrary enclosingLibrary,
       Map<Local, JRecordField> recordFieldsVisibleInScope,
       KernelScopeInfo info,
-      ir.Location location,
       KernelToLocalsMap localsMap,
       InterfaceType supertype) {
     InterfaceType memberThisType = member.enclosingClass != null

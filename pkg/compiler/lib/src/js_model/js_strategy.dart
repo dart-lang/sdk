@@ -493,7 +493,6 @@ class JsClosedWorldBuilder {
       JLibrary enclosingLibrary,
       Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      ir.Location location,
       KernelToLocalsMap localsMap) {
     ClassEntity superclass = _commonElements.closureClass;
 
@@ -503,7 +502,6 @@ class JsClosedWorldBuilder {
         enclosingLibrary,
         boxedVariables,
         info,
-        location,
         localsMap,
         new InterfaceType(superclass, const []));
 
