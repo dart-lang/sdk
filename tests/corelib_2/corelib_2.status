@@ -5,10 +5,20 @@
 [ $compiler == dart2analyzer ]
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
+num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
+double_ceil_test/int64: Crash # Issue 31762
+double_floor_test/int64: Crash # Issue 31762
+double_round_test/int64: Crash # Issue 31762
+double_truncate_test/int64: Crash # Issue 31762
 hash_set_test/01: RuntimeError # Issue 11551
+int_from_environment_test: Crash # Issue 31762
+int_parse_radix_test/01: Crash # Issue 31762
+int_parse_radix_test/02: Crash # Issue 31762
+int_parse_radix_test/badTypes: Crash # Issue 31762
+int_parse_radix_test/none: Crash # Issue 31762
 integer_to_radix_string_test: RuntimeError # Issue 29921
 string_static_test: MissingCompileTimeError
 
@@ -238,6 +248,10 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
+[ $compiler == dart2js && $dart2js_with_kernel ]
+int_from_environment_test: Pass # Issue 31762
+int_parse_radix_test/none: Pass # Issue 31762
+
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
@@ -317,9 +331,12 @@ compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
 hash_set_test/01: RuntimeError # Issue 29921
+int_from_environment_test: RuntimeError # Issue 31763
 int_modulo_arith_test/none: RuntimeError # Issue 29921
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
+int_parse_radix_test/badTypes: RuntimeError # Issue 31763
+int_parse_radix_test/none: RuntimeError # Issue 31763
 int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 integer_arith_vm_test/modPow: RuntimeError # Issue 30170
 integer_parsed_arith_vm_test: RuntimeError # Issue 29921

@@ -20,6 +20,7 @@ argument_assignability_function_typed_test/02: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
+arithmetic_test: Crash # Issue 31762
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
@@ -133,6 +134,7 @@ cyclic_typedef_test/13: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+deopt_smi_op_test: RuntimeError # Issue 31762
 dynamic_field_test/01: MissingCompileTimeError
 dynamic_field_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/01: MissingCompileTimeError
@@ -254,6 +256,7 @@ getter_no_setter_test/01: MissingCompileTimeError
 getter_no_setter_test/03: MissingCompileTimeError
 getter_override_test/03: MissingCompileTimeError
 getters_setters2_test/02: MissingCompileTimeError
+guess_cid_test: RuntimeError # Issue 31762
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
@@ -415,6 +418,7 @@ method_override6_test/none: Pass
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 method_override_test: RuntimeError
+mint_compares_test: Crash # Issue 31762
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError
 mixin_illegal_constructor_test/15: MissingCompileTimeError
@@ -1582,6 +1586,7 @@ list_literal1_test/01: MissingCompileTimeError
 function_subtype_inline2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
+arithmetic_test: Pass # Issue 31762
 bug31436_test: RuntimeError
 built_in_identifier_type_annotation_test/22: Crash # Issue 28815
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28815
@@ -1629,6 +1634,7 @@ invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
 library_env_test/has_no_mirror_support: Pass
+mint_compares_test: Pass # Issue 31762
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
