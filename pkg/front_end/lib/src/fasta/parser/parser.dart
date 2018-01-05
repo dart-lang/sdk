@@ -2525,11 +2525,18 @@ class Parser {
           token = token.next;
         } else if (!nameToken.isIdentifier) {
           if (optional('.', nameToken)) {
+            // Recovery:
             // Looks like a prefixed type, but missing the type and param names.
             // Set the nameToken so that a synthetic identifier is inserted
             // after the `.` token.
             beforeToken = beforeNameToken = nameToken;
             token = nameToken = nameToken.next;
+          } else if (context == IdentifierContext.prefixedTypeReference) {
+            // Recovery:
+            // Looks like a prefixed type, but missing the parameter name.
+            beforeToken = nameToken =
+                insertSyntheticIdentifier(beforeNameToken, nameContext);
+            token = beforeToken.next;
           } else {
             untyped = true;
             beforeNameToken = beforeBegin;
