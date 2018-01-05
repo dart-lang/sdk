@@ -737,7 +737,6 @@ truncdiv_test: RuntimeError # Issue 29920
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
 conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
 cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
 deferred_closurize_load_library_test: RuntimeError # NoSuchMethodError: method not found: 'then'

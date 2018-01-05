@@ -4336,56 +4336,64 @@ class ProgramCompiler
 
   @override
   visitConstructorInvocation(ConstructorInvocation node) {
-    var target = node.target;
-    var targetName = target.name;
+    var ctor = node.target;
     var args = node.arguments;
+    var ctorClass = ctor.enclosingClass;
+    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
 
-    var enclosingClass = target.enclosingClass;
-    if (node.isConst &&
-        targetName.name == 'fromEnvironment' &&
-        target.enclosingLibrary == coreTypes.coreLibrary &&
-        args.positional.length == 1) {
-      var varName = (args.positional[0] as StringLiteral).value;
-      var value = declaredVariables[varName];
-      var defaultArg = args.named.isNotEmpty ? args.named[0].value : null;
-      if (enclosingClass == coreTypes.stringClass) {
-        value ??= (defaultArg as StringLiteral)?.value;
-        return value != null ? js.escapedString(value) : new JS.LiteralNull();
-      } else if (enclosingClass == coreTypes.intClass) {
-        var intValue = int.parse(value ?? '',
-            onError: (_) => (defaultArg as IntLiteral)?.value);
-        return intValue != null ? js.number(intValue) : new JS.LiteralNull();
-      } else if (enclosingClass == coreTypes.boolClass) {
-        if (value == "true") return js.boolean(true);
-        if (value == "false") return js.boolean(false);
-        return js
-            .boolean(defaultArg != null && (defaultArg as BoolLiteral)?.value);
-      } else {
-        return _emitInvalidNode(
-            node, '${enclosingClass}.fromEnvironment constant');
-      }
+    JS.Expression emitNew() {
+      return new JS.New(_emitConstructorName(node.constructedType, ctor),
+          _emitArgumentList(args, types: false));
     }
-    return _emitConstructorInvocation(
-        target, node.constructedType, args, node.isConst);
+
+    return node.isConst ? _emitConst(emitNew) : emitNew();
   }
 
   JS.Expression _emitFactoryInvocation(StaticInvocation node) {
     var args = node.arguments;
-    var target = node.target;
-    var c = target.enclosingClass;
-    var type =
-        c.typeParameters.isEmpty ? c.rawType : new InterfaceType(c, args.types);
+    var ctor = node.target;
+    var ctorClass = ctor.enclosingClass;
+    var type = ctorClass.typeParameters.isEmpty
+        ? ctorClass.rawType
+        : new InterfaceType(ctorClass, args.types);
+
+    if (node.isConst &&
+        ctor.name.name == 'fromEnvironment' &&
+        ctor.enclosingLibrary == coreTypes.coreLibrary &&
+        args.positional.length == 1 &&
+        // TODO(jmesserly): this does not correctly handle when the arguments to
+        // fromEnvironment are constant non-literal values.
+        args.positional[0] is BasicLiteral &&
+        (args.named.isEmpty || args.named[0].value is BasicLiteral)) {
+      var varName = (args.positional[0] as StringLiteral).value;
+      var value = declaredVariables[varName];
+      var defaultArg = args.named.isNotEmpty ? args.named[0].value : null;
+      if (ctorClass == coreTypes.stringClass) {
+        if (value != null) return js.escapedString(value);
+        return _visitExpression(defaultArg) ?? new JS.LiteralNull();
+      } else if (ctorClass == coreTypes.intClass) {
+        var intValue = int.parse(value ?? '', onError: (_) => null);
+        if (intValue != null) return js.number(intValue);
+        return _visitExpression(defaultArg) ?? new JS.LiteralNull();
+      } else if (ctorClass == coreTypes.boolClass) {
+        if (value == "true") return js.boolean(true);
+        if (value == "false") return js.boolean(false);
+        return _visitExpression(defaultArg) ?? js.boolean(false);
+      } else {
+        return _emitInvalidNode(node, '$ctorClass.fromEnvironment constant');
+      }
+    }
     if (args.positional.isEmpty &&
         args.named.isEmpty &&
-        c.enclosingLibrary.importUri.scheme == 'dart') {
+        ctorClass.enclosingLibrary.importUri.scheme == 'dart') {
       // Skip the slow SDK factory constructors when possible.
-      switch (c.name) {
+      switch (ctorClass.name) {
         case 'Map':
         case 'HashMap':
         case 'LinkedHashMap':
-          if (target.name == '') {
+          if (ctor.name == '') {
             return js.call('new #.new()', _emitMapImplType(type));
-          } else if (target.name == 'identity') {
+          } else if (ctor.name == 'identity') {
             return js.call(
                 'new #.new()', _emitMapImplType(type, identity: true));
           }
@@ -4393,15 +4401,15 @@ class ProgramCompiler
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
-          if (target.name == '') {
+          if (ctor.name == '') {
             return js.call('new #.new()', _emitSetImplType(type));
-          } else if (target.name == 'identity') {
+          } else if (ctor.name == 'identity') {
             return js.call(
                 'new #.new()', _emitSetImplType(type, identity: true));
           }
           break;
         case 'List':
-          if (target.name == '' && type is InterfaceType) {
+          if (ctor.name == '' && type is InterfaceType) {
             return _emitList(type.typeArguments[0], []);
           }
           break;
@@ -4410,26 +4418,11 @@ class ProgramCompiler
 
     JS.Expression emitNew() {
       // Native factory constructors are JS constructors - use new here.
-      return new JS.Call(_emitConstructorName(type, target),
+      return new JS.Call(_emitConstructorName(type, ctor),
           _emitArgumentList(args, types: false));
     }
 
     return node.isConst ? _emitConst(emitNew) : emitNew();
-  }
-
-  JS.Expression _emitConstructorInvocation(
-      Constructor ctor, InterfaceType type, Arguments arguments, bool isConst) {
-    var enclosingClass = ctor.enclosingClass;
-    if (_isObjectLiteral(enclosingClass)) {
-      return _emitObjectLiteral(arguments);
-    }
-
-    JS.Expression emitNew() {
-      return new JS.New(_emitConstructorName(type, ctor),
-          _emitArgumentList(arguments, types: false));
-    }
-
-    return isConst ? _emitConst(emitNew) : emitNew();
   }
 
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {

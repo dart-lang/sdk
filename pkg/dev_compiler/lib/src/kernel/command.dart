@@ -153,7 +153,8 @@ Future<CompilerResult> _compile(List<String> args,
       .toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
-      path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
+      path.join(path.dirname(path.dirname(Platform.resolvedExecutable)), 'lib',
+          '_internal', 'ddc_sdk.dill');
 
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
@@ -367,5 +368,14 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
       i++;
     }
   }
+
+  // Add platform defined variables
+  declaredVariables['dart.isVM'] = 'false';
+
+  // TODO(vsm): Should this be hardcoded?
+  declaredVariables['dart.library.html'] = 'true';
+  declaredVariables['dart.library.io'] = 'false';
+  declaredVariables['dart.library.ui'] = 'false';
+
   return declaredVariables;
 }
