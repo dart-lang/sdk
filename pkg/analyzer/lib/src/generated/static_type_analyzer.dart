@@ -128,6 +128,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         // inferred a type in some fashion.
         if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
           inferredType = ts.upperBoundForType(inferredType);
+          if (inferredType.isDartCoreNull) {
+            inferredType = _typeProvider.objectType;
+          }
           if (!inferredType.isDynamic) {
             p.type = inferredType;
             inferred = true;

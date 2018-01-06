@@ -24,7 +24,6 @@ built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
-closure_param_null_to_object_test: RuntimeError
 combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
 combiner_type_lookup_instance_test: CompileTimeError # Issue #31484
 combiner_type_lookup_static_test: CompileTimeError # Issue #31484
