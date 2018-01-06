@@ -5564,7 +5564,6 @@ typedef void F(int p);
       }
     }
     fail('Not found main() in ${result.unit}');
-    return null;
   }
 
   /**
@@ -8396,7 +8395,6 @@ class F extends X {}
       }
     }
     fail('Cannot find the class $name in\n$unit');
-    return null;
   }
 
   VariableDeclaration _getClassField(
@@ -8412,7 +8410,6 @@ class F extends X {}
       }
     }
     fail('Cannot find the field $fieldName in the class $className in\n$unit');
-    return null;
   }
 
   String _getClassFieldType(
@@ -8435,7 +8432,6 @@ class F extends X {}
     }
     fail('Cannot find the method $methodName in the class $className in\n'
         '$unit');
-    return null;
   }
 
   String _getClassMethodReturnType(
@@ -8468,7 +8464,6 @@ class F extends X {}
       }
     }
     fail('Cannot find the top-level variable $name in\n$unit');
-    return null;
   }
 
   String _getTopLevelVarType(CompilationUnit unit, String name) {

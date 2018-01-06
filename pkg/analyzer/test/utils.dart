@@ -74,7 +74,6 @@ class AstFinder {
     }
     Source source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
     fail('No class named $className in $source');
-    return null;
   }
 
   /**
@@ -94,7 +93,6 @@ class AstFinder {
       }
     }
     fail('No constructor named $constructorName in $className');
-    return null;
   }
 
   /**
@@ -116,7 +114,6 @@ class AstFinder {
       }
     }
     fail('No field named $fieldName in $className');
-    return null;
   }
 
   /**
@@ -144,7 +141,6 @@ class AstFinder {
       }
     }
     fail('No method named $methodName in $className');
-    return null;
   }
 
   /**
@@ -185,7 +181,6 @@ class AstFinder {
       }
     }
     fail('No toplevel function named $functionName found');
-    return null;
   }
 
   /**
@@ -207,7 +202,6 @@ class AstFinder {
       }
     }
     fail('No toplevel variable named $variableName found');
-    return null;
   }
 
   /**

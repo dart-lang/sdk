@@ -197,7 +197,6 @@ class MockAnalysisDriver implements AnalysisDriver {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     fail('Unexpected invocation of ${invocation.memberName}');
-    return null;
   }
 
   @override

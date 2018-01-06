@@ -325,7 +325,6 @@ abstract class SummaryTest {
       found.add(dep.uri);
     }
     fail('Did not find dependency $relativeUri.  Found: $found');
-    return null;
   }
 
   /**

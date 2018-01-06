@@ -84,7 +84,6 @@ part of foo;
         }
       }
       fail('No element found for index $index');
-      return null;
     }
 
     void checkLocal(

@@ -60,7 +60,6 @@ class DartSdkManagerTest extends EngineTestCase {
 
   DartSdk _failIfAbsent() {
     fail('Use of ifAbsent function');
-    return null;
   }
 }
 

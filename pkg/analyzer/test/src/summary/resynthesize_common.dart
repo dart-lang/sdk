@@ -1200,7 +1200,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else {
       fail('Unexpected type for resynthesized ($desc):'
           ' ${element.runtimeType}');
-      return null;
     }
   }
 

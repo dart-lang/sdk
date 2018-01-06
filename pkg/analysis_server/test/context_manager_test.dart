@@ -46,6 +46,15 @@ main() {
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class AbstractContextManagerTest extends ContextManagerTest {
   void test_contextsInAnalysisRoot_nestedContext() {
@@ -86,7 +95,7 @@ class AbstractContextManagerTest extends ContextManagerTest {
     // package:analysis_server/src/context_manager.dart 1043:16           ContextManagerImpl._checkForPackagespecUpdate
     // package:analysis_server/src/context_manager.dart 1553:5            ContextManagerImpl._handleWatchEvent
     //return super.test_embedder_added();
-    fail('NoSuchMethodError');
+    _fail('NoSuchMethodError');
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -2164,7 +2173,7 @@ analyzer:
     //return super.test_optionsFile_update_strongMode();
     // After a few other changes, the test now times out on my machine, so I'm
     // disabling it in order to prevent it from being flaky.
-    fail('Test times out');
+    _fail('Test times out');
     var file = resourceProvider.newFile('$projPath/bin/test.dart', r'''
 main() {
   var paths = <int>[];

@@ -50,7 +50,6 @@ class AstCloneComparator extends AstComparator {
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first != null && identical(first, second)) {
       fail('Failed to copy node: $first (${first.offset})');
-      return false;
     }
     return super.isEqualNodes(first, second);
   }
@@ -59,7 +58,6 @@ class AstCloneComparator extends AstComparator {
   bool isEqualTokens(Token first, Token second) {
     if (expectTokensCopied && first != null && identical(first, second)) {
       fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-      return false;
     }
     if (first?.precedingComments != null) {
       CommentToken comment = first.precedingComments;

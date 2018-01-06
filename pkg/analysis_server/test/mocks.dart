@@ -47,20 +47,6 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
 Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
 
 /**
- * Returns a [Future] that completes after pumping the event queue [times]
- * times. By default, this should pump the event queue enough times to allow
- * any code to run, as long as it's not waiting on some external event.
- */
-Future pumpEventQueue([int times = 5000]) {
-  if (times == 0) return new Future.value();
-  // We use a delayed future to allow microtask events to finish. The
-  // Future.value or Future() constructors use scheduleMicrotask themselves and
-  // would therefore not wait for microtask callbacks that are scheduled after
-  // invoking this method.
-  return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
-}
-
-/**
  * A mock [PackageMapProvider].
  */
 class MockPackageMapProvider implements PubPackageMapProvider {

@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:watcher/src/utils.dart';
 
 void main() {
   defineReflectiveSuite(() {

@@ -270,7 +270,6 @@ class HierarchyResults {
       return items[nameToIndex[name]];
     } else {
       fail('Class $name not found in hierarchy results');
-      return null;
     }
   }
 }

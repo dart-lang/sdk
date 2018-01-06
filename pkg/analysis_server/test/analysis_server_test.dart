@@ -120,7 +120,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
     server.setAnalysisRoots('0', ['/pkg'], [], {});
     // Pump the event queue to make sure the server has finished any
     // analysis.
-    return pumpEventQueue().then((_) {
+    return pumpEventQueue(times: 5000).then((_) {
       List<Notification> notifications = channel.notificationsReceived;
       expect(notifications, isNotEmpty);
       // expect at least one notification indicating analysis is in progress

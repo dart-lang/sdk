@@ -11,8 +11,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
 
-import '../mocks.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WatchManagerTest);

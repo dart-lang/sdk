@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -76,7 +75,7 @@ linter:
 import 'does_not_exist.dart';
 ''');
     await waitForTasksFinished();
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     List<AnalysisError> errors = filesErrors[testFile];
     // Verify that we are generating only 1 error for the bad URI.
     // https://github.com/dart-lang/sdk/issues/23754
@@ -139,7 +138,7 @@ main() {
     createProject();
     addTestFile('library lib');
     await waitForTasksFinished();
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
@@ -192,7 +191,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];

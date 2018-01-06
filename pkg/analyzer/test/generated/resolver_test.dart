@@ -57,6 +57,15 @@ main() {
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class AnalysisDeltaTest extends EngineTestCase {
   TestSource source1 = new TestSource('/1.dart');
@@ -2534,17 +2543,17 @@ class TypeResolverVisitorTest extends ParserTestCase {
   TypeResolverVisitor _visitor;
 
   fail_visitConstructorDeclaration() async {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
   fail_visitFunctionTypeAlias() async {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
   fail_visitVariableDeclaration() async {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     ClassElement type = ElementFactory.classElement2("A");
     VariableDeclaration node = AstTestFactory.variableDeclaration("a");
     AstTestFactory

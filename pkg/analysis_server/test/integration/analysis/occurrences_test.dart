@@ -50,7 +50,6 @@ main() {
           }
         }
         fail('No element found matching $elementName');
-        return null;
       }
 
       void check(String elementName, Iterable<String> expectedOccurrences) {

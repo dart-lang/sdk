@@ -249,44 +249,37 @@ class TestPluginManager implements PluginManager {
   @override
   String get byteStorePath {
     fail('Unexpected invocation of byteStorePath');
-    return null;
   }
 
   @override
   InstrumentationService get instrumentationService {
     fail('Unexpected invocation of instrumentationService');
-    return null;
   }
 
   @override
   NotificationManager get notificationManager {
     fail('Unexpected invocation of notificationManager');
-    return null;
   }
 
   @override
   List<PluginInfo> get plugins {
     fail('Unexpected invocation of plugins');
-    return null;
   }
 
   @override
   ResourceProvider get resourceProvider {
     fail('Unexpected invocation of resourceProvider');
-    return null;
   }
 
   @override
   String get sdkPath {
     fail('Unexpected invocation of sdkPath');
-    return null;
   }
 
   @override
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     fail('Unexpected invocation of addPluginToContextRoot');
-    return null;
   }
 
   @override
@@ -306,13 +299,11 @@ class TestPluginManager implements PluginManager {
   @override
   List<String> pathsFor(String pluginPath) {
     fail('Unexpected invocation of pathsFor');
-    return null;
   }
 
   @override
   List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
     fail('Unexpected invocation of pluginsForContextRoot');
-    return null;
   }
 
   @override
@@ -352,6 +343,5 @@ class TestPluginManager implements PluginManager {
   @override
   Future<List<Null>> stopAll() async {
     fail('Unexpected invocation of stopAll');
-    return null;
   }
 }
