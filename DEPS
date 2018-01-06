@@ -30,11 +30,9 @@ vars = {
 
   "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
 
-  # As Flutter does, we pull buildtools, including the clang toolchain, from
-  # Fuchsia. This revision should be kept up to date with the revision pulled
-  # by the Flutter engine. If there are problems with the toolchain, contact
-  # fuchsia-toolchain@.
-  "buildtools_revision": "@de2d6da936fa0be8bcb0bacd096fe124efff2854",
+  # Revisions of GN related dependencies. This should match the revision
+  # pulled by Flutter.
+  "buildtools_revision": "@057ef89874e3c622248cf99259434fdc683c4e30",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "@c09c8deeac31f05bd801995c475e7c8070f9ecda",

@@ -341,9 +341,9 @@ config("compiler") {
   # define into the compile line.
   if (is_clang && (is_linux || is_mac)) {
     if (is_linux) {
-      toolchain_stamp_file = "//buildtools/linux64/clang.stamp"
+      toolchain_stamp_file = "//buildtools/linux64/toolchain.stamp"
     } else {
-      toolchain_stamp_file = "//buildtools/mac/clang.stamp"
+      toolchain_stamp_file = "//buildtools/mac/toolchain.stamp"
     }
     toolchain_version = read_file(toolchain_stamp_file, "trim string")
     defines = [ "TOOLCHAIN_VERSION=$toolchain_version" ]
@@ -502,10 +502,6 @@ if (is_win) {
     "-Wno-missing-field-initializers",  # "struct foo f = {0};"
     "-Wno-unused-parameter",  # Unused function parameters.
   ]
-
-  if (is_clang) {
-    default_warning_flags += [ "-Wno-tautological-constant-compare" ]
-  }
 
   if (is_mac) {
     # TODO(abarth): Re-enable once https://github.com/domokit/mojo/issues/728
