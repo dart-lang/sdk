@@ -2364,6 +2364,16 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
         [expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 0, 8)]);
   }
 
+  void test_abstractClassMember_modifierOnly() {
+    createParser('final');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 0)
+    ]);
+  }
+
   void test_abstractClassMember_setter() {
     createParser('abstract set m(v);');
     ClassMember member = parser.parseClassMember('C');
@@ -10557,11 +10567,15 @@ class C {
   }
 
   void test_incompleteField_static() {
+    // Fasta recovers by considering the 'c' to be the identifier
+    // rather than the type.
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   static c
 }''', codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
+      usingFastaParser
+          ? ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+          : ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.EXPECTED_TOKEN
     ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -10581,7 +10595,11 @@ class C {
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isTrue);
+    if (usingFastaParser) {
+      expect(field.name.name, 'c');
+    } else {
+      expect(field.name.isSynthetic, isTrue);
+    }
   }
 
   void test_incompleteField_static2() {
@@ -10610,11 +10628,15 @@ class C {
   }
 
   void test_incompleteField_type() {
+    // Fasta recovers by considering the 'A' to be the identifier
+    // rather than the type.
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   A
 }''', codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
+      usingFastaParser
+          ? ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+          : ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.EXPECTED_TOKEN
     ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -10630,11 +10652,19 @@ class C {
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
     TypeName type = fieldList.type;
-    expect(type.name.name, 'A');
+    if (usingFastaParser) {
+      expect(type, isNull);
+    } else {
+      expect(type.name.name, 'A');
+    }
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isTrue);
+    if (usingFastaParser) {
+      expect(field.name.name, 'A');
+    } else {
+      expect(field.name.isSynthetic, isTrue);
+    }
   }
 
   void test_incompleteField_var() {

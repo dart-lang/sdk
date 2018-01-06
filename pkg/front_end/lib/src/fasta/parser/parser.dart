@@ -1495,6 +1495,7 @@ class Parser {
     if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
+      ensureBlock(token, fasta.templateExpectedClassBody);
     }
     token = parseClassBody(token);
     listener.endClassDeclaration(begin, token);
@@ -2250,6 +2251,9 @@ class Parser {
           if (memberKind == MemberKind.TopLevelField ||
               memberKind == MemberKind.NonStaticField ||
               memberKind == MemberKind.StaticField) {
+            // TODO(danrubel): In this situation, analyzer assumes that
+            // the user has not yet typed the identifier and thus reports
+            // a missing identifier.
             reportRecoverableError(
                 begin, fasta.messageMissingConstFinalVarOrType);
             listener.handleNoType(begin);
@@ -2792,8 +2796,19 @@ class Parser {
 
     Token name = beforeName.next;
     if (token != name) {
-      reportRecoverableErrorWithToken(token, fasta.templateExtraneousModifier);
-      token = name;
+      // Recovery
+      if (token == name.next) {
+        // If the name has already been parsed as a modifier or type,
+        // then insert a synthetic name.
+        beforeName = name;
+        token = name = insertSyntheticIdentifier(
+            beforeName, IdentifierContext.fieldDeclaration);
+      } else {
+        // Skip extraneous modifiers.
+        reportRecoverableErrorWithToken(
+            token, fasta.templateExtraneousModifier);
+        token = name;
+      }
     }
 
     IdentifierContext context = isTopLevel
@@ -2971,7 +2986,8 @@ class Parser {
         return identifiers;
       } else if (optional("=", token) ||
           optional(";", token) ||
-          optional(",", token)) {
+          optional(",", token) ||
+          optional("}", token)) {
         // A field or abstract getter.
         identifiers = identifiers.prepend(previous);
         return identifiers;
@@ -3441,13 +3457,9 @@ class Parser {
   /// ;
   /// ```
   Token parseClassBody(Token token) {
-    Token previousToken = token;
     Token begin = token = token.next;
+    assert(optional('{', token));
     listener.beginClassBody(token);
-    if (!optional('{', token)) {
-      token =
-          begin = ensureBlock(previousToken, fasta.templateExpectedClassBody);
-    }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
       token = parseClassMember(token);
@@ -3561,7 +3573,9 @@ class Parser {
           isField = true;
         }
         break;
-      } else if ((identical(value, '=')) || (identical(value, ','))) {
+      } else if (identical(value, '=') ||
+          identical(value, ',') ||
+          identical(value, '}')) {
         isField = true;
         break;
       } else {
@@ -6028,20 +6042,26 @@ class Parser {
           next.next, IdentifierContext.fieldDeclaration)) {
         // Looks like a field declaration but missing a field name.
         insertSyntheticIdentifier(next, IdentifierContext.fieldDeclaration);
-        return parseFields(start, const Link<Token>(), next, false);
+        token = parseFields(start, const Link<Token>(), next, false);
+        listener.endMember();
+        return token;
       } else if (next.next.isKeywordOrIdentifier &&
           isPostIdentifierForRecovery(
               next.next.next, IdentifierContext.fieldDeclaration)) {
         // Looks like a field declaration but missing a semicolon
         // which parseFields will insert.
-        return parseFields(start, const Link<Token>(), next, false);
+        token = parseFields(start, const Link<Token>(), next, false);
+        listener.endMember();
+        return token;
       }
     } else if (token != start &&
         isPostIdentifierForRecovery(next, IdentifierContext.fieldDeclaration)) {
       // If there is at least one modifier, then
       // looks like the start of a field but missing field name.
       insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
-      return parseFields(start, const Link<Token>(), token, false);
+      token = parseFields(start, const Link<Token>(), token, false);
+      listener.endMember();
+      return token;
     }
     return reportUnrecoverableErrorWithToken(
         start, fasta.templateExpectedClassMember);
