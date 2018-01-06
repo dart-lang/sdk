@@ -139,7 +139,7 @@ class TreeElementMapping extends TreeElements {
         return analyzedElement.implementationLibrary.isPatch;
       }
       return true;
-    }, failedAt(node));
+    }(), failedAt(node));
     // TODO(ahe): Investigate why the invariant below doesn't hold.
     // assert(
     //     getTreeElement(node) == element ||

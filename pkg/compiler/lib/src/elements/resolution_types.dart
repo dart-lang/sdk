@@ -394,7 +394,7 @@ abstract class GenericType extends ResolutionDartType {
             typeArguments.length == element.typeVariables.length;
       }
       return true;
-    },
+    }(),
         failedAt(
             element,
             'Invalid type argument count on ${element.thisType}. '

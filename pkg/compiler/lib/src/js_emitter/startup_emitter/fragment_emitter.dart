@@ -705,7 +705,7 @@ class FragmentEmitter {
         return method.needsTearOff || method.parameterStubs.isEmpty;
       }
       return true;
-    });
+    }());
     jsMethods[method.name] = method.code;
 
     return jsMethods;
