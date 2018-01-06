@@ -129,7 +129,7 @@ template("gcc_toolchain") {
 
     tool("alink") {
       rspfile = "{{output}}.rsp"
-      command = "rm -f {{output}} && $ar rcsD {{output}} @$rspfile"
+      command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
       rspfile_content = "{{inputs}}"
       outputs = [
@@ -209,7 +209,7 @@ template("gcc_toolchain") {
       } else if (defined(invoker.llvm_objcopy)) {
         strip = invoker.llvm_objcopy
         strip_command =
-            "${strip} --strip-sections $outfile $stripped_outfile"
+            "${strip} --strip-all $outfile $stripped_outfile"
         command += " && " + strip_command
       }
       if (defined(invoker.postlink)) {
