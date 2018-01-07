@@ -4791,6 +4791,12 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionBody _currentFunctionBody;
 
   /**
+   * The type of the expression of the immediately enclosing [SwitchStatement],
+   * or `null` if not in a [SwitchStatement].
+   */
+  DartType _enclosingSwitchStatementExpressionType;
+
+  /**
    * Are we running in strong mode or not.
    */
   bool strongMode;
@@ -6121,6 +6127,8 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitSwitchCase(SwitchCase node) {
     _overrideManager.enterScope();
     try {
+      InferenceContext.setType(
+          node.expression, _enclosingSwitchStatementExpressionType);
       super.visitSwitchCase(node);
     } finally {
       _overrideManager.exitScope();
@@ -6135,6 +6143,19 @@ class ResolverVisitor extends ScopedVisitor {
       super.visitSwitchDefault(node);
     } finally {
       _overrideManager.exitScope();
+    }
+    return null;
+  }
+
+  @override
+  Object visitSwitchStatementInScope(SwitchStatement node) {
+    var previousExpressionType = _enclosingSwitchStatementExpressionType;
+    try {
+      node.expression?.accept(this);
+      _enclosingSwitchStatementExpressionType = node.expression.staticType;
+      node.members.accept(this);
+    } finally {
+      _enclosingSwitchStatementExpressionType = previousExpressionType;
     }
     return null;
   }
@@ -7590,12 +7611,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
               new LabelScope(labelScope, labelName.name, member, labelElement);
         }
       }
-      super.visitSwitchStatement(node);
+      visitSwitchStatementInScope(node);
     } finally {
       labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
+  }
+
+  void visitSwitchStatementInScope(SwitchStatement node) {
+    super.visitSwitchStatement(node);
   }
 
   @override

@@ -157,9 +157,38 @@ void main() {
     expect(xElement.type, typeProvider.objectType);
   }
 
+  test_switchExpression_asContext_forCases() async {
+    var code = r'''
+class C<T> {
+  const C();
+}
+
+void test(C<int> x) {
+  switch (x) {
+    case const C():
+      break;
+    default:
+      break;
+  }
+}''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    var node = _findInstanceCreation(unit, code, 'const C():');
+    expect(node.staticType.toString(), 'C<int>');
+  }
+
   Expression _findExpression(AstNode root, String code, String prefix) {
     return EngineTestCase.findNode(root, code, prefix, (n) {
       return n is Expression;
+    });
+  }
+
+  InstanceCreationExpression _findInstanceCreation(
+      AstNode root, String code, String prefix) {
+    return EngineTestCase.findNode(root, code, prefix, (n) {
+      return n is InstanceCreationExpression;
     });
   }
 
