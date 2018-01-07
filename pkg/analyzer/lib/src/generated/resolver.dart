@@ -5646,25 +5646,40 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForEachStatementInScope(ForEachStatement node) {
+    Expression iterable = node.iterable;
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    SimpleIdentifier identifier = node.identifier;
+
+    identifier?.accept(this);
+
+    DartType valueType;
+    if (loopVariable != null) {
+      TypeAnnotation typeAnnotation = loopVariable.type;
+      valueType = typeAnnotation?.type ?? typeProvider.dynamicType;
+    }
+    if (identifier != null) {
+      Element element = identifier.staticElement;
+      if (element is VariableElement) {
+        valueType = element.type;
+      } else if (element is PropertyAccessorElement) {
+        if (element.parameters.isNotEmpty) {
+          valueType = element.parameters[0].type;
+        }
+      }
+    }
+    if (valueType != null) {
+      InterfaceType targetType = (node.awaitKeyword == null)
+          ? typeProvider.iterableType
+          : typeProvider.streamType;
+      InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+    }
+
     //
     // We visit the iterator before the loop variable because the loop variable
     // cannot be in scope while visiting the iterator.
     //
-    Expression iterable = node.iterable;
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    SimpleIdentifier identifier = node.identifier;
-    if (loopVariable?.type?.type != null) {
-      InterfaceType targetType = (node.awaitKeyword == null)
-          ? typeProvider.iterableType
-          : typeProvider.streamType;
-      InferenceContext.setType(
-          iterable,
-          targetType
-              .instantiate([resolutionMap.typeForTypeName(loopVariable.type)]));
-    }
     iterable?.accept(this);
     loopVariable?.accept(this);
-    identifier?.accept(this);
     Statement body = node.body;
     if (body != null) {
       _overrideManager.enterScope();

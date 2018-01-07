@@ -345,6 +345,7 @@ integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
 iterable_fold_test/02: RuntimeError # different type inference problem
+iterable_reduce_test/01: RuntimeError
 iterable_reduce_test/none: RuntimeError
 iterable_return_type_test/02: RuntimeError # Issue 29921
 iterable_to_list_test/*: RuntimeError
@@ -655,7 +656,6 @@ double_parse_test/02: Skip # Temporarily disable the following tests until we fi
 double_parse_test/03: Skip # Temporarily disable the following tests until we figure out why they started failing.
 double_parse_test/04: Skip # Temporarily disable the following tests until we figure out why they started failing.
 double_parse_test/none: Skip # Temporarily disable the following tests until we figure out why they started failing.
-iterable_reduce_test/01: CompileTimeError
 
 [ $compiler == dartkp || $compiler == precompiler ]
 apply3_test: SkipByDesign
