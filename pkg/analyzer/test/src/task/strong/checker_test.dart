@@ -447,7 +447,7 @@ void main() {
 
   test_conversionAndDynamicInvoke() async {
     addFile('''
-dynamic toString = (int x) => x + 42;
+dynamic toString = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x + 42;
 dynamic hashCode = "hello";
 ''', name: '/helper.dart');
     await checkFile('''
@@ -511,7 +511,7 @@ void main() {
   (/*info:DYNAMIC_INVOKE*/a1.toStringClosure("hello"));
   a1.hashCode;
 
-  dynamic toString = () => null;
+  dynamic toString = /*info:INFERRED_TYPE_CLOSURE*/() => null;
   (/*info:DYNAMIC_INVOKE*/toString());
 
   (/*info:DYNAMIC_INVOKE*/helper.toString());
@@ -1156,10 +1156,10 @@ void main() {
         botTop
                       );
     apply<BotTop>(
-        (dynamic x) => new A(),
-        (dynamic x) => (x as Object),
-        (A x) => x,
-        (A x) => null,
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => null,
         botA,
         botTop
                       );
@@ -1181,10 +1181,10 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply<ATop>(
-        (dynamic x) => new A(),
-        (dynamic x) => (x as Object),
-        (A x) => x,
-        (A x) => null,
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => null,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -1206,10 +1206,10 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply<BotA>(
-        (dynamic x) => new A(),
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
-        (A x) => x,
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (/*info:DOWN_CAST_IMPLICIT*/x as Object),
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => (/*info:DOWN_CAST_IMPLICIT, info:UNNECESSARY_CAST*/x as Object),
         botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -1231,10 +1231,10 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botTop
                   );
     apply<AA>(
-        (dynamic x) => new A(),
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(dynamic x) => (x as Object),
-        (A x) => x,
-        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (/*info:DOWN_CAST_IMPLICIT*/x as Object),
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
+        /*info:INFERRED_TYPE_CLOSURE*/(A x) => (/*info:DOWN_CAST_IMPLICIT, info:UNNECESSARY_CAST*/x as Object), // known function
         /*info:DOWN_CAST_COMPOSITE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                   );
@@ -1256,10 +1256,10 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botTop
                       );
     apply<TopTop>(
-        (dynamic x) => new A(),
-        (dynamic x) => (x as Object),
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
-        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
+        /*info:INFERRED_TYPE_CLOSURE, error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
+        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                       );
@@ -1281,10 +1281,10 @@ void main() {
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
     apply<TopA>(
-        (dynamic x) => new A(),
-        /*error:INVALID_CAST_FUNCTION_EXPR*/(dynamic x) => (x as Object), // known function
-        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
-        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
+        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (/*info:DOWN_CAST_IMPLICIT*/x as Object), // known function
+        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
+        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:DOWN_CAST_IMPLICIT, info:UNNECESSARY_CAST*/x as Object), // known function
         /*info:DOWN_CAST_COMPOSITE*/botA,
         /*info:DOWN_CAST_COMPOSITE*/botTop
                     );
@@ -1350,13 +1350,13 @@ void test0() {
 
 void test1() {
   void takesF(f(int x)) => null;
-  takesF((dynamic y) => 3);
+  takesF(/*info:INFERRED_TYPE_CLOSURE*/(dynamic y) => 3);
 }
 
 void test2() {
   int x;
   int f<T>(T t, callback(T x)) { return 3; }
-  f(x, (y) => 3);
+  f(x, /*info:INFERRED_TYPE_CLOSURE*/(y) => 3);
 }
 ''');
   }
@@ -1967,7 +1967,7 @@ void main() {
   test_functionTypingAndSubtyping_subtypeOfUniversalType() async {
     await checkFile('''
 void main() {
-  nonGenericFn(x) => null;
+  nonGenericFn/*info:INFERRED_TYPE_CLOSURE*/(x) => null;
   {
     R f<P, R>(P p) => null;
     T g<S, T>(S s) => null;
@@ -1976,7 +1976,7 @@ void main() {
     local = g; // valid
 
     // Non-generic function cannot subtype a generic one.
-    local = /*error:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => null;
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
   {
@@ -1992,7 +1992,7 @@ void main() {
     local2 = /*info:DOWN_CAST_COMPOSITE*/local;
 
     // Non-generic function cannot subtype a generic one.
-    local = /*error:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => null;
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
 }
@@ -2290,7 +2290,7 @@ main() {
 
   test_implicitCasts_genericMethods() async {
     addFile('''
-var x = <String>[].map<String>((x) => "");
+var x = <String>[].map<String>(/*info:INFERRED_TYPE_CLOSURE*/(x) => "");
 ''');
     await check(implicitCasts: false);
   }
@@ -2398,9 +2398,9 @@ void main<S>() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
   i = g();
 
-  /*error:IMPLICIT_DYNAMIC_INVOKE*/(<T>(T t) => t)(d);
-  (<T>(T t) => t)(42);
-  (<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
+  /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*info:INFERRED_TYPE_CLOSURE*/<T>(T t) => t)(d);
+  (/*info:INFERRED_TYPE_CLOSURE*/<T>(T t) => t)(42);
+  (/*info:INFERRED_TYPE_CLOSURE*/<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
 }
     ''');
     await check(implicitDynamic: false);
@@ -2513,7 +2513,7 @@ dynamic f1() { return 42; }
 
 // nested function
 void main() {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {return g0();}
+  /*error:IMPLICIT_DYNAMIC_RETURN*/g0/*info:INFERRED_TYPE_CLOSURE*/() {return g0();}
   dynamic g1() { return 42; }
 }
 
@@ -2537,8 +2537,8 @@ void ftf0(/*error:IMPLICIT_DYNAMIC_RETURN*/f(int x)) {}
 void ftf1(dynamic f(int x)) {}
 
 // function expressions
-var fe0 = (int x) => x as dynamic;
-var fe1 = (int x) => x;
+var fe0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x as dynamic;
+var fe1 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x;
     ''');
     await check(implicitDynamic: false);
   }
@@ -4057,7 +4057,7 @@ class SplayTreeMap<K, V> {
   SplayTreeMap([int compare(K key1, K key2),
                 bool isValidKey(potentialKey)])
     : _comparator = /*info:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
-      _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
+      _validKey = (isValidKey != null) ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(v) => true) {
 
     // NOTE: this is a down cast because isValidKey has fuzzy arrow type.
     _Predicate<Object> v = /*info:DOWN_CAST_COMPOSITE*/(isValidKey != null)
@@ -4178,8 +4178,8 @@ void h<T extends Clonable<T>>(T object) {
     await checkFile(r'''
 void f<T extends num>(T x, T y) {
   var z = x;
-  var f = () => x;
-  f = () => y;
+  var f = /*info:INFERRED_TYPE_CLOSURE*/() => x;
+  f = /*info:INFERRED_TYPE_CLOSURE*/() => y;
   if (x is int) {
     /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
     var q = x;
@@ -4187,7 +4187,7 @@ void f<T extends num>(T x, T y) {
     /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
 
     // This captures the type `T extends int`.
-    var g = () => x;
+    var g = /*info:INFERRED_TYPE_CLOSURE*/() => x;
     g = /*info:DOWN_CAST_COMPOSITE*/f;
     g().isEven;
     q = g();
@@ -4377,7 +4377,7 @@ test() {
   /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b++;
   /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b--;
 
-  takesC(C c) => null;
+  takesC/*info:INFERRED_TYPE_CLOSURE*/(C c) => null;
   takesC(/*info:DOWN_CAST_IMPLICIT*/++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
   takesC(/*info:DOWN_CAST_IMPLICIT*/--/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
   takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b++);

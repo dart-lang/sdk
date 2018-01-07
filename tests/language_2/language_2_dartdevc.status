@@ -19,7 +19,7 @@ assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 black_listed_test/none: Fail # Issue 14228
-bug31436_test: CompileTimeError
+bug31436_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
@@ -55,7 +55,6 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 implicit_downcast_during_assert_initializer_test: Crash
-implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #31436
 import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError

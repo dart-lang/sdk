@@ -29,6 +29,38 @@ class Dart2InferenceTest extends ResolverTestCase {
   @override
   bool get enableNewAnalysisDriver => true;
 
+  test_closure_downwardReturnType_arrow() async {
+    var code = r'''
+void main() {
+  List<int> Function() g;
+  g = () => 42;
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    Expression closure = _findExpression(unit, code, '() => 42');
+    expect(closure.staticType.toString(), '() → List<int>');
+  }
+
+  test_closure_downwardReturnType_block() async {
+    var code = r'''
+void main() {
+  List<int> Function() g;
+  g = () { // mark
+    return 42;
+  };
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    Expression closure = _findExpression(unit, code, '() { // mark');
+    expect(closure.staticType.toString(), '() → List<int>');
+  }
+
   test_forIn() async {
     var code = r'''
 T f<T>() => null;
@@ -123,6 +155,12 @@ void main() {
     VariableElement xElement = xNode.staticElement;
     expect(xNode.staticType, typeProvider.objectType);
     expect(xElement.type, typeProvider.objectType);
+  }
+
+  Expression _findExpression(AstNode root, String code, String prefix) {
+    return EngineTestCase.findNode(root, code, prefix, (n) {
+      return n is Expression;
+    });
   }
 
   MethodInvocation _findMethodInvocation(

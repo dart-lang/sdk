@@ -4210,7 +4210,7 @@ class InferenceContext {
    * already has a context type. This recorded type will be the least upper
    * bound of all types added with [addReturnOrYieldType].
    */
-  void popReturnContext(BlockFunctionBody node) {
+  void popReturnContext(FunctionBody node) {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
@@ -4226,7 +4226,7 @@ class InferenceContext {
   /**
    * Push a block function body's return type onto the return stack.
    */
-  void pushReturnContext(BlockFunctionBody node) {
+  void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
     _inferredReturn.add(_typeProvider.nullType);
   }
@@ -5612,9 +5612,19 @@ class ResolverVisitor extends ScopedVisitor {
     _overrideManager.enterScope();
     try {
       InferenceContext.setTypeFromNode(node.expression, node);
+      inferenceContext.pushReturnContext(node);
       super.visitExpressionFunctionBody(node);
+
+      DartType type = node.expression.staticType;
+      if (_enclosingFunction.isAsynchronous) {
+        type = type.flattenFutures(typeSystem);
+      }
+      if (type != null) {
+        inferenceContext.addReturnOrYieldType(type);
+      }
     } finally {
       _overrideManager.exitScope();
+      inferenceContext.popReturnContext(node);
     }
     return null;
   }

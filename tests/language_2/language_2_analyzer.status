@@ -1027,7 +1027,6 @@ additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_function_test/01: MissingStaticWarning
 assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
-bug31436_test: CompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
 combiner_type_lookup_instance_test: CompileTimeError # Issue #31484
@@ -1050,7 +1049,6 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
-implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #31436
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
