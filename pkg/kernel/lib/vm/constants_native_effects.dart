@@ -9,16 +9,34 @@ import '../transformations/constants.dart';
 import '../core_types.dart';
 
 class VmConstantsBackend implements ConstantsBackend {
+  final Map<String, String> defines;
+
   final Class immutableMapClass;
+  final Class internalSymbolClass;
+  final Field symbolNameField;
 
-  VmConstantsBackend._(this.immutableMapClass);
+  VmConstantsBackend._(this.defines, this.immutableMapClass,
+      this.internalSymbolClass, this.symbolNameField);
 
-  factory VmConstantsBackend(CoreTypes coreTypes) {
+  /// If [defines] is not `null` it will be used for handling
+  /// `const {bool,...}.fromEnvironment()` otherwise the current VM's values
+  /// will be used.
+  factory VmConstantsBackend(Map<String, String> defines, CoreTypes coreTypes) {
     final Library coreLibrary = coreTypes.coreLibrary;
     final Class immutableMapClass = coreLibrary.classes
         .firstWhere((Class klass) => klass.name == '_ImmutableMap');
     assert(immutableMapClass != null);
-    return new VmConstantsBackend._(immutableMapClass);
+
+    final Class internalSymbolClass = coreTypes.internalSymbolClass;
+    assert(internalSymbolClass != null);
+
+    final Field symbolNameField =
+        internalSymbolClass.fields.where((Field field) {
+      return field.isInstanceMember && field.name.name == '_name';
+    }).single;
+
+    return new VmConstantsBackend._(
+        defines, immutableMapClass, internalSymbolClass, symbolNameField);
   }
 
   Constant buildConstantForNative(
@@ -29,29 +47,52 @@ class VmConstantsBackend implements ConstantsBackend {
     switch (nativeName) {
       case 'Bool_fromEnvironment':
         final String name = (positionalArguments[0] as StringConstant).value;
-        final Constant constant = namedArguments['defaultValue'];
-        final bool defaultValue =
-            constant is BoolConstant ? constant.value : false;
-        return new BoolConstant(
-            new bool.fromEnvironment(name, defaultValue: defaultValue));
+        final BoolConstant constant = namedArguments['defaultValue'];
+        final bool defaultValue = constant != null ? constant.value : false;
+        bool value;
+        if (defines != null) {
+          value = defines[name] == 'true'
+              ? true
+              : (defines[name] == 'false' ? false : defaultValue);
+        } else {
+          value = new bool.fromEnvironment(name, defaultValue: defaultValue);
+        }
+        return new BoolConstant(value);
       case 'Integer_fromEnvironment':
         final String name = (positionalArguments[0] as StringConstant).value;
         final Constant constant = namedArguments['defaultValue'];
         final int defaultValue =
             constant is IntConstant ? constant.value : null;
-        final int value =
-            new int.fromEnvironment(name, defaultValue: defaultValue);
+        int value;
+        if (defines != null) {
+          value = defines.containsKey(name)
+              ? int.parse(defines[name], onError: (_) => defaultValue)
+              : defaultValue;
+        } else {
+          value = new int.fromEnvironment(name, defaultValue: defaultValue);
+        }
         return value != null ? new IntConstant(value) : new NullConstant();
       case 'String_fromEnvironment':
         final String name = (positionalArguments[0] as StringConstant).value;
         final Constant constant = namedArguments['defaultValue'];
         final String defaultValue =
             constant is StringConstant ? constant.value : null;
-        final String value =
-            new String.fromEnvironment(name, defaultValue: defaultValue);
+        String value;
+        if (defines != null) {
+          value = defines[name] ?? defaultValue;
+        } else {
+          value = new String.fromEnvironment(name, defaultValue: defaultValue);
+        }
         return value == null ? new NullConstant() : new StringConstant(value);
     }
     throw 'No native effect registered for constant evaluation: $nativeName';
+  }
+
+  Constant buildSymbolConstant(StringConstant value) {
+    return new InstanceConstant(
+        internalSymbolClass.reference,
+        const <DartType>[],
+        <Reference, Constant>{symbolNameField.reference: value});
   }
 
   Constant lowerMapConstant(MapConstant constant) {

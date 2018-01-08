@@ -9432,14 +9432,16 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_instance_ = Instance::New(temp_class_, Heap::kOld);
 
         const intptr_t number_of_type_arguments = builder_.ReadUInt();
-        if (number_of_type_arguments > 0) {
+        if (temp_class_.NumTypeArguments() > 0) {
           temp_type_arguments_ =
               TypeArguments::New(number_of_type_arguments, Heap::kOld);
           for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
             temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
           }
-          InstantiateTypeArguments(list_class, &temp_type_arguments_);
+          InstantiateTypeArguments(temp_class_, &temp_type_arguments_);
           temp_instance_.SetTypeArguments(temp_type_arguments_);
+        } else {
+          ASSERT(number_of_type_arguments == 0);
         }
 
         const intptr_t number_of_fields = builder_.ReadUInt();
