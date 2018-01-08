@@ -17,7 +17,18 @@ part of dart.convert;
 abstract class Codec<S, T> {
   const Codec();
 
+  /**
+   * Encodes [input].
+   *
+   * The input is encoded as if by `encoder.convert`.
+   */
   T encode(S input) => encoder.convert(input);
+
+  /**
+   * Decodes [encoded] data.
+   *
+   * The input is decoded as if by `decoder.convert`.
+   */
   S decode(T encoded) => decoder.convert(encoded);
 
   /**
