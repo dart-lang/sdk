@@ -5,7 +5,6 @@
 /*element: method:needsArgs,explicit=[method.T]*/
 method<T>(T t) => t is T;
 
-/*element: main:*/
 main() {
   method<int>(0);
 }

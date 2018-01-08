@@ -18,8 +18,7 @@ main(List<String> args) {
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
-        forMainLibraryOnly: false,
-        forUserSourceFilesOnly: true,
+        forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
         skipForKernel: skipForKernel);

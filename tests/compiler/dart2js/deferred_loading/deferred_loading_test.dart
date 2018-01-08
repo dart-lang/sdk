@@ -37,8 +37,6 @@ main(List<String> args) {
     await checkTests(
         dataDir, computeAstOutputUnitData, computeKernelOutputUnitData,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
-        forMainLibraryOnly: false,
-        forUserSourceFilesOnly: true,
         skipForKernel: skipForKernel,
         options: compilerOptions,
         args: args, setUpFunction: () {

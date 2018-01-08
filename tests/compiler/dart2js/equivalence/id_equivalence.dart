@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart' as ir;
 
 enum IdKind {
   element,
+  cls,
   node,
   invoke,
   update,
@@ -47,6 +48,9 @@ class IdValue {
       case IdKind.element:
         ElementId elementId = id;
         return '$elementPrefix${elementId.name}:$value';
+      case IdKind.cls:
+        ClassId classId = id;
+        return '$classPrefix${classId.name}:$value';
       case IdKind.node:
         return value;
       case IdKind.invoke:
@@ -64,6 +68,7 @@ class IdValue {
   }
 
   static const String elementPrefix = "element: ";
+  static const String classPrefix = "class: ";
   static const String invokePrefix = "invoke: ";
   static const String updatePrefix = "update: ";
   static const String iteratorPrefix = "iterator: ";
@@ -78,6 +83,12 @@ class IdValue {
       int colonPos = text.indexOf(':');
       if (colonPos == -1) throw "Invalid element id: '$text'";
       id = new ElementId(text.substring(0, colonPos));
+      expected = text.substring(colonPos + 1);
+    } else if (text.startsWith(classPrefix)) {
+      text = text.substring(classPrefix.length);
+      int colonPos = text.indexOf(':');
+      if (colonPos == -1) throw "Invalid class id: '$text'";
+      id = new ClassId(text.substring(0, colonPos));
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(invokePrefix)) {
       id = new NodeId(offset, IdKind.invoke);
@@ -102,8 +113,7 @@ class IdValue {
   }
 }
 
-/// Id for an element with type inference information.
-// TODO(johnniwinther): Support local variables, functions and parameters.
+/// Id for an member element.
 class ElementId implements Id {
   final String className;
   final String memberName;
@@ -132,7 +142,28 @@ class ElementId implements Id {
 
   String get name => className != null ? '$className.$memberName' : memberName;
 
-  String toString() => name;
+  String toString() => 'element:$name';
+}
+
+/// Id for a class.
+class ClassId implements Id {
+  final String className;
+
+  ClassId(this.className);
+
+  int get hashCode => className.hashCode * 13;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ClassId) return false;
+    return className == other.className;
+  }
+
+  IdKind get kind => IdKind.cls;
+
+  String get name => className;
+
+  String toString() => 'class:$name';
 }
 
 /// Id for a code point with type inference information.

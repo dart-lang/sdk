@@ -45,7 +45,7 @@ show(List<String> args, ComputeMemberDataFunction computeAstData,
   CompiledData data = await computeData(
       entryPoint, const {}, useKernel ? computeKernelData : computeAstData,
       options: options,
-      forMainLibraryOnly: false,
+      forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
       verbose: verbose);

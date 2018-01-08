@@ -76,7 +76,7 @@ Future<bool> testUri(Uri uri,
   return compareData(
       uri, const {}, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
       options: [stopAfterTypeInference],
-      forMainLibraryOnly: false,
+      forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
       verbose: verbose,

@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: A.:needsArgs*/
+/*class: A:needsArgs*/
 class A<T> {
-  /*element: A.m:*/
   m() {
     return /*needsSignature*/ (T t) {};
   }
@@ -15,7 +14,6 @@ class A<T> {
   }
 }
 
-/*element: main:*/
 main() {
   new A<int>().m() is void Function(int);
   new A<int>().f() is void Function(int);

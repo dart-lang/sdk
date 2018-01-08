@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: A.:needsArgs,explicit=[A<int>]*/
+/*class: A:needsArgs,explicit=[A<int>]*/
 class A<T> {}
 
-/*element: B.:needsArgs*/
+/*class: B:needsArgs*/
 class B<T> extends A<T> {}
 
-/*element: main:*/
 main() {
   new B<int>() is A<int>;
 }
