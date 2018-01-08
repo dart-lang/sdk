@@ -3181,6 +3181,73 @@ void g(C c) {
     _assertArgumentToParameter(arguments[2], methodElement.parameters[2]);
   }
 
+  test_methodInvocation_explicitCall_classTarget() async {
+    addTestFile(r'''
+class C {
+  double call(int p) => 0.0;
+}
+main() {
+  new C().call(0);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    MethodElement callElement = cElement.methods[0];
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+
+    expect(invocation.staticType, typeProvider.doubleType);
+    expect(invocation.staticInvokeType.toString(), '(int) → double');
+
+    SimpleIdentifier methodName = invocation.methodName;
+    expect(methodName.staticElement, same(callElement));
+    expect(methodName.staticType.toString(), '(int) → double');
+  }
+
+  test_methodInvocation_explicitCall_functionTarget() async {
+    addTestFile(r'''
+main(double computation(int p)) {
+  computation.call(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    FunctionElement mainElement = main.element;
+    ParameterElement parameter = mainElement.parameters[0];
+
+    BlockFunctionBody mainBody = main.functionExpression.body;
+    List<Statement> statements = mainBody.block.statements;
+
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+
+    expect(invocation.staticType, typeProvider.doubleType);
+    expect(invocation.staticInvokeType.toString(), '(int) → double');
+
+    SimpleIdentifier target = invocation.target;
+    expect(target.staticElement, same(parameter));
+    expect(target.staticType.toString(), '(int) → double');
+
+    SimpleIdentifier methodName = invocation.methodName;
+    if (useCFE) {
+      expect(methodName.staticElement, isNull);
+      expect(methodName.staticType, isNull);
+    } else {
+      expect(methodName.staticElement, same(parameter));
+      expect(methodName.staticType, parameter.type);
+    }
+  }
+
   test_methodInvocation_instanceMethod_forwardingStub() async {
     addTestFile(r'''
 class A {
@@ -3837,6 +3904,38 @@ class C {
     SimpleIdentifier identifier = prefixed.identifier;
     expect(identifier.staticElement, same(fElement.getter));
     expect(identifier.staticType, typeProvider.intType);
+  }
+
+  test_prefixedIdentifier_explicitCall() async {
+    addTestFile(r'''
+main(double computation(int p)) {
+  computation.call;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    FunctionElement mainElement = main.element;
+    ParameterElement parameter = mainElement.parameters[0];
+
+    BlockFunctionBody mainBody = main.functionExpression.body;
+    List<Statement> statements = mainBody.block.statements;
+
+    ExpressionStatement statement = statements[0];
+    PrefixedIdentifier prefixed = statement.expression;
+
+    expect(prefixed.prefix.staticElement, same(parameter));
+    expect(prefixed.prefix.staticType.toString(), '(int) → double');
+
+    SimpleIdentifier methodName = prefixed.identifier;
+    expect(methodName.staticElement, isNull);
+    if (useCFE) {
+      expect(methodName.staticType, isNull);
+    } else {
+      expect(methodName.staticType, typeProvider.dynamicType);
+    }
   }
 
   test_prefixedIdentifier_importPrefix_className() async {

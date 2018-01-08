@@ -68,11 +68,6 @@ class BaseAnalysisDriverTest {
   bool get disableChangesAndCacheAllResults => false;
 
   /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  bool previewDart2 = false;
-
-  /**
    * Whether to enable the Dart 2.0 Common Front End.
    */
   bool useCFE = false;

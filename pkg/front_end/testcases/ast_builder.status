@@ -9,7 +9,6 @@ accessors: Crash
 annotation_top: Crash
 argument_mismatch: Crash
 bad_setter_abstract: Crash
-call: Crash
 cascade: Crash
 classes: Crash
 duplicated_named_args_3: Crash

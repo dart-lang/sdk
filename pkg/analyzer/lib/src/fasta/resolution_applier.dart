@@ -440,8 +440,13 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     node.staticInvokeType = invokeType;
     node.staticType = resultType;
-    node.methodName.staticElement = invokeElement;
-    node.methodName.staticType = invokeType;
+
+    if (node.methodName.name == 'call' && invokeElement == null) {
+      // Don't resolve explicit call() invocation of function types.
+    } else {
+      node.methodName.staticElement = invokeElement;
+      node.methodName.staticType = invokeType;
+    }
 
     if (invokeType is FunctionType) {
       if (node.typeArguments != null &&
