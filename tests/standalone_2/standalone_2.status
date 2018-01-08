@@ -96,17 +96,21 @@ io/file_system_watcher_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
 io/http_auth_test: RuntimeError
+io/http_cookie_date_test: CompileTimeError
+io/http_headers_test: CompileTimeError
+io/http_parser_test: CompileTimeError
 io/http_proxy_advanced_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
 io/regress_10026_test: RuntimeError
+io/secure_socket_argument_test: CompileTimeError
 io/skipping_dart2js_compilations_test: CompileTimeError
 io/socket_upgrade_to_secure_test: RuntimeError
 io/test_harness_analyzer_test: CompileTimeError
 io/test_runner_test: CompileTimeError
 io/web_socket_pipe_test: RuntimeError
-io/web_socket_protocol_processor_test: RuntimeError
+io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 
 [ !$strong && ($compiler == dartk || $compiler == dartkp) ]

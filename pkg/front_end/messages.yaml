@@ -237,6 +237,7 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  severity: ERROR
   analyzerCode: MISSING_IDENTIFIER
   dart2jsCode: "*fatal*"
   script: "do() {} main() {}"
@@ -869,27 +870,34 @@ MetadataTypeArguments:
 
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 RedirectionTargetNotFound:
   template: "Redirection constructor target not found: '#name'"
+  severity: ERROR_LEGACY_WARNING
 
 CyclicTypedef:
   template: "The typedef '#name' has a reference to itself."
 
 TypeNotFound:
   template: "Type '#name' not found."
+  severity: ERROR_LEGACY_WARNING
 
 NonInstanceTypeVariableUse:
   template: "Can only use type variables in instance methods."
+  severity: ERROR_LEGACY_WARNING
 
 GetterNotFound:
   template: "Getter not found: '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 SetterNotFound:
   template: "Setter not found: '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 MethodNotFound:
   template: "Method not found: '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 CandidateFound:
   template: "Found this candidate, but the arguments don't match."
@@ -899,29 +907,37 @@ CandidateFoundIsDefaultConstructor:
 
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
+  severity: ERROR_LEGACY_WARNING
 
 AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
+  severity: ERROR_LEGACY_WARNING
 
 ListLiteralTooManyTypeArguments:
   template: "Too many type arguments on List literal."
+  severity: ERROR_LEGACY_WARNING
 
 ListLiteralTypeArgumentMismatch:
   template: "Map literal requires two type arguments."
+  severity: ERROR_LEGACY_WARNING
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
+  severity: ERROR_LEGACY_WARNING
 
 LoadLibraryHidesMember:
   template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."
   tip: "Try to rename or hide the member."
+  severity: NIT
 
 TypeArgumentMismatch:
   # TODO(sigmund): #string should be a number instead.
   template: "'#name' expects #string type arguments."
+  severity: ERROR_LEGACY_WARNING
 
 NotAType:
   template: "'#name' isn't a type."
+  severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
   dart2jsCode: "*ignored*"
 
@@ -1003,59 +1019,87 @@ NativeClauseShouldBeAnnotation:
 
 ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
+  severity: ERROR_LEGACY_WARNING
   dart2jsCode: "*ignored*"
 
 InternalProblemUnhandled:
   template: "Unhandled #string in #string2."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemUnimplemented:
   template: "Unimplemented #string."
+  severity: INTERNAL_PROBLEM
+
+UnimplementedBoundsOnTypeVariables:
+  # Has its own message to make it just a warning.
+  # TODO(askesc): Remove when no longer needed.
+  template: "Unimplemented bounds on type variables."
+  severity: WARNING
 
 InternalProblemUnexpected:
   template: "Expected '#string', but got '#string2'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemUnsupported:
   template: "Unsupported operation: '#name'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemSuperclassNotFound:
   template: "Superclass not found '#name'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemNotFound:
   template: "Couldn't find '#name'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemNotFoundIn:
   template: "Couldn't find '#name' in '#name2'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemPrivateConstructorAccess:
   template: "Can't access private constructor '#name'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemConstructorNotFound:
   template: "No constructor named '#name' in '#uri'."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemExtendingUnmodifiableScope:
   template: "Can't extend an unmodifiable scope."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemPreviousTokenNotFound:
   template: "Couldn't find previous token."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemStackNotEmpty:
   template: "#name.stack isn't empty:\n  #string"
+  severity: INTERNAL_PROBLEM
 
 InternalProblemAlreadyInitialized:
   template: "Attempt to set initializer on field without initializer."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemBodyOnAbstractMethod:
   template: "Attempting to set body on abstract method."
+  severity: INTERNAL_PROBLEM
 
 InternalProblemMissingContext:
   template: "Compiler cannot run without a compiler context."
   tip: "Are calls to the compiler wrapped in CompilerContext.runInContext?"
+  severity: INTERNAL_PROBLEM
 
 InternalProblemProvidedBothCompileSdkAndSdkSummary:
   template: "The compileSdk and sdkSummary options are mutually exclusive"
+  severity: INTERNAL_PROBLEM
 
 InternalProblemUriMissingScheme:
   template: "The URI '#uri' has no scheme."
+  severity: INTERNAL_PROBLEM
+
+InternalProblemMissingSeverity:
+  template: "Message code missing severity: #string"
+  severity: INTERNAL_PROBLEM
 
 InternalVerificationError:
   template: |
@@ -1064,15 +1108,19 @@ InternalVerificationError:
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
+  severity: NIT
 
 LocalDefinitionHidesImport:
   template: "Local definition of '#name' hides import from '#uri'."
+  severity: NIT
 
 ExportHidesExport:
   template: "Export of '#name' (from '#uri') hides export from '#uri2'."
+  severity: NIT
 
 ImportHidesImport:
   template: "Import of '#name' (from '#uri') hides import from '#uri2'."
+  severity: NIT
 
 MissingPrefixInDeferredImport:
   template: "Deferred imports should have a prefix."
@@ -1106,9 +1154,19 @@ PrefixAfterCombinator:
 
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
+  severity: NIT
+
+DuplicatedExportInType:
+  template: "'#name' is exported from both '#uri' and '#uri2'."
+  severity: ERROR_LEGACY_WARNING
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
+  severity: NIT
+
+DuplicatedImportInType:
+  template: "'#name' is imported from both '#uri' and '#uri2'."
+  severity: ERROR_LEGACY_WARNING
 
 CyclicClassHierarchy:
   template: "'#name' is a supertype of itself via '#string'."
@@ -1130,42 +1188,61 @@ IllegalMixinDueToConstructorsCause:
 
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
+  severity: ERROR
 
 ConflictsWithFactory:
   template: "Conflicts with factory '#name'."
+  severity: ERROR
 
 ConflictsWithMember:
   template: "Conflicts with member '#name'."
+  severity: ERROR
+
+ConflictsWithMemberWarning:
+  template: "Conflicts with member '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 ConflictsWithSetter:
   template: "Conflicts with setter '#name'."
+  severity: ERROR
+
+ConflictsWithSetterWarning:
+  template: "Conflicts with setter '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 ConflictsWithTypeVariable:
   template: "Conflicts with type variable '#name'."
+  severity: ERROR
 
 ConflictsWithTypeVariableCause:
   template:  "This is the type variable."
+  severity: ERROR
 
 IllegalMixin:
   template: "The type '#name' can't be mixed in."
 
 OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
+  severity: ERROR_LEGACY_WARNING
 
 OverriddenMethodCause:
   template: "This is the overriden method ('#name')."
 
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
+  severity: ERROR_LEGACY_WARNING
 
 OverrideFewerNamedArguments:
   template: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
+  severity: ERROR_LEGACY_WARNING
 
 OverrideFewerPositionalArguments:
   template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
+  severity: ERROR_LEGACY_WARNING
 
 OverrideMoreRequiredArguments:
   template: "The method '#name' has more required arguments than those of overridden method '#name2'."
+  severity: ERROR_LEGACY_WARNING
 
 OverrideTypeMismatchParameter:
   template: "The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2)."
@@ -1366,6 +1443,7 @@ DeferredPrefixDuplicatedCause:
 
 TypeArgumentsOnTypeVariable:
   template: "Can't use type arguments with type variable '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 DuplicatedDefinition:
   template: "Duplicated definition of '#name'."
@@ -1423,13 +1501,16 @@ SupertypeIsTypeVariable:
 
 PartOfLibraryNameMismatch:
   template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
+  severity: ERROR_LEGACY_WARNING
 
 PartOfUseUri:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
   tip: "Try changing the 'part of' declaration to use a relative file name."
+  severity: ERROR_LEGACY_WARNING
 
 PartOfUriMismatch:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
+  severity: ERROR_LEGACY_WARNING
 
 MissingMain:
   template: "No 'main' method found."
@@ -1483,27 +1564,35 @@ SwitchHasMultipleDefaults:
 
 SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
+  severity: ERROR_LEGACY_WARNING
 
 FinalInstanceVariableAlreadyInitialized:
   template: "'#name' is a final instance variable that has already been initialized."
+  severity: ERROR_LEGACY_WARNING
 
 FinalInstanceVariableAlreadyInitializedCause:
   template: "'#name' was initialized here."
+  severity: ERROR_LEGACY_WARNING
 
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
+  severity: ERROR_LEGACY_WARNING
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."
+  severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoGetter:
   template: "Superclass has no getter named '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoSetter:
   template: "Superclass has no setter named '#name'."
+  severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoMethod:
   template: "Superclass has no method named '#name'."
+  severity: ERROR_LEGACY_WARNING
   analyzerCode: UNDEFINED_SUPER_METHOD
   dart2jsCode: "*ignored*"
 
@@ -1715,3 +1804,4 @@ CantInferTypeDueToInconsistentOverrides:
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
   tip: "Specify the type explicitly."
+  severity: ERROR

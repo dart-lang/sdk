@@ -19,7 +19,9 @@ import '../fasta_codes.dart'
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
-        templateConflictsWithSetter;
+        templateConflictsWithMemberWarning,
+        templateConflictsWithSetter,
+        templateConflictsWithSetterWarning;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -168,13 +170,17 @@ class SourceClassBuilder extends KernelClassBuilder {
       Builder member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
       // TODO(ahe): charOffset is missing.
-      var report = member.isInstanceMember != setter.isInstanceMember
-          ? addWarning
-          : addCompileTimeError;
-      report(
-          templateConflictsWithMember.withArguments(name), setter.charOffset);
-      report(
-          templateConflictsWithSetter.withArguments(name), member.charOffset);
+      if (member.isInstanceMember == setter.isInstanceMember) {
+        addProblem(
+            templateConflictsWithMember.withArguments(name), setter.charOffset);
+        addProblem(
+            templateConflictsWithSetter.withArguments(name), member.charOffset);
+      } else {
+        addProblem(templateConflictsWithMemberWarning.withArguments(name),
+            setter.charOffset);
+        addProblem(templateConflictsWithSetterWarning.withArguments(name),
+            member.charOffset);
+      }
     });
 
     cls.procedures.sort(compareProcedures);

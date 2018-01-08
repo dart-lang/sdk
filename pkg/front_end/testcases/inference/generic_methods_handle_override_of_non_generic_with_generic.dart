@@ -11,8 +11,12 @@ class C {
 }
 
 class D extends C {
-  T m<T>(T /*@error=OverrideTypeMismatchParameter*/ x) => x;
-  T g<T>(T /*@error=OverrideTypeMismatchParameter*/ x) => x;
+  T /*@error=OverrideTypeVariablesMismatch*/ m<T>(
+          T /*@error=OverrideTypeMismatchParameter*/ x) =>
+      x;
+  T /*@error=OverrideTypeVariablesMismatch*/ g<T>(
+          T /*@error=OverrideTypeMismatchParameter*/ x) =>
+      x;
 }
 
 main() {

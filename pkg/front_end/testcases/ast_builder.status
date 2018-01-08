@@ -13,6 +13,7 @@ call: Crash
 cascade: Crash
 classes: Crash
 duplicated_named_args_3: Crash
+dynamic_and_void: Fail
 expressions: Crash
 function_type_is_check: Crash
 function_type_recovery: Crash
@@ -55,6 +56,7 @@ inference/generic_methods_infer_js_builtin: Fail
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
 inference/infer_local_function_referenced_before_declaration: Crash
+inference/infer_method_missing_params: Fail
 inference/infer_rethrow: Crash
 inference/instantiate_tearoff: Crash
 inference/instantiate_tearoff_after_contravariance_check: Crash
@@ -71,6 +73,7 @@ inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_vi
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail
+inference_new/dependency_only_if_generic_method: Fail
 inference_new/for_each_identifier_downwards: Crash
 invalid_cast: Crash
 invocations: Crash
@@ -80,6 +83,7 @@ micro: Crash
 native_as_name: Crash
 override_check_after_inference: Fail
 override_check_basic: Fail
+override_check_two_substitutions: Fail
 override_check_with_covariant_modifier: Fail
 qualified: Crash
 rasta/abstract_constructor: Crash
@@ -142,3 +146,4 @@ statements: Crash
 super_call: Crash
 type_variable_as_super: Crash
 uninitialized_fields: Crash
+warn_unresolved_sends: Fail
