@@ -447,6 +447,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
   visitSendSet(ast.SendSet node) {
     dynamic sendStructure = elements.getSendStructure(node);
     if (sendStructure != null) {
+      outer:
       switch (sendStructure.kind) {
         case SendStructureKind.SET:
           ast.Node position =
@@ -461,8 +462,22 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         case SendStructureKind.COMPOUND_INDEX_SET:
         case SendStructureKind.INDEX_PREFIX:
         case SendStructureKind.INDEX_POSTFIX:
-          computeForNode(node, createAccessId(node.selector));
           computeForNode(node, createInvokeId(node.assignmentOperator));
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.UNRESOLVED_SUPER:
+              break outer;
+            case AccessKind.COMPOUND:
+              switch (sendStructure.semantics.compoundAccessKind) {
+                case CompoundAccessKind.SUPER_GETTER_SETTER:
+                case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+                case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+                  break outer;
+                default:
+              }
+              break;
+            default:
+          }
+          computeForNode(node, createAccessId(node.selector));
           computeForNode(node, createUpdateId(node.selector));
           break;
         case SendStructureKind.PREFIX:
