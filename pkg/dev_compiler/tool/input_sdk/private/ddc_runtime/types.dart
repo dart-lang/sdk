@@ -1109,10 +1109,17 @@ Object extractTypeArguments<T>(T instance, Function f) {
     throw new ArgumentError('Cannot extract type of null instance.');
   }
   var type = unwrapType(T);
-  if (type is AbstractFunctionType) {
+  if (type is AbstractFunctionType || _isFutureOr(type)) {
     throw new ArgumentError('Cannot extract from non-class type ($type).');
   }
-  List typeArgs = _extractTypes(getReifiedType(instance), type);
+  var typeArguments = getGenericArgs(type);
+  if (typeArguments.isEmpty) {
+    throw new ArgumentError('Cannot extract from non-generic type ($type).');
+  }
+  List typeArgs = _extractTypes(getReifiedType(instance), type, typeArguments);
+  // The signature of this method guarantees that instance is a T, so we
+  // should have a valid non-empty list at this point.
+  assert(typeArgs != null && typeArgs.isNotEmpty);
   return _checkAndCall(
       f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, [], 'call');
 }
@@ -1130,8 +1137,7 @@ Object extractTypeArguments<T>(T instance, Function f) {
 // [String] depending on which it hits first.
 //
 // TODO(vsm): Consider merging with similar isClassSubType logic.
-List _extractTypes(Type t1, Type t2) => JS('', '''(() => {
-  let typeArguments2 = $getGenericArgs($t2);
+List _extractTypes(Type t1, Type t2, List typeArguments2) => JS('', '''(() => {
   if ($t1 == $t2) return typeArguments2;
 
   if ($t1 == $Object) return null;
@@ -1146,15 +1152,10 @@ List _extractTypes(Type t1, Type t2) => JS('', '''(() => {
   if (raw1 != null && raw1 == raw2) {
     let typeArguments1 = $getGenericArgs($t1);
     let length = typeArguments1.length;
-    if (typeArguments2.length == 0) {
-      // t2 is the raw form of t1
-      return typeArguments1;
-    } else if (length == 0) {
-      // t1 is raw, but t2 is not
-      if (typeArguments2.every($_isTop)) return typeArguments2;
-      return null;
-    }
-    if (length != typeArguments2.length) $assertFailed();
+    if (length == 0 || length != typeArguments2.length) $assertFailed();
+    // TODO(vsm): Remove this subtyping check if/when we eliminate the ability
+    // to implement multiple versions of the same interface
+    // (e.g., Foo<int>, Foo<String>).
     for (let i = 0; i < length; ++i) {
       let result =
           $_isSubtype(typeArguments1[i], typeArguments2[i], true);
@@ -1165,13 +1166,13 @@ List _extractTypes(Type t1, Type t2) => JS('', '''(() => {
     return typeArguments1;
   }
 
-  var result = $_extractTypes($t1.__proto__, $t2);
+  var result = $_extractTypes($t1.__proto__, $t2, $typeArguments2);
   if (result) return result;
 
   // Check mixin.
   let m1 = $getMixin($t1);
   if (m1 != null) {
-    result = $_extractTypes(m1, $t2);
+    result = $_extractTypes(m1, $t2, $typeArguments2);
     if (result) return result;
   }
 
@@ -1179,7 +1180,7 @@ List _extractTypes(Type t1, Type t2) => JS('', '''(() => {
   let getInterfaces = $getImplements($t1);
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
-      result = $_extractTypes(i1, $t2);
+      result = $_extractTypes(i1, $t2, $typeArguments2);
       if (result) return result;
     }
   }
