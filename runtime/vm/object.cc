@@ -9350,6 +9350,9 @@ bool Script::HasSource() const {
 RawString* Script::Source() const {
   String& source = String::Handle(raw_ptr()->source_);
   if (source.IsNull()) {
+    if (kind() == RawScript::kKernelTag) {
+      return String::null();
+    }
     return GenerateSource();
   }
   return raw_ptr()->source_;
