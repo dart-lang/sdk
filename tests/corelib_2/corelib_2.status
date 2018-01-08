@@ -215,7 +215,7 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel ]
+[ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]
 apply3_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 from_environment_const_type_test/02: MissingCompileTimeError
@@ -250,11 +250,14 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
+[ $compiler == dart2js && $checked && $dart2js_with_kernel && !$strong ]
+*: SkipByDesign
+
 [ $compiler == dart2js && $dart2js_with_kernel ]
 int_from_environment_test: Pass # Issue 31762
 int_parse_radix_test/none: Pass # Issue 31762
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
@@ -270,8 +273,12 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]
 apply3_test: RuntimeError
+cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
@@ -279,6 +286,8 @@ iterable_to_list_test/01: RuntimeError
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
+null_nosuchmethod_test/01: RuntimeError
+null_nosuchmethod_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
@@ -287,8 +296,12 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+[ $compiler == dart2js && $dart2js_with_kernel && $host_checked && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
 apply3_test: RuntimeError
+cast_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
@@ -301,6 +314,8 @@ iterable_to_set_test: Crash # Assertion failure: Cannot find value Instance of '
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
+null_nosuchmethod_test/01: RuntimeError
+null_nosuchmethod_test/none: RuntimeError
 splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
@@ -314,6 +329,9 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+
+[ $compiler == dart2js && $dart2js_with_kernel && $minified && !$strong ]
+*: SkipByDesign
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 iterable_return_type_test/01: RuntimeError # Issue 20085
