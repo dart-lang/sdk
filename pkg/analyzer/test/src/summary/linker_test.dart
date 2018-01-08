@@ -467,6 +467,33 @@ class C extends A<int> {
     expect(fType.parameters[0].type.toString(), 'int');
   }
 
+  @failingTest
+  void test_inferredType_parameter_genericFunctionType_asTypeArgument() {
+    var bundle = createPackageBundle('''
+class A<T> {
+  A<R> map<R>(List<R Function(T)> fs) => null;
+}
+''', path: '/a.dart');
+    addBundle('/a.ds', bundle);
+    createLinker('''
+import 'a.dart';
+class C extends A<int> {
+  map<R2>(fs) => null;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.methods, hasLength(1));
+    MethodElementForLink map = c.methods[0];
+    expect(map.parameters, hasLength(1));
+    InterfaceType iType = map.parameters[0].type;
+    expect(iType.typeArguments, hasLength(1));
+    FunctionType fType = iType.typeArguments[0];
+    expect(fType.returnType.toString(), 'R2');
+    expect(fType.parameters[0].type.toString(), 'int');
+  }
+
   void test_inferredType_staticField_dynamic() {
     createLinker('''
 dynamic x = null;

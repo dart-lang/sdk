@@ -229,7 +229,9 @@ EntityRefBuilder _createLinkedType(
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
-    if (element is GenericFunctionTypeElement) {
+    if (element is GenericFunctionTypeElementForLink) {
+      // Function types are their own type parameter context
+      typeParameterContext = element;
       result.entityKind = EntityRefKind.genericFunctionType;
       result.syntheticReturnType = _createLinkedType(
           type.returnType, compilationUnit, typeParameterContext);
@@ -237,6 +239,8 @@ EntityRefBuilder _createLinkedType(
           .map((ParameterElement param) => _serializeSyntheticParam(
               param, compilationUnit, typeParameterContext))
           .toList();
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
     // TODO(paulberry): implement other cases.
