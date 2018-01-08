@@ -151,7 +151,14 @@ Future<CompiledData> computeData(
       if (!elementEnvironment.isEnumClass(cls)) {
         elementEnvironment.forEachConstructor(cls, processMember);
       }
-      elementEnvironment.forEachLocalClassMember(cls, processMember);
+      elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+        if (member.enclosingClass != cls) {
+          // Skip mixin members to avoid processing them twice. They will be
+          // processed as part of their declaring class.
+          return;
+        }
+        processMember(member);
+      });
     });
     elementEnvironment.forEachLibraryMember(mainLibrary, processMember);
   } else if (forUserSourceFilesOnly) {
@@ -181,7 +188,7 @@ class CompiledData {
     thisMap.forEach((Id id, ActualData data1) {
       String value1 = '${data1.value}';
       annotations
-          .putIfAbsent(data1.sourceSpan.begin, () => [])
+          .putIfAbsent(data1.offset, () => [])
           .add(colorizeSingle(value1));
     });
     return annotations;
@@ -197,23 +204,20 @@ class CompiledData {
       if (data1.value != data2?.value) {
         String value2 = '${data2?.value ?? '---'}';
         annotations
-            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .putIfAbsent(data1.offset, () => [])
             .add(colorizeDiff(value1, ' | ', value2));
       } else if (includeMatches) {
         annotations
-            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .putIfAbsent(data1.offset, () => [])
             .add(colorizeMatch(value1));
       }
     });
     otherMap.forEach((Id id, ActualData data2) {
       if (!thisMap.containsKey(id)) {
-        int offset = compiler.reporter
-            .spanFromSpannable(computeSpannable(elementEnvironment, uri, id))
-            .begin;
         String value1 = '---';
         String value2 = '${data2.value}';
         annotations
-            .putIfAbsent(offset, () => [])
+            .putIfAbsent(data2.offset, () => [])
             .add(colorizeDiff(value1, ' | ', value2));
       }
     });

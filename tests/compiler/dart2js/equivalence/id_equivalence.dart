@@ -161,6 +161,15 @@ class ActualData {
 
   ActualData(this.value, this.sourceSpan, this.object);
 
+  int get offset {
+    Id id = value.id;
+    if (id is NodeId) {
+      return id.value;
+    } else {
+      return sourceSpan.begin;
+    }
+  }
+
   String toString() =>
       'ActualData(value=$value,sourceSpan=$sourceSpan,object=$object)';
 }

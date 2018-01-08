@@ -32,6 +32,9 @@ const List<String> skipList = const <String>[
   'closure_tracer.dart',
   'closure_tracer_28919.dart',
   'index_call.dart',
+  'map_tracer_const.dart',
+  // Id equivalence doesn't support libraries.
+  'mixin_constructor_default_parameter_values.dart',
 ];
 
 main(List<String> args) {
