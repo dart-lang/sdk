@@ -225,7 +225,6 @@ generic_method_types_test/01: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
-generic_methods_closure_test: RuntimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
@@ -239,7 +238,6 @@ generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_reuse_type_variables_test: RuntimeError
-generic_methods_shadowing_test: RuntimeError
 generic_methods_simple_as_expression_test/02: MissingRuntimeError
 generic_methods_simple_is_expression_test: RuntimeError
 generic_methods_tearoff_specialization_test: RuntimeError
@@ -1850,8 +1848,6 @@ generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
-generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
@@ -2276,9 +2272,7 @@ generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
-generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_generic_function_parameter_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
-generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_methods_simple_as_expression_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_simple_as_expression_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_type_expression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
@@ -3034,7 +3028,9 @@ generic_function_typedef2_test/02: MissingCompileTimeError # Issue 28214
 generic_function_typedef2_test/03: MissingCompileTimeError # Issue 28214
 generic_function_typedef2_test/05: Crash # Issue 28214
 generic_function_typedef2_test/06: Crash # Issue 28214
+generic_methods_closure_test: RuntimeError
 generic_methods_local_variable_declaration_test: RuntimeError
+generic_methods_shadowing_test: RuntimeError
 getter_setter_in_lib_test: Fail # Issue 23288
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 if_null_assignment_behavior_test/13: Crash # Issue 23491
