@@ -69,6 +69,7 @@ coverage_optimized_function_test: Crash # Please triage
 
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
+get_cpu_profile_timeline_rpc_test: Pass, RuntimeError  # http://dartbug.com/31794
 
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
