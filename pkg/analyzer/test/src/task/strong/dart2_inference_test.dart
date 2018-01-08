@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -652,6 +653,51 @@ class C {
     assertType('f()) {} // setter');
     assertType('f()) {} // top variable');
     assertType('f()) {} // top setter');
+  }
+
+  test_implicitVoidReturnType_default() async {
+    var code = r'''
+class C {
+  set x(_) {}
+  operator []=(int index, double value) => null;
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    ClassElement c = unit.element.getType('C');
+
+    PropertyAccessorElement x = c.accessors[0];
+    expect(x.returnType, VoidTypeImpl.instance);
+
+    MethodElement operator = c.methods[0];
+    expect(operator.displayName, '[]=');
+    expect(operator.returnType, VoidTypeImpl.instance);
+  }
+
+  test_implicitVoidReturnType_derived() async {
+    var code = r'''
+class Base {
+  dynamic set x(_) {}
+  dynamic operator[]=(int x, int y) => null;
+}
+class Derived extends Base {
+  set x(_) {}
+  operator[]=(int x, int y) {}
+}''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    ClassElement c = unit.element.getType('Derived');
+
+    PropertyAccessorElement x = c.accessors[0];
+    expect(x.returnType, VoidTypeImpl.instance);
+
+    MethodElement operator = c.methods[0];
+    expect(operator.displayName, '[]=');
+    expect(operator.returnType, VoidTypeImpl.instance);
   }
 
   test_inferObject_whenDownwardNull() async {

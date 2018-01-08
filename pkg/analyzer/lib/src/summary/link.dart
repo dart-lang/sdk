@@ -1982,10 +1982,13 @@ abstract class ExecutableElementForLink extends Object
    * better return type).
    */
   DartType _computeDefaultReturnType() {
-    if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
+    var kind = _unlinkedExecutable.kind;
+    var isMethod = kind == UnlinkedExecutableKind.functionOrMethod;
+    var isSetter = kind == UnlinkedExecutableKind.setter;
+    if ((isSetter || isMethod && _unlinkedExecutable.name == '[]=') &&
         (library as LibraryElementForLink)._linker.strongMode) {
-      // In strong mode, setters without an explicit return type are
-      // considered to return `void`.
+      // In strong mode, setters and `[]=` operators without an explicit
+      // return type are considered to return `void`.
       return VoidTypeImpl.instance;
     } else {
       return DynamicTypeImpl.instance;
