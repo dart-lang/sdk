@@ -42,6 +42,9 @@ named_parameters: Fail
 null_aware: Fail
 operators: Fail
 optional: Fail
+override_check_accessor_after_inference: TypeCheckError # Issue #31620
+override_check_accessor_basic: TypeCheckError # Issue #31620
+override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
 override_check_after_inference: TypeCheckError # Issue #31620
 override_check_basic: TypeCheckError # Issue #31620
 override_check_with_covariant_modifier: TypeCheckError # Issue #31620

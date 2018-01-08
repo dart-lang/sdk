@@ -225,6 +225,16 @@ abstract class KernelClassBuilder
           checkMethodOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
         }
+        if (declaredMember.kind == ProcedureKind.Getter &&
+            interfaceMember.kind == ProcedureKind.Getter) {
+          checkGetterOverride(
+              hierarchy, typeEnvironment, declaredMember, interfaceMember);
+        }
+        if (declaredMember.kind == ProcedureKind.Setter &&
+            interfaceMember.kind == ProcedureKind.Setter) {
+          checkSetterOverride(
+              hierarchy, typeEnvironment, declaredMember, interfaceMember);
+        }
       }
       // TODO(ahe): Handle other cases: accessors, operators, and fields.
     });
@@ -455,6 +465,51 @@ abstract class KernelClassBuilder
           declaredParameter.isCovariant,
           declaredParameter);
     }
+  }
+
+  void checkGetterOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Procedure declaredMember,
+      Procedure interfaceMember) {
+    if (declaredMember.enclosingClass != cls) {
+      // TODO(paulberry): Include these checks as well, but the message needs to
+      // explain that [declaredMember] is inherited.
+      return;
+    }
+    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+        hierarchy, declaredMember, interfaceMember, null, null);
+    var declaredType = declaredMember.getterType;
+    var interfaceType = interfaceMember.getterType;
+    _checkTypes(typeEnvironment, interfaceSubstitution, declaredMember,
+        interfaceMember, declaredType, interfaceType, false, null);
+  }
+
+  void checkSetterOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Procedure declaredMember,
+      Procedure interfaceMember) {
+    if (declaredMember.enclosingClass != cls) {
+      // TODO(paulberry): Include these checks as well, but the message needs to
+      // explain that [declaredMember] is inherited.
+      return;
+    }
+    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+        hierarchy, declaredMember, interfaceMember, null, null);
+    var declaredType = declaredMember.setterType;
+    var interfaceType = interfaceMember.setterType;
+    var declaredParameter = declaredMember.function.positionalParameters[0];
+    bool isCovariant = declaredParameter.isCovariant;
+    _checkTypes(
+        typeEnvironment,
+        interfaceSubstitution,
+        declaredMember,
+        interfaceMember,
+        declaredType,
+        interfaceType,
+        isCovariant,
+        declaredParameter);
   }
 
   String get fullNameForErrors {

@@ -380,8 +380,8 @@ deferred_load_inval_code_test: RuntimeError
 deferred_load_inval_code_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_mixin_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_mixin_test: RuntimeError
+deferred_mixin_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_no_such_method_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
@@ -477,8 +477,8 @@ generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_unused_parameter_test: RuntimeError
+generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
@@ -635,19 +635,10 @@ override_inheritance_abstract_test/23: MissingCompileTimeError
 override_inheritance_abstract_test/24: MissingCompileTimeError
 override_inheritance_abstract_test/25: MissingCompileTimeError
 override_inheritance_abstract_test/26: MissingCompileTimeError
-override_inheritance_field_test/05: MissingCompileTimeError
-override_inheritance_field_test/07: MissingCompileTimeError
-override_inheritance_field_test/08: MissingCompileTimeError
-override_inheritance_field_test/09: MissingCompileTimeError
-override_inheritance_field_test/10: MissingCompileTimeError
-override_inheritance_field_test/11: MissingCompileTimeError
-override_inheritance_field_test/28: MissingCompileTimeError
-override_inheritance_field_test/30: MissingCompileTimeError
-override_inheritance_field_test/31: MissingCompileTimeError
-override_inheritance_field_test/32: MissingCompileTimeError
-override_inheritance_field_test/33: MissingCompileTimeError
-override_inheritance_field_test/33a: MissingCompileTimeError
-override_inheritance_field_test/34: MissingCompileTimeError
+override_inheritance_field_test/04: CompileTimeError # Issue 31616
+override_inheritance_field_test/06: CompileTimeError # Issue 31616
+override_inheritance_field_test/26: CompileTimeError # Issue 31616
+override_inheritance_field_test/29: CompileTimeError # Issue 31616
 override_inheritance_field_test/44: MissingCompileTimeError
 override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
@@ -1241,10 +1232,10 @@ dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 emit_const_fields_test: CompileTimeError # Issue 31533
 enum_mirror_test: SkipByDesign
 example_constructor_test: Fail, OK
-export_ambiguous_main_negative_test: Skip # Issue 29895
 export_ambiguous_main_negative_test: Fail # Issue 14763
-export_double_same_main_test: Skip # Issue 29895
+export_ambiguous_main_negative_test: Skip # Issue 29895
 export_double_same_main_test: Crash # Issue 29895
+export_double_same_main_test: Skip # Issue 29895
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
@@ -1276,8 +1267,8 @@ function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure5_test: RuntimeError
 function_subtype_bound_closure5a_test: RuntimeError
 function_subtype_bound_closure6_test: RuntimeError
-function_subtype_bound_closure7_test: RuntimeError
 function_subtype_bound_closure7_test: CompileTimeError # Issue 31402 (Variable declaration)
+function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError
@@ -1309,11 +1300,14 @@ generic_function_dcall_test: CompileTimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
+generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash, Pass
+generic_methods_recursive_bound_test/03: MissingRuntimeError
+generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
@@ -1505,19 +1499,10 @@ override_inheritance_abstract_test/23: MissingCompileTimeError
 override_inheritance_abstract_test/24: MissingCompileTimeError
 override_inheritance_abstract_test/25: MissingCompileTimeError
 override_inheritance_abstract_test/26: MissingCompileTimeError
-override_inheritance_field_test/05: MissingCompileTimeError
-override_inheritance_field_test/07: MissingCompileTimeError
-override_inheritance_field_test/08: MissingCompileTimeError
-override_inheritance_field_test/09: MissingCompileTimeError
-override_inheritance_field_test/10: MissingCompileTimeError
-override_inheritance_field_test/11: MissingCompileTimeError
-override_inheritance_field_test/28: MissingCompileTimeError
-override_inheritance_field_test/30: MissingCompileTimeError
-override_inheritance_field_test/31: MissingCompileTimeError
-override_inheritance_field_test/32: MissingCompileTimeError
-override_inheritance_field_test/33: MissingCompileTimeError
-override_inheritance_field_test/33a: MissingCompileTimeError
-override_inheritance_field_test/34: MissingCompileTimeError
+override_inheritance_field_test/04: CompileTimeError # Issue 31616
+override_inheritance_field_test/06: CompileTimeError # Issue 31616
+override_inheritance_field_test/26: CompileTimeError # Issue 31616
+override_inheritance_field_test/29: CompileTimeError # Issue 31616
 override_inheritance_field_test/44: MissingCompileTimeError
 override_inheritance_field_test/47: MissingCompileTimeError
 override_inheritance_field_test/48: MissingCompileTimeError
