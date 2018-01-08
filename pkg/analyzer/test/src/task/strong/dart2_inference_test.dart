@@ -29,6 +29,98 @@ class Dart2InferenceTest extends ResolverTestCase {
   @override
   bool get enableNewAnalysisDriver => true;
 
+  test_bool_assert() async {
+    var code = r'''
+T f<T>() => null;
+
+main() {
+  assert(f()); // 1
+  assert(f(), f()); // 2
+}
+
+class C {
+  C() : assert(f()), // 3
+        assert(f(), f()); // 4
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    String getType(String prefix) {
+      var invocation = _findMethodInvocation(unit, code, prefix);
+      return invocation.staticInvokeType.toString();
+    }
+
+    expect(getType('f()); // 1'), '() → bool');
+
+    expect(getType('f(), '), '() → bool');
+    expect(getType('f()); // 2'), '() → dynamic');
+
+    expect(getType('f()), // 3'), '() → bool');
+
+    expect(getType('f(), '), '() → bool');
+    expect(getType('f()); // 4'), '() → dynamic');
+  }
+
+  test_bool_logical() async {
+    var code = r'''
+T f<T>() => null;
+
+var v1 = f() || f(); // 1
+var v2 = f() && f(); // 2
+
+main() {
+  var v1 = f() || f(); // 3
+  var v2 = f() && f(); // 4
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    void assertType(String prefix) {
+      var invocation = _findMethodInvocation(unit, code, prefix);
+      expect(invocation.staticInvokeType.toString(), '() → bool');
+    }
+
+    assertType('f() || f(); // 1');
+    assertType('f(); // 1');
+    assertType('f() && f(); // 2');
+    assertType('f(); // 2');
+
+    assertType('f() || f(); // 3');
+    assertType('f(); // 3');
+    assertType('f() && f(); // 4');
+    assertType('f(); // 4');
+  }
+
+  test_bool_statement() async {
+    var code = r'''
+T f<T>() => null;
+
+main() {
+  while (f()) {} // 1
+  do {} while (f()); // 2
+  if (f()) {} // 3
+  for (; f(); ) {} // 4
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    void assertType(String prefix) {
+      var invocation = _findMethodInvocation(unit, code, prefix);
+      expect(invocation.staticInvokeType.toString(), '() → bool');
+    }
+
+    assertType('f()) {} // 1');
+    assertType('f());');
+    assertType('f()) {} // 3');
+    assertType('f(); ) {} // 4');
+  }
+
   test_closure_downwardReturnType_arrow() async {
     var code = r'''
 void main() {

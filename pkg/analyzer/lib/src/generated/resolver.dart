@@ -5245,6 +5245,8 @@ class ResolverVisitor extends ScopedVisitor {
     Expression leftOperand = node.leftOperand;
     Expression rightOperand = node.rightOperand;
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      InferenceContext.setType(leftOperand, typeProvider.boolType);
+      InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -5268,6 +5270,8 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     } else if (operatorType == TokenType.BAR_BAR) {
+      InferenceContext.setType(leftOperand, typeProvider.boolType);
+      InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -5565,6 +5569,7 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitDoStatement(DoStatement node) {
     _overrideManager.enterScope();
     try {
+      InferenceContext.setType(node.condition, typeProvider.boolType);
       super.visitDoStatement(node);
     } finally {
       _overrideManager.exitScope();
@@ -5747,6 +5752,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
+    InferenceContext.setType(node.condition, typeProvider.boolType);
     node.condition?.accept(this);
     _overrideManager.enterScope();
     try {
@@ -5863,6 +5869,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
     Map<VariableElement, DartType> thenOverrides =
         const <VariableElement, DartType>{};
@@ -6215,6 +6222,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
       Expression condition = node.condition;
+      InferenceContext.setType(condition, typeProvider.boolType);
       condition?.accept(this);
       Statement body = node.body;
       if (body != null) {
