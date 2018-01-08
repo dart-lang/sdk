@@ -268,10 +268,6 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
               ErroneousElement element = elementType.element;
               reporter.reportErrorMessage(
                   node, element.messageKind, element.messageArguments);
-            } else {
-              assert(elementType is MethodTypeVariableType);
-              // Used to `reportErrorMessage` here, but with Dart 2 upcoming
-              // very soon we do not emit this message any more.
             }
           } else {
             // We need to throw an exception at runtime.

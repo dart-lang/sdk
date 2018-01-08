@@ -404,6 +404,8 @@ enum MessageKind {
   TYPE_ARGUMENT_COUNT_MISMATCH,
   TYPE_VARIABLE_IN_CONSTANT,
   TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+  TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
+  TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
   TYPEDEF_FORMAL_WITH_DEFAULT,
   UNARY_OPERATOR_BAD_ARITY,
   UNBOUND_LABEL,
@@ -1195,6 +1197,43 @@ class C<T> {
 }
 
 void main() => new C().m(null);
+"""
+          ]),
+
+      MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED: const MessageTemplate(
+          MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
+          "Method type variables do not have a runtime value.",
+          howToFix: "Try using the upper bound of the type variable, "
+              "or refactor the code to avoid needing this runtime value.",
+          examples: const [
+            """
+// Method type variables are not reified, so they cannot be returned.
+Type f<T>() => T;
+
+main() => f<int>();
+""",
+            """
+// Method type variables are not reified, so they cannot be tested dynamically.
+bool f<T>(Object o) => o is T;
+
+main() => f<int>(42);
+"""
+          ]),
+
+      MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC:
+          const MessageTemplate(
+              MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
+              "Method type variables are treated as `dynamic` in `as` "
+              "expressions.",
+              howToFix:
+                  "Try using the upper bound of the type variable, or check "
+                  "that the blind success of the test does not introduce bugs.",
+              examples: const [
+            """
+// Method type variables are not reified, so they cannot be tested dynamically.
+bool f<T>(Object o) => o as T;
+
+main() => f<int>(42);
 """
           ]),
 
