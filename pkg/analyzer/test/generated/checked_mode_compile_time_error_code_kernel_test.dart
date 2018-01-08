@@ -19,7 +19,7 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @failingTest
   @override

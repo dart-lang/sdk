@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetLibraryDependenciesTest);
-    defineReflectiveTests(GetLibraryDependenciesTest_PreviewDart2);
+    defineReflectiveTests(GetLibraryDependenciesTest_UseCFE);
   });
 }
 
@@ -48,8 +48,7 @@ class Bar {
 }
 
 @reflectiveTest
-class GetLibraryDependenciesTest_PreviewDart2
-    extends GetLibraryDependenciesTest {
+class GetLibraryDependenciesTest_UseCFE extends GetLibraryDependenciesTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

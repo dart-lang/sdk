@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShutdownTest);
-    defineReflectiveTests(ShutdownTest_PreviewDart2);
+    defineReflectiveTests(ShutdownTest_UseCFE);
   });
 }
 
@@ -32,7 +32,7 @@ class ShutdownTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class ShutdownTest_PreviewDart2 extends ShutdownTest {
+class ShutdownTest_UseCFE extends ShutdownTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

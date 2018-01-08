@@ -18,7 +18,7 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest

@@ -1199,7 +1199,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.resynthesizer,
                 library,
                 enableKernelDriver: true,
-                previewDart2: _analysisOptions.useFastaParser,
+                useCFE: _analysisOptions.useFastaParser,
                 kernelDriver: _kernelDriver);
           } else {
             libraryContext = await _createLibraryContext(library);

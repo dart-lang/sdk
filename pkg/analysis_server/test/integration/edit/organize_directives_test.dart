@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
-    defineReflectiveTests(OrganizeDirectivesTest_PreviewDart2);
+    defineReflectiveTests(OrganizeDirectivesTest_UseCFE);
   });
 }
 
@@ -77,7 +77,7 @@ int minified(int x, int y) => min(x, y);
 }
 
 @reflectiveTest
-class OrganizeDirectivesTest_PreviewDart2 extends OrganizeDirectivesTest {
+class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

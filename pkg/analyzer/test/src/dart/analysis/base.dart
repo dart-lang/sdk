@@ -68,9 +68,14 @@ class BaseAnalysisDriverTest {
   bool get disableChangesAndCacheAllResults => false;
 
   /**
-   * Whether to enable the Dart 2.0 Front End.
+   * Whether to enable the Dart 2.0 preview.
    */
-  bool get previewDart2 => false;
+  bool previewDart2 = false;
+
+  /**
+   * Whether to enable the Dart 2.0 Common Front End.
+   */
+  bool useCFE = false;
 
   void addTestFile(String content, {bool priority: false}) {
     testCode = content;
@@ -100,13 +105,13 @@ class BaseAnalysisDriverTest {
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         externalSummaries: externalSummaries,
-        enableKernelDriver: previewDart2);
+        enableKernelDriver: useCFE);
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
     ..strongMode = true
     ..enableUriInPartOf = true
-    ..useFastaParser = previewDart2;
+    ..useFastaParser = useCFE;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

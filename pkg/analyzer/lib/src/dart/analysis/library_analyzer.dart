@@ -52,7 +52,7 @@ class LibraryAnalyzer {
   final FileState _library;
 
   final bool _enableKernelDriver;
-  final bool _previewDart2;
+  final bool _useCFE;
   final KernelDriver _kernelDriver;
 
   final bool Function(Uri) _isLibraryUri;
@@ -81,11 +81,11 @@ class LibraryAnalyzer {
       this._resynthesizer,
       this._library,
       {bool enableKernelDriver: false,
-      bool previewDart2: false,
+      bool useCFE: false,
       KernelDriver kernelDriver})
       : _typeProvider = _context.typeProvider,
         _enableKernelDriver = enableKernelDriver,
-        _previewDart2 = previewDart2,
+        _useCFE = useCFE,
         _kernelDriver = kernelDriver;
 
   /**
@@ -93,7 +93,7 @@ class LibraryAnalyzer {
    */
   Future<Map<FileState, UnitAnalysisResult>> analyze() async {
     return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
-      if (_previewDart2) {
+      if (_useCFE) {
         return await _analyze2();
       } else {
         return _analyze();
@@ -513,9 +513,8 @@ class LibraryAnalyzer {
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit _parse(FileState file) {
-    AnalysisErrorListener errorListener = _previewDart2
-        ? AnalysisErrorListener.NULL_LISTENER
-        : _getErrorListener(file);
+    AnalysisErrorListener errorListener =
+        _useCFE ? AnalysisErrorListener.NULL_LISTENER : _getErrorListener(file);
     String content = file.content;
     CompilationUnit unit = file.parse(errorListener);
 

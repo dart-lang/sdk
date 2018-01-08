@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetPriorityFilesTest);
-    defineReflectiveTests(SetPriorityFilesTest_PreviewDart2);
+    defineReflectiveTests(SetPriorityFilesTest_UseCFE);
   });
 }
 
@@ -31,7 +31,7 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class SetPriorityFilesTest_PreviewDart2 extends SetPriorityFilesTest {
+class SetPriorityFilesTest_UseCFE extends SetPriorityFilesTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

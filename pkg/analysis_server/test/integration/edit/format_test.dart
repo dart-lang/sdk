@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
-    defineReflectiveTests(FormatTest_PreviewDart2);
+    defineReflectiveTests(FormatTest_UseCFE);
   });
 }
 
@@ -81,7 +81,7 @@ class Class1 {
 }
 
 @reflectiveTest
-class FormatTest_PreviewDart2 extends FormatTest {
+class FormatTest_UseCFE extends FormatTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

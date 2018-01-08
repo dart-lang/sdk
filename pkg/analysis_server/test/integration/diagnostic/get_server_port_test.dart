@@ -14,7 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetServerPortTest);
-    defineReflectiveTests(GetServerPortTest_PreviewDart2);
+    defineReflectiveTests(GetServerPortTest_UseCFE);
   });
 }
 
@@ -38,7 +38,7 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class GetServerPortTest_PreviewDart2 extends GetServerPortTest {
+class GetServerPortTest_UseCFE extends GetServerPortTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

@@ -75,6 +75,7 @@ main() {
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isFalse);
         expect(options.lintsAreFatal, isFalse);
+        expect(options.useCFE, isFalse);
         expect(options.previewDart2, isFalse);
       });
 
@@ -251,7 +252,13 @@ main() {
         });
       }
 
-      test('preview FE', () {
+      test('--use-cfe', () {
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--use-cfe', 'foo.dart']);
+        expect(options.useCFE, isTrue);
+      });
+
+      test('--preview-dart-2', () {
         CommandLineOptions options =
             CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
         expect(options.previewDart2, isTrue);

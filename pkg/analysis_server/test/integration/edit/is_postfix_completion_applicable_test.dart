@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsPostfixCompletionApplicableTest);
-    defineReflectiveTests(IsPostfixCompletionApplicableTest_PreviewDart2);
+    defineReflectiveTests(IsPostfixCompletionApplicableTest_UseCFE);
   });
 }
 
@@ -42,8 +42,8 @@ void foo() { }
 }
 
 @reflectiveTest
-class IsPostfixCompletionApplicableTest_PreviewDart2
+class IsPostfixCompletionApplicableTest_UseCFE
     extends IsPostfixCompletionApplicableTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

@@ -14,7 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
-    defineReflectiveTests(AnalysisHighlightsTest_PreviewDart2);
+    defineReflectiveTests(AnalysisHighlightsTest_UseCFE);
   });
 }
 
@@ -24,14 +24,14 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     bool checked: true,
     int diagnosticPort,
     int servicesPort,
-    bool previewDart2: false,
+    bool cfe: false,
   }) {
     return server.start(
         checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
         useAnalysisHighlight2: true,
-        previewDart2: previewDart2);
+        useCFE: cfe);
   }
 
   test_highlights() {
@@ -167,7 +167,7 @@ int topLevelVariable;
 }
 
 @reflectiveTest
-class AnalysisHighlightsTest_PreviewDart2 extends AnalysisHighlightsTest {
+class AnalysisHighlightsTest_UseCFE extends AnalysisHighlightsTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

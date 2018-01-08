@@ -33,7 +33,7 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -278,7 +278,7 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   test_futureOr_promotion3() async {
@@ -472,5 +472,5 @@ class StrongModeTypePropagationTest_Kernel
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 }

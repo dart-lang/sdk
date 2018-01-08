@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsIntegrationTest);
-    defineReflectiveTests(OptionsIntegrationTest_PreviewDart2);
+    defineReflectiveTests(OptionsIntegrationTest_UseCFE);
   });
 }
 
@@ -91,7 +91,7 @@ linter:
 }
 
 @reflectiveTest
-class OptionsIntegrationTest_PreviewDart2 extends OptionsIntegrationTest {
+class OptionsIntegrationTest_UseCFE extends OptionsIntegrationTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

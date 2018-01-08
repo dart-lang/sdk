@@ -10,7 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
-    defineReflectiveTests(SetSubscriptionsTest_PreviewDart2);
+    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
 }
 
@@ -33,7 +33,7 @@ class Foo {
 }
 
 @reflectiveTest
-class SetSubscriptionsTest_PreviewDart2 extends SetSubscriptionsTest {
+class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

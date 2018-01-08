@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeleteContextTest);
-    defineReflectiveTests(DeleteContextTest_PreviewDart2);
+    defineReflectiveTests(DeleteContextTest_UseCFE);
   });
 }
 
@@ -44,7 +44,7 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class DeleteContextTest_PreviewDart2 extends DeleteContextTest {
+class DeleteContextTest_UseCFE extends DeleteContextTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

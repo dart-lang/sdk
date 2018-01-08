@@ -1169,6 +1169,8 @@ class StatusPage extends DiagnosticPageWithNav {
     h3('Status');
     buf.writeln(writeOption('Preview-dart-2',
         diagnosticsSite.socketServer.analysisServerOptions.previewDart2));
+    buf.writeln(writeOption('Use common front end',
+        diagnosticsSite.socketServer.analysisServerOptions.useCFE));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
     buf.writeln(writeOption('Server process ID', pid));

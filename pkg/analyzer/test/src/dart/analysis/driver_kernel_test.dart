@@ -30,7 +30,7 @@ void _fail(String message) {
 @reflectiveTest
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -43,7 +43,7 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 @reflectiveTest
 class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
 //  @failingTest
 //  @potentialAnalyzerProblem

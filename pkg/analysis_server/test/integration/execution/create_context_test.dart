@@ -10,7 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateContextTest);
-    defineReflectiveTests(CreateContextTest_PreviewDart2);
+    defineReflectiveTests(CreateContextTest_UseCFE);
   });
 }
 
@@ -25,7 +25,7 @@ class CreateContextTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class CreateContextTest_PreviewDart2 extends CreateContextTest {
+class CreateContextTest_UseCFE extends CreateContextTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

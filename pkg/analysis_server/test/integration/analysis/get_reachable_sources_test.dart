@@ -13,7 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetReachableSourcesTest);
-    defineReflectiveTests(GetReachableSourcesTest_PreviewDart2);
+    defineReflectiveTests(GetReachableSourcesTest_UseCFE);
   });
 }
 
@@ -50,7 +50,7 @@ class Bar {
 }
 
 @reflectiveTest
-class GetReachableSourcesTest_PreviewDart2 extends GetReachableSourcesTest {
+class GetReachableSourcesTest_UseCFE extends GetReachableSourcesTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

@@ -113,7 +113,10 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
-  /// Whether to enable the Dart 2.0 Front End.
+  /// Whether to enable the Dart 2.0 Common Front End.
+  final bool useCFE;
+
+  /// Whether to enable the Dart 2.0 Preview.
   final bool previewDart2;
 
   /// Batch mode (for unit testing)
@@ -187,6 +190,7 @@ class CommandLineOptions {
         log = args['log'],
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
+        useCFE = args['use-cfe'],
         previewDart2 = args['preview-dart-2'],
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
@@ -514,8 +518,13 @@ class CommandLineOptions {
           allowMultiple: true,
           splitCommas: false,
           hide: hide)
+      ..addFlag('use-cfe',
+          help: 'Enable the Dart 2.0 Common Front End implementation.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
       ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 Front End implementation.',
+          help: 'Enable the Dart 2.0 preview.',
           defaultsTo: false,
           negatable: false,
           hide: hide);

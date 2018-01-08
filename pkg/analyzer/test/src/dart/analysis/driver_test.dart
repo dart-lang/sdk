@@ -1693,7 +1693,7 @@ main() {
 
     TypeName typeName = statement.variables.type;
     expect(typeName.type, isUndefinedType);
-    if (previewDart2) {
+    if (useCFE) {
       expect(typeName.typeArguments.arguments[0].type, isUndefinedType);
     } else {
       expect(typeName.typeArguments.arguments[0].type, typeProvider.intType);
@@ -2124,7 +2124,7 @@ main() {
 
       PrefixedIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, same(cElement));
-      if (previewDart2) {
+      if (useCFE) {
         expect(typeIdentifier.staticType, cTypeInt);
       } else {
         expect(typeIdentifier.staticType, cTypeDynamic);
@@ -2153,7 +2153,7 @@ main() {
 
       PrefixedIdentifier typeIdentifier = typeName.name;
       expect(typeIdentifier.staticElement, cElement);
-      if (previewDart2) {
+      if (useCFE) {
         expect(typeIdentifier.staticType, cTypeDouble);
       } else {
         expect(typeIdentifier.staticType, cTypeDynamic);
@@ -2506,7 +2506,7 @@ void main() {
     expect(fInvocation.methodName.staticElement, same(fElement));
     expect(fInvocation.staticType, typeProvider.intType);
     // TODO(scheglov) We don't support invoke types well.
-//    if (previewDart2) {
+//    if (useCFE) {
 //      String fInstantiatedType = '(int, String) → int';
 //      expect(fInvocation.methodName.staticType.toString(), fInstantiatedType);
 //      expect(fInvocation.staticInvokeType.toString(), fInstantiatedType);
@@ -3234,7 +3234,7 @@ class C<T, U> {
       var invokeTypeStr = '(int) → void';
       expect(invocation.staticType.toString(), 'void');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (previewDart2) {
+      if (useCFE) {
         expect(invocation.methodName.staticElement, same(mElement));
         expect(invocation.methodName.staticType.toString(), invokeTypeStr);
       } else {
@@ -3270,12 +3270,12 @@ class C<T> {
       var invokeTypeStr = '(int, double) → Map<int, double>';
       expect(invocation.staticType.toString(), 'Map<int, double>');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (previewDart2) {
+      if (useCFE) {
         expect(invocation.methodName.staticElement, same(mElement));
         expect(invocation.methodName.staticType.toString(), invokeTypeStr);
       }
 
-      if (previewDart2) {
+      if (useCFE) {
         expect(arguments[0].staticParameterElement, isNull);
         expect(arguments[1].staticParameterElement, isNull);
       } else {
@@ -3338,7 +3338,7 @@ class C {
     ExpressionStatement statement = fooStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement.getter));
-    if (previewDart2) {
+    if (useCFE) {
       _assertDynamicFunctionType(invocation.staticInvokeType);
     } else {
       expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
@@ -3372,7 +3372,7 @@ class C {
     ExpressionStatement statement = fooStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement));
-    if (previewDart2) {
+    if (useCFE) {
       _assertDynamicFunctionType(invocation.staticInvokeType);
     } else {
       expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
@@ -3534,7 +3534,7 @@ class C {
       var invokeTypeStr = '(int) → void';
       expect(invocation.staticType.toString(), 'void');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (!previewDart2) {
+      if (!useCFE) {
         expect(invocation.staticInvokeType.element, same(mElement));
       }
       expect(invocation.methodName.staticElement, same(mElement));
@@ -3558,7 +3558,7 @@ class C {
       var invokeTypeStr = '(int) → void';
       expect(invocation.staticType.toString(), 'void');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (!previewDart2) {
+      if (!useCFE) {
         expect(invocation.staticInvokeType.element, same(mElement));
       }
       expect(invocation.methodName.staticElement, same(mElement));
@@ -3664,7 +3664,7 @@ void f<T, U>(T a, U b) {}
       List<Expression> arguments = invocation.argumentList.arguments;
 
       expect(invocation.methodName.staticElement, same(fElement));
-      if (previewDart2) {
+      if (useCFE) {
         expect(invocation.methodName.staticType.toString(), fTypeString);
       }
       expect(invocation.staticType, VoidTypeImpl.instance);
@@ -3684,7 +3684,7 @@ void f<T, U>(T a, U b) {}
       List<Expression> arguments = invocation.argumentList.arguments;
 
       expect(invocation.methodName.staticElement, same(fElement));
-      if (previewDart2) {
+      if (useCFE) {
         expect(invocation.methodName.staticType.toString(), fTypeString);
       }
       expect(invocation.staticType, VoidTypeImpl.instance);
@@ -4625,7 +4625,7 @@ enum MyEnum {
 
     SimpleIdentifier dName = enumNode.name;
     expect(dName.staticElement, same(enumElement));
-    if (previewDart2) {
+    if (useCFE) {
       expect(dName.staticType, typeProvider.typeType);
     }
 
@@ -5463,13 +5463,13 @@ typedef void F(int p);
   }
 
   /// Assert that the [argument] is associated with the [expectedParameter],
-  /// if [previewDart2] is `null`. If the [argument] is a [NamedExpression],
+  /// if [useCFE] is `null`. If the [argument] is a [NamedExpression],
   /// the name must be resolved to the parameter in both cases.
   void _assertArgumentToParameter(
       Expression argument, ParameterElement expectedParameter,
       {DartType parameterMemberType}) {
     ParameterElement actualParameter = argument.staticParameterElement;
-    if (previewDart2) {
+    if (useCFE) {
       expect(actualParameter, isNull);
       if (argument is NamedExpression) {
         SimpleIdentifier name = argument.name.label;
@@ -5510,7 +5510,7 @@ typedef void F(int p);
 
   /// Assert that the [type] is a function type `() -> dynamic`.
   void _assertDynamicFunctionType(DartType type) {
-    if (previewDart2) {
+    if (useCFE) {
       expect(type.toString(), '() → dynamic');
     } else {
       expect(type, DynamicTypeImpl.instance);

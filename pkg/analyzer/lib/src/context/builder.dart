@@ -131,9 +131,14 @@ class ContextBuilder {
   FileContentOverlay fileContentOverlay;
 
   /**
-   * Whether to enable the Dart 2.0 Front End.
+   * Whether to enable the Dart 2.0 preview.
    */
   bool previewDart2 = false;
+
+  /**
+   * Whether to enable the Dart 2.0 Common Front End implementation.
+   */
+  bool useCFE = false;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -175,7 +180,7 @@ class ContextBuilder {
 
     // The folder with `vm_platform_strong.dill`, which has required patches.
     Folder kernelPlatformFolder;
-    if (previewDart2) {
+    if (useCFE) {
       DartSdk sdk = sf.dartSdk;
       if (sdk is FolderBasedDartSdk) {
         var binariesPath = computePlatformBinariesPath(sdk.directory.path);
@@ -194,7 +199,7 @@ class ContextBuilder {
         contextRoot,
         sf,
         options,
-        enableKernelDriver: previewDart2,
+        enableKernelDriver: useCFE,
         kernelPlatformFolder: kernelPlatformFolder);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {

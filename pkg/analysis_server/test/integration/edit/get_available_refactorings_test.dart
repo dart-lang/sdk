@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetAvailableRefactoringsTest);
-    defineReflectiveTests(GetAvailableRefactoringsTest_PreviewDart2);
+    defineReflectiveTests(GetAvailableRefactoringsTest_UseCFE);
   });
 }
 
@@ -38,8 +38,7 @@ void foo() { }
 }
 
 @reflectiveTest
-class GetAvailableRefactoringsTest_PreviewDart2
-    extends GetAvailableRefactoringsTest {
+class GetAvailableRefactoringsTest_UseCFE extends GetAvailableRefactoringsTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }
