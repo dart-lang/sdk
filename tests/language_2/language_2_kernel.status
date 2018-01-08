@@ -808,7 +808,6 @@ null_test/03: MissingCompileTimeError # Please triage.
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-assertion_test: Crash  # Issue http://dartbug.com/31793
 bad_named_parameters_test/01: Crash
 bad_named_parameters_test/02: Crash
 bad_named_parameters_test/05: Crash
