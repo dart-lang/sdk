@@ -249,6 +249,38 @@ void main() {
     expect(xElement.type, typeProvider.objectType);
   }
 
+  test_listMap_empty() async {
+    var code = r'''
+var x = [];
+var y = {};
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
+    expect(x.staticType.toString(), 'List<dynamic>');
+
+    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
+    expect(y.staticType.toString(), 'Map<dynamic, dynamic>');
+  }
+
+  test_listMap_null() async {
+    var code = r'''
+var x = [null];
+var y = {null: null};
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
+    expect(x.staticType.toString(), 'List<Null>');
+
+    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
+    expect(y.staticType.toString(), 'Map<Null, Null>');
+  }
+
   test_switchExpression_asContext_forCases() async {
     var code = r'''
 class C<T> {

@@ -4373,16 +4373,6 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_listLiteralsCanInferNull_topLevel() =>
-      super.test_listLiteralsCanInferNull_topLevel();
-
-  @failingTest
-  @override
-  test_mapLiteralsCanInferNull_topLevel() =>
-      super.test_mapLiteralsCanInferNull_topLevel();
-
-  @failingTest
-  @override
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
     await super
         .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
