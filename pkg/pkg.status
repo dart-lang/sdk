@@ -128,9 +128,6 @@ compiler/tool/generate_kernel_test*: Skip # Issue 28629
 front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 kernel/test/metadata_test: Skip # Issue 28629
 
-[ $runtime == vm && ! $use_sdk ]
-front_end/tool/perf_test: Skip # Issue 28698
-
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
