@@ -72,7 +72,6 @@ assertion_initializer_const_function_test/01: RuntimeError
 assertion_initializer_test: CompileTimeError
 assign_static_type_test/01: Fail
 assign_static_type_test/02: MissingCompileTimeError
-async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 async_star_cancel_while_paused_test: RuntimeError
@@ -513,7 +512,6 @@ arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_star_cancel_while_paused_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
@@ -828,7 +826,6 @@ type_checks_in_factory_method_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 async_star_cancel_while_paused_test: RuntimeError
 async_test/setter1: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
@@ -1150,7 +1147,6 @@ type_checks_in_factory_method_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_star_cancel_while_paused_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
