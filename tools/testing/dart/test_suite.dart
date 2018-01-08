@@ -1239,7 +1239,6 @@ class StandardTestSuite extends TestSuite {
     if (options != null) args.addAll(options);
     options = optionsFromFile['dart2jsOptions'] as List<String>;
     if (options != null) args.addAll(options);
-    print('options = ${args}');
 
     return Command.compilation(Compiler.dart2js.name, outputFile,
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
