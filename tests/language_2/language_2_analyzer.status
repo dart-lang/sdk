@@ -1028,10 +1028,6 @@ assertion_initializer_const_function_test/01: MissingStaticWarning
 assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
-combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
-combiner_type_lookup_instance_test: CompileTimeError # Issue #31484
-combiner_type_lookup_static_test: CompileTimeError # Issue #31484
-combiner_type_lookup_top_level_test: CompileTimeError # Issue #31484
 config_import_corelib_test: CompileTimeError
 const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
@@ -1244,10 +1240,6 @@ class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 closure_type_test: Pass
-combiner_type_lookup_indexed_test: StaticWarning # Issue #31484
-combiner_type_lookup_instance_test: StaticWarning # Issue #31484
-combiner_type_lookup_static_test: StaticWarning # Issue #31484
-combiner_type_lookup_top_level_test: StaticWarning # Issue #31484
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_method_invocation_test/05: MissingCompileTimeError

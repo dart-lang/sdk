@@ -18,7 +18,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/checker.dart' show getDefiniteType;
+import 'package:analyzer/src/task/strong/checker.dart'
+    show getDefiniteType, getReadType;
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -317,7 +318,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       // The static type of a compound assignment using ??= is the least upper
       // bound of the static types of the LHS and RHS.
-      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
+      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
+          read: true);
       return null;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -326,7 +328,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       staticType = _typeSystem.refineBinaryExpressionType(
-          node.leftHandSide.staticType,
+          _getStaticType(node.leftHandSide, read: true),
           operator,
           node.rightHandSide.staticType,
           staticType);
@@ -1065,11 +1067,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
-    DartType staticType = _getStaticType(operand);
+    DartType staticType = _getStaticType(operand, read: true);
     TokenType operator = node.operator.type;
     if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
       DartType intType = _typeProvider.intType;
-      if (identical(_getStaticType(node.operand), intType)) {
+      if (identical(staticType, intType)) {
         staticType = intType;
       }
     }
@@ -1174,7 +1176,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (operator == TokenType.MINUS_MINUS ||
           operator == TokenType.PLUS_PLUS) {
         DartType intType = _typeProvider.intType;
-        if (identical(_getStaticType(node.operand), intType)) {
+        if (identical(_getStaticType(node.operand, read: true), intType)) {
           staticType = intType;
         }
       }
@@ -1447,9 +1449,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * of the static (propagated) types of subexpressions [expr1] and [expr2].
    */
   void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2) {
-    DartType staticType1 = _getDefiniteType(expr1);
-    DartType staticType2 = _getDefiniteType(expr2);
+      Expression node, Expression expr1, Expression expr2,
+      {bool read: false}) {
+    DartType staticType1 = _getDefiniteType(expr1, read: read);
+    DartType staticType2 = _getDefiniteType(expr2, read: read);
     if (staticType1 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType1 = _dynamicType;
@@ -1661,8 +1664,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * See [getDefiniteType] for more information. Without strong mode, this is
    * equivalent to [_getStaticType].
    */
-  DartType _getDefiniteType(Expression expr) =>
-      getDefiniteType(expr, _typeSystem, _typeProvider);
+  DartType _getDefiniteType(Expression expr, {bool read: false}) =>
+      getDefiniteType(expr, _typeSystem, _typeProvider, read: read);
 
   /**
    * If the given element name can be mapped to the name of a class defined within the given
@@ -1796,8 +1799,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * Return the static type of the given [expression].
    */
-  DartType _getStaticType(Expression expression) {
-    DartType type = expression.staticType;
+  DartType _getStaticType(Expression expression, {bool read: false}) {
+    DartType type;
+    if (read) {
+      type = getReadType(expression);
+    } else {
+      type = expression.staticType;
+    }
     if (type == null) {
       // TODO(brianwilkerson) Determine the conditions for which the static type
       // is null.

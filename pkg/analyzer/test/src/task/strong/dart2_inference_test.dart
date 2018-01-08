@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
@@ -151,6 +153,425 @@ void main() {
 
     Expression closure = _findExpression(unit, code, '() { // mark');
     expect(closure.staticType.toString(), '() → List<int>');
+  }
+
+  test_compoundAssignment_index() async {
+    var code = r'''
+int getInt() => 0;
+num getNum() => 0;
+double getDouble() => 0.0;
+
+abstract class Test<T, U> {
+  T operator [](String s);
+  void operator []=(String s, U v);
+}
+
+void test1(Test<int, int> t) {
+  var /*@type=int*/ v1 = t['x'] = getInt();
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=int*/ v4 = t['x'] ??= getInt();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=int*/ v7 = t['x'] += getInt();
+  var /*@type=num*/ v8 = t['x'] += getNum();
+  var /*@type=int*/ v10 = ++t['x'];
+  var /*@type=int*/ v11 = t['x']++;
+}
+
+void test2(Test<int, num> t) {
+  var /*@type=int*/ v1 = t['x'] = getInt();
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=double*/ v3 = t['x'] = getDouble();
+  var /*@type=int*/ v4 = t['x'] ??= getInt();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=num*/ v6 = t['x'] ??= getDouble();
+  var /*@type=int*/ v7 = t['x'] += getInt();
+  var /*@type=num*/ v8 = t['x'] += getNum();
+  var /*@type=double*/ v9 = t['x'] += getDouble();
+  var /*@type=int*/ v10 = ++t['x'];
+  var /*@type=int*/ v11 = t['x']++;
+}
+
+void test3(Test<int, double> t) {
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=double*/ v3 = t['x'] = getDouble();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=num*/ v6 = t['x'] ??= getDouble();
+  var /*@type=int*/ v7 = t['x'] += getInt();
+  var /*@type=num*/ v8 = t['x'] += getNum();
+  var /*@type=double*/ v9 = t['x'] += getDouble();
+  var /*@type=int*/ v10 = ++t['x'];
+  var /*@type=int*/ v11 = t['x']++;
+}
+
+void test4(Test<num, int> t) {
+  var /*@type=int*/ v1 = t['x'] = getInt();
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=num*/ v4 = t['x'] ??= getInt();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=num*/ v7 = t['x'] += getInt();
+  var /*@type=num*/ v8 = t['x'] += getNum();
+  var /*@type=num*/ v10 = ++t['x'];
+  var /*@type=num*/ v11 = t['x']++;
+}
+
+void test5(Test<num, num> t) {
+  var /*@type=int*/ v1 = t['x'] = getInt();
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=double*/ v3 = t['x'] = getDouble();
+  var /*@type=num*/ v4 = t['x'] ??= getInt();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=num*/ v6 = t['x'] ??= getDouble();
+  var /*@type=num*/ v7 = t['x'] += getInt();
+  var /*@type=num*/ v8 = t['x'] += getNum();
+  var /*@type=num*/ v9 = t['x'] += getDouble();
+  var /*@type=num*/ v10 = ++t['x'];
+  var /*@type=num*/ v11 = t['x']++;
+}
+
+void test6(Test<num, double> t) {
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=double*/ v3 = t['x'] = getDouble();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=num*/ v6 = t['x'] ??= getDouble();
+  var /*@type=num*/ v7 = t['x'] += getInt();
+  var /*@type=num*/ v8 = t['x'] += getNum();
+  var /*@type=num*/ v9 = t['x'] += getDouble();
+  var /*@type=num*/ v10 = ++t['x'];
+  var /*@type=num*/ v11 = t['x']++;
+}
+
+void test7(Test<double, int> t) {
+  var /*@type=int*/ v1 = t['x'] = getInt();
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=num*/ v4 = t['x'] ??= getInt();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=double*/ v7 = t['x'] += getInt();
+  var /*@type=double*/ v8 = t['x'] += getNum();
+  var /*@type=double*/ v10 = ++t['x'];
+  var /*@type=double*/ v11 = t['x']++;
+}
+
+void test8(Test<double, num> t) {
+  var /*@type=int*/ v1 = t['x'] = getInt();
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=double*/ v3 = t['x'] = getDouble();
+  var /*@type=num*/ v4 = t['x'] ??= getInt();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=double*/ v6 = t['x'] ??= getDouble();
+  var /*@type=double*/ v7 = t['x'] += getInt();
+  var /*@type=double*/ v8 = t['x'] += getNum();
+  var /*@type=double*/ v9 = t['x'] += getDouble();
+  var /*@type=double*/ v10 = ++t['x'];
+  var /*@type=double*/ v11 = t['x']++;
+}
+
+void test9(Test<double, double> t) {
+  var /*@type=num*/ v2 = t['x'] = getNum();
+  var /*@type=double*/ v3 = t['x'] = getDouble();
+  var /*@type=num*/ v5 = t['x'] ??= getNum();
+  var /*@type=double*/ v6 = t['x'] ??= getDouble();
+  var /*@type=double*/ v7 = t['x'] += getInt();
+  var /*@type=double*/ v8 = t['x'] += getNum();
+  var /*@type=double*/ v9 = t['x'] += getDouble();
+  var /*@type=double*/ v10 = ++t['x'];
+  var /*@type=double*/ v11 = t['x']++;
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+    _assertTypeAnnotations(code, unit);
+  }
+
+  test_compoundAssignment_prefixedIdentifier() async {
+    var code = r'''
+int getInt() => 0;
+num getNum() => 0;
+double getDouble() => 0.0;
+
+class Test<T extends U, U> {
+  T get x => null;
+  void set x(U _) {}
+}
+
+void test1(Test<int, int> t) {
+  var /*@type=int*/ v1 = t.x = getInt();
+  var /*@type=num*/ v2 = t.x = getNum();
+  var /*@type=int*/ v4 = t.x ??= getInt();
+  var /*@type=num*/ v5 = t.x ??= getNum();
+  var /*@type=int*/ v7 = t.x += getInt();
+  var /*@type=num*/ v8 = t.x += getNum();
+  var /*@type=int*/ v10 = ++t.x;
+  var /*@type=int*/ v11 = t.x++;
+}
+
+void test2(Test<int, num> t) {
+  var /*@type=int*/ v1 = t.x = getInt();
+  var /*@type=num*/ v2 = t.x = getNum();
+  var /*@type=double*/ v3 = t.x = getDouble();
+  var /*@type=int*/ v4 = t.x ??= getInt();
+  var /*@type=num*/ v5 = t.x ??= getNum();
+  var /*@type=num*/ v6 = t.x ??= getDouble();
+  var /*@type=int*/ v7 = t.x += getInt();
+  var /*@type=num*/ v8 = t.x += getNum();
+  var /*@type=double*/ v9 = t.x += getDouble();
+  var /*@type=int*/ v10 = ++t.x;
+  var /*@type=int*/ v11 = t.x++;
+}
+
+void test5(Test<num, num> t) {
+  var /*@type=int*/ v1 = t.x = getInt();
+  var /*@type=num*/ v2 = t.x = getNum();
+  var /*@type=double*/ v3 = t.x = getDouble();
+  var /*@type=num*/ v4 = t.x ??= getInt();
+  var /*@type=num*/ v5 = t.x ??= getNum();
+  var /*@type=num*/ v6 = t.x ??= getDouble();
+  var /*@type=num*/ v7 = t.x += getInt();
+  var /*@type=num*/ v8 = t.x += getNum();
+  var /*@type=num*/ v9 = t.x += getDouble();
+  var /*@type=num*/ v10 = ++t.x;
+  var /*@type=num*/ v11 = t.x++;
+}
+
+void test8(Test<double, num> t) {
+  var /*@type=int*/ v1 = t.x = getInt();
+  var /*@type=num*/ v2 = t.x = getNum();
+  var /*@type=double*/ v3 = t.x = getDouble();
+  var /*@type=num*/ v4 = t.x ??= getInt();
+  var /*@type=num*/ v5 = t.x ??= getNum();
+  var /*@type=double*/ v6 = t.x ??= getDouble();
+  var /*@type=double*/ v7 = t.x += getInt();
+  var /*@type=double*/ v8 = t.x += getNum();
+  var /*@type=double*/ v9 = t.x += getDouble();
+  var /*@type=double*/ v10 = ++t.x;
+  var /*@type=double*/ v11 = t.x++;
+}
+
+void test9(Test<double, double> t) {
+  var /*@type=num*/ v2 = t.x = getNum();
+  var /*@type=double*/ v3 = t.x = getDouble();
+  var /*@type=num*/ v5 = t.x ??= getNum();
+  var /*@type=double*/ v6 = t.x ??= getDouble();
+  var /*@type=double*/ v7 = t.x += getInt();
+  var /*@type=double*/ v8 = t.x += getNum();
+  var /*@type=double*/ v9 = t.x += getDouble();
+  var /*@type=double*/ v10 = ++t.x;
+  var /*@type=double*/ v11 = t.x++;
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    var unit = analysisResult.unit;
+    _assertTypeAnnotations(code, unit);
+  }
+
+  test_compoundAssignment_propertyAccess() async {
+    var t1 = 'new Test<int, int>()';
+    var t2 = 'new Test<int, num>()';
+    var t5 = 'new Test<num, num>()';
+    var t8 = 'new Test<double, num>()';
+    var t9 = 'new Test<double, double>()';
+    var code = '''
+int getInt() => 0;
+num getNum() => 0;
+double getDouble() => 0.0;
+
+class Test<T extends U, U> {
+  T get x => null;
+  void set x(U _) {}
+}
+
+void test1() {
+  var /*@type=int*/ v1 = $t1.x = getInt();
+  var /*@type=num*/ v2 = $t1.x = getNum();
+  var /*@type=int*/ v4 = $t1.x ??= getInt();
+  var /*@type=num*/ v5 = $t1.x ??= getNum();
+  var /*@type=int*/ v7 = $t1.x += getInt();
+  var /*@type=num*/ v8 = $t1.x += getNum();
+  var /*@type=int*/ v10 = ++$t1.x;
+  var /*@type=int*/ v11 = $t1.x++;
+}
+
+void test2() {
+  var /*@type=int*/ v1 = $t2.x = getInt();
+  var /*@type=num*/ v2 = $t2.x = getNum();
+  var /*@type=double*/ v3 = $t2.x = getDouble();
+  var /*@type=int*/ v4 = $t2.x ??= getInt();
+  var /*@type=num*/ v5 = $t2.x ??= getNum();
+  var /*@type=num*/ v6 = $t2.x ??= getDouble();
+  var /*@type=int*/ v7 = $t2.x += getInt();
+  var /*@type=num*/ v8 = $t2.x += getNum();
+  var /*@type=double*/ v9 = $t2.x += getDouble();
+  var /*@type=int*/ v10 = ++$t2.x;
+  var /*@type=int*/ v11 = $t2.x++;
+}
+
+void test5() {
+  var /*@type=int*/ v1 = $t5.x = getInt();
+  var /*@type=num*/ v2 = $t5.x = getNum();
+  var /*@type=double*/ v3 = $t5.x = getDouble();
+  var /*@type=num*/ v4 = $t5.x ??= getInt();
+  var /*@type=num*/ v5 = $t5.x ??= getNum();
+  var /*@type=num*/ v6 = $t5.x ??= getDouble();
+  var /*@type=num*/ v7 = $t5.x += getInt();
+  var /*@type=num*/ v8 = $t5.x += getNum();
+  var /*@type=num*/ v9 = $t5.x += getDouble();
+  var /*@type=num*/ v10 = ++$t5.x;
+  var /*@type=num*/ v11 = $t5.x++;
+}
+
+void test8() {
+  var /*@type=int*/ v1 = $t8.x = getInt();
+  var /*@type=num*/ v2 = $t8.x = getNum();
+  var /*@type=double*/ v3 = $t8.x = getDouble();
+  var /*@type=num*/ v4 = $t8.x ??= getInt();
+  var /*@type=num*/ v5 = $t8.x ??= getNum();
+  var /*@type=double*/ v6 = $t8.x ??= getDouble();
+  var /*@type=double*/ v7 = $t8.x += getInt();
+  var /*@type=double*/ v8 = $t8.x += getNum();
+  var /*@type=double*/ v9 = $t8.x += getDouble();
+  var /*@type=double*/ v10 = ++$t8.x;
+  var /*@type=double*/ v11 = $t8.x++;
+}
+
+void test9() {
+  var /*@type=num*/ v2 = $t9.x = getNum();
+  var /*@type=double*/ v3 = $t9.x = getDouble();
+  var /*@type=num*/ v5 = $t9.x ??= getNum();
+  var /*@type=double*/ v6 = $t9.x ??= getDouble();
+  var /*@type=double*/ v7 = $t9.x += getInt();
+  var /*@type=double*/ v8 = $t9.x += getNum();
+  var /*@type=double*/ v9 = $t9.x += getDouble();
+  var /*@type=double*/ v10 = ++$t9.x;
+  var /*@type=double*/ v11 = $t9.x++;
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    var unit = analysisResult.unit;
+    _assertTypeAnnotations(code, unit);
+  }
+
+  test_compoundAssignment_simpleIdentifier() async {
+    var code = r'''
+int getInt() => 0;
+num getNum() => 0;
+double getDouble() => 0.0;
+
+class Test<T extends U, U> {
+  T get x => null;
+  void set x(U _) {}
+}
+
+class Test1 extends Test<int, int> {
+  void test1() {
+    var /*@type=int*/ v1 = x = getInt();
+    var /*@type=num*/ v2 = x = getNum();
+    var /*@type=int*/ v4 = x ??= getInt();
+    var /*@type=num*/ v5 = x ??= getNum();
+    var /*@type=int*/ v7 = x += getInt();
+    var /*@type=num*/ v8 = x += getNum();
+    var /*@type=int*/ v10 = ++x;
+    var /*@type=int*/ v11 = x++;
+  }
+}
+
+class Test2 extends Test<int, num> {
+  void test2() {
+    var /*@type=int*/ v1 = x = getInt();
+    var /*@type=num*/ v2 = x = getNum();
+    var /*@type=double*/ v3 = x = getDouble();
+    var /*@type=int*/ v4 = x ??= getInt();
+    var /*@type=num*/ v5 = x ??= getNum();
+    var /*@type=num*/ v6 = x ??= getDouble();
+    var /*@type=int*/ v7 = x += getInt();
+    var /*@type=num*/ v8 = x += getNum();
+    var /*@type=double*/ v9 = x += getDouble();
+    var /*@type=int*/ v10 = ++x;
+    var /*@type=int*/ v11 = x++;
+  }
+}
+
+class Test5 extends Test<num, num> {
+  void test5() {
+    var /*@type=int*/ v1 = x = getInt();
+    var /*@type=num*/ v2 = x = getNum();
+    var /*@type=double*/ v3 = x = getDouble();
+    var /*@type=num*/ v4 = x ??= getInt();
+    var /*@type=num*/ v5 = x ??= getNum();
+    var /*@type=num*/ v6 = x ??= getDouble();
+    var /*@type=num*/ v7 = x += getInt();
+    var /*@type=num*/ v8 = x += getNum();
+    var /*@type=num*/ v9 = x += getDouble();
+    var /*@type=num*/ v10 = ++x;
+    var /*@type=num*/ v11 = x++;
+  }
+}
+
+class Test8 extends Test<double, num> {
+  void test8() {
+    var /*@type=int*/ v1 = x = getInt();
+    var /*@type=num*/ v2 = x = getNum();
+    var /*@type=double*/ v3 = x = getDouble();
+    var /*@type=num*/ v4 = x ??= getInt();
+    var /*@type=num*/ v5 = x ??= getNum();
+    var /*@type=double*/ v6 = x ??= getDouble();
+    var /*@type=double*/ v7 = x += getInt();
+    var /*@type=double*/ v8 = x += getNum();
+    var /*@type=double*/ v9 = x += getDouble();
+    var /*@type=double*/ v10 = ++x;
+    var /*@type=double*/ v11 = x++;
+  }
+}
+
+class Test9 extends Test<double, double> {
+  void test9() {
+    var /*@type=num*/ v2 = x = getNum();
+    var /*@type=double*/ v3 = x = getDouble();
+    var /*@type=num*/ v5 = x ??= getNum();
+    var /*@type=double*/ v6 = x ??= getDouble();
+    var /*@type=double*/ v7 = x += getInt();
+    var /*@type=double*/ v8 = x += getNum();
+    var /*@type=double*/ v9 = x += getDouble();
+    var /*@type=double*/ v10 = ++x;
+    var /*@type=double*/ v11 = x++;
+  }
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    var unit = analysisResult.unit;
+    _assertTypeAnnotations(code, unit);
+  }
+
+  test_compoundAssignment_simpleIdentifier_topLevel() async {
+    var code = r'''
+class A {}
+
+class B extends A {
+  B operator +(int i) => this;
+}
+
+B get topLevel => new B();
+
+void set topLevel(A value) {}
+
+main() {
+  var /*@type=B*/ v = topLevel += 1;
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    var unit = analysisResult.unit;
+    _assertTypeAnnotations(code, unit);
   }
 
   test_forIn() async {
@@ -303,6 +724,26 @@ void test(C<int> x) {
     expect(node.staticType.toString(), 'C<int>');
   }
 
+  void _assertTypeAnnotations(String code, CompilationUnit unit) {
+    var types = <int, String>{};
+    {
+      int lastIndex = 0;
+      while (true) {
+        const prefix = '/*@type=';
+        int openIndex = code.indexOf(prefix, lastIndex);
+        if (openIndex == -1) {
+          break;
+        }
+        int closeIndex = code.indexOf('*/', openIndex + 1);
+        expect(closeIndex, isPositive);
+        types[openIndex] =
+            code.substring(openIndex + prefix.length, closeIndex);
+        lastIndex = closeIndex;
+      }
+    }
+    unit.accept(new _TypeAnnotationsValidator(types));
+  }
+
   Expression _findExpression(AstNode root, String code, String prefix) {
     return EngineTestCase.findNode(root, code, prefix, (n) {
       return n is Expression;
@@ -321,5 +762,22 @@ void test(C<int> x) {
     return EngineTestCase.findNode(root, code, prefix, (n) {
       return n is MethodInvocation;
     });
+  }
+}
+
+class _TypeAnnotationsValidator extends RecursiveAstVisitor {
+  final Map<int, String> types;
+
+  _TypeAnnotationsValidator(this.types);
+
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    Token comment = node.token.precedingComments;
+    if (comment != null) {
+      String expectedType = types[comment.offset];
+      if (expectedType != null) {
+        String actualType = node.staticType.toString();
+        expect(actualType, expectedType, reason: '@${comment.offset}');
+      }
+    }
   }
 }
