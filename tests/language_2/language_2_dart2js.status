@@ -1202,7 +1202,7 @@ covariance_type_parameter_test/01: Crash # NoSuchMethodError: The method 'hasSub
 covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
-covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
+covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
@@ -1262,11 +1262,8 @@ generic_function_bounds_test: Crash # Unsupported operation: Unsupported type pa
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
-generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -1464,7 +1461,7 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
-tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
@@ -2614,7 +2611,7 @@ covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
-covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
+covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
@@ -2705,12 +2702,9 @@ generic_function_dcall_test: Crash # Unsupported operation: Unsupported type par
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
-generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
-generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
-generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -2910,7 +2904,7 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
-tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: RuntimeError

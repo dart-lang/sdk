@@ -265,10 +265,15 @@ class JsClosedWorldBuilder {
         map.toBackendMemberSet(closedWorld.processedMembers);
 
     RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
-    Set<ir.Node> localFunctionsNodes = new Set<ir.Node>();
+    Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
     for (KLocalFunction localFunction
         in kernelRtiNeed.localFunctionsNeedingSignature) {
-      localFunctionsNodes.add(localFunction.node);
+      localFunctionsNodesNeedingSignature.add(localFunction.node);
+    }
+    Set<ir.Node> localFunctionsNodesNeedingTypeArguments = new Set<ir.Node>();
+    for (KLocalFunction localFunction
+        in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
+      localFunctionsNodesNeedingTypeArguments.add(localFunction.node);
     }
 
     Set<ClassEntity> classesNeedingTypeArguments =
@@ -277,14 +282,17 @@ class JsClosedWorldBuilder {
         _closureConversionTask.createClosureEntities(
             this,
             map.toBackendMemberMap(closureModels, identity),
-            localFunctionsNodes,
+            localFunctionsNodesNeedingSignature,
             classesNeedingTypeArguments);
 
     List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
-    // TODO(johnniwinther): Collect call methods that need type arguments.
-    List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
-    for (ir.Node node in localFunctionsNodes) {
+    for (ir.Node node in localFunctionsNodesNeedingSignature) {
       callMethodsNeedingSignature
+          .add(_closureConversionTask.getClosureInfo(node).callMethod);
+    }
+    List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
+    for (ir.Node node in localFunctionsNodesNeedingTypeArguments) {
+      callMethodsNeedingTypeArguments
           .add(_closureConversionTask.getClosureInfo(node).callMethod);
     }
 
@@ -481,6 +489,7 @@ class JsClosedWorldBuilder {
         classesNeedingTypeArguments,
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
+        null,
         null,
         classesUsingTypeVariableExpression);
   }

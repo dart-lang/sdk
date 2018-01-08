@@ -211,7 +211,6 @@ final_field_initialization_order_test: RuntimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_type_expression_test/01: RuntimeError
 generic_methods_type_expression_test/03: RuntimeError
 generic_methods_type_expression_test/none: RuntimeError
@@ -1254,7 +1253,6 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 generic_closure_test: RuntimeError
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_type_expression_test/01: RuntimeError
 generic_methods_type_expression_test/03: RuntimeError
 generic_methods_type_expression_test/none: RuntimeError

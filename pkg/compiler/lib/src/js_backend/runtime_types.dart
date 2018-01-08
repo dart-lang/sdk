@@ -286,6 +286,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final Set<FunctionEntity> methodsNeedingSignature;
   final Set<FunctionEntity> methodsNeedingTypeArguments;
   final Set<Local> localFunctionsNeedingSignature;
+  final Set<Local> localFunctionsNeedingTypeArguments;
 
   /// The set of classes that use one of their type variables as expressions
   /// to get the runtime type.
@@ -298,6 +299,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.methodsNeedingSignature,
       this.methodsNeedingTypeArguments,
       this.localFunctionsNeedingSignature,
+      this.localFunctionsNeedingTypeArguments,
       this.classesUsingTypeVariableExpression);
 
   bool checkClass(covariant ClassEntity cls) => true;
@@ -350,6 +352,7 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
       Set<FunctionEntity> methodsNeedingRti,
       Set<FunctionEntity> methodsNeedingGenericRti,
       Set<Local> localFunctionsNeedingRti,
+      Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression)
       : super(
             elementEnvironment,
@@ -358,6 +361,7 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
             methodsNeedingRti,
             methodsNeedingGenericRti,
             localFunctionsNeedingRti,
+            localFunctionsNeedingTypeArguments,
             classesUsingTypeVariableExpression);
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
@@ -404,8 +408,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     isChecks = new Set<DartType>.from(resolutionWorldBuilder.isChecks);
     Set<ClassEntity> classesNeedingTypeArguments = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingSignature = new Set<FunctionEntity>();
-    Set<FunctionEntity> methodsNeedTypeArguments = new Set<FunctionEntity>();
+    Set<FunctionEntity> methodsNeedingTypeArguments = new Set<FunctionEntity>();
     Set<Local> localFunctionsNeedingSignature = new Set<Local>();
+    Set<Local> localFunctionsNeedingTypeArguments = new Set<Local>();
 
     // Find the classes that need type arguments at runtime. Such
     // classes are:
@@ -425,7 +430,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           potentiallyNeedTypeArguments(sub);
         });
       } else if (entity is FunctionEntity) {
-        methodsNeedTypeArguments.add(entity);
+        methodsNeedingTypeArguments.add(entity);
+      } else {
+        localFunctionsNeedingTypeArguments.add(entity);
       }
 
       Set<Entity> dependencies = typeArgumentDependencies[entity];
@@ -532,8 +539,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         closedWorld.backendUsage,
         classesNeedingTypeArguments,
         methodsNeedingSignature,
-        methodsNeedTypeArguments,
+        methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
+        localFunctionsNeedingTypeArguments,
         classesUsingTypeVariableExpression);
   }
 
@@ -544,6 +552,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<FunctionEntity> methodsNeedingSignature,
       Set<FunctionEntity> methodsNeedingTypeArguments,
       Set<Local> localFunctionsNeedingSignature,
+      Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression) {
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
@@ -552,6 +561,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
+        localFunctionsNeedingTypeArguments,
         classesUsingTypeVariableExpression);
   }
 }
@@ -571,6 +581,7 @@ class ResolutionRuntimeTypesNeedBuilderImpl
       Set<FunctionEntity> methodsNeedingSignature,
       Set<FunctionEntity> methodsNeedingTypeArguments,
       Set<Local> localFunctionsNeedingSignature,
+      Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression) {
     return new _ResolutionRuntimeTypesNeed(
         _elementEnvironment,
@@ -579,6 +590,7 @@ class ResolutionRuntimeTypesNeedBuilderImpl
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
+        localFunctionsNeedingTypeArguments,
         classesUsingTypeVariableExpression);
   }
 }
