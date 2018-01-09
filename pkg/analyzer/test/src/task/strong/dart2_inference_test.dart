@@ -770,6 +770,46 @@ void test(C<int> x) {
     expect(node.staticType.toString(), 'C<int>');
   }
 
+  test_voidType_method() async {
+    var code = r'''
+class C {
+  void m() {}
+}
+var x = new C().m();
+main() {
+  var y = new C().m();
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
+    expect(x.staticType, VoidTypeImpl.instance);
+
+    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
+    expect(y.staticType, VoidTypeImpl.instance);
+  }
+
+  test_voidType_topLevelFunction() async {
+    var code = r'''
+void f() {}
+var x = f();
+main() {
+  var y = f();
+}
+''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    SimpleIdentifier x = _findExpression(unit, code, 'x = ');
+    expect(x.staticType, VoidTypeImpl.instance);
+
+    SimpleIdentifier y = _findExpression(unit, code, 'y = ');
+    expect(y.staticType, VoidTypeImpl.instance);
+  }
+
   void _assertTypeAnnotations(String code, CompilationUnit unit) {
     var types = <int, String>{};
     {
