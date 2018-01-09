@@ -672,7 +672,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
+        buildSimpleRead(), callName, arguments, arguments.fileOffset,
         isImplicitCall: true);
   }
 
