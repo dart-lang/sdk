@@ -39,7 +39,7 @@ static set onlySetter(dynamic value) → void {
 }
 static method main() → dynamic {
   try {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#onlySetter, 33, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{}))));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#onlySetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
     throw "No error thrown";
   }
   on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {

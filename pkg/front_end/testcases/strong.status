@@ -24,7 +24,6 @@ cycles: Fail
 default_values: Fail
 dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
-expressions: Fail
 external: Fail
 fallthrough: Fail
 fibonacci: Fail

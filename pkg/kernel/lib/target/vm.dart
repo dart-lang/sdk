@@ -87,9 +87,11 @@ class VmTarget extends Target {
         new Arguments(<Expression>[
           new StringLiteral(name)..fileOffset = offset,
           _fixedLengthList(
+              coreTypes.typeClass.rawType,
               arguments.types.map((t) => new TypeLiteral(t)).toList(),
               arguments.fileOffset),
-          _fixedLengthList(arguments.positional, arguments.fileOffset),
+          _fixedLengthList(
+              const DynamicType(), arguments.positional, arguments.fileOffset),
           new StaticInvocation(
               coreTypes.mapUnmodifiable,
               new Arguments([
@@ -99,7 +101,7 @@ class VmTarget extends Target {
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;
-                })))
+                })), keyType: coreTypes.symbolClass.rawType)
                   ..isConst = (arguments.named.length == 0)
                   ..fileOffset = arguments.fileOffset
               ]))
@@ -143,9 +145,11 @@ class VmTarget extends Target {
                 new SymbolLiteral(name)..fileOffset = offset,
                 new IntLiteral(type)..fileOffset = offset,
                 _fixedLengthList(
+                    coreTypes.typeClass.rawType,
                     arguments.types.map((t) => new TypeLiteral(t)).toList(),
                     arguments.fileOffset),
-                _fixedLengthList(arguments.positional, arguments.fileOffset),
+                _fixedLengthList(const DynamicType(), arguments.positional,
+                    arguments.fileOffset),
                 new StaticInvocation(
                     coreTypes.mapUnmodifiable,
                     new Arguments([
@@ -156,11 +160,11 @@ class VmTarget extends Target {
                               ..fileOffset = arg.fileOffset,
                             arg.value)
                           ..fileOffset = arg.fileOffset;
-                      })))
+                      })), keyType: coreTypes.symbolClass.rawType)
                         ..isConst = (arguments.named.length == 0)
                         ..fileOffset = arguments.fileOffset
                     ], types: [
-                      new DynamicType(),
+                      coreTypes.symbolClass.rawType,
                       new DynamicType()
                     ]))
                   ..fileOffset = offset
@@ -237,7 +241,8 @@ class VmTarget extends Target {
     return type;
   }
 
-  Expression _fixedLengthList(List<Expression> elements, int offset) {
+  Expression _fixedLengthList(
+      DartType typeArgument, List<Expression> elements, int offset) {
     // TODO(ahe): It's possible that it would be better to create a fixed-length
     // list first, and then populate it. That would create fewer objects. But as
     // this is currently only used in (statically resolved) no-such-method
@@ -245,11 +250,12 @@ class VmTarget extends Target {
 
     // The 0-element list must be exactly 'const[]'.
     if (elements.length == 0) {
-      return new ListLiteral([])..isConst = true;
+      return new ListLiteral([], typeArgument: typeArgument)..isConst = true;
     }
 
     return new MethodInvocation(
-        new ListLiteral(elements)..fileOffset = offset,
+        new ListLiteral(elements, typeArgument: typeArgument)
+          ..fileOffset = offset,
         new Name("toList"),
         new Arguments(<Expression>[], named: <NamedExpression>[
           new NamedExpression("growable", new BoolLiteral(false))
