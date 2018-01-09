@@ -163,6 +163,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_forEach_genericFunctionType() async {
+    return super.test_forEach_genericFunctionType();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_functionDeclaration_scope_signature() async {
     return super.test_functionDeclaration_scope_signature();
@@ -247,6 +254,20 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_nativeConstConstructor() async {
+    return super.test_nativeConstConstructor();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_nativeFunctionBodyInNonSDKCode_function() async {
+    return super.test_nativeFunctionBodyInNonSDKCode_function();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_nonBoolExpression_functionType() async {
     return super.test_nonBoolExpression_functionType();
@@ -297,6 +318,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_typeArgument_boundToFunctionType() async {
+    return super.test_typeArgument_boundToFunctionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenExpression() async {
     return super.test_undefinedIdentifier_synthetic_whenExpression();
   }
@@ -310,15 +338,22 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_forEach_genericFunctionType() async {
-    return super.test_forEach_genericFunctionType();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_uriDoesNotExist_dll() async {
+    return super.test_uriDoesNotExist_dll();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_typeArgument_boundToFunctionType() async {
-    return super.test_typeArgument_boundToFunctionType();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_uriDoesNotExist_dylib() async {
+    return super.test_uriDoesNotExist_dylib();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_uriDoesNotExist_so() async {
+    return super.test_uriDoesNotExist_so();
   }
 }

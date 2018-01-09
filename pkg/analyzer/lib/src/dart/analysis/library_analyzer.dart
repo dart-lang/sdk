@@ -37,8 +37,8 @@ import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/dependency_walker.dart';
-import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_algebra.dart' as kernel;
 
@@ -46,6 +46,7 @@ import 'package:kernel/type_algebra.dart' as kernel;
  * Analyzer of a single library.
  */
 class LibraryAnalyzer {
+  final PerformanceLog _logger;
   final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
@@ -53,7 +54,7 @@ class LibraryAnalyzer {
 
   final bool _enableKernelDriver;
   final bool _useCFE;
-  final KernelDriver _kernelDriver;
+  final FrontEndCompiler _frontEndCompiler;
 
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
@@ -73,6 +74,7 @@ class LibraryAnalyzer {
   final List<ConstantEvaluationTarget> _constants = [];
 
   LibraryAnalyzer(
+      this._logger,
       this._analysisOptions,
       this._declaredVariables,
       this._sourceFactory,
@@ -82,11 +84,11 @@ class LibraryAnalyzer {
       this._library,
       {bool enableKernelDriver: false,
       bool useCFE: false,
-      KernelDriver kernelDriver})
+      FrontEndCompiler frontEndCompiler})
       : _typeProvider = _context.typeProvider,
         _enableKernelDriver = enableKernelDriver,
         _useCFE = useCFE,
-        _kernelDriver = kernelDriver;
+        _frontEndCompiler = frontEndCompiler;
 
   /**
    * Compute analysis results for all units of the library.
@@ -177,100 +179,93 @@ class LibraryAnalyzer {
   }
 
   Future<Map<FileState, UnitAnalysisResult>> _analyze2() async {
-    Map<FileState, CompilationUnit> units = {};
+    return await _logger.runAsync('Analyze', () async {
+      Map<FileState, CompilationUnit> units = {};
 
-    // Parse all files.
-    units[_library] = _parse(_library);
-    for (FileState part in _library.partedFiles) {
-      units[part] = _parse(part);
-    }
-
-    // Resolve URIs in directives to corresponding sources.
-    units.forEach((file, unit) {
-      _resolveUriBasedDirectives(file, unit);
-    });
-
-    try {
-      _libraryElement = _resynthesizer
-          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
-
-      _resolveDirectives(units);
-
-      // TODO(scheglov) Improve.
-      AnalyzerTarget analyzerTarget;
-      final kernelResult = await _kernelDriver.compileLibrary(
-          (fileSystem, bool includeComments, dillTarget, uriTranslator,
-                  {metadataCollector}) =>
-              analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
-                  uriTranslator, _analysisOptions.strongMode, _library.uri),
-          _library.uri);
-
-      var resolutions = new _ResolutionProvider(analyzerTarget.resolutions);
-      units.forEach((file, unit) {
-        _resolveFile2(file, unit, resolutions);
-        _computePendingMissingRequiredParameters(file, unit);
-
-        // Invalid part URIs can result in an element with a null source
-        if (unit.element.source != null) {
-          final reporter = new FastaErrorReporter(_getErrorReporter(file));
-          final libraryKernelResult = kernelResult.results
-              .expand((r) => r.libraryResults)
-              .where((r) => r.library.importUri == unit.element.source.uri)
-              .firstWhere((_) => true, orElse: () => null);
-          libraryKernelResult?.errors?.forEach(
-              (kernelError) => reporter.reportCompilationMessage(kernelError));
+      // Parse all files.
+      _logger.run('Parse units', () {
+        units[_library] = _parse(_library);
+        for (FileState part in _library.partedFiles) {
+          units[part] = _parse(part);
         }
       });
 
-      _computeConstants();
+      // Resolve URIs in directives to corresponding sources.
+      units.forEach((file, unit) {
+        _resolveUriBasedDirectives(file, unit);
+      });
 
-      // TODO(scheglov) Restore.
-//      PerformanceStatistics.errors.makeCurrentWhile(() {
-//        units.forEach((file, unit) {
-//          _computeVerifyErrors(file, unit);
-//        });
-//      });
+      try {
+        _libraryElement = _resynthesizer
+            .getElement(new ElementLocationImpl.con3([_library.uriStr]));
 
-      if (_analysisOptions.hint) {
-        PerformanceStatistics.hints.makeCurrentWhile(() {
+        _resolveDirectives(units);
+
+        var libraryResult = await _logger.runAsync('Compile library', () {
+          return _frontEndCompiler.compile(_library.uri);
+        });
+
+        _logger.run('Apply resolution', () {
           units.forEach((file, unit) {
-            {
-              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
-              unit.accept(visitor);
-              _usedLocalElementsList.add(visitor.usedElements);
+            var resolutions = libraryResult.files[file.fileUri].resolutions;
+            var resolutionProvider = new _ResolutionProvider(resolutions);
+
+            _resolveFile2(file, unit, resolutionProvider);
+            _computePendingMissingRequiredParameters(file, unit);
+
+            // Invalid part URIs can result in an element with a null source
+            if (unit.element.source != null) {
+              var reporter = new FastaErrorReporter(_getErrorReporter(file));
+              var fileResult = libraryResult.files[file.fileUri];
+              fileResult?.errors?.forEach(reporter.reportCompilationMessage);
             }
-            {
-              var visitor =
-                  new GatherUsedImportedElementsVisitor(_libraryElement);
-              unit.accept(visitor);
-              _usedImportedElementsList.add(visitor.usedElements);
-            }
-          });
-          units.forEach((file, unit) {
-            _computeHints(file, unit);
           });
         });
-      }
 
-      if (_analysisOptions.lint) {
-        PerformanceStatistics.lints.makeCurrentWhile(() {
-          units.forEach((file, unit) {
-            _computeLints(file, unit);
+        _computeConstants();
+
+        if (_analysisOptions.hint) {
+          PerformanceStatistics.hints.makeCurrentWhile(() {
+            units.forEach((file, unit) {
+              {
+                var visitor =
+                    new GatherUsedLocalElementsVisitor(_libraryElement);
+                unit.accept(visitor);
+                _usedLocalElementsList.add(visitor.usedElements);
+              }
+              {
+                var visitor =
+                    new GatherUsedImportedElementsVisitor(_libraryElement);
+                unit.accept(visitor);
+                _usedImportedElementsList.add(visitor.usedElements);
+              }
+            });
+            units.forEach((file, unit) {
+              _computeHints(file, unit);
+            });
           });
-        });
-      }
-    } finally {
-      _context.dispose();
-    }
+        }
 
-    // Return full results.
-    Map<FileState, UnitAnalysisResult> results = {};
-    units.forEach((file, unit) {
-      List<AnalysisError> errors = _getErrorListener(file).errors;
-      errors = _filterIgnoredErrors(file, errors);
-      results[file] = new UnitAnalysisResult(file, unit, errors);
+        if (_analysisOptions.lint) {
+          PerformanceStatistics.lints.makeCurrentWhile(() {
+            units.forEach((file, unit) {
+              _computeLints(file, unit);
+            });
+          });
+        }
+      } finally {
+        _context.dispose();
+      }
+
+      // Return full results.
+      Map<FileState, UnitAnalysisResult> results = {};
+      units.forEach((file, unit) {
+        List<AnalysisError> errors = _getErrorListener(file).errors;
+        errors = _filterIgnoredErrors(file, errors);
+        results[file] = new UnitAnalysisResult(file, unit, errors);
+      });
+      return results;
     });
-    return results;
   }
 
   /**

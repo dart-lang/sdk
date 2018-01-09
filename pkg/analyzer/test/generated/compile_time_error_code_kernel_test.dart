@@ -1760,6 +1760,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_export() async {
+    return super.test_invalidUri_export();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_import() async {
+    return super.test_invalidUri_import();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_part() async {
+    return super.test_invalidUri_part();
+  }
+
+  @override
+  @failingTest
   test_isInConstInstanceCreation_restored() async {
     // Expected 1 errors of type CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, found 0
     await super.test_isInConstInstanceCreation_restored();

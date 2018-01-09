@@ -94,7 +94,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 60);
 
   /**
    * Connection to the analysis server.
