@@ -9,7 +9,7 @@ import 'test_helper.dart';
 
 var tests = <IsolateTest>[
   (Isolate isolate) =>
-      isolate.getTypeArgumentsList(false).then((dynamic allTypeArgs) {
+      isolate.getTypeArgumentsList(false).then((ServiceMap allTypeArgs) {
         var allTypeArgsTableSize =
             allTypeArgs['canonicalTypeArgumentsTableSize'];
         var allTypeArgsTableUsed =
@@ -21,23 +21,22 @@ var tests = <IsolateTest>[
             allTypeArgsTableSize, greaterThanOrEqualTo(allTypeArgsTableUsed));
         return isolate
             .getTypeArgumentsList(true)
-            .then((dynamic instantiatedTypeArgs) {
+            .then((ServiceMap instantiatedTypeARgs) {
           var instantiatedTypeArgsTableSize =
-              instantiatedTypeArgs['canonicalTypeArgumentsTableSize'];
+              instantiatedTypeARgs['canonicalTypeArgumentsTableSize'];
           var instantiatedTypeArgsTableUsed =
-              instantiatedTypeArgs['canonicalTypeArgumentsTableUsed'];
+              instantiatedTypeARgs['canonicalTypeArgumentsTableUsed'];
           // Check size >= used.
           expect(instantiatedTypeArgsTableSize,
               greaterThanOrEqualTo(instantiatedTypeArgsTableUsed));
           // Check that |instantiated| <= |all|
-          var instantiatedTypeArgsList = instantiatedTypeArgs['typeArguments'];
+          var instantiatedTypeArgsList = instantiatedTypeARgs['typeArguments'];
           expect(instantiatedTypeArgsList, isNotNull);
           expect(allTypeArgsList.length,
               greaterThanOrEqualTo(instantiatedTypeArgsList.length));
           // Check that we can 'get' this object again.
           var firstType = allTypeArgsList[0];
-          return isolate.getObject(firstType.id).then((ServiceObject object) {
-            TypeArguments type = object;
+          return isolate.getObject(firstType.id).then((TypeArguments type) {
             expect(firstType.name, type.name);
           });
         });

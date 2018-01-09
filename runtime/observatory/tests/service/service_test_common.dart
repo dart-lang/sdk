@@ -269,7 +269,7 @@ IsolateTest stoppedAtLine(int line) {
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
 
-    List/*<Frame>*/ frames = stack['frames'];
+    List<Frame> frames = stack['frames'];
     expect(frames.length, greaterThanOrEqualTo(1));
 
     Frame top = frames[0];
@@ -297,7 +297,7 @@ IsolateTest stoppedInFunction(String functionName,
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
 
-    List/*<Frame>*/ frames = stack['frames'];
+    List<Frame> frames = stack['frames'];
     expect(frames.length, greaterThanOrEqualTo(1));
 
     Frame topFrame = stack['frames'][0];
@@ -387,7 +387,8 @@ Future isolateIsRunning(Isolate isolate) async {
 
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();
-  for (Class cls in rootLib.classes) {
+  for (var i = 0; i < rootLib.classes.length; i++) {
+    Class cls = rootLib.classes[i];
     if (cls.name == className) {
       return cls;
     }
@@ -444,7 +445,7 @@ IsolateTest resumeProgramRecordingStops(
         // We are paused: Resume after recording.
         ServiceMap stack = await isolate.getStack();
         expect(stack.type, equals('Stack'));
-        List/*<Frame>*/ frames = stack['frames'];
+        List<Frame> frames = stack['frames'];
         expect(frames.length, greaterThanOrEqualTo(2));
         Frame frame = frames[0];
         String brokeAt = await frame.location.toUserString();

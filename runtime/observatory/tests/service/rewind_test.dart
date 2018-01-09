@@ -79,14 +79,14 @@ var tests = <IsolateTest>[
   },
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    Instance result = await isolate.rootLibrary.evaluate('global');
+    var result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
 
     // Rewind the top stack frame.
-    var result2 = await isolate.rewind(1);
-    expect(result2['type'], equals('Success'));
+    result = await isolate.rewind(1);
+    expect(result['type'], equals('Success'));
   },
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
@@ -98,52 +98,52 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // global still is equal to 100.  We did not execute "global++".
-    Instance result = await isolate.rootLibrary.evaluate('global');
+    var result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
 
     // Resume again, for fun.
-    var result2 = await isolate.resume();
-    expect(result2['type'], equals('Success'));
+    result = await isolate.resume();
+    expect(result['type'], equals('Success'));
   },
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // global is now 101.
-    Instance result = await isolate.rootLibrary.evaluate('global');
+    var result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('101'));
 
     // Rewind up to 'test'/
-    var result2 = await isolate.rewind(3);
-    expect(result2['type'], equals('Success'));
+    result = await isolate.rewind(3);
+    expect(result['type'], equals('Success'));
   },
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),
   (Isolate isolate) async {
     // Reset global to 0 and start again.
-    Instance result = await isolate.rootLibrary.evaluate('global=0');
+    var result = await isolate.rootLibrary.evaluate('global=0');
     print('set global to $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('0'));
 
-    var result2 = await isolate.resume();
-    expect(result2['type'], equals('Success'));
+    result = await isolate.resume();
+    expect(result['type'], equals('Success'));
   },
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    Instance result = await isolate.rootLibrary.evaluate('global');
+    var result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
 
     // Rewind the top 2 stack frames.
-    var result2 = await isolate.rewind(2);
-    expect(result2['type'], equals('Success'));
+    result = await isolate.rewind(2);
+    expect(result['type'], equals('Success'));
   },
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),

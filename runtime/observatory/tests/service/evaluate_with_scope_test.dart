@@ -17,7 +17,7 @@ testeeMain() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
+    var lib = await isolate.rootLibrary.load();
     var thing1 =
         (await lib.variables.singleWhere((v) => v.name == "thing1").load())
             .staticValue;

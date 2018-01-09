@@ -76,7 +76,7 @@ _runExtension(
     SendPort replyPort,
     Object id,
     bool trace_service) {
-  var parameters = <String, String>{};
+  var parameters = {};
   for (var i = 0; i < parameterKeys.length; i++) {
     parameters[parameterKeys[i]] = parameterValues[i];
   }

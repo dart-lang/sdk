@@ -279,7 +279,7 @@ class ObjectVertex {
     var doms = _graph._doms;
 
     var parentId = _id;
-    var domChildren = <ObjectVertex>[];
+    var domChildren = [];
 
     for (var childId = ROOT; childId <= N; childId++) {
       if (doms[childId] == parentId) {

@@ -79,7 +79,7 @@ void script() {
 var tests = <IsolateTest>[
   (Isolate isolate) async {
     script();
-    Library lib = await isolate.rootLibrary.load();
+    var lib = await isolate.rootLibrary.load();
 
     // Pre-load all the fields so we don't use await below and get better
     // stacktraces.

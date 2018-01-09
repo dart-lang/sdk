@@ -33,39 +33,42 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Evaluate against library, class, and instance.
-  (Isolate isolate) async {
-    ServiceMap stack = await isolate.getStack();
+  (Isolate isolate) {
+    return isolate.getStack().then((ServiceMap stack) {
+      // Make sure we are in the right place.
+      expect(stack.type, equals('Stack'));
+      expect(stack['frames'].length, greaterThanOrEqualTo(2));
+      expect(stack['frames'][0].function.name, equals('method'));
+      expect(stack['frames'][0].function.dartOwner.name, equals('MyClass'));
 
-    // Make sure we are in the right place.
-    expect(stack.type, equals('Stack'));
-    expect(stack['frames'].length, greaterThanOrEqualTo(2));
-    expect(stack['frames'][0].function.name, equals('method'));
-    expect(stack['frames'][0].function.dartOwner.name, equals('MyClass'));
+      var lib = isolate.rootLibrary;
+      var cls = stack['frames'][0].function.dartOwner;
+      var instance = stack['frames'][0].variables[0]['value'];
 
-    var lib = isolate.rootLibrary;
-    var cls = stack['frames'][0].function.dartOwner;
-    var instance = stack['frames'][0].variables[0]['value'];
-
-    dynamic result = await lib.evaluate('globalVar + 5');
-    print(result);
-    expect(result.valueAsString, equals('105'));
-
-    result = await lib.evaluate('globalVar + staticVar + 5');
-    expect(result.type, equals('Error'));
-
-    result = await cls.evaluate('globalVar + staticVar + 5');
-    print(result);
-    expect(result.valueAsString, equals('1105'));
-
-    result = await cls.evaluate('this + 5');
-    expect(result.type, equals('Error'));
-
-    result = await instance.evaluate('this + 5');
-    print(result);
-    expect(result.valueAsString, equals('10005'));
-
-    result = await instance.evaluate('this + frog');
-    expect(result.type, equals('Error'));
+      List evals = [];
+      evals.add(lib.evaluate('globalVar + 5').then((result) {
+        print(result);
+        expect(result.valueAsString, equals('105'));
+      }));
+      evals.add(lib.evaluate('globalVar + staticVar + 5').then((result) {
+        expect(result.type, equals('Error'));
+      }));
+      evals.add(cls.evaluate('globalVar + staticVar + 5').then((result) {
+        print(result);
+        expect(result.valueAsString, equals('1105'));
+      }));
+      evals.add(cls.evaluate('this + 5').then((result) {
+        expect(result.type, equals('Error'));
+      }));
+      evals.add(instance.evaluate('this + 5').then((result) {
+        print(result);
+        expect(result.valueAsString, equals('10005'));
+      }));
+      evals.add(instance.evaluate('this + frog').then((result) {
+        expect(result.type, equals('Error'));
+      }));
+      return Future.wait(evals);
+    });
   },
 ];
 

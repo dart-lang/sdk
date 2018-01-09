@@ -113,14 +113,14 @@ class DebuggerLocation {
 
   static Future<List<Script>> _lookupScript(Isolate isolate, String name,
       {bool allowPrefix: false}) {
-    var pending = <Future>[];
+    var pending = [];
     for (var lib in isolate.libraries) {
       if (!lib.loaded) {
         pending.add(lib.load());
       }
     }
     return Future.wait(pending).then((_) {
-      var matches = <Script>[];
+      List matches = [];
       for (var lib in isolate.libraries) {
         for (var script in lib.scripts) {
           if (allowPrefix) {
@@ -140,7 +140,7 @@ class DebuggerLocation {
 
   static List<ServiceFunction> _lookupFunction(Isolate isolate, String name,
       {bool allowPrefix: false}) {
-    var matches = <ServiceFunction>[];
+    var matches = [];
     for (var lib in isolate.libraries) {
       assert(lib.loaded);
       for (var function in lib.functions) {
@@ -163,7 +163,7 @@ class DebuggerLocation {
     if (isolate == null) {
       return [];
     }
-    var pending = <Future>[];
+    var pending = [];
     for (var lib in isolate.libraries) {
       assert(lib.loaded);
       for (var cls in lib.classes) {
@@ -173,7 +173,7 @@ class DebuggerLocation {
       }
     }
     await Future.wait(pending);
-    var matches = <Class>[];
+    var matches = [];
     for (var lib in isolate.libraries) {
       for (var cls in lib.classes) {
         if (allowPrefix) {
@@ -260,7 +260,7 @@ class DebuggerLocation {
 
   /// Completes a partial source location description.
   static Future<List<String>> complete(Debugger debugger, String locDesc) {
-    var pending = <Future<List<String>>>[];
+    List<Future<List<String>>> pending = [];
     var match = partialFunctionMatcher.firstMatch(locDesc);
     if (match != null) {
       pending.add(_completeFunction(debugger, match));
@@ -272,7 +272,7 @@ class DebuggerLocation {
     }
 
     return Future.wait(pending).then((List<List<String>> responses) {
-      var completions = <String>[];
+      var completions = [];
       for (var response in responses) {
         completions.addAll(response);
       }
@@ -289,7 +289,7 @@ class DebuggerLocation {
 
     if (qualifier == null) {
       return _lookupClass(isolate, base, allowPrefix: true).then((classes) {
-        var completions = <String>[];
+        var completions = [];
 
         // Complete top-level function names.
         var functions = _lookupFunction(isolate, base, allowPrefix: true);
@@ -306,7 +306,7 @@ class DebuggerLocation {
       });
     } else {
       return _lookupClass(isolate, base, allowPrefix: false).then((classes) {
-        var completions = <String>[];
+        var completions = [];
         for (var cls in classes) {
           for (var function in cls.functions) {
             if (function.kind == M.FunctionKind.constructor) {
@@ -375,7 +375,7 @@ class DebuggerLocation {
       // The script name is incomplete.  Complete it.
       var scripts =
           await _lookupScript(debugger.isolate, scriptName, allowPrefix: true);
-      var completions = <String>[];
+      List completions = [];
       for (var script in scripts) {
         completions.add(script.name + ':');
       }
@@ -393,7 +393,7 @@ class DebuggerLocation {
       if (!lineStrComplete) {
         // Complete the line.
         var sharedPrefix = '${script.name}:';
-        var completions = <String>[];
+        List completions = [];
         var report = await script.isolate
             .getSourceReport([Isolate.kPossibleBreakpointsReport], script);
         Set<int> possibleBpts = getPossibleBreakpointLines(report, script);
@@ -410,7 +410,7 @@ class DebuggerLocation {
         int lineNum = int.parse(lineStr);
         var scriptLine = script.getLine(lineNum);
         var sharedPrefix = '${script.name}:${lineStr}:';
-        var completions = <String>[];
+        List completions = [];
         int maxCol = scriptLine.text.trimRight().runes.length;
         for (int i = 1; i <= maxCol; i++) {
           var currentColStr = i.toString();

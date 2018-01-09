@@ -37,7 +37,7 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
+    var lib = await isolate.rootLibrary.load();
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
     await keyField.load();
     Instance key = keyField.staticValue;
