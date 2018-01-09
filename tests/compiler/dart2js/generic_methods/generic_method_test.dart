@@ -52,25 +52,36 @@ genericMethod3<T, S>(T t, S s) {
   print('');
 }
 
-class Class<T> {
+class Class1<T> {
   final int index;
 
-  Class(this.index);
+  Class1(this.index);
 
   String toString() => 'c$index';
 }
 
-genericMethod4<T>(int index) => new Class<T>(index);
+genericMethod4<T>(int index) => new Class1<T>(index);
 
 testGenericMethod4() {
   print('genericMethod4:');
   var c1 = genericMethod4<int>(1);
   var c2 = genericMethod4<String>(2);
-  print('$c1 is Class<int> = ${c1 is Class<int>}');
-  print('$c2 is Class<int> = ${c2 is Class<int>}');
-  print('$c1 is Class<String> = ${c1 is Class<String>}');
-  print('$c2 is Class<String> = ${c2 is Class<String>}');
+  print('$c1 is Class1<int> = ${c1 is Class1<int>}');
+  print('$c2 is Class1<int> = ${c2 is Class1<int>}');
+  print('$c1 is Class1<String> = ${c1 is Class1<String>}');
+  print('$c2 is Class1<String> = ${c2 is Class1<String>}');
   print('');
+}
+
+class Class2 {
+  @tryInline
+  genericMethod5<T>(T t) {
+    test(t);
+    print('genericMethod5:');
+    print('$t is $T = ${t is T}');
+    print('"foo" is $T = ${"foo" is T}');
+    print('');
+  }
 }
 
 main() {
@@ -78,6 +89,7 @@ main() {
   genericMethod2<String, double>(0.5, 'foo');
   genericMethod3<double, String>(1.5, 'bar');
   testGenericMethod4();
+  new Class2().genericMethod5<int>(0);
 }
 ''';
 
@@ -99,10 +111,14 @@ bar is double = false
 bar is String = true
 
 genericMethod4:
-c1 is Class<int> = true
-c2 is Class<int> = false
-c1 is Class<String> = false
-c2 is Class<String> = true
+c1 is Class1<int> = true
+c2 is Class1<int> = false
+c1 is Class1<String> = false
+c2 is Class1<String> = true
+
+genericMethod5:
+0 is int = true
+"foo" is int = false
 
 ''';
 

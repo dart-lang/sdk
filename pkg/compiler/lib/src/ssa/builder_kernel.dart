@@ -2769,18 +2769,23 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// defaulted arguments, so (unlike static targets) we do not add the default
   /// values.
   List<HInstruction> _visitArgumentsForDynamicTarget(
-      Selector selector, ir.Arguments arguments) {
+      Selector selector, ir.Arguments arguments,
+      [SourceInformation sourceInformation]) {
     List<HInstruction> values = _visitPositionalArguments(arguments);
 
-    if (arguments.named.isEmpty) return values;
-
-    var namedValues = <String, HInstruction>{};
-    for (ir.NamedExpression argument in arguments.named) {
-      argument.value.accept(this);
-      namedValues[argument.name] = pop();
+    if (arguments.named.isNotEmpty) {
+      Map<String, HInstruction> namedValues = <String, HInstruction>{};
+      for (ir.NamedExpression argument in arguments.named) {
+        argument.value.accept(this);
+        namedValues[argument.name] = pop();
+      }
+      for (String name in selector.callStructure.getOrderedNamedArguments()) {
+        values.add(namedValues[name]);
+      }
     }
-    for (String name in selector.callStructure.getOrderedNamedArguments()) {
-      values.add(namedValues[name]);
+
+    if (selector.callStructure.typeArgumentCount > 0) {
+      _addTypeArguments(values, arguments, sourceInformation);
     }
 
     return values;
@@ -4562,7 +4567,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
     List<HInstruction> compiledArguments = new List<HInstruction>(
-        parameterStructure.totalParameters + 1); // Plus one for receiver.
+        parameterStructure.totalParameters +
+            parameterStructure.typeParameters +
+            1); // Plus one for receiver.
 
     compiledArguments[0] = providedArguments[0]; // Receiver.
     int index = 1;
@@ -4606,6 +4613,24 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
       index++;
     });
+    if (rtiNeed.methodNeedsTypeArguments(function)) {
+      if (selector.callStructure.typeArgumentCount ==
+          parameterStructure.typeParameters) {
+        // Pass explicit type arguments.
+        for (int i = 0; i < parameterStructure.typeParameters; i++) {
+          compiledArguments[index] = providedArguments[index];
+          index++;
+        }
+      } else {
+        assert(selector.callStructure.typeArgumentCount == 0);
+        // Pass type variable bounds as type arguments.
+        for (int i = 0; i < parameterStructure.typeParameters; i++) {
+          // TODO(johnniwinther): Pass type variable bounds.
+          compiledArguments[index] = graph.addConstantNull(closedWorld);
+          index++;
+        }
+      }
+    }
     return compiledArguments;
   }
 
