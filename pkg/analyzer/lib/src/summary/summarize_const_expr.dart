@@ -198,25 +198,15 @@ abstract class AbstractConstExprSerializer {
    * given [name] and [arguments].  The parameter [type] might be `null` if the
    * type is not resolved.
    */
-  EntityRefBuilder serializeTypeName(
+  EntityRefBuilder serializeType(
       DartType type, Identifier name, TypeArgumentList arguments);
-
-  /**
-   * Return [EntityRefBuilder] that corresponds to the [type], which is defined
-   * using generic function type syntax. These may appear as the type arguments
-   * of a const list, etc.
-   */
-  EntityRefBuilder serializeGenericFunctionType(GenericFunctionType type);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [type].
    */
-  EntityRefBuilder serializeType(TypeAnnotation type) {
+  EntityRefBuilder serializeTypeName(TypeAnnotation type) {
     if (type is TypeName) {
-      return serializeTypeName(type?.type, type?.name, type?.typeArguments);
-    }
-    if (type is GenericFunctionType) {
-      return serializeGenericFunctionType(type);
+      return serializeType(type?.type, type?.name, type?.typeArguments);
     }
     throw new ArgumentError(
         'Cannot serialize an instance of ${type.runtimeType}');
@@ -417,12 +407,12 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      references.add(serializeType(expr.type));
+      references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedExprOperation.typeCast);
     } else if (expr is IsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      references.add(serializeType(expr.type));
+      references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedExprOperation.typeCheck);
     } else if (expr is SuperExpression) {
       operations.add(UnlinkedExprOperation.pushSuper);
@@ -564,7 +554,7 @@ abstract class AbstractConstExprSerializer {
     }
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 1) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
+      references.add(serializeTypeName(expr.typeArguments.arguments[0]));
       operations.add(UnlinkedExprOperation.makeTypedList);
     } else {
       operations.add(UnlinkedExprOperation.makeUntypedList);
@@ -583,8 +573,8 @@ abstract class AbstractConstExprSerializer {
     }
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 2) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
-      references.add(serializeType(expr.typeArguments.arguments[1]));
+      references.add(serializeTypeName(expr.typeArguments.arguments[0]));
+      references.add(serializeTypeName(expr.typeArguments.arguments[1]));
       operations.add(UnlinkedExprOperation.makeTypedMap);
     } else {
       operations.add(UnlinkedExprOperation.makeUntypedMap);
@@ -708,7 +698,7 @@ abstract class AbstractConstExprSerializer {
     } else {
       ints.add(typeArguments.arguments.length);
       for (TypeAnnotation type in typeArguments.arguments) {
-        references.add(serializeType(type));
+        references.add(serializeTypeName(type));
       }
     }
   }

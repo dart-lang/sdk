@@ -169,16 +169,7 @@ class InstanceMemberInferrer {
           parameter, index, overriddenTypes[i].parameters);
       DartType type = matchingParameter?.type ?? typeProvider.dynamicType;
       if (parameterType == null) {
-        if (type is FunctionType) {
-          // The resulting parameter's type element has an `enclosingElement` of
-          // the overridden parameter. Change it to the overriding parameter.
-          parameterType = new FunctionTypeImpl.fresh(type, force: true);
-          (parameterType.element as ElementImpl).enclosingElement = parameter;
-          // TODO(mfairhurst) handle cases where non-functions contain functions
-          // See test_inferredType_parameter_genericFunctionType_asTypeArgument
-        } else {
-          parameterType = type;
-        }
+        parameterType = type;
       } else if (parameterType != type) {
         if (parameter is ParameterElementForLink) {
           parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
