@@ -229,6 +229,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     }
   }
 
+  void writeOptionalReference(Reference ref) {
+    if (ref == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeReference(ref);
+    }
+  }
+
   void writeLinkTable(Program program) {
     _binaryOffsetForLinkTable = getBufferOffset();
     writeList(_canonicalNameList, writeCanonicalNameEntry);
@@ -756,8 +765,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeName(node.name ?? '');
     writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
+    writeOptionalReference(node.forwardingStubSuperTarget);
     writeOptionalNode(node.function);
     _variableIndexer = null;
+
+    assert((node.forwardingStubSuperTarget != null) ||
+        !(node.isForwardingStub && node.function.body != null));
   }
 
   visitField(Field node) {

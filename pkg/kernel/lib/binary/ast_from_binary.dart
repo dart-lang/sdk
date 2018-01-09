@@ -930,6 +930,8 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
+    var forwardingStubSuperTarget =
+        readAndCheckOptionTag() ? readMemberReference() : null;
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -944,6 +946,10 @@ class BinaryBuilder {
       node.function = function;
       function?.parent = node;
       node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
+      node.forwardingStubSuperTarget = forwardingStubSuperTarget;
+
+      assert((node.forwardingStubSuperTarget != null) ||
+          !(node.isForwardingStub && node.function.body != null));
     }
     _byteOffset = endOffset;
     return node;

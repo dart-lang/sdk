@@ -226,6 +226,11 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+    case kForwardingStubSuperTarget:
+      if (builder_->ReadTag() == kSomething) {
+        forwarding_stub_super_target_ = builder_->ReadCanonicalNameReference();
+      }
+      if (++next_read_ == field) return;
     case kFunction:
       if (builder_->ReadTag() == kSomething)
         builder_->SkipFunctionNode();  // read function node.
@@ -3437,7 +3442,7 @@ void StreamingFlowGraphBuilder::DiscoverEnclosingElements(
   }
 }
 
-void StreamingFlowGraphBuilder::ReadUntilFunctionNode() {
+void StreamingFlowGraphBuilder::ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub) {
   const Tag tag = PeekTag();
   if (tag == kProcedure) {
     ProcedureHelper procedure_helper(this);
@@ -3446,7 +3451,12 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode() {
       // Running a procedure without a function node doesn't make sense.
       UNREACHABLE();
     }
-    return;
+    if (set_forwarding_stub != NULL && flow_graph_builder_ && procedure_helper.IsForwardingStub() &&
+        !procedure_helper.IsAbstract()) {
+      ASSERT(procedure_helper.forwarding_stub_super_target_ != -1);
+      set_forwarding_stub->MarkForwardingStub(
+          procedure_helper.forwarding_stub_super_target_);
+    }
     // Now at start of FunctionNode.
   } else if (tag == kConstructor) {
     ConstructorHelper constructor_helper(this);
@@ -3460,7 +3470,6 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode() {
     H.ReportError("Unsupported tag at this point: %d.", tag);
     UNREACHABLE();
   }
-  return;
 }
 
 StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
@@ -4095,13 +4104,35 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     AlternativeReadingScope _(reader_);
     SetOffset(type_parameters_offset);
 
+    const Function* forwarding_target = NULL;
+    if (parsed_function()->is_forwarding_stub()) {
+      NameIndex target_name = parsed_function()->forwarding_stub_super_target();
+      const String& name = dart_function.IsSetterFunction()
+                               ? H.DartSetterName(target_name)
+                               : H.DartProcedureName(target_name);
+      forwarding_target =
+          &Function::ZoneHandle(Z, LookupMethodByMember(target_name, name));
+      ASSERT(!forwarding_target->IsNull());
+    }
+
     // Type parameters
     intptr_t list_length = ReadListLength();
+    TypeArguments& forwarding_params = TypeArguments::Handle(Z);
+    if (forwarding_target != NULL) {
+        forwarding_params = forwarding_target->type_parameters();
+        ASSERT(forwarding_params.Length() == list_length);
+    }
+    TypeParameter& forwarding_param = TypeParameter::Handle(Z);
     for (intptr_t i = 0; i < list_length; ++i) {
       ReadFlags();                                         // skip flags
       SkipListOfExpressions();                             // skip annotations
       String& name = H.DartSymbol(ReadStringReference());  // read name
-      const AbstractType& bound = T.BuildType();           // read bound
+      AbstractType& bound = T.BuildType();                 // read bound
+
+      if (forwarding_target != NULL) {
+        forwarding_param ^= forwarding_params.TypeAt(i);
+        bound = forwarding_param.bound();
+      }
 
       if (I->strong() && !bound.IsObjectType() &&
           (I->reify_generic_functions() || dart_function.IsFactory())) {
@@ -4126,10 +4157,20 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
 
     // Positional.
     list_length = ReadListLength();
+    const intptr_t positional_length = list_length;
+    const intptr_t kFirstParameterOffset = 1;
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
-      body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
-      body += CheckArgumentType(ReaderOffset() + data_program_offset_);
+      const intptr_t offset = ReaderOffset();
+      LocalVariable* param = LookupVariable(offset + data_program_offset_);
+      const AbstractType* target_type = &param->type();
+      if (forwarding_target != NULL) {
+        // We add 1 to the parameter index to account for the receiver.
+        target_type = &AbstractType::ZoneHandle(Z,
+            forwarding_target->ParameterTypeAt(kFirstParameterOffset + i));
+      }
+      body += LoadLocal(param);
+      body += CheckArgumentType(param, *target_type);
       body += Drop();
       SkipVariableDeclaration();  // read ith variable.
     }
@@ -4138,8 +4179,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     list_length = ReadListLength();
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
-      body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
-      body += CheckArgumentType(ReaderOffset() + data_program_offset_);
+      LocalVariable* param =
+          LookupVariable(ReaderOffset() + data_program_offset_);
+      body += LoadLocal(param);
+      const AbstractType* target_type = &param->type();
+      if (forwarding_target != NULL) {
+        // We add 1 to the parameter index to account for the receiver.
+        target_type = &AbstractType::ZoneHandle(Z,
+            forwarding_target->ParameterTypeAt(positional_length + i + 1));
+      }
+      body += CheckArgumentType(param, *target_type);
       body += Drop();
       SkipVariableDeclaration();  // read ith variable.
     }
@@ -4343,14 +4392,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction: {
-      ReadUntilFunctionNode();  // read until function node.
+      ReadUntilFunctionNode(parsed_function());  // read until function node.
       if (function.IsImplicitClosureFunction()) {
         return BuildGraphOfImplicitClosureFunction(function);
       }
       return BuildGraphOfFunction(false);
     }
     case RawFunction::kConstructor: {
-      ReadUntilFunctionNode();  // read until function node.
+      ReadUntilFunctionNode(parsed_function());  // read until function node.
       return BuildGraphOfFunction(!function.IsFactory());
     }
     case RawFunction::kImplicitGetter:
@@ -5752,10 +5801,9 @@ Fragment StreamingFlowGraphBuilder::CheckAssignableInCheckedMode(
 }
 
 Fragment StreamingFlowGraphBuilder::CheckArgumentType(
-    intptr_t variable_kernel_position) {
-  LocalVariable* variable = LookupVariable(variable_kernel_position);
-  return flow_graph_builder_->CheckAssignable(variable->type(),
-                                              variable->name());
+    LocalVariable* variable,
+    const AbstractType& type) {
+  return flow_graph_builder_->CheckAssignable(type, variable->name());
 }
 
 Fragment StreamingFlowGraphBuilder::CheckTypeArgumentBound(

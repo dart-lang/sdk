@@ -403,7 +403,8 @@ class CloneVisitor extends TreeVisitor {
         isForwardingStub: node.isForwardingStub,
         isForwardingSemiStub: node.isForwardingSemiStub,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)
+        fileUri: node.fileUri,
+        forwardingStubSuperTarget: node.forwardingStubSuperTarget)
       ..fileEndOffset = node.fileEndOffset
       ..isGenericContravariant = node.isGenericContravariant;
   }
