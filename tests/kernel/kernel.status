@@ -1,7 +1,6 @@
 # Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-unsorted/invocation_errors_test: RuntimeError
 
 [ $compiler == dart2js ]
 unsorted/invocation_errors_test: Pass
@@ -11,6 +10,9 @@ unsorted/simple_literal_test: Crash # Issue 31762
 unsorted/super_initializer_test: Skip
 unsorted/super_mixin_test: CompileTimeError
 
+[ !$strong ]
+unsorted/invocation_errors_test: RuntimeError
+
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
 
@@ -19,14 +21,16 @@ unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dartk && $strong ]
+unsorted/invocation_errors_test: CompileTimeError
 unsorted/loop_test: RuntimeError
 unsorted/nsm_dispatcher_test: CompileTimeError
+unsorted/super_mixin_test: CompileTimeError
 unsorted/types_test: RuntimeError
 
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.
 
-[ $runtime == dart_precompiled || $runtime == vm || ($compiler == dart2js && $dart2js_with_kernel) ]
+[ $runtime == dart_precompiled || $runtime == vm || $compiler == dart2js && $dart2js_with_kernel ]
 unsorted/loop_test: CompileTimeError # Large integer literal
 unsorted/simple_literal_test: CompileTimeError # Large integer literal
 
