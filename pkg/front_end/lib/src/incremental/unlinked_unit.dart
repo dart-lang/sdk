@@ -46,7 +46,9 @@ UnlinkedUnitBuilder computeUnlinkedUnit(List<int> salt, List<int> content) {
       continue;
     }
     // The token is outside of a function body, add it.
-    apiSignature.addString(token.lexeme);
+    if (token is! ErrorToken) {
+      apiSignature.addString(token.lexeme);
+    }
   }
 
   return new UnlinkedUnitBuilder(
