@@ -79,9 +79,9 @@ import 'modifier_context.dart'
         ClassMethodModifierContext,
         FactoryModifierContext,
         ModifierContext,
-        ModifierRecoveryContext,
         TopLevelMethodModifierContext,
-        isModifier;
+        isModifier,
+        parseModifiersOpt;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -1152,8 +1152,19 @@ class Parser {
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token);
     listener.beginFormalParameter(token.next, memberKind);
-    token = parseModifiers(token, memberKind, parameterKind: parameterKind);
-    return token;
+    ModifierContext modifierContext = parseModifiersOpt(
+        this,
+        token,
+        memberKind,
+        parameterKind,
+        false,
+        typeContiunationFromFormalParameterKind(parameterKind));
+    TypeContinuation typeContinuation = modifierContext.typeContinuation;
+    memberKind = modifierContext.memberKind;
+    token = modifierContext.lastModifier;
+    modifierContext = null;
+
+    return parseType(token, typeContinuation, null, memberKind);
   }
 
   /// ```
@@ -2707,7 +2718,7 @@ class Parser {
         // but missing a variable name.
         insertSyntheticIdentifier(
             token, IdentifierContext.topLevelVariableDeclaration);
-        return parseFields(beforeStart, const Link<Token>(), token, true);
+        return parseFields(beforeStart, token, true);
       } else {
         return reportInvalidTopLevelDeclaration(token);
       }
@@ -2768,27 +2779,27 @@ class Parser {
     Token afterModifiers =
         identifiers.isNotEmpty ? identifiers.head.next.next : beforeStart.next;
     return isField
-        ? parseFields(beforeStart, identifiers.reverse(), beforeName, true)
+        ? parseFields(beforeStart, beforeName, true)
         : parseTopLevelMethod(
             beforeStart, afterModifiers, beforeType, getOrSet, beforeName);
   }
 
-  Token parseFields(
-      Token start, Link<Token> modifiers, Token beforeName, bool isTopLevel) {
-    Token varFinalOrConst = null;
-    for (Token beforeModifier in modifiers) {
-      Token modifier = beforeModifier.next;
-      if (optional("var", modifier) ||
-          optional("final", modifier) ||
-          optional("const", modifier)) {
-        varFinalOrConst = modifier;
-        break;
-      }
-    }
-    Token token = parseModifiers(start,
-            isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
-            isVarAllowed: true)
-        .next;
+  Token parseFields(Token start, Token beforeName, bool isTopLevel) {
+    ModifierContext modifierContext = parseModifiersOpt(
+        this,
+        start,
+        isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
+        null,
+        true,
+        typeContiunationFromFormalParameterKind(null));
+    TypeContinuation typeContinuation = modifierContext.typeContinuation;
+    MemberKind memberKind = modifierContext.memberKind;
+    Token varFinalOrConst = modifierContext.varFinalOrConst;
+    Token token = modifierContext.lastModifier;
+    modifierContext = null;
+
+    token = parseType(token, typeContinuation, null, memberKind);
+    token = token.next;
 
     Token name = beforeName.next;
     if (token != name) {
@@ -3368,45 +3379,6 @@ class Parser {
     return token;
   }
 
-  /// This method is used in most locations where modifiers can occur. However,
-  /// it isn't used when parsing a class or when parsing the modifiers of a
-  /// member function (non-local), but is used when parsing their formal
-  /// parameters.
-  ///
-  /// When parsing the formal parameters of any function, [parameterKind] is
-  /// non-null.
-  Token parseModifiers(Token token, MemberKind memberKind,
-      {FormalParameterKind parameterKind, bool isVarAllowed: false}) {
-    ModifierContext context = new ModifierContext(
-        this,
-        memberKind,
-        parameterKind,
-        isVarAllowed,
-        typeContiunationFromFormalParameterKind(parameterKind));
-
-    Token previous = token;
-    token = context.parseOpt(token);
-
-    // If the next token is a modifier,
-    // then it's probably out of order and we need to recover from that.
-    if (isModifier(token.next)) {
-      // Recovery
-      context = new ModifierRecoveryContext(this, memberKind, parameterKind,
-          isVarAllowed, typeContiunationFromFormalParameterKind(parameterKind));
-      token = context.parseOpt(previous);
-    }
-    listener.handleModifiers(context.modifierCount);
-
-    memberKind = context.memberKind;
-    context.typeContinuation ??=
-        (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
-            ? TypeContinuation.Required
-            : TypeContinuation.Optional;
-
-    token = parseType(token, context.typeContinuation, null, memberKind);
-    return token;
-  }
-
   Token parseNativeClause(Token token) {
     Token nativeToken = token = token.next;
     assert(optional('native', nativeToken));
@@ -3578,7 +3550,7 @@ class Parser {
 
     Token lastModifier = identifiers.isNotEmpty ? identifiers.head.next : start;
     token = isField
-        ? parseFields(start, identifiers.reverse(), beforeName, false)
+        ? parseFields(start, beforeName, false)
         : parseMethod(start, lastModifier, beforeType, getOrSet, beforeName);
     listener.endMember();
     return token;
@@ -5355,7 +5327,14 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     token = parseMetadataStar(token);
-    token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);
+    ModifierContext modifierContext =
+        parseModifiersOpt(this, token, MemberKind.Local, null, true, null);
+    token = modifierContext.lastModifier;
+    TypeContinuation typeContinuation = modifierContext.typeContinuation;
+    MemberKind memberKind = modifierContext.memberKind;
+    modifierContext = null;
+
+    token = parseType(token, typeContinuation, null, memberKind);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
 
@@ -6028,20 +6007,20 @@ class Parser {
           next.next, IdentifierContext.fieldDeclaration)) {
         // Looks like a field declaration but missing a field name.
         insertSyntheticIdentifier(next, IdentifierContext.fieldDeclaration);
-        return parseFields(start, const Link<Token>(), next, false);
+        return parseFields(start, next, false);
       } else if (next.next.isKeywordOrIdentifier &&
           isPostIdentifierForRecovery(
               next.next.next, IdentifierContext.fieldDeclaration)) {
         // Looks like a field declaration but missing a semicolon
         // which parseFields will insert.
-        return parseFields(start, const Link<Token>(), next, false);
+        return parseFields(start, next, false);
       }
     } else if (token != start &&
         isPostIdentifierForRecovery(next, IdentifierContext.fieldDeclaration)) {
       // If there is at least one modifier, then
       // looks like the start of a field but missing field name.
       insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
-      return parseFields(start, const Link<Token>(), token, false);
+      return parseFields(start, token, false);
     }
     return reportUnrecoverableErrorWithToken(
         start, fasta.templateExpectedClassMember);

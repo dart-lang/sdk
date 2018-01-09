@@ -10452,10 +10452,17 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_const() {
-    CompilationUnit unit = parseCompilationUnit("const ", codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+    CompilationUnit unit = parseCompilationUnit("const ",
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                CompileTimeErrorCode.CONST_NOT_INITIALIZED
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -10469,10 +10476,17 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_final() {
-    CompilationUnit unit = parseCompilationUnit("final ", codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+    CompilationUnit unit = parseCompilationUnit("final ",
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                StaticWarningCode.FINAL_NOT_INITIALIZED
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -10506,10 +10520,17 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   const
-}''', codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+}''',
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                CompileTimeErrorCode.CONST_NOT_INITIALIZED
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
