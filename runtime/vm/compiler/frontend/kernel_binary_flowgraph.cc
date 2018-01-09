@@ -1150,6 +1150,8 @@ void StreamingScopeBuilder::VisitExpression() {
   Tag tag = builder_->ReadTag(&payload);
   switch (tag) {
     case kInvalidExpression:
+      builder_->ReadPosition();
+      builder_->SkipStringReference();
       return;
     case kVariableGet: {
       builder_->ReadPosition();  // read position.
@@ -1424,8 +1426,6 @@ void StreamingScopeBuilder::VisitExpression() {
 void StreamingScopeBuilder::VisitStatement() {
   Tag tag = builder_->ReadTag();  // read tag.
   switch (tag) {
-    case kInvalidStatement:
-      return;
     case kExpressionStatement:
       VisitExpression();  // read expression.
       return;
@@ -4498,8 +4498,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
 Fragment StreamingFlowGraphBuilder::BuildStatement() {
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
-    case kInvalidStatement:
-      return BuildInvalidStatement();
     case kExpressionStatement:
       return BuildExpressionStatement();
     case kBlock:
@@ -4815,6 +4813,8 @@ void StreamingFlowGraphBuilder::SkipExpression() {
   Tag tag = ReadTag(&payload);
   switch (tag) {
     case kInvalidExpression:
+      ReadPosition();
+      SkipStringReference();
       return;
     case kVariableGet:
       ReadPosition();          // read position.
@@ -5044,8 +5044,6 @@ void StreamingFlowGraphBuilder::SkipExpression() {
 void StreamingFlowGraphBuilder::SkipStatement() {
   Tag tag = ReadTag();  // read tag.
   switch (tag) {
-    case kInvalidStatement:
-      return;
     case kExpressionStatement:
       SkipExpression();  // read expression.
       return;
@@ -5866,28 +5864,27 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
 
 Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
     TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
   // The frontend will take care of emitting normal errors (like
   // [NoSuchMethodError]s) and only emit [InvalidExpression]s in very special
   // situations (e.g. an invalid annotation).
-  return ThrowNoSuchMethodError();
+  TokenPosition pos = ReadPosition();
+  if (position != NULL) *position = pos;
+  const String& message = H.DartString(ReadStringReference());
+  H.ReportError(script(), pos, "%s", message.ToCString());
+  return Fragment();
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGet(TokenPosition* position) {
-  (position != NULL) ? * position = ReadPosition()
-                     : ReadPosition();             // read position.
+  (position != NULL) ? * position = ReadPosition() : ReadPosition();
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   ReadUInt();              // read relative variable index.
   SkipOptionalDartType();  // read promoted type.
-
   return LoadLocal(LookupVariable(variable_kernel_position));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGet(uint8_t payload,
                                                      TokenPosition* position) {
-  (position != NULL) ? * position = ReadPosition()
-                     : ReadPosition();             // read position.
+  (position != NULL) ? * position = ReadPosition() : ReadPosition();
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   return LoadLocal(LookupVariable(variable_kernel_position));
 }
@@ -7530,12 +7527,15 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
 
   // The type argument for the factory call.
   Fragment instructions = TranslateInstantiatedTypeArguments(type_arguments);
+  LocalVariable* type = MakeTemporary();
+
+  instructions += LoadLocal(type);
   instructions += PushArgument();
   if (length == 0) {
     instructions += Constant(Object::empty_array());
   } else {
     // The type arguments for CreateArray.
-    instructions += Constant(type_arguments);
+    instructions += LoadLocal(type);
     instructions += IntConstant(length);
     instructions += CreateArray();
     AbstractType& list_type = AbstractType::ZoneHandle(Z);
@@ -7567,8 +7567,9 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(bool is_const,
       Z, factory_class.LookupFactory(
              Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
 
-  return instructions +
-         StaticCall(position, factory_method, 2, ICData::kStatic);
+  instructions += StaticCall(position, factory_method, 2, ICData::kStatic);
+  instructions += DropTempsPreserveTop(1);  // Instantiated type_arguments.
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMapLiteral(bool is_const,
@@ -7824,11 +7825,6 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
   if (position != NULL) *position = TokenPosition::kNoSource;
   const intptr_t constant_index = ReadUInt();
   return Constant(Object::ZoneHandle(Z, H.constants().At(constant_index)));
-}
-
-Fragment StreamingFlowGraphBuilder::BuildInvalidStatement() {
-  H.ReportError("Invalid statements not implemented yet!");
-  return Fragment();
 }
 
 Fragment StreamingFlowGraphBuilder::BuildExpressionStatement() {
@@ -9203,6 +9199,9 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
   } else if (tag == kField) {
     FieldHelper field_helper(this);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+  } else if (tag == kClass) {
+    ClassHelper class_helper(this);
+    class_helper.ReadUntilExcluding(ClassHelper::kEnd);
   } else {
     H.ReportError("Unsupported tag at this point: %d.", tag);
     UNREACHABLE();
@@ -9433,14 +9432,16 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_instance_ = Instance::New(temp_class_, Heap::kOld);
 
         const intptr_t number_of_type_arguments = builder_.ReadUInt();
-        if (number_of_type_arguments > 0) {
+        if (temp_class_.NumTypeArguments() > 0) {
           temp_type_arguments_ =
               TypeArguments::New(number_of_type_arguments, Heap::kOld);
           for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
             temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
           }
-          InstantiateTypeArguments(list_class, &temp_type_arguments_);
+          InstantiateTypeArguments(temp_class_, &temp_type_arguments_);
           temp_instance_.SetTypeArguments(temp_type_arguments_);
+        } else {
+          ASSERT(number_of_type_arguments == 0);
         }
 
         const intptr_t number_of_fields = builder_.ReadUInt();

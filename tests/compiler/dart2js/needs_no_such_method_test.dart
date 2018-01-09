@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/selector.dart';
@@ -14,7 +14,10 @@ import 'type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    await testClassSets();
+    print('--test from ast---------------------------------------------------');
+    await testClassSets(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await testClassSets(CompileMode.kernel);
   });
 }
 
@@ -30,10 +33,10 @@ class Subtype implements Superclass {
 }
 """;
 
-testClassSets() async {
+testClassSets(CompileMode compileMode) async {
   Selector foo, bar, baz;
   ClosedWorld closedWorld;
-  ClassElement superclass, subclass, subtype;
+  ClassEntity superclass, subclass, subtype;
   String testMode;
 
   Future run(List<String> instantiated) async {
@@ -46,7 +49,7 @@ testClassSets() async {
     testMode = '$instantiated';
 
     var env = await TypeEnvironment.create(CLASSES,
-        mainSource: main.toString(), compileMode: CompileMode.memory);
+        mainSource: main.toString(), compileMode: compileMode);
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
@@ -57,9 +60,15 @@ testClassSets() async {
     subtype = env.getElement('Subtype');
   }
 
-  void check(ClassElement cls, ClassQuery query, Selector selector,
+  void check(ClassEntity cls, ClassQuery query, Selector selector,
       bool expectedResult) {
-    bool result = closedWorld.needsNoSuchMethod(cls, selector, query);
+    bool result;
+    if (closedWorld.getClassSet(cls) == null) {
+      // The class isn't live, so it can't need a noSuchMethod for [selector].
+      result = false;
+    } else {
+      result = closedWorld.needsNoSuchMethod(cls, selector, query);
+    }
     Expect.equals(
         expectedResult,
         result,

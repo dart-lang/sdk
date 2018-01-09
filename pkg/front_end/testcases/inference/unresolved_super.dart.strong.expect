@@ -14,6 +14,7 @@ class C extends core::Object {
     dynamic v5 = let final core::int #t1 = 0 in let final dynamic #t2 = self::f<dynamic>() in let final void #t3 = super.[]=(#t1, #t2) in #t2;
   }
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/unresolved_super.dart:12:38: Error: Superclass has no method named 'foo'.\n    var /*@type=dynamic*/ v1 = super.foo(/*@typeArgs=dynamic*/ f());\n                                     ^", "pkg/front_end/testcases/inference/unresolved_super.dart:13:38: Error: Superclass has no getter named 'bar'.\n    var /*@type=dynamic*/ v2 = super.bar;\n                                     ^", "pkg/front_end/testcases/inference/unresolved_super.dart:14:37: Error: Superclass has no method named '[]'.\n    var /*@type=dynamic*/ v3 = super[0];\n                                    ^", "pkg/front_end/testcases/inference/unresolved_super.dart:15:38: Error: Superclass has no setter named 'bar'.\n    var /*@type=dynamic*/ v4 = super.bar = /*@typeArgs=dynamic*/ f();\n                                     ^", "pkg/front_end/testcases/inference/unresolved_super.dart:16:37: Error: Superclass has no method named '[]='.\n    var /*@type=dynamic*/ v5 = super[0] = /*@typeArgs=dynamic*/ f();\n                                    ^"]/* from null */;
 static method f<T extends core::Object>() → self::f::T
   return null;
 static method main() → dynamic {}

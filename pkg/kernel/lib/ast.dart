@@ -1496,6 +1496,7 @@ class Procedure extends Member implements FileUriNode {
       bool isExternal: false,
       bool isConst: false,
       bool isForwardingStub: false,
+      bool isForwardingSemiStub: false,
       int transformerFlags: 0,
       this.fileUri,
       Reference reference})
@@ -1506,6 +1507,7 @@ class Procedure extends Member implements FileUriNode {
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
+    this.isForwardingSemiStub = isForwardingSemiStub;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1515,6 +1517,7 @@ class Procedure extends Member implements FileUriNode {
   static const int FlagConst = 1 << 3; // Only for external const factories.
   static const int FlagForwardingStub = 1 << 4;
   static const int FlagGenericContravariant = 1 << 5;
+  static const int FlagForwardingSemiStub = 1 << 6;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1533,6 +1536,10 @@ class Procedure extends Member implements FileUriNode {
   /// back ends need not consult this flag; this flag exists merely to reduce
   /// front end computational overhead.
   bool get isGenericContravariant => flags & FlagGenericContravariant != 0;
+
+  /// If set, this flag indicates that although this function is a forwarding
+  /// stub, it was present in the original source as an abstract method.
+  bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1559,6 +1566,12 @@ class Procedure extends Member implements FileUriNode {
     flags = value
         ? (flags | FlagGenericContravariant)
         : (flags & ~FlagGenericContravariant);
+  }
+
+  void set isForwardingSemiStub(bool value) {
+    flags = value
+        ? (flags | FlagForwardingSemiStub)
+        : (flags & ~FlagForwardingSemiStub);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -2028,6 +2041,10 @@ abstract class Expression extends TreeNode {
 ///
 /// Should throw a runtime error when evaluated.
 class InvalidExpression extends Expression {
+  String message;
+
+  InvalidExpression(this.message);
+
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitInvalidExpression(this);
@@ -3707,17 +3724,6 @@ class ClosureCreation extends Expression {
 abstract class Statement extends TreeNode {
   accept(StatementVisitor v);
   accept1(StatementVisitor1 v, arg);
-}
-
-/// A statement with a compile-time error.
-///
-/// Should throw an exception at runtime.
-class InvalidStatement extends Statement {
-  accept(StatementVisitor v) => v.visitInvalidStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitInvalidStatement(this, arg);
-
-  visitChildren(Visitor v) {}
-  transformChildren(Transformer v) {}
 }
 
 @coq

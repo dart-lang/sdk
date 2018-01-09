@@ -14,48 +14,16 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/dart2js.dart' as dart2js;
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
+import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import '../memory_compiler.dart';
-
-typedef Future<Compiler> CompileFunction();
-
-/// Create multiple compilations for a list of [sources].
-///
-/// This methods speeds up testing kernel based compilation by creating the IR
-/// nodes for all [sources] at the same time. The returned list of
-/// [CompileFunction]s compiles one of the [source] at a time using the kernel
-/// based compiler.
-///
-/// Currently, the returned compile function only runs with '--analyze-only'
-/// flag.
-Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
-  Uri entryPoint = Uri.parse('memory:main.dart');
-
-  List<CompileFunction> compilers = <CompileFunction>[];
-  for (String source in sources) {
-    compilers.add(() async {
-      Compiler compiler = compilerFor(
-          entryPoint: entryPoint,
-          memorySourceFiles: {
-            'main.dart': source
-          },
-          options: [
-            Flags.analyzeOnly,
-            Flags.enableAssertMessage,
-            Flags.useKernel
-          ]);
-      ElementResolutionWorldBuilder.useInstantiationMap = true;
-      compiler.impactCacheDeleter.retainCachesForTesting = true;
-      await compiler.run(entryPoint);
-      return compiler;
-    });
-  }
-  return compilers;
-}
 
 /// Analyze [memorySourceFiles] with [entryPoint] as entry-point using the
 /// kernel based element model. The returned [Pair] contains the compiler used
@@ -66,24 +34,26 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   if (printSteps) {
     print('---- analyze-all -------------------------------------------------');
   }
-  Compiler compiler = compilerFor(
+  CompilationResult result1 = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeAll, Flags.enableAssertMessage]);
-  compiler.impactCacheDeleter.retainCachesForTesting = true;
-  await compiler.run(entryPoint);
+      options: [Flags.analyzeAll, Flags.enableAssertMessage],
+      beforeRun: (compiler) {
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+      });
 
   if (printSteps) {
     print('---- closed world from kernel ------------------------------------');
   }
-  Compiler compiler2 = compilerFor(
+  ElementResolutionWorldBuilder.useInstantiationMap = true;
+  CompilationResult result2 = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
-      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler2.impactCacheDeleter.retainCachesForTesting = true;
-  await compiler2.run(entryPoint);
-  return new Pair<Compiler, Compiler>(compiler, compiler2);
+      options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel],
+      beforeRun: (compiler) {
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+      });
+  return new Pair<Compiler, Compiler>(result1.compiler, result2.compiler);
 }
 
 class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
@@ -114,6 +84,47 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
   return entryPoint;
 }
 
+Future<Compiler> runWithD8(
+    {Uri entryPoint,
+    Map<String, String> memorySourceFiles: const <String, String>{},
+    List<String> options: const <String>[],
+    String expectedOutput,
+    bool printJs: false}) async {
+  entryPoint ??= Uri.parse('memory:main.dart');
+  Uri mainFile =
+      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
+  String output = uriPathToNative(mainFile.resolve('out.js').path);
+  List<String> dart2jsArgs = [
+    mainFile.toString(),
+    '-o$output',
+    '--packages=${Platform.packageConfig}',
+  ]..addAll(options);
+  print('Running: dart2js ${dart2jsArgs.join(' ')}');
+
+  CompilationResult result = await dart2js.internalMain(dart2jsArgs);
+  Expect.isTrue(result.isSuccess);
+  if (printJs) {
+    print('dart2js output:');
+    print(new File(output).readAsStringSync());
+  }
+
+  List<String> d8Args = [
+    'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
+    output
+  ];
+  print('Running: d8 ${d8Args.join(' ')}');
+  ProcessResult runResult = Process.runSync(d8executable, d8Args);
+  String out = '${runResult.stderr}\n${runResult.stdout}';
+  print('d8 output:');
+  print(out);
+  if (expectedOutput != null) {
+    Expect.equals(0, runResult.exitCode);
+    Expect.stringEquals(
+        expectedOutput, runResult.stdout.replaceAll('\r\n', '\n'));
+  }
+  return result.compiler;
+}
+
 Future<Compiler> compileWithDill(
     {Uri entryPoint,
     Map<String, String> memorySourceFiles: const <String, String>{},
@@ -125,17 +136,18 @@ Future<Compiler> compileWithDill(
   if (printSteps) {
     print('---- compile from dill -------------------------------------------');
   }
-  Compiler compiler = compilerFor(
+  CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       options: [Flags.useKernel]..addAll(options),
       diagnosticHandler: diagnosticHandler,
-      outputProvider: compilerOutput);
-  ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler.impactCacheDeleter.retainCachesForTesting = true;
-  if (beforeRun != null) {
-    beforeRun(compiler);
-  }
-  await compiler.run(entryPoint);
-  return compiler;
+      outputProvider: compilerOutput,
+      beforeRun: (compiler) {
+        ElementResolutionWorldBuilder.useInstantiationMap = true;
+        compiler.impactCacheDeleter.retainCachesForTesting = true;
+        if (beforeRun != null) {
+          beforeRun(compiler);
+        }
+      });
+  return result.compiler;
 }

@@ -33,7 +33,7 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -61,13 +61,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_constrainedByBounds3() async {
     // Expected: InterfaceTypeImpl:<int>
     await super.test_constrainedByBounds3();
-  }
-
-  @override
-  @failingTest
-  test_constrainedByBounds4() async {
-    // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
-    await super.test_constrainedByBounds4();
   }
 
   @override
@@ -103,64 +96,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_covarianceChecks_superclass() async {
     // NoSuchMethodError: The method 'toList' was called on null.
     await super.test_covarianceChecks_superclass();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_assignment_typedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_assignment_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_assignment_unTypedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_assignment_unTypedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionExpressionInvocation_typedArguments() async {
-    // Bad state: Expected a type for null at 154; got one for kernel offset 142
-    await super
-        .test_functionLiteral_functionExpressionInvocation_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionExpressionInvocation_unTypedArguments() async {
-    // Bad state: Expected a type for null at 150; got one for kernel offset 142
-    await super
-        .test_functionLiteral_functionExpressionInvocation_unTypedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionInvocation_typedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_functionInvocation_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionInvocation_unTypedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_functionInvocation_unTypedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_methodInvocation_typedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_methodInvocation_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_methodInvocation_unTypedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_methodInvocation_unTypedArguments();
   }
 
   @override
@@ -221,30 +156,13 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_futureOrNull_no_return() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_no_return();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return_value() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_no_return_value();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_return_null() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_futureOrNull_return_null();
-  }
-
-  @override
-  @failingTest
   test_generic_partial() async {
     // AnalysisException: Element mismatch in /test.dart at class A<T>
     await super.test_generic_partial();
+    // TODO(brianwilkerson) This test periodically fails (by not throwing an
+    // exception), so I am temporarily disabling it. The cause of the flaky
+    // behavior needs to be investigated.
+    fail('Flaky test');
   }
 
   @override
@@ -294,23 +212,10 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31759')
   test_inference_simplePolymorphicRecursion_function() async {
-    // Expected: 'T'
+    // Expected 0 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 2 (114, 99)
     await super.test_inference_simplePolymorphicRecursion_function();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_interface() async {
-    // Expected: 'T'
-    await super.test_inference_simplePolymorphicRecursion_interface();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_simple() async {
-    // RangeError (index): Invalid value: Valid value range is empty: 0
-    await super.test_inference_simplePolymorphicRecursion_simple();
   }
 
   @override
@@ -358,6 +263,8 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_redirectingConstructor_propagation() async {
     // AnalysisException: Element mismatch in /test.dart at class A
     await super.test_redirectingConstructor_propagation();
+    // TODO(brianwilkerson) Figure out why this test is flaky.
+    fail('Flaky test');
   }
 }
 
@@ -371,7 +278,7 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   test_futureOr_promotion3() async {
@@ -430,13 +337,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_max_doubleDouble_prefixed() async {
-    // Bad state: Expected element reference for analyzer offset 49; got one for kernel offset 54
-    await super.test_genericMethod_max_doubleDouble_prefixed();
-  }
-
-  @override
-  @failingTest
   test_genericMethod_nestedCapture() async {
     // Bad state: Found 2 argument types for 1 type arguments
     await super.test_genericMethod_nestedCapture();
@@ -479,13 +379,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_then_prefixed() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (7)
-    await super.test_genericMethod_then_prefixed();
-  }
-
-  @override
-  @failingTest
   test_implicitBounds() async {
     // Expected: 'B<num>'
     await super.test_implicitBounds();
@@ -496,62 +389,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion() async {
     return super.test_instantiateToBounds_class_error_recursion();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_recursion_self() async {
-    return super.test_instantiateToBounds_class_error_recursion_self();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_recursion_self2() async {
-    return super.test_instantiateToBounds_class_error_recursion_self2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_error_typedef() async {
-    return super.test_instantiateToBounds_class_error_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
-    return super.test_instantiateToBounds_class_ok_implicitDynamic_multi();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_after() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_after();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_after2() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_after2();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_before() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_before();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30724')
-  test_instantiateToBounds_class_ok_referenceOther_multi() async {
-    return super.test_instantiateToBounds_class_ok_referenceOther_multi();
   }
 
   @override
@@ -635,5 +472,5 @@ class StrongModeTypePropagationTest_Kernel
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 }

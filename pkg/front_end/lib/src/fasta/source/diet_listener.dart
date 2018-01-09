@@ -693,7 +693,7 @@ class DietListener extends StackListener {
       var formals = listener.pop();
       listener.checkEmpty(token.next.charOffset);
       token = parser.parseInitializersOpt(token);
-      token = parser.parseAsyncModifier(token);
+      token = parser.parseAsyncModifierOpt(token);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
@@ -788,14 +788,8 @@ class DietListener extends StackListener {
     library.addCompileTimeError(message, charOffset, uri);
   }
 
-  @override
-  void addWarning(Message message, int charOffset, int length) {
-    library.addWarning(message, charOffset, uri);
-  }
-
-  @override
-  void addNit(Message message, int charOffset) {
-    library.addNit(message, charOffset, uri);
+  void addProblem(Message message, int charOffset, int length) {
+    library.addProblem(message, charOffset, uri);
   }
 
   @override

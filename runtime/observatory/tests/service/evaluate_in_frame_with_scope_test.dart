@@ -26,7 +26,7 @@ foo(x, y) {
   return local;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Make sure we are in the right place.

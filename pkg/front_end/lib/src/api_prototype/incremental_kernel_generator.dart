@@ -15,6 +15,14 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'compiler_options.dart';
 
+/// Force using the Fasta incremental compiler [IncrementalCompiler]. This is
+/// useful for uploading patches to golem (benchmark service).
+const bool _forceFasta = false;
+
+/// When true, use the Fasta incremental compiler [IncrementalCompiler].
+const bool _useFasta =
+    const bool.fromEnvironment("ikg-use-fasta", defaultValue: _forceFasta);
+
 /// The type of the function that clients can pass to track used files.
 ///
 /// When a file is first used during compilation, this function is called with
@@ -143,13 +151,14 @@ abstract class IncrementalKernelGenerator {
       CompilerOptions options, Uri entryPoint,
       {WatchUsedFilesFn watch, bool useMinimalGenerator: false}) async {
     var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
+    if (_useFasta) {
+      return new IncrementalCompiler(new CompilerContext(processedOptions));
+    }
     return await CompilerContext.runWithOptions(processedOptions,
         (compilerContext) async {
       var uriTranslator = await processedOptions.getUriTranslator();
       var sdkOutlineBytes = await processedOptions.loadSdkSummaryBytes();
-      if (const String.fromEnvironment("ikg-variant") == "fasta") {
-        return new IncrementalCompiler(compilerContext);
-      } else if (useMinimalGenerator) {
+      if (useMinimalGenerator) {
         return new MinimalIncrementalKernelGenerator(
             processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
             watch: watch);

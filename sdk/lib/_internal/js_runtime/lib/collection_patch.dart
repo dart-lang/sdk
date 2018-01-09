@@ -17,6 +17,8 @@ import 'dart:_js_helper'
         LinkedHashMapKeyIterable,
         LinkedHashMapKeyIterator;
 
+import 'dart:_internal' hide Symbol;
+
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 
 @patch

@@ -1038,7 +1038,7 @@ build() {
 library foo;
 part 'src/bar.dart';
 ''');
-    testFile = provider.convertPath('/pkg/lib/src/bar.dart');
+    testFile = resourceProvider.convertPath('/pkg/lib/src/bar.dart');
     await resolveTestUnit('''
 part of foo;
 ''');
@@ -1052,7 +1052,7 @@ part of '../foo.dart';
 library foo;
 part 'bar.dart';
 ''');
-    testFile = provider.convertPath('/pkg/bar.dart');
+    testFile = resourceProvider.convertPath('/pkg/bar.dart');
     await resolveTestUnit('''
 part of foo;
 ''');
@@ -1195,6 +1195,21 @@ fff() => 123;
     await assertHasAssistAt('fff()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
 fff() {
   return 123;
+}
+''');
+  }
+
+  test_convertToBlockBody_OK_throw() async {
+    await resolveTestUnit('''
+class A {
+  mmm() => throw 'error';
+}
+''');
+    await assertHasAssistAt('mmm()', DartAssistKind.CONVERT_INTO_BLOCK_BODY, '''
+class A {
+  mmm() {
+    throw 'error';
+  }
 }
 ''');
   }
@@ -4381,11 +4396,11 @@ main() {
    */
   void _configureFlutterPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
+      newFile('$flutterPkgLibPath/$path', content: code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+    Folder myPkgFolder = getFolder(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
       'flutter': [myPkgFolder]
     });
     SourceFactory sourceFactory = new SourceFactory(

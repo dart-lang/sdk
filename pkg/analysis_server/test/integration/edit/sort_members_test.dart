@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
-    defineReflectiveTests(SortMembersTest_PreviewDart2);
+    defineReflectiveTests(SortMembersTest_UseCFE);
   });
 }
 
@@ -65,7 +65,7 @@ int bar;
 }
 
 @reflectiveTest
-class SortMembersTest_PreviewDart2 extends SortMembersTest {
+class SortMembersTest_UseCFE extends SortMembersTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

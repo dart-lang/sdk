@@ -16,7 +16,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -45,6 +44,30 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
     ];
   }
 
+  test_analysisOptionsFile() async {
+    String analysisOptionsFile =
+        newFile('$projectPath/analysis_options.yaml', content: '''
+linter:
+  rules:
+    - invalid_lint_rule_name
+''').path;
+
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    List<AnalysisError> errors = filesErrors[analysisOptionsFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, '/project/analysis_options.yaml');
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
   test_importError() async {
     createProject();
 
@@ -52,7 +75,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
 import 'does_not_exist.dart';
 ''');
     await waitForTasksFinished();
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     List<AnalysisError> errors = filesErrors[testFile];
     // Verify that we are generating only 1 error for the bad URI.
     // https://github.com/dart-lang/sdk/issues/23754
@@ -66,7 +89,7 @@ import 'does_not_exist.dart';
   test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    addFile('$projectPath/.analysis_options', '''
+    newFile('$projectPath/.analysis_options', content: '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -81,7 +104,7 @@ linter:
     await waitForTasksFinished();
     List<Linter> lints;
     AnalysisDriver testDriver = (server.contextManager as ContextManagerImpl)
-        .getContextInfoFor(resourceProvider.getFolder(projectPath))
+        .getContextInfoFor(getFolder(projectPath))
         .analysisDriver;
     lints = testDriver.analysisOptions.lintRules;
     // Registry should only contain single lint rule.
@@ -100,8 +123,7 @@ linter:
 
   test_notInAnalysisRoot() async {
     createProject();
-    String otherFile = '/other.dart';
-    addFile(otherFile, 'UnknownType V;');
+    String otherFile = newFile('/other.dart', content: 'UnknownType V;').path;
     addTestFile('''
 import '/other.dart';
 main() {
@@ -116,7 +138,7 @@ main() {
     createProject();
     addTestFile('library lib');
     await waitForTasksFinished();
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
@@ -128,6 +150,39 @@ main() {
     expect(error.message, isNotNull);
   }
 
+  test_pubspecFile() async {
+    String pubspecFile = newFile('$projectPath/pubspec.yaml', content: '''
+version: 1.3.2
+''').path;
+
+    Request setRootsRequest =
+        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(setRootsRequest);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    List<AnalysisError> errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, '/project/pubspec.yaml');
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+    //
+    // Fix the error and verify the new results.
+    //
+    modifyFile(pubspecFile, '''
+name: sample
+version: 1.3.2
+''');
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(0));
+  }
+
   test_StaticWarning() async {
     createProject();
     addTestFile('''
@@ -136,7 +191,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];

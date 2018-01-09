@@ -10,6 +10,8 @@ import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
 
 import '../scanner/token.dart' show Token;
 
+import 'severity.dart' show Severity;
+
 import 'util/relativize.dart' as util show relativizeUri;
 
 part 'fasta_codes_generated.dart';
@@ -23,7 +25,10 @@ class Code<T> {
 
   final String dart2jsCode;
 
-  const Code(this.name, this.template, {this.analyzerCode, this.dart2jsCode});
+  final Severity severity;
+
+  const Code(this.name, this.template,
+      {this.analyzerCode, this.dart2jsCode, this.severity});
 
   String toString() => name;
 }
@@ -50,8 +55,15 @@ class MessageCode extends Code<Null> implements Message {
   final String tip;
 
   const MessageCode(String name,
-      {String analyzerCode, String dart2jsCode, this.message, this.tip})
-      : super(name, null, analyzerCode: analyzerCode, dart2jsCode: dart2jsCode);
+      {String analyzerCode,
+      String dart2jsCode,
+      Severity severity,
+      this.message,
+      this.tip})
+      : super(name, null,
+            analyzerCode: analyzerCode,
+            dart2jsCode: dart2jsCode,
+            severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 

@@ -352,11 +352,11 @@ void CallSpecializer::AddCheckNull(Value* to_check,
                                    intptr_t deopt_id,
                                    Environment* deopt_environment,
                                    Instruction* insert_before) {
-  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(I->strong() && FLAG_use_strong_mode_types);
   if (to_check->Type()->is_nullable()) {
     CheckNullInstr* check_null = new (Z) CheckNullInstr(
         to_check->CopyWithType(Z), deopt_id, insert_before->token_pos());
-    if (FLAG_trace_experimental_strong_mode) {
+    if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", check_null->ToCString());
     }
     InsertBefore(insert_before, check_null, deopt_environment,
@@ -1246,7 +1246,7 @@ bool CallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
     InstanceCallInstr* call,
     const AbstractType& type) {
-  ASSERT(FLAG_experimental_strong_mode);
+  ASSERT(I->strong() && FLAG_use_strong_mode_types);
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
 
   if (type.IsDynamicType() || type.IsObjectType() || !type.IsInstantiated()) {
@@ -1263,7 +1263,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, Thread::kNoDeoptId);
-    if (FLAG_trace_experimental_strong_mode) {
+    if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] replacing %s with %s (%s < %s)\n",
                 call->ToCString(), replacement->ToCString(),
                 left_value->Type()->ToAbstractType()->ToCString(),
@@ -1294,7 +1294,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
   }
 
-  if (FLAG_experimental_strong_mode &&
+  if (I->strong() && FLAG_use_strong_mode_types &&
       TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
     return;
   }
@@ -1546,7 +1546,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
     }
   }
 
-  if (FLAG_experimental_strong_mode &&
+  if (I->strong() && FLAG_use_strong_mode_types &&
       TryOptimizeStaticCallUsingStaticTypes(call)) {
     return;
   }

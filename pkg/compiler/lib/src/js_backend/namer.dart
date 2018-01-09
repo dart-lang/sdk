@@ -649,6 +649,8 @@ class Namer {
         return asName(typedefTag);
       case JsGetName.FUNCTION_TYPE_TAG:
         return asName(functionTypeTag);
+      case JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG:
+        return asName(functionTypeGenericBoundsTag);
       case JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG:
         return asName(functionTypeVoidReturnTag);
       case JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG:
@@ -1617,6 +1619,8 @@ class Namer {
 
   String get functionTypeNamedParametersTag => r'named';
 
+  String get functionTypeGenericBoundsTag => r'bounds';
+
   Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
       new HashMap<ResolutionFunctionType, jsAst.Name>();
 
@@ -1995,6 +1999,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   void visitDeferred(DeferredConstantValue constant, [_]) {
     addRoot('Deferred');
   }
+
+  @override
+  void visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
+    addRoot('Deferred');
+  }
 }
 
 /**
@@ -2113,6 +2122,12 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
     // TODO(sra): Investigate that the use of hashCode here is probably a source
     // of instability.
     int hash = constant.import.hashCode;
+    return _combine(hash, _visit(constant.referenced));
+  }
+
+  @override
+  int visitDeferredGlobal(DeferredGlobalConstantValue constant, [_]) {
+    int hash = constant.unit.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }
 

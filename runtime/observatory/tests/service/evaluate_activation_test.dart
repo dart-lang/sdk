@@ -259,7 +259,7 @@ testMethod4(Isolate isolate) async {
   expect(hitBreakpoint, isTrue);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   testMethod,
   testMethod2,
   testMethod3,

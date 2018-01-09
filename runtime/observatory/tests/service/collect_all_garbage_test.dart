@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var result = await isolate.invokeRpcNoUpgrade('_collectAllGarbage', {});
     expect(result['type'], equals('Success'));

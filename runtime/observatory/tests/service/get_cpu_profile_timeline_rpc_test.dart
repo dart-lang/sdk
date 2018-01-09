@@ -20,7 +20,7 @@ testeeDo() {
   print("Testee did something.");
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var params = {'tags': 'VMUser'};
     var result =

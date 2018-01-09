@@ -17,7 +17,7 @@ import 'builder.dart'
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   final Object name;
 
-  final List<T> arguments;
+  List<T> arguments;
 
   TypeDeclarationBuilder<T, R> builder;
 

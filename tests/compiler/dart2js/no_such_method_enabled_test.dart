@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import 'kernel/compiler_helper.dart';
-import 'compiler_helper.dart';
+import 'memory_compiler.dart';
 
 class NoSuchMethodInfo {
   final String className;
@@ -159,7 +159,7 @@ main() {
   const NoSuchMethodTest("""
 class A {
   noSuchMethod(Invocation x) {
-    throw new UnsupportedException();
+    throw new UnsupportedError();
   }
 }
 main() {
@@ -206,63 +206,55 @@ main() {
 ];
 
 main() {
-  asyncTest(() async {
+  runTests({bool useKernel}) async {
     for (NoSuchMethodTest test in TESTS) {
       print('---- testing -------------------------------------------------');
       print(test.code);
-      Uri uri = new Uri(scheme: 'source');
-      Compiler compiler = compilerFor(test.code, uri);
-      await compiler.run(uri);
-      checkTest(compiler, test, testComplexReturns: true);
+      CompilationResult result = await runCompiler(
+          memorySourceFiles: {'main.dart': test.code},
+          options: useKernel ? [Flags.useKernel] : []);
+      Compiler compiler = result.compiler;
+      checkTest(compiler, test);
     }
+  }
 
-    List<String> sources = <String>[];
-    for (NoSuchMethodTest test in TESTS) {
-      sources.add(test.code);
-    }
-
-    print('---- preparing for kernel tests ----------------------------------');
-    List<CompileFunction> results = await compileMultiple(sources);
-    for (int index = 0; index < results.length; index++) {
-      print('---- testing with kernel --------------------------------------');
-      print(sources[index]);
-      Compiler compiler = await results[index]();
-      compiler.resolutionWorldBuilder.closeWorld();
-      // Complex returns are computed during inference.
-      checkTest(compiler, TESTS[index], testComplexReturns: false);
-    }
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }
 
-checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
-  ElementEnvironment elementEnvironment =
+checkTest(Compiler compiler, NoSuchMethodTest test) {
+  ElementEnvironment frontendEnvironment =
       compiler.frontendStrategy.elementEnvironment;
   NoSuchMethodRegistryImpl registry = compiler.backend.noSuchMethodRegistry;
   NoSuchMethodResolver resolver = registry.internalResolverForTesting;
-  FunctionEntity ObjectNSM = elementEnvironment.lookupClassMember(
+  FunctionEntity ObjectNSM = frontendEnvironment.lookupClassMember(
       compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');
-  ClosedWorld closedWorld =
-      compiler.resolutionWorldBuilder.closedWorldForTesting;
-  NoSuchMethodDataImpl data = closedWorld.noSuchMethodData;
+  ClosedWorld backendClosedWorld = compiler.backendClosedWorldForTesting;
+  ElementEnvironment backendEnvironment = backendClosedWorld.elementEnvironment;
+  NoSuchMethodDataImpl data = backendClosedWorld.noSuchMethodData;
 
   // Test [NoSuchMethodResolver] results for each method.
   for (NoSuchMethodInfo info in test.methods) {
-    ClassEntity cls = elementEnvironment.lookupClass(
-        elementEnvironment.mainLibrary, info.className);
+    ClassEntity cls = frontendEnvironment.lookupClass(
+        frontendEnvironment.mainLibrary, info.className);
     Expect.isNotNull(cls, "Class ${info.className} not found.");
     FunctionEntity noSuchMethod =
-        elementEnvironment.lookupClassMember(cls, 'noSuchMethod');
+        frontendEnvironment.lookupClassMember(cls, 'noSuchMethod');
     Expect.isNotNull(noSuchMethod, "noSuchMethod not found in $cls.");
 
     if (info.superClassName == null) {
       Expect.equals(ObjectNSM, resolver.getSuperNoSuchMethod(noSuchMethod));
     } else {
-      ClassEntity superclass = elementEnvironment.lookupClass(
-          elementEnvironment.mainLibrary, info.superClassName);
+      ClassEntity superclass = frontendEnvironment.lookupClass(
+          frontendEnvironment.mainLibrary, info.superClassName);
       Expect.isNotNull(
           superclass, "Superclass ${info.superClassName} not found.");
       FunctionEntity superNoSuchMethod =
-          elementEnvironment.lookupClassMember(superclass, 'noSuchMethod');
+          frontendEnvironment.lookupClassMember(superclass, 'noSuchMethod');
       Expect.isNotNull(
           superNoSuchMethod, "noSuchMethod not found in $superclass.");
       Expect.equals(
@@ -285,39 +277,51 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
   // the [NoSuchMethodResolver] results which are therefore tested for all
   // methods first.
   for (NoSuchMethodInfo info in test.methods) {
-    ClassEntity cls = elementEnvironment.lookupClass(
-        elementEnvironment.mainLibrary, info.className);
-    Expect.isNotNull(cls, "Class ${info.className} not found.");
-    FunctionEntity noSuchMethod =
-        elementEnvironment.lookupClassMember(cls, 'noSuchMethod');
-    Expect.isNotNull(noSuchMethod, "noSuchMethod not found in $cls.");
+    ClassEntity frontendClass = frontendEnvironment.lookupClass(
+        frontendEnvironment.mainLibrary, info.className);
+    Expect.isNotNull(frontendClass, "Class ${info.className} not found.");
+    FunctionEntity frontendNoSuchMethod =
+        frontendEnvironment.lookupClassMember(frontendClass, 'noSuchMethod');
+    Expect.isNotNull(
+        frontendNoSuchMethod, "noSuchMethod not found in $frontendClass.");
 
-    Expect.equals(info.isDefault, registry.defaultImpls.contains(noSuchMethod),
-        "Unexpected isDefault result on $noSuchMethod.");
+    Expect.equals(
+        info.isDefault,
+        registry.defaultImpls.contains(frontendNoSuchMethod),
+        "Unexpected isDefault result on $frontendNoSuchMethod.");
     Expect.equals(
         info.isThrowing,
-        registry.throwingImpls.contains(noSuchMethod),
-        "Unexpected isThrowing result on $noSuchMethod.");
-    Expect.equals(info.isOther, registry.otherImpls.contains(noSuchMethod),
-        "Unexpected isOther result on $noSuchMethod.");
+        registry.throwingImpls.contains(frontendNoSuchMethod),
+        "Unexpected isThrowing result on $frontendNoSuchMethod.");
+    Expect.equals(
+        info.isOther,
+        registry.otherImpls.contains(frontendNoSuchMethod),
+        "Unexpected isOther result on $frontendNoSuchMethod.");
     Expect.equals(
         info.isNotApplicable,
-        registry.notApplicableImpls.contains(noSuchMethod),
-        "Unexpected isNotApplicable result on $noSuchMethod.");
-    if (testComplexReturns) {
-      Expect.equals(
-          info.isComplexNoReturn,
-          data.complexNoReturnImpls.contains(noSuchMethod),
-          "Unexpected isComplexNoReturn result on $noSuchMethod.");
-      Expect.equals(
-          info.isComplexReturn,
-          data.complexReturningImpls.contains(noSuchMethod),
-          "Unexpected isComplexReturn result on $noSuchMethod.");
-    }
+        registry.notApplicableImpls.contains(frontendNoSuchMethod),
+        "Unexpected isNotApplicable result on $frontendNoSuchMethod.");
+
+    ClassEntity backendClass = backendEnvironment.lookupClass(
+        backendEnvironment.mainLibrary, info.className);
+    Expect.isNotNull(backendClass, "Class ${info.className} not found.");
+    FunctionEntity backendNoSuchMethod =
+        backendEnvironment.lookupClassMember(backendClass, 'noSuchMethod');
+    Expect.isNotNull(
+        backendNoSuchMethod, "noSuchMethod not found in $backendClass.");
+
+    Expect.equals(
+        info.isComplexNoReturn,
+        data.complexNoReturnImpls.contains(backendNoSuchMethod),
+        "Unexpected isComplexNoReturn result on $backendNoSuchMethod.");
+    Expect.equals(
+        info.isComplexReturn,
+        data.complexReturningImpls.contains(backendNoSuchMethod),
+        "Unexpected isComplexReturn result on $backendNoSuchMethod.");
   }
 
   Expect.equals(
       test.isNoSuchMethodUsed,
-      closedWorld.backendUsage.isNoSuchMethodUsed,
+      backendClosedWorld.backendUsage.isNoSuchMethodUsed,
       "Unexpected isNoSuchMethodUsed result.");
 }

@@ -341,4 +341,7 @@ action("generate_version_cc_file") {
     "--input",
     rebase_path("vm/version_in.cc", root_build_dir),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--ignore_svn_revision" ]
+  }
 }

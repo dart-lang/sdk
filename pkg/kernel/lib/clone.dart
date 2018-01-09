@@ -60,7 +60,9 @@ class CloneVisitor extends TreeVisitor {
     return type == null ? null : substitute(type, typeSubstitution);
   }
 
-  visitInvalidExpression(InvalidExpression node) => new InvalidExpression();
+  visitInvalidExpression(InvalidExpression node) {
+    return new InvalidExpression(node.message);
+  }
 
   visitVariableGet(VariableGet node) {
     return new VariableGet(
@@ -267,11 +269,6 @@ class CloneVisitor extends TreeVisitor {
     return new VectorCopy(clone(node.vectorExpression));
   }
 
-  // Statements
-  visitInvalidStatement(InvalidStatement node) {
-    return new InvalidStatement();
-  }
-
   visitExpressionStatement(ExpressionStatement node) {
     return new ExpressionStatement(clone(node.expression));
   }
@@ -401,9 +398,11 @@ class CloneVisitor extends TreeVisitor {
         isExternal: node.isExternal,
         isConst: node.isConst,
         isForwardingStub: node.isForwardingStub,
+        isForwardingSemiStub: node.isForwardingSemiStub,
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
-      ..fileEndOffset = node.fileEndOffset;
+      ..fileEndOffset = node.fileEndOffset
+      ..isGenericContravariant = node.isGenericContravariant;
   }
 
   visitField(Field node) {

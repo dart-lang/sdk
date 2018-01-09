@@ -102,7 +102,8 @@ abstract class TypeBuilder {
       TypeVariableType type, MemberEntity member,
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(type));
-    if (type.element.typeDeclaration is! ClassEntity) {
+    if (type.element.typeDeclaration is! ClassEntity &&
+        !builder.options.strongMode) {
       // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
@@ -121,8 +122,12 @@ abstract class TypeBuilder {
           .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
     }
 
-    ClassTypeVariableAccess typeVariableAccess =
-        computeTypeVariableAccess(member);
+    ClassTypeVariableAccess typeVariableAccess;
+    if (type.element.typeDeclaration is ClassEntity) {
+      typeVariableAccess = computeTypeVariableAccess(member);
+    } else {
+      typeVariableAccess = ClassTypeVariableAccess.parameter;
+    }
     switch (typeVariableAccess) {
       case ClassTypeVariableAccess.parameter:
         return readAsParameter();

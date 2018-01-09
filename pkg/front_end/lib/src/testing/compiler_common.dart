@@ -56,10 +56,13 @@ Future<Program> compileUnit(List<String> inputs, Map<String, dynamic> sources,
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
 Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> inputSummaries: const [], CompilerOptions options}) async {
+    {List<String> inputSummaries: const [],
+    CompilerOptions options,
+    bool truncate: false}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, inputSummaries: inputSummaries);
-  return await summaryFor(inputs.map(toTestUri).toList(), options);
+  return await summaryFor(inputs.map(toTestUri).toList(), options,
+      truncate: truncate);
 }
 
 /// Defines a default set of options for testing:

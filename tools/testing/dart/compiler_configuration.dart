@@ -124,7 +124,10 @@ abstract class CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> args) {
     return sharedOptions.toList()..addAll(args);
   }
 
@@ -341,7 +344,8 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
         allCommands, artifact.filename, artifact.mimeType);
   }
 
-  List<String> computeCompilerArguments(vmOptions, sharedOptions, args) {
+  List<String> computeCompilerArguments(
+      vmOptions, sharedOptions, dart2jsOptions, args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return <String>[]..addAll(vmOptions)..addAll(sharedOptions)..addAll(args);
@@ -433,6 +437,17 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     return multiplier;
   }
 
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> args) {
+    return <String>[]
+      ..addAll(sharedOptions)
+      ..addAll(dart2jsOptions)
+      ..addAll(args);
+  }
+
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = arguments.toList()
@@ -470,7 +485,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> args) {
     var result = sharedOptions.toList();
 
     // The file being compiled is the last argument.
@@ -554,7 +572,10 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> args) {
     var result = sharedOptions.toList();
 
     // The file being compiled is the last argument.
@@ -571,12 +592,18 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
         .absolute
         .toNativePath();
 
+    var summaryInputDir = new Path(_configuration.buildDirectory)
+        .append("/gen/utils/dartdevc/pkg")
+        .absolute
+        .toNativePath();
+
     args.addAll([
       "--dart-sdk-summary",
       sdkSummary,
       "-o",
       outputFile,
       inputFile,
+      "--summary-input-dir=$summaryInputDir",
     ]);
 
     // Link to the summaries for the available packages, so that they don't
@@ -644,10 +671,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     if (_isChecked) multiplier *= 2;
     return multiplier;
   }
-
-  // TODO(dartbug.com/30480): create a separate option to toggle
-  // strong mode optimizations.
-  bool get _enableStrongModeOptimizations => false;
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
@@ -721,10 +744,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
     if (_configuration.isMinified) {
       args.add('--obfuscate');
-    }
-
-    if (_enableStrongModeOptimizations) {
-      args.add('--experimental-strong-mode');
     }
 
     if (_isStrong) {
@@ -830,7 +849,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, originalArguments) {
     List<String> args = [];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -906,7 +925,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, originalArguments) {
     var args = <String>[];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -1051,6 +1070,13 @@ abstract class VMKernelCompilerMixin {
       dillFile,
     ];
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
+
+    if (_isStrong) {
+      // Pass environment variable to the gen_kernel script as
+      // arguments are not passed if gen_kernel runs in batch mode.
+      environmentOverrides = new Map.from(environmentOverrides);
+      environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
+    }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);

@@ -49,7 +49,7 @@ Future main(List<String> args) async {
 
   if (generateJS) {
     var jsModule = compileToJSModule(program, [], [], {});
-    var jsPath = path.join(path.basename(outputPath), 'dart_sdk.kernel.js');
+    var jsPath = path.join(path.dirname(outputPath), 'dart_sdk.kernel.js');
     new File(jsPath)
         .writeAsStringSync(jsProgramToCode(jsModule, ModuleFormat.es6).code);
   }

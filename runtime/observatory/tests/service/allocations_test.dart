@@ -17,7 +17,7 @@ void script() {
   foos = [new Foo(), new Foo(), new Foo()];
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
         expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
         expect(lib.classes.length, equals(1));

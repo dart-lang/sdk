@@ -208,13 +208,6 @@ class Listener {
 
   void beginExpressionStatement(Token token) {}
 
-  /// Called by [ClassMemberParser] after skipping an expression as error
-  /// recovery. For a stack-based listener, the suggested action is to push
-  /// `null` or a synthetic erroneous expression.
-  void handleRecoverExpression(Token token, Message message) {
-    logEvent("RecoverExpression");
-  }
-
   /// Called by [Parser] after parsing an extraneous expression as error
   /// recovery. For a stack-based listener, the suggested action is to discard
   /// an expression from the stack.
@@ -1213,28 +1206,6 @@ class Listener {
 
   void handleScript(Token token) {
     logEvent("Script");
-  }
-
-  /// Matches a generic comment type substitution and injects it into the token
-  /// stream before the given [token].
-  Token injectGenericCommentTypeAssign(Token token) {
-    return token;
-  }
-
-  /// Matches a generic comment type variables or type arguments and injects
-  /// them into the token stream before the given [token].
-  Token injectGenericCommentTypeList(Token token) {
-    return token;
-  }
-
-  /// If the [tokenWithComment] has a type substitution comment /*=T*/, then
-  /// the comment should be scanned into new tokens, and these tokens inserted
-  /// instead of tokens from the [tokenToStartReplacing] to the
-  /// [tokenWithComment]. Returns the first newly inserted token, or the
-  /// original [tokenWithComment].
-  Token replaceTokenWithGenericCommentTypeAssign(
-      Token tokenToStartReplacing, Token tokenWithComment) {
-    return tokenToStartReplacing;
   }
 
   /// A type has been just parsed, and the parser noticed that the next token

@@ -130,7 +130,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       } else if (type.isDynamic) {
         matchingClasses.addAll(_unusedClasses);
       } else {
-        assert(type is VoidType);
+        assert(type is VoidType, '$type was ${type.runtimeType}');
       }
     }
     if (matchingClasses.isNotEmpty && _registeredClasses.isEmpty) {

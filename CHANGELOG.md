@@ -46,6 +46,7 @@
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
+  * Added `Provisional` annotation to `dart:core`.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
@@ -55,6 +56,7 @@
   * Renamed the `HtmlEscapeMode` constants `UNKNOWN`, `ATTRIBUTE`,
     `SQ_ATTRIBUTE` and `ELEMENT` to `unknown`, `attribute`, `sqAttribute` and
     `elements`.
+  * Changed return type of `Base64Codec.decode` to `Uint8List`.
 
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
@@ -84,8 +86,6 @@
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
   * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
-  * Added `waitForEventSync`, which suspends execution until an asynchronous
-    event oocurs.
 
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
@@ -113,67 +113,111 @@
 
 * Analyzer
 
-The analyzer will no longer issue a warning when a generic type parameter is
-used as the type in an instance check. For example:
+  * The analyzer will no longer issue a warning when a generic type parameter
+    is used as the type in an instance check. For example:
+
     ```dart
     test<T>() {
       print(3 is T); // No warning
     }
     ```
 
-* Pub
+  * New static checking of `@visibleForTesting` elements. Accessing a method,
+    function, class, etc. annotated with `@visibleForTesting` from a file _not_
+    in a `test/` directory will result in a new hint ([issue 28273]).
+  * Static analysis now respects functions annotated with `@alwaysThrows`
+    ([issue 31384]).
 
-  * Git dependencies may now include a `path` parameter, indicating that the
-    package exists in a subdirectory of the Git repository. For example:
+[issue 28273]: https://github.com/dart-lang/sdk/issues/28273
+[issue 31384]: https://github.com/dart-lang/sdk/issues/31384
 
-    ```yaml
-    dependencies:
-      foobar:
-        git:
-          url: git://github.com/dart-lang/multi_package_repo
-          path: pkg/foobar
-    ```
+#### Pub
 
-  * `pub get` and `pub upgrade` properly produce an error message and exit code
-    when no network is present.
+##### SDK Constraints
 
-  * `pub serve` now waits for file watcher events to stabilize before scheduling
-     new builds. This helps specifically with `safe-write` features in editors,
-     as well as other situations such as `save all` which cause many fast edits.
+There is now a default SDK constraint of `<2.0.0` for any package with no
+existing upper bound. This allows us to move more safely to 2.0.0. All new
+packages published on pub will now require an upper bound SDK constraint so
+future major releases of Dart don't destabilize the package ecosystem.
 
-  * Added the `--build-delay` argument to `pub serve` which sets the amount of
-    time (in ms) to wait between file watcher events before scheduling a build.
-    Defaults to 50.
+All SDK constraint exclusive upper bounds are now treated as though they allow
+pre-release versions of that upper bound. For example, the SDK constraint
+`>=1.8.0 <2.0.0` now allows pre-release SDK versions such as `2.0.0-beta.3.0`.
+This allows early adopters to try out packages that don't explicitly declare
+support for the new version yet. You can disable this functionality by setting
+the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
-  * Removed require.js module loading timeout for dartdevc, which resolves an
-    issue where the initial load of an app might give a timeout error.
+##### Other Features
 
-  * There is now a default SDK constraint of `<2.0.0` for any package with
-    no existing upper bound. This allows us to move more safely to 2.0.0.
+* Git dependencies may now include a `path` parameter, indicating that the
+  package exists in a subdirectory of the Git repository. For example:
 
-  * All new packages published on pub will now require an upper bound SDK
-    constraint so future major releases of Dart don't destabilize the package
-    ecosystem.
+  ```yaml
+  dependencies:
+    foobar:
+      git:
+        url: git://github.com/dart-lang/multi_package_repo
+        path: pkg/foobar
+  ```
 
-  * When on a pre-release SDK build, all upper bounds matching exactly the
-    current SDK version but with no pre-release or build modifier will be
-    upgraded to be <= the current SDK version. This allows early adopters to
-    try out packages that don't explicitly declare support yet. You can disable
-    this functionality by setting the PUB_ALLOW_PRERELEASE_SDK system
-    environment variable to `false`.
+* Added an `--executables` option to `pub deps` command. This will list all
+  available executables that can be run with `pub run`.
 
-  * Added `--executables` option to `pub deps` command. This will list all
-    available executables that can be run with `pub run`.
+* Added a `PUB_MAX_WORKERS_PER_TASK` environment variable which can be set to
+  configure the number of dartdevc/analyzer workers that are used when compiling
+  with `--web-compiler=dartdevc`.
 
-  * Fixed https://github.com/dart-lang/pub/issues/1684 so root package analysis
-    options are not enforced for dependencies when compiling with dartdevc.
+* Pub will now automatically retry HTTP requests that fail with a 502, 503, of
+  504 error code ([issue 1556][pub#1556]).
 
-  * Fixed https://github.com/dart-lang/sdk/issues/30246 so you can include dart
-    scripts from subdirectories with dartdevc.
+* Emit exit code 66 when a path dependency doesn't exist ([issue 1747][pub#1747]).
 
-  * Added a PUB_MAX_WORKERS_PER_TASK system environment variable which can be
-    set to configure the number of dartdevc/analyzer workers that are used
-    when compiling with --web-compiler=dartdevc.
+[pub#1556]: https://github.com/dart-lang/pub/issues/1556
+[pub#1747]: https://github.com/dart-lang/pub/issues/1747
+
+##### Bug Fixes
+
+* Added a `--build-delay` argument to `pub serve` which sets the amount of time
+  (in ms) to wait between file watcher events before scheduling a build.
+  Defaults to 50.
+
+* `pub get` and `pub upgrade` properly produce an error message and exit code
+  when no network is present.
+
+* `pub serve` now waits for file watcher events to stabilize before scheduling
+   new builds. This helps specifically with `safe-write` features in editors,
+   as well as other situations such as `save all` which cause many fast edits.
+
+* Removed the require.js module loading timeout for dartdevc, which resolves an
+  issue where the initial load of an app might give a timeout error.
+
+* Root package analysis options are no longer enforced for dependencies when
+  compiling with dartdevc ([issue 1684][pub#1684]).
+
+* Dart scripts can be included from subdirectories with dartdevc
+  ([issue 30246][]).
+
+* The `barback` infrastructure now supports `async` 2.0.0.
+
+* Print a more informative error message when the Flutter SDK isn't
+  available ([issue 1719][pub#1719]).
+
+* Don't crash when publishing a package that contains an empty submodule
+  ([issue 1679][pub#1679]).
+
+* Emit exit code 69 for TLS errors ([issue 1729][pub#1729]).
+
+* Fix `pub global run` for packages activated from a local path that also have
+  relative path dependencies ([issue 1751][pub#1751]).
+
+[pub#1684]: https://github.com/dart-lang/pub/issues/1684
+[pub#1719]: https://github.com/dart-lang/pub/issues/1719
+[pub#1679]: https://github.com/dart-lang/pub/issues/1679
+[pub#1729]: https://github.com/dart-lang/pub/issues/1729
+[pub#1751]: https://github.com/dart-lang/pub/issues/1751
+[issue 30246]: https://github.com/dart-lang/sdk/issues/30246
+
+#### Other Tools
 
 * dartfmt
 
@@ -195,13 +239,27 @@ used as the type in an instance check. For example:
     }
     ```
 
+## 1.24.3 - 14-12-2017
+
+* Fix for constructing a new SecurityContext that contains the built-in
+  certificate authority roots
+  ([issue 24693](https://github.com/dart-lang/sdk/issues/24693)).
+
+### Core library changes
+
+* `dart:io`
+  * Unified backends for `SecureSocket`, `SecurityContext`, and
+    `X509Certificate` to be consistent across all platforms. All
+    `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
+    methods are now supported on iOS and OSX.
+
 ## 1.24.2 - 22-06-2017
 
 * Fixes for debugging in Dartium.
   * Fix DevConsole crash with JS
-      (https://github.com/dart-lang/sdk/issues/29873).
+    ([issue 29873](https://github.com/dart-lang/sdk/issues/29873)).
   * Fix debugging in WebStorm, NULL returned for JS objects
-      (https://github.com/dart-lang/sdk/issues/29854).
+    ([issue 29854](https://github.com/dart-lang/sdk/issues/29854)).
 
 ## 1.24.1 - 14-06-2017
 
@@ -215,7 +273,7 @@ used as the type in an instance check. For example:
   * Fixed a Safari issue during bootstrapping (note that Safari is still not
     officially supported but does work for trivial examples).
 * Fix for a Dartium issue where there was no sound in checked mode
-    (https://github.com/dart-lang/sdk/issues/29810).
+  ([issue 29810](https://github.com/dart-lang/sdk/issues/29810)).
 
 ## 1.24.0 - 12-06-2017
 

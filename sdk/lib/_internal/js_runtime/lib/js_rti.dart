@@ -22,8 +22,9 @@
  *     array are the type arguments.
  *  3) `null`: the dynamic type.
  *  4) a JavaScript object representing the function type. For instance, it has
- *     the form  {ret: rti, args: [rti], opt: [rti], named: {name: rti}} for a
+ *     the form {ret: rti, args: [rti], opt: [rti], named: {name: rti}} for a
  *     function with a return type, regular, optional and named arguments.
+ *     Generic function types have a 'bounds' property.
  *
  * To check subtype relations between generic classes we use a JavaScript
  * expression that describes the necessary substitution for type arguments.
@@ -380,11 +381,8 @@ String computeTypeName(String isField, List arguments) {
 Object subtypeCast(Object object, String isField, List checks, String asField) {
   if (object == null) return object;
   if (checkSubtype(object, isField, checks, asField)) return object;
-  String actualType = Primitives.objectTypeName(object);
   String typeName = computeTypeName(isField, checks);
-  // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
-  // align with [TypeErrorImplementation].
-  throw new CastErrorImplementation(actualType, typeName);
+  throw new CastErrorImplementation(object, typeName);
 }
 
 Object assertSubtype(
@@ -502,8 +500,7 @@ bool checkSubtypeOfRuntimeType(o, t) {
 
 Object subtypeOfRuntimeTypeCast(Object object, var type) {
   if (object != null && !checkSubtypeOfRuntimeType(object, type)) {
-    String actualType = Primitives.objectTypeName(object);
-    throw new CastErrorImplementation(actualType, runtimeTypeToString(type));
+    throw new CastErrorImplementation(object, runtimeTypeToString(type));
   }
   return object;
 }
@@ -531,14 +528,25 @@ getArguments(var type) {
  * representations.
  *
  * The arguments [s] and [t] must be types, usually represented by the
- * constructor of the class, or an array (for generic types).
+ * constructor of the class, or an array (for generic class types).
  */
 bool isSubtype(var s, var t) {
   // Subtyping is reflexive.
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
   if (s == null || t == null) return true;
+
+  // Generic function type parameters must match exactly, which would have
+  // exited earlier. The de Bruijn indexing ensures the representation as a
+  // small number can be used for type comparison.
+  if (isGenericFunctionTypeParameter(s)) {
+    // TODO(sra):  tau <: Object.
+    return false;
+  }
+  if (isGenericFunctionTypeParameter(t)) return false;
+
   if (isNullType(s)) return true;
+
   if (isDartFunctionType(t)) {
     return isFunctionSubtype(s, t);
   }
@@ -633,8 +641,24 @@ bool areAssignableMaps(var s, var t) {
 bool isFunctionSubtype(var s, var t) {
   assert(isDartFunctionType(t));
   if (!isDartFunctionType(s)) return false;
+  var genericBoundsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG);
   var voidReturnTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
   var returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
+
+  // Generic function types must agree on number of type parameters and bounds.
+  if (hasField(s, genericBoundsTag)) {
+    if (hasNoField(t, genericBoundsTag)) return false;
+    var sBounds = getField(s, genericBoundsTag);
+    var tBounds = getField(t, genericBoundsTag);
+    int sGenericParameters = getLength(sBounds);
+    int tGenericParameters = getLength(tBounds);
+    if (sGenericParameters != tGenericParameters) return false;
+    // TODO(sra): Compare bounds.
+  } else if (hasField(t, genericBoundsTag)) {
+    return false;
+  }
+
   if (hasField(s, voidReturnTag)) {
     if (hasNoField(t, voidReturnTag) && hasField(t, returnTypeTag)) {
       return false;
@@ -714,6 +738,15 @@ bool isFunctionSubtype(var s, var t) {
   var sNamedParameters = getField(s, namedParametersTag);
   var tNamedParameters = getField(t, namedParametersTag);
   return areAssignableMaps(sNamedParameters, tNamedParameters);
+}
+
+/**
+ * Returns whether [type] is the representation of a generic function type
+ * parameter. Generic function type parameters are represented de Bruijn
+ * indexes.
+ */
+bool isGenericFunctionTypeParameter(var type) {
+  return type is num; // Actually int, but 'is num' is faster.
 }
 
 /**

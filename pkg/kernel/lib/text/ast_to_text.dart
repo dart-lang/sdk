@@ -222,11 +222,13 @@ class Printer extends Visitor<Null> {
   final NameSystem syntheticNames;
   final StringSink sink;
   final Annotator annotator;
+  final Map<String, MetadataRepository<dynamic>> metadata;
   ImportTable importTable;
   int indentation = 0;
   int column = 0;
   bool showExternal;
   bool showOffsets;
+  bool showMetadata;
 
   static int SPACE = 0;
   static int WORD = 1;
@@ -237,16 +239,19 @@ class Printer extends Visitor<Null> {
       {NameSystem syntheticNames,
       this.showExternal,
       this.showOffsets: false,
+      this.showMetadata: false,
       this.importTable,
-      this.annotator})
+      this.annotator,
+      this.metadata})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
 
-  Printer._inner(Printer parent, this.importTable)
+  Printer._inner(Printer parent, this.importTable, this.metadata)
       : sink = parent.sink,
         syntheticNames = parent.syntheticNames,
         annotator = parent.annotator,
         showExternal = parent.showExternal,
-        showOffsets = parent.showOffsets;
+        showOffsets = parent.showOffsets,
+        showMetadata = parent.showMetadata;
 
   bool shouldHighlight(Node node) {
     return false;
@@ -387,7 +392,8 @@ class Printer extends Visitor<Null> {
     }
 
     endLine();
-    var inner = new Printer._inner(this, imports);
+    var inner =
+        new Printer._inner(this, imports, library.enclosingProgram?.metadata);
     library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
@@ -396,7 +402,7 @@ class Printer extends Visitor<Null> {
 
   void writeProgramFile(Program program) {
     ImportTable imports = new ProgramImportTable(program);
-    var inner = new Printer._inner(this, imports);
+    var inner = new Printer._inner(this, imports, program.metadata);
     writeWord('main');
     writeSpaced('=');
     inner.writeMemberReferenceFromReference(program.mainMethodName);
@@ -504,6 +510,9 @@ class Printer extends Visitor<Null> {
       if (showOffsets && node is TreeNode) {
         writeWord("[${node.fileOffset}]");
       }
+      if (showMetadata && node is TreeNode) {
+        writeMetadata(node);
+      }
 
       node.accept(this);
 
@@ -516,6 +525,17 @@ class Printer extends Visitor<Null> {
   void writeOptionalNode(Node node) {
     if (node != null) {
       node.accept(this);
+    }
+  }
+
+  void writeMetadata(TreeNode node) {
+    if (metadata != null) {
+      for (var md in metadata.values) {
+        final nodeMetadata = md.mapping[node];
+        if (nodeMetadata != null) {
+          writeWord("[@${md.tag}=${nodeMetadata}]");
+        }
+      }
     }
   }
 
@@ -904,6 +924,7 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isForwardingStub, 'forwarding-stub');
+    writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
     writeModifier(node.isGenericContravariant, 'generic-contravariant');
     writeWord(procedureKindToString(node.kind));
     if ((node.enclosingClass == null &&
@@ -997,6 +1018,9 @@ class Printer extends Visitor<Null> {
 
   visitInvalidExpression(InvalidExpression node) {
     writeWord('invalid-expression');
+    if (node.message != null) {
+      writeWord('"${escapeString(node.message)}"');
+    }
   }
 
   visitMethodInvocation(MethodInvocation node) {
@@ -1399,11 +1423,6 @@ class Printer extends Visitor<Null> {
     writeMemberReferenceFromReference(node.targetReference);
     writeSpaced('=');
     writeExpression(node.value);
-  }
-
-  visitInvalidStatement(InvalidStatement node) {
-    writeIndentation();
-    endLine('invalid-statement;');
   }
 
   visitExpressionStatement(ExpressionStatement node) {

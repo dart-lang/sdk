@@ -29,7 +29,6 @@ html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # 
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
-html/websql_test: Pass, Timeout # Roll 50 failure
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 html/xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 isolate/browser/issue_12474_test: CompileTimeError # Issue 22529

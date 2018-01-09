@@ -8,7 +8,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
@@ -30,7 +32,7 @@ Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState}) async {
   try {
     return await _compile(args, compilerState: compilerState);
-  } catch (error) {
+  } catch (error, stackTrace) {
     print('''
 We're sorry, you've found a bug in our compiler.
 You can report this bug at:
@@ -40,6 +42,9 @@ any other information that may help us track it down. Thanks!
 -------------------- %< --------------------
     $_binaryName arguments: ${args.join(' ')}
     dart --version: ${Platform.version}
+
+$error
+$stackTrace
 ''');
     rethrow;
   }
@@ -51,6 +56,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
     'Usage: $_binaryName [options...] <sources...>\n\n'
     '${ddcArgParser.usage}';
 
+/// Resolve [s] as a URI, possibly relative to the current directory.
 Uri stringToUri(String s, {bool windows}) {
   windows ??= Platform.isWindows;
   if (windows) {
@@ -63,6 +69,32 @@ Uri stringToUri(String s, {bool windows}) {
     return new Uri.file(s, windows: true);
   }
   return result;
+}
+
+/// Resolve [s] as a URI, and if the URI is a uri under a directory in [roots],
+/// then return a custom URI containing only the subpath from that root and the
+/// provided [scheme]. For example,
+///
+///    stringToCustomUri('a/b/c.dart', [Uri.base.resolve('a/')], 'foo')
+///
+/// returns:
+///
+///    foo:/b/c.dart
+///
+/// This is used to create machine agnostic URIs both for input files and for
+/// summaries. We do so for input files to ensure we don't leak any
+/// user-specific paths into non-package library names, and we do so for input
+/// summaries to be able to easily derive a module name from the summary path.
+Uri stringToCustomUri(String s, List<Uri> roots, String scheme) {
+  Uri resolvedUri = stringToUri(s);
+  if (resolvedUri.scheme != 'file') return resolvedUri;
+  for (var root in roots) {
+    if (resolvedUri.path.startsWith(root.path)) {
+      var path = resolvedUri.path.substring(root.path.length);
+      return Uri.parse('$scheme:///$path');
+    }
+  }
+  return resolvedUri;
 }
 
 class CompilerResult {
@@ -84,8 +116,13 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
     ..addOption('summary',
-        abbr: 's', help: 'summaries to link to', allowMultiple: true)
-    ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true);
+        abbr: 's',
+        help: 'path to a summary of a transitive dependency of this module.\n'
+            'This path should be under a provided summary-input-dir',
+        allowMultiple: true)
+    ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
+    ..addOption('summary-input-dir', allowMultiple: true)
+    ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app');
 
   addModuleFormatOptions(argParser, singleOutFile: false);
 
@@ -100,34 +137,54 @@ Future<CompilerResult> _compile(List<String> args,
   var moduleFormat = parseModuleFormatOption(argResults).first;
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
 
-  var summaryUris =
-      (argResults['summary'] as List<String>).map(stringToUri).toList();
+  var multiRoots = [];
+  for (var s in argResults['summary-input-dir']) {
+    var uri = stringToUri(s);
+    if (!uri.path.endsWith('/')) {
+      uri = uri.replace(path: '${uri.path}/');
+    }
+    multiRoots.add(uri);
+  }
+  multiRoots.add(Uri.base);
+
+  var customScheme = argResults['custom-app-scheme'];
+  var summaryUris = argResults['summary']
+      .map((s) => stringToCustomUri(s, multiRoots, customScheme))
+      .toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
-      path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
+      path.join(path.dirname(path.dirname(Platform.resolvedExecutable)), 'lib',
+          '_internal', 'ddc_sdk.dill');
 
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
 
-  var inputs = argResults.rest.map(stringToUri).toList();
+  var inputs = argResults.rest
+      .map((s) => stringToCustomUri(s, [Uri.base], customScheme))
+      .toList();
 
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
-    // TODO(jmesserly): front end warning levels do not seem to follow the
-    // Strong Mode/Dart 2 spec. So for now, we treat all warnings as
-    // compile time errors.
-    if (error.severity == fe.Severity.error ||
-        error.severity == fe.Severity.warning) {
+    if (error.severity == fe.Severity.error) {
       succeeded = false;
     }
   }
 
+  // To make the output .dill agnostic of the current working directory,
+  // we use a custom-uri scheme for all app URIs (these are files outside the
+  // lib folder). The following [FileSystem] will resolve those references to
+  // the correct location and keeps the real file location hidden from the
+  // front end.
+  var fileSystem = new MultiRootFileSystem(
+      customScheme, multiRoots, PhysicalFileSystem.instance);
+
   compilerState = await fe.initializeCompiler(
       compilerState,
-      path.toUri(sdkSummaryPath),
-      path.toUri(packageFile),
+      stringToUri(sdkSummaryPath),
+      stringToUri(packageFile),
       summaryUris,
-      new DevCompilerTarget());
+      new DevCompilerTarget(),
+      fileSystem: fileSystem);
   fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
   if (result == null || !succeeded) {
     return new CompilerResult(compilerState, false);
@@ -147,7 +204,8 @@ Future<CompilerResult> _compile(List<String> args,
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'],
       jsUrl: path.toUri(output).toString(),
-      mapUrl: path.toUri(output + '.map').toString());
+      mapUrl: path.toUri(output + '.map').toString(),
+      customScheme: customScheme);
   file.writeAsStringSync(jsCode.code);
 
   if (jsCode.sourceMap != null) {
@@ -185,7 +243,10 @@ class JSCode {
 }
 
 JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
-    {bool buildSourceMap: false, String jsUrl, String mapUrl}) {
+    {bool buildSourceMap: false,
+    String jsUrl,
+    String mapUrl,
+    String customScheme}) {
   var opts = new JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   var printer;
@@ -204,8 +265,8 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
-    builtMap =
-        placeSourceMap(sourceMap.build(jsUrl), mapUrl, <String, String>{});
+    builtMap = placeSourceMap(
+        sourceMap.build(jsUrl), mapUrl, <String, String>{}, customScheme);
     var jsDir = path.dirname(path.fromUri(jsUrl));
     var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
     var relativeMapUrl = path.toUri(relative).toString();
@@ -225,18 +286,23 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
 /// and returns the new map.  Relative paths are in terms of URIs ('/'), not
 /// local OS paths (e.g., windows '\').
 // TODO(jmesserly): find a new home for this.
-Map placeSourceMap(
-    Map sourceMap, String sourceMapPath, Map<String, String> bazelMappings) {
+// TODO(sigmund): delete bazelMappings - customScheme should be used instead.
+Map placeSourceMap(Map sourceMap, String sourceMapPath,
+    Map<String, String> bazelMappings, String customScheme) {
   var map = new Map.from(sourceMap);
   // Convert to a local file path if it's not.
-  sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath));
+  sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath, customScheme));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
   var list = new List.from(map['sources']);
   map['sources'] = list;
 
   String makeRelative(String sourcePath) {
-    var uri = _sourceToUri(sourcePath);
-    if (uri.scheme == 'dart' || uri.scheme == 'package') return sourcePath;
+    var uri = _sourceToUri(sourcePath, customScheme);
+    if (uri.scheme == 'dart' ||
+        uri.scheme == 'package' ||
+        uri.scheme == customScheme) {
+      return sourcePath;
+    }
 
     // Convert to a local file path if it's not.
     sourcePath = path.absolute(path.fromUri(uri));
@@ -262,20 +328,19 @@ Map placeSourceMap(
 /// This was copied from module_compiler.dart.
 /// Convert a source string to a Uri.  The [source] may be a Dart URI, a file
 /// URI, or a local win/mac/linux path.
-Uri _sourceToUri(String source) {
+Uri _sourceToUri(String source, customScheme) {
   var uri = Uri.parse(source);
   var scheme = uri.scheme;
-  switch (scheme) {
-    case "dart":
-    case "package":
-    case "file":
-      // A valid URI.
-      return uri;
-    default:
-      // Assume a file path.
-      // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
-      return new Uri.file(path.absolute(source));
+  if (scheme == "dart" ||
+      scheme == "package" ||
+      scheme == "file" ||
+      scheme == customScheme) {
+    // A valid URI.
+    return uri;
   }
+  // Assume a file path.
+  // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
+  return new Uri.file(path.absolute(source));
 }
 
 /// Parses Dart's non-standard `-Dname=value` syntax for declared variables,
@@ -299,5 +364,14 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
       i++;
     }
   }
+
+  // Add platform defined variables
+  declaredVariables['dart.isVM'] = 'false';
+
+  // TODO(vsm): Should this be hardcoded?
+  declaredVariables['dart.library.html'] = 'true';
+  declaredVariables['dart.library.io'] = 'false';
+  declaredVariables['dart.library.ui'] = 'false';
+
   return declaredVariables;
 }

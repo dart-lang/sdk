@@ -557,7 +557,7 @@ abstract class Scanner {
     _tail = _tail.setNext(eofToken);
     if (_stackEnd >= 0) {
       _hasUnmatchedGroups = true;
-      // TODO(brianwilkerson) Fix the ungrouped tokens?
+      // TODO(brianwilkerson): Fix the ungrouped tokens?
     }
   }
 

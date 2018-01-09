@@ -109,6 +109,40 @@ class KernelSourceInformationBuilder
     return _buildTreeNode(node);
   }
 
+  /// Creates the source information for a [base] and end of [member]. If [base]
+  /// is not provided, the offset of [member] is used as the start position.
+  ///
+  /// This is used function declarations and return expressions which both point
+  /// to the end of the member as the closing position.
+  SourceInformation _buildFunctionEnd(MemberEntity member, [ir.TreeNode base]) {
+    MemberDefinition definition = _elementMap.getMemberDefinition(member);
+    ir.Node node = definition.node;
+    switch (definition.kind) {
+      case MemberKind.regular:
+        if (node is ir.Procedure) {
+          return _buildFunction(base ?? node, node.function);
+        }
+        break;
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        if (node is ir.Procedure) {
+          return _buildFunction(base ?? node, node.function);
+        } else if (node is ir.Constructor) {
+          return _buildFunction(base ?? node, node.function);
+        }
+        break;
+      case MemberKind.closureCall:
+        if (node is ir.FunctionDeclaration) {
+          return _buildFunction(base ?? node, node.function);
+        } else if (node is ir.FunctionExpression) {
+          return _buildFunction(base ?? node, node.function);
+        }
+        break;
+      default:
+    }
+    return _buildTreeNode(base ?? node);
+  }
+
   /// Creates the source information for exiting a function definition defined
   /// by the root [node] and its [functionNode].
   ///
@@ -207,8 +241,10 @@ class KernelSourceInformationBuilder
   }
 
   /// Creates source information based on the location of [node].
-  SourceInformation _buildTreeNode(ir.TreeNode node) {
-    return new PositionSourceInformation(_getSourceLocation(node));
+  SourceInformation _buildTreeNode(ir.TreeNode node,
+      [SourceLocation closingPosition]) {
+    return new PositionSourceInformation(
+        _getSourceLocation(node), closingPosition);
   }
 
   @override
@@ -352,7 +388,7 @@ class KernelSourceInformationBuilder
 
   @override
   SourceInformation buildReturn(ir.Node node) {
-    return _buildTreeNode(node);
+    return _buildFunctionEnd(_member, node);
   }
 
   @override
@@ -370,34 +406,7 @@ class KernelSourceInformationBuilder
 
   @override
   SourceInformation buildDeclaration(MemberEntity member) {
-    MemberDefinition definition = _elementMap.getMemberDefinition(member);
-    switch (definition.kind) {
-      case MemberKind.regular:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          return _buildFunction(node, node.function);
-        }
-        break;
-      case MemberKind.constructor:
-      case MemberKind.constructorBody:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          return _buildFunction(node, node.function);
-        } else if (node is ir.Constructor) {
-          return _buildFunction(node, node.function);
-        }
-        break;
-      case MemberKind.closureCall:
-        ir.Node node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          return _buildFunction(node, node.function);
-        } else if (node is ir.FunctionExpression) {
-          return _buildFunction(node, node.function);
-        }
-        break;
-      default:
-    }
-    return _buildTreeNode(definition.node);
+    return _buildFunctionEnd(member);
   }
 
   @override

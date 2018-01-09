@@ -24,7 +24,6 @@ class VirtualMemory {
   // The reserved memory is unmapped on destruction.
   ~VirtualMemory();
 
-  int32_t handle() const { return handle_; }
   uword start() const { return region_.start(); }
   uword end() const { return region_.end(); }
   void* address() const { return region_.pointer(); }
@@ -71,14 +70,13 @@ class VirtualMemory {
  private:
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
-  static bool FreeSubSegment(int32_t handle, void* address, intptr_t size);
+  static bool FreeSubSegment(void* address, intptr_t size);
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
   VirtualMemory(const MemoryRegion& region,
-                const MemoryRegion& reserved,
-                int32_t handle = 0)
-      : region_(region), reserved_(reserved), handle_(handle) {}
+                const MemoryRegion& reserved)
+      : region_(region), reserved_(reserved) {}
 
   MemoryRegion region_;
 
@@ -86,8 +84,6 @@ class VirtualMemory {
   // Its address might disagree with region_ due to aligned allocations.
   // Its size might disagree with region_ due to Truncate.
   MemoryRegion reserved_;
-
-  int32_t handle_;
 
   static uword page_size_;
 

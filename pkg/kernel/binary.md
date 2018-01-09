@@ -349,7 +349,7 @@ type Procedure extends Member {
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isGenericContravariant);
+              isGenericContravariant, isForwardingSemiStub);
   Name name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
@@ -468,6 +468,8 @@ abstract type Expression extends Node {}
 
 type InvalidExpression extends Expression {
   Byte tag = 19;
+  FileOffset fileOffset;
+  StringReference message;
 }
 
 type VariableGet extends Expression {
@@ -907,10 +909,6 @@ type TearOffConstant extends Constant {
 }
 
 abstract type Statement extends Node {}
-
-type InvalidStatement extends Statement {
-  Byte tag = 60;
-}
 
 type ExpressionStatement extends Statement {
   Byte tag = 61;

@@ -83,16 +83,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         wasHandled: wasHandled, context: context);
   }
 
-  void addWarning(Message message, int charOffset, Uri fileUri,
+  /// Add a problem with a severity determined by the severity of the message.
+  void addProblem(Message message, int charOffset, Uri fileUri,
       {LocatedMessage context}) {
     fileUri ??= this.fileUri;
-    loader.addWarning(message, charOffset, fileUri, context: context);
-  }
-
-  void addNit(Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
-    fileUri ??= this.fileUri;
-    loader.addNit(message, charOffset, fileUri, context: context);
+    loader.addProblem(message, charOffset, fileUri, context: context);
   }
 
   /// Returns true if the export scope was modified.
@@ -174,9 +169,19 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   int finishTypeVariables(ClassBuilder object) => 0;
 
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
+  int instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
+    return 0;
+  }
+
   void becomeCoreLibrary(dynamicType) {
-    addBuilder("dynamic",
-        new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
+    if (scope.local["dynamic"] == null) {
+      addBuilder("dynamic",
+          new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
+    }
   }
 
   void forEach(void f(String name, Builder builder)) {

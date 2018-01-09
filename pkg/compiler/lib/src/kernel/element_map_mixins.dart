@@ -20,13 +20,14 @@ import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
+import '../options.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import 'element_map.dart';
-import 'element_map_impl.dart';
 import 'kernel_debug.dart';
 
 abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
+  CompilerOptions get options;
   DiagnosticReporter get reporter;
   ElementEnvironment get elementEnvironment;
   LibraryEntity getLibrary(ir.Library node);
@@ -44,12 +45,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();
-    return new CallStructure(
-        argumentCount,
-        namedArguments,
-        DartTypeConverter.enableFunctionTypeVariables
-            ? arguments.types.length
-            : 0);
+    return new CallStructure(argumentCount, namedArguments,
+        options.strongMode ? arguments.types.length : 0);
   }
 
   @override

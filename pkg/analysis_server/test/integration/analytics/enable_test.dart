@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EnableTest);
-    defineReflectiveTests(EnableTest_PreviewDart2);
+    defineReflectiveTests(EnableTest_UseCFE);
   });
 }
 
@@ -34,7 +34,7 @@ class EnableTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class EnableTest_PreviewDart2 extends EnableTest {
+class EnableTest_UseCFE extends EnableTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

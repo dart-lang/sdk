@@ -29,12 +29,12 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testPath = provider.convertPath('/test.dart');
+    testPath = resourceProvider.convertPath('/test.dart');
   }
 
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
-    provider.newFile(testPath, code);
+    newFile(testPath, content: code);
     AnalysisResult analysisResult = await driver.getResult(testPath);
     return new DartUnitOutlineComputer(
             testPath, analysisResult.lineInfo, analysisResult.unit)
@@ -47,7 +47,7 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
   void setUp() {
     super.setUp();
-    Folder libFolder = configureFlutterPackage(provider);
+    Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
   }
 

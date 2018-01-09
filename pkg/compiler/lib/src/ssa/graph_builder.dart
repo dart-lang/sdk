@@ -254,7 +254,7 @@ abstract class GraphBuilder {
       List<HInstruction> rtiInputs,
       HInstruction newObject,
       SourceInformation sourceInformation) {
-    if (!rtiNeed.classNeedsRti(type.element)) {
+    if (!rtiNeed.classNeedsTypeArguments(type.element)) {
       return newObject;
     }
 

@@ -1711,11 +1711,6 @@ class StatementExecuter
         m: "Execution is not implemented for statement:\n$node ");
   }
 
-  Configuration visitInvalidStatement(
-      InvalidStatement node, ExecConfiguration conf) {
-    throw "Invalid statement at ${node.location}";
-  }
-
   Configuration visitExpressionStatement(
       ExpressionStatement node, ExecConfiguration conf) {
     var cont = new ExpressionEK(conf.state.continuation, conf.environment);

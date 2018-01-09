@@ -408,6 +408,42 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   return dst_type().raw() == other_assert->dst_type().raw();
 }
 
+Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If all values for type parameters are known (i.e. from instantiator and
+  // function) we can instantiate the sub and super type and remove this
+  // instruction if the subtype test succeeds.
+  ConstantInstr* constant_instantiator_type_args =
+      instantiator_type_arguments()->definition()->AsConstant();
+  ConstantInstr* constant_function_type_args =
+      function_type_arguments()->definition()->AsConstant();
+  if ((constant_instantiator_type_args != NULL) &&
+      (constant_function_type_args != NULL)) {
+    ASSERT(constant_instantiator_type_args->value().IsNull() ||
+           constant_instantiator_type_args->value().IsTypeArguments());
+    ASSERT(constant_function_type_args->value().IsNull() ||
+           constant_function_type_args->value().IsTypeArguments());
+
+    Zone* Z = Thread::Current()->zone();
+    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
+        Z,
+        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+
+    const TypeArguments& function_type_args = TypeArguments::Handle(
+        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
+
+    Error& error_bound = Error::Handle(Z);
+
+    AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
+    AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
+    if (AbstractType::InstantiateAndTestSubtype(
+            &sub_type, &super_type, &error_bound, instantiator_type_args,
+            function_type_args)) {
+      return NULL;
+    }
+  }
+  return this;
+}
+
 bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
   AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
   ASSERT(other_assert != NULL);
@@ -1228,6 +1264,9 @@ bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
 }
 
 bool UnboxInt32Instr::ComputeCanDeoptimize() const {
+  if (speculative_mode() == kNotSpeculative) {
+    return false;
+  }
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
     return (kSmiBits > 32) && !is_truncating() &&
@@ -1243,9 +1282,6 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
     // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             value()->Type()->IsNullableInt()) {
-    return false;
   } else {
     return true;
   }
@@ -1253,10 +1289,11 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
 
 bool UnboxUint32Instr::ComputeCanDeoptimize() const {
   ASSERT(is_truncating());
+  if (speculative_mode() == kNotSpeculative) {
+    return false;
+  }
   if ((value()->Type()->ToCid() == kSmiCid) ||
-      (value()->Type()->ToCid() == kMintCid) ||
-      (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-       value()->Type()->IsNullableInt())) {
+      (value()->Type()->ToCid() == kMintCid)) {
     return false;
   }
   // Check input value's range.
@@ -1735,15 +1772,18 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
   CompileType* left_type = left()->Type();
   CompileType* right_type = right()->Type();
   intptr_t op_cid = kIllegalCid;
+  SpeculativeMode speculative_mode = kGuardInputs;
 
   if ((left_type->ToCid() == kSmiCid) && (right_type->ToCid() == kSmiCid)) {
     op_cid = kSmiCid;
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+  } else if (Isolate::Current()->strong() && FLAG_use_strong_mode_types &&
+             FLAG_limit_ints_to_64_bits &&
              FlowGraphCompiler::SupportsUnboxedMints() &&
              // TODO(dartbug.com/30480): handle nullable types here
              left_type->IsNullableInt() && !left_type->is_nullable() &&
              right_type->IsNullableInt() && !right_type->is_nullable()) {
     op_cid = kMintCid;
+    speculative_mode = kNotSpeculative;
   }
 
   if (op_cid != kIllegalCid) {
@@ -1751,14 +1791,14 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
     if (Token::IsRelationalOperator(kind())) {
       replacement = new RelationalOpInstr(
           token_pos(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, Thread::kNoDeoptId);
+          op_cid, Thread::kNoDeoptId, speculative_mode);
     } else if (Token::IsEqualityOperator(kind())) {
       replacement = new EqualityCompareInstr(
           token_pos(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, Thread::kNoDeoptId);
+          op_cid, Thread::kNoDeoptId, speculative_mode);
     }
     if (replacement != NULL) {
-      if (FLAG_trace_experimental_strong_mode && (op_cid == kMintCid)) {
+      if (FLAG_trace_strong_mode_types && (op_cid == kMintCid)) {
         THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                   ToCString(), replacement->ToCString());
       }
@@ -2106,15 +2146,21 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
            constant_instantiator_type_args->value().IsTypeArguments());
     ASSERT(constant_function_type_args->value().IsNull() ||
            constant_function_type_args->value().IsTypeArguments());
-    TypeArguments& instantiator_type_args = TypeArguments::Handle();
-    instantiator_type_args ^= constant_instantiator_type_args->value().raw();
-    TypeArguments& function_type_args = TypeArguments::Handle();
-    function_type_args ^= constant_function_type_args->value().raw();
-    Error& bound_error = Error::Handle();
-    AbstractType& new_dst_type =
-        AbstractType::Handle(dst_type().InstantiateFrom(
-            instantiator_type_args, function_type_args, kAllFree, &bound_error,
-            NULL, NULL, Heap::kOld));
+
+    Zone* Z = Thread::Current()->zone();
+    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
+        Z,
+        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+
+    const TypeArguments& function_type_args = TypeArguments::Handle(
+        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
+
+    Error& bound_error = Error::Handle(Z);
+
+    AbstractType& new_dst_type = AbstractType::Handle(
+        Z, dst_type().InstantiateFrom(instantiator_type_args,
+                                      function_type_args, kAllFree,
+                                      &bound_error, NULL, NULL, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -3527,10 +3573,10 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sub_type().IsFinalized());
   ASSERT(super_type().IsFinalized());
 
-  __ PushObject(sub_type());
-  __ PushObject(super_type());
   __ PushRegister(locs()->in(0).reg());
   __ PushRegister(locs()->in(1).reg());
+  __ PushObject(sub_type());
+  __ PushObject(super_type());
   __ PushObject(dst_name());
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
@@ -3538,8 +3584,17 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Drop(5);
 #else
-  // TODO(sjindel): Support strong mode in DBC
-  UNREACHABLE();
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
+    __ Push(locs()->in(1).reg());  // Function type arguments.
+  } else {
+    // The 2 inputs are already on the expression stack.
+  }
+  __ PushConstant(sub_type());
+  __ PushConstant(super_type());
+  __ PushConstant(dst_name());
+  __ AssertSubtype();
+
 #endif
 }
 
@@ -3774,14 +3829,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoadFromBox(compiler);
     } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
       EmitSmiConversion(compiler);
-    } else if (FLAG_experimental_strong_mode &&
-               (representation() == kUnboxedDouble) &&
-               value()->Type()->IsNullableDouble()) {
-      EmitLoadFromBox(compiler);
-    } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-               (representation() == kUnboxedInt64) &&
-               value()->Type()->IsNullableInt()) {
-      EmitLoadInt64FromBoxOrSmi(compiler);
     } else {
       ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);

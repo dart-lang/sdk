@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -25,6 +26,8 @@ class CompletionTargetTest extends AbstractContextTest {
   int completionOffset;
   CompletionTarget target;
 
+  bool get usingFastaParser => analyzer.Parser.useFasta;
+
   Future<Null> addTestSource(String content) async {
     expect(completionOffset, isNull, reason: 'Call addTestSource exactly once');
     completionOffset = content.indexOf('^');
@@ -39,12 +42,16 @@ class CompletionTargetTest extends AbstractContextTest {
   }
 
   Future<Null> assertTarget(entityText, nodeText,
-      {int argIndex: null, bool isFunctionalArgument: false}) async {
+      {int argIndex: null,
+      bool isFunctionalArgument: false,
+      String droppedToken}) async {
     void assertCommon() {
       expect(target.entity.toString(), entityText, reason: 'entity');
       expect(target.containingNode.toString(), nodeText,
           reason: 'containingNode');
       expect(target.argIndex, argIndex, reason: 'argIndex');
+      expect(target.droppedToken?.toString(), droppedToken ?? isNull,
+          reason: 'droppedToken');
     }
 
     // Assert with parsed unit
@@ -403,6 +410,16 @@ class CompletionTargetTest extends AbstractContextTest {
         '// normal comment ', 'class C2 {zoo(z) {} String name;}');
   }
 
+  test_IfStatement_droppedToken() async {
+    // Comment  ClassDeclaration  CompilationUnit
+    await addTestSource('main() { if (v i^) }');
+    if (usingFastaParser) {
+      await assertTarget(')', '(v)', droppedToken: 'i');
+    } else {
+      await assertTarget('i;', 'if (v) i;');
+    }
+  }
+
   test_MethodDeclaration_inLineComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     await addTestSource('''
@@ -555,13 +572,13 @@ class C2 {
   test_SwitchStatement_c() async {
     // Token('c') SwitchStatement
     await addTestSource('main() { switch(x) {c^} }');
-    await assertTarget('}', 'switch (x) {}');
+    await assertTarget('}', 'switch (x) {}', droppedToken: 'c');
   }
 
   test_SwitchStatement_c2() async {
     // Token('c') SwitchStatement
     await addTestSource('main() { switch(x) { c^ } }');
-    await assertTarget('}', 'switch (x) {}');
+    await assertTarget('}', 'switch (x) {}', droppedToken: 'c');
   }
 
   test_SwitchStatement_empty() async {

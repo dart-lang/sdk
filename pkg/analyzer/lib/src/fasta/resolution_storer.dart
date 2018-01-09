@@ -9,18 +9,17 @@ import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-/// TODO(scheglov) document
-class FunctionReferenceDartType implements DartType {
-  final FunctionDeclaration function;
-  final DartType type;
+/// The reference to the import prefix with the [name].
+class ImportPrefixNode implements TreeNode {
+  final String name;
 
-  FunctionReferenceDartType(this.function, this.type);
+  ImportPrefixNode(this.name);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   String toString() {
-    return '(${function.variable}, $type)';
+    return '(prefix-$name)';
   }
 }
 
@@ -146,21 +145,6 @@ class MemberGetterNode implements TreeNode {
   }
 }
 
-/// Information about invocation of the [member] and its instantiated [type].
-class MemberInvocationDartType implements DartType {
-  final Member member;
-  final FunctionType type;
-
-  MemberInvocationDartType(this.member, this.type);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '($member, $type)';
-  }
-}
-
 /// A reference to the setter represented by the [member].
 /// The [member] might be either a setter itself, or a field.
 class MemberSetterNode implements TreeNode {
@@ -192,9 +176,28 @@ class NullNode implements TreeNode {
   }
 }
 
+/// The type of [DartType] node that is used as a marker for `null`.
+///
+/// It is used for import prefix identifiers, which are resolved to elements,
+/// but don't have any types.
+class NullType implements DartType {
+  const NullType();
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '(null-type)';
+  }
+}
+
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
 class ResolutionStorer extends TypeInferenceListener {
+  /// The offset that is used when the actual offset is not know.
+  /// The consumer of information should not validate this offset.
+  static const UNKNOWN_OFFSET = -2;
+
   final List<TreeNode> _declarations;
   final List<Node> _references;
   final List<DartType> _types;
@@ -239,8 +242,9 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool constructorInvocationEnter(
-      InvocationExpression expression, DartType typeContext) {
+  bool constructorInvocationEnter(InvocationExpression expression,
+      String prefixName, DartType typeContext) {
+    _recordImportPrefix(prefixName);
     _deferReference(expression.fileOffset);
     _deferType(expression.fileOffset);
     return true;
@@ -348,6 +352,8 @@ class ResolutionStorer extends TypeInferenceListener {
   void indexAssignAfterReceiver(Expression write, DartType typeContext) {
     _deferReference(write.fileOffset);
     _recordType(const IndexAssignNullFunctionType(), write.fileOffset);
+    _recordType(const IndexAssignNullFunctionType(), write.fileOffset);
+    _recordType(new TypeArgumentsDartType(<DartType>[]), write.fileOffset);
     _deferType(write.fileOffset);
   }
 
@@ -391,20 +397,11 @@ class ResolutionStorer extends TypeInferenceListener {
       // before arguments. To ensure this order for method invocations, we
       // first record `null`, and then replace it on exit.
       _deferReference(expression.fileOffset);
-      // We are visiting a method invocation like: a.f(args).  We have visited a
-      // but we haven't visited the args yet.
-      //
-      // The analyzer AST will expect a type for f at this point.  (It can't
-      // wait until later, because for all it knows, a.f might be a property
-      // access, in which case the appropriate time for the type is now).  But
-      // the type isn't known yet (because it may depend on type inference based
-      // on arguments).
-      //
-      // So we add a `null` to our list of types; we'll update it with the
-      // actual type later.
-      _deferType(expression.fileOffset);
+      _deferType(expression.fileOffset); // callee type
     }
-    _deferType(expression.fileOffset);
+    _deferType(expression.fileOffset); // invoke type
+    _deferType(expression.fileOffset); // type arguments
+    _deferType(expression.fileOffset); // result type
     super.methodInvocationBeforeArgs(expression, isImplicitCall);
   }
 
@@ -417,34 +414,49 @@ class ResolutionStorer extends TypeInferenceListener {
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType) {
-    _replaceType(
-        inferredType,
-        arguments.fileOffset != -1
-            ? arguments.fileOffset
-            : expression.fileOffset);
+    int resultOffset = arguments.fileOffset != -1
+        ? arguments.fileOffset
+        : expression.fileOffset;
+    _replaceType(inferredType, resultOffset);
+    _replaceType(new TypeArgumentsDartType(arguments.types), resultOffset);
+
+    FunctionType invokeType = substitution == null
+        ? calleeType
+        : substitution.substituteType(calleeType.withoutTypeParameters);
+    _replaceType(invokeType, resultOffset);
+
     if (!isImplicitCall) {
       if (interfaceMember is ForwardingStub) {
         interfaceMember = ForwardingStub.getInterfaceTarget(interfaceMember);
       }
       _replaceReference(interfaceMember);
-      FunctionType invokeType = substitution == null
-          ? calleeType
-          : substitution.substituteType(calleeType.withoutTypeParameters);
-      _replaceType(new MemberInvocationDartType(interfaceMember, invokeType));
+      _replaceType(calleeType);
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
 
   @override
-  void methodInvocationExitCall(Expression expression, Arguments arguments,
-      bool isImplicitCall, DartType inferredType) {
-    _replaceType(
-        inferredType,
-        arguments.fileOffset != -1
-            ? arguments.fileOffset
-            : expression.fileOffset);
+  void methodInvocationExitCall(
+      Expression expression,
+      Arguments arguments,
+      bool isImplicitCall,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {
+    int resultOffset = arguments.fileOffset != -1
+        ? arguments.fileOffset
+        : expression.fileOffset;
+    _replaceType(inferredType, resultOffset);
+    _replaceType(new TypeArgumentsDartType(arguments.types), resultOffset);
+
+    FunctionType invokeType = substitution == null
+        ? calleeType
+        : substitution.substituteType(calleeType.withoutTypeParameters);
+    _replaceType(invokeType, resultOffset);
+
     if (!isImplicitCall) {
-      throw new UnimplementedError(); // TODO(scheglov): handle this case
+      _replaceReference(const NullNode('explicit-call'));
+      _replaceType(const NullType());
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -484,8 +496,8 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void propertyGetExitCall(Expression expression, DartType inferredType) {
-    throw new UnimplementedError(); // TODO(scheglov): handle this case
-    // super.propertyGetExitCall(expression, inferredType);
+    _recordReference(const NullNode('explicit-call'), expression.fileOffset);
+    _recordType(const NullType(), expression.fileOffset);
   }
 
   @override
@@ -494,8 +506,15 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticAssignEnter(Expression expression, int targetOffset,
-      Class targetClass, Expression write, DartType typeContext) {
+  bool staticAssignEnter(
+      Expression expression,
+      String prefixName,
+      int targetOffset,
+      Class targetClass,
+      Expression write,
+      DartType typeContext) {
+    // if there was an import prefix, record it.
+    _recordImportPrefix(prefixName);
     // If the static target is explicit (and is a class), record it.
     if (targetClass != null) {
       _recordReference(targetClass, targetOffset);
@@ -505,7 +524,7 @@ class ResolutionStorer extends TypeInferenceListener {
     _deferReference(write.fileOffset);
     _deferType(write.fileOffset);
     return super.staticAssignEnter(
-        expression, targetOffset, targetClass, write, typeContext);
+        expression, prefixName, targetOffset, targetClass, write, typeContext);
   }
 
   @override
@@ -524,15 +543,17 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticGetEnter(StaticGet expression, int targetOffset, Class targetClass,
-      DartType typeContext) {
+  bool staticGetEnter(StaticGet expression, String prefixName, int targetOffset,
+      Class targetClass, DartType typeContext) {
+    // if there was an import prefix, record it.
+    _recordImportPrefix(prefixName);
     // If the static target is explicit (and is a class), record it.
     if (targetClass != null) {
       _recordReference(targetClass, targetOffset);
       _recordType(targetClass.rawType, targetOffset);
     }
-    return super
-        .staticGetEnter(expression, targetOffset, targetClass, typeContext);
+    return super.staticGetEnter(
+        expression, prefixName, targetOffset, targetClass, typeContext);
   }
 
   @override
@@ -543,8 +564,10 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticInvocationEnter(StaticInvocation expression, int targetOffset,
-      Class targetClass, DartType typeContext) {
+  bool staticInvocationEnter(StaticInvocation expression, String prefixName,
+      int targetOffset, Class targetClass, DartType typeContext) {
+    // if there was an import prefix, record it.
+    _recordImportPrefix(prefixName);
     // If the static target is explicit (and is a class), record it.
     if (targetClass != null) {
       _recordReference(targetClass, targetOffset);
@@ -565,10 +588,12 @@ class ResolutionStorer extends TypeInferenceListener {
     //
     // So we add a `null` to our list of types; we'll update it with the actual
     // type later.
-    _deferType(expression.fileOffset);
-    _deferType(expression.arguments.fileOffset);
+    _deferType(expression.fileOffset); // callee type
+    _deferType(expression.arguments.fileOffset); // invoke type
+    _deferType(expression.arguments.fileOffset); // type arguments
+    _deferType(expression.arguments.fileOffset); // result type
     return super.staticInvocationEnter(
-        expression, targetOffset, targetClass, typeContext);
+        expression, prefixName, targetOffset, targetClass, typeContext);
   }
 
   @override
@@ -579,10 +604,12 @@ class ResolutionStorer extends TypeInferenceListener {
       DartType inferredType) {
     _replaceType(inferredType);
     _replaceReference(expression.target);
+    _replaceType(new TypeArgumentsDartType(expression.arguments.types));
     FunctionType invokeType = substitution == null
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
-    _replaceType(new MemberInvocationDartType(expression.target, invokeType));
+    _replaceType(invokeType);
+    _replaceType(calleeType);
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
@@ -595,6 +622,13 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void thisExpressionExit(ThisExpression expression, DartType inferredType) {}
+
+  bool typeLiteralEnter(@override TypeLiteral expression, String prefixName,
+      DartType typeContext) {
+    // if there was an import prefix, record it.
+    _recordImportPrefix(prefixName);
+    return super.typeLiteralEnter(expression, prefixName, typeContext);
+  }
 
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
     _recordReference(expression.type, expression.fileOffset);
@@ -655,14 +689,7 @@ class ResolutionStorer extends TypeInferenceListener {
       return;
     }
     _recordReference(variable, expression.fileOffset);
-
-    TreeNode function = variable.parent;
-    if (function is FunctionDeclaration) {
-      _recordType(new FunctionReferenceDartType(function, inferredType),
-          expression.fileOffset);
-    } else {
-      _recordType(inferredType, expression.fileOffset);
-    }
+    _recordType(inferredType, expression.fileOffset);
   }
 
   /// Record `null` as the reference at the given [offset], and put the current
@@ -681,6 +708,14 @@ class ResolutionStorer extends TypeInferenceListener {
 
   void _recordDeclaration(TreeNode declaration, int offset) {
     _declarations.add(declaration);
+  }
+
+  /// If the [prefixName] is not `null` record the reference to it.
+  void _recordImportPrefix(String prefixName) {
+    if (prefixName != null) {
+      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
+      _recordType(const NullType(), UNKNOWN_OFFSET);
+    }
   }
 
   int _recordReference(Node target, int offset) {
@@ -703,5 +738,19 @@ class ResolutionStorer extends TypeInferenceListener {
   void _replaceType(DartType type, [int newOffset = -1]) {
     int slot = _deferredTypeSlots.removeLast();
     _types[slot] = type;
+  }
+}
+
+/// A [DartType] wrapper around invocation type arguments.
+class TypeArgumentsDartType implements DartType {
+  final List<DartType> types;
+
+  TypeArgumentsDartType(this.types);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '<${types.join(', ')}>';
   }
 }

@@ -31,6 +31,15 @@ main() {
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
   test_function() {
@@ -271,8 +280,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, r'''
+    newFile('$testFolder/other.dart', content: r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -445,7 +453,7 @@ main() {
 
   test_resetOnAnalysisSetChanged_watch_otherFile() async {
     String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, '// other 1');
+    newFile(otherFile, content: '// other 1');
     addTestFile('''
 main() {
   foo(1 + 2);
@@ -465,7 +473,7 @@ foo(int myName) {}
     // The refactoring is reset, even though it's a different file. It is up to
     // analyzer to track dependencies and provide resolved units fast when
     // possible.
-    addFile(otherFile, '// other 2');
+    newFile(otherFile, content: '// other 2');
     await pumpEventQueue();
     expect(test_resetCount, initialResetCount + 1);
   }
@@ -980,7 +988,7 @@ class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, r'''
+    newFile(otherFile, content: r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -1048,8 +1056,7 @@ main() {
   }
 
   test_resetOnAnalysisSetChanged() async {
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, '// other 1');
+    newFile('$testFolder/other.dart', content: '// other 1');
     addTestFile('''
 main() {
   int res = 1 + 2;
@@ -1216,8 +1223,8 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
 
   @failingTest
   test_OK() {
-    fail('The move file refactoring is not supported under the new driver');
-    resourceProvider.newFile('/project/bin/lib.dart', '');
+    _fail('The move file refactoring is not supported under the new driver');
+    newFile('/project/bin/lib.dart');
     addTestFile('''
 import 'dart:math';
 import 'lib.dart';
@@ -1754,7 +1761,7 @@ library my.new_name;
   }
 
   test_library_partOfDirective() {
-    addFile('$testFolder/my_lib.dart', '''
+    newFile('$testFolder/my_lib.dart', content: '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');

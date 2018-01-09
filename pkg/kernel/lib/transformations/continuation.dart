@@ -355,11 +355,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   List<Statement> statements = <Statement>[];
 
-  TreeNode visitInvalidStatement(InvalidStatement stmt) {
-    statements.add(stmt);
-    return null;
-  }
-
   TreeNode visitExpressionStatement(ExpressionStatement stmt) {
     stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
       ..parent = stmt;

@@ -682,21 +682,26 @@ abstract class Compiler {
   WorldImpact computeImpactForLibrary(LibraryEntity library) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
 
-    void registerStaticUse(Entity element) {
+    void registerStaticUse(MemberEntity element) {
       impactBuilder.registerStaticUse(new StaticUse.directUse(element));
+    }
+
+    void registerStaticElementUse(Element element) {
+      MemberElement member = element;
+      impactBuilder.registerStaticUse(new StaticUse.directUse(member));
     }
 
     void registerElement(Element element) {
       if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(resolution);
-        cls.forEachLocalMember(registerStaticUse);
+        cls.forEachLocalMember(registerStaticElementUse);
         impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
       } else if (element.isTypedef) {
-        TypedefElement typdef = element;
-        typdef.ensureResolved(resolution);
+        TypedefElement typedef = element;
+        typedef.ensureResolved(resolution);
       } else {
-        registerStaticUse(element);
+        registerStaticElementUse(element);
       }
     }
 
@@ -921,6 +926,7 @@ abstract class Compiler {
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
   bool inUserCode(Entity element, {bool assumeInUserCode: false}) {
+    if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
     Iterable<CodeLocation> userCodeLocations =

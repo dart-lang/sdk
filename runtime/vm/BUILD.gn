@@ -75,6 +75,10 @@ template("build_libdart_vm") {
         # TODO(zra): When the platform-specific timeline code is moved out to
         # the embedder, this can go away.
         "//zircon/system/ulib/fbl",
+        # TODO(US-399): Remove time_service specific code when it is no longer
+        # necessary.
+        "//garnet/public/lib/time_service/fidl",
+        "//garnet/public/lib/app/cpp",
       ]
     }
     public_configs = [ ":libdart_vm_config" ]

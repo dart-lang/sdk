@@ -43,8 +43,9 @@ class Hashing {
   }
 
   /// Mix the bits of `.hashCode` all non-null objects.
-  static int objectsHash(Object obj1, [Object obj2, Object obj3]) {
+  static int objectsHash(Object obj1, [Object obj2, Object obj3, Object obj4]) {
     int hash = 0;
+    if (obj4 != null) hash = objectHash(obj4, hash);
     if (obj3 != null) hash = objectHash(obj3, hash);
     if (obj2 != null) hash = objectHash(obj2, hash);
     return objectHash(obj1, hash);

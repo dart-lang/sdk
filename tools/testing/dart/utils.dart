@@ -387,13 +387,17 @@ class TestUtils {
   }
 
   /**
+   * Keep a map of files copied to avoid race conditions.
+   */
+  static Map<String, Future> _copyFilesMap = {};
+
+  /**
    * Copy a [source] file to a new place.
    * Assumes that the directory for [dest] already exists.
    */
   static Future copyFile(Path source, Path dest) {
-    return new File(source.toNativePath())
-        .openRead()
-        .pipe(new File(dest.toNativePath()).openWrite());
+    return _copyFilesMap.putIfAbsent(dest.toNativePath(),
+        () => new File(source.toNativePath()).copy(dest.toNativePath()));
   }
 
   static Future copyDirectory(String source, String dest) {
@@ -438,7 +442,9 @@ class TestUtils {
 
   static void deleteTempSnapshotDirectory(Configuration configuration) {
     if (configuration.compiler == Compiler.appJit ||
-        configuration.compiler == Compiler.precompiler) {
+        configuration.compiler == Compiler.precompiler ||
+        configuration.compiler == Compiler.dartk ||
+        configuration.compiler == Compiler.dartkp) {
       var checked = configuration.isChecked ? '-checked' : '';
       var strong = configuration.isStrong ? '-strong' : '';
       var minified = configuration.isMinified ? '-minified' : '';
@@ -448,7 +454,9 @@ class TestUtils {
           "$checked$strong$minified$csp$sdk";
       var generatedPath =
           configuration.buildDirectory + "/generated_compilations/$dirName";
-      TestUtils.deleteDirectory(generatedPath);
+      if (FileSystemEntity.isDirectorySync(generatedPath)) {
+        TestUtils.deleteDirectory(generatedPath);
+      }
     }
   }
 

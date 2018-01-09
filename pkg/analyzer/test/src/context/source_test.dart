@@ -58,6 +58,5 @@ class _MockPackages implements Packages {
   @override
   Uri resolve(Uri packageUri, {Uri notFound(Uri packageUri)}) {
     fail('Unexpected invocation of resolve');
-    return null;
   }
 }

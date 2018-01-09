@@ -4,14 +4,15 @@
 
 import 'dart:collection';
 import 'dart:math' show max, min;
-import 'package:kernel/kernel.dart' hide ConstantVisitor;
+
+import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart' hide ConstantVisitor;
+import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:path/path.dart' as path;
+
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
@@ -340,7 +341,13 @@ class ProgramCompiler
     // TODO(jmesserly): look up the appropriate relative import path if the user
     // specified that on the command line.
     var uri = _summaryToUri[summary];
-    var moduleName = path.basenameWithoutExtension(path.fromUri(uri));
+    var summaryPath = uri.path;
+    var extensionIndex = summaryPath.lastIndexOf('.');
+    // Note: These URIs do not contain absolute paths from the physical file
+    // system, but only the relevant path within a user's project. This path
+    // will match the path where the .js file is generated, so we use it as
+    // the module name.
+    var moduleName = summaryPath.substring(1, extensionIndex);
     return moduleName;
   }
 
@@ -391,7 +398,7 @@ class ProgramCompiler
     if (bootstrap) _emitLibraryProcedures(library);
 
     library.classes.forEach(_emitClass);
-    _moduleItems.addAll(library.typedefs.map(_emitTypedef));
+    library.typedefs.forEach(_emitTypedef);
     if (bootstrap) {
       _moduleItems.add(_emitInternalSdkFields(library.fields));
     } else {
@@ -1877,7 +1884,7 @@ class ProgramCompiler
     var jsMethods = <JS.Method>[];
     if (field.isStatic) return jsMethods;
 
-    var name = getAnnotationName(field, isJSName) ?? field.name;
+    var name = getAnnotationName(field, isJSName) ?? field.name.name;
     // Generate getter
     var fn = new JS.Fun([], js.statement('{ return this.#; }', [name]));
     var method = new JS.Method(_declareMemberName(field), fn, isGetter: true);
@@ -2005,16 +2012,18 @@ class ProgramCompiler
     return js.statement('# = #;', [_emitTopLevelName(c), jsTypeName]);
   }
 
-  JS.Statement _emitTypedef(Typedef t) {
+  void _emitTypedef(Typedef t) {
     var body = _callHelper(
         'typedef(#, () => #)', [js.string(t.name, "'"), _emitType(t.type)]);
 
+    JS.Statement result;
     if (t.typeParameters.isNotEmpty) {
-      return _defineClassTypeArguments(
+      result = _defineClassTypeArguments(
           t, t.typeParameters, js.statement('const # = #;', [t.name, body]));
     } else {
-      return js.statement('# = #;', [_emitTopLevelName(t), body]);
+      result = js.statement('# = #;', [_emitTopLevelName(t), body]);
     }
+    _moduleItems.add(result);
   }
 
   /// Treat dart:_runtime fields as safe to eagerly evaluate.
@@ -2050,11 +2059,7 @@ class ProgramCompiler
     for (var field in fields) {
       var name = field.name.name;
       var access = _emitStaticMemberName(name);
-      accessors.add(new JS.Method(
-          access,
-          js.call('function() { return #; }',
-                  _visitInitializer(field.initializer, field.annotations))
-              as JS.Fun,
+      accessors.add(new JS.Method(access, _emitStaticFieldInitializer(field),
           isGetter: true));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
@@ -2068,6 +2073,20 @@ class ProgramCompiler
         target is Class ? _emitTopLevelName(target) : emitLibraryName(target);
 
     return _callHelperStatement('defineLazy(#, { # });', [objExpr, accessors]);
+  }
+
+  JS.Fun _emitStaticFieldInitializer(Field field) {
+    var savedLetVariables = _letVariables;
+    _letVariables = [];
+
+    var body = [
+      new JS.Return(_visitInitializer(field.initializer, field.annotations))
+    ];
+    _initTempVars(body);
+
+    _letVariables = savedLetVariables;
+
+    return new JS.Fun([], new JS.Block(body));
   }
 
   JS.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix: ''}) {
@@ -2998,9 +3017,6 @@ class ProgramCompiler
 
   @override
   defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
-
-  @override
-  visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
 
   @override
   visitExpressionStatement(ExpressionStatement node) =>
@@ -4320,56 +4336,64 @@ class ProgramCompiler
 
   @override
   visitConstructorInvocation(ConstructorInvocation node) {
-    var target = node.target;
-    var targetName = target.name;
+    var ctor = node.target;
     var args = node.arguments;
+    var ctorClass = ctor.enclosingClass;
+    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
 
-    var enclosingClass = target.enclosingClass;
-    if (node.isConst &&
-        targetName.name == 'fromEnvironment' &&
-        target.enclosingLibrary == coreTypes.coreLibrary &&
-        args.positional.length == 1) {
-      var varName = (args.positional[0] as StringLiteral).value;
-      var value = declaredVariables[varName];
-      var defaultArg = args.named.isNotEmpty ? args.named[0].value : null;
-      if (enclosingClass == coreTypes.stringClass) {
-        value ??= (defaultArg as StringLiteral)?.value;
-        return value != null ? js.escapedString(value) : new JS.LiteralNull();
-      } else if (enclosingClass == coreTypes.intClass) {
-        var intValue = int.parse(value ?? '',
-            onError: (_) => (defaultArg as IntLiteral)?.value);
-        return intValue != null ? js.number(intValue) : new JS.LiteralNull();
-      } else if (enclosingClass == coreTypes.boolClass) {
-        if (value == "true") return js.boolean(true);
-        if (value == "false") return js.boolean(false);
-        return js
-            .boolean(defaultArg != null && (defaultArg as BoolLiteral)?.value);
-      } else {
-        return _emitInvalidNode(
-            node, '${enclosingClass}.fromEnvironment constant');
-      }
+    JS.Expression emitNew() {
+      return new JS.New(_emitConstructorName(node.constructedType, ctor),
+          _emitArgumentList(args, types: false));
     }
-    return _emitConstructorInvocation(
-        target, node.constructedType, args, node.isConst);
+
+    return node.isConst ? _emitConst(emitNew) : emitNew();
   }
 
   JS.Expression _emitFactoryInvocation(StaticInvocation node) {
     var args = node.arguments;
-    var target = node.target;
-    var c = target.enclosingClass;
-    var type =
-        c.typeParameters.isEmpty ? c.rawType : new InterfaceType(c, args.types);
+    var ctor = node.target;
+    var ctorClass = ctor.enclosingClass;
+    var type = ctorClass.typeParameters.isEmpty
+        ? ctorClass.rawType
+        : new InterfaceType(ctorClass, args.types);
+
+    if (node.isConst &&
+        ctor.name.name == 'fromEnvironment' &&
+        ctor.enclosingLibrary == coreTypes.coreLibrary &&
+        args.positional.length == 1 &&
+        // TODO(jmesserly): this does not correctly handle when the arguments to
+        // fromEnvironment are constant non-literal values.
+        args.positional[0] is BasicLiteral &&
+        (args.named.isEmpty || args.named[0].value is BasicLiteral)) {
+      var varName = (args.positional[0] as StringLiteral).value;
+      var value = declaredVariables[varName];
+      var defaultArg = args.named.isNotEmpty ? args.named[0].value : null;
+      if (ctorClass == coreTypes.stringClass) {
+        if (value != null) return js.escapedString(value);
+        return _visitExpression(defaultArg) ?? new JS.LiteralNull();
+      } else if (ctorClass == coreTypes.intClass) {
+        var intValue = int.parse(value ?? '', onError: (_) => null);
+        if (intValue != null) return js.number(intValue);
+        return _visitExpression(defaultArg) ?? new JS.LiteralNull();
+      } else if (ctorClass == coreTypes.boolClass) {
+        if (value == "true") return js.boolean(true);
+        if (value == "false") return js.boolean(false);
+        return _visitExpression(defaultArg) ?? js.boolean(false);
+      } else {
+        return _emitInvalidNode(node, '$ctorClass.fromEnvironment constant');
+      }
+    }
     if (args.positional.isEmpty &&
         args.named.isEmpty &&
-        c.enclosingLibrary.importUri.scheme == 'dart') {
+        ctorClass.enclosingLibrary.importUri.scheme == 'dart') {
       // Skip the slow SDK factory constructors when possible.
-      switch (c.name) {
+      switch (ctorClass.name) {
         case 'Map':
         case 'HashMap':
         case 'LinkedHashMap':
-          if (target.name == '') {
+          if (ctor.name == '') {
             return js.call('new #.new()', _emitMapImplType(type));
-          } else if (target.name == 'identity') {
+          } else if (ctor.name == 'identity') {
             return js.call(
                 'new #.new()', _emitMapImplType(type, identity: true));
           }
@@ -4377,15 +4401,15 @@ class ProgramCompiler
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
-          if (target.name == '') {
+          if (ctor.name == '') {
             return js.call('new #.new()', _emitSetImplType(type));
-          } else if (target.name == 'identity') {
+          } else if (ctor.name == 'identity') {
             return js.call(
                 'new #.new()', _emitSetImplType(type, identity: true));
           }
           break;
         case 'List':
-          if (target.name == '' && type is InterfaceType) {
+          if (ctor.name == '' && type is InterfaceType) {
             return _emitList(type.typeArguments[0], []);
           }
           break;
@@ -4394,26 +4418,11 @@ class ProgramCompiler
 
     JS.Expression emitNew() {
       // Native factory constructors are JS constructors - use new here.
-      return new JS.Call(_emitConstructorName(type, target),
+      return new JS.Call(_emitConstructorName(type, ctor),
           _emitArgumentList(args, types: false));
     }
 
     return node.isConst ? _emitConst(emitNew) : emitNew();
-  }
-
-  JS.Expression _emitConstructorInvocation(
-      Constructor ctor, InterfaceType type, Arguments arguments, bool isConst) {
-    var enclosingClass = ctor.enclosingClass;
-    if (_isObjectLiteral(enclosingClass)) {
-      return _emitObjectLiteral(arguments);
-    }
-
-    JS.Expression emitNew() {
-      return new JS.New(_emitConstructorName(type, ctor),
-          _emitArgumentList(arguments, types: false));
-    }
-
-    return isConst ? _emitConst(emitNew) : emitNew();
   }
 
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
@@ -4760,6 +4769,11 @@ class ProgramCompiler
       _letVariables.add(temp);
     }
     return new JS.Binary(',', init, body);
+  }
+
+  @override
+  visitInstantiation(Instantiation node) {
+    return defaultExpression(node);
   }
 
   @override

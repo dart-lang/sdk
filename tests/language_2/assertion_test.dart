@@ -31,16 +31,6 @@ unknown(dynamic a) {
   return a ? true : false;
 }
 
-testClosure(bool f()) {
-  int i = 0;
-  try {
-    assert(f);
-  } on AssertionError {
-    i = 1;
-  }
-  return i;
-}
-
 testBoolean(bool value) {
   int i = 0;
   try {
@@ -84,13 +74,10 @@ main() {
   Expect.equals(1, testBoolean(null));
   Expect.equals(1, testDynamic(null));
   Expect.equals(1, testDynamic(42));
-  Expect.equals(1, testClosure(() => true));
   Expect.equals(1, testDynamic(() => true));
-  Expect.equals(1, testClosure(() => false));
   Expect.equals(1, testDynamic(() => false));
   Expect.equals(1, testDynamic(() => 42));
   Expect.equals(1, testDynamic(() => null));
-  Expect.equals(1, testClosure(() => null));
 
   Expect.equals(1234, testMessage(false, 1234).message);
   Expect.equals('hi', testMessage(false, 'hi').message);

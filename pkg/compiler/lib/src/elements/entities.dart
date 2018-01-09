@@ -38,6 +38,9 @@ abstract class LibraryEntity extends Entity {
 ///
 /// The [name] property corresponds to the prefix name, if any.
 abstract class ImportEntity extends Entity {
+  /// The library where this import occurs (where the import is declared).
+  LibraryEntity get enclosingLibrary;
+
   /// Whether the import is a deferred import.
   bool get isDeferred;
 

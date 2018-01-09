@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     var params = {
       'isolateId': vm.isolates.first.id,

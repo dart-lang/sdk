@@ -69,11 +69,6 @@ Future runTest(Test test, String config,
   List<LineException> testAfterExceptions = <LineException>[];
   if (config == kernelMarker) {
     for (LineException exception in afterExceptions) {
-      if (exception.fileName == 'async_patch.dart') {
-        testAfterExceptions
-            .add(new LineException(exception.methodName, 'async.dart'));
-        continue;
-      }
       testAfterExceptions.add(exception);
     }
   } else {

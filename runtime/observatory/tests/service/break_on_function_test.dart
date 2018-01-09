@@ -27,7 +27,7 @@ testMain() {
   print("Done");
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Add breakpoint

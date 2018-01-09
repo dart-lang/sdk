@@ -50,7 +50,7 @@ DEFINE_BACKEND(StoreIndexedUnsafe,
   ASSERT(instr->RequiredInputRepresentation(
              StoreIndexedUnsafeInstr::kIndexPos) == kTagged);  // It is a Smi.
   __ add(TMP, instr->base_reg(), Operand(index, LSL, 2));
-  __ ldr(value, Address(TMP, instr->offset()));
+  __ str(value, Address(TMP, instr->offset()));
 
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagSize == 1);

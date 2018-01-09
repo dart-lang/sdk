@@ -149,7 +149,7 @@ class InheritedMember implements DeclaredMember {
       // substituted into the context of [newInstance] in the created member.
       ClassElement contextClass = DartTypes.getClassContext(instance);
       return contextClass == null || contextClass == newInstance.element;
-    },
+    }(),
         failedAt(
             declaration.element,
             "Context mismatch: Context class "

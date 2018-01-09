@@ -325,7 +325,6 @@ abstract class SummaryTest {
       found.add(dep.uri);
     }
     fail('Did not find dependency $relativeUri.  Found: $found');
-    return null;
   }
 
   /**
@@ -2808,12 +2807,23 @@ const int v = p.a.length;
     ]);
   }
 
-  test_constExpr_pushLongInt() {
+  test_constExpr_pushLongInt_maxNegative() {
     UnlinkedVariable variable =
-        serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
+        serializeVariableText('const v = 0xFFFFFFFFFFFFFFFF;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.negate
+    ], ints: [
+      1
+    ]);
+  }
+
+  test_constExpr_pushLongInt_maxPositive() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = 0x7FFFFFFFFFFFFFFF;');
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushLongInt],
-        ints: [4, 0xA, 0x12345678, 0x9ABCDEF0, 0x12345678]);
+        ints: [2, 0x7FFFFFFF, 0xFFFFFFFF]);
   }
 
   test_constExpr_pushLongInt_min2() {
@@ -2827,17 +2837,11 @@ const int v = p.a.length;
     ]);
   }
 
-  test_constExpr_pushLongInt_min3() {
+  test_constExpr_pushLongInt_tooLong() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushLongInt
-    ], ints: [
-      3,
-      1,
-      0,
-      0,
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.pushInt], ints: [0]);
   }
 
   test_constExpr_pushNull() {

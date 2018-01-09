@@ -217,13 +217,15 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
-    ['import', 'export', 'part'].forEach((s) {
-      if (expectedCompletions.contains(s)) {
-        expectedCompletions.remove(s);
-        expectedCompletions.add('$s \'\';');
+    expectedCompletions.addAll(expectedKeywords.map((keyword) {
+      String text = keyword.lexeme;
+      if (['import', 'export', 'part'].contains(text)) {
+        return '$text \'\';';
+      } else if (text == 'default') {
+        return '$text:';
       }
-    });
+      return text;
+    }));
 
     expectedCompletions.addAll(pseudoKeywords);
     for (CompletionSuggestion s in suggestions) {
@@ -316,8 +318,18 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_anonymous_function_async2() async {
     addTestSource('main() {foo(() a^ {}}}');
     await computeSuggestions();
-    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    // Fasta adds a closing paren after the first `}`
+    // and reports a single function expression argument
+    // while analyzer adds the closing paren before the `a`
+    // and adds synthetic `;`s making `a` a statement.
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_anonymous_function_async3() async {
@@ -352,8 +364,32 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
     assertSuggestKeywords([],
+        pseudoKeywords:
+            usingFastaParser ? ['async'] : ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async8() async {
+    addTestSource('main() {foo(() ^ {})}}');
+    await computeSuggestions();
+    assertSuggestKeywords([],
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async9() async {
+    addTestSource('main() {foo(() a^ {})}}');
+    await computeSuggestions();
+    // Fasta interprets the argument as a function expression
+    // while analyzer adds synthetic `;`s making `a` a statement.
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_argument() async {
@@ -703,16 +739,20 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_class_implements2() async {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        usingFastaParser
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
   test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        usingFastaParser
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
@@ -879,7 +919,7 @@ class C {
   test_function_async() async {
     addTestSource('main()^');
     await computeSuggestions();
-    assertSuggestKeywords(DECLARATION_KEYWORDS,
+    assertSuggestKeywords(usingFastaParser ? [] : DECLARATION_KEYWORDS,
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -903,7 +943,7 @@ class C {
   test_function_async4() async {
     addTestSource('main()a^{}');
     await computeSuggestions();
-    assertSuggestKeywords(DECLARATION_KEYWORDS,
+    assertSuggestKeywords(usingFastaParser ? [] : DECLARATION_KEYWORDS,
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -1435,8 +1475,14 @@ class A {
   test_method_async4() async {
     addTestSource('class A { foo() a^{}}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_method_async5() async {

@@ -84,13 +84,56 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
   return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
 }
 
+class WindowsPathSanitizer {
+ public:
+  explicit WindowsPathSanitizer(const char* path) {
+    // For Windows we need to massage the paths a bit according to
+    // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
+    //
+    // Convert
+    // C:\one\two\three
+    // to
+    // /C:/one/two/three
+    //
+    // (see builtin.dart#_sanitizeWindowsPath)
+    intptr_t len = strlen(path);
+    sanitized_uri_ = reinterpret_cast<char*>(malloc(len + 1 + 1));
+    if (sanitized_uri_ == NULL) {
+      OUT_OF_MEMORY();
+    }
+    char* s = sanitized_uri_;
+    if (len > 2 && path[1] == ':') {
+      *s++ = '/';
+    }
+    for (const char *p = path; *p; ++p, ++s) {
+      *s = *p == '\\' ? '/' : *p;
+    }
+    *s = '\0';
+  }
+  ~WindowsPathSanitizer() { free(sanitized_uri_); }
+
+  const char* sanitized_uri() { return sanitized_uri_; }
+
+ private:
+  char* sanitized_uri_;
+
+  DISALLOW_COPY_AND_ASSIGN(WindowsPathSanitizer);
+};
+
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
+#if defined(HOST_OS_WINDOWS)
+  WindowsPathSanitizer path_sanitizer(script_uri);
+  const char* sanitized_uri = path_sanitizer.sanitized_uri();
+#else
+  const char* sanitized_uri = script_uri;
+#endif
+
   Dart_KernelCompilationResult result =
-      Dart_CompileToKernel(script_uri, GetPlatformBinaryFilename());
+      Dart_CompileToKernel(sanitized_uri, GetPlatformBinaryFilename());
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size,

@@ -22,7 +22,7 @@ void test() {
   stderr.write('stderr');
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     Completer completer = new Completer();

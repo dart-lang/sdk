@@ -4,13 +4,12 @@
 
 library async_await_test;
 
-import "package:unittest/unittest.dart";
+import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:async";
 
 main() {
-  bool assertionsEnabled = false;
-  assert((assertionsEnabled = true));
-
+  asyncStart();
   group("basic", () {
     test("async w/o await", () {
       f() async {
@@ -131,7 +130,7 @@ main() {
       return throwsErr(f());
     });
 
-    if (assertionsEnabled) {
+    if (assertStatementsEnabled) {
       test("assert before await", () {
         f(v) async {
           assert(v == 87);
@@ -232,7 +231,7 @@ main() {
       });
     });
 
-    if (assertionsEnabled) {
+    if (assertStatementsEnabled) {
       test("await for w/ await, asseert", () {
         f(Stream<int> s) async {
           int i = 0;
@@ -1695,9 +1694,7 @@ main() {
       return expect42(asyncInSync(f42));
     });
 
-    // Equality and identity.
-    // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/265
-    skip_test("Identical and equals", () {
+    test("Identical and equals", () {
       expect(async.instanceMethod, equals(async.instanceMethod));
       expect(Async.staticMethod, same(Async.staticMethod));
       expect(topMethod, same(topMethod));
@@ -1794,8 +1791,7 @@ main() {
       return expect42(f());
     });
 
-    // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/265
-    skip_test("suffix operator + pre-increment", () {
+    test("suffix operator + pre-increment", () {
       f() async {
         var v = [41];
         return await ++v[0];
@@ -1913,7 +1909,7 @@ main() {
       return expect42(f());
     });
 
-    if (!assertionsEnabled) return;
+    if (!assertStatementsEnabled) return;
 
     test("inside assert, true", () { //                      //# 03: ok
       f() async { //                                         //# 03: continued
@@ -1967,7 +1963,56 @@ main() {
       expect(yield, equals(42));
     });
   });
+  asyncEnd();
 }
+
+// Mock test framework sufficient to run tests.
+
+String _currentName = "";
+
+test(name, action()) {
+  var oldName = _currentName;
+  _currentName = [oldName, name].join(" ");
+  runZoned(() {
+    asyncTest(() => new Future.sync(action));
+  }, zoneValues: {#testName: _currentName});
+  _currentName = oldName;
+}
+
+group(name, entries()) {
+  var oldName = _currentName;
+  _currentName = [oldName, name].join(" ");
+  entries();
+  _currentName = oldName;
+}
+
+expect(value, expectation) {
+  var name = Zone.current[#testName];
+  if (expectation is bool) {
+    // Just for better error message.
+    (expectation ? Expect.isTrue : Expect.isFalse)(value, name);
+    return;
+  }
+  if (expectation is List) {
+    Expect.listEquals(expectation, value, name);
+    return;
+  }
+  if (expectation is Function(Object, String)) {
+    expectation(value, name);
+    return;
+  }
+  Expect.equals(expectation, value, name);
+}
+
+equals(x) => x;
+final isTrue = true;
+same(v) => (Object o, String name) => Expect.identical(v, o, name);
+fail(message) {
+  var name = Zone.current[#testName];
+  Expect.fail("$name: $message");
+}
+
+// End mock.
 
 // Attempt to obfuscates value to avoid too much constant folding.
 id(v) {

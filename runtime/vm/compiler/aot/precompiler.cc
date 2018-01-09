@@ -2181,6 +2181,10 @@ void Precompiler::DropLibraryEntries() {
   Array& dict = Array::Handle(Z);
   Object& entry = Object::Handle(Z);
 
+  Array& scripts = Array::Handle(Z);
+  Script& script = Script::Handle(Z);
+  KernelProgramInfo& program_info = KernelProgramInfo::Handle(Z);
+
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
 
@@ -2217,6 +2221,17 @@ void Precompiler::DropLibraryEntries() {
     if (!(retain_root_library_caches_ &&
           (lib.raw() == I->object_store()->root_library()))) {
       lib.DropDependenciesAndCaches();
+    }
+
+    scripts = lib.LoadedScripts();
+    if (!scripts.IsNull()) {
+      for (intptr_t i = 0; i < scripts.Length(); ++i) {
+        script = Script::RawCast(scripts.At(i));
+        program_info = script.kernel_program_info();
+        if (!program_info.IsNull()) {
+          program_info.set_constants(Array::null_array());
+        }
+      }
     }
   }
 }

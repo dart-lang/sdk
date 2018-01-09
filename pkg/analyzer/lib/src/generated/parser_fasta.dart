@@ -130,7 +130,7 @@ abstract class ParserAdapter implements Parser {
   @override
   List<Combinator> parseCombinators() {
     currentToken = fastaParser
-        .parseCombinators(fastaParser.syntheticPreviousToken(currentToken))
+        .parseCombinatorStar(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     return astBuilder.pop();
   }
@@ -210,8 +210,8 @@ abstract class ParserAdapter implements Parser {
   @override
   FunctionBody parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
-    currentToken = fastaParser
-        .parseAsyncModifier(fastaParser.syntheticPreviousToken(currentToken));
+    currentToken = fastaParser.parseAsyncModifierOpt(
+        fastaParser.syntheticPreviousToken(currentToken));
     currentToken =
         fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
     return astBuilder.pop();
@@ -270,7 +270,7 @@ abstract class ParserAdapter implements Parser {
   @override
   Statement parseStatement2() {
     currentToken = fastaParser
-        .parseStatementOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .parseStatement(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     return astBuilder.pop();
   }

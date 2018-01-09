@@ -28,7 +28,7 @@ testeeMain() {
   y & 4; // Line C.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Add breakpoints.

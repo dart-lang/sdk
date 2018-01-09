@@ -29,7 +29,7 @@ testMain() {
   helper(); // LINE_B.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {

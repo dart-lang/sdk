@@ -14,7 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
-    defineReflectiveTests(GetTypeHierarchyTest_PreviewDart2);
+    defineReflectiveTests(GetTypeHierarchyTest_UseCFE);
   });
 }
 
@@ -270,15 +270,14 @@ class HierarchyResults {
       return items[nameToIndex[name]];
     } else {
       fail('Class $name not found in hierarchy results');
-      return null;
     }
   }
 }
 
 @reflectiveTest
-class GetTypeHierarchyTest_PreviewDart2 extends GetTypeHierarchyTest {
+class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest

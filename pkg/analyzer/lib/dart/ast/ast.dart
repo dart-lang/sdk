@@ -4229,7 +4229,7 @@ abstract class InstanceCreationExpression extends Expression
 
   /**
    * Return the 'new' or 'const' keyword used to indicate how an object should
-   * be created.
+   * be created, or `null` if the keyword was not explicitly provided.
    */
   Token get keyword;
 

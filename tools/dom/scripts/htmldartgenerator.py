@@ -672,11 +672,50 @@ class HtmlDartGenerator(object):
     callback_info = GetCallbackInfo(
         self._database.GetInterface(info.callback_args[0].type_id))
 
+    # If more than one callback then the second argument is the error callback.
+    # Some error callbacks have 2 args (e.g., executeSql) where the second arg
+    # is the error - this is the argument we want.
+    error_callback = ""
+    if len(info.callback_args) > 1:
+      error_callback_info = GetCallbackInfo(
+            self._database.GetInterface(info.callback_args[1].type_id))
+      error_callbackNames = []
+      for paramInfo in error_callback_info.param_infos:
+          error_callbackNames.append(paramInfo.name)
+      errorCallbackVariables = ", ".join(error_callbackNames)
+      errorName = error_callback_info.param_infos[-1].name
+      error_callback = (',\n        %s(%s) { completer.completeError(%s); }' %
+                        (('%s : ' % info.callback_args[1].name
+                          if info.requires_named_arguments and
+                             info.callback_args[1].is_optional else ''),
+                         errorCallbackVariables, errorName))
+
     extensions = GetDDC_Extension(self._interface, info.declared_name)
     if extensions:
       ddc_extensions = "\n".join(extensions);
     else:
       ddc_extensions = ''
+
+    # Some callbacks have more than one parameters.  If so use all of
+    # those parameters.  However, if more than one argument use the
+    # type of the last argument to be returned e.g., executeSql the callback
+    # is (transaction, resultSet) and only the resultSet is returned SqlResultSet.
+    callbackArgsLen = len(callback_info.param_infos)
+    future_generic = ''
+    callbackVariables = ''
+    completerVariable = ''
+    if callbackArgsLen == 1:
+      callbackVariables = 'value'
+      completerVariable = callbackVariables
+      if callback_info.param_infos[0].type_id:
+        future_generic = '<%s>' % self._DartType(callback_info.param_infos[0].type_id)
+    elif callbackArgsLen > 1:
+      callbackNames = []
+      for paramInfo in callback_info.param_infos:
+        callbackNames.append(paramInfo.name)
+      callbackVariables = ",".join(callbackNames)
+      completerVariable = callbackNames[-1]
+      future_generic = '<%s>' % self._DartType(callback_info.param_infos[-1].type_id)
 
     param_list = info.ParametersAsArgumentList()
     metadata = ''
@@ -690,7 +729,7 @@ class HtmlDartGenerator(object):
         '    $ORIGINAL_FUNCTION($PARAMS_LIST\n'
         '        $NAMED_PARAM($VARIABLE_NAME) { '
         '$DDC_EXTENSION\n'
-        'completer.complete($VARIABLE_NAME); }'
+        'completer.complete($COMPLETER_NAME); }'
         '$ERROR_CALLBACK);\n'
         '    return completer.future;\n'
         '  }\n',
@@ -704,17 +743,12 @@ class HtmlDartGenerator(object):
         NAMED_PARAM=('%s : ' % info.callback_args[0].name
             if info.requires_named_arguments and
               info.callback_args[0].is_optional else ''),
-        VARIABLE_NAME= '' if len(callback_info.param_infos) == 0 else 'value',
+        VARIABLE_NAME=callbackVariables,
+        COMPLETER_NAME=completerVariable,
         DDC_EXTENSION=ddc_extensions,
-        ERROR_CALLBACK=('' if len(info.callback_args) == 1 else
-            (',\n        %s(error) { completer.completeError(error); }' %
-            ('%s : ' % info.callback_args[1].name
-            if info.requires_named_arguments and
-                info.callback_args[1].is_optional else ''))),
-        FUTURE_GENERIC = ('' if len(callback_info.param_infos) == 0 or
-            not callback_info.param_infos[0].type_id else
-            '<%s>' % self._DartType(callback_info.param_infos[0].type_id)),
-        ORIGINAL_FUNCTION = html_name)
+        ERROR_CALLBACK=error_callback,
+        FUTURE_GENERIC=future_generic,
+        ORIGINAL_FUNCTION=html_name)
 
   def EmitHelpers(self, base_class):
     if not self._members_emitter:

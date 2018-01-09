@@ -70,7 +70,6 @@ abstract class StatementVisitor<R> {
 
   R defaultStatement(Statement node) => null;
 
-  R visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
   R visitBlock(Block node) => defaultStatement(node);
@@ -192,7 +191,6 @@ class TreeVisitor<R>
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
-  R visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
   R visitBlock(Block node) => defaultStatement(node);
@@ -511,8 +509,6 @@ abstract class StatementVisitor1<R, T> {
 
   R defaultStatement(Statement node, T arg) => null;
 
-  R visitInvalidStatement(InvalidStatement node, T arg) =>
-      defaultStatement(node, arg);
   R visitExpressionStatement(ExpressionStatement node, T arg) =>
       defaultStatement(node, arg);
   R visitBlock(Block node, T arg) => defaultStatement(node, arg);

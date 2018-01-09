@@ -132,9 +132,6 @@ class Emitter extends emitterTask.EmitterBase {
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
 
-      case JsBuiltin.createFunctionTypeRti:
-        return _backend.rtiEncoder.templateForCreateFunctionType;
-
       case JsBuiltin.isSubtype:
         // TODO(floitsch): move this closer to where is-check properties are
         // built.

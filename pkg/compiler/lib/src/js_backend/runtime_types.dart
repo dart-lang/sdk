@@ -36,11 +36,65 @@ typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
 
 /// Interface for the classes and methods that need runtime types.
 abstract class RuntimeTypesNeed {
-  bool classNeedsRti(ClassEntity cls);
+  /// Returns `true` if [cls] needs type arguments at runtime type.
+  ///
+  /// This is for instance the case for generic classes used in a type test:
+  ///
+  ///   class C<T> {}
+  ///   main() {
+  ///     new C<int>() is C<int>;
+  ///     new C<String>() is C<String>;
+  ///   }
+  ///
+  bool classNeedsTypeArguments(ClassEntity cls);
+
+  /// Returns `true` if [method] needs type arguments at runtime type.
+  ///
+  /// This is for instance the case for generic methods that uses type tests:
+  ///
+  ///   method<T>(T t) => t is T;
+  ///   main() {
+  ///     method<int>(0);
+  ///     method<String>('');
+  ///   }
+  ///
+  bool methodNeedsTypeArguments(FunctionEntity method);
+
   bool classNeedsRtiField(ClassEntity cls);
-  bool methodNeedsRti(FunctionEntity function);
+
+  /// Returns `true` if a signature is needed for [method].
+  ///
+  /// A signature is a runtime method type descriptor function that creates
+  /// a runtime representation of the type of the method.
+  ///
+  /// This is for instance needed for instance methods of generic classes that
+  /// are torn off and whose type therefore potentially is used in a type test:
+  ///
+  ///     class C<T> {
+  ///       method(T t) {}
+  ///     }
+  ///     main() {
+  ///       new C<int>().method is void Function(int);
+  ///       new C<String>().method is void Function(String);
+  ///     }
+  ///
+  /// Since type of the method depends on the type argument of its enclosing
+  /// class, the type of the method is a JavaScript function like:
+  ///
+  ///    signature: function (T) {
+  ///      return {'func': true, params: [T]};
+  ///    }
+  ///
+  bool methodNeedsSignature(FunctionEntity method);
+
+  /// Returns `true` if a signature is needed for the call-method created for
+  /// [localFunction].
+  ///
+  /// See [methodNeedsSignature] for more information on what a signature is
+  /// and when it is needed.
   // TODO(redemption): Remove this when the old frontend is deleted.
-  bool localFunctionNeedsRti(Local function);
+  bool localFunctionNeedsSignature(Local localFunction);
+
   bool classUsesTypeVariableExpression(ClassEntity cls);
 }
 
@@ -49,8 +103,8 @@ abstract class RuntimeTypesNeedBuilder {
   /// Registers that [cls] contains a type variable literal.
   void registerClassUsingTypeVariableExpression(ClassEntity cls);
 
-  /// Registers that if [element] needs reified runtime type information then so
-  /// does [dependency].
+  /// Registers that if [element] needs type arguments at runtime then so does
+  /// [dependency].
   ///
   /// For instance:
   ///
@@ -60,9 +114,19 @@ abstract class RuntimeTypesNeedBuilder {
   ///     class B<T> {}
   ///     main() => new A<String>().m() is B<int>;
   ///
-  /// Here `A` need reified runtime type information because `B` needs it in
-  /// order to generate the check against `B<int>`.
-  void registerRtiDependency(ClassEntity element, ClassEntity dependency);
+  /// Here `A` need type arguments at runtime because `B` needs it in order to
+  /// generate the check against `B<int>`.
+  ///
+  /// This can also involve generic methods:
+  ///
+  ///    class A<T> {}
+  ///    method<T>() => new A<T>();
+  ///    main() => method<int>() is A<int>();
+  ///
+  /// Here `method` need type arguments at runtime because `A` needs it in order
+  /// to generate the check against `A<int>`.
+  ///
+  void registerTypeArgumentDependency(Entity element, Entity dependency);
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -90,14 +154,14 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder);
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks);
 
   /// Compute type arguments of classes that use one of their type variables in
   /// is-checks and add the is-checks that they imply.
   ///
   /// This function must be called after all is-checks have been registered.
-  void registerImplicitChecks(
-      WorldBuilder worldBuilder, Iterable<ClassEntity> classesUsingChecks);
+  void registerImplicitChecks(Set<InterfaceType> instantiatedTypes,
+      Iterable<ClassEntity> classesUsingChecks, Set<DartType> implicitIsChecks);
 }
 
 /// Interface for computing substitutions need for runtime type checks.
@@ -137,9 +201,6 @@ abstract class RuntimeTypesEncoder {
   /// is a function type.
   jsAst.Template get templateForIsFunctionType;
 
-  /// Returns the JavaScript template that creates at runtime a new function
-  /// type object.
-  jsAst.Template get templateForCreateFunctionType;
   jsAst.Name get getFunctionThatReturnsNullName;
 
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
@@ -172,16 +233,17 @@ abstract class _RuntimeTypesBase {
    * immutable datastructure.
    */
   void registerImplicitChecks(
-      WorldBuilder worldBuilder, Iterable<ClassEntity> classesUsingChecks) {
+      Set<InterfaceType> instantiatedTypes,
+      Iterable<ClassEntity> classesUsingChecks,
+      Set<DartType> implicitIsChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    Set<InterfaceType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
       for (InterfaceType type in instantiatedTypes) {
         do {
           for (DartType argument in type.typeArguments) {
-            worldBuilder.registerIsCheck(argument);
+            implicitIsChecks.add(argument.unaliased);
           }
           // TODO(johnniwinther): This seems wrong; the type arguments of [type]
           // are not substituted - `List<int>` yields `Iterable<E>` and not
@@ -204,7 +266,7 @@ abstract class _RuntimeTypesBase {
             InterfaceType instance = _types.asInstanceOf(type, cls);
             if (instance == null) break;
             for (DartType argument in instance.typeArguments) {
-              worldBuilder.registerIsCheck(argument);
+              implicitIsChecks.add(argument.unaliased);
             }
             // TODO(johnniwinther): This seems wrong; the type arguments of
             // [type] are not substituted - `List<int>` yields `Iterable<E>` and
@@ -220,9 +282,11 @@ abstract class _RuntimeTypesBase {
 class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final ElementEnvironment _elementEnvironment;
   final BackendUsage _backendUsage;
-  final Set<ClassEntity> classesNeedingRti;
-  final Set<FunctionEntity> methodsNeedingRti;
-  final Set<Local> localFunctionsNeedingRti;
+  final Set<ClassEntity> classesNeedingTypeArguments;
+  final Set<FunctionEntity> methodsNeedingSignature;
+  final Set<FunctionEntity> methodsNeedingTypeArguments;
+  final Set<Local> localFunctionsNeedingSignature;
+  final Set<Local> localFunctionsNeedingTypeArguments;
 
   /// The set of classes that use one of their type variables as expressions
   /// to get the runtime type.
@@ -231,37 +295,46 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   RuntimeTypesNeedImpl(
       this._elementEnvironment,
       this._backendUsage,
-      this.classesNeedingRti,
-      this.methodsNeedingRti,
-      this.localFunctionsNeedingRti,
+      this.classesNeedingTypeArguments,
+      this.methodsNeedingSignature,
+      this.methodsNeedingTypeArguments,
+      this.localFunctionsNeedingSignature,
+      this.localFunctionsNeedingTypeArguments,
       this.classesUsingTypeVariableExpression);
 
   bool checkClass(covariant ClassEntity cls) => true;
 
-  bool classNeedsRti(ClassEntity cls) {
+  bool classNeedsTypeArguments(ClassEntity cls) {
     assert(checkClass(cls));
     if (_backendUsage.isRuntimeTypeUsed) return true;
-    return classesNeedingRti.contains(cls);
+    return classesNeedingTypeArguments.contains(cls);
   }
 
   bool classNeedsRtiField(ClassEntity cls) {
     assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     if (_backendUsage.isRuntimeTypeUsed) return true;
-    return classesNeedingRti.contains(cls);
+    return classesNeedingTypeArguments.contains(cls);
   }
 
-  bool methodNeedsRti(FunctionEntity function) {
-    return methodsNeedingRti.contains(function) ||
+  bool methodNeedsSignature(FunctionEntity function) {
+    return methodsNeedingSignature.contains(function) ||
         _backendUsage.isRuntimeTypeUsed;
   }
 
-  bool localFunctionNeedsRti(Local function) {
-    if (localFunctionsNeedingRti == null) {
+  // TODO(johnniwinther): Optimize to only include generic methods that really
+  // need the RTI.
+  bool methodNeedsTypeArguments(FunctionEntity function) {
+    return methodsNeedingTypeArguments.contains(function) ||
+        _backendUsage.isRuntimeTypeUsed;
+  }
+
+  bool localFunctionNeedsSignature(Local function) {
+    if (localFunctionsNeedingSignature == null) {
       // [localFunctionNeedsRti] is only used by the old frontend.
       throw new UnsupportedError('RuntimeTypesNeed.localFunctionsNeedingRti');
     }
-    return localFunctionsNeedingRti.contains(function) ||
+    return localFunctionsNeedingSignature.contains(function) ||
         _backendUsage.isRuntimeTypeUsed;
   }
 
@@ -277,14 +350,18 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
       BackendUsage backendUsage,
       Set<ClassEntity> classesNeedingRti,
       Set<FunctionEntity> methodsNeedingRti,
+      Set<FunctionEntity> methodsNeedingGenericRti,
       Set<Local> localFunctionsNeedingRti,
+      Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression)
       : super(
             elementEnvironment,
             backendUsage,
             classesNeedingRti,
             methodsNeedingRti,
+            methodsNeedingGenericRti,
             localFunctionsNeedingRti,
+            localFunctionsNeedingTypeArguments,
             classesUsingTypeVariableExpression);
 
   bool checkClass(ClassElement cls) => cls.isDeclaration;
@@ -294,11 +371,17 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final ElementEnvironment _elementEnvironment;
 
-  final Map<ClassEntity, Set<ClassEntity>> rtiDependencies =
-      <ClassEntity, Set<ClassEntity>>{};
+  final Map<Entity, Set<Entity>> typeArgumentDependencies =
+      <Entity, Set<Entity>>{};
 
   final Set<ClassEntity> classesUsingTypeVariableExpression =
       new Set<ClassEntity>();
+
+  final Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
+
+  Set<DartType> isChecks;
+
+  final Set<DartType> implicitIsChecks = new Set<DartType>();
 
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
       : super(types);
@@ -311,11 +394,10 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   }
 
   @override
-  void registerRtiDependency(ClassEntity element, ClassEntity dependency) {
-    // We're not dealing with typedef for now.
+  void registerTypeArgumentDependency(Entity element, Entity dependency) {
     assert(element != null);
-    Set<ClassEntity> classes =
-        rtiDependencies.putIfAbsent(element, () => new Set<ClassEntity>());
+    Set<Entity> classes =
+        typeArgumentDependencies.putIfAbsent(element, () => new Set<Entity>());
     classes.add(dependency);
   }
 
@@ -323,36 +405,45 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions}) {
-    Set<ClassEntity> classesNeedingRti = new Set<ClassEntity>();
-    Set<FunctionEntity> methodsNeedingRti = new Set<FunctionEntity>();
-    Set<Local> localFunctionsNeedingRti = new Set<Local>();
+    isChecks = new Set<DartType>.from(resolutionWorldBuilder.isChecks);
+    Set<ClassEntity> classesNeedingTypeArguments = new Set<ClassEntity>();
+    Set<FunctionEntity> methodsNeedingSignature = new Set<FunctionEntity>();
+    Set<FunctionEntity> methodsNeedingTypeArguments = new Set<FunctionEntity>();
+    Set<Local> localFunctionsNeedingSignature = new Set<Local>();
+    Set<Local> localFunctionsNeedingTypeArguments = new Set<Local>();
 
-    // Find the classes that need runtime type information. Such
+    // Find the classes that need type arguments at runtime. Such
     // classes are:
-    // (1) used in a is check with type variables,
+    // (1) used in an is check with type variables,
     // (2) dependencies of classes in (1),
     // (3) subclasses of (2) and (3).
-    void potentiallyAddForRti(ClassEntity cls) {
-      assert(checkClass(cls));
-      if (!_elementEnvironment.isGenericClass(cls)) return;
-      if (classesNeedingRti.contains(cls)) return;
-      classesNeedingRti.add(cls);
+    void potentiallyNeedTypeArguments(Entity entity) {
+      if (entity is ClassEntity) {
+        ClassEntity cls = entity;
+        assert(checkClass(cls));
+        if (!_elementEnvironment.isGenericClass(cls)) return;
+        if (classesNeedingTypeArguments.contains(cls)) return;
+        classesNeedingTypeArguments.add(cls);
 
-      // TODO(ngeoffray): This should use subclasses, not subtypes.
-      closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity sub) {
-        potentiallyAddForRti(sub);
-      });
+        // TODO(ngeoffray): This should use subclasses, not subtypes.
+        closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity sub) {
+          potentiallyNeedTypeArguments(sub);
+        });
+      } else if (entity is FunctionEntity) {
+        methodsNeedingTypeArguments.add(entity);
+      } else {
+        localFunctionsNeedingTypeArguments.add(entity);
+      }
 
-      Set<ClassEntity> dependencies = rtiDependencies[cls];
+      Set<Entity> dependencies = typeArgumentDependencies[entity];
       if (dependencies != null) {
-        dependencies.forEach((ClassEntity other) {
-          potentiallyAddForRti(other);
+        dependencies.forEach((Entity other) {
+          potentiallyNeedTypeArguments(other);
         });
       }
     }
 
-    Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
-    resolutionWorldBuilder.isChecks.forEach((DartType type) {
+    isChecks.forEach((DartType type) {
       if (type.isTypeVariable) {
         TypeVariableType typeVariableType = type;
         TypeVariableEntity variable = typeVariableType.element;
@@ -365,8 +456,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       }
     });
     // Add is-checks that result from classes using type variables in checks.
-    registerImplicitChecks(
-        resolutionWorldBuilder, classesUsingTypeVariableTests);
+    registerImplicitChecks(resolutionWorldBuilder.instantiatedTypes,
+        classesUsingTypeVariableTests, implicitIsChecks);
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to
@@ -375,7 +466,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     // TODO(karlklose): make this dependency visible from code.
     if (closedWorld.commonElements.jsArrayClass != null) {
       ClassEntity listClass = closedWorld.commonElements.listClass;
-      registerRtiDependency(closedWorld.commonElements.jsArrayClass, listClass);
+      registerTypeArgumentDependency(
+          closedWorld.commonElements.jsArrayClass, listClass);
     }
 
     // Check local functions and closurized members.
@@ -386,7 +478,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
             (potentialSubtypeOf == null ||
                 closedWorld.dartTypes
                     .isPotentialSubtype(functionType, potentialSubtypeOf))) {
-          potentiallyAddForRti(contextClass);
+          potentiallyNeedTypeArguments(contextClass);
           return true;
         }
         return false;
@@ -396,68 +488,80 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
         if (checkFunctionType(
             _elementEnvironment.getLocalFunctionType(function))) {
-          localFunctionsNeedingRti.add(function);
+          localFunctionsNeedingSignature.add(function);
         }
       }
       for (FunctionEntity function
           in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
         if (checkFunctionType(_elementEnvironment.getFunctionType(function))) {
-          methodsNeedingRti.add(function);
+          methodsNeedingSignature.add(function);
         }
       }
     }
 
     // Compute the set of all classes and methods that need runtime type
     // information.
-    resolutionWorldBuilder.isChecks.forEach((DartType type) {
-      if (type.isInterfaceType) {
-        InterfaceType itf = type;
-        if (!itf.treatAsRaw) {
-          potentiallyAddForRti(itf.element);
+
+    void processChecks(Set<DartType> checks) {
+      checks.forEach((DartType type) {
+        if (type.isInterfaceType) {
+          InterfaceType itf = type;
+          if (!itf.treatAsRaw) {
+            potentiallyNeedTypeArguments(itf.element);
+          }
+        } else {
+          type.forEachTypeVariable((TypeVariableType typeVariable) {
+            // This handles checks against type variables and function types
+            // containing type variables.
+            Entity typeDeclaration = typeVariable.element.typeDeclaration;
+            potentiallyNeedTypeArguments(typeDeclaration);
+          });
+          if (type.isFunctionType) {
+            checkClosures(potentialSubtypeOf: type);
+          }
         }
-      } else {
-        ClassEntity contextClass = DartTypes.getClassContext(type);
-        if (contextClass != null) {
-          // [type] contains type variables (declared in [contextClass]) if
-          // [contextClass] is non-null. This handles checks against type
-          // variables and function types containing type variables.
-          potentiallyAddForRti(contextClass);
-        }
-        if (type.isFunctionType) {
-          checkClosures(potentialSubtypeOf: type);
-        }
-      }
-    });
+      });
+    }
+
+    processChecks(isChecks);
+    processChecks(implicitIsChecks);
+
     if (enableTypeAssertions) {
       checkClosures();
     }
 
     // Add the classes that need RTI because they use a type variable as
     // expression.
-    classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
+    classesUsingTypeVariableExpression.forEach(potentiallyNeedTypeArguments);
 
     return _createRuntimeTypesNeed(
         _elementEnvironment,
         closedWorld.backendUsage,
-        classesNeedingRti,
-        methodsNeedingRti,
-        localFunctionsNeedingRti,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
+        localFunctionsNeedingSignature,
+        localFunctionsNeedingTypeArguments,
         classesUsingTypeVariableExpression);
   }
 
   RuntimeTypesNeed _createRuntimeTypesNeed(
       ElementEnvironment elementEnvironment,
       BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingRti,
-      Set<FunctionEntity> methodsNeedingRti,
-      Set<Local> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingTypeArguments,
+      Set<FunctionEntity> methodsNeedingSignature,
+      Set<FunctionEntity> methodsNeedingTypeArguments,
+      Set<Local> localFunctionsNeedingSignature,
+      Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression) {
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
-        classesNeedingRti,
-        methodsNeedingRti,
-        localFunctionsNeedingRti,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
+        localFunctionsNeedingSignature,
+        localFunctionsNeedingTypeArguments,
         classesUsingTypeVariableExpression);
   }
 }
@@ -473,16 +577,20 @@ class ResolutionRuntimeTypesNeedBuilderImpl
   RuntimeTypesNeed _createRuntimeTypesNeed(
       ElementEnvironment elementEnvironment,
       BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingRti,
-      Set<FunctionEntity> methodsNeedingRti,
-      Set<Local> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingTypeArguments,
+      Set<FunctionEntity> methodsNeedingSignature,
+      Set<FunctionEntity> methodsNeedingTypeArguments,
+      Set<Local> localFunctionsNeedingSignature,
+      Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression) {
     return new _ResolutionRuntimeTypesNeed(
         _elementEnvironment,
         backendUsage,
-        classesNeedingRti,
-        methodsNeedingRti,
-        localFunctionsNeedingRti,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
+        localFunctionsNeedingSignature,
+        localFunctionsNeedingTypeArguments,
         classesUsingTypeVariableExpression);
   }
 }
@@ -565,8 +673,10 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder) {
-    Set<DartType> isChecks = codegenWorldBuilder.isChecks;
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    Set<DartType> isChecks =
+        new Set<DartType>.from(codegenWorldBuilder.isChecks);
+    isChecks.addAll(implicitIsChecks);
     // These types are needed for is-checks against function types.
     Set<DartType> instantiatedTypesAndClosures =
         computeInstantiatedTypesAndClosures(codegenWorldBuilder);
@@ -801,13 +911,6 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
     return _representationGenerator.templateForIsFunctionType;
   }
 
-  /// Returns the JavaScript template that creates at runtime a new function
-  /// type object.
-  @override
-  jsAst.Template get templateForCreateFunctionType {
-    return _representationGenerator.templateForCreateFunctionType;
-  }
-
   @override
   jsAst.Expression getTypeRepresentation(
       Emitter emitter, DartType type, OnVariableCallback onVariable,
@@ -966,6 +1069,7 @@ class TypeRepresentationGenerator
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
+  List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
   TypeRepresentationGenerator(this.namer);
 
@@ -986,6 +1090,7 @@ class TypeRepresentationGenerator
     jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
     this.shouldEncodeTypedef = null;
+    assert(functionTypeVariables.isEmpty);
     return representation;
   }
 
@@ -1016,9 +1121,9 @@ class TypeRepresentationGenerator
 
   jsAst.Expression visitFunctionTypeVariable(
       FunctionTypeVariable type, Emitter emitter) {
-    // TODO(johnniwinther): Create a runtime representation for existential
-    // types.
-    return getDynamicValue();
+    int position = functionTypeVariables.indexOf(type);
+    assert(position >= 0);
+    return js.number(functionTypeVariables.length - position - 1);
   }
 
   jsAst.Expression visitDynamicType(DynamicType type, Emitter emitter) {
@@ -1055,15 +1160,6 @@ class TypeRepresentationGenerator
     return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
   }
 
-  /// Returns the JavaScript template that creates at runtime a new function
-  /// type object.
-  jsAst.Template get templateForCreateFunctionType {
-    // The value of the functionTypeTag can be anything. We use "dynaFunc" for
-    // easier debugging.
-    return jsAst.js
-        .expressionTemplateFor('{ ${namer.functionTypeTag}: "dynafunc" }');
-  }
-
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -1074,6 +1170,20 @@ class TypeRepresentationGenerator
     // Type representations for functions have a property which is a tag marking
     // them as function types. The value is not used, so '1' is just a dummy.
     addProperty(namer.functionTypeTag, js.number(1));
+
+    if (type.typeVariables.isNotEmpty) {
+      // Generic function types have type parameters which are reduced to de
+      // Bruijn indexes.
+      for (FunctionTypeVariable variable in type.typeVariables.reversed) {
+        functionTypeVariables.add(variable);
+      }
+      // TODO(sra): This emits `P.Object` for the common unbounded case. We
+      // could replace the Object bounds with an array hole for a compact `[,,]`
+      // representation.
+      addProperty(namer.functionTypeGenericBoundsTag,
+          visitList(type.typeVariables.map((v) => v.bound).toList(), emitter));
+    }
+
     if (type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
@@ -1101,6 +1211,12 @@ class TypeRepresentationGenerator
       addProperty(namer.functionTypeNamedParametersTag,
           new jsAst.ObjectInitializer(namedArguments));
     }
+
+    // Exit generic function scope.
+    if (type.typeVariables.isNotEmpty) {
+      functionTypeVariables.length -= type.typeVariables.length;
+    }
+
     return new jsAst.ObjectInitializer(properties);
   }
 

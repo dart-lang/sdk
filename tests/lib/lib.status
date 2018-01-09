@@ -27,9 +27,12 @@ profiler/metrics_test: Fail # Issue 20309
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
+convert/base64_test/01: Crash # Issue 31762
 convert/chunked_conversion_utf88_test: Slow, Pass
+convert/utf82_test: Crash # Issue 31762
 convert/utf85_test: Slow, Pass
 developer/timeline_test: Skip # Not supported
+math/double_pow_test: Crash # Issue 31762
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
@@ -121,6 +124,7 @@ mirrors/typedef_test: RuntimeError # Issue 6490
 mirrors/typevariable_mirror_metadata_test: RuntimeError # Issue 10905
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 profiler/metrics_num_test: Skip # Because of a int / double type test.
+typed_data/int32x4_bigint_test: Crash # Issue 31762
 typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
@@ -280,6 +284,7 @@ math/math_test: RuntimeError
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+mirrors/invocation_fuzz_test/smi: Pass, Slow
 mirrors/variable_is_const_test/01: Crash # Please triage.
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -470,9 +475,16 @@ convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 async/timer_not_available_test: Fail, OK
+convert/json_utf8_chunk_test: RuntimeError # Large integers
 js/*: Skip
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
+
+[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || ($compiler == dart2js && $dart2js_with_kernel) ]
+convert/base64_test/01: CompileTimeError # Large integer literal
+convert/utf82_test: CompileTimeError # Large integer literal
+math/double_pow_test: CompileTimeError # Large integer literal
+typed_data/int32x4_bigint_test: CompileTimeError # Large integer literal
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920

@@ -364,7 +364,6 @@ class PluginManager {
   /**
    * Return a list of all of the plugins that are currently known.
    */
-  @visibleForTesting
   List<PluginInfo> get plugins => _pluginMap.values.toList();
 
   /**

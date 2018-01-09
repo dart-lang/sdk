@@ -41,6 +41,7 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
   abstract forwarding-stub method g(generic-covariant-impl dynamic a) → dynamic;
   abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/mixin_library.dart:16:18: Error: Superclass has no method named 'foo'.\n  foo() => super.foo() + f();\n                 ^"]/* from null */;
 static method main() → dynamic {
   core::print(new self::C::•<dynamic>().{mix::Mixin::foo}());
   core::print(new self::C2::•<dynamic>().{mix::Mixin::foo}());

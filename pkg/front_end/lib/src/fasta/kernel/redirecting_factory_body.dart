@@ -22,7 +22,7 @@ const String letName = "#redirecting_factory";
 class RedirectingFactoryBody extends ExpressionStatement {
   RedirectingFactoryBody.internal(Expression value)
       : super(new Let(new VariableDeclaration(letName, initializer: value),
-            new InvalidExpression()));
+            new InvalidExpression(null)));
 
   RedirectingFactoryBody(Member target) : this.internal(new StaticGet(target));
 

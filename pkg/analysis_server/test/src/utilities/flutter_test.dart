@@ -22,7 +22,7 @@ class FlutterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    Folder libFolder = configureFlutterPackage(provider);
+    Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
   }
 
@@ -145,7 +145,6 @@ var b = new Text('bbb');
       }
     }
     fail('Not found $name in $unit');
-    return null;
   }
 
   InstanceCreationExpression _getTopVariableCreation(String name,

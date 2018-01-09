@@ -750,6 +750,11 @@ class AnalysisEngine {
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
   /**
+   * The file name used for pubspec files.
+   */
+  static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
+
+  /**
    * The unique instance of this class.
    */
   static final AnalysisEngine instance = new AnalysisEngine._();

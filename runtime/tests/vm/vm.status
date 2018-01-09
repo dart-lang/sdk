@@ -67,9 +67,6 @@ cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 
-[ $compiler == dartkp ]
-dart/truncating_ints_test: CompileTimeError # Issue 31339
-
 [ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
@@ -134,15 +131,6 @@ cc/IsolateReload_LibraryShow: Fail # Please triage.
 cc/IsolateReload_MainLibModified: Fail # Please triage.
 cc/IsolateReload_NoLibsModified: Fail # Please triage.
 cc/IsolateReload_PrefixImportedLibModified: Fail # Please triage.
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $arch == simdbc64 && $compiler == dartk ]
-cc/*: Pass, Crash # Please triage (flaky crashes in kernel-isolate?).
-dart/regress29620_test: RuntimeError # Please triage.
-dart/regress30853_test: Crash # Please triage.
-dart/truncating_ints_test: RuntimeError # Please triage.
 
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
@@ -251,7 +239,6 @@ cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
 cc/IsolateReload_RunNewFieldInitializers: Skip
 cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersSyntaxError3: Fail
 cc/IsolateReload_RunNewFieldInitializersThrows: Skip
 cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_ShapeChangeRetainsHash: Skip
@@ -345,9 +332,11 @@ cc/Parser_AllocateVariables_TwoChains: Crash
 
 [ $compiler == dartk && $strong ]
 dart/data_uri_spawn_test: CompileTimeError # Issue 31586
-dart/hello_fuchsia_test: RuntimeError
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
+
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+dart/spawn_infinite_loop_test: RuntimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -355,8 +344,10 @@ dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
-dart/spawn_infinite_loop_test: Crash # Please triage.
-dart/truncating_ints_test: CompileTimeError # Please triage.
+dart/spawn_infinite_loop_test: Crash
+
+[ $compiler == dartkp && !$strong ]
+dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/base64: CompileTimeError

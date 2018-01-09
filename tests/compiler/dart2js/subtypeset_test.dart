@@ -9,12 +9,21 @@ library subtypeset_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart';
 
 void main() {
-  asyncTest(() => TypeEnvironment.create(r"""
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
+    await runTests(CompileMode.kernel);
+  });
+}
+
+runTests(CompileMode compileMode) async {
+  var env = await TypeEnvironment.create(r"""
       ///        A
       ///       / \
       ///      B   C
@@ -34,45 +43,44 @@ void main() {
       class I implements H {}
       """, mainSource: r"""
       main() {
-        new A();
+        new A().call;
         new C();
         new D();
         new E();
         new F();
         new G();
       }
-      """, compileMode: CompileMode.memory).then((env) {
-        ClosedWorld world = env.closedWorld;
+      """, compileMode: compileMode);
+  ClosedWorld world = env.closedWorld;
 
-        ClassElement A = env.getElement("A");
-        ClassElement B = env.getElement("B");
-        ClassElement C = env.getElement("C");
-        ClassElement D = env.getElement("D");
-        ClassElement E = env.getElement("E");
-        ClassElement F = env.getElement("F");
-        ClassElement G = env.getElement("G");
-        ClassElement H = env.getElement("H");
-        ClassElement I = env.getElement("I");
+  ClassEntity A = env.getElement("A");
+  ClassEntity B = env.getElement("B");
+  ClassEntity C = env.getElement("C");
+  ClassEntity D = env.getElement("D");
+  ClassEntity E = env.getElement("E");
+  ClassEntity F = env.getElement("F");
+  ClassEntity G = env.getElement("G");
+  ClassEntity H = env.getElement("H");
+  ClassEntity I = env.getElement("I");
 
-        void checkClass(ClassElement cls, List<ClassElement> subtypes) {
-          ClassSet node = world.getClassSet(cls);
-          print('$cls:\n${node}');
-          Expect.listEquals(
-              subtypes,
-              node.subtypes().toList(),
-              "Unexpected subtypes of ${cls.name}:\n"
-              "Expected: $subtypes\n"
-              "Found   : ${node.subtypes().toList()}");
-        }
+  void checkClass(ClassEntity cls, List<ClassEntity> subtypes) {
+    ClassSet node = world.getClassSet(cls);
+    print('$cls:\n${node}');
+    Expect.setEquals(
+        subtypes,
+        node.subtypes().toList(),
+        "Unexpected subtypes of ${cls.name}:\n"
+        "Expected: $subtypes\n"
+        "Found   : ${node.subtypes().toList()}");
+  }
 
-        checkClass(A, [A, C, E, F, G, B, D, H, I]);
-        checkClass(B, [B, D, E]);
-        checkClass(C, [C, E, F, G, H, B, D, I]);
-        checkClass(D, [D]);
-        checkClass(E, [E]);
-        checkClass(F, [F]);
-        checkClass(G, [G]);
-        checkClass(H, [H, I]);
-        checkClass(I, [I]);
-      }));
+  checkClass(A, [A, C, E, F, G, B, D, H, I]);
+  checkClass(B, [B, D, E]);
+  checkClass(C, [C, E, F, G, H, B, D, I]);
+  checkClass(D, [D]);
+  checkClass(E, [E]);
+  checkClass(F, [F]);
+  checkClass(G, [G]);
+  checkClass(H, [H, I]);
+  checkClass(I, [I]);
 }

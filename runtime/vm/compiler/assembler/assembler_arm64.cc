@@ -878,8 +878,7 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   // To check that, we compute value & ~object and skip the write barrier
   // if the bit is not set. We can't destroy the object.
   bic(TMP, value, Operand(object));
-  tsti(TMP, Immediate(kNewObjectAlignmentOffset));
-  b(no_update, EQ);
+  tbz(no_update, TMP, kNewObjectBitPosition);
 }
 
 // Preserves object and value registers.
@@ -888,11 +887,10 @@ void Assembler::StoreIntoObjectFilter(Register object,
                                       Label* no_update) {
   // For the value we are only interested in the new/old bit and the tag bit.
   // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-  and_(TMP, value, Operand(value, LSL, kObjectAlignmentLog2 - 1));
+  and_(TMP, value, Operand(value, LSL, kNewObjectBitPosition));
   // And the result with the negated space bit of the object.
   bic(TMP, TMP, Operand(object));
-  tsti(TMP, Immediate(kNewObjectAlignmentOffset));
-  b(no_update, EQ);
+  tbz(no_update, TMP, kNewObjectBitPosition);
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,

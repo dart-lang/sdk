@@ -15,5 +15,5 @@ import 'class_member_parser.dart' show ClassMemberParser;
 class TopLevelParser extends ClassMemberParser {
   TopLevelParser(Listener listener) : super(listener);
 
-  Token parseClassBody(Token token, Token beforeBody) => skipClassBody(token);
+  Token parseClassBody(Token token) => skipClassBody(token);
 }

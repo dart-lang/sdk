@@ -9,4 +9,5 @@ enum Severity {
   internalProblem,
   nit,
   warning,
+  errorLegacyWarning,
 }

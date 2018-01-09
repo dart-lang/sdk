@@ -21,7 +21,7 @@ void startTimer() {
   new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
-var tests = [
+var tests = <IsolateTest>[
 // Add a breakpoint and wait for it to be reached.
   (Isolate isolate) async {
     await isolate.rootLibrary.load();

@@ -32,8 +32,19 @@ const _asyncRunZoned = runZoned;
 /// }
 /// ```
 abstract class IOOverrides {
+  static IOOverrides _global;
+
   static IOOverrides get current {
-    return Zone.current[_ioOverridesToken];
+    return Zone.current[_ioOverridesToken] ?? _global;
+  }
+
+  /// The [IOOverrides] to use in the root [Zone].
+  ///
+  /// These are the [IOOverrides] that will be used in the root Zone, and in
+  /// Zone's that do not set [IOOverrides] and whose ancestors up to the root
+  /// Zone do not set [IOOverrides].
+  static set global(IOOverrides overrides) {
+    _global = overrides;
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.

@@ -7,13 +7,15 @@
 
 #include "vm/virtual_memory.h"
 
-#include <sys/mman.h>  // NOLINT
-#include <unistd.h>    // NOLINT
+#include <errno.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include "platform/assert.h"
 #include "platform/utils.h"
 
 #include "vm/isolate.h"
+#include "vm/profiler.h"
 
 namespace dart {
 
@@ -34,7 +36,12 @@ static void unmap(void* address, intptr_t size) {
   }
 
   if (munmap(address, size) != 0) {
-    FATAL("munmap failed\n");
+    int error = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace());
+    FATAL2("munmap error: %d (%s)", error,
+           Utils::StrError(error, error_buf, kBufferSize));
   }
 }
 
@@ -90,8 +97,7 @@ VirtualMemory::~VirtualMemory() {
   }
 }
 
-bool VirtualMemory::FreeSubSegment(int32_t handle,
-                                   void* address,
+bool VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
   unmap(address, size);
   return true;

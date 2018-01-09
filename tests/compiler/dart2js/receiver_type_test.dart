@@ -13,7 +13,9 @@ import 'type_test_helper.dart';
 
 main() {
   asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
     await runTest(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
     await runTest(CompileMode.kernel);
   });
 }

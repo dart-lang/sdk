@@ -36,7 +36,7 @@ testeeMain() async {
   } on Foo catch (e) {}
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedWithUnhandledException,
   (Isolate isolate) async {
     print("We stopped!");

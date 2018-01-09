@@ -2575,9 +2575,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     bool isIgnored(AnalysisError error) {
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
       String errorCode = error.errorCode.name.toLowerCase();
-      // Ignores can be on the line or just preceding the error.
-      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
-          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
+      return ignoreInfo.ignoredAt(errorCode, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
@@ -3007,7 +3005,7 @@ class IgnoreInfo {
    * Resulting codes may be in a list ('error_code_1,error_code2').
    */
   static final RegExp _IGNORE_MATCHER =
-      new RegExp(r'//[ ]*ignore:(.*)$', multiLine: true);
+      new RegExp(r'//+[ ]*ignore:(.*)$', multiLine: true);
 
   /**
    * A regular expression for matching 'ignore_for_file' comments.  Produces
@@ -3084,7 +3082,19 @@ class IgnoreInfo {
           .group(1)
           .split(',')
           .map((String code) => code.trim().toLowerCase());
-      ignoreInfo.addAll(info.getLocation(match.start).lineNumber, codes);
+      LineInfo_Location location = info.getLocation(match.start);
+      int lineNumber = location.lineNumber;
+      String beforeMatch = content.substring(
+          info.getOffsetOfLine(lineNumber - 1),
+          info.getOffsetOfLine(lineNumber - 1) + location.columnNumber - 1);
+
+      if (beforeMatch.trim().isEmpty) {
+        // The comment is on its own line, so it refers to the next line.
+        ignoreInfo.addAll(lineNumber + 1, codes);
+      } else {
+        // The comment sits next to code, so it refers to its own line.
+        ignoreInfo.addAll(lineNumber, codes);
+      }
     }
     for (Match match in fileMatches) {
       Iterable<String> codes = match

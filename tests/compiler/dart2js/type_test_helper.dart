@@ -49,6 +49,7 @@ class TypeEnvironment {
       bool stopAfterTypeInference: false,
       String mainSource,
       bool testBackendWorld: false,
+      List<String> options: const <String>[],
       Map<String, String> fieldTypeMap: const <String, String>{}}) async {
     Uri uri;
     Compiler compiler;
@@ -75,38 +76,42 @@ class TypeEnvironment {
           memorySourceFiles: {'main.dart': source},
           diagnosticHandler: collector,
           options: stopAfterTypeInference
-              ? [Flags.disableTypeInference]
-              : [
+              ? ([Flags.disableTypeInference]..addAll(options))
+              : ([
                   Flags.disableTypeInference,
                   Flags.analyzeAll,
                   Flags.analyzeOnly
-                ],
+                ]..addAll(options)),
           beforeRun: (Compiler compiler) {
             compiler.stopAfterTypeInference = stopAfterTypeInference;
           });
     } else {
       if (compileMode == CompileMode.mock) {
         uri = new Uri(scheme: 'source');
-        mock.MockCompiler mockCompiler = mock.compilerFor(source, uri,
+        mock.MockCompiler mockCompiler = mock.mockCompilerFor(source, uri,
             analyzeAll: !stopAfterTypeInference,
             analyzeOnly: !stopAfterTypeInference);
         mockCompiler.diagnosticHandler =
             mock.createHandler(mockCompiler, source);
         collector = mockCompiler.diagnosticCollector;
         compiler = mockCompiler;
+        compiler.stopAfterTypeInference = stopAfterTypeInference;
+        await compiler.run(uri);
       } else {
         collector = new memory.DiagnosticCollector();
         uri = Uri.parse('memory:main.dart');
-        compiler = memory.compilerFor(
+        memory.CompilationResult result = await memory.runCompiler(
             entryPoint: uri,
             memorySourceFiles: {'main.dart': source},
             diagnosticHandler: collector,
             options: stopAfterTypeInference
-                ? []
-                : [Flags.analyzeAll, Flags.analyzeOnly]);
+                ? options
+                : ([Flags.analyzeAll, Flags.analyzeOnly]..addAll(options)),
+            beforeRun: (compiler) {
+              compiler.stopAfterTypeInference = stopAfterTypeInference;
+            });
+        compiler = result.compiler;
       }
-      compiler.stopAfterTypeInference = stopAfterTypeInference;
-      await compiler.run(uri);
     }
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;

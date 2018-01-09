@@ -310,6 +310,12 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
           good += LoadLocal(tuple_diff);
           good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
           good += LoadIndexed(/* index_scale = */ kWordSize);
+          if (strong) {
+            ASSERT(ArgumentsDescriptor::NamedPositionField::shift() == 0);
+            good +=
+                IntConstant(ArgumentsDescriptor::NamedPositionField::mask());
+            good += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
+          }
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(kWordSize * kParamEndSlotFromFp);

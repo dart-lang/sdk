@@ -18,7 +18,6 @@ dependencies:
 dev_dependencies:
   analyzer: '>=0.30.0 <0.32.0'
   args: '>=0.13.0 <2.0.0'
-  bazel_worker: ^0.1.4
   dart_style: '^1.0.7'
   json_rpc_2: ^2.0.4
   mockito: ^2.0.2

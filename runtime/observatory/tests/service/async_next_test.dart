@@ -28,7 +28,7 @@ testMain() {
   doAsync(true);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // foo()

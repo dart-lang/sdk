@@ -51,6 +51,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   static final _testDir = '${path.separator}test${path.separator}';
 
+  static final _testingDir = '${path.separator}testing${path.separator}';
+
   /**
    * The class containing the AST nodes being visited, or `null` if we are not in the scope of
    * a class.
@@ -448,24 +450,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         !_currentLibrary.context.analysisOptions.enableSuperMixins) {
       Element element = name.staticElement;
       if (element is ExecutableElement && element.isAbstract) {
-        if (!_enclosingClass.hasNoSuchMethod) {
-          ExecutableElement concrete = null;
-          if (element.kind == ElementKind.METHOD) {
-            concrete = _enclosingClass.lookUpInheritedConcreteMethod(
-                element.displayName, _currentLibrary);
-          } else if (element.kind == ElementKind.GETTER) {
-            concrete = _enclosingClass.lookUpInheritedConcreteGetter(
-                element.displayName, _currentLibrary);
-          } else if (element.kind == ElementKind.SETTER) {
-            concrete = _enclosingClass.lookUpInheritedConcreteSetter(
-                element.displayName, _currentLibrary);
-          }
-          if (concrete == null) {
-            _errorReporter.reportTypeErrorForNode(
-                HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                name,
-                [element.kind.displayName, name.name]);
-          }
+        ExecutableElement concrete = null;
+        if (element.kind == ElementKind.METHOD) {
+          concrete = _enclosingClass.lookUpInheritedConcreteMethod(
+              element.displayName, _currentLibrary);
+        } else if (element.kind == ElementKind.GETTER) {
+          concrete = _enclosingClass.lookUpInheritedConcreteGetter(
+              element.displayName, _currentLibrary);
+        } else if (element.kind == ElementKind.SETTER) {
+          concrete = _enclosingClass.lookUpInheritedConcreteSetter(
+              element.displayName, _currentLibrary);
+        }
+        if (concrete == null) {
+          _errorReporter.reportTypeErrorForNode(
+              HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+              name,
+              [element.kind.displayName, name.name]);
         }
       }
     }
@@ -830,6 +830,111 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  /// Produces a hint if [identifier] is accessed from an invalid location. In
+  /// particular:
+  ///
+  /// * if the given identifier is a protected closure, field or
+  ///   getter/setter, method closure or invocation accessed outside a subclass,
+  ///   or accessed outside the library wherein the identifier is declared, or
+  /// * if the given identifier is a closure, field, getter, setter, method
+  ///   closure or invocation which is annotated with `visibleForTesting`, and
+  ///   is accessed outside of the defining library, and the current library
+  ///   does not have the word 'test' in its name.
+  void _checkForInvalidAccess(SimpleIdentifier identifier) {
+    if (identifier.inDeclarationContext()) {
+      return;
+    }
+
+    bool isProtected(Element element) {
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          (element.isProtected || element.variable.isProtected)) {
+        return true;
+      }
+      if (element is MethodElement &&
+          element.enclosingElement is ClassElement &&
+          element.isProtected) {
+        return true;
+      }
+      return false;
+    }
+
+    bool isVisibleForTesting(Element element) {
+      if (element == null) {
+        return false;
+      }
+      if (element.isVisibleForTesting) {
+        return true;
+      }
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          element.variable.isVisibleForTesting) {
+        return true;
+      }
+      return false;
+    }
+
+    bool inCommentReference(SimpleIdentifier identifier) =>
+        identifier.getAncestor((AstNode node) => node is CommentReference) !=
+        null;
+
+    bool inCurrentLibrary(Element element) =>
+        element.library == _currentLibrary;
+
+    bool inExportDirective(SimpleIdentifier identifier) =>
+        identifier.parent is Combinator &&
+        identifier.parent.parent is ExportDirective;
+
+    bool inTestDirectory(LibraryElement library) =>
+        library.definingCompilationUnit.source.fullName.contains(_testDir) ||
+        library.definingCompilationUnit.source.fullName.contains(_testingDir);
+
+    Element element = identifier.bestElement;
+    if (!isProtected(element) && !isVisibleForTesting(element)) {
+      return;
+    }
+
+    if (isProtected(element)) {
+      if (inCurrentLibrary(element) || inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked
+        // `visibleForTesting`, the "visibilities" are unioned.
+        return;
+      }
+      ClassElement definingClass = element.enclosingElement;
+      ClassDeclaration accessingClass =
+          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
+      if (_hasTypeOrSuperType(accessingClass?.element, definingClass.type)) {
+        return;
+      }
+    }
+    if (isVisibleForTesting(element)) {
+      if (inCurrentLibrary(element) ||
+          inTestDirectory(_currentLibrary) ||
+          inExportDirective(identifier) ||
+          inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked
+        // `protected`, the "visibilities" are unioned.
+        return;
+      }
+    }
+
+    // At this point, [identifier] was not cleared as protected access, nor
+    // cleared as access for testing. Report the appropriate violation(s).
+    Element definingClass = element.enclosingElement;
+    if (isProtected(element)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
+    }
+    if (isVisibleForTesting(element)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
+    }
+  }
+
   /**
    * This verifies that the passed left hand side and right hand side represent a valid assignment.
    *
@@ -903,91 +1008,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
     _errorReporter.reportErrorForNode(HintCode.INVALID_FACTORY_METHOD_IMPL,
         decl.name, [decl.name.toString()]);
-  }
-
-  /// Produces a hint if [identifier] is accessed from an invalid location. In
-  /// particular:
-  ///
-  /// * if the given identifier is a protected closure, field or
-  ///   getter/setter, method closure or invocation accessed outside a subclass,
-  ///   or accessed outside the library wherein the identifier is declared, or
-  /// * if the given identifier is a closure, field, getter, setter, method
-  ///   closure or invocation which is annotated with `visibleForTesting`, and
-  ///   is accessed outside of the defining library, and the current library
-  ///   does not have the word 'test' in its name.
-  void _checkForInvalidAccess(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext()) {
-      return;
-    }
-
-    bool isProtected(Element element) {
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is ClassElement &&
-          (element.isProtected || element.variable.isProtected)) {
-        return true;
-      }
-      if (element is MethodElement &&
-          element.enclosingElement is ClassElement &&
-          element.isProtected) {
-        return true;
-      }
-      return false;
-    }
-
-    bool isVisibleForTesting(Element element) {
-      if (element == null) {
-        return false;
-      }
-      if (element.isVisibleForTesting) {
-        return true;
-      }
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is ClassElement &&
-          element.variable.isVisibleForTesting) {
-        return true;
-      }
-      return false;
-    }
-
-    bool inCommentReference(SimpleIdentifier identifier) =>
-        identifier.getAncestor((AstNode node) => node is CommentReference) !=
-        null;
-
-    bool inCurrentLibrary(Element element) =>
-        element.library == _currentLibrary;
-
-    bool inTestDirectory(LibraryElement library) =>
-        library.definingCompilationUnit.source.fullName.contains(_testDir);
-
-    Element element = identifier.bestElement;
-    if (isProtected(element)) {
-      if (inCurrentLibrary(element) || inCommentReference(identifier)) {
-        // The access is valid; even if [element] is also marked
-        // `visibleForTesting`, the "visibilities" are unioned.
-        return;
-      }
-      ClassElement definingClass = element.enclosingElement;
-      ClassDeclaration accessingClass =
-          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
-      if (_hasTypeOrSuperType(accessingClass?.element, definingClass.type)) {
-        return;
-      } else {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
-      }
-    }
-    if (isVisibleForTesting(element) &&
-        !inCurrentLibrary(element) &&
-        !inTestDirectory(_currentLibrary) &&
-        !inCommentReference(identifier)) {
-      Element definingClass = element.enclosingElement;
-      _errorReporter.reportErrorForNode(
-          HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
-          identifier,
-          [identifier.name.toString(), definingClass.name]);
-    }
   }
 
   /**
@@ -4190,7 +4210,7 @@ class InferenceContext {
    * already has a context type. This recorded type will be the least upper
    * bound of all types added with [addReturnOrYieldType].
    */
-  void popReturnContext(BlockFunctionBody node) {
+  void popReturnContext(FunctionBody node) {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
@@ -4206,7 +4226,7 @@ class InferenceContext {
   /**
    * Push a block function body's return type onto the return stack.
    */
-  void pushReturnContext(BlockFunctionBody node) {
+  void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
     _inferredReturn.add(_typeProvider.nullType);
   }
@@ -4771,6 +4791,12 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionBody _currentFunctionBody;
 
   /**
+   * The type of the expression of the immediately enclosing [SwitchStatement],
+   * or `null` if not in a [SwitchStatement].
+   */
+  DartType _enclosingSwitchStatementExpressionType;
+
+  /**
    * Are we running in strong mode or not.
    */
   bool strongMode;
@@ -5219,6 +5245,8 @@ class ResolverVisitor extends ScopedVisitor {
     Expression leftOperand = node.leftOperand;
     Expression rightOperand = node.rightOperand;
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      InferenceContext.setType(leftOperand, typeProvider.boolType);
+      InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -5242,6 +5270,8 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     } else if (operatorType == TokenType.BAR_BAR) {
+      InferenceContext.setType(leftOperand, typeProvider.boolType);
+      InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -5539,6 +5569,7 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitDoStatement(DoStatement node) {
     _overrideManager.enterScope();
     try {
+      InferenceContext.setType(node.condition, typeProvider.boolType);
       super.visitDoStatement(node);
     } finally {
       _overrideManager.exitScope();
@@ -5592,9 +5623,19 @@ class ResolverVisitor extends ScopedVisitor {
     _overrideManager.enterScope();
     try {
       InferenceContext.setTypeFromNode(node.expression, node);
+      inferenceContext.pushReturnContext(node);
       super.visitExpressionFunctionBody(node);
+
+      DartType type = node.expression.staticType;
+      if (_enclosingFunction.isAsynchronous) {
+        type = type.flattenFutures(typeSystem);
+      }
+      if (type != null) {
+        inferenceContext.addReturnOrYieldType(type);
+      }
     } finally {
       _overrideManager.exitScope();
+      inferenceContext.popReturnContext(node);
     }
     return null;
   }
@@ -5626,25 +5667,40 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForEachStatementInScope(ForEachStatement node) {
+    Expression iterable = node.iterable;
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    SimpleIdentifier identifier = node.identifier;
+
+    identifier?.accept(this);
+
+    DartType valueType;
+    if (loopVariable != null) {
+      TypeAnnotation typeAnnotation = loopVariable.type;
+      valueType = typeAnnotation?.type ?? typeProvider.dynamicType;
+    }
+    if (identifier != null) {
+      Element element = identifier.staticElement;
+      if (element is VariableElement) {
+        valueType = element.type;
+      } else if (element is PropertyAccessorElement) {
+        if (element.parameters.isNotEmpty) {
+          valueType = element.parameters[0].type;
+        }
+      }
+    }
+    if (valueType != null) {
+      InterfaceType targetType = (node.awaitKeyword == null)
+          ? typeProvider.iterableType
+          : typeProvider.streamType;
+      InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+    }
+
     //
     // We visit the iterator before the loop variable because the loop variable
     // cannot be in scope while visiting the iterator.
     //
-    Expression iterable = node.iterable;
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    SimpleIdentifier identifier = node.identifier;
-    if (loopVariable?.type?.type != null) {
-      InterfaceType targetType = (node.awaitKeyword == null)
-          ? typeProvider.iterableType
-          : typeProvider.streamType;
-      InferenceContext.setType(
-          iterable,
-          targetType
-              .instantiate([resolutionMap.typeForTypeName(loopVariable.type)]));
-    }
     iterable?.accept(this);
     loopVariable?.accept(this);
-    identifier?.accept(this);
     Statement body = node.body;
     if (body != null) {
       _overrideManager.enterScope();
@@ -5696,6 +5752,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
+    InferenceContext.setType(node.condition, typeProvider.boolType);
     node.condition?.accept(this);
     _overrideManager.enterScope();
     try {
@@ -5812,6 +5869,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
     Map<VariableElement, DartType> thenOverrides =
         const <VariableElement, DartType>{};
@@ -6076,6 +6134,8 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitSwitchCase(SwitchCase node) {
     _overrideManager.enterScope();
     try {
+      InferenceContext.setType(
+          node.expression, _enclosingSwitchStatementExpressionType);
       super.visitSwitchCase(node);
     } finally {
       _overrideManager.exitScope();
@@ -6090,6 +6150,19 @@ class ResolverVisitor extends ScopedVisitor {
       super.visitSwitchDefault(node);
     } finally {
       _overrideManager.exitScope();
+    }
+    return null;
+  }
+
+  @override
+  Object visitSwitchStatementInScope(SwitchStatement node) {
+    var previousExpressionType = _enclosingSwitchStatementExpressionType;
+    try {
+      node.expression?.accept(this);
+      _enclosingSwitchStatementExpressionType = node.expression.staticType;
+      node.members.accept(this);
+    } finally {
+      _enclosingSwitchStatementExpressionType = previousExpressionType;
     }
     return null;
   }
@@ -6149,6 +6222,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
       Expression condition = node.condition;
+      InferenceContext.setType(condition, typeProvider.boolType);
       condition?.accept(this);
       Statement body = node.body;
       if (body != null) {
@@ -7545,12 +7619,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
               new LabelScope(labelScope, labelName.name, member, labelElement);
         }
       }
-      super.visitSwitchStatement(node);
+      visitSwitchStatementInScope(node);
     } finally {
       labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
+  }
+
+  void visitSwitchStatementInScope(SwitchStatement node) {
+    super.visitSwitchStatement(node);
   }
 
   @override

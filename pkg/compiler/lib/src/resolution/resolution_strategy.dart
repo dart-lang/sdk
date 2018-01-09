@@ -58,6 +58,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   final Compiler _compiler;
   final _CompilerElementEnvironment _elementEnvironment;
   final CommonElements commonElements;
+  RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   AnnotationProcessor _annotationProcessor;
 
@@ -128,9 +129,13 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       new MirrorsResolutionAnalysisImpl(backend, _compiler.resolution);
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return new ResolutionRuntimeTypesNeedBuilderImpl(
-        elementEnvironment, dartTypes);
+    return _runtimeTypesNeedBuilder ??=
+        new ResolutionRuntimeTypesNeedBuilderImpl(
+            elementEnvironment, dartTypes);
   }
+
+  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
+      _runtimeTypesNeedBuilder;
 
   ResolutionWorldBuilder createResolutionWorldBuilder(
       NativeBasicData nativeBasicData,
@@ -349,7 +354,7 @@ class ComputeSpannableMixin {
           }
         }
         return true;
-      }, failedAt(currentElement, message));
+      }(), failedAt(currentElement, message));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
@@ -533,13 +538,20 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   void forEachLocalClassMember(
       covariant ClassElement cls, void f(MemberElement member)) {
     cls.ensureResolved(_resolution);
-    cls.forEachLocalMember((_member) {
+
+    void handleMember(_member) {
       MemberElement member = _member;
       if (member.isSynthesized) return;
       if (member.isMalformed) return;
       if (member.isConstructor) return;
+      if (!member.isDeclaration) return;
       f(member);
-    });
+    }
+
+    cls.forEachLocalMember(handleMember);
+    if (cls.isPatched) {
+      cls.implementation.forEachLocalMember(handleMember);
+    }
   }
 
   @override
@@ -720,6 +732,12 @@ class _CompilerElementEnvironment extends ElementEnvironment {
       }
     }
     return type;
+  }
+
+  @override
+  List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
+    throw new UnsupportedError(
+        "_CompilerElementEnvironment.getFunctionTypeVariables");
   }
 
   @override

@@ -6,7 +6,8 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
+import 'package:kernel/kernel.dart'
+    show Library, Program, Source, loadProgramFromBytes;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show DeltaProgram, IncrementalKernelGenerator;
@@ -71,13 +72,13 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
   KernelTarget userCode;
 
-  IncrementalCompiler(this.context)
-      : ticker = new Ticker(isVerbose: context.options.verbose);
+  IncrementalCompiler(this.context) : ticker = context.options.ticker;
 
   @override
   Future<FastaDelta> computeDelta({Uri entryPoint}) async {
+    ticker.reset();
+    entryPoint ??= context.options.inputs.single;
     return context.runInContext<Future<FastaDelta>>((CompilerContext c) async {
-      ticker.reset();
       if (platform == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();
         ticker.logMs("Read packages file");
@@ -86,8 +87,10 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
         List<int> bytes = await c.options.loadSdkSummaryBytes();
         if (bytes != null) {
           ticker.logMs("Read ${c.options.sdkSummary}");
-          platform.loader.appendLibraries(loadProgramFromBytes(bytes),
-              byteCount: bytes.length);
+          Program program = loadProgramFromBytes(bytes);
+          ticker.logMs("Deserialized ${c.options.sdkSummary}");
+          platform.loader.appendLibraries(program, byteCount: bytes.length);
+          ticker.logMs("Appended libraries");
         }
         await platform.buildOutlines();
       }
@@ -97,21 +100,37 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
       List<LibraryBuilder> reusedLibraries =
           computeReusedLibraries(invalidatedUris);
-      ticker.logMs("Decided to reuse ${reusedLibraries.length} libraries");
+      if (userCode != null) {
+        ticker.logMs("Decided to reuse ${reusedLibraries.length}"
+            " of ${userCode.loader.builders.length} libraries");
+      }
 
       userCode = new KernelTarget(
           c.fileSystem, false, platform, platform.uriTranslator,
           uriToSource: c.uriToSource);
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
+        if (library.uri.scheme == "dart" && library.uri.path == "core") {
+          userCode.loader.coreLibrary = library;
+        }
       }
 
       userCode.read(entryPoint);
 
       await userCode.buildOutlines();
 
-      return new FastaDelta(
-          await userCode.buildProgram(verify: c.options.verify));
+      // This is not the full program. It is the program including all
+      // libraries loaded from .dill files.
+      Program programWithDill =
+          await userCode.buildProgram(verify: c.options.verify);
+
+      // This is the incremental program.
+      Program program = new Program(
+          nameRoot: programWithDill.root,
+          libraries: new List<Library>.from(userCode.loader.libraries),
+          uriToSource: new Map<Uri, Source>.from(userCode.uriToSource));
+
+      return new FastaDelta(program);
     });
   }
 

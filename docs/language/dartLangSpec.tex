@@ -28,11 +28,14 @@
 %   namedArguments on Invocation.
 % - Remove the, now unnecessary, handling of invalid overrides of noSuchMethod.
 % - Add >>> as overridable operator.
-% - If initializing formal has type annotation, require subtype of field.
+% - If initializing formal has type annotation, require subtype of field type.
 % - Constant `==` operations now also allowed if just one operand is null.
 % - Make flatten not be recursive.
 % - Disallow implementing two instantiations of the same generic interface.
 % - Update "FutureOr" specification for Dart 2.0.
+% - Require that a top-level "main" declaration is a valid script-entry
+%   function declaration.
+% - State that the return type of a setter or []= is void when not specified.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1019,7 +1022,9 @@ The static checker would of course flag such situations, but the consequence wou
 \LMLabel{typeOfAFunction}
 
 \LMHash{}
-If a function does not declare a return type explicitly, its return type is \DYNAMIC{} (\ref{typeDynamic}), unless it is a constructor function, in which case its return type is the immediately enclosing class.
+If a function does not declare a return type explicitly, its return type is \DYNAMIC{} (\ref{typeDynamic}),
+unless it is a constructor function, in which case its return type is the immediately enclosing class,
+or it is a setter or operator \code{[]=}, in which case its return type is \VOID{}.
 
 \LMHash{}
 Let $F$ be a function with required formal parameters $T_1$ $p_1 \ldots, T_n$ $p_n$, return type $T_0$ and no optional parameters.
@@ -1296,6 +1301,10 @@ It is a compile-time error to declare an optional parameter in an operator.
 \LMHash{}
 It is a static warning if the return type of the user-declared operator \code{[]=} is explicitly declared and not \VOID{}.
 
+\commentary{
+If no return type is specified for a user-declared operator \code{[]=}, its return type is \VOID{} (\ref{typeOfAFunction}).
+}
+
 % add rationale: return in []= methods will have no effect, a the expression always returns its second argument (the RHS of the assignment, for consistency with assignment in general). So it's best to enforce this by declaring the method to be void, even though the expression that uses it returns an object with the type of the RHS, as described in \ref{assignment}.
 
 
@@ -1364,8 +1373,9 @@ Setters are functions (\ref{functions}) that are used to set the values of objec
   .
 \end{grammar}
 
-\LMHash{}
-If no return type is specified, the return type of the setter is \DYNAMIC{}.
+\commentary{
+If no return type is specified, the return type of the setter is \VOID{} (\ref{typeOfAFunction}).
+}
 
 \LMHash{}
 A setter definition that is prefixed with the \STATIC{} modifier defines a static setter.
@@ -3655,7 +3665,7 @@ The static type of a function literal of the form
 $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k])$ \ASYNC{} $=> e$
 is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow \code{Future<$flatten(T_0)$>}$, where $T_0$ is the static type of $e$and $flatten(T)$ is defined as follows:
 
-If $T = FuturOr<S>$ then $flatten(T) = S$.
+If $T = FutureOr<S>$ then $flatten(T) = S$.
 
 Otherwise if $T <: Future$ then let $S$ be a type such that $T << Future<S>$ and for all $R$, if $T << Future<R>$ then $S << R$.
 
@@ -7868,10 +7878,15 @@ A Dart program will typically be executed by executing a script.
 }
 
 \LMHash{}
-If a non-script library is provided where a script is expected,
-it precludes execution.
-As such, it should be reported as a compile-time error,
-even if that library compiles successfully as a non-script library.
+It is a compile-time error if a library's export scope contains a declaration
+named \code{main}, and the library is not a script.
+\commentary{This restriction ensures that all top-level \code{main} declarations
+introduce a script main-function, so there cannot be a top-level getter or field
+named \code{main}, nor can it be a function that requires more than two
+arguments. The restriction allows tools to fail early on invalid \code{main}
+methods, without needing to know whether a library will be used as the entry
+point of a Dart program. It is possible that this restriction will be removed
+in the future.}
 
 
 \subsection{URIs}

@@ -33,7 +33,7 @@ class Server {
 
     var nonce = "12345678"; // No need for random nonce in test.
 
-    var completer = new Completer();
+    var completer = new Completer<Server>();
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {

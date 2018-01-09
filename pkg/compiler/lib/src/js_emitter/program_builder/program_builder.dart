@@ -698,9 +698,7 @@ class ProgramBuilder {
         _rtiSubstitutions,
         _jsInteropAnalysis);
 
-    void visitMember(ClassEntity declarer, MemberEntity member) {
-      if (cls != declarer) return;
-
+    void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {
         // TODO(herhut): Remove once _buildMethod can no longer return null.
         Method method = _buildMethod(member);
@@ -747,11 +745,10 @@ class ProgramBuilder {
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
-      _elementEnvironment.forEachClassMember(cls, visitMember);
-      _elementEnvironment.forEachConstructorBody(
-          cls,
-          (ConstructorBodyEntity constructorBody) =>
-              visitMember(cls, constructorBody));
+      List<MemberEntity> members = <MemberEntity>[];
+      _elementEnvironment.forEachLocalClassMember(cls, members.add);
+      _elementEnvironment.forEachConstructorBody(cls, members.add);
+      _sorter.sortMembers(members).forEach(visitMember);
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
     List<Field> instanceFields = onlyForRti

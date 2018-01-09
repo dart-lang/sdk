@@ -867,6 +867,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     }
 
     ClassSet classSet = getClassSet(base);
+    assert(classSet != null, failedAt(base, "No class set for $base."));
     ClassHierarchyNode node = classSet.node;
     if (query == ClassQuery.EXACT) {
       return node.isExplicitlyInstantiated && !hasConcreteMatch(base, selector);

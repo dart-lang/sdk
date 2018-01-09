@@ -100,6 +100,22 @@ main() {
     checkDSummary(summaryD);
   });
 
+  test('dependencies not included in truncated summaries', () async {
+    // Note: by default this test is loading the SDK from summaries.
+    var summaryA = await summarize(['a.dart'], allSources, truncate: true);
+    var program = loadProgramFromBytes(summaryA);
+    expect(program.libraries.length, 1);
+    expect(program.libraries.single.importUri.path.endsWith('a.dart'), isTrue);
+
+    var sourcesWithA = new Map.from(allSources);
+    sourcesWithA['a.dill'] = summaryA;
+    var summaryB = await summarize(['b.dart'], sourcesWithA,
+        inputSummaries: ['a.dill'], truncate: true);
+    program = loadProgramFromBytes(summaryB);
+    expect(program.libraries.length, 1);
+    expect(program.libraries.single.importUri.path.endsWith('b.dart'), isTrue);
+  });
+
   test('summarization by default is hermetic', () async {
     var errors = [];
     var options = new CompilerOptions()..onError = (e) => errors.add(e);

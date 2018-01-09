@@ -1114,7 +1114,6 @@ class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
       }
     }
     fail('Annotation not found');
-    return null;
   }
 
   test_annotation_with_args() {
@@ -1269,7 +1268,6 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
       }
     }
     fail('Annotation not found');
-    return null;
   }
 
   test_annotation_non_const_constructor() {
@@ -4098,7 +4096,7 @@ bar(); //ignore: error_code, error_code_2
 
     IgnoreInfo info = outputs[IGNORE_INFO];
     expect(info.ignores.keys, hasLength(3));
-    expect(info.ignores[1].first, 'error_code');
+    expect(info.ignores[2].first, 'error_code');
     expect(info.ignores[4].first, 'error_code_2');
     expect(info.ignores[5], unorderedEquals(['error_code', 'error_code_2']));
     expect(info.ignoreForFiles,

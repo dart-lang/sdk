@@ -296,18 +296,28 @@ abstract class ResolutionWorldBuilderBase
   Map<ClassEntity, _ClassUsage> get classUsageForTesting => _processedClasses;
 
   /// Map of registered usage of static members of live classes.
-  final Map<Entity, _StaticMemberUsage> _staticMemberUsage =
-      <Entity, _StaticMemberUsage>{};
-
-  Map<Entity, _StaticMemberUsage> get staticMemberUsageForTesting =>
-      _staticMemberUsage;
-
-  /// Map of registered usage of instance members of live classes.
-  final Map<MemberEntity, _MemberUsage> _instanceMemberUsage =
+  final Map<MemberEntity, _MemberUsage> _memberUsage =
       <MemberEntity, _MemberUsage>{};
 
-  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting =>
-      _instanceMemberUsage;
+  Map<MemberEntity, _MemberUsage> get staticMemberUsageForTesting {
+    Map<MemberEntity, _MemberUsage> map = <MemberEntity, _MemberUsage>{};
+    _memberUsage.forEach((MemberEntity member, _MemberUsage usage) {
+      if (!member.isInstanceMember) {
+        map[member] = usage;
+      }
+    });
+    return map;
+  }
+
+  Map<MemberEntity, _MemberUsage> get instanceMemberUsageForTesting {
+    Map<MemberEntity, _MemberUsage> map = <MemberEntity, _MemberUsage>{};
+    _memberUsage.forEach((MemberEntity member, _MemberUsage usage) {
+      if (member.isInstanceMember) {
+        map[member] = usage;
+      }
+    });
+    return map;
+  }
 
   /// Map containing instance members of live classes that are not yet live
   /// themselves.
@@ -616,14 +626,12 @@ abstract class ResolutionWorldBuilderBase
     }
 
     MemberEntity element = staticUse.element;
-    _StaticMemberUsage usage = _staticMemberUsage.putIfAbsent(element, () {
-      if ((element.isStatic || element.isTopLevel) && element.isFunction) {
-        return new _StaticFunctionUsage(element);
-      } else {
-        return new _GeneralStaticMemberUsage(element);
-      }
-    });
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+    _MemberUsage usage = _memberUsage.putIfAbsent(element, () {
+      _MemberUsage usage = new _MemberUsage(element);
+      useSet.addAll(usage.appliedUse);
+      return usage;
+    });
 
     if ((element.isStatic || element.isTopLevel) && element.isField) {
       allReferencedStaticFields.add(staticUse.element);
@@ -642,22 +650,32 @@ abstract class ResolutionWorldBuilderBase
         // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
-        useSet.addAll(usage.tearOff());
+        useSet.addAll(usage.read());
         methodsNeedingSuperGetter.add(staticUse.element);
         break;
       case StaticUseKind.SUPER_FIELD_SET:
         fieldSetters.add(staticUse.element);
-        useSet.addAll(usage.normalUse());
+        useSet.addAll(usage.write());
         break;
+      case StaticUseKind.GET:
       case StaticUseKind.STATIC_TEAR_OFF:
-        useSet.addAll(usage.tearOff());
+        useSet.addAll(usage.read());
         break;
-      case StaticUseKind.GENERAL:
+      case StaticUseKind.SET:
+        useSet.addAll(usage.write());
+        break;
       case StaticUseKind.DIRECT_USE:
+      case StaticUseKind.REFLECT:
+        useSet.addAll(usage.fullyUse());
+        break;
+      case StaticUseKind.INIT:
+        useSet.addAll(usage.init());
+        break;
+      case StaticUseKind.INVOKE:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
-        useSet.addAll(usage.normalUse());
+        useSet.addAll(usage.invoke());
         break;
       case StaticUseKind.DIRECT_INVOKE:
         failedAt(element, 'Direct static use is not supported for resolution.');
@@ -742,7 +760,7 @@ abstract class ResolutionWorldBuilderBase
     // its metadata parsed and analyzed.
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
-    _instanceMemberUsage.putIfAbsent(member, () {
+    _memberUsage.putIfAbsent(member, () {
       bool isNative = _nativeBasicData.isNativeClass(cls);
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
@@ -809,12 +827,7 @@ abstract class ResolutionWorldBuilderBase
 
   @override
   bool isMemberUsed(MemberEntity member) {
-    if (member.isInstanceMember) {
-      _MemberUsage usage = _instanceMemberUsage[member];
-      if (usage != null && usage.hasUse) return true;
-    }
-    _StaticMemberUsage usage = _staticMemberUsage[member];
-    return usage != null && usage.hasUse;
+    return _memberUsage[member]?.hasUse ?? false;
   }
 
   Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {

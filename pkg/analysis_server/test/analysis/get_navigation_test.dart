@@ -55,7 +55,7 @@ main() {
   }
 
   test_fileOutsideOfRoot() async {
-    testFile = '/outside.dart';
+    testFile = resourceProvider.convertPath('/outside.dart');
     addTestFile('''
 main() {
   var test = 0;
@@ -198,7 +198,7 @@ main() {
     server.handleRequest(request);
     // remove context, causes sending an "invalid file" error
     {
-      Folder projectFolder = resourceProvider.getResource(projectPath);
+      Folder projectFolder = getFolder(projectPath);
       server.contextManager.callbacks.removeContext(projectFolder, <String>[]);
     }
     // wait for an error response

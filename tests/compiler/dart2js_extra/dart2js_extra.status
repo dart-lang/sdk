@@ -6,13 +6,20 @@
 recursive_import_test: Skip # Issue 27441
 
 [ $compiler == dart2js ]
+21579_test: Crash # Issue 31762
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
+constant_javascript_semantics_test/01: Crash # Issue 31762
+constant_javascript_semantics_test/02: Crash # Issue 31762
+constant_javascript_semantics_test/03: Crash # Issue 31762
+constant_javascript_semantics_test/04: Crash # Issue 31762
+constant_javascript_semantics_test/none: Crash # Issue 31762
 dummy_compiler_test: Slow, Pass
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
 no_such_method_test: Fail # Wrong Invocation.memberName.
 recursive_import_test: Slow, Pass
+round_constant_folding_test: Crash # Issue 31762
 statements_test: Fail
 typed_locals_test: Fail
 
@@ -123,6 +130,17 @@ deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 js_interop_test: RuntimeError # Issue 31082
+
+[ $compiler == dart2js && $dart2js_with_kernel ]
+21579_test: CompileTimeError # Large integer literal
+constant_javascript_semantics_test/01: Pass # Issue 31762
+constant_javascript_semantics_test/02: Pass # Issue 31762
+constant_javascript_semantics_test/03: CompileTimeError # Large integer literal
+constant_javascript_semantics_test/04: CompileTimeError # Large integer literal
+constant_javascript_semantics_test/none: CompileTimeError # Large integer literal
+dummy_compiler_test: Crash # Issue 31715
+recursive_import_test: Crash # Issue 31715
+round_constant_folding_test: CompileTimeError # Large integer literal
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 23056_test: Pass

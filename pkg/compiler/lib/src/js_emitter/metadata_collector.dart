@@ -372,8 +372,9 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   _MetadataEntry _addGlobalMetadata(jsAst.Node node, OutputUnit outputUnit) {
     String nameToKey(jsAst.Name name) => "${name.key}";
-    String printed =
-        jsAst.prettyPrint(node, _options, renamerForNames: nameToKey);
+    String printed = jsAst.prettyPrint(node,
+        enableMinification: _options.enableMinification,
+        renamerForNames: nameToKey);
     _metadataMap[outputUnit] ??= new Map<String, _BoundMetadataEntry>();
     return _metadataMap[outputUnit].putIfAbsent(printed, () {
       return new _BoundMetadataEntry(node);

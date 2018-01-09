@@ -23,7 +23,7 @@ import 'fasta_codes.dart' show LocatedMessage, Message;
 
 import 'messages.dart' show getLocation, getSourceLine, isVerbose;
 
-import 'problems.dart' show unhandled;
+import 'problems.dart' show unexpected;
 
 import 'severity.dart' show Severity;
 
@@ -37,7 +37,8 @@ const bool hideWarnings = false;
 ///
 /// This is shared implementation used by methods below, and isn't intended to
 /// be called directly.
-String formatInternal(Message message, Severity severity, Uri uri, int offset) {
+String formatInternal(Message message, Severity severity, Uri uri, int offset,
+    {Location location}) {
   try {
     String text =
         "${severityName(severity, capitalized: true)}: ${message.message}";
@@ -58,12 +59,15 @@ String formatInternal(Message message, Severity severity, Uri uri, int offset) {
         case Severity.warning:
           text = magenta(text);
           break;
+
+        default:
+          return unexpected("$severity", "formatInternal", -1, null);
       }
     }
 
     if (uri != null) {
       String path = relativizeUri(uri);
-      Location location = offset == -1 ? null : getLocation(uri, offset);
+      location ??= (offset == -1 ? null : getLocation(uri, offset));
       String sourceLine = getSourceLine(location);
       if (sourceLine == null) {
         sourceLine = "";
@@ -101,8 +105,10 @@ bool isHidden(Severity severity) {
 
     case Severity.warning:
       return hideWarnings;
+
+    default:
+      return unexpected("$severity", "isHidden", -1, null);
   }
-  return unhandled("$severity", "isHidden", -1, null);
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
@@ -120,8 +126,10 @@ bool shouldThrowOn(Severity severity) {
 
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
+
+    default:
+      return unexpected("$severity", "shouldThrowOn", -1, null);
   }
-  return unhandled("$severity", "shouldThrowOn", -1, null);
 }
 
 /// Convert [severity] to a name that can be used to prefix a message.
@@ -138,8 +146,10 @@ String severityName(Severity severity, {bool capitalized: false}) {
 
     case Severity.warning:
       return capitalized ? "Warning" : "warning";
+
+    default:
+      return unexpected("$severity", "severityName", -1, null);
   }
-  return unhandled("$severity", "severityName", -1, null);
 }
 
 /// Print a formatted message and throw when errors are treated as fatal.
@@ -191,9 +201,10 @@ void reportWithoutLocation(Message message, Severity severity) {
 ///
 /// This method isn't intended to be called directly. Use
 /// [CompilerContext.format] instead.
-String format(LocatedMessage message, Severity severity) {
+String format(LocatedMessage message, Severity severity, {Location location}) {
   return formatInternal(
-      message.messageObject, severity, message.uri, message.charOffset);
+      message.messageObject, severity, message.uri, message.charOffset,
+      location: location);
 }
 
 /// Formats [message] as described in [formatInternal].

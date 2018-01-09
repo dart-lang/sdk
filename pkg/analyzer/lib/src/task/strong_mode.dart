@@ -363,7 +363,7 @@ class InstanceMemberInferrer {
     //
     // Infer the return type.
     //
-    if (element.hasImplicitReturnType) {
+    if (element.hasImplicitReturnType && element.displayName != '[]=') {
       (element as ExecutableElementImpl).returnType =
           _computeReturnType(overriddenTypes.map((t) => t.returnType));
       if (element is PropertyAccessorElement) {

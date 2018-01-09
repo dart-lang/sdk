@@ -45,6 +45,7 @@ html:third_party/pkg/html/lib
 http:third_party/pkg/http/lib
 http_multi_server:third_party/pkg/http_multi_server/lib
 http_parser:third_party/pkg/http_parser/lib
+http_retry:third_party/pkg/http_retry/lib
 http_throttle:third_party/pkg/http_throttle/lib
 intl:third_party/pkg/intl/lib
 isolate:third_party/pkg/isolate/lib
@@ -76,7 +77,6 @@ pub_semver:third_party/pkg/pub_semver/lib
 quiver:third_party/pkg/quiver/lib
 quiver_hashcode:third_party/pkg/quiver_hashcode/lib
 resource:third_party/pkg/resource/lib
-scheduled_test:third_party/pkg/scheduled_test/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
 shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib
@@ -94,8 +94,10 @@ telemetry:pkg/telemetry/lib
 term_glyph:third_party/pkg/term_glyph/lib
 test:third_party/pkg/test/lib
 test_dart:tools/testing/dart
-testing:pkg/testing/lib
+test_descriptor:third_party/pkg/test_descriptor/lib
+test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
+testing:pkg/testing/lib
 tuple:third_party/pkg/tuple/lib
 typed_data:third_party/pkg/typed_data/lib
 typed_mock:pkg/typed_mock/lib

@@ -18,8 +18,10 @@ class FastaErrorReporter {
   /// [errorReporter].
   FastaErrorReporter(this.errorReporter);
 
-  void reportByCode(String analyzerCode, int offset, int length,
-      Map<String, dynamic> arguments) {
+  void reportByCode(
+      String analyzerCode, int offset, int length, Message message) {
+    Map<String, dynamic> arguments = message.arguments;
+
     String stringOrTokenLexeme() {
       var text = arguments['string'];
       if (text == null) {
@@ -292,9 +294,13 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
-      case "INVALID_MODIFIER_ON_SETTER":
+      case "INVALID_METHOD_OVERRIDE":
         errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
+            StrongModeCode.INVALID_METHOD_OVERRIDE, offset, length);
+        return;
+      case "INVALID_MODIFIER_ON_SETTER":
+        _reportByCode(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, message,
+            offset, length);
         return;
       case "INVALID_OPERATOR":
         String text = stringOrTokenLexeme();
@@ -302,8 +308,8 @@ class FastaErrorReporter {
             ParserErrorCode.INVALID_OPERATOR, offset, length, [text]);
         return;
       case "INVALID_OPERATOR_FOR_SUPER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);
+        _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
+            offset, length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
@@ -431,6 +437,14 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_OPERATOR, offset, length);
         return;
+      case "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, offset, length);
+        return;
+      case "SWITCH_HAS_MULTIPLE_DEFAULT_CASES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, offset, length);
+        return;
       case "TOP_LEVEL_OPERATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
@@ -507,26 +521,14 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
-    // TODO(mfairhurst) Disable this once the codes are already analyzer
-    // format (#31644)
-    final analyzerCode =
-        message.code.runes.fold<List<String>>(<String>[], (words, charcode) {
-      final char = new String.fromCharCode(charcode);
-      if (char.toUpperCase() == char) {
-        words.add(char);
-      } else {
-        words[words.length - 1] = words.last + char.toUpperCase();
-      }
-      return words;
-    }).join('_');
-
-    final code = errorCodeByUniqueName(analyzerCode);
-    if (code != null) {
+    String errorCodeStr = message.analyzerCode;
+    ErrorCode errorCode = _getErrorCode(errorCodeStr);
+    if (errorCode != null) {
       errorReporter.reportError(new AnalysisError.forValues(
           errorReporter.source,
           message.span.start.offset,
           message.span.length,
-          code,
+          errorCode,
           message.message,
           message.tip));
     } else {
@@ -539,6 +541,37 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
 
-    reportByCode(code.analyzerCode, offset, length, message.arguments);
+    reportByCode(code.analyzerCode, offset, length, message);
+  }
+
+  void _reportByCode(
+      ErrorCode errorCode, Message message, int offset, int length) {
+    if (errorReporter != null) {
+      errorReporter.reportError(new AnalysisError.forValues(
+          errorReporter.source,
+          offset,
+          length,
+          errorCode,
+          message.message,
+          null));
+    }
+  }
+
+  /// Return the [ErrorCode] for the given [shortName], or `null` if not found.
+  static ErrorCode _getErrorCode(String shortName) {
+    const prefixes = const {
+      CompileTimeErrorCode: 'CompileTimeErrorCode',
+      ParserErrorCode: 'ParserErrorCode',
+      StaticTypeWarningCode: 'StaticTypeWarningCode',
+      StaticWarningCode: 'StaticWarningCode'
+    };
+    for (var prefix in prefixes.values) {
+      var uniqueName = '$prefix.$shortName';
+      var errorCode = errorCodeByUniqueName(uniqueName);
+      if (errorCode != null) {
+        return errorCode;
+      }
+    }
+    return null;
   }
 }

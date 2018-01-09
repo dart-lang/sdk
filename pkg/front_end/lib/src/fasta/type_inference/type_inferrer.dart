@@ -1205,8 +1205,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
     if (identical(interfaceMember, 'call')) {
-      listener.methodInvocationExitCall(
-          expression, arguments, isImplicitCall, inferredType);
+      listener.methodInvocationExitCall(expression, arguments, isImplicitCall,
+          calleeType, lastInferredSubstitution, inferredType);
     } else {
       listener.methodInvocationExit(expression, arguments, isImplicitCall,
           interfaceMember, calleeType, lastInferredSubstitution, inferredType);
@@ -1257,8 +1257,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var replacedExpression = handlePropertyGetContravariance(receiver,
         interfaceMember, desugaredGet, expression, inferredType, fileOffset);
     if ((interfaceMember is Procedure &&
-            interfaceMember.kind == ProcedureKind.Method) ||
-        interfaceMember == 'call') {
+        interfaceMember.kind == ProcedureKind.Method)) {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
     }

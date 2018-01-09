@@ -560,7 +560,7 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
 /// JavaScript. We may remove the need to call this method completely in the
 /// future if Dart2Js is refactored so that its function calling conventions
 /// are more compatible with JavaScript.
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => f;
+F allowInterop<F extends Function>(F f) => f;
 
 Expando<Function> _interopCaptureThisExpando = new Expando<Function>();
 

@@ -8,13 +8,13 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:test/test.dart';
@@ -29,8 +29,7 @@ main() {
 }
 
 @reflectiveTest
-class SearchEngineImplTest {
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
+class SearchEngineImplTest extends Object with ResourceProviderMixin {
   DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
@@ -41,36 +40,32 @@ class SearchEngineImplTest {
   AnalysisDriverScheduler scheduler;
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: provider);
+    sdk = new MockSdk(resourceProvider: resourceProvider);
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     scheduler.start();
   }
 
   test_membersOfSubtypes_hasMembers() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-    var c = _p('/test/c.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B extends A {
   void a() {}
 }
-''');
-    provider.newFile(c, '''
+''').path;
+    var c = newFile('/test/c.dart', content: '''
 import 'a.dart';
 class C extends A {
   void b() {}
 }
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -89,20 +84,17 @@ class C extends A {
   }
 
   test_membersOfSubtypes_noMembers() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B extends A {}
-''');
+''').path;
 
     var driver = _newDriver();
 
@@ -119,22 +111,19 @@ class B extends A {}
   }
 
   test_membersOfSubtypes_noSubtypes() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void b() {}
   void c() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B {
   void a() {}
 }
-''');
+''').path;
 
     var driver = _newDriver();
 
@@ -151,10 +140,7 @@ class B {
   }
 
   test_membersOfSubtypes_private() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
   void _b() {}
@@ -163,8 +149,8 @@ class A {
 class B extends A {
   void _b() {}
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class C extends A {
   void a() {}
@@ -173,7 +159,7 @@ class C extends A {
 class D extends B {
   void _c() {}
 }
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -191,14 +177,12 @@ class D extends B {
   }
 
   test_searchAllSubtypes() async {
-    var p = _p('/test.dart');
-
-    provider.newFile(p, '''
+    var p = newFile('/test.dart', content: '''
 class T {}
 class A extends T {}
 class B extends A {}
 class C implements B {}
-''');
+''').path;
 
     var driver = _newDriver();
     driver.addFile(p);
@@ -215,18 +199,15 @@ class C implements B {}
   }
 
   test_searchAllSubtypes_acrossDrivers() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class T {}
 class A extends T {}
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 class B extends A {}
 class C extends B {}
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -246,9 +227,6 @@ class C extends B {}
   }
 
   test_searchMemberDeclarations() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
     var codeA = '''
 class A {
   int test; // 1
@@ -263,8 +241,8 @@ class B {
 int test;
 ''';
 
-    provider.newFile(a, codeA);
-    provider.newFile(b, codeB);
+    var a = newFile('/test/a.dart', content: codeA).path;
+    var b = newFile('/test/b.dart', content: codeB).path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -295,23 +273,20 @@ int test;
   }
 
   test_searchMemberReferences() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {
   int test;
 }
 foo(p) {
   p.test;
 }
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 bar(p) {
   p.test = 1;
 }
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -334,17 +309,14 @@ bar(p) {
   }
 
   test_searchReferences() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class T {}
 T a;
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 import 'a.dart';
 T b;
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -365,17 +337,14 @@ T b;
   }
 
   test_searchTopLevelDeclarations() async {
-    var a = _p('/test/a.dart');
-    var b = _p('/test/b.dart');
-
-    provider.newFile(a, '''
+    var a = newFile('/test/a.dart', content: '''
 class A {}
 int a;
-''');
-    provider.newFile(b, '''
+''').path;
+    var b = newFile('/test/b.dart', content: '''
 class B {}
 get b => 42;
-''');
+''').path;
 
     var driver1 = _newDriver();
     var driver2 = _newDriver();
@@ -406,25 +375,23 @@ get b => 42;
   }
 
   test_searchTopLevelDeclarations_dependentPackage() async {
-    var a = _p('/a/lib/a.dart');
-    provider.newFile(a, '''
+    var a = newFile('/a/lib/a.dart', content: '''
 class A {}
 ''');
     var driver1 = _newDriver();
-    driver1.addFile(a);
+    driver1.addFile(a.path);
 
     // The package:b uses the class A from the package:a,
     // so it sees the declaration the element A.
-    var b = _p('/b/lib/b.dart');
-    provider.newFile(b, '''
+    var b = newFile('/b/lib/b.dart', content: '''
 import 'package:a/a.dart';
 class B extends A {}
 ''');
     var driver2 = _newDriver(
-        packageUriResolver: new PackageMapUriResolver(provider, {
-      'a': [provider.getFile(a).parent]
+        packageUriResolver: new PackageMapUriResolver(resourceProvider, {
+      'a': [a.parent]
     }));
-    driver2.addFile(b);
+    driver2.addFile(b.path);
 
     while (scheduler.isAnalyzing) {
       await new Future.delayed(new Duration(milliseconds: 1));
@@ -451,23 +418,21 @@ class B extends A {}
   AnalysisDriver _newDriver({UriResolver packageUriResolver}) {
     var resolvers = <UriResolver>[
       new DartUriResolver(sdk),
-      new ResourceUriResolver(provider)
+      new ResourceUriResolver(resourceProvider)
     ];
     if (packageUriResolver != null) {
       resolvers.add(packageUriResolver);
     }
-    resolvers.add(new ResourceUriResolver(provider));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
 
     return new AnalysisDriver(
         scheduler,
         logger,
-        provider,
+        resourceProvider,
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory(resolvers, null, provider),
+        new SourceFactory(resolvers, null, resourceProvider),
         new AnalysisOptionsImpl()..strongMode = true);
   }
-
-  String _p(String path) => provider.convertPath(path);
 }

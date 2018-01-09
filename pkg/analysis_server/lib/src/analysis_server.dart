@@ -363,7 +363,7 @@ class AnalysisServer {
         new PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.generateImplicitErrors = false;
-    defaultContextOptions.useFastaParser = options.previewDart2;
+    defaultContextOptions.useFastaParser = options.useCFE;
 
     {
       String name = options.newAnalysisDriverLog;
@@ -387,6 +387,7 @@ class AnalysisServer {
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
+        fileContentOverlay,
         sdkManager,
         packageResolverProvider,
         packageMapProvider,
@@ -442,7 +443,8 @@ class AnalysisServer {
         '**/*.${AnalysisEngine.SUFFIX_HTML}',
         '**/*.${AnalysisEngine.SUFFIX_HTM}',
         '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
-        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
+        '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}',
+        '**/${AnalysisEngine.PUBSPEC_YAML_FILE}'
       ];
       for (String pattern in patterns) {
         try {
@@ -1120,9 +1122,14 @@ class AnalysisServerOptions {
   CrashReportSender crashReportSender;
 
   /**
-   * Whether to enable the Dart 2.0 Front End.
+   * Whether to enable the Dart 2.0 preview.
    */
   bool previewDart2 = false;
+
+  /**
+   * Whether to enable the Dart 2.0 Common Front End implementation.
+   */
+  bool useCFE = false;
 }
 
 /**
@@ -1338,6 +1345,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.byteStore = analysisServer.byteStore;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
     builder.previewDart2 = analysisServer.options.previewDart2;
+    builder.useCFE = analysisServer.options.useCFE;
     return builder;
   }
 

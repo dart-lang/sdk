@@ -146,14 +146,14 @@ var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
   test_initializer_functionLiteral_expressionBody() async {
     var content = r'''
 var a = 0;
-var t = (int p) => (a = 1);
+var t = /*info:INFERRED_TYPE_CLOSURE*/(int p) => (a = 1);
 ''';
     await checkFile(content);
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
     var content = r'''
-var t = (int a, b,int c, d) => 0;
+var t = /*info:INFERRED_TYPE_CLOSURE*/(int a, b,int c, d) => 0;
 ''';
     await checkFile(content);
   }

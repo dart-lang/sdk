@@ -164,17 +164,16 @@ class CCC extends BBB implements AAA {}
 
   test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
-    resourceProvider.newFile(
-        '/packages/pkgA/.packages', 'pkgA:file:///packages/pkgA/lib');
+    newFile('/packages/pkgA/.packages',
+        content: 'pkgA:file:///packages/pkgA/lib');
     // reference the package from a project
-    resourceProvider.newFile(
-        '$projectPath/.packages', 'pkgA:file:///packages/pkgA/lib');
+    newFile('$projectPath/.packages',
+        content: 'pkgA:file:///packages/pkgA/lib');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
@@ -696,7 +695,7 @@ class D extends C {
   }
 
   test_member_method_private_differentLib() async {
-    addFile('$testFolder/lib.dart', r'''
+    newFile('$testFolder/lib.dart', content: r'''
 import 'test.dart';
 class A {
   void _m() {}

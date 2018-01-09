@@ -15,7 +15,7 @@ void script() {
   counter.value = 1234.5;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Map metrics = await isolate.refreshDartMetrics();
     expect(metrics.length, equals(1));

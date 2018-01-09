@@ -18,7 +18,7 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -51,20 +51,6 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
 
   @override
   @failingTest
-  test_ignore_second() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_ignore_second();
-  }
-
-  @override
-  @failingTest
-  test_ignore_second_trailing() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_ignore_second_trailing();
-  }
-
-  @override
-  @failingTest
   test_invalid_error_code() async {
     // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0;
     //          1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
@@ -76,20 +62,6 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
   test_missing_error_codes() async {
     // UnimplementedError: kernel: (Let) let final dynamic #t1 = #lib1::x in let ...
     await super.test_missing_error_codes();
-  }
-
-  @override
-  @failingTest
-  test_missing_metadata_suffix() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_missing_metadata_suffix();
-  }
-
-  @override
-  @failingTest
-  test_multiple_comments() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0
-    await super.test_multiple_comments();
   }
 
   @override

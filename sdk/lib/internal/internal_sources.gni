@@ -7,6 +7,7 @@ internal_sdk_sources = [
   "internal.dart",
 
   # The above file needs to be first as it lists the parts below.
+  "cast.dart",
   "iterable.dart",
   "list.dart",
   "linked_list.dart",

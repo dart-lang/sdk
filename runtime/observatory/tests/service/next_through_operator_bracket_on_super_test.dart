@@ -37,7 +37,7 @@ List<String> expected = [
   "$file:${LINE+1}:5", // on 'return'
 ];
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE),
   runStepThroughProgramRecordingStops(stops),

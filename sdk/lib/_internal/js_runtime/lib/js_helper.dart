@@ -6,8 +6,9 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
-        DEFERRED_LIBRARY_URIS,
-        DEFERRED_LIBRARY_HASHES,
+        DEFERRED_LIBRARY_PARTS,
+        DEFERRED_PART_URIS,
+        DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
@@ -93,14 +94,6 @@ String isCheckPropertyToJsConstructorName(String isCheckProperty) {
 bool isDartFunctionType(Object type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
-}
-
-/// Creates a function type object.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
-createDartFunctionTypeRti() {
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
 }
 
 /// Retrieves the class name from type information stored on the constructor of
@@ -3200,8 +3193,7 @@ stringTypeCheck(value) {
 
 stringTypeCast(value) {
   if (value is String || value == null) return value;
-  // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
+  throw new CastErrorImplementation(value, 'String');
 }
 
 doubleTypeCheck(value) {
@@ -3212,7 +3204,7 @@ doubleTypeCheck(value) {
 
 doubleTypeCast(value) {
   if (value is double || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
+  throw new CastErrorImplementation(value, 'double');
 }
 
 numTypeCheck(value) {
@@ -3223,7 +3215,7 @@ numTypeCheck(value) {
 
 numTypeCast(value) {
   if (value is num || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
+  throw new CastErrorImplementation(value, 'num');
 }
 
 boolTypeCheck(value) {
@@ -3234,7 +3226,7 @@ boolTypeCheck(value) {
 
 boolTypeCast(value) {
   if (value is bool || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
+  throw new CastErrorImplementation(value, 'bool');
 }
 
 intTypeCheck(value) {
@@ -3245,7 +3237,7 @@ intTypeCheck(value) {
 
 intTypeCast(value) {
   if (value is int || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
+  throw new CastErrorImplementation(value, 'int');
 }
 
 void propertyTypeError(value, property) {
@@ -3255,9 +3247,8 @@ void propertyTypeError(value, property) {
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
-  String actualType = Primitives.objectTypeName(value);
   String expectedType = property.substring(3, property.length);
-  throw new CastErrorImplementation(actualType, expectedType);
+  throw new CastErrorImplementation(value, expectedType);
 }
 
 /**
@@ -3386,7 +3377,7 @@ listTypeCheck(value) {
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
+  throw new CastErrorImplementation(value, 'List');
 }
 
 listSuperTypeCheck(value, property) {
@@ -3457,14 +3448,7 @@ functionTypeCast(value, functionTypeRti) {
   if (functionTypeTest(value, functionTypeRti)) return value;
 
   var self = runtimeTypeToString(functionTypeRti);
-  var functionTypeObject = extractFunctionTypeObjectFrom(value);
-  var pretty;
-  if (functionTypeObject != null) {
-    pretty = runtimeTypeToString(functionTypeObject);
-  } else {
-    pretty = Primitives.objectTypeName(value);
-  }
-  throw new CastErrorImplementation(pretty, self);
+  throw new CastErrorImplementation(value, self);
 }
 
 checkMalformedType(value, message) {
@@ -3493,12 +3477,10 @@ abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 class TypeErrorImplementation extends Error implements TypeError {
   final String message;
 
-  /**
-   * Normal type error caused by a failed subtype test.
-   */
+  /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-            "of type '$type'";
+      : message = "TypeError: ${Error.safeToString(value)}: "
+            "type '${_typeDescription(value)}' is not a subtype of type '$type'";
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -3510,14 +3492,23 @@ class CastErrorImplementation extends Error implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   final String message;
 
-  /**
-   * Normal cast error caused by a failed type cast.
-   */
-  CastErrorImplementation(Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " incompatible type '$expectedType'";
+  /// Normal cast error caused by a failed type cast.
+  CastErrorImplementation(Object value, Object type)
+      : message = "CastError: ${Error.safeToString(value)}: "
+            "type '${_typeDescription(value)}' is not a subtype of type '$type'";
 
   String toString() => message;
+}
+
+String _typeDescription(value) {
+  if (value is Closure) {
+    var functionTypeObject = extractFunctionTypeObjectFrom(value);
+    if (functionTypeObject != null) {
+      return runtimeTypeToString(functionTypeObject);
+    }
+    return 'Closure';
+  }
+  return Primitives.objectTypeName(value);
 }
 
 class FallThroughErrorImplementation extends FallThroughError {
@@ -3650,14 +3641,21 @@ typedef void DeferredLoadCallback();
 DeferredLoadCallback deferredLoadHook;
 
 Future<Null> loadDeferredLibrary(String loadId) {
-  // For each loadId there is a list of hunk-uris to load, and a corresponding
-  // list of hashes. These are stored in the app-global scope.
-  var urisMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_URIS);
-  List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
-  if (uris == null) return new Future.value(null);
-
-  var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
-  List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
+  // For each loadId there is a list of parts to load. The parts are represented
+  // by an index. There are two arrays, one that maps the index into a Uri and
+  // another that maps the index to a hash.
+  var partsMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_PARTS);
+  List indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
+  if (indexes == null) return new Future.value(null);
+  List<String> uris = <String>[];
+  List<String> hashes = <String>[];
+  List index2uri = JS_EMBEDDED_GLOBAL('JSArray', DEFERRED_PART_URIS);
+  List index2hash = JS_EMBEDDED_GLOBAL('JSArray', DEFERRED_PART_HASHES);
+  for (int i = 0; i < indexes.length; i++) {
+    int index = JS('int', '#[#]', indexes, i);
+    uris.add(JS('String', '#[#]', index2uri, index));
+    hashes.add(JS('String', '#[#]', index2hash, index));
+  }
 
   int total = hashes.length;
   assert(total == uris.length);

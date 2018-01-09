@@ -871,7 +871,8 @@ class JavaScriptBackend {
   String getGeneratedCode(MemberEntity element) {
     assert(!(element is MemberElement && !element.isDeclaration),
         failedAt(element));
-    return jsAst.prettyPrint(generatedCode[element], compiler.options);
+    return jsAst.prettyPrint(generatedCode[element],
+        enableMinification: compiler.options.enableMinification);
   }
 
   /// Generates the output and returns the total size of the generated code.

@@ -83,11 +83,10 @@ void usage(String mode) {
   exit(1);
 }
 
-const validModes = const ['vm', 'dart2js', 'flutter'];
+const validModes = const ['vm', 'flutter'];
 String mode;
 bool get forVm => mode == 'vm';
 bool get forFlutter => mode == 'flutter';
-bool get forDart2js => mode == 'dart2js';
 
 Future _main(List<String> argv) async {
   if (argv.isEmpty) usage('[${validModes.join('|')}]');
@@ -115,8 +114,7 @@ Future _main(List<String> argv) async {
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
-    if (forDart2js && library.isVmLibrary) continue;
-    if (!forDart2js && library.isDart2JsLibrary) continue;
+    if (library.isDart2JsLibrary) continue;
     _applyPatch(library, sdkLibIn, patchIn, sdkOut, locations);
   }
 
@@ -174,9 +172,9 @@ Future _main(List<String> argv) async {
   //    [platformForDeps] is always the VM-specific `platform.dill` file.
   var platformForDeps = platform;
   var sdkDir = outDirUri;
-  if (forDart2js || forFlutter) {
+  if (forFlutter) {
     // Note: this fails if `$root_out_dir/vm_platform.dill` doesn't exist.  The
-    // target //utils/compiler:patched_dart2js_sdk depends on
+    // target to build the flutter patched sdk depends on
     // //runtime/vm:kernel_platform_files to ensure this file exists.
     platformForDeps = outDirUri.resolve('../vm_platform.dill');
     sdkDir = null;
@@ -313,7 +311,6 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
 /// patched_sdk folder. For the VM< this includes files under 'runtime/bin/',
 /// for flutter, this is includes also the ui library.
 _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
-  if (forDart2js) return;
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
@@ -576,7 +573,7 @@ class PatchApplier extends GeneralizingAstVisitor {
     var name = _qualifiedName(node);
     var patchNode = patch.patches[name];
     if (patchNode == null) {
-      if (externalKeyword != null && _shouldHaveImplementation(name)) {
+      if (externalKeyword != null) {
         print('warning: patch not found for $name: $node');
         exitCode = 1;
       }
@@ -593,23 +590,6 @@ class PatchApplier extends GeneralizingAstVisitor {
     // documentation comments.
     edits.replace(externalKeyword?.offset ?? node.offset, node.end, code);
   }
-}
-
-/// Whether a member should have an implementation after patching the SDK.
-///
-/// True for most members except for the *.fromEnvironment constructors under
-/// the dart2js target.
-bool _shouldHaveImplementation(String qualifiedName) {
-  if (!forDart2js) return true;
-  // Note: dart2js implements int.fromEnvironment, bool.fromEnvironment
-  // and String.fromEnvironment directly and expects the SDK code to
-  // have an external declaration.
-  var isFromEnvironment = const [
-    'bool.fromEnvironment',
-    'int.fromEnvironment',
-    'String.fromEnvironment'
-  ].contains(qualifiedName);
-  return !isFromEnvironment;
 }
 
 class PatchFinder extends GeneralizingAstVisitor {
@@ -781,7 +761,7 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(forDart2js);
+  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(false);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

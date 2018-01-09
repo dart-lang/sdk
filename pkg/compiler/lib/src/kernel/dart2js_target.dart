@@ -76,7 +76,7 @@ class Dart2jsTarget extends Target {
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
     // TODO(sigmund): implement;
-    return new InvalidExpression();
+    return new InvalidExpression(null);
   }
 
   @override
@@ -93,6 +93,6 @@ class Dart2jsTarget extends Target {
       bool isConstructor: false,
       bool isTopLevel: false}) {
     // TODO(sigmund): implement;
-    return new InvalidExpression();
+    return new InvalidExpression(null);
   }
 }

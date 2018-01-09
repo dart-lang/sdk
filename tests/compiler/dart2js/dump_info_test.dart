@@ -4,8 +4,9 @@
 // Test that parameters keep their names in the output.
 
 import 'dart:convert';
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 const String TEST_BASIC = r"""
@@ -96,17 +97,19 @@ const String TEST_INLINED_2 = r"""
 
 typedef void JsonTaking(Map<String, dynamic> json);
 
-jsonTest(String program, JsonTaking testFn) async {
+jsonTest(String program, JsonTaking testFn, {bool useKernel}) async {
+  var options = ['--out=out.js', Flags.dumpInfo];
+  if (useKernel) {
+    options.add(Flags.useKernel);
+  }
   var result = await runCompiler(
-      memorySourceFiles: {'main.dart': program},
-      options: ['--out=out.js', '--dump-info']);
+      memorySourceFiles: {'main.dart': program}, options: options);
   var compiler = result.compiler;
   Expect.isFalse(compiler.compilationFailed);
   var dumpTask = compiler.dumpInfoTask;
 
   StringBuffer sb = new StringBuffer();
-  dumpTask.dumpInfoJson(
-      sb, compiler.resolutionWorldBuilder.closedWorldForTesting);
+  dumpTask.dumpInfoJson(sb, compiler.backendClosedWorldForTesting);
   String jsonString = sb.toString();
   Map<String, dynamic> map = json.decode(jsonString);
 
@@ -114,10 +117,15 @@ jsonTest(String program, JsonTaking testFn) async {
 }
 
 main() {
-  asyncTest(runTests);
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }
 
-runTests() async {
+runTests({bool useKernel}) async {
   await jsonTest(TEST_BASIC, (map) {
     Expect.isTrue(map['elements'].isNotEmpty);
     Expect.isTrue(map['elements']['function'].isNotEmpty);
@@ -131,7 +139,7 @@ runTests() async {
     Expect.isTrue(map['elements']['function'].values.any((fun) {
       return fun['name'] == 'f';
     }));
-  });
+  }, useKernel: useKernel);
 
   await jsonTest(TEST_CLOSURES, (map) {
     var functions = map['elements']['function'].values;
@@ -141,7 +149,7 @@ runTests() async {
     Expect.isTrue(functions.any((fn) {
       return fn['name'] == 'foo' && fn['children'].length == 10;
     }));
-  });
+  }, useKernel: useKernel);
 
   await jsonTest(TEST_STATICS, (map) {
     var functions = map['elements']['function'].values;
@@ -152,7 +160,7 @@ runTests() async {
     Expect.isTrue(classes.any((cls) {
       return cls['name'] == 'ContainsStatics' && cls['children'].length >= 1;
     }));
-  });
+  }, useKernel: useKernel);
 
   await jsonTest(TEST_INLINED_1, (map) {
     var functions = map['elements']['function'].values;
@@ -163,7 +171,7 @@ runTests() async {
     Expect.isTrue(classes.any((cls) {
       return cls['name'] == 'Doubler' && cls['children'].length >= 1;
     }));
-  });
+  }, useKernel: useKernel);
 
   await jsonTest(TEST_INLINED_2, (map) {
     var functions = map['elements']['function'].values;
@@ -179,5 +187,5 @@ runTests() async {
     Expect.isTrue(deps.containsKey(fn2['id']));
     Expect.isTrue(deps[main_['id']].any((dep) => dep['id'] == fn1['id']));
     Expect.isTrue(deps[fn1['id']].any((dep) => dep['id'] == fn2['id']));
-  });
+  }, useKernel: useKernel);
 }

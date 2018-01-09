@@ -196,6 +196,34 @@ Future<Null> ioOverridesRunTest() async {
   await f;
 }
 
+class MyIOOverrides extends IOOverrides {
+  Directory createDirectory(String path) => DirectoryMock.createDirectory(path);
+}
+
+globalIOOverridesTest() {
+  IOOverrides.global = new MyIOOverrides();
+  Expect.isTrue(new Directory("directory") is DirectoryMock);
+  IOOverrides.global = null;
+  Directory dir = new Directory("directory");
+  Expect.isTrue(dir is! DirectoryMock);
+  Expect.isTrue(dir is Directory);
+}
+
+globalIOOverridesZoneTest() {
+  IOOverrides.global = new MyIOOverrides();
+  runZoned(() {
+    runZoned(() {
+      Expect.isTrue(new Directory("directory") is DirectoryMock);
+    });
+  });
+  IOOverrides.global = null;
+  Directory dir = new Directory("directory");
+  Expect.isTrue(dir is! DirectoryMock);
+  Expect.isTrue(dir is Directory);
+}
+
 main() async {
   await ioOverridesRunTest();
+  globalIOOverridesTest();
+  globalIOOverridesZoneTest();
 }

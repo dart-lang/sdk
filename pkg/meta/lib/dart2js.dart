@@ -5,7 +5,7 @@
 /// Constants for use in metadata annotations to provide hints to dart2js.
 ///
 /// This is an experimental feature and not expected to be useful except for low
-/// level framwork authors.
+/// level framework authors.
 ///
 /// Added at sdk version 2.0.0-dev.6.0
 library meta_dart2js;

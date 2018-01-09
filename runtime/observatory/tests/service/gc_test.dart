@@ -20,7 +20,7 @@ void script() {
   grow(100, 1 << 24, new Duration(seconds: 1));
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) {
     Completer completer = new Completer();
     // Expect at least this many GC events.

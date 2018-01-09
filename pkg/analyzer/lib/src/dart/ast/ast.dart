@@ -6373,7 +6373,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   /**
    * The 'new' or 'const' keyword used to indicate how an object should be
-   * created.
+   * created, or `null` if the keyword is implicit.
    */
   @override
   Token keyword;
@@ -6414,7 +6414,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @override
-  Token get beginToken => keyword;
+  Token get beginToken => keyword ?? _constructorName.beginToken;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
@@ -6498,6 +6498,69 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  /**
+   * Return `true` if the given [lexeme] is a valid lexeme for an integer
+   * literal. The flag [isNegative] should be `true` if the lexeme is preceded
+   * by a unary negation operator.
+   */
+  static bool isValidLiteral(String lexeme, bool isNegative) {
+    if (lexeme.startsWith('0x') || lexeme.startsWith('0X')) {
+      return _isValidHexadecimalLiteral(lexeme, isNegative);
+    }
+    return _isValidDecimalLiteral(lexeme, isNegative);
+  }
+
+  /**
+   * Return `true` if the given [lexeme] is a valid lexeme for a decimal integer
+   * literal. The flag [isNegative] should be `true` if the lexeme is preceded
+   * by a minus operator.
+   */
+  static bool _isValidDecimalLiteral(String lexeme, bool isNegative) {
+    int length = lexeme.length;
+    int index = 0;
+    while (length > 0 && lexeme.substring(index, index + 1) == '0') {
+      length--;
+      index++;
+    }
+    if (length < 19) {
+      return true;
+    } else if (length > 19) {
+      return false;
+    }
+    if (int.parse(lexeme.substring(index, index + 1)) < 9) {
+      return true;
+    }
+    int bound;
+    if (isNegative) {
+      bound = 223372036854775808;
+    } else {
+      bound = 223372036854775807;
+    }
+    return int.parse(lexeme.substring(index + 1)) <= bound;
+  }
+
+  /**
+   * Return `true` if the given [lexeme] is a valid lexeme for a hexadecimal
+   * integer literal. The lexeme is expected to start with either `0x` or `0X`.
+   */
+  static bool _isValidHexadecimalLiteral(String lexeme, bool isNegative) {
+    int length = lexeme.length - 2;
+    int index = 2;
+    while (length > 0 && lexeme.substring(index, index + 1) == '0') {
+      length--;
+      index++;
+    }
+    if (length < 16) {
+      return true;
+    } else if (length > 16) {
+      return false;
+    }
+    if (!isNegative) {
+      return true;
+    }
+    return int.parse(lexeme.substring(index, index + 1), radix: 16) <= 7;
   }
 }
 

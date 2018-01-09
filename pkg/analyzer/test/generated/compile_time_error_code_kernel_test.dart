@@ -22,7 +22,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -75,23 +75,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_prefix() async {
-    // 'package:analyzer/src/fasta/resolution_applier.dart': Failed assertion: line 632 pos 14: 'constructorName.name == null': is not true.
-    await super.test_async_used_as_identifier_in_prefix();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_statement_label() async {
     // Bad state: Expected element reference for analyzer offset 14; got one for kernel offset 21
     await super.test_async_used_as_identifier_in_statement_label();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_suffix() async {
-    // Bad state: Expected element reference for analyzer offset 46; got one for kernel offset 48
-    await super.test_async_used_as_identifier_in_suffix();
   }
 
   @override
@@ -1716,48 +1702,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidModifierOnSetter_member_async() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_member_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_member_syncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_async() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_async();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_invalidModifierOnSetter_topLevel_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_invalidModifierOnSetter_topLevel_syncStar();
-  }
-
-  @override
-  @failingTest
   test_invalidReferenceToThis_factoryConstructor() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
     await super.test_invalidReferenceToThis_factoryConstructor();
@@ -1812,6 +1756,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_invalidReferenceToThis_variableInitializer() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
     await super.test_invalidReferenceToThis_variableInitializer();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_export() async {
+    return super.test_invalidUri_export();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_import() async {
+    return super.test_invalidUri_import();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_part() async {
+    return super.test_invalidUri_part();
   }
 
   @override
@@ -3383,20 +3348,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_function_named() async {
-    return super.test_wrongNumberOfParametersForSetter_function_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_function_optional() async {
-    return super.test_wrongNumberOfParametersForSetter_function_optional();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
   test_wrongNumberOfParametersForSetter_function_tooFew() async {
     return super.test_wrongNumberOfParametersForSetter_function_tooFew();
   }
@@ -3406,20 +3357,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
   test_wrongNumberOfParametersForSetter_function_tooMany() async {
     return super.test_wrongNumberOfParametersForSetter_function_tooMany();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_method_named() async {
-    return super.test_wrongNumberOfParametersForSetter_method_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
-  test_wrongNumberOfParametersForSetter_method_optional() async {
-    return super.test_wrongNumberOfParametersForSetter_method_optional();
   }
 
   @override

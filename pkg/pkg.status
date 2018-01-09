@@ -50,8 +50,9 @@ front_end/test/fasta/compile_test: Pass, Slow
 front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
-front_end/tool/incremental_perf_test: Slow, Pass
+front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
+front_end/tool/incremental_perf_test: Slow, Pass
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
@@ -84,7 +85,6 @@ dev_compiler/test/*: Skip
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
-dev_compiler/test/codegen_test: MissingCompileTimeError # Issue 30245
 
 [ $compiler == none && $runtime == drt ]
 mutation_observer: Skip # Issue 21149
@@ -95,9 +95,15 @@ front_end/*: SkipByDesign
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/completion: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
+analysis_server/test/integration/edit/format_test: Pass, Slow
+analysis_server/test/integration/analysis/error_test: Pass, Slow
+analysis_server/test/integration/analysis/lint_test: Pass, Slow
+analysis_server/test/integration/edit/import_elements_test: Pass, Slow
+analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Pass, Slow
+analysis_server/test/integration/edit/sort_members_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
@@ -131,8 +137,6 @@ analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
-kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
-kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $compiler == dart2js ]
@@ -221,7 +225,7 @@ dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
 [ $browser || $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
-[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te) ]
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te || $arch == simdbc64) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
 # simulator or low-end devices.
 *: Skip

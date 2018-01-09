@@ -19,7 +19,7 @@ void defineProperty(var obj, String property, var value) {
 
 // Obsolete in dart dev compiler. Added only so that the same version of
 // dart:html can be used in dart2js an dev compiler.
-/*=F*/ convertDartClosureToJS/*<F>*/(/*=F*/ closure, int arity) {
+F convertDartClosureToJS<F>(F closure, int arity) {
   return closure;
 }
 

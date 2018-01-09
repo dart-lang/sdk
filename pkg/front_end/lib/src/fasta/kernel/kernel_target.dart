@@ -229,24 +229,28 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
+      if (loader.target.strongMode) {
+        loader.instantiateToBound(dynamicType, objectClassBuilder);
+      }
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
+      loader.finishTypeVariables(objectClassBuilder);
       loader.buildProgram();
       installDefaultSupertypes();
       installDefaultConstructors(myClasses);
       loader.resolveConstructors();
-      loader.finishTypeVariables(objectClassBuilder);
       program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       if (metadataCollector != null) {
         program.addMetadataRepository(metadataCollector.repository);
       }
       loader.computeHierarchy(program);
-      loader.checkOverrides(myClasses);
+      computeCoreTypes();
       if (!loader.target.disableTypeInference) {
         loader.prepareTopLevelInference(myClasses);
         loader.performTopLevelInference(myClasses);
       }
+      loader.checkOverrides(myClasses);
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
       handleInputError(e, isFullProgram: false);
@@ -338,6 +342,7 @@ class KernelTarget extends TargetImplementation {
           (LocatedMessage message) => new ExpressionStatement(new Throw(
               new StringLiteral(context.format(message, Severity.error)))))));
     }
+    loader.libraries.add(library.library);
     library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
   }
@@ -511,6 +516,41 @@ class KernelTarget extends TargetImplementation {
         new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
         name: new Name(""),
         isSyntheticDefault: true);
+  }
+
+  void computeCoreTypes() {
+    List<Library> libraries = <Library>[];
+    for (String platformLibrary in const [
+      "dart:_internal",
+      "dart:async",
+      "dart:core",
+      "dart:mirrors"
+    ]) {
+      Uri uri = Uri.parse(platformLibrary);
+      LibraryBuilder library = loader.builders[uri];
+      if (library == null) {
+        // TODO(ahe): This is working around a bug in kernel_driver_test or
+        // kernel_driver.
+        bool found = false;
+        for (Library target in dillTarget.loader.libraries) {
+          if (target.importUri == uri) {
+            libraries.add(target);
+            found = true;
+            break;
+          }
+        }
+        if (!found && uri.path != "mirrors") {
+          // dart:mirrors is optional.
+          throw "Can't find $uri";
+        }
+      } else {
+        libraries.add(library.target);
+      }
+    }
+    Program plaformLibraries = new Program();
+    // Add libraries directly to prevent that their parents are changed.
+    plaformLibraries.libraries.addAll(libraries);
+    loader.computeCoreTypes(plaformLibraries);
   }
 
   void finishAllConstructors(List<SourceClassBuilder> builders) {

@@ -4,8 +4,7 @@
 
 library fasta.fasta_accessors;
 
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
 import '../../scanner/token.dart' show Token;
 
@@ -13,6 +12,7 @@ import '../fasta_codes.dart'
     show
         messageInvalidInitializer,
         messageLoadLibraryTakesNoArguments,
+        messageSuperAsExpression,
         templateIntegerLiteralIsOutOfRange;
 
 import '../messages.dart' show Message;
@@ -114,6 +114,7 @@ abstract class BuilderHelper {
       {bool isConst,
       int charOffset,
       Member initialTarget,
+      String prefixName,
       int targetOffset: -1,
       Class targetClass});
 
@@ -131,7 +132,7 @@ abstract class BuilderHelper {
       List<TypeParameter> typeParameters);
 
   StaticGet makeStaticGet(Member readTarget, Token token,
-      {int targetOffset: -1, Class targetClass});
+      {String prefixName, int targetOffset: -1, Class targetClass});
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
@@ -148,7 +149,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void addWarning(Message message, int charOffset, int length);
+  void addProblemErrorIfConst(Message message, int charOffset, int length);
 
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
@@ -351,8 +352,8 @@ class ThisAccessor extends FastaAccessor {
     if (!isSuper) {
       return new ShadowThisExpression();
     } else {
-      return helper.deprecated_buildCompileTimeError(
-          "Can't use `super` as an expression.", offsetForToken(token));
+      return helper.buildCompileTimeError(
+          messageSuperAsExpression, offsetForToken(token));
     }
   }
 
@@ -405,6 +406,8 @@ class ThisAccessor extends FastaAccessor {
   doInvocation(int offset, Arguments arguments) {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
+    } else if (isSuper) {
+      return helper.buildCompileTimeError(messageSuperAsExpression, offset);
     } else {
       return helper.buildMethodInvocation(
           new ShadowThisExpression(), callName, arguments, offset,
@@ -739,15 +742,15 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   StaticAccessor(
       BuilderHelper helper, Token token, Member readTarget, Member writeTarget,
-      {int targetOffset: -1, Class targetClass})
-      : super(
-            helper, targetOffset, targetClass, readTarget, writeTarget, token) {
+      {String prefixName, int targetOffset: -1, Class targetClass})
+      : super(helper, prefixName, targetOffset, targetClass, readTarget,
+            writeTarget, token) {
     assert(readTarget != null || writeTarget != null);
   }
 
   factory StaticAccessor.fromBuilder(
       BuilderHelper helper, Builder builder, Token token, Builder builderSetter,
-      {int targetOffset: -1, Class targetClass}) {
+      {PrefixBuilder prefix, int targetOffset: -1, Class targetClass}) {
     if (builder is AccessErrorBuilder) {
       AccessErrorBuilder error = builder;
       builder = error.builder;
@@ -766,7 +769,9 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
       }
     }
     return new StaticAccessor(helper, token, getter, setter,
-        targetOffset: targetOffset, targetClass: targetClass);
+        prefixName: prefix?.name,
+        targetOffset: targetOffset,
+        targetClass: targetClass);
   }
 
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
@@ -786,6 +791,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
           charOffset: offset,
+          prefixName: prefixName,
           targetOffset: targetOffset,
           targetClass: targetClass);
     }
@@ -795,7 +801,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowStaticAssignment(targetOffset, targetClass, rhs);
+      new ShadowStaticAssignment(prefixName, targetOffset, targetClass, rhs);
 }
 
 class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
@@ -808,7 +814,7 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
 
   Expression doInvocation(int offset, Arguments arguments) {
     if (arguments.positional.length > 0 || arguments.named.length > 0) {
-      helper.addWarning(
+      helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset);
@@ -1013,14 +1019,23 @@ class ParenthesizedExpression extends ReadOnlyAccessor {
 }
 
 class TypeDeclarationAccessor extends ReadOnlyAccessor {
+  /// The import prefix preceding the [declaration] reference, or `null` if
+  /// the reference is not prefixed.
+  final PrefixBuilder prefix;
+
   /// The offset at which the [declaration] is referenced by this accessor,
   /// or `-1` if the reference is implicit.
   final int declarationReferenceOffset;
 
   final TypeDeclarationBuilder declaration;
 
-  TypeDeclarationAccessor(BuilderHelper helper, this.declarationReferenceOffset,
-      this.declaration, String plainNameForRead, Token token)
+  TypeDeclarationAccessor(
+      BuilderHelper helper,
+      this.prefix,
+      this.declarationReferenceOffset,
+      this.declaration,
+      String plainNameForRead,
+      Token token)
       : super(helper, null, plainNameForRead, token);
 
   Expression get expression {
@@ -1028,7 +1043,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       int offset = offsetForToken(token);
       if (declaration is KernelInvalidTypeBuilder) {
         KernelInvalidTypeBuilder declaration = this.declaration;
-        helper.addWarning(
+        helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)
@@ -1036,7 +1051,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
           ..fileOffset = offset;
       } else {
         super.expression = new ShadowTypeLiteral(
-            buildType(null, nonInstanceAccessIsError: true))
+            prefix?.name, buildType(null, nonInstanceAccessIsError: true))
           ..fileOffset = offsetForToken(token);
       }
     }
@@ -1083,6 +1098,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         }
         accessor = new StaticAccessor.fromBuilder(
             helper, builder, send.token, setter,
+            prefix: prefix,
             targetOffset: declarationReferenceOffset,
             targetClass: declaration.target);
       }

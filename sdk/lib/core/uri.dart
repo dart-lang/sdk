@@ -1694,7 +1694,7 @@ class _Uri implements Uri {
         if (argumentError) {
           throw new ArgumentError("Illegal character in path");
         } else {
-          throw new UnsupportedError("Illegal character in path");
+          throw new UnsupportedError("Illegal character in path: $segment");
         }
       }
     }

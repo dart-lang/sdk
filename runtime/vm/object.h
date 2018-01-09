@@ -128,7 +128,7 @@ class Symbols;
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
   static Raw##object* RawCast(RawObject* raw) {                                \
-    ASSERT(Object::Handle(raw).Is##object());                                  \
+    ASSERT(Object::Handle(raw).IsNull() || Object::Handle(raw).Is##object());  \
     return reinterpret_cast<Raw##object*>(raw);                                \
   }                                                                            \
   static Raw##object* null() {                                                 \
@@ -5665,6 +5665,11 @@ class TypeArguments : public Instance {
     return IsDynamicTypes(true, 0, len);
   }
 
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType, ObjectType, or
+  // VoidType.
+  bool IsTopTypes(intptr_t from_index, intptr_t len) const;
+
   // Check the subtype relationship, considering only a subvector of length
   // 'len' starting at 'from_index'.
   bool IsSubtypeOf(const TypeArguments& other,
@@ -5985,10 +5990,12 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Null' type.
   bool IsNullType() const;
 
-  bool IsObjectType() const {
-    return !IsFunctionType() && HasResolvedTypeClass() &&
-           Class::Handle(type_class()).IsObjectClass();
-  }
+  // Check if this type represents the 'Object' type.
+  bool IsObjectType() const;
+
+  // Check if this type represents a top type, i.e. 'dynamic', 'Object', or
+  // 'void' type.
+  bool IsTopType() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
@@ -6265,6 +6272,9 @@ class TypeRef : public AbstractType {
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
+  virtual classid_t type_class_id() const {
+    return AbstractType::Handle(type()).type_class_id();
+  }
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();
   }
@@ -6439,6 +6449,9 @@ class BoundedType : public AbstractType {
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
     return AbstractType::Handle(type()).HasResolvedTypeClass();
+  }
+  virtual classid_t type_class_id() const {
+    return AbstractType::Handle(type()).type_class_id();
   }
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();

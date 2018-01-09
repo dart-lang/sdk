@@ -12,7 +12,7 @@ import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
-import 'package:vm/kernel_front_end.dart' show compileToKernel;
+import 'package:vm/kernel_front_end.dart' show compileToKernel, ErrorDetector;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('platform',
@@ -37,13 +37,6 @@ ${_argParser.usage}
 const int _badUsageExitCode = 1;
 const int _compileTimeErrorExitCode = 254;
 
-const _severityCaptions = const <Severity, String>{
-  Severity.error: 'Error: ',
-  Severity.internalProblem: 'Internal problem: ',
-  Severity.nit: 'Nit: ',
-  Severity.warning: 'Warning: ',
-};
-
 main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments.last == '--batch') {
     await runBatchModeCompiler();
@@ -67,7 +60,7 @@ Future<int> compile(List<String> arguments) async {
   final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
 
-  int errors = 0;
+  ErrorDetector errorDetector = new ErrorDetector();
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..strongMode = strongMode
@@ -75,23 +68,13 @@ Future<int> compile(List<String> arguments) async {
     ..linkedDependencies = <Uri>[Uri.base.resolve(platformKernel)]
     ..packagesFileUri = packages != null ? Uri.base.resolve(packages) : null
     ..reportMessages = true
-    ..onError = (CompilationMessage message) {
-      final severity = _severityCaptions[message.severity] ?? '';
-      final text = message.span?.message(message.message) ?? message.message;
-      final tip = message.tip != null ? "\n${message.tip}" : '';
-      print("$severity$text$tip");
-
-      if ((message.severity != Severity.nit) &&
-          (message.severity != Severity.warning)) {
-        ++errors;
-      }
-    };
+    ..onError = errorDetector;
 
   Program program = await compileToKernel(
       Uri.base.resolve(filename), compilerOptions,
       aot: aot);
 
-  if ((errors > 0) || (program == null)) {
+  if (errorDetector.hasCompilationErrors || (program == null)) {
     return _compileTimeErrorExitCode;
   }
 

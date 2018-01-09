@@ -19,14 +19,7 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
-
-  @failingTest
-  @override
-  test_assertion_throws() async {
-    // Not yet generating errors in kernel mode.
-    await super.test_assertion_throws();
-  }
+  bool get useCFE => true;
 
   @failingTest
   @override

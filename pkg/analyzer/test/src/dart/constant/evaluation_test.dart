@@ -1456,7 +1456,6 @@ class A {
       }
     }
     fail('Class member not found');
-    return null;
   }
 
   EvaluationResultImpl _evaluateTopLevelVariable(

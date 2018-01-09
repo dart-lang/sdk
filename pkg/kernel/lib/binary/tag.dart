@@ -71,7 +71,6 @@ class Tag {
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
 
-  static const int InvalidStatement = 60;
   static const int ExpressionStatement = 61;
   static const int Block = 62;
   static const int EmptyStatement = 63;

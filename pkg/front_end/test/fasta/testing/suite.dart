@@ -242,7 +242,10 @@ class Run extends Step<Uri, int, FastaContext> {
     StdioProcess process;
     try {
       var args = ['--kernel-binaries=${context.platformBinaries.toFilePath()}'];
-      if (context.strongMode) args.add('--strong');
+      if (context.strongMode) {
+        args.add('--strong');
+        args.add('--reify-generic-functions');
+      }
       args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);

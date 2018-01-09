@@ -55,7 +55,7 @@ class AnalysisServerMemoryUsageTest
    * The server is automatically started before every test.
    */
   @override
-  Future setUp({bool previewDart2: false}) {
+  Future setUp({bool useCFE: false}) {
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
@@ -70,7 +70,7 @@ class AnalysisServerMemoryUsageTest
     });
     return startServer(
       servicesPort: vmServicePort,
-      previewDart2: previewDart2,
+      cfe: useCFE,
     ).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {

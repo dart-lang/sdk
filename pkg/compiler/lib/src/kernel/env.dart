@@ -173,7 +173,10 @@ class LibraryData {
         dependencies.forEach((ir.LibraryDependency node) {
           if (node.isExport) return;
           imports[node] = new KImport(
-              node.isDeferred, node.name, node.targetLibrary.importUri);
+              node.isDeferred,
+              node.name,
+              node.targetLibrary.importUri,
+              elementMap.getLibrary(node.enclosingLibrary));
         });
       }
     }
@@ -217,6 +220,12 @@ abstract class ClassEnv {
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
+  var aLoc = a.location;
+  var bLoc = b.location;
+  var aUri = '${aLoc.file}';
+  var bUri = '${bLoc.file}';
+  var uriCompare = aUri.compareTo(bUri);
+  if (uriCompare != 0) return uriCompare;
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
@@ -555,11 +564,38 @@ abstract class MemberDataImpl implements MemberData {
 abstract class FunctionData implements MemberData {
   FunctionType getFunctionType(KernelToElementMap elementMap);
 
+  List<TypeVariableType> getFunctionTypeVariables(
+      KernelToElementMap elementMap);
+
   void forEachParameter(KernelToElementMapForBuilding elementMap,
       void f(DartType type, String name, ConstantValue defaultValue));
 }
 
-class FunctionDataImpl extends MemberDataImpl implements FunctionData {
+abstract class FunctionDataMixin implements FunctionData {
+  ir.FunctionNode get functionNode;
+  List<TypeVariableType> _typeVariables;
+
+  List<TypeVariableType> getFunctionTypeVariables(
+      covariant KernelToElementMapBase elementMap) {
+    if (_typeVariables == null) {
+      if (functionNode.typeParameters.isEmpty ||
+          !elementMap.options.strongMode) {
+        _typeVariables = const <TypeVariableType>[];
+      } else {
+        _typeVariables = functionNode.typeParameters
+            .map<TypeVariableType>((ir.TypeParameter typeParameter) {
+          return elementMap
+              .getDartType(new ir.TypeParameterType(typeParameter));
+        }).toList();
+      }
+    }
+    return _typeVariables;
+  }
+}
+
+class FunctionDataImpl extends MemberDataImpl
+    with FunctionDataMixin
+    implements FunctionData {
   final ir.FunctionNode functionNode;
   FunctionType _type;
 

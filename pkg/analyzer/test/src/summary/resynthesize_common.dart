@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -480,6 +481,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(r.value, o.value, reason: desc);
       } else if (o is IntegerLiteral && r is IntegerLiteral) {
         expect(r.value ?? 0, o.value ?? 0, reason: desc);
+      } else if (o is IntegerLiteral && r is PrefixExpression) {
+        expect(r.operator.type, TokenType.MINUS);
+        IntegerLiteral ri = r.operand;
+        expect(-ri.value, o.value, reason: desc);
       } else if (o is DoubleLiteral && r is DoubleLiteral) {
         if (r.value != null &&
             r.value.isNaN &&
@@ -1195,7 +1200,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else {
       fail('Unexpected type for resynthesized ($desc):'
           ' ${element.runtimeType}');
-      return null;
     }
   }
 
@@ -2263,20 +2267,20 @@ class C {
     }
   }
 
+  test_class_setter_invalid_named_parameter() async {
+    var library = await checkLibrary('class C { void set x({a}) {} }');
+    checkElementText(library, r'''
+class C {
+  void set x({dynamic a}) {}
+}
+''');
+  }
+
   test_class_setter_invalid_no_parameter() async {
     var library = await checkLibrary('class C { void set x() {} }');
     checkElementText(library, r'''
 class C {
   void set x() {}
-}
-''');
-  }
-
-  test_class_setter_invalid_too_many_parameters() async {
-    var library = await checkLibrary('class C { void set x(a, b) {} }');
-    checkElementText(library, r'''
-class C {
-  void set x(dynamic a, dynamic b) {}
 }
 ''');
   }
@@ -2290,11 +2294,11 @@ class C {
 ''');
   }
 
-  test_class_setter_invalid_named_parameter() async {
-    var library = await checkLibrary('class C { void set x({a}) {} }');
+  test_class_setter_invalid_too_many_parameters() async {
+    var library = await checkLibrary('class C { void set x(a, b) {} }');
     checkElementText(library, r'''
 class C {
-  void set x({dynamic a}) {}
+  void set x(dynamic a, dynamic b) {}
 }
 ''');
   }
@@ -4082,7 +4086,8 @@ const vNull = null;
 const vBoolFalse = false;
 const vBoolTrue = true;
 const vInt = 1;
-const vIntLong = 0x9876543210987654321;
+const vIntLong1 = 0x7FFFFFFFFFFFFFFF;
+const vIntLong2 = 0xFFFFFFFFFFFFFFFF;
 const vDouble = 2.3;
 const vString = 'abc';
 const vStringConcat = 'aaa' 'bbb';
@@ -4095,7 +4100,8 @@ const dynamic vNull = null;
 const bool vBoolFalse = false;
 const bool vBoolTrue = true;
 const int vInt = 1;
-const int vIntLong = 44998905507923676709665;
+const int vIntLong1 = 9223372036854775807;
+const int vIntLong2 = -1;
 const double vDouble = 2.3;
 const String vString = 'abc';
 const String vStringConcat = 'aaabbb';
@@ -4108,7 +4114,8 @@ const dynamic vNull = null;
 const dynamic vBoolFalse = false;
 const dynamic vBoolTrue = true;
 const dynamic vInt = 1;
-const dynamic vIntLong = 44998905507923676709665;
+const dynamic vIntLong1 = 9223372036854775807;
+const dynamic vIntLong2 = -1;
 const dynamic vDouble = 2.3;
 const dynamic vString = 'abc';
 const dynamic vStringConcat = 'aaabbb';
@@ -4273,6 +4280,27 @@ const List<C> v = const <
 import 'a.dart' as p;
 const dynamic v = const <
         C/*location: a.dart;C*/>[];
+''');
+    }
+  }
+
+  test_const_topLevel_typedList_typedefArgument() async {
+    shouldCompareLibraryElements = false;
+    var library = await checkLibrary(r'''
+typedef int F(String id);
+const v = const <F>[];
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+typedef F = int Function(String id);
+const List<(String) → int> v = const <
+        null/*location: test.dart;F;-*/>[];
+''');
+    } else {
+      checkElementText(library, r'''
+typedef F = int Function(String id);
+const dynamic v = const <
+        null/*location: test.dart;F;-*/>[];
 ''');
     }
   }
@@ -5471,8 +5499,11 @@ export 'a.dart';
   }
 
   test_export_class_type_alias() async {
-    addLibrarySource(
-        '/a.dart', 'class C {} exends _D with _E; class _D {} class _E {}');
+    addLibrarySource('/a.dart', r'''
+class C = _D with _E;
+class _D {}
+class _E {}
+''');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 export 'a.dart';
@@ -7175,7 +7206,7 @@ F f;
     if (isStrongMode) {
       checkElementText(library, r'''
 typedef F<T extends num> = dynamic Function(T p);
-(dynamic) → dynamic f;
+(num) → dynamic f;
 ''');
     } else {
       checkElementText(library, r'''
@@ -9525,31 +9556,19 @@ class D {
   test_typedef_type_parameters_bound_recursive() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends F>();');
-    if (isSharedFrontEnd) {
-      // Typedefs cannot reference themselves.
-      checkElementText(library, r'''
-typedef F<T extends dynamic> = void Function();
-''');
-    } else {
-      checkElementText(library, r'''
+    // Typedefs cannot reference themselves.
+    checkElementText(library, r'''
 typedef F<T extends () → void> = void Function();
 ''');
-    }
   }
 
   test_typedef_type_parameters_bound_recursive2() async {
     shouldCompareLibraryElements = false;
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
-    if (isSharedFrontEnd) {
-      // Typedefs cannot reference themselves.
-      checkElementText(library, r'''
-typedef F<T extends List<dynamic>> = void Function();
-''');
-    } else {
-      checkElementText(library, r'''
+    // Typedefs cannot reference themselves.
+    checkElementText(library, r'''
 typedef F<T extends List<() → void>> = void Function();
 ''');
-    }
   }
 
   test_typedef_type_parameters_f_bound_complex() async {

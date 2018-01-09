@@ -499,7 +499,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is a warning, but the part is still included.
-        addWarning(
+        addProblem(
             templatePartOfUriMismatch.withArguments(
                 part.fileUri, uri, part.partOfUri),
             -1,
@@ -509,7 +509,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       if (name != null) {
         if (part.partOfName != name) {
           // This is a warning, but the part is still included.
-          addWarning(
+          addProblem(
               templatePartOfLibraryNameMismatch.withArguments(
                   part.fileUri, name, part.partOfName),
               -1,
@@ -517,7 +517,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         }
       } else {
         // This is a warning, but the part is still included.
-        addWarning(
+        addProblem(
             templatePartOfUseUri.withArguments(
                 part.fileUri, fileUri, part.partOfName),
             -1,
@@ -582,14 +582,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  /// Resolves all unresolved types in [types]. The list of types is cleared
-  /// when done.
+  /// Resolves all unresolved types in [types]. The list of types is retained
+  /// and is used in [KernelLibraryBuilder.instantiateToBound] later.
   int resolveTypes() {
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
     }
-    types.clear();
     return typeCount;
   }
 

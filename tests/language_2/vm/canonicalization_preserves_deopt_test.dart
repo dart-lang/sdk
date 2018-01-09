@@ -28,13 +28,13 @@ main() {
     assert(() {
       Expect.isTrue(bar(-1 << 63));
       return true;
-    });
+    }());
     Expect.isTrue(baz(-1 << 63));
   }
   Expect.isFalse(foo(new X()));
   assert(() {
     Expect.isFalse(bar(new X()));
     return true;
-  });
+  }());
   Expect.isFalse(baz(new X()));
 }

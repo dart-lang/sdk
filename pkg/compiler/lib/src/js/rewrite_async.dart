@@ -2506,7 +2506,7 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
       js.Node target = targets[node];
       return target is js.Loop ||
           (target is js.LabeledStatement && target.body is js.Loop);
-    });
+    }());
     return false;
   }
 

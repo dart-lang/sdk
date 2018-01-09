@@ -10,10 +10,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
@@ -29,10 +29,9 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisServerTest {
+class AnalysisServerTest extends Object with ResourceProviderMixin {
   MockServerChannel channel;
   AnalysisServer server;
-  MemoryResourceProvider resourceProvider;
   MockPackageMapProvider packageMapProvider;
 
   /**
@@ -42,10 +41,10 @@ class AnalysisServerTest {
   Future do_not_test_no_duplicate_notifications() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = [ServerService.STATUS].toSet();
-    resourceProvider.newFolder('/foo');
-    resourceProvider.newFolder('/bar');
-    resourceProvider.newFile('/foo/foo.dart', 'import "../bar/bar.dart";');
-    File bar = resourceProvider.newFile('/bar/bar.dart', 'library bar;');
+    newFolder('/foo');
+    newFolder('/bar');
+    newFile('/foo/foo.dart', content: 'import "../bar/bar.dart";');
+    File bar = newFile('/bar/bar.dart', content: 'library bar;');
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
     Map<AnalysisService, Set<String>> subscriptions =
         <AnalysisService, Set<String>>{};
@@ -92,7 +91,6 @@ class AnalysisServerTest {
   void setUp() {
     processRequiredPlugins();
     channel = new MockServerChannel();
-    resourceProvider = new MemoryResourceProvider();
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
     packageMapProvider = new MockPackageMapProvider();
@@ -116,13 +114,13 @@ class AnalysisServerTest {
 
   Future test_serverStatusNotifications() {
     server.serverServices.add(ServerService.STATUS);
-    resourceProvider.newFolder('/pkg');
-    resourceProvider.newFolder('/pkg/lib');
-    resourceProvider.newFile('/pkg/lib/test.dart', 'class C {}');
+    newFolder('/pkg');
+    newFolder('/pkg/lib');
+    newFile('/pkg/lib/test.dart', content: 'class C {}');
     server.setAnalysisRoots('0', ['/pkg'], [], {});
     // Pump the event queue to make sure the server has finished any
     // analysis.
-    return pumpEventQueue().then((_) {
+    return pumpEventQueue(times: 5000).then((_) {
       List<Notification> notifications = channel.notificationsReceived;
       expect(notifications, isNotEmpty);
       // expect at least one notification indicating analysis is in progress
@@ -144,8 +142,8 @@ class AnalysisServerTest {
 
   test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     String path = '/project/samples/sample.dart';
-    resourceProvider.newFile(path, '');
-    resourceProvider.newFile('/project/analysis_options.yaml', r'''
+    newFile(path);
+    newFile('/project/analysis_options.yaml', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
@@ -163,8 +161,8 @@ analyzer:
 
   test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     String path = '/project/samples/sample.dart';
-    resourceProvider.newFile(path, '');
-    resourceProvider.newFile('/project/.analysis_options', r'''
+    newFile(path);
+    newFile('/project/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'samples/**'

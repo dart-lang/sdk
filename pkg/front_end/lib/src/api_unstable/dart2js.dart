@@ -30,7 +30,7 @@ InitializedCompilerState initializeCompiler(InitializedCompilerState oldState,
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
-    ..strongMode = false
+    ..strongMode = target.strongMode
     ..linkedDependencies = [sdkUri]
     ..packagesFileUri = packagesFileUri;
 

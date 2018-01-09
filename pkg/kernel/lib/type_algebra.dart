@@ -66,6 +66,58 @@ DartType substituteDeep(
   return substitutor.isInfinite ? null : result;
 }
 
+List<DartType> calculateBounds(
+    List<TypeParameter> typeParameters, Class object) {
+  var refinedBounds = new List<DartType>(typeParameters.length);
+  var substitution = <TypeParameter, DartType>{};
+  var substitutionToDynamic = <TypeParameter, DartType>{};
+
+  for (int i = 0; i < typeParameters.length; i++) {
+    DartType type = typeParameters[i].bound;
+    if (type == null || type is InterfaceType && type.classNode == object) {
+      type = const DynamicType();
+    }
+
+    refinedBounds[i] = type;
+    substitution[typeParameters[i]] = type;
+    substitutionToDynamic[typeParameters[i]] = const DynamicType();
+  }
+
+  var result = new List<DartType>(typeParameters.length);
+  for (int i = 0; i < result.length; i++) {
+    result[i] = substituteDeep(refinedBounds[i], substitution);
+    if (result[i] == null) {
+      result[i] = substitute(refinedBounds[i], substitutionToDynamic);
+    }
+  }
+  return result;
+}
+
+DartType instantiateToBounds(DartType type, Class object) {
+  if (type is InterfaceType) {
+    for (var typeArgument in type.typeArguments) {
+      // If at least one of the arguments is not dynamic, we assume that the
+      // type is not raw and does not need instantiation of its type parameters
+      // to their bounds.
+      if (typeArgument is! DynamicType) {
+        return type;
+      }
+    }
+    return new InterfaceType.byReference(
+        type.className, calculateBounds(type.classNode.typeParameters, object));
+  }
+  if (type is TypedefType) {
+    for (var typeArgument in type.typeArguments) {
+      if (typeArgument is! DynamicType) {
+        return type;
+      }
+    }
+    return new TypedefType.byReference(type.typedefReference,
+        calculateBounds(type.typedefNode.typeParameters, object));
+  }
+  return type;
+}
+
 /// Returns true if [type] contains a reference to any of the given [variables].
 ///
 /// It is an error to call this with a [type] that contains a [FunctionType]
@@ -340,7 +392,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
     substitution[node] = new TypeParameterType(fresh);
-    fresh.bound = node.bound != null ? visit(node.bound) : null;
+    fresh.bound = visit(node.bound);
     return fresh;
   }
 }

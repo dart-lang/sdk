@@ -31,7 +31,7 @@ void test() {
   dart.Isolate.spawn(isolate, receive.sendPort);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   (Isolate isolate) async {
     int step = 0;

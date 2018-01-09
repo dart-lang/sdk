@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:path/path.dart' as path;
@@ -32,29 +33,22 @@ main() {
 }
 
 @reflectiveTest
-class PluginWatcherTest {
-  MemoryResourceProvider resourceProvider;
+class PluginWatcherTest extends Object with ResourceProviderMixin {
   TestPluginManager manager;
   PluginWatcher watcher;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
     manager = new TestPluginManager();
     watcher = new PluginWatcher(resourceProvider, manager);
   }
 
   test_addedDriver() async {
-    String pkg1Path = resourceProvider.convertPath('/pkg1');
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg1/lib/test1.dart'), '');
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg2/lib/pkg2.dart'), '');
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg2/pubspec.yaml'), 'name: pkg2');
-    resourceProvider.newFile(
-        resourceProvider.convertPath(
-            '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart'),
-        '');
+    String pkg1Path = newFolder('/pkg1').path;
+    newFile('/pkg1/lib/test1.dart');
+    newFile('/pkg2/lib/pkg2.dart');
+    newFile('/pkg2/pubspec.yaml', content: 'name: pkg2');
+    newFile(
+        '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
 
     ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
@@ -82,9 +76,8 @@ class PluginWatcherTest {
   }
 
   test_addedDriver_missingPackage() async {
-    String pkg1Path = resourceProvider.convertPath('/pkg1');
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg1/lib/test1.dart'), '');
+    String pkg1Path = newFolder('/pkg1').path;
+    newFile('/pkg1/lib/test1.dart');
 
     ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
@@ -106,7 +99,7 @@ class PluginWatcherTest {
   }
 
   test_removedDriver() {
-    String pkg1Path = resourceProvider.convertPath('/pkg1');
+    String pkg1Path = newFolder('/pkg1').path;
     ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
     watcher.addedDriver(driver, contextRoot);

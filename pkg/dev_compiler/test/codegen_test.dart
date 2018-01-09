@@ -168,7 +168,9 @@ main(List<String> arguments) {
       // some static error is produced.
       var intentionalCompileError =
           (contents.contains(': compile-time error') ||
-                  contents.contains('/*@compile-error=')) &&
+                  // Use adjacent strings so test.dart doesn't match this line
+                  // as an expected compile error.
+                  contents.contains('/*@' 'compile-error=')) &&
               !status.contains(Expectation.missingCompileTimeError);
 
       var crashing = status.contains(Expectation.crash);

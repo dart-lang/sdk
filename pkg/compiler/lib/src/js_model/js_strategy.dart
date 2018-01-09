@@ -159,6 +159,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelCodegenWorldBuilder(
         elementMap,
+        _globalLocalsMap,
         closedWorld.elementEnvironment,
         nativeBasicData,
         closedWorld,
@@ -264,29 +265,44 @@ class JsClosedWorldBuilder {
         map.toBackendMemberSet(closedWorld.processedMembers);
 
     RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
-    Set<ir.Node> localFunctionsNodes = new Set<ir.Node>();
+    Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
     for (KLocalFunction localFunction
-        in kernelRtiNeed.localFunctionsNeedingRti) {
-      localFunctionsNodes.add(localFunction.node);
+        in kernelRtiNeed.localFunctionsNeedingSignature) {
+      localFunctionsNodesNeedingSignature.add(localFunction.node);
+    }
+    Set<ir.Node> localFunctionsNodesNeedingTypeArguments = new Set<ir.Node>();
+    for (KLocalFunction localFunction
+        in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
+      localFunctionsNodesNeedingTypeArguments.add(localFunction.node);
     }
 
-    var classesNeedingRti =
-        map.toBackendClassSet(kernelRtiNeed.classesNeedingRti);
+    Set<ClassEntity> classesNeedingTypeArguments =
+        map.toBackendClassSet(kernelRtiNeed.classesNeedingTypeArguments);
     Iterable<FunctionEntity> callMethods =
         _closureConversionTask.createClosureEntities(
             this,
             map.toBackendMemberMap(closureModels, identity),
-            localFunctionsNodes,
-            classesNeedingRti);
+            localFunctionsNodesNeedingSignature,
+            classesNeedingTypeArguments);
 
-    List<FunctionEntity> callMethodsNeedingRti = <FunctionEntity>[];
-    for (ir.Node node in localFunctionsNodes) {
-      callMethodsNeedingRti
+    List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
+    for (ir.Node node in localFunctionsNodesNeedingSignature) {
+      callMethodsNeedingSignature
+          .add(_closureConversionTask.getClosureInfo(node).callMethod);
+    }
+    List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
+    for (ir.Node node in localFunctionsNodesNeedingTypeArguments) {
+      callMethodsNeedingTypeArguments
           .add(_closureConversionTask.getClosureInfo(node).callMethod);
     }
 
-    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(map, backendUsage,
-        kernelRtiNeed, callMethodsNeedingRti, classesNeedingRti);
+    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(
+        map,
+        backendUsage,
+        kernelRtiNeed,
+        callMethodsNeedingSignature,
+        callMethodsNeedingTypeArguments,
+        classesNeedingTypeArguments);
 
     NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
     NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
@@ -456,54 +472,58 @@ class JsClosedWorldBuilder {
       JsToFrontendMap map,
       BackendUsage backendUsage,
       RuntimeTypesNeedImpl rtiNeed,
-      List<FunctionEntity> callMethodsNeedingRti,
-      Set<ClassEntity> classesNeedingRti) {
-    Set<FunctionEntity> methodsNeedingRti =
-        map.toBackendFunctionSet(rtiNeed.methodsNeedingRti);
-    methodsNeedingRti.addAll(callMethodsNeedingRti);
+      List<FunctionEntity> callMethodsNeedingSignature,
+      List<FunctionEntity> callMethodsNeedingTypeArguments,
+      Set<ClassEntity> classesNeedingTypeArguments) {
+    Set<FunctionEntity> methodsNeedingSignature =
+        map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
+    methodsNeedingSignature.addAll(callMethodsNeedingSignature);
+    Set<FunctionEntity> methodsNeedingTypeArguments =
+        map.toBackendFunctionSet(rtiNeed.methodsNeedingTypeArguments);
+    methodsNeedingTypeArguments.addAll(callMethodsNeedingTypeArguments);
     Set<ClassEntity> classesUsingTypeVariableExpression =
         map.toBackendClassSet(rtiNeed.classesUsingTypeVariableExpression);
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,
-        classesNeedingRti,
-        methodsNeedingRti,
+        classesNeedingTypeArguments,
+        methodsNeedingSignature,
+        methodsNeedingTypeArguments,
+        null,
         null,
         classesUsingTypeVariableExpression);
   }
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
-  KernelClosureClass buildClosureClass(
+  KernelClosureClassInfo buildClosureClass(
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
       Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      ir.Location location,
       KernelToLocalsMap localsMap) {
     ClassEntity superclass = _commonElements.closureClass;
 
-    KernelClosureClass cls = _elementMap.constructClosureClass(
+    KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
         member,
         originalClosureFunctionNode,
         enclosingLibrary,
         boxedVariables,
         info,
-        location,
         localsMap,
         new InterfaceType(superclass, const []));
 
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)
     ClassHierarchyNode parentNode = _classHierarchyNodes[superclass];
-    ClassHierarchyNode node = new ClassHierarchyNode(
-        parentNode, cls.closureClassEntity, parentNode.hierarchyDepth + 1);
-    _classHierarchyNodes[cls.closureClassEntity] = node;
-    _classSets[cls.closureClassEntity] = new ClassSet(node);
+    ClassHierarchyNode node = new ClassHierarchyNode(parentNode,
+        closureClassInfo.closureClassEntity, parentNode.hierarchyDepth + 1);
+    _classHierarchyNodes[closureClassInfo.closureClassEntity] = node;
+    _classSets[closureClassInfo.closureClassEntity] = new ClassSet(node);
     node.isDirectlyInstantiated = true;
 
-    return cls;
+    return closureClassInfo;
   }
 }
 
@@ -622,10 +642,13 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   ConstantValue visitDeferred(DeferredConstantValue constant, _) {
+    throw new UnsupportedError("DeferredConstantValue with --use-kernel");
+  }
+
+  ConstantValue visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
     var referenced = constant.referenced.accept(this, null);
     if (referenced == constant.referenced) return constant;
-    // TODO(sigmund): do we need a JImport entity?
-    return new DeferredConstantValue(referenced, constant.import);
+    return new DeferredGlobalConstantValue(referenced, constant.unit);
   }
 
   DartType _handleType(DartType type) {

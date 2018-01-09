@@ -459,7 +459,19 @@ vm/causal_async_exception_stack2_test: SkipByDesign # Causal async stacks are no
 vm/causal_async_exception_stack_test: SkipByDesign # Causal async stacks are not supported in product mode
 
 [ $runtime == dart_precompiled || $runtime == vm ]
+arithmetic_test: CompileTimeError # Large integer literal
+bit_operations_test: CompileTimeError # Large integer literal
+deopt_inlined_function_lazy_test: CompileTimeError # Large integer literal
+guess_cid_test: CompileTimeError # Large integer literal
+identical_closure2_test: CompileTimeError # Large integer literal
+int2_test: CompileTimeError # Large integer literal
+mint_compares_test: CompileTimeError # Large integer literal
+number_identity_test: CompileTimeError # Large integer literal
+regress_24283_test: RuntimeError # Large integers
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
+vm/regress_14903_test: CompileTimeError # Large integer literal
+vm/regress_23117_vm_test: RuntimeError # Large integers
+vm/regress_23238_test: RuntimeError # Large integers
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 
 [ $hot_reload || $hot_reload_rollback ]

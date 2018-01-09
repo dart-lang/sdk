@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  default constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  set x1(covariant self::A value) → void {}
+  set x2(self::A value) → void {}
+  set x3(covariant self::A value) → void {}
+  set x4(self::A value) → void {}
+  set x5(covariant self::A value) → void {}
+  set x6(covariant self::B value) → void {}
+}
+class D extends self::C {
+  default constructor •() → void
+    : super self::C::•()
+    ;
+  set x1(covariant self::B value) → void {}
+  set x2(covariant self::B value) → void {}
+  set x3(covariant self::B value) → void {}
+  set x4(self::B value) → void {}
+  set x5(covariant core::String value) → void {}
+  set x6(covariant self::A value) → void {}
+}
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/override_check_accessor_with_covariant_modifier.dart:25:50: Error: The parameter 'value' of the method 'D::x4' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).\nChange to a supertype of #lib1::A (or, for a covariant parameter, a subtype).\n      B /*@error=OverrideTypeMismatchParameter*/ value) {} // Not covariant\n                                                 ^", "pkg/front_end/testcases/override_check_accessor_with_covariant_modifier.dart:27:65: Error: The parameter 'value' of the method 'D::x5' has type dart.core::String, which does not match the corresponding type in the overridden method (#lib1::A).\nChange to a supertype of #lib1::A (or, for a covariant parameter, a subtype).\n      covariant String /*@error=OverrideTypeMismatchParameter*/ value) {}\n                                                                ^"]/* from null */;
+static method main() → dynamic {}

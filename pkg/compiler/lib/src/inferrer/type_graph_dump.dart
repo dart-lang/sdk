@@ -99,11 +99,11 @@ class TypeGraphDump {
   ///
   /// Will never return the a given filename more than once, even if called with
   /// the same element.
-  String filenameFromElement(MemberElement element) {
+  String filenameFromElement(MemberEntity element) {
     // The toString method of elements include characters that are unsuitable
     // for URIs and file systems.
     List<String> parts = <String>[];
-    parts.add(element.library?.libraryName);
+    parts.add(element.library.canonicalUri.pathSegments.last);
     parts.add(element.enclosingClass?.name);
     if (element.isGetter) {
       parts.add('get-${element.name}');
@@ -115,19 +115,10 @@ class TypeGraphDump {
       } else {
         parts.add(element.name);
       }
-    } else if (element.isOperator) {
+    } else {
       parts.add(Elements
           .operatorNameToIdentifier(element.name)
           .replaceAll(r'$', '-'));
-    } else {
-      parts.add(element.name);
-    }
-    if (element != element) {
-      if (element.name.isEmpty) {
-        parts.add('anon${element.sourcePosition.begin}');
-      } else {
-        parts.add(element.name);
-      }
     }
     String filename = parts.where((x) => x != null && x != '').join('.');
     if (usedFilenames.add(filename)) return filename;
@@ -149,7 +140,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   int usedIds = 0;
   final OutputSink output;
-  final MemberElement element;
+  final MemberEntity element;
   TypeInformation returnValue;
 
   _GraphGenerator(this.global, this.element, this.output) {

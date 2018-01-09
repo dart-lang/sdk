@@ -31,6 +31,10 @@ vm_restart_test: Crash
 [ $compiler == dartkp ]
 *: Skip # Non-kernel also skips precompiled mode.
 
+[ $arch == simdbc64 && $compiler == dartk ]
+pause_on_unhandled_async_exceptions2_test: RuntimeError, Timeout # Issue 31765
+pause_on_unhandled_async_exceptions_test: RuntimeError, Timeout # Issue 31765
+
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
@@ -55,6 +59,7 @@ auth_token_test: CompileTimeError
 awaiter_async_stack_contents_test: CompileTimeError
 bad_web_socket_address_test: CompileTimeError
 break_on_activation_test: CompileTimeError
+break_on_default_constructor_test: CompileTimeError
 break_on_function_test: CompileTimeError
 breakpoint_in_parts_class_test: CompileTimeError
 breakpoint_two_args_checked_test: CompileTimeError
@@ -70,6 +75,7 @@ contexts_test: CompileTimeError
 coverage_leaf_function_test: CompileTimeError
 coverage_optimized_function_test: CompileTimeError
 crash_dump_test: CompileTimeError
+dart/spawn_infinite_loop_test: RuntimeError
 debugger_inspect_test: CompileTimeError
 debugger_location_second_test: CompileTimeError
 debugger_location_test: CompileTimeError
@@ -168,7 +174,6 @@ pause_on_unhandled_exceptions_test: CompileTimeError
 positive_token_pos_test: CompileTimeError
 process_service_test: CompileTimeError
 reachable_size_test: CompileTimeError
-read_stream_test: CompileTimeError
 regexp_function_test: CompileTimeError
 regress_28443_test: CompileTimeError
 regress_28980_test: CompileTimeError
@@ -185,6 +190,7 @@ step_over_await_test: CompileTimeError
 step_test: CompileTimeError
 step_through_arithmetic_test: CompileTimeError
 step_through_constructor_calls_test: CompileTimeError
+step_through_constructor_test: CompileTimeError
 step_through_function_2_test: CompileTimeError
 step_through_function_test: CompileTimeError
 step_through_getter_test: CompileTimeError

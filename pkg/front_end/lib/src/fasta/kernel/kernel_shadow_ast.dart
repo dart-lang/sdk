@@ -30,8 +30,7 @@ import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart'
-    hide InvalidExpression, InvalidInitializer, InvalidStatement;
+import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -571,19 +570,23 @@ class ShadowConditionalExpression extends ConditionalExpression
 /// Shadow object for [ConstructorInvocation].
 class ShadowConstructorInvocation extends ConstructorInvocation
     implements ShadowExpression {
+  /// The name of the import prefix preceding the instantiated type; or `null`
+  /// if the type is not prefixed.
+  final String _prefixName;
+
   final Member _initialTarget;
 
-  ShadowConstructorInvocation(
-      Constructor target, this._initialTarget, Arguments arguments,
+  ShadowConstructorInvocation(this._prefixName, Constructor target,
+      this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.constructorInvocationEnter(this, typeContext) ||
-            typeNeeded;
+    typeNeeded = inferrer.listener
+            .constructorInvocationEnter(this, _prefixName, typeContext) ||
+        typeNeeded;
     var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,
@@ -680,19 +683,23 @@ class ShadowExpressionStatement extends ExpressionStatement
 /// factory constructor.
 class ShadowFactoryConstructorInvocation extends StaticInvocation
     implements ShadowExpression {
+  /// The name of the import prefix preceding the instantiated type; or `null`
+  /// if the type is not prefixed.
+  final String _prefixName;
+
   final Member _initialTarget;
 
-  ShadowFactoryConstructorInvocation(
-      Procedure target, this._initialTarget, Arguments arguments,
+  ShadowFactoryConstructorInvocation(this._prefixName, Procedure target,
+      this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.constructorInvocationEnter(this, typeContext) ||
-            typeNeeded;
+    typeNeeded = inferrer.listener
+            .constructorInvocationEnter(this, _prefixName, typeContext) ||
+        typeNeeded;
     var inferredType = inferrer.inferInvocation(
         typeContext,
         typeNeeded,
@@ -1734,15 +1741,20 @@ abstract class ShadowStatement extends Statement {
 
 /// Concrete shadow object representing an assignment to a static variable.
 class ShadowStaticAssignment extends ShadowComplexAssignment {
+  /// The name of the import prefix preceding the [_targetClass], or the target
+  /// [Procedure]; or `null` if the reference is not prefixed.
+  final String _prefixName;
+
   /// If [_targetClass] is not `null`, the offset at which the explicit
   /// reference to it is; otherwise `-1`.
-  int _targetOffset;
+  final int _targetOffset;
 
   /// The [Class] that was explicitly referenced to get the target [Procedure],
   /// or `null` if the class is implicit.
-  Class _targetClass;
+  final Class _targetClass;
 
-  ShadowStaticAssignment(this._targetOffset, this._targetClass, Expression rhs)
+  ShadowStaticAssignment(
+      this._prefixName, this._targetOffset, this._targetClass, Expression rhs)
       : super(rhs);
 
   @override
@@ -1754,8 +1766,8 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.staticAssignEnter(
-            desugared, _targetOffset, _targetClass, this.write, typeContext) ||
+    typeNeeded = inferrer.listener.staticAssignEnter(desugared, _prefixName,
+            _targetOffset, _targetClass, this.write, typeContext) ||
         typeNeeded;
     DartType readType;
     var read = this.read;
@@ -1785,22 +1797,27 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
 /// Concrete shadow object representing a read of a static variable in kernel
 /// form.
 class ShadowStaticGet extends StaticGet implements ShadowExpression {
+  /// The name of the import prefix preceding the [_targetClass], or the target
+  /// [Procedure]; or `null` if the reference is not prefixed.
+  final String _prefixName;
+
   /// If [_targetClass] is not `null`, the offset at which the explicit
   /// reference to it is; otherwise `-1`.
-  int _targetOffset;
+  final int _targetOffset;
 
   /// The [Class] that was explicitly referenced to get the target [Procedure],
   /// or `null` if the class is implicit.
-  Class _targetClass;
+  final Class _targetClass;
 
-  ShadowStaticGet(this._targetOffset, this._targetClass, Member target)
+  ShadowStaticGet(
+      this._prefixName, this._targetOffset, this._targetClass, Member target)
       : super(target);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener
-            .staticGetEnter(this, _targetOffset, _targetClass, typeContext) ||
+    typeNeeded = inferrer.listener.staticGetEnter(
+            this, _prefixName, _targetOffset, _targetClass, typeContext) ||
         typeNeeded;
     var target = this.target;
     if (target is ShadowField && target._inferenceNode != null) {
@@ -1820,16 +1837,20 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
 /// Shadow object for [StaticInvocation].
 class ShadowStaticInvocation extends StaticInvocation
     implements ShadowExpression {
+  /// The name of the import prefix preceding the [_targetClass], or the target
+  /// [Procedure]; or `null` if the reference is not prefixed.
+  final String _prefixName;
+
   /// If [_targetClass] is not `null`, the offset at which the explicit
   /// reference to it is; otherwise `-1`.
-  int _targetOffset;
+  final int _targetOffset;
 
   /// The [Class] that was explicitly referenced to get the target [Procedure],
   /// or `null` if the class is implicit.
-  Class _targetClass;
+  final Class _targetClass;
 
-  ShadowStaticInvocation(this._targetOffset, this._targetClass,
-      Procedure target, Arguments arguments,
+  ShadowStaticInvocation(this._prefixName, this._targetOffset,
+      this._targetClass, Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -1837,7 +1858,7 @@ class ShadowStaticInvocation extends StaticInvocation
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticInvocationEnter(
-            this, _targetOffset, _targetClass, typeContext) ||
+            this, _prefixName, _targetOffset, _targetClass, typeContext) ||
         typeNeeded;
     var calleeType = target.function.functionType;
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
@@ -2243,13 +2264,18 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
 
 /// Shadow object for [TypeLiteral].
 class ShadowTypeLiteral extends TypeLiteral implements ShadowExpression {
-  ShadowTypeLiteral(DartType type) : super(type);
+  /// The name of the import prefix preceding the referenced type literal;
+  /// or `null` if the reference is not prefixed.
+  final String prefixName;
+
+  ShadowTypeLiteral(this.prefixName, DartType type) : super(type);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded =
-        inferrer.listener.typeLiteralEnter(this, typeContext) || typeNeeded;
+        inferrer.listener.typeLiteralEnter(this, prefixName, typeContext) ||
+            typeNeeded;
     var inferredType = typeNeeded ? inferrer.coreTypes.typeClass.rawType : null;
     inferrer.listener.typeLiteralExit(this, inferredType);
     return inferredType;

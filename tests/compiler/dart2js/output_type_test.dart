@@ -37,9 +37,12 @@ class TestRandomAccessFileOutputProvider implements CompilerOutput {
 CompileFunc oldCompileFunc;
 
 Future<Null> test(List<String> arguments, List<String> expectedOutput,
-    {List<String> groupOutputs: const <String>[]}) async {
+    {List<String> groupOutputs: const <String>[], bool useKernel}) async {
   List<String> options = new List<String>.from(arguments)
-    ..add("--library-root=${Platform.script.resolve('../../../sdk/')}");
+    ..add("--library-root=${Uri.base.resolve('sdk/')}");
+  if (useKernel) {
+    options.add(Flags.useKernel);
+  }
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
   TestRandomAccessFileOutputProvider outputProvider;
@@ -64,13 +67,15 @@ Future<Null> test(List<String> arguments, List<String> expectedOutput,
     Expect.notEquals(0, countBefore - outputs.length,
         'Expected output group ${outputGroup}');
   }
-  Expect.setEquals(expectedOutput, outputs);
+  Expect.setEquals(expectedOutput, outputs,
+      "Output mismatch. Expected $expectedOutput, actual $outputs.");
 }
 
 main() {
   enableWriteString = false;
   oldCompileFunc = compileFunc;
-  asyncTest(() async {
+
+  runTests({bool useKernel}) async {
     PRINT_GRAPH = true;
     TRACE_FILTER_PATTERN_FOR_TEST = 'x';
     await test([
@@ -86,27 +91,48 @@ main() {
       'dart.cfg', // From TRACE_FILTER_PATTERN_FOR_TEST
     ], groupOutputs: [
       '.dot', // From PRINT_GRAPH
-    ]);
+    ], useKernel: useKernel);
+
     PRINT_GRAPH = false;
     TRACE_FILTER_PATTERN_FOR_TEST = null;
-    await test([
-      'tests/compiler/dart2js/data/deferred_helper.dart',
-      Flags.useContentSecurityPolicy,
-      Flags.useMultiSourceInfo,
-    ], [
+    List<String> additionOptionals = <String>[];
+    List<String> expectedOutput = <String>[
       'out.js',
       'out.js.map',
-      'out.js.map.v2',
       'out.js_1.part.js',
       'out.js_1.part.js.map',
-      'out.js_1.part.js.map.v2',
-    ]);
-    await test([
-      'tests/compiler/dart2js/data/deferred_helper.dart',
-      '--out=custom.data',
-      '--resolve-only',
-    ], [
-      'custom.data',
-    ]);
+    ];
+    if (!useKernel) {
+      // Option --use-multi-source-info is only supported for the old frontend.
+      expectedOutput.add('out.js.map.v2');
+      expectedOutput.add('out.js_1.part.js.map.v2');
+      additionOptionals.add(Flags.useMultiSourceInfo);
+    }
+
+    await test(
+        [
+          'tests/compiler/dart2js/data/deferred_helper.dart',
+          Flags.useContentSecurityPolicy,
+        ]..addAll(additionOptionals),
+        expectedOutput,
+        useKernel: useKernel);
+
+    if (!useKernel) {
+      // Option --resolve-only is only supported for the old frontend.
+      await test([
+        'tests/compiler/dart2js/data/deferred_helper.dart',
+        '--out=custom.data',
+        '--resolve-only',
+      ], [
+        'custom.data',
+      ], useKernel: useKernel);
+    }
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
   });
 }

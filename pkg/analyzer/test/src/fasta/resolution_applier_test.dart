@@ -43,6 +43,7 @@ class ResolutionApplierTest extends FastaParserTestCase {
     FunctionDeclaration function = unit.declarations[0];
     FunctionBody body = function.functionExpression.body;
     ResolutionApplier applier = new ResolutionApplier(
+        null,
         new _TestTypeContext(),
         declaredElements,
         referencedElements,
@@ -74,6 +75,8 @@ f(String s, int i) {
     ], <DartType>[
       typeProvider.stringType,
       new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
+      new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
+      new TypeArgumentsDartType([]),
       typeProvider.intType,
       typeProvider.stringType,
     ]);
@@ -92,7 +95,11 @@ f(Object a) {
       typeProvider.objectType,
       typeProvider.objectType,
       typeProvider.objectType,
+      new TypeArgumentsDartType([]),
       typeProvider.objectType,
+      typeProvider.objectType,
+      typeProvider.objectType,
+      new TypeArgumentsDartType([]),
       typeProvider.objectType
     ]);
   }
@@ -247,6 +254,8 @@ f(String s) {
   }
 
   void test_methodInvocation_method() {
+    var substringType =
+        new FunctionTypeImpl(new FunctionElementImpl('substring', -1));
     applyTypes(r'''
 f(String s) {
   return s.substring(3, 7);
@@ -256,7 +265,9 @@ f(String s) {
       new MethodElementImpl('length', -1)
     ], <DartType>[
       typeProvider.stringType,
-      typeProvider.intType,
+      substringType,
+      substringType,
+      new TypeArgumentsDartType([]),
       typeProvider.intType,
       typeProvider.stringType,
       typeProvider.stringType

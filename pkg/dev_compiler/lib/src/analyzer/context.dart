@@ -2,22 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/source/custom_resolver.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummaryUriResolver, SummaryDataStore;
+import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
+
+// ignore_for_file: deprecated_member_use
 
 /// Options used to set up Source URI resolution in the analysis context.
 class AnalyzerOptions {

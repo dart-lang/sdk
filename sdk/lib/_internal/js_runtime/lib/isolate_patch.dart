@@ -4,6 +4,7 @@
 
 // Patch file for the dart:isolate library.
 
+import "dart:async";
 import 'dart:_js_helper' show patch;
 import 'dart:_isolate_helper'
     show CapabilityImpl, IsolateNatives, ReceivePortImpl, RawReceivePortImpl;

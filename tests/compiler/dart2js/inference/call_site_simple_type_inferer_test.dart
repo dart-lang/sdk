@@ -3,19 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// TODO(johnniwinther): Port this test to use the equivalence framework.
+/// Currently it only works with the mock compiler.
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/types/masks.dart';
 import 'package:expect/expect.dart';
 
+import 'type_mask_test_helper.dart';
 import '../compiler_helper.dart';
-import '../type_mask_test_helper.dart';
 
 void compileAndFind(String code, String className, String memberName,
     bool disableInlining, check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(code, uri, disableInlining: disableInlining);
+  var compiler = mockCompilerFor(code, uri, disableInlining: disableInlining);
   asyncTest(() => compiler.run(uri).then((_) {
         ClassElement cls = findElement(compiler, className);
         var member = cls.lookupLocalMember(memberName);

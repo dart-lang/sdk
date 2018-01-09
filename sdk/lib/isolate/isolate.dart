@@ -156,7 +156,7 @@ class Isolate {
   external static Isolate get current;
 
   /**
-   * Returns the package root of the current isolate, if any.
+   * The location of the package configuration of the current isolate, if any.
    *
    * If the isolate is using a [packageConfig] or the isolate has not been
    * setup for package resolution, this getter returns `null`, otherwise it
@@ -166,7 +166,7 @@ class Isolate {
   external static Future<Uri> get packageRoot;
 
   /**
-   * Returns the package root of the current isolate, if any.
+   * The package root of the current isolate, if any.
    *
    * If the isolate is using a [packageRoot] or the isolate has not been
    * setup for package resolution, this getter returns `null`, otherwise it

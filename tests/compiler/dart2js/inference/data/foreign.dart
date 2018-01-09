@@ -8,8 +8,7 @@ import 'dart:_foreign_helper';
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_js_embedded_names';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-/// ignore: UNUSED_IMPORT
+/// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
 /*element: main:[null]*/
@@ -19,7 +18,6 @@ main() {
   jsCallVoid();
   jsCallUnion();
 
-  jsBuiltin_createFunctionTypeRti();
   jsBuiltin_rawRtiToJsConstructorName();
 
   jsEmbeddedGlobal_getTypeFromName();
@@ -41,12 +39,6 @@ jsCallVoid() => JS('void', '#', 0);
 
 /*element: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
 jsCallUnion() => JS('int|String', '#', 0);
-
-/*element: jsBuiltin_createFunctionTypeRti:[exact=Object]*/
-jsBuiltin_createFunctionTypeRti() {
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
-}
 
 /*element: jsBuiltin_rawRtiToJsConstructorName:[exact=JSString]*/
 jsBuiltin_rawRtiToJsConstructorName() {

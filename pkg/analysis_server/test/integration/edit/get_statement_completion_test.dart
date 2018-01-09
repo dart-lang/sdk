@@ -14,7 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetStatementCompletionTest);
-    defineReflectiveTests(GetStatementCompletionTest_PreviewDart2);
+    defineReflectiveTests(GetStatementCompletionTest_UseCFE);
   });
 }
 
@@ -42,6 +42,11 @@ void foo() { }''';
     for (SourceEdit edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
+    expect(text, r'''
+void bar() { foo(); } // missing semi-colon
+
+void foo() { }''');
+
     await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
 
     await analysisFinished;
@@ -50,10 +55,9 @@ void foo() { }''';
 }
 
 @reflectiveTest
-class GetStatementCompletionTest_PreviewDart2
-    extends GetStatementCompletionTest {
+class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest

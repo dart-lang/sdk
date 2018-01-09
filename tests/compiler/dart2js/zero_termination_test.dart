@@ -12,10 +12,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-import 'launch_helper.dart' show launchDart2Js;
+import 'end_to_end/launch_helper.dart' show launchDart2Js;
 
 Uri pathOfData = Platform.script;
 Directory tempDir;
@@ -60,20 +61,22 @@ void check(ProcessResult result) {
   Expect.isFalse(stdout.contains(0));
 }
 
-Future testFile() async {
+Future testFile({bool useKernel}) async {
   String inFilePath =
       pathOfData.resolve('data/one_line_dart_program.dart').path;
   List<String> args = [inFilePath, "--out=" + outFilePath];
+  if (useKernel) args.add(Flags.useKernel);
 
   await cleanup();
   check(await launchDart2Js(args, noStdoutEncoding: true));
   await cleanup();
 }
 
-Future serverRunning(HttpServer server) async {
+Future serverRunning(HttpServer server, {bool useKernel}) async {
   int port = server.port;
   String inFilePath = "http://127.0.0.1:$port/data/one_line_dart_program.dart";
   List<String> args = [inFilePath, "--out=" + outFilePath];
+  if (useKernel) args.add(Flags.useKernel);
 
   server.listen(handleRequest);
   try {
@@ -85,25 +88,32 @@ Future serverRunning(HttpServer server) async {
   }
 }
 
-Future testHttp() {
+Future testHttp({bool useKernel}) {
   return HttpServer
       .bind(InternetAddress.LOOPBACK_IP_V4, 0)
-      .then((HttpServer server) => serverRunning(server));
+      .then((HttpServer server) => serverRunning(server, useKernel: useKernel));
 }
 
-runTests() async {
+runTests({bool useKernel}) async {
   tempDir = Directory.systemTemp.createTempSync('directory_test');
   outFilePath = path.join(tempDir.path, "out.js");
 
   try {
-    await testFile();
-    await testHttp();
+    await testFile(useKernel: useKernel);
+    if (!useKernel) {
+      // TODO(johnniwinther): Handle this test for kernel.
+      await testHttp(useKernel: useKernel);
+    }
   } finally {
     await tempDir.delete(recursive: true);
   }
 }
 
 main() {
-  asyncStart();
-  runTests().whenComplete(asyncEnd);
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTests(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTests(useKernel: true);
+  });
 }

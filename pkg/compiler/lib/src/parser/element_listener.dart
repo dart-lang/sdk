@@ -414,6 +414,11 @@ class ElementListener extends Listener {
         buildFieldElement, beginToken, endToken, hasParseError);
   }
 
+  @override
+  void handleInvalidTopLevelDeclaration(Token endToken) {
+    memberErrors = memberErrors.tail;
+  }
+
   void buildFieldElements(
       Modifiers modifiers,
       NodeList variables,

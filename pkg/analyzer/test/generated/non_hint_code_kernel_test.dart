@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_hint_code_driver_test.dart';
@@ -14,9 +15,19 @@ main() {
   });
 }
 
+/// Tests marked with this annotation fail because they test features that
+/// were implemented in Analyzer, but are intentionally not included into
+/// the Dart 2.0 plan, or disabled for Dart 2.0 altogether.
+const notForDart2 = const Object();
+
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
+}
 
 @reflectiveTest
 class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
@@ -24,15 +35,7 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_deadCode_deadBlock_if_debugConst_propertyAccessor() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_deadCode_deadBlock_if_debugConst_propertyAccessor();
-  }
+  bool get useCFE => true;
 
   @failingTest
   @override
@@ -43,21 +46,53 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
   }
 
-  @failingTest
   @override
-  @potentialAnalyzerProblem
-  test_duplicateImport_as() async {
-    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (38)
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_duplicateImport_as();
+  @failingTest
+  @notForDart2
+  test_undefinedGetter_inSubtype() async {
+    await super.test_undefinedGetter_inSubtype();
   }
 
-  @failingTest
   @override
-  @potentialAnalyzerProblem
-  test_importDeferredLibraryWithLoadFunction() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_importDeferredLibraryWithLoadFunction();
+  @failingTest
+  @notForDart2
+  test_undefinedMethod_inSubtype() async {
+    await super.test_undefinedMethod_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_binaryExpression_inSubtype() async {
+    await super.test_undefinedOperator_binaryExpression_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexBoth_inSubtype() async {
+    await super.test_undefinedOperator_indexBoth_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexGetter_inSubtype() async {
+    await super.test_undefinedOperator_indexGetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedOperator_indexSetter_inSubtype() async {
+    await super.test_undefinedOperator_indexSetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  @notForDart2
+  test_undefinedSetter_inSubtype() async {
+    await super.test_undefinedSetter_inSubtype();
   }
 
   @override
@@ -76,11 +111,13 @@ void g(bool c) {
     verify([source]);
   }
 
-  @failingTest
   @override
-  @potentialAnalyzerProblem
-  test_unusedImport_as_equalPrefixes() async {
-    await super.test_unusedImport_as_equalPrefixes();
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
+  test_unusedImport_annotationOnDirective() async {
+    // TODO(scheglov) We don't yet parse annotations on import directives.
+    fail('This test fails in checked mode (indirectly)');
+//    await super.test_unusedImport_annotationOnDirective();
   }
 
   @failingTest
@@ -88,21 +125,5 @@ void g(bool c) {
   @potentialAnalyzerProblem
   test_unusedImport_metadata() async {
     await super.test_unusedImport_metadata();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_prefix_topLevelFunction() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_unusedImport_prefix_topLevelFunction();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_prefix_topLevelFunction2() async {
-    // Appears to be an issue with resolution of import prefixes.
-    await super.test_unusedImport_prefix_topLevelFunction2();
   }
 }

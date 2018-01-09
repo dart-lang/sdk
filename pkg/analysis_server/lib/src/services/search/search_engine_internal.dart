@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
-import 'package:meta/meta.dart';
 
 /**
  * A [SearchEngine] implementation.
@@ -134,7 +133,6 @@ class SearchEngineImpl implements SearchEngine {
   }
 }
 
-@visibleForTesting
 class SearchMatchImpl implements SearchMatch {
   @override
   final String file;

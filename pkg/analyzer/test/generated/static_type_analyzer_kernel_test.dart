@@ -18,27 +18,13 @@ class StaticTypeAnalyzer2Test_Kernel extends StaticTypeAnalyzer2Test_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
   test_FunctionExpressionInvocation_block() async {
     // Bad state: No reference information for (() {return 1;})() at 21
     await super.test_FunctionExpressionInvocation_block();
-  }
-
-  @override
-  @failingTest
-  test_FunctionExpressionInvocation_curried() async {
-    // Bad state: No reference information for f()() at 53
-    await super.test_FunctionExpressionInvocation_curried();
-  }
-
-  @override
-  @failingTest
-  test_FunctionExpressionInvocation_expression() async {
-    // Bad state: No reference information for (() => 1)() at 21
-    await super.test_FunctionExpressionInvocation_expression();
   }
 
   @override

@@ -76,7 +76,7 @@ void script() {
   float64x2List = new Float64x2List(2);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     script();
     var lib = await isolate.rootLibrary.load();

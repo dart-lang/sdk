@@ -36,7 +36,7 @@ eval(Isolate isolate, String expression) async {
   return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Expect a simple path through variable x instead of long path filled
   // with VM objects
   (Isolate isolate) async {

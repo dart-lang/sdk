@@ -52,7 +52,7 @@ checkAsyncStarVarDescriptors(Isolate isolate) async {
   expect(vars, equals('param2 local2')); // no :async_op et al
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint, // debugger()
   setBreakpointAtLine(LINE_A),
   setBreakpointAtLine(LINE_B),

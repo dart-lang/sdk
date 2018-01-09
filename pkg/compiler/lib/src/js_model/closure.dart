@@ -168,7 +168,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         } else {
           failedAt(member, "Unexpected closure node ${node}");
         }
-        KernelClosureClass closureClass = _produceSyntheticElements(
+        KernelClosureClassInfo closureClassInfo = _produceSyntheticElements(
             closedWorldBuilder,
             member,
             functionNode,
@@ -177,8 +177,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             localFunctionsNeedingRti,
             classesNeedingRti);
         // Add also for the call method.
-        _scopeMap[closureClass.callMethod] = closureClass;
-        callMethods.add(closureClass.callMethod);
+        _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
+        callMethods.add(closureClassInfo.callMethod);
       }
     });
     return callMethods;
@@ -190,7 +190,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// the closure accesses a variable that gets accessed at some point), then
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
-  KernelClosureClass _produceSyntheticElements(
+  KernelClosureClassInfo _produceSyntheticElements(
       JsClosedWorldBuilder closedWorldBuilder,
       MemberEntity member,
       ir.FunctionNode node,
@@ -201,28 +201,24 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     _updateScopeBasedOnRtiNeed(
         info, node.parent, localFunctionsNeedingRti, classesNeedingRti, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
-    KernelClosureClass closureClass = closedWorldBuilder.buildClosureClass(
-        member,
-        node,
-        member.library,
-        boxedVariables,
-        info,
-        node.location,
-        localsMap);
+    KernelClosureClassInfo closureClassInfo =
+        closedWorldBuilder.buildClosureClass(
+            member, node, member.library, boxedVariables, info, localsMap);
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
-    _memberClosureRepresentationMap[closureClass.callMethod] = closureClass;
-    _globalLocalsMap.setLocalsMap(closureClass.callMethod, localsMap);
+    _memberClosureRepresentationMap[closureClassInfo.callMethod] =
+        closureClassInfo;
+    _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
-      _memberClosureRepresentationMap[member] = closureClass;
+      _memberClosureRepresentationMap[member] = closureClassInfo;
     } else {
       assert(node.parent is ir.FunctionExpression ||
           node.parent is ir.FunctionDeclaration);
-      _localClosureRepresentationMap[node.parent] = closureClass;
+      _localClosureRepresentationMap[node.parent] = closureClassInfo;
     }
-    return closureClass;
+    return closureClassInfo;
   }
 
   @override
@@ -478,7 +474,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 }
 
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
-class KernelClosureClass extends JsScopeInfo
+class KernelClosureClassInfo extends JsScopeInfo
     implements ClosureRepresentationInfo {
   JFunction callMethod;
   final Local closureEntity;
@@ -487,7 +483,7 @@ class KernelClosureClass extends JsScopeInfo
 
   final Map<Local, JField> localToFieldMap = new Map<Local, JField>();
 
-  KernelClosureClass.fromScopeInfo(
+  KernelClosureClassInfo.fromScopeInfo(
       this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
       Map<Local, JRecordField> boxedVariables,
@@ -550,8 +546,8 @@ class JClosureClass extends JClass {
 
 class JClosureField extends JField implements PrivatelyNamedJSEntity {
   final Local _declaredEntity;
-  JClosureField(String name, KernelClosureClass containingClass, bool isConst,
-      bool isAssignable, this._declaredEntity)
+  JClosureField(String name, KernelClosureClassInfo containingClass,
+      bool isConst, bool isAssignable, this._declaredEntity)
       : super(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
@@ -628,7 +624,9 @@ abstract class ClosureMemberData implements MemberData {
   }
 }
 
-class ClosureFunctionData extends ClosureMemberData implements FunctionData {
+class ClosureFunctionData extends ClosureMemberData
+    with FunctionDataMixin
+    implements FunctionData {
   final FunctionType functionType;
   final ir.FunctionNode functionNode;
   final ClassTypeVariableAccess classTypeVariableAccess;

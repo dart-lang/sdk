@@ -351,6 +351,16 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
+  void instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        count += library.instantiateToBound(dynamicType, objectClass);
+      }
+    });
+    ticker.logMs("Instantiated $count type variables to their bounds");
+  }
+
   void finishNativeMethods() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -536,6 +546,9 @@ class SourceLoader<L> extends Loader<L> {
   void computeHierarchy(Program program) {
     hierarchy = new IncrementalClassHierarchy();
     ticker.logMs("Computed class hierarchy");
+  }
+
+  void computeCoreTypes(Program program) {
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");
   }
@@ -544,7 +557,8 @@ class SourceLoader<L> extends Loader<L> {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.checkOverrides(hierarchy);
+        builder.checkOverrides(
+            hierarchy, typeInferenceEngine?.typeSchemaEnvironment);
       }
     }
     ticker.logMs("Checked overrides");
@@ -695,6 +709,12 @@ class SourceLoader<L> extends Loader<L> {
 
       case Severity.warning:
         severityString = "warning";
+        break;
+
+      case Severity.errorLegacyWarning:
+        // Should have been resolved to either error or warning at this point.
+        // Use a property name expressing that, in case it slips through.
+        severityString = "unresolved severity";
         break;
     }
     instrumentation.record(

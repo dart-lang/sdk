@@ -1188,7 +1188,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
             captured_parameters_->Add(index);
           }
 
-          if (FLAG_experimental_strong_mode && (phi != NULL)) {
+          if ((phi != NULL) && isolate()->strong() &&
+              FLAG_use_strong_mode_types) {
             phi->UpdateType(
                 CompileType::FromAbstractType(load->local().type()));
           }

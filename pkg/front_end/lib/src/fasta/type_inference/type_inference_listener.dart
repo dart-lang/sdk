@@ -160,8 +160,8 @@ class TypeInferenceListener
           ConditionalExpression expression, DartType inferredType) =>
       genericExpressionExit("conditionalExpression", expression, inferredType);
 
-  bool constructorInvocationEnter(
-          InvocationExpression expression, DartType typeContext) =>
+  bool constructorInvocationEnter(InvocationExpression expression,
+          String prefixName, DartType typeContext) =>
       genericExpressionEnter("constructorInvocation", expression, typeContext);
 
   void constructorInvocationExit(
@@ -323,8 +323,13 @@ class TypeInferenceListener
           DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
-  void methodInvocationExitCall(Expression expression, Arguments arguments,
-          bool isImplicitCall, DartType inferredType) =>
+  void methodInvocationExitCall(
+          Expression expression,
+          Arguments arguments,
+          bool isImplicitCall,
+          FunctionType calleeType,
+          Substitution substitution,
+          DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
   bool namedFunctionExpressionEnter(Let expression, DartType typeContext) =>
@@ -394,8 +399,13 @@ class TypeInferenceListener
   void returnStatementExit(ReturnStatement statement) =>
       genericStatementExit('returnStatement', statement);
 
-  bool staticAssignEnter(Expression expression, int targetOffset,
-          Class targetClass, Expression write, DartType typeContext) =>
+  bool staticAssignEnter(
+          Expression expression,
+          String prefixName,
+          int targetOffset,
+          Class targetClass,
+          Expression write,
+          DartType typeContext) =>
       genericExpressionEnter("staticAssign", expression, typeContext);
 
   void staticAssignExit(
@@ -407,15 +417,15 @@ class TypeInferenceListener
           DartType inferredType) =>
       genericExpressionExit("staticAssign", expression, inferredType);
 
-  bool staticGetEnter(StaticGet expression, int targetOffset, Class targetClass,
-          DartType typeContext) =>
+  bool staticGetEnter(StaticGet expression, String prefixName, int targetOffset,
+          Class targetClass, DartType typeContext) =>
       genericExpressionEnter("staticGet", expression, typeContext);
 
   void staticGetExit(StaticGet expression, DartType inferredType) =>
       genericExpressionExit("staticGet", expression, inferredType);
 
-  bool staticInvocationEnter(StaticInvocation expression, int targetOffset,
-          Class targetClass, DartType typeContext) =>
+  bool staticInvocationEnter(StaticInvocation expression, String prefixName,
+          int targetOffset, Class targetClass, DartType typeContext) =>
       genericExpressionEnter("staticInvocation", expression, typeContext);
 
   void staticInvocationExit(
@@ -481,7 +491,8 @@ class TypeInferenceListener
   void tryFinallyExit(TryFinally statement) =>
       genericStatementExit('tryFinally', statement);
 
-  bool typeLiteralEnter(TypeLiteral expression, DartType typeContext) =>
+  bool typeLiteralEnter(
+          TypeLiteral expression, String prefixName, DartType typeContext) =>
       genericExpressionEnter("typeLiteral", expression, typeContext);
 
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) =>

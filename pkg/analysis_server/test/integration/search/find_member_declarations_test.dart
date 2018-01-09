@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindMemberDeclarationsTest);
-    defineReflectiveTests(FindMemberDeclarationsTest_PreviewDart2);
+    defineReflectiveTests(FindMemberDeclarationsTest_UseCFE);
   });
 }
 
@@ -52,8 +52,7 @@ class Foo {
 }
 
 @reflectiveTest
-class FindMemberDeclarationsTest_PreviewDart2
-    extends FindMemberDeclarationsTest {
+class FindMemberDeclarationsTest_UseCFE extends FindMemberDeclarationsTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

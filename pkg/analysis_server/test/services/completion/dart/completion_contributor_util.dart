@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -44,6 +45,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Eventually all tests should be converted and this getter removed.
    */
   bool get isNullExpectedReturnTypeConsideredDynamic => true;
+
+  bool get usingFastaParser => analyzer.Parser.useFasta;
 
   void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
@@ -460,7 +463,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,
-        provider,
+        resourceProvider,
         testSource,
         completionOffset,
         new CompletionPerformance());
@@ -500,11 +503,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   void configureFlutterPkg(Map<String, String> pathToCode) {
     pathToCode.forEach((path, code) {
-      provider.newFile('$flutterPkgLibPath/$path', code);
+      newFile('$flutterPkgLibPath/$path', content: code);
     });
     // configure SourceFactory
-    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+    Folder myPkgFolder = getFolder(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
       'flutter': [myPkgFolder]
     });
     SourceFactory sourceFactory = new SourceFactory(
@@ -583,7 +586,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = provider.convertPath('/completionTest.dart');
+    testFile = resourceProvider.convertPath('/completionTest.dart');
     contributor = createContributor();
   }
 }

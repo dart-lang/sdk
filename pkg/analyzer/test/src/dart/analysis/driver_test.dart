@@ -191,7 +191,9 @@ f() {}
 
     expect(constC.staticElement, constructorC);
     expect(constC.staticType, elementC.type);
+
     expect(constC.constructorName.staticElement, constructorC);
+    expect(constC.constructorName.type.type, elementC.type);
   }
 
   test_annotation_kind_reference() async {
@@ -232,6 +234,168 @@ void main() {
     SimpleIdentifier identifier_2 = annotation_2.name;
     expect(identifier_2.staticElement, same(element_2.getter));
     expect(identifier_2.staticType, typeProvider.intType);
+  }
+
+  test_annotation_prefixed_classConstructor() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A {
+  const A(int a, {int b});
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.A(1, b: 2)
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    ClassElement aClass = aUnitElement.getType('A');
+    ConstructorElement constructor = aClass.unnamedConstructor;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(constructor));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(annotation.constructorName, isNull);
+
+    var arguments = annotation.arguments.arguments;
+    var parameters = constructor.parameters;
+    _assertArgumentToParameter(arguments[0], parameters[0]);
+    _assertArgumentToParameter(arguments[1], parameters[1]);
+  }
+
+  test_annotation_prefixed_classConstructorNamed() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A {
+  const A.named(int a, {int b});
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.A.named(1, b: 2)
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    ClassElement aClass = aUnitElement.getType('A');
+    ConstructorElement constructor = aClass.getNamedConstructor('named');
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(constructor));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, isNull);
+
+    SimpleIdentifier constructorName = annotation.constructorName;
+    expect(constructorName.staticElement, same(constructor));
+    expect(constructorName.staticType.toString(), '(int, {b: int}) → A');
+
+    var arguments = annotation.arguments.arguments;
+    var parameters = constructor.parameters;
+    _assertArgumentToParameter(arguments[0], parameters[0]);
+    _assertArgumentToParameter(arguments[1], parameters[1]);
+  }
+
+  test_annotation_prefixed_classField() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class A {
+  static const a = 1;
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.A.a
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    ClassElement aClass = aUnitElement.getType('A');
+    var aGetter = aClass.getField('a').getter;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(aGetter));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(annotation.constructorName.staticElement, aGetter);
+    expect(annotation.constructorName.staticType, typeProvider.intType);
+
+    expect(annotation.arguments, isNull);
+  }
+
+  test_annotation_prefixed_topLevelVariable() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+const topAnnotation = 1;
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+
+@p.topAnnotation
+main() {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    PrefixElement aPrefix = aImport.prefix;
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
+    var topAnnotation = aUnitElement.topLevelVariables[0].getter;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(topAnnotation));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aPrefix));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(prefixed.identifier.staticElement, same(topAnnotation));
+    expect(prefixed.prefix.staticType, isNull);
+
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
   }
 
   test_asExpression() async {
@@ -1297,11 +1461,11 @@ class C {
     addTestFile(r'''
 class A {
   A(int a);
-  A.named(int a);
+  A.named(int a, {int b});
 }
 class B extends A {
-  B.one(int b) : super(b + 1);
-  B.two(int b) : super.named(b + 1);
+  B.one(int p) : super(p + 1);
+  B.two(int p) : super.named(p + 1, b: p + 2);
 }
 ''');
     AnalysisResult result = await driver.getResult(testFile);
@@ -1328,6 +1492,10 @@ class B extends A {
       var constructorName = initializer.constructorName;
       expect(constructorName.staticElement, same(namedConstructor));
       expect(constructorName.staticType, isNull);
+
+      List<Expression> arguments = initializer.argumentList.arguments;
+      _assertArgumentToParameter(arguments[0], namedConstructor.parameters[0]);
+      _assertArgumentToParameter(arguments[1], namedConstructor.parameters[1]);
     }
   }
 
@@ -1355,14 +1523,10 @@ class C {
       expect(initializer.constructorName, isNull);
 
       List<Expression> arguments = initializer.argumentList.arguments;
-
-      Expression aArgument = arguments[0];
-      ParameterElement aElement = unnamedConstructor.parameters[0];
-      expect(aArgument.staticParameterElement, same(aElement));
-
-      Expression bArgument = arguments[1];
-      ParameterElement bElement = unnamedConstructor.parameters[1];
-      expect(bArgument.staticParameterElement, same(bElement));
+      _assertArgumentToParameter(
+          arguments[0], unnamedConstructor.parameters[0]);
+      _assertArgumentToParameter(
+          arguments[1], unnamedConstructor.parameters[1]);
     }
 
     {
@@ -1378,15 +1542,8 @@ class C {
       expect(constructorName.staticType, isNull);
 
       List<Expression> arguments = initializer.argumentList.arguments;
-
-      Expression aArgument = arguments[0];
-      ParameterElement aElement = namedConstructor.parameters[0];
-      expect(aArgument.staticParameterElement, same(aElement));
-
-      NamedExpression bArgument = arguments[1];
-      ParameterElement bElement = namedConstructor.parameters[1];
-      expect(bArgument.name.label.staticElement, same(bElement));
-      expect(bArgument.staticParameterElement, same(bElement));
+      _assertArgumentToParameter(arguments[0], namedConstructor.parameters[0]);
+      _assertArgumentToParameter(arguments[1], namedConstructor.parameters[1]);
     }
   }
 
@@ -1536,7 +1693,7 @@ main() {
 
     TypeName typeName = statement.variables.type;
     expect(typeName.type, isUndefinedType);
-    if (previewDart2) {
+    if (useCFE) {
       expect(typeName.typeArguments.arguments[0].type, isUndefinedType);
     } else {
       expect(typeName.typeArguments.arguments[0].type, typeProvider.intType);
@@ -1706,6 +1863,30 @@ class A {
     expect(parameterNode.identifier.staticType, typeProvider.intType);
   }
 
+  test_functionExpressionInvocation() async {
+    addTestFile(r'''
+typedef Foo<S> = S Function<T>(T x);
+void main(f) {
+  (f as Foo<int>)<String>('hello');
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    FunctionExpressionInvocation invocation = statement.expression;
+
+    expect(invocation.staticElement, isNull);
+    expect(invocation.staticInvokeType.toString(), '(String) → int');
+    expect(invocation.staticType, typeProvider.intType);
+
+    List<TypeAnnotation> typeArguments = invocation.typeArguments.arguments;
+    expect(typeArguments, hasLength(1));
+    _assertTypeNameSimple(typeArguments[0], typeProvider.stringType);
+  }
+
   test_indexExpression() async {
     String content = r'''
 main() {
@@ -1833,19 +2014,9 @@ var v = new X(1, b: true, c: 3.0);
 
     expect(creation.constructorName.name, isNull);
 
-    Expression aArgument = arguments[0];
-    ParameterElement aElement = constructorElement.parameters[0];
-    expect(aArgument.staticParameterElement, same(aElement));
-
-    NamedExpression bArgument = arguments[1];
-    ParameterElement bElement = constructorElement.parameters[1];
-    expect(bArgument.name.label.staticElement, same(bElement));
-    expect(bArgument.staticParameterElement, same(bElement));
-
-    NamedExpression cArgument = arguments[2];
-    ParameterElement cElement = constructorElement.parameters[2];
-    expect(cArgument.name.label.staticElement, same(cElement));
-    expect(cArgument.staticParameterElement, same(cElement));
+    _assertArgumentToParameter(arguments[0], constructorElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], constructorElement.parameters[1]);
+    _assertArgumentToParameter(arguments[2], constructorElement.parameters[2]);
   }
 
   test_instanceCreation_noTypeArguments() async {
@@ -1884,7 +2055,7 @@ var b = new C.named(2);
       expect(value.constructorName.name, isNull);
 
       Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, defaultConstructor.parameters[0]);
+      _assertArgumentToParameter(argument, defaultConstructor.parameters[0]);
     }
 
     {
@@ -1906,7 +2077,127 @@ var b = new C.named(2);
       expect(constructorName.staticType, isNull);
 
       Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, namedConstructor.parameters[0]);
+      _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
+    }
+  }
+
+  test_instanceCreation_prefixed() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class C<T> {
+  C(T p);
+  C.named(T p);
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+main() {
+  new p.C(0);
+  new p.C.named(1.2);
+  new p.C<bool>.named(false);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ImportElement aImport = unit.element.library.imports[0];
+    LibraryElement aLibrary = aImport.importedLibrary;
+
+    ClassElement cElement = aLibrary.getType('C');
+    ConstructorElement defaultConstructor = cElement.constructors[0];
+    ConstructorElement namedConstructor = cElement.constructors[1];
+    InterfaceType cType = cElement.type;
+    var cTypeDynamic = cType.instantiate([DynamicTypeImpl.instance]);
+
+    var statements = _getMainStatements(result);
+    {
+      var cTypeInt = cType.instantiate([typeProvider.intType]);
+
+      ExpressionStatement statement = statements[0];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, defaultConstructor);
+      expect(creation.staticType, cTypeInt);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, same(cElement));
+      if (useCFE) {
+        expect(typeIdentifier.staticType, cTypeInt);
+      } else {
+        expect(typeIdentifier.staticType, cTypeDynamic);
+      }
+
+      SimpleIdentifier typePrefix = typeIdentifier.prefix;
+      expect(typePrefix.name, 'p');
+      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticType, isNull);
+
+      expect(typeIdentifier.identifier.staticElement, same(cElement));
+
+      expect(creation.constructorName.name, isNull);
+    }
+
+    {
+      var cTypeDouble = cType.instantiate([typeProvider.doubleType]);
+
+      ExpressionStatement statement = statements[1];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, namedConstructor);
+      expect(creation.staticType, cTypeDouble);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      if (useCFE) {
+        expect(typeIdentifier.staticType, cTypeDouble);
+      } else {
+        expect(typeIdentifier.staticType, cTypeDynamic);
+      }
+
+      SimpleIdentifier typePrefix = typeIdentifier.prefix;
+      expect(typePrefix.name, 'p');
+      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticType, isNull);
+
+      expect(typeIdentifier.identifier.staticElement, same(cElement));
+
+      SimpleIdentifier constructorName = creation.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+    }
+
+    {
+      var cTypeBool = cType.instantiate([typeProvider.boolType]);
+
+      ExpressionStatement statement = statements[2];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, namedConstructor);
+      expect(creation.staticType, cTypeBool);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments.arguments, hasLength(1));
+      _assertTypeNameSimple(
+          typeName.typeArguments.arguments[0], typeProvider.boolType);
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cTypeBool);
+
+      SimpleIdentifier typePrefix = typeIdentifier.prefix;
+      expect(typePrefix.name, 'p');
+      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticType, isNull);
+
+      expect(typeIdentifier.identifier.staticElement, same(cElement));
+
+      SimpleIdentifier constructorName = creation.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
     }
   }
 
@@ -1960,7 +2251,7 @@ var b = new C<num, String>.named(4, 'five');
       expect(value.constructorName.name, isNull);
 
       Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, defaultConstructor.parameters[0]);
+      _assertArgumentToParameter(argument, defaultConstructor.parameters[0]);
     }
 
     {
@@ -1995,7 +2286,7 @@ var b = new C<num, String>.named(4, 'five');
       expect(constructorName.staticType, isNull);
 
       Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, namedConstructor.parameters[0]);
+      _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
     }
   }
 
@@ -2215,7 +2506,7 @@ void main() {
     expect(fInvocation.methodName.staticElement, same(fElement));
     expect(fInvocation.staticType, typeProvider.intType);
     // TODO(scheglov) We don't support invoke types well.
-//    if (previewDart2) {
+//    if (useCFE) {
 //      String fInstantiatedType = '(int, String) → int';
 //      expect(fInvocation.methodName.staticType.toString(), fInstantiatedType);
 //      expect(fInvocation.staticInvokeType.toString(), fInstantiatedType);
@@ -2284,19 +2575,9 @@ void main() {
       MethodInvocation invocation = statement.expression;
       List<Expression> arguments = invocation.argumentList.arguments;
 
-      Expression aArgument = arguments[0];
-      ParameterElement aElement = fElement.parameters[0];
-      expect(aArgument.staticParameterElement, same(aElement));
-
-      NamedExpression bArgument = arguments[1];
-      ParameterElement bElement = fElement.parameters[1];
-      expect(bArgument.name.label.staticElement, same(bElement));
-      expect(bArgument.staticParameterElement, same(bElement));
-
-      NamedExpression cArgument = arguments[2];
-      ParameterElement cElement = fElement.parameters[2];
-      expect(cArgument.name.label.staticElement, same(cElement));
-      expect(cArgument.staticParameterElement, same(cElement));
+      _assertArgumentToParameter(arguments[0], fElement.parameters[0]);
+      _assertArgumentToParameter(arguments[1], fElement.parameters[1]);
+      _assertArgumentToParameter(arguments[2], fElement.parameters[2]);
     }
   }
 
@@ -2394,18 +2675,9 @@ void main() {
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
       List<Expression> arguments = invocation.argumentList.arguments;
-
-      Expression aArgument = arguments[0];
-      ParameterElement aElement = fElement.parameters[0];
-      expect(aArgument.staticParameterElement, same(aElement));
-
-      Expression bArgument = arguments[1];
-      ParameterElement bElement = fElement.parameters[1];
-      expect(bArgument.staticParameterElement, same(bElement));
-
-      Expression cArgument = arguments[2];
-      ParameterElement cElement = fElement.parameters[2];
-      expect(cArgument.staticParameterElement, same(cElement));
+      _assertArgumentToParameter(arguments[0], fElement.parameters[0]);
+      _assertArgumentToParameter(arguments[1], fElement.parameters[1]);
+      _assertArgumentToParameter(arguments[2], fElement.parameters[2]);
     }
   }
 
@@ -2902,21 +3174,78 @@ void g(C c) {
     BlockFunctionBody body = functionDeclaration.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
+
     List<Expression> arguments = invocation.argumentList.arguments;
+    _assertArgumentToParameter(arguments[0], methodElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], methodElement.parameters[1]);
+    _assertArgumentToParameter(arguments[2], methodElement.parameters[2]);
+  }
 
-    Expression aArgument = arguments[0];
-    ParameterElement aElement = methodElement.parameters[0];
-    expect(aArgument.staticParameterElement, same(aElement));
+  test_methodInvocation_explicitCall_classTarget() async {
+    addTestFile(r'''
+class C {
+  double call(int p) => 0.0;
+}
+main() {
+  new C().call(0);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+    var typeProvider = result.unit.element.context.typeProvider;
 
-    NamedExpression bArgument = arguments[1];
-    ParameterElement bElement = methodElement.parameters[1];
-    expect(bArgument.name.label.staticElement, same(bElement));
-    expect(bArgument.staticParameterElement, same(bElement));
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    MethodElement callElement = cElement.methods[0];
 
-    NamedExpression cArgument = arguments[2];
-    ParameterElement cElement = methodElement.parameters[2];
-    expect(cArgument.name.label.staticElement, same(cElement));
-    expect(cArgument.staticParameterElement, same(cElement));
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+
+    expect(invocation.staticType, typeProvider.doubleType);
+    expect(invocation.staticInvokeType.toString(), '(int) → double');
+
+    SimpleIdentifier methodName = invocation.methodName;
+    expect(methodName.staticElement, same(callElement));
+    expect(methodName.staticType.toString(), '(int) → double');
+  }
+
+  test_methodInvocation_explicitCall_functionTarget() async {
+    addTestFile(r'''
+main(double computation(int p)) {
+  computation.call(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    FunctionElement mainElement = main.element;
+    ParameterElement parameter = mainElement.parameters[0];
+
+    BlockFunctionBody mainBody = main.functionExpression.body;
+    List<Statement> statements = mainBody.block.statements;
+
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+
+    expect(invocation.staticType, typeProvider.doubleType);
+    expect(invocation.staticInvokeType.toString(), '(int) → double');
+
+    SimpleIdentifier target = invocation.target;
+    expect(target.staticElement, same(parameter));
+    expect(target.staticType.toString(), '(int) → double');
+
+    SimpleIdentifier methodName = invocation.methodName;
+    if (useCFE) {
+      expect(methodName.staticElement, isNull);
+      expect(methodName.staticType, isNull);
+    } else {
+      expect(methodName.staticElement, same(parameter));
+      expect(methodName.staticType, parameter.type);
+    }
   }
 
   test_methodInvocation_instanceMethod_forwardingStub() async {
@@ -2972,14 +3301,14 @@ class C<T, U> {
       var invokeTypeStr = '(int) → void';
       expect(invocation.staticType.toString(), 'void');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (previewDart2) {
-        expect(invocation.staticInvokeType.element, same(mElement));
+      if (useCFE) {
         expect(invocation.methodName.staticElement, same(mElement));
         expect(invocation.methodName.staticType.toString(), invokeTypeStr);
+      } else {
+        expect(invocation.staticInvokeType.element, same(mElement));
       }
 
-      Expression argument = arguments[0];
-      expect(argument.staticParameterElement, mElement.parameters[0]);
+      _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
     }
   }
 
@@ -3008,24 +3337,24 @@ class C<T> {
       var invokeTypeStr = '(int, double) → Map<int, double>';
       expect(invocation.staticType.toString(), 'Map<int, double>');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (previewDart2) {
-        expect(invocation.staticInvokeType.element, same(mElement));
+      if (useCFE) {
         expect(invocation.methodName.staticElement, same(mElement));
         expect(invocation.methodName.staticType.toString(), invokeTypeStr);
       }
 
-      Expression aArgument = arguments[0];
-      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
-      ParameterElement aElement = mElement.parameters[0];
-      expect(aArgumentParameter.type, typeProvider.intType);
-      expect(aArgumentParameter.baseElement, same(aElement));
+      if (useCFE) {
+        expect(arguments[0].staticParameterElement, isNull);
+        expect(arguments[1].staticParameterElement, isNull);
+      } else {
+        Expression aArgument = arguments[0];
+        ParameterMember aArgumentParameter = aArgument.staticParameterElement;
+        ParameterElement aElement = mElement.parameters[0];
+        expect(aArgumentParameter.type, typeProvider.intType);
+        expect(aArgumentParameter.baseElement, same(aElement));
 
-      Expression bArgument = arguments[1];
-      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
-      ParameterElement bElement = mElement.parameters[1];
-      expect(bArgumentParameter.type, typeProvider.doubleType);
-      if (previewDart2) {
-        expect(bArgumentParameter.baseElement, same(bElement));
+        Expression bArgument = arguments[1];
+        ParameterMember bArgumentParameter = bArgument.staticParameterElement;
+        expect(bArgumentParameter.type, typeProvider.doubleType);
       }
     }
   }
@@ -3047,19 +3376,9 @@ void foo(int a, {bool b, double c}) {}
     MethodInvocation invocation = statement.expression;
     List<Expression> arguments = invocation.argumentList.arguments;
 
-    Expression aArgument = arguments[0];
-    ParameterElement aElement = fooElement.parameters[0];
-    expect(aArgument.staticParameterElement, same(aElement));
-
-    NamedExpression bArgument = arguments[1];
-    ParameterElement bElement = fooElement.parameters[1];
-    expect(bArgument.name.label.staticElement, same(bElement));
-    expect(bArgument.staticParameterElement, same(bElement));
-
-    NamedExpression cArgument = arguments[2];
-    ParameterElement cElement = fooElement.parameters[2];
-    expect(cArgument.name.label.staticElement, same(cElement));
-    expect(cArgument.staticParameterElement, same(cElement));
+    _assertArgumentToParameter(arguments[0], fooElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], fooElement.parameters[1]);
+    _assertArgumentToParameter(arguments[2], fooElement.parameters[2]);
   }
 
   test_methodInvocation_notFunction_field_dynamic() async {
@@ -3086,13 +3405,15 @@ class C {
     ExpressionStatement statement = fooStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement.getter));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    if (useCFE) {
+      _assertDynamicFunctionType(invocation.staticInvokeType);
+    } else {
+      expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    }
     expect(invocation.staticType, DynamicTypeImpl.instance);
 
     List<Expression> arguments = invocation.argumentList.arguments;
-
-    Expression argument = arguments[0];
-    expect(argument.staticParameterElement, isNull);
+    expect(arguments[0].staticParameterElement, isNull);
   }
 
   test_methodInvocation_notFunction_getter_dynamic() async {
@@ -3118,13 +3439,53 @@ class C {
     ExpressionStatement statement = fooStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    if (useCFE) {
+      _assertDynamicFunctionType(invocation.staticInvokeType);
+    } else {
+      expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    }
     expect(invocation.staticType, DynamicTypeImpl.instance);
 
     List<Expression> arguments = invocation.argumentList.arguments;
 
     Expression argument = arguments[0];
     expect(argument.staticParameterElement, isNull);
+  }
+
+  test_methodInvocation_notFunction_getter_typedef() async {
+    addTestFile(r'''
+typedef String Fun(int a, {int b});
+class C {
+  Fun get f => null;
+  foo() {
+    f(1, b: 2);
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionTypeAlias funDeclaration = result.unit.declarations[0];
+    FunctionTypeAliasElement funElement = funDeclaration.element;
+
+    ClassDeclaration cDeclaration = result.unit.declarations[1];
+
+    MethodDeclaration fDeclaration = cDeclaration.members[0];
+    PropertyAccessorElement fElement = fDeclaration.element;
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+    List<Statement> fooStatements = fooBody.block.statements;
+
+    ExpressionStatement statement = fooStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement));
+    expect(invocation.staticInvokeType.toString(), '(int, {b: int}) → String');
+    expect(invocation.staticType, typeProvider.stringType);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+    _assertArgumentToParameter(arguments[0], funElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], funElement.parameters[1]);
   }
 
   test_methodInvocation_notFunction_local_dynamic() async {
@@ -3145,7 +3506,7 @@ main(f) {
     ExpressionStatement statement = mainStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    _assertDynamicFunctionType(invocation.staticInvokeType);
     expect(invocation.staticType, DynamicTypeImpl.instance);
 
     List<Expression> arguments = invocation.argumentList.arguments;
@@ -3177,9 +3538,8 @@ main(String f(int a)) {
     expect(invocation.staticType, typeProvider.stringType);
 
     List<Expression> arguments = invocation.argumentList.arguments;
-
-    Expression argument = arguments[0];
-    expect(argument.staticParameterElement, isNotNull);
+    _assertArgumentToParameter(
+        arguments[0], (fElement.type as FunctionType).parameters[0]);
   }
 
   test_methodInvocation_notFunction_topLevelVariable_dynamic() async {
@@ -3200,7 +3560,7 @@ main() {
     ExpressionStatement statement = mainStatements[0];
     MethodInvocation invocation = statement.expression;
     expect(invocation.methodName.staticElement, same(fElement.getter));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    _assertDynamicFunctionType(invocation.staticInvokeType);
     expect(invocation.staticType, DynamicTypeImpl.instance);
 
     List<Expression> arguments = invocation.argumentList.arguments;
@@ -3241,12 +3601,14 @@ class C {
       var invokeTypeStr = '(int) → void';
       expect(invocation.staticType.toString(), 'void');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      expect(invocation.staticInvokeType.element, same(mElement));
+      if (!useCFE) {
+        expect(invocation.staticInvokeType.element, same(mElement));
+      }
       expect(invocation.methodName.staticElement, same(mElement));
       expect(invocation.methodName.staticType.toString(), invokeTypeStr);
 
       Expression argument = arguments[0];
-      expect(argument.staticParameterElement, mElement.parameters[0]);
+      _assertArgumentToParameter(argument, mElement.parameters[0]);
     }
 
     {
@@ -3263,12 +3625,14 @@ class C {
       var invokeTypeStr = '(int) → void';
       expect(invocation.staticType.toString(), 'void');
       expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      expect(invocation.staticInvokeType.element, same(mElement));
+      if (!useCFE) {
+        expect(invocation.staticInvokeType.element, same(mElement));
+      }
       expect(invocation.methodName.staticElement, same(mElement));
       expect(invocation.methodName.staticType.toString(), invokeTypeStr);
 
       Expression argument = arguments[0];
-      expect(argument.staticParameterElement, mElement.parameters[0]);
+      _assertArgumentToParameter(argument, mElement.parameters[0]);
     }
   }
 
@@ -3322,13 +3686,8 @@ double f(int a, String b) {}
     expect(invocation.staticType, same(doubleType));
     expect(invocation.staticInvokeType.toString(), fTypeString);
 
-    Expression aArgument = arguments[0];
-    ParameterElement aElement = fElement.parameters[0];
-    expect(aArgument.staticParameterElement, same(aElement));
-
-    Expression bArgument = arguments[1];
-    ParameterElement bElement = fElement.parameters[1];
-    expect(bArgument.staticParameterElement, same(bElement));
+    _assertArgumentToParameter(arguments[0], fElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], fElement.parameters[1]);
   }
 
   test_methodInvocation_topLevelFunction_generic() async {
@@ -3372,27 +3731,16 @@ void f<T, U>(T a, U b) {}
       List<Expression> arguments = invocation.argumentList.arguments;
 
       expect(invocation.methodName.staticElement, same(fElement));
-      if (previewDart2) {
+      if (useCFE) {
         expect(invocation.methodName.staticType.toString(), fTypeString);
       }
       expect(invocation.staticType, VoidTypeImpl.instance);
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
-      Expression aArgument = arguments[0];
-      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
-      ParameterElement aElement = fElement.parameters[0];
-      expect(aArgumentParameter.type, typeProvider.boolType);
-      if (previewDart2) {
-        expect(aArgumentParameter.baseElement, same(aElement));
-      }
-
-      Expression bArgument = arguments[1];
-      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
-      ParameterElement bElement = fElement.parameters[1];
-      expect(bArgumentParameter.type, typeProvider.stringType);
-      if (previewDart2) {
-        expect(bArgumentParameter.baseElement, same(bElement));
-      }
+      _assertArgumentToParameter(arguments[0], fElement.parameters[0],
+          parameterMemberType: typeProvider.boolType);
+      _assertArgumentToParameter(arguments[1], fElement.parameters[1],
+          parameterMemberType: typeProvider.stringType);
     }
 
     // f(1, 2.3);
@@ -3403,27 +3751,16 @@ void f<T, U>(T a, U b) {}
       List<Expression> arguments = invocation.argumentList.arguments;
 
       expect(invocation.methodName.staticElement, same(fElement));
-      if (previewDart2) {
+      if (useCFE) {
         expect(invocation.methodName.staticType.toString(), fTypeString);
       }
       expect(invocation.staticType, VoidTypeImpl.instance);
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
-      Expression aArgument = arguments[0];
-      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
-      ParameterElement aElement = fElement.parameters[0];
-      expect(aArgumentParameter.type, typeProvider.intType);
-      if (previewDart2) {
-        expect(aArgumentParameter.baseElement, same(aElement));
-      }
-
-      Expression bArgument = arguments[1];
-      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
-      ParameterElement bElement = fElement.parameters[1];
-      expect(bArgumentParameter.type, typeProvider.doubleType);
-      if (previewDart2) {
-        expect(bArgumentParameter.baseElement, same(bElement));
-      }
+      _assertArgumentToParameter(arguments[0], fElement.parameters[0],
+          parameterMemberType: typeProvider.intType);
+      _assertArgumentToParameter(arguments[1], fElement.parameters[1],
+          parameterMemberType: typeProvider.doubleType);
     }
   }
 
@@ -3567,6 +3904,133 @@ class C {
     SimpleIdentifier identifier = prefixed.identifier;
     expect(identifier.staticElement, same(fElement.getter));
     expect(identifier.staticType, typeProvider.intType);
+  }
+
+  test_prefixedIdentifier_explicitCall() async {
+    addTestFile(r'''
+main(double computation(int p)) {
+  computation.call;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    FunctionElement mainElement = main.element;
+    ParameterElement parameter = mainElement.parameters[0];
+
+    BlockFunctionBody mainBody = main.functionExpression.body;
+    List<Statement> statements = mainBody.block.statements;
+
+    ExpressionStatement statement = statements[0];
+    PrefixedIdentifier prefixed = statement.expression;
+
+    expect(prefixed.prefix.staticElement, same(parameter));
+    expect(prefixed.prefix.staticType.toString(), '(int) → double');
+
+    SimpleIdentifier methodName = prefixed.identifier;
+    expect(methodName.staticElement, isNull);
+    if (useCFE) {
+      expect(methodName.staticType, isNull);
+    } else {
+      expect(methodName.staticType, typeProvider.dynamicType);
+    }
+  }
+
+  test_prefixedIdentifier_importPrefix_className() async {
+    var libPath = _p('/test/lib/lib.dart');
+    provider.newFile(libPath, '''
+class MyClass {}
+typedef void MyFunctionTypeAlias();
+int myTopVariable;
+int myTopFunction() => 0;
+int get myGetter => 0;
+void set mySetter(int _) {}
+''');
+    addTestFile(r'''
+import 'lib.dart' as my;
+main() {
+  my.MyClass;
+  my.MyFunctionTypeAlias;
+  my.myTopVariable;
+  my.myTopFunction;
+  my.myTopFunction();
+  my.myGetter;
+  my.mySetter = 0;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    // TODO(scheglov) Uncomment and fix "unused imports" hint.
+//    expect(result.errors, isEmpty);
+
+    var unitElement = result.unit.element;
+    ImportElement myImport = unitElement.library.imports[0];
+    PrefixElement myPrefix = myImport.prefix;
+    var typeProvider = unitElement.context.typeProvider;
+
+    var myLibrary = myImport.importedLibrary;
+    var myUnit = myLibrary.definingCompilationUnit;
+    var myClass = myUnit.types.single;
+    var myFunctionTypeAlias = myUnit.functionTypeAliases.single;
+    var myTopVariable = myUnit.topLevelVariables[0];
+    var myTopFunction = myUnit.functions.single;
+    var myGetter = myUnit.topLevelVariables[1].getter;
+    var mySetter = myUnit.topLevelVariables[2].setter;
+    expect(myTopVariable.name, 'myTopVariable');
+    expect(myGetter.displayName, 'myGetter');
+    expect(mySetter.displayName, 'mySetter');
+
+    List<Statement> statements = _getMainStatements(result);
+
+    void assertPrefix(SimpleIdentifier identifier) {
+      expect(identifier.staticElement, same(myPrefix));
+      expect(identifier.staticType, isNull);
+    }
+
+    void assertPrefixedIdentifier(
+        int statementIndex, Element expectedElement, DartType expectedType) {
+      ExpressionStatement statement = statements[statementIndex];
+      PrefixedIdentifier prefixed = statement.expression;
+      assertPrefix(prefixed.prefix);
+
+      expect(prefixed.identifier.staticElement, same(expectedElement));
+      expect(prefixed.identifier.staticType, expectedType);
+    }
+
+    assertPrefixedIdentifier(0, myClass, typeProvider.typeType);
+    assertPrefixedIdentifier(1, myFunctionTypeAlias, typeProvider.typeType);
+    assertPrefixedIdentifier(2, myTopVariable.getter, typeProvider.intType);
+
+    {
+      ExpressionStatement statement = statements[3];
+      PrefixedIdentifier prefixed = statement.expression;
+      assertPrefix(prefixed.prefix);
+
+      expect(prefixed.identifier.staticElement, same(myTopFunction));
+      expect(prefixed.identifier.staticType, isNotNull);
+    }
+
+    {
+      ExpressionStatement statement = statements[4];
+      MethodInvocation invocation = statement.expression;
+      assertPrefix(invocation.target);
+
+      expect(invocation.methodName.staticElement, same(myTopFunction));
+      expect(invocation.methodName.staticType, isNotNull);
+    }
+
+    assertPrefixedIdentifier(5, myGetter, typeProvider.intType);
+
+    {
+      ExpressionStatement statement = statements[6];
+      AssignmentExpression assignment = statement.expression;
+      PrefixedIdentifier left = assignment.leftHandSide;
+      assertPrefix(left.prefix);
+
+      expect(left.identifier.staticElement, same(mySetter));
+      expect(left.identifier.staticType, typeProvider.intType);
+    }
   }
 
   test_prefixExpression_local() async {
@@ -3843,6 +4307,17 @@ void main() {
       expect(left.staticElement, same(vElement));
       expect(left.staticType, typeProvider.intType);
     }
+  }
+
+  test_stringInterpolation_multiLine_emptyBeforeAfter() async {
+    addTestFile(r"""
+void main() {
+  var v = 42;
+  '''$v''';
+}
+""");
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
   }
 
   test_super() async {
@@ -4249,7 +4724,7 @@ enum MyEnum {
 
     SimpleIdentifier dName = enumNode.name;
     expect(dName.staticElement, same(enumElement));
-    if (previewDart2) {
+    if (useCFE) {
       expect(dName.staticType, typeProvider.typeType);
     }
 
@@ -4757,19 +5232,9 @@ void main() {
     MethodInvocation invocation = statement.expression;
     List<Expression> arguments = invocation.argumentList.arguments;
 
-    Expression aArgument = arguments[0];
-    ParameterElement aElement = fElement.parameters[0];
-    expect(aArgument.staticParameterElement, same(aElement));
-
-    NamedExpression bArgument = arguments[1];
-    ParameterElement bElement = fElement.parameters[1];
-    expect(bArgument.name.label.staticElement, same(bElement));
-    expect(bArgument.staticParameterElement, same(bElement));
-
-    NamedExpression cArgument = arguments[2];
-    ParameterElement cElement = fElement.parameters[2];
-    expect(cArgument.name.label.staticElement, same(cElement));
-    expect(cArgument.staticParameterElement, same(cElement));
+    _assertArgumentToParameter(arguments[0], fElement.parameters[0]);
+    _assertArgumentToParameter(arguments[1], fElement.parameters[1]);
+    _assertArgumentToParameter(arguments[2], fElement.parameters[2]);
   }
 
   test_top_functionTypeAlias() async {
@@ -5014,6 +5479,56 @@ class C {
     _assertTypeNameSimple(typeArguments[0], typeProvider.intType);
   }
 
+  test_typeAnnotation_prefixed() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, "export 'a.dart';");
+    provider.newFile(c, "export 'a.dart';");
+    addTestFile(r'''
+import 'b.dart' as b;
+import 'c.dart' as c;
+b.A a1;
+c.A a2;
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ImportElement bImport = unit.element.library.imports[0];
+    ImportElement cImport = unit.element.library.imports[1];
+
+    LibraryElement bLibrary = bImport.importedLibrary;
+    LibraryElement aLibrary = bLibrary.exports[0].exportedLibrary;
+    ClassElement aClass = aLibrary.getType('A');
+
+    {
+      TopLevelVariableDeclaration declaration = unit.declarations[0];
+      TypeName typeName = declaration.variables.type;
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, aClass);
+
+      expect(typeIdentifier.prefix.name, 'b');
+      expect(typeIdentifier.prefix.staticElement, same(bImport.prefix));
+
+      expect(typeIdentifier.identifier.staticElement, aClass);
+    }
+
+    {
+      TopLevelVariableDeclaration declaration = unit.declarations[1];
+      TypeName typeName = declaration.variables.type;
+
+      PrefixedIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, aClass);
+
+      expect(typeIdentifier.prefix.name, 'c');
+      expect(typeIdentifier.prefix.staticElement, same(cImport.prefix));
+
+      expect(typeIdentifier.identifier.staticElement, aClass);
+    }
+  }
+
   test_typeLiteral() async {
     addTestFile(r'''
 void main() {
@@ -5046,6 +5561,43 @@ typedef void F(int p);
     }
   }
 
+  /// Assert that the [argument] is associated with the [expectedParameter],
+  /// if [useCFE] is `null`. If the [argument] is a [NamedExpression],
+  /// the name must be resolved to the parameter in both cases.
+  void _assertArgumentToParameter(
+      Expression argument, ParameterElement expectedParameter,
+      {DartType parameterMemberType}) {
+    ParameterElement actualParameter = argument.staticParameterElement;
+    if (useCFE) {
+      expect(actualParameter, isNull);
+      if (argument is NamedExpression) {
+        SimpleIdentifier name = argument.name.label;
+        expect(name.staticElement, same(expectedParameter));
+      }
+    } else {
+      ParameterElement baseActualParameter;
+      if (actualParameter is ParameterMember) {
+        if (parameterMemberType != null) {
+          expect(actualParameter.type, parameterMemberType);
+        }
+        baseActualParameter = actualParameter.baseElement;
+        // Unwrap ParameterMember one more time.
+        // By some reason we wrap in twice.
+        if (baseActualParameter is ParameterMember) {
+          ParameterMember member = baseActualParameter;
+          baseActualParameter = member.baseElement;
+        }
+      } else {
+        baseActualParameter = actualParameter;
+      }
+      expect(baseActualParameter, same(expectedParameter));
+      if (argument is NamedExpression) {
+        SimpleIdentifier name = argument.name.label;
+        expect(name.staticElement, same(actualParameter));
+      }
+    }
+  }
+
   void _assertDefaultParameter(
       DefaultFormalParameter node, ParameterElement element,
       {String name, int offset, ParameterKind kind, DartType type}) {
@@ -5053,6 +5605,15 @@ typedef void F(int p);
     NormalFormalParameter normalNode = node.parameter;
     _assertSimpleParameter(normalNode, element,
         name: name, offset: offset, kind: kind, type: type);
+  }
+
+  /// Assert that the [type] is a function type `() -> dynamic`.
+  void _assertDynamicFunctionType(DartType type) {
+    if (useCFE) {
+      expect(type.toString(), '() → dynamic');
+    } else {
+      expect(type, DynamicTypeImpl.instance);
+    }
   }
 
   void _assertParameterElement(ParameterElement element,
@@ -5102,8 +5663,12 @@ typedef void F(int p);
       }
     }
     fail('Not found main() in ${result.unit}');
-    return null;
   }
+
+  /**
+   * Return the [provider] specific path for the given Posix [path].
+   */
+  String _p(String path) => provider.convertPath(path);
 }
 
 @reflectiveTest
@@ -7929,7 +8494,6 @@ class F extends X {}
       }
     }
     fail('Cannot find the class $name in\n$unit');
-    return null;
   }
 
   VariableDeclaration _getClassField(
@@ -7945,7 +8509,6 @@ class F extends X {}
       }
     }
     fail('Cannot find the field $fieldName in the class $className in\n$unit');
-    return null;
   }
 
   String _getClassFieldType(
@@ -7968,7 +8531,6 @@ class F extends X {}
     }
     fail('Cannot find the method $methodName in the class $className in\n'
         '$unit');
-    return null;
   }
 
   String _getClassMethodReturnType(
@@ -8001,7 +8563,6 @@ class F extends X {}
       }
     }
     fail('Cannot find the top-level variable $name in\n$unit');
-    return null;
   }
 
   String _getTopLevelVarType(CompilationUnit unit, String name) {

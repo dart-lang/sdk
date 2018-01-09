@@ -4,6 +4,7 @@
 
 #include "vm/virtual_memory.h"
 #include "platform/assert.h"
+#include "vm/heap.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -47,6 +48,20 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   EXPECT_STREQ("ac/dc", buf);
 
   delete vm;
+}
+
+VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
+  intptr_t kHeapPageSize = kPageSize;
+  intptr_t kVirtualPageSize = 4096;
+
+  intptr_t kIterations = kHeapPageSize / kVirtualPageSize;
+  for (intptr_t i = 0; i < kIterations; i++) {
+    VirtualMemory* vm = VirtualMemory::AllocateAligned(
+        kHeapPageSize, kHeapPageSize, false, NULL);
+    EXPECT(Utils::IsAligned(vm->start(), kHeapPageSize));
+    EXPECT_EQ(kHeapPageSize, vm->size());
+    delete vm;
+  }
 }
 
 VM_UNIT_TEST_CASE(FreeVirtualMemory) {

@@ -14,7 +14,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -43,11 +42,7 @@ main() {
   List<AnalysisError> get testFileErrors => filesErrors[testFile];
 
   void addOptionsFile(String contents) {
-    addFile(optionsFilePath, contents);
-  }
-
-  void deleteFile(String filePath) {
-    resourceProvider.deleteFile(filePath);
+    newFile(optionsFilePath, content: contents);
   }
 
   @override

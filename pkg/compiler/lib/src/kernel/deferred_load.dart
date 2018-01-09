@@ -22,15 +22,42 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
 
   @override
   Iterable<ImportEntity> importsTo(Entity element, LibraryEntity library) {
-    if (element is! MemberEntity) return const <ImportEntity>[];
+    ir.NamedNode node;
+    String nodeName;
+    ir.Library enclosingLibrary;
+    if (element is ClassEntity) {
+      ClassDefinition definition = _elementMap.getClassDefinition(element);
+      if (definition.kind != ClassKind.regular) {
+        // You can't import closures.
+        return const <ImportEntity>[];
+      }
+      ir.Class _node = definition.node;
+      nodeName = _node.name;
+      enclosingLibrary = _node.enclosingLibrary;
+      node = _node;
+    } else if (element is MemberEntity) {
+      ir.Member _node = _elementMap.getMemberDefinition(element).node;
+      nodeName = _node.name.name;
+      enclosingLibrary = _node.enclosingLibrary;
+      node = _node;
+    } else if (element is Local ||
+        element is LibraryEntity ||
+        element is TypeVariableEntity) {
+      return const <ImportEntity>[];
+    } else if (element is TypedefEntity) {
+      throw new UnimplementedError("KernelDeferredLoadTask.importsTo typedef");
+    } else {
+      throw new UnsupportedError(
+          "KernelDeferredLoadTask.importsTo unexpected entity type: "
+          "${element.runtimeType}");
+    }
     List<ImportEntity> imports = [];
     ir.Library source = _elementMap.getLibraryNode(library);
-    ir.Member member = _elementMap.getMemberDefinition(element).node;
     for (ir.LibraryDependency dependency in source.dependencies) {
       if (dependency.isExport) continue;
-      if (!_isVisible(dependency.combinators, member.name.name)) continue;
-      if (member.enclosingLibrary == dependency.targetLibrary ||
-          additionalExports(dependency.targetLibrary).contains(member)) {
+      if (!_isVisible(dependency.combinators, nodeName)) continue;
+      if (enclosingLibrary == dependency.targetLibrary ||
+          additionalExports(dependency.targetLibrary).contains(node)) {
         imports.add(_elementMap.getImport(dependency));
       }
     }
@@ -118,16 +145,16 @@ class ConstantCollector extends ir.RecursiveVisitor {
       constants.add(elementMap.getConstantValue(node));
 
   @override
-  void visitIntLiteral(ir.IntLiteral literal) {}
+  void visitIntLiteral(ir.IntLiteral literal) => add(literal);
 
   @override
-  void visitDoubleLiteral(ir.DoubleLiteral literal) {}
+  void visitDoubleLiteral(ir.DoubleLiteral literal) => add(literal);
 
   @override
-  void visitBoolLiteral(ir.BoolLiteral literal) {}
+  void visitBoolLiteral(ir.BoolLiteral literal) => add(literal);
 
   @override
-  void visitStringLiteral(ir.StringLiteral literal) {}
+  void visitStringLiteral(ir.StringLiteral literal) => add(literal);
 
   @override
   void visitSymbolLiteral(ir.SymbolLiteral literal) => add(literal);
@@ -160,16 +187,6 @@ class ConstantCollector extends ir.RecursiveVisitor {
     } else {
       super.visitConstructorInvocation(node);
     }
-  }
-
-  @override
-  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    // Do not recurse - closures are visited separately.
-  }
-
-  @override
-  void visitFunctionExpression(ir.FunctionExpression node) {
-    // Do not recurse - closures are visited separately.
   }
 
   @override

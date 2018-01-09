@@ -8,8 +8,7 @@ import 'dart:_foreign_helper';
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_js_embedded_names';
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-/// ignore: UNUSED_IMPORT
+/// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
 /*element: jsCallEmpty:SideEffects(reads nothing; writes nothing)*/
@@ -24,13 +23,6 @@ jsCallEffectsAllDependsNoIndex() => JS('effects:all;depends:no-index', '#', 0);
 /*element: jsCallEffectsNoInstanceDependsNoStatic:SideEffects(reads index, field; writes index, static)*/
 jsCallEffectsNoInstanceDependsNoStatic() =>
     JS('effects:no-instance;depends:no-static', '#', 0);
-
-/*element: jsBuiltin_createFunctionTypeRti:SideEffects(reads static; writes nothing)*/
-jsBuiltin_createFunctionTypeRti() {
-  // TODO(johnniwinther): Why doesn't this have `Depends on nothing`?
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
-}
 
 /*element: jsBuiltin_rawRtiToJsConstructorName:SideEffects(reads anything; writes anything)*/
 jsBuiltin_rawRtiToJsConstructorName() {
@@ -60,7 +52,6 @@ main() {
   jsCallEffectsAllDependsNoIndex();
   jsCallEffectsNoInstanceDependsNoStatic();
 
-  jsBuiltin_createFunctionTypeRti();
   jsBuiltin_rawRtiToJsConstructorName();
 
   jsEmbeddedGlobal_getTypeFromName();

@@ -15,6 +15,7 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 const ASYNC_STAR = 'async*';
 const DEFERRED_AS = 'deferred as';
+const DEFAULT_COLON = 'default:';
 const EXPORT_STATEMENT = "export '';";
 const IMPORT_STATEMENT = "import '';";
 const PART_STATEMENT = "part '';";
@@ -48,6 +49,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       : this.request = request,
         this.entity = request.target.entity;
 
+  Token get droppedToken => request.target.droppedToken;
+
+  bool isEmptyBody(FunctionBody body) =>
+      body is EmptyFunctionBody ||
+      (body is BlockFunctionBody && body.beginToken.isSynthetic);
+
   @override
   visitArgumentList(ArgumentList node) {
     if (request is DartCompletionRequestImpl) {
@@ -71,6 +78,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (entity is SimpleIdentifier && node.arguments.contains(entity)) {
       _addExpressionKeywords(node);
+      int index = node.arguments.indexOf(entity);
+      if (index > 0) {
+        Expression previousArgument = node.arguments[index - 1];
+        Token endToken = previousArgument?.endToken;
+        if (endToken?.lexeme == ')' &&
+            endToken.next?.lexeme == ',' &&
+            endToken.next.isSynthetic) {
+          _addSuggestion(Keyword.ASYNC);
+          _addSuggestion2(ASYNC_STAR);
+          _addSuggestion2(SYNC_STAR);
+        }
+      }
     }
   }
 
@@ -138,7 +157,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       _addClassBodyKeywords();
       int index = node.members.indexOf(entity);
       ClassMember previous = index > 0 ? node.members[index - 1] : null;
-      if (previous is MethodDeclaration && previous.body is EmptyFunctionBody) {
+      if (previous is MethodDeclaration && isEmptyBody(previous.body)) {
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
         _addSuggestion2(SYNC_STAR);
@@ -190,7 +209,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
           previousMember.functionExpression is FunctionExpression &&
-          previousMember.functionExpression.body is EmptyFunctionBody) {
+          isEmptyBody(previousMember.functionExpression.body)) {
         _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
         _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
         _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
@@ -323,6 +342,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    Expression expression = node.expression;
+    if (expression is Identifier || expression is PropertyAccess) {
+      if (entity == node.rightParenthesis) {
+        var next = expression.endToken.next;
+        if (next == entity || next == droppedToken) {
+          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
+          // stream but not part of the ParenthesizedExpression.
+          _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+          return;
+        }
+      }
+    }
+    _addExpressionKeywords(node);
+  }
+
+  @override
   visitIfStatement(IfStatement node) {
     if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
       // Actual: if (x i^)
@@ -378,7 +414,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitMethodDeclaration(MethodDeclaration node) {
     if (entity == node.body) {
-      if (node.body is EmptyFunctionBody) {
+      if (isEmptyBody(node.body)) {
         _addClassBodyKeywords();
         _addSuggestion(Keyword.ASYNC);
         _addSuggestion2(ASYNC_STAR);
@@ -447,17 +483,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
       if (node.members.isEmpty) {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT], DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.CASE, DART_RELEVANCE_HIGH);
+        _addSuggestion2(DEFAULT_COLON, relevance: DART_RELEVANCE_HIGH);
       } else {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT]);
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion2(DEFAULT_COLON);
         _addStatementKeywords(node);
       }
     }
     if (node.members.contains(entity)) {
       if (entity == node.members.first) {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT], DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.CASE, DART_RELEVANCE_HIGH);
+        _addSuggestion2(DEFAULT_COLON, relevance: DART_RELEVANCE_HIGH);
       } else {
-        _addSuggestions([Keyword.CASE, Keyword.DEFAULT]);
+        _addSuggestion(Keyword.CASE);
+        _addSuggestion2(DEFAULT_COLON);
         _addStatementKeywords(node);
       }
     }

@@ -118,6 +118,7 @@ class ModuleCompiler {
     // TODO(vsm): Should this be hardcoded?
     context.declaredVariables.define('dart.library.html', 'true');
     context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables.define('dart.library.ui', 'false');
 
     if (!context.analysisOptions.strongMode) {
       throw new ArgumentError('AnalysisContext must be strong mode');

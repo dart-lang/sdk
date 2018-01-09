@@ -10,7 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SendTimingTest);
-    defineReflectiveTests(SendTimingTest_PreviewDart2);
+    defineReflectiveTests(SendTimingTest_UseCFE);
   });
 }
 
@@ -32,7 +32,7 @@ class SendTimingTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class SendTimingTest_PreviewDart2 extends SendTimingTest {
+class SendTimingTest_UseCFE extends SendTimingTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

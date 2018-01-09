@@ -1425,10 +1425,6 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
       return kErrorExitCode;
     }
 
-    if (commandline_packages_file != NULL) {
-      AddDependency(commandline_packages_file);
-    }
-
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
     SetupStubNativeResolversForPrecompilation(entry_points);

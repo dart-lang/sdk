@@ -19,6 +19,7 @@ show(List<String> args, ComputeMemberDataFunction computeAstData,
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
+  argParser.addFlag('all', negatable: false, defaultsTo: false);
   argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
   ArgResults argResults = argParser.parse(args);
   if (argResults.wasParsed('colors')) {
@@ -29,12 +30,14 @@ show(List<String> args, ComputeMemberDataFunction computeAstData,
 
   InferrerEngineImpl.useSorterForTesting = true;
   String file = argResults.rest.first;
+  Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
   List<String> show;
   if (argResults.rest.length > 1) {
     show = argResults.rest.skip(1).toList();
+  } else {
+    show = [entryPoint.pathSegments.last];
   }
 
-  Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
   List<String> options = <String>[];
   if (useKernel) {
     options.add(Flags.useKernel);
@@ -42,7 +45,7 @@ show(List<String> args, ComputeMemberDataFunction computeAstData,
   CompiledData data = await computeData(
       entryPoint, const {}, useKernel ? computeKernelData : computeAstData,
       options: options,
-      forMainLibraryOnly: false,
+      forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
       verbose: verbose);
