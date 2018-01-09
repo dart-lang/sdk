@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
@@ -2633,6 +2634,71 @@ const int v = p.a.length;
       3
     ], referenceValidators: [
       (EntityRef r) => checkDynamicTypeRef(r)
+    ]);
+  }
+
+  test_constExpr_makeTypedList_functionType() {
+    UnlinkedVariable variable =
+        serializeVariableText('final v = <void Function(int)>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0 // Size of the list
+    ], referenceValidators: [
+      (EntityRef reference) {
+        expect(reference, new isInstanceOf<EntityRef>());
+        expect(reference.entityKind, EntityRefKind.genericFunctionType);
+        expect(reference.syntheticParams, hasLength(1));
+        {
+          final param = reference.syntheticParams[0];
+          expect(param.name, ''); // no name for generic type parameters
+          checkTypeRef(param.type, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum);
+        }
+        expect(reference.paramReference, 0);
+        expect(reference.typeParameters, hasLength(0));
+        // TODO(mfairhurst) check this references void
+        expect(reference.syntheticReturnType, isNotNull);
+      }
+    ]);
+  }
+
+  @failingTest
+  test_constExpr_makeTypedList_functionType_withTypeParameters() {
+    UnlinkedVariable variable = serializeVariableText(
+        'final v = <void Function<T>(Function<Q>(T, Q))>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0 // Size of the list
+    ], referenceValidators: [
+      (EntityRef reference) {
+        expect(reference, new isInstanceOf<EntityRef>());
+        expect(reference.entityKind, EntityRefKind.genericFunctionType);
+        expect(reference.syntheticParams, hasLength(1));
+        {
+          final param = reference.syntheticParams[0];
+          expect(param.type, new isInstanceOf<EntityRef>());
+          expect(param.type.entityKind, EntityRefKind.genericFunctionType);
+          expect(param.type.syntheticParams, hasLength(2));
+          {
+            final subparam = reference.syntheticParams[0];
+            expect(subparam.name, ''); // no name for generic type parameters
+            expect(subparam.type, new isInstanceOf<EntityRef>());
+            expect(subparam.type.paramReference, 2);
+          }
+          {
+            final subparam = reference.syntheticParams[1];
+            expect(subparam.name, ''); // no name for generic type parameters
+            expect(subparam.type, new isInstanceOf<EntityRef>());
+            expect(subparam.type.paramReference, 1);
+          }
+        }
+        expect(reference.paramReference, 0);
+        expect(reference.typeParameters, hasLength(1));
+        // TODO(mfairhurst) check this references void
+        expect(reference.syntheticReturnType, isNotNull);
+      }
     ]);
   }
 

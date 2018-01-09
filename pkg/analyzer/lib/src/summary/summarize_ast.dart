@@ -74,7 +74,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   @override
   EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
       TypeArgumentList typeArguments, SimpleIdentifier name) {
-    EntityRefBuilder typeBuilder = serializeType(type, typeName, typeArguments);
+    EntityRefBuilder typeBuilder =
+        serializeTypeName(type, typeName, typeArguments);
     if (name == null) {
       return typeBuilder;
     } else {
@@ -143,10 +144,14 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  EntityRefBuilder serializeType(
+  EntityRefBuilder serializeTypeName(
       DartType type, Identifier name, TypeArgumentList arguments) {
-    return visitor.serializeType(name, arguments);
+    return visitor.serializeTypeName(name, arguments);
   }
+
+  @override
+  EntityRefBuilder serializeGenericFunctionType(GenericFunctionType node) =>
+      visitor.serializeGenericFunctionType(node);
 }
 
 /**
@@ -449,16 +454,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.typeParameters =
         serializeTypeParameters(typeParameters, typeParameterScope);
     if (superclass != null) {
-      b.supertype = serializeTypeName(superclass);
+      b.supertype = serializeType(superclass);
     } else {
       b.hasNoSupertype = isCoreLibrary && name == 'Object';
     }
     if (withClause != null) {
-      b.mixins = withClause.mixinTypes.map(serializeTypeName).toList();
+      b.mixins = withClause.mixinTypes.map(serializeType).toList();
     }
     if (implementsClause != null) {
-      b.interfaces =
-          implementsClause.interfaces.map(serializeTypeName).toList();
+      b.interfaces = implementsClause.interfaces.map(serializeType).toList();
     }
     if (members != null) {
       scopes.add(buildClassMemberScope(name, members));
@@ -624,7 +628,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (!isTopLevel) {
       b.isStatic = isDeclaredStatic;
     }
-    b.returnType = serializeTypeName(returnType);
+    b.returnType = serializeType(returnType);
     bool isSemanticallyStatic = isTopLevel || isDeclaredStatic;
     if (formalParameters != null) {
       bool oldMayInheritCovariance = _parametersMayInheritCovariance;
@@ -735,7 +739,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    */
   void serializeFunctionTypedParameterDetails(UnlinkedParamBuilder b,
       TypeAnnotation returnType, FormalParameterList parameters) {
-    EntityRefBuilder serializedReturnType = serializeTypeName(returnType);
+    EntityRefBuilder serializedReturnType = serializeType(returnType);
     if (serializedReturnType != null) {
       b.type = serializedReturnType;
     }
@@ -759,7 +763,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         serializeTypeParameters(node.typeParameters, typeParameterScope);
     b.syntheticReturnType = node.returnType == null
         ? serializeDynamic()
-        : serializeTypeName(node.returnType);
+        : serializeType(node.returnType);
     b.syntheticParams = node.parameters.parameters
         .map((FormalParameter p) => p.accept(this) as UnlinkedParamBuilder)
         .toList();
@@ -866,7 +870,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * a [EntityRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  EntityRefBuilder serializeType(
+  EntityRefBuilder serializeTypeName(
       Identifier identifier, TypeArgumentList typeArguments) {
     if (identifier == null) {
       return null;
@@ -911,8 +915,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
             'Unexpected identifier type: ${identifier.runtimeType}');
       }
       if (typeArguments != null) {
-        b.typeArguments =
-            typeArguments.arguments.map(serializeTypeName).toList();
+        b.typeArguments = typeArguments.arguments.map(serializeType).toList();
       }
       return b;
     }
@@ -924,9 +927,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * a [EntityRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  EntityRefBuilder serializeTypeName(TypeAnnotation node) {
+  EntityRefBuilder serializeType(TypeAnnotation node) {
     if (node is TypeName) {
-      return serializeType(node?.name, node?.typeArguments);
+      return serializeTypeName(node?.name, node?.typeArguments);
     } else if (node is GenericFunctionType) {
       return serializeGenericFunctionType(node);
     } else if (node != null) {
@@ -974,7 +977,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;
-      b.type = serializeTypeName(variables.type);
+      b.type = serializeType(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
       b.annotations = serializeAnnotations(annotations);
       b.codeRange = serializeCodeRange(variables.parent);
@@ -1158,7 +1161,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       if (node.parameters != null) {
         serializeFunctionTypedParameterDetails(b, node.type, node.parameters);
       } else {
-        b.type = serializeTypeName(node.type);
+        b.type = serializeType(node.type);
       }
     }
     return b;
@@ -1222,7 +1225,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name.offset;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
-    EntityRefBuilder serializedReturnType = serializeTypeName(node.returnType);
+    EntityRefBuilder serializedReturnType = serializeType(node.returnType);
     if (serializedReturnType != null) {
       b.returnType = serializedReturnType;
     }
@@ -1345,7 +1348,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   UnlinkedParamBuilder visitSimpleFormalParameter(SimpleFormalParameter node) {
     UnlinkedParamBuilder b = serializeParameter(node);
-    b.type = serializeTypeName(node.type);
+    b.type = serializeType(node.type);
     return b;
   }
 
@@ -1361,7 +1364,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.name = node.name.name;
     b.nameOffset = node.name.offset;
     if (node.bound != null) {
-      b.bound = serializeTypeName(node.bound);
+      b.bound = serializeType(node.bound);
     }
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
