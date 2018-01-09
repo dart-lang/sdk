@@ -381,11 +381,8 @@ String computeTypeName(String isField, List arguments) {
 Object subtypeCast(Object object, String isField, List checks, String asField) {
   if (object == null) return object;
   if (checkSubtype(object, isField, checks, asField)) return object;
-  String actualType = Primitives.objectTypeName(object);
   String typeName = computeTypeName(isField, checks);
-  // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
-  // align with [TypeErrorImplementation].
-  throw new CastErrorImplementation(actualType, typeName);
+  throw new CastErrorImplementation(object, typeName);
 }
 
 Object assertSubtype(
@@ -503,8 +500,7 @@ bool checkSubtypeOfRuntimeType(o, t) {
 
 Object subtypeOfRuntimeTypeCast(Object object, var type) {
   if (object != null && !checkSubtypeOfRuntimeType(object, type)) {
-    String actualType = Primitives.objectTypeName(object);
-    throw new CastErrorImplementation(actualType, runtimeTypeToString(type));
+    throw new CastErrorImplementation(object, runtimeTypeToString(type));
   }
   return object;
 }

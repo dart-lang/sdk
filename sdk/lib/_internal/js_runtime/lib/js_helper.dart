@@ -3193,8 +3193,7 @@ stringTypeCheck(value) {
 
 stringTypeCast(value) {
   if (value is String || value == null) return value;
-  // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
+  throw new CastErrorImplementation(value, 'String');
 }
 
 doubleTypeCheck(value) {
@@ -3205,7 +3204,7 @@ doubleTypeCheck(value) {
 
 doubleTypeCast(value) {
   if (value is double || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
+  throw new CastErrorImplementation(value, 'double');
 }
 
 numTypeCheck(value) {
@@ -3216,7 +3215,7 @@ numTypeCheck(value) {
 
 numTypeCast(value) {
   if (value is num || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
+  throw new CastErrorImplementation(value, 'num');
 }
 
 boolTypeCheck(value) {
@@ -3227,7 +3226,7 @@ boolTypeCheck(value) {
 
 boolTypeCast(value) {
   if (value is bool || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
+  throw new CastErrorImplementation(value, 'bool');
 }
 
 intTypeCheck(value) {
@@ -3238,7 +3237,7 @@ intTypeCheck(value) {
 
 intTypeCast(value) {
   if (value is int || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
+  throw new CastErrorImplementation(value, 'int');
 }
 
 void propertyTypeError(value, property) {
@@ -3248,9 +3247,8 @@ void propertyTypeError(value, property) {
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
-  String actualType = Primitives.objectTypeName(value);
   String expectedType = property.substring(3, property.length);
-  throw new CastErrorImplementation(actualType, expectedType);
+  throw new CastErrorImplementation(value, expectedType);
 }
 
 /**
@@ -3379,7 +3377,7 @@ listTypeCheck(value) {
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
+  throw new CastErrorImplementation(value, 'List');
 }
 
 listSuperTypeCheck(value, property) {
@@ -3450,14 +3448,7 @@ functionTypeCast(value, functionTypeRti) {
   if (functionTypeTest(value, functionTypeRti)) return value;
 
   var self = runtimeTypeToString(functionTypeRti);
-  var functionTypeObject = extractFunctionTypeObjectFrom(value);
-  var pretty;
-  if (functionTypeObject != null) {
-    pretty = runtimeTypeToString(functionTypeObject);
-  } else {
-    pretty = Primitives.objectTypeName(value);
-  }
-  throw new CastErrorImplementation(pretty, self);
+  throw new CastErrorImplementation(value, self);
 }
 
 checkMalformedType(value, message) {
@@ -3486,12 +3477,10 @@ abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 class TypeErrorImplementation extends Error implements TypeError {
   final String message;
 
-  /**
-   * Normal type error caused by a failed subtype test.
-   */
+  /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-            "of type '$type'";
+      : message = "TypeError: ${Error.safeToString(value)}: "
+            "type '${_typeDescription(value)}' is not a subtype of type '$type'";
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -3503,14 +3492,23 @@ class CastErrorImplementation extends Error implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   final String message;
 
-  /**
-   * Normal cast error caused by a failed type cast.
-   */
-  CastErrorImplementation(Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " incompatible type '$expectedType'";
+  /// Normal cast error caused by a failed type cast.
+  CastErrorImplementation(Object value, Object type)
+      : message = "CastError: ${Error.safeToString(value)}: "
+            "type '${_typeDescription(value)}' is not a subtype of type '$type'";
 
   String toString() => message;
+}
+
+String _typeDescription(value) {
+  if (value is Closure) {
+    var functionTypeObject = extractFunctionTypeObjectFrom(value);
+    if (functionTypeObject != null) {
+      return runtimeTypeToString(functionTypeObject);
+    }
+    return 'Closure';
+  }
+  return Primitives.objectTypeName(value);
 }
 
 class FallThroughErrorImplementation extends FallThroughError {
