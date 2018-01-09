@@ -5,7 +5,7 @@
 import 'dart:async' show Future;
 
 import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/kernel.dart' show Program;
@@ -65,7 +65,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
     ..target = target
-    ..fileSystem = fileSystem ?? PhysicalFileSystem.instance
+    ..fileSystem = fileSystem ?? StandardFileSystem.instance
     ..chaseDependencies = true
     ..reportMessages = true;
 

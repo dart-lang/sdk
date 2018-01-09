@@ -3,21 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=--supermixin
 
-library front_end.test.physical_file_system_test;
+library front_end.test.standard_file_system_test;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PhysicalFileSystemTest);
+    defineReflectiveTests(StandardFileSystemTest);
     defineReflectiveTests(FileTest);
     defineReflectiveTests(DirectoryTest);
   });
@@ -34,7 +34,7 @@ class DirectoryTest extends _BaseTest {
   setUp() {
     super.setUp();
     path = p.join(tempPath, 'dir');
-    dir = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
+    dir = StandardFileSystem.instance.entityForUri(p.toUri(path));
   }
 
   test_equals_differentPaths() {
@@ -72,7 +72,7 @@ class FileTest extends _BaseTest {
   setUp() {
     super.setUp();
     path = p.join(tempPath, 'file.txt');
-    file = PhysicalFileSystem.instance.entityForUri(p.toUri(path));
+    file = StandardFileSystem.instance.entityForUri(p.toUri(path));
   }
 
   test_equals_differentPaths() {
@@ -140,7 +140,7 @@ class FileTest extends _BaseTest {
 }
 
 @reflectiveTest
-class PhysicalFileSystemTest extends _BaseTest {
+class StandardFileSystemTest extends _BaseTest {
   Uri tempUri;
 
   setUp() {
@@ -170,14 +170,14 @@ class PhysicalFileSystemTest extends _BaseTest {
 
   test_entityForUri() {
     expect(
-        PhysicalFileSystem.instance
+        StandardFileSystem.instance
             .entityForUri(Uri.parse('${tempUri}file.txt'))
             .uri,
         p.toUri(p.join(tempPath, 'file.txt')));
   }
 
   test_entityForUri_bareUri_absolute() {
-    expect(PhysicalFileSystem.instance.entityForUri(Uri.parse('/file.txt')).uri,
+    expect(StandardFileSystem.instance.entityForUri(Uri.parse('/file.txt')).uri,
         Uri.parse('file:///file.txt'));
   }
 
@@ -194,7 +194,7 @@ class PhysicalFileSystemTest extends _BaseTest {
       Uri.parse('file:///file.txt')
     ]) {
       if (!uri.path.startsWith('/')) {
-        expect(() => PhysicalFileSystem.instance.entityForUri(uri),
+        expect(() => StandardFileSystem.instance.entityForUri(uri),
             throwsA(new isInstanceOf<Error>()));
       }
     }
@@ -202,14 +202,14 @@ class PhysicalFileSystemTest extends _BaseTest {
 
   test_entityForUri_nonFileUri() {
     expect(
-        () => PhysicalFileSystem.instance
+        () => StandardFileSystem.instance
             .entityForUri(Uri.parse('package:foo/bar.dart')),
         _throwsFileSystemException);
   }
 
   test_entityForUri_normalize_dot() {
     expect(
-        PhysicalFileSystem.instance
+        StandardFileSystem.instance
             .entityForUri(Uri.parse('${tempUri}./file.txt'))
             .uri,
         p.toUri(p.join(tempPath, 'file.txt')));
@@ -217,7 +217,7 @@ class PhysicalFileSystemTest extends _BaseTest {
 
   test_entityForUri_normalize_dotDot() {
     expect(
-        PhysicalFileSystem.instance
+        StandardFileSystem.instance
             .entityForUri(Uri.parse('${tempUri}foo/../file.txt'))
             .uri,
         p.toUri(p.join(tempPath, 'file.txt')));
@@ -229,7 +229,7 @@ class _BaseTest {
   String tempPath;
 
   FileSystemEntity entityForPath(String path) =>
-      PhysicalFileSystem.instance.entityForUri(p.toUri(path));
+      StandardFileSystem.instance.entityForUri(p.toUri(path));
 
   setUp() {
     tempDirectory = io.Directory.systemTemp.createTempSync('test_file_system');

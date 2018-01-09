@@ -17,7 +17,7 @@ import 'compiler_state.dart';
 
 export 'compiler_state.dart';
 
-export '../api_prototype/physical_file_system.dart' show PhysicalFileSystem;
+export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../fasta/fasta_codes.dart' show LocatedMessage;
 export '../fasta/severity.dart' show Severity;
 

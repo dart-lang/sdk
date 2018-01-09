@@ -4,7 +4,7 @@
 
 library fasta.analyzer_loader;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:front_end/src/fasta/builder/builder.dart' show LibraryBuilder;
@@ -25,7 +25,7 @@ import 'package:kernel/src/incremental_class_hierarchy.dart';
 
 class AnalyzerLoader<L> extends SourceLoader<L> {
   AnalyzerLoader(TargetImplementation target)
-      : super(PhysicalFileSystem.instance, false, target);
+      : super(StandardFileSystem.instance, false, target);
 
   @override
   void computeHierarchy(Program program) {

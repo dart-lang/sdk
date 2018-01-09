@@ -10,13 +10,13 @@ import 'dart:async';
 
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 
 /// A file system that mixes files from memory and a physical file system. All
 /// memory entities take priotity over file system entities.
 class HybridFileSystem implements FileSystem {
   final MemoryFileSystem memory;
-  final PhysicalFileSystem physical = PhysicalFileSystem.instance;
+  final StandardFileSystem physical = StandardFileSystem.instance;
 
   HybridFileSystem(this.memory);
 

@@ -29,7 +29,7 @@ import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
@@ -157,7 +157,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     }
   } else {
     final FileSystem fileSystem = sourceFiles == null
-        ? PhysicalFileSystem.instance
+        ? StandardFileSystem.instance
         : _buildFileSystem(sourceFiles);
 
     // TODO(aam): IncrementalCompiler instance created below have to be
@@ -204,7 +204,7 @@ Future _processLoadRequest(request) async {
         suppressWarnings: suppressWarnings);
   } else {
     final FileSystem fileSystem = sourceFiles == null
-        ? PhysicalFileSystem.instance
+        ? StandardFileSystem.instance
         : _buildFileSystem(sourceFiles);
     compiler = new SingleShotCompiler(fileSystem, platformKernel,
         requireMain: sourceFiles == null,
@@ -257,7 +257,7 @@ Future _processLoadRequest(request) async {
 /// The [namedSources] list interleaves file name string and
 /// raw file content Uint8List.
 ///
-/// The result can be used instead of PhysicalFileSystem.instance by the
+/// The result can be used instead of StandardFileSystem.instance by the
 /// frontend.
 FileSystem _buildFileSystem(List namedSources) {
   MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));

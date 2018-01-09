@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/core_types.dart';
@@ -176,7 +176,7 @@ Future<CompilerResult> _compile(List<String> args,
   // the correct location and keeps the real file location hidden from the
   // front end.
   var fileSystem = new MultiRootFileSystem(
-      customScheme, multiRoots, PhysicalFileSystem.instance);
+      customScheme, multiRoots, StandardFileSystem.instance);
 
   compilerState = await fe.initializeCompiler(
       compilerState,

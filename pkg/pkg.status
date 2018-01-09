@@ -160,7 +160,7 @@ front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
 front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
-front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
+front_end/test/standard_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/file_repository_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
