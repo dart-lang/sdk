@@ -5499,8 +5499,11 @@ export 'a.dart';
   }
 
   test_export_class_type_alias() async {
-    addLibrarySource(
-        '/a.dart', 'class C {} exends _D with _E; class _D {} class _E {}');
+    addLibrarySource('/a.dart', r'''
+class C = _D with _E;
+class _D {}
+class _E {}
+''');
     var library = await checkLibrary('export "a.dart";');
     checkElementText(library, r'''
 export 'a.dart';

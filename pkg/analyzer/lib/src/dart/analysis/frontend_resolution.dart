@@ -265,10 +265,12 @@ class FrontEndCompiler {
             var files = <Uri, FileCompilationResult>{};
 
             void addFileResult(Uri fileUri) {
-              files[fileUri] = new FileCompilationResult(
-                  fileUri,
-                  libraryResolutions[fileUri] ?? [],
-                  _errorListener.fileUriToErrors[fileUri] ?? []);
+              if (libraryResolutions != null) {
+                files[fileUri] = new FileCompilationResult(
+                    fileUri,
+                    libraryResolutions[fileUri] ?? [],
+                    _errorListener.fileUriToErrors[fileUri] ?? []);
+              }
             }
 
             addFileResult(library.fileUri);
