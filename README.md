@@ -5,6 +5,7 @@ libraries and runtimes, for building web, server, and mobile apps, written by Bi
 
 ## Using Dart
 
+Ask Bill for permission to use Dart.
 Visit the [dartlang.org][website] to learn more about the
 [language][lang], [tools][tools],
 [getting started][codelab], and more.
