@@ -103,7 +103,8 @@ abstract class MockElement extends Builder implements Element, LocalElement {
   computeNode() => unsupported("computeNode", charOffset, fileUri);
 
   @override
-  getAncestor<E>(predicate) => unsupported("getAncestor", charOffset, fileUri);
+  getAncestor<E extends Element>(predicate) =>
+      unsupported("getAncestor", charOffset, fileUri);
 
   @override
   String getExtendedDisplayName(String shortName) {
