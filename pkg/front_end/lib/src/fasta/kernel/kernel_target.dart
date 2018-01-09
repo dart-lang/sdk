@@ -342,6 +342,7 @@ class KernelTarget extends TargetImplementation {
           (LocatedMessage message) => new ExpressionStatement(new Throw(
               new StringLiteral(context.format(message, Severity.error)))))));
     }
+    loader.libraries.add(library.library);
     library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
   }
