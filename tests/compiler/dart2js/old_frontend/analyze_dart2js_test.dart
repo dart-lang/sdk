@@ -37,6 +37,12 @@ const Map<String, List<String>> WHITE_LIST = const {
   "third_party/pkg/collection/lib/src/functions.dart": const [
     "Method type variables are treated as `dynamic` in `as` expressions."
   ],
+  "pkg/front_end/lib/src/fasta/kernel/kernel_shadow_ast.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
 };
 
 void main() {

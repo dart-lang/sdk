@@ -4,6 +4,9 @@
 
 library fasta.body_builder;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
 import 'package:kernel/type_algebra.dart' show instantiateToBounds;

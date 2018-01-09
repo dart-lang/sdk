@@ -23,6 +23,12 @@ const Map<String, List /* <String|MessageKind> */ > WHITE_LIST = const {
   "pkg/kernel/lib/transformations/closure/": const [
     "Duplicated library name 'kernel.transformations.closure.converter'",
   ],
+  "pkg/front_end/lib/src/fasta/kernel/kernel_shadow_ast.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
 };
 
 const List<String> SKIP_LIST = const <String>[
