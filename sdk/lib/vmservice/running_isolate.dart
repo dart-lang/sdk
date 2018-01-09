@@ -15,7 +15,7 @@ class RunningIsolate implements MessageRouter {
 
   Future<Response> routeRequest(Message message) {
     // Send message to isolate.
-    return message.send(sendPort);
+    return message.sendToIsolate(sendPort);
   }
 
   void routeResponse(Message message) {}

@@ -154,20 +154,18 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List _makeAllString(List list) {
+  List<String> _makeAllString(List list) {
     if (list == null) {
       return null;
     }
+    var new_list = new List<String>(list.length);
     for (var i = 0; i < list.length; i++) {
-      if (list[i] is String) {
-        continue;
-      }
-      list[i] = list[i].toString();
+      new_list[i] = list[i].toString();
     }
-    return list;
+    return new_list;
   }
 
-  Future<Response> send(SendPort sendPort) {
+  Future<Response> sendToIsolate(SendPort sendPort) {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
@@ -221,11 +219,11 @@ class Message {
       receivePort.close();
       _setResponseFromPort(value);
     };
-    final keys = params.keys.toList(growable: false);
-    final values = params.values.toList(growable: false);
+    var keys = params.keys.toList(growable: false);
+    var values = params.values.toList(growable: false);
     if (!_methodNeedsObjectParameters(method)) {
-      _makeAllString(keys);
-      _makeAllString(values);
+      keys = _makeAllString(keys);
+      values = _makeAllString(values);
     }
 
     final request = new List(6)
