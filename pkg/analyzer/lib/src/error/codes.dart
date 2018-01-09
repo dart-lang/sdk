@@ -326,6 +326,23 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try choosing a different name for the type parameter.");
 
   /**
+   * 16.33 Identifier Reference: It is a compile-time error if a built-in
+   * identifier is used as the declared name of a prefix, class, type parameter
+   * or type alias.
+   *
+   * Parameters:
+   * 0: the built-in identifier that is being used
+   *
+   * TODO(scheglov) It would be nice to get more specific errors.
+   * https://github.com/dart-lang/sdk/issues/31811
+   */
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_IN_DECLARATION =
+      const CompileTimeErrorCode(
+          'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+          "The built-in identifier '{0}' can't be used as a name.",
+          "Try choosing a different name.");
+
+  /**
    * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements
    * the operator <i>==</i>.
    *
@@ -949,7 +966,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the type that cannot be extended
    *
-   * See [IMPLEMENTS_DISALLOWED_CLASS].
+   * See [IMPLEMENTS_DISALLOWED_CLASS] and [MIXIN_OF_DISALLOWED_CLASS].
+   *
+   * TODO(scheglov) We might want to restore specific code with FrontEnd.
+   * https://github.com/dart-lang/sdk/issues/31821
    */
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
       const CompileTimeErrorCode(

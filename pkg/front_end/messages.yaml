@@ -746,6 +746,7 @@ BuiltInIdentifierAsType:
 
 BuiltInIdentifierInDeclaration:
   template: "Can't use '#lexeme' as a name here."
+  analyzerCode: BUILT_IN_IDENTIFIER_IN_DECLARATION
   dart2jsCode: GENERIC
 
 AwaitForNotAsync:
@@ -1155,6 +1156,8 @@ PrefixAfterCombinator:
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
   severity: NIT
+  analyzerCode: AMBIGUOUS_EXPORT
+  dart2jsCode: "*ignored*"
 
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
@@ -1176,6 +1179,8 @@ ExtendingEnum:
 
 ExtendingRestricted:
   template: "'#name' is restricted and can't be extended or implemented."
+  analyzerCode: EXTENDS_DISALLOWED_CLASS
+  dart2jsCode: "*ignored*"
 
 NoUnnamedConstructorInObject:
   template: "'Object' has no unnamed constructor."
@@ -1598,6 +1603,8 @@ SuperclassHasNoMethod:
 
 SuperclassHasNoDefaultConstructor:
   template: "The superclass, '#name', has no unnamed constructor that takes no arguments."
+  analyzerCode: NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+  dart2jsCode: "*ignored*"
 
 ConstConstructorNonFinalField:
   template: "Constructor is marked 'const' so all fields must be final."

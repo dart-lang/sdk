@@ -228,6 +228,7 @@ const Template<Message Function(Token token)>
 const Code<Message Function(Token token)> codeBuiltInIdentifierInDeclaration =
     const Code<Message Function(Token token)>("BuiltInIdentifierInDeclaration",
         templateBuiltInIdentifierInDeclaration,
+        analyzerCode: "BUILT_IN_IDENTIFIER_IN_DECLARATION",
         dart2jsCode: "GENERIC");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -970,6 +971,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedExport", templateDuplicatedExport,
+        analyzerCode: "AMBIGUOUS_EXPORT",
+        dart2jsCode: "*ignored*",
         severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1563,9 +1566,8 @@ const Template<Message Function(String name)> templateExtendingRestricted =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeExtendingRestricted =
     const Code<Message Function(String name)>(
-  "ExtendingRestricted",
-  templateExtendingRestricted,
-);
+        "ExtendingRestricted", templateExtendingRestricted,
+        analyzerCode: "EXTENDS_DISALLOWED_CLASS", dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingRestricted(String name) {
@@ -4391,9 +4393,10 @@ const Template<
 const Code<Message Function(String name)>
     codeSuperclassHasNoDefaultConstructor =
     const Code<Message Function(String name)>(
-  "SuperclassHasNoDefaultConstructor",
-  templateSuperclassHasNoDefaultConstructor,
-);
+        "SuperclassHasNoDefaultConstructor",
+        templateSuperclassHasNoDefaultConstructor,
+        analyzerCode: "NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT",
+        dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoDefaultConstructor(String name) {
