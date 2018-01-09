@@ -95,6 +95,11 @@ front_end/*: SkipByDesign
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/completion: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
+analysis_server/test/integration/edit/format_test: Pass, Slow
+analysis_server/test/integration/analysis/error_test: Pass, Slow
+analysis_server/test/integration/analysis/lint_test: Pass, Slow
+analysis_server/test/integration/edit/import_elements_test: Pass, Slow
+analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Pass, Slow
