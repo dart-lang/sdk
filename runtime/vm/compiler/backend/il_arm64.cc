@@ -529,20 +529,34 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
   }
 }
 
-static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
-                                     LocationSummary* locs,
-                                     Token::Kind kind) {
+static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
+                                       LocationSummary* locs,
+                                       Token::Kind kind) {
   Location left = locs->in(0);
   Location right = locs->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToSmiCondition(kind);
+  if (left.IsConstant() || right.IsConstant()) {
+    // Ensure constant is on the right.
+    ConstantInstr* right_constant = NULL;
+    if (left.IsConstant()) {
+      right_constant = left.constant_instruction();
+      Location tmp = right;
+      right = left;
+      left = tmp;
+      true_condition = FlipCondition(true_condition);
+    } else {
+      right_constant = right.constant_instruction();
+    }
 
-  if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
-    true_condition = FlipCondition(true_condition);
-  } else if (right.IsConstant()) {
-    __ CompareObject(left.reg(), right.constant());
+    if (right_constant->IsUnboxedSignedIntegerConstant()) {
+      __ CompareImmediate(
+          left.reg(), right_constant->GetUnboxedSignedIntegerConstantValue());
+    } else {
+      ASSERT(right_constant->representation() == kTagged);
+      __ CompareObject(left.reg(), right.constant());
+    }
   } else {
     __ CompareRegisters(left.reg(), right.reg());
   }
@@ -561,7 +575,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
-  if (operation_cid() == kSmiCid) {
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -617,8 +631,8 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, locs(), kind());
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
+    return EmitInt64ComparisonOp(compiler, locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), labels, kind());
@@ -718,23 +732,27 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
-  ASSERT(operation_cid() == kSmiCid);
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterOrConstant(left()));
-  // Only one input can be a constant operand. The case of two constant
-  // operands should be handled by constant propagation.
-  summary->set_in(1, summary->in(0).IsConstant()
-                         ? Location::RequiresRegister()
-                         : Location::RegisterOrConstant(right()));
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
+    LocationSummary* summary = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RegisterOrConstant(left()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    summary->set_in(1, summary->in(0).IsConstant()
+                           ? Location::RequiresRegister()
+                           : Location::RegisterOrConstant(right()));
+    summary->set_out(0, Location::RequiresRegister());
+    return summary;
+  }
+
+  UNREACHABLE();
+  return NULL;
 }
 
 Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, locs(), kind());
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
+    return EmitInt64ComparisonOp(compiler, locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), labels, kind());
@@ -2979,7 +2997,7 @@ LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
 Condition CheckedSmiComparisonInstr::EmitComparisonCode(
     FlowGraphCompiler* compiler,
     BranchLabels labels) {
-  return EmitSmiComparisonOp(compiler, locs(), kind());
+  return EmitInt64ComparisonOp(compiler, locs(), kind());
 }
 
 #define EMIT_SMI_CHECK                                                         \

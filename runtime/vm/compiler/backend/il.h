@@ -2722,6 +2722,12 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
            representation() == kUnboxedInt64;
   }
 
+  int64_t GetUnboxedSignedIntegerConstantValue() const {
+    ASSERT(IsUnboxedSignedIntegerConstant());
+    return value_.IsSmi() ? Smi::Cast(value_).Value()
+                          : Mint::Cast(value_).value();
+  }
+
   void EmitMoveToLocation(FlowGraphCompiler* compiler,
                           const Location& destination,
                           Register tmp = kNoRegister);
