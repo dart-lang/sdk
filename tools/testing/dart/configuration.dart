@@ -33,7 +33,7 @@ class Configuration {
       this.hotReload,
       this.hotReloadRollback,
       this.isChecked,
-      this.isStrong,
+      bool isStrong,
       this.isHostChecked,
       this.isCsp,
       this.isMinified,
@@ -81,7 +81,11 @@ class Configuration {
       this.fastTestsOnly,
       this.printPassingStdout})
       : _packages = packages,
-        _timeout = timeout;
+        _timeout = timeout,
+        isStrong = isStrong ||
+            // DDC always runs in strong mode.
+            compiler == Compiler.dartdevc ||
+            compiler == Compiler.dartdevk;
 
   final Architecture architecture;
   final Compiler compiler;
@@ -373,11 +377,6 @@ class Configuration {
     if (runtime == Runtime.flutter && architecture != Architecture.x64) {
       isValid = false;
       print("-rflutter is applicable only for --arch=x64");
-    }
-
-    if (compiler == Compiler.dartdevc && !isStrong) {
-      isValid = false;
-      print("--compiler dartdevc requires --strong");
     }
 
     return isValid;
