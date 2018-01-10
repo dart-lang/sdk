@@ -36,6 +36,11 @@ dart_messages/test/dart_messages_test: Skip  # Requires a package root.
 
 # Skip dev_compiler codegen tests
 dev_compiler/test/codegen/*: Skip
+dev_compiler/test/codegen_test: Skip
+dev_compiler/test/options/*: Skip
+dev_compiler/test/sourcemap/*: SkipByDesign
+dev_compiler/test/sourcemap/testfiles/*: SkipByDesign
+dev_compiler/test/worker/*: Skip
 dev_compiler/gen/*: SkipByDesign
 
 # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
@@ -79,11 +84,11 @@ kernel/test/closures_test: Skip
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
 
-# Analyze dev_compiler but don't run its tests
-[ $compiler != dart2analyzer ]
+# Analyze dev_compiler but only run its tests on the vm
+[ $compiler != dart2analyzer && $runtime != vm ]
 dev_compiler/test/*: Skip
 
-[ $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer || $runtime != vm ]
 dev_compiler/test/options/*: SkipByDesign
 
 [ $compiler == none && $runtime == drt ]
