@@ -4,7 +4,6 @@
 
 library implicit_getter_setter_test;
 
-import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -19,7 +18,7 @@ script() {
   }
 }
 
-Future testGetter(Isolate isolate) async {
+testGetter(Isolate isolate) async {
   Library rootLibrary = await isolate.rootLibrary.load();
   expect(rootLibrary.classes.length, equals(1));
   Class classA = await rootLibrary.classes[0].load();
@@ -41,7 +40,7 @@ Future testGetter(Isolate isolate) async {
   expect(classDouble.name, equals('_Double'));
 }
 
-Future testSetter(Isolate isolate) async {
+testSetter(Isolate isolate) async {
   Library rootLibrary = await isolate.rootLibrary.load();
   expect(rootLibrary.classes.length, equals(1));
   Class classA = await rootLibrary.classes[0].load();

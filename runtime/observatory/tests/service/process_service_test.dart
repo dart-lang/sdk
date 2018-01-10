@@ -64,12 +64,12 @@ Future setupProcesses() async {
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
-  Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) {
+  Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) async {
     process3.stdin.close();
-    return process3.exitCode.then<ServiceExtensionResponse>((int exit) {
-      var result = JSON.encode({'type': 'foobar'});
-      return new ServiceExtensionResponse.result(result);
-    });
+    var result = JSON.encode({'type': 'foobar'});
+    var returnValue =
+        new Future.value(new ServiceExtensionResponse.result(result));
+    return process3.exitCode.then((int exit) => returnValue);
   }
 
   registerExtension('ext.dart.io.cleanup', cleanup);

@@ -107,7 +107,7 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
     openFiles.remove(info.id);
   }
 
-  static Iterable<Map<String, dynamic>> getOpenFilesList() {
+  static Iterable<Map<String, String>> getOpenFilesList() {
     return new List.from(openFiles.values.map((e) => e.referenceValueMap));
   }
 
@@ -177,7 +177,7 @@ class _ProcessResourceInfo extends _IOResourceInfo {
     startedProcesses.remove(info.id);
   }
 
-  static Iterable<Map<String, dynamic>> getStartedProcessesList() =>
+  static Iterable<Map<String, String>> getStartedProcessesList() =>
       new List.from(startedProcesses.values.map((e) => e.referenceValueMap));
 
   static Future<ServiceExtensionResponse> getStartedProcesses(
@@ -226,7 +226,7 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
     return '${socket.address.host}:${socket.port}$remote';
   }
 
-  static Iterable<Map<String, dynamic>> getOpenSocketsList() {
+  static Iterable<Map<String, String>> getOpenSocketsList() {
     return new List.from(openSockets.values.map((e) => e.referenceValueMap));
   }
 

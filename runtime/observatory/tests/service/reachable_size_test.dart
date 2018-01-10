@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
-import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -28,14 +27,16 @@ buildGraph() {
   p1.y = p2.y = new List();
 }
 
-Future<int> getReachableSize(ServiceObject obj) async {
-  Instance size = await obj.isolate.getReachableSize(obj);
-  return int.parse(size.valueAsString);
+getReachableSize(ServiceObject obj) {
+  return obj.isolate.getReachableSize(obj).then((Instance obj) {
+    return int.parse(obj.valueAsString);
+  });
 }
 
-Future<int> getRetainedSize(ServiceObject obj) async {
-  Instance size = await obj.isolate.getRetainedSize(obj);
-  return int.parse(size.valueAsString);
+getRetainedSize(ServiceObject obj) {
+  return obj.isolate.getRetainedSize(obj).then((Instance obj) {
+    return int.parse(obj.valueAsString);
+  });
 }
 
 var tests = <IsolateTest>[

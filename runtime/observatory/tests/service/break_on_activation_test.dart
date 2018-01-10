@@ -49,7 +49,7 @@ void testeeDoNamed() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library rootLib = await isolate.rootLibrary.load();
+    var rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -93,7 +93,7 @@ var tests = <IsolateTest>[
     await cancelFutureSubscription(subscriptionFuture);
   },
   (Isolate isolate) async {
-    Library rootLib = await isolate.rootLibrary.load();
+    var rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -137,7 +137,7 @@ var tests = <IsolateTest>[
     await cancelFutureSubscription(subscriptionFuture);
   },
   (Isolate isolate) async {
-    Library rootLib = await isolate.rootLibrary.load();
+    var rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 

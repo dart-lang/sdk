@@ -17,9 +17,9 @@ primeDartTimeline() {
   }
 }
 
-bool isDart(event) => event['cat'] == 'Dart';
+bool isDart(Map event) => event['cat'] == 'Dart';
 
-List filterEvents(List events, filter) {
+List<Map> filterEvents(List<Map> events, filter) {
   return events.where(filter).toList();
 }
 

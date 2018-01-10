@@ -39,7 +39,7 @@ bool closureMatcher(handler) {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    dynamic result = await isolate.invokeRpc('_getPorts', {});
+    var result = await isolate.invokeRpc('_getPorts', {});
     expect(result['type'], equals('_Ports'));
     expect(result['ports'], isList);
     var ports = result['ports'];

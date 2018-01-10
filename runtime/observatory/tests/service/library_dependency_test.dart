@@ -13,7 +13,7 @@ import 'dart:convert' deferred as convert;
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
+    var lib = await isolate.rootLibrary.load();
     // Use mirrors to shutup the analyzer.
     mirrors.currentMirrorSystem();
     importOf(String uri) {
