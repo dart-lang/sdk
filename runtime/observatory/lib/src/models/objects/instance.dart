@@ -323,7 +323,7 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Int32x4List
   ///   Float32x4List
   ///   Float64x2List
-  Iterable<dynamic> get typedElements;
+  List<dynamic> get typedElements;
 
   /// [optional] The native fields of this Instance.
   Iterable<NativeField> get nativeFields;

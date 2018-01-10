@@ -27,11 +27,11 @@ primeTimeline() {
   Timeline.finishSync();
 }
 
-List<Map> filterForDartEvents(List<Map> events) {
+List filterForDartEvents(List events) {
   return events.where((event) => event['cat'] == 'Dart').toList();
 }
 
-bool eventsContains(List<Map> events, String phase, String name) {
+bool eventsContains(List events, String phase, String name) {
   for (Map event in events) {
     if ((event['ph'] == phase) && (event['name'] == name)) {
       return true;
@@ -40,7 +40,7 @@ bool eventsContains(List<Map> events, String phase, String name) {
   return false;
 }
 
-int timeOrigin(List<Map> events) {
+int timeOrigin(List events) {
   if (events.length == 0) {
     return 0;
   }
@@ -54,7 +54,7 @@ int timeOrigin(List<Map> events) {
   return smallest;
 }
 
-int timeDuration(List<Map> events, int timeOrigin) {
+int timeDuration(List events, int timeOrigin) {
   if (events.length == 0) {
     return 0;
   }
@@ -69,7 +69,7 @@ int timeDuration(List<Map> events, int timeOrigin) {
   return biggestDuration;
 }
 
-void allEventsHaveIsolateNumber(List<Map> events) {
+void allEventsHaveIsolateNumber(List events) {
   for (Map event in events) {
     if (event['ph'] == 'M') {
       // Skip meta-data events.
@@ -99,7 +99,7 @@ var tests = <VMTest>[
     expect(result['type'], equals('_Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     final int numEvents = result['traceEvents'].length;
-    List<Map> dartEvents = filterForDartEvents(result['traceEvents']);
+    List dartEvents = filterForDartEvents(result['traceEvents']);
     expect(dartEvents.length, equals(11));
     allEventsHaveIsolateNumber(dartEvents);
     allEventsHaveIsolateNumber(result['traceEvents']);
@@ -121,7 +121,7 @@ var tests = <VMTest>[
     // Verify that we received fewer events than before.
     expect(result['traceEvents'].length, lessThan(numEvents));
     // Verify that we have the same number of Dart events.
-    List<Map> dartEvents2 = filterForDartEvents(result['traceEvents']);
+    List dartEvents2 = filterForDartEvents(result['traceEvents']);
     expect(dartEvents2.length, dartEvents.length);
   },
 ];

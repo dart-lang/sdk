@@ -17,14 +17,14 @@ testeeMain() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
-    var thing1 =
-        (await lib.variables.singleWhere((v) => v.name == "thing1").load())
-            .staticValue;
+    Library lib = await isolate.rootLibrary.load();
+    Field thing1Field =
+        await lib.variables.singleWhere((v) => v.name == "thing1").load();
+    var thing1 = thing1Field.staticValue;
     print(thing1);
-    var thing2 =
-        (await lib.variables.singleWhere((v) => v.name == "thing2").load())
-            .staticValue;
+    Field thing2Field =
+        await lib.variables.singleWhere((v) => v.name == "thing2").load();
+    var thing2 = thing2Field.staticValue;
     print(thing2);
 
     var result = await lib.evaluate("x + y", scope: {"x": thing1, "y": thing2});

@@ -134,7 +134,7 @@ class FunctionCallTreeNodeCode {
   FunctionCallTreeNodeCode(this.code, this.ticks);
 }
 
-class FunctionCallTreeNode extends CallTreeNode {
+class FunctionCallTreeNode extends CallTreeNode<FunctionCallTreeNode> {
   final ProfileFunction profileFunction;
   final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;
@@ -210,7 +210,7 @@ class FunctionCallTreeNode extends CallTreeNode {
 typedef bool CallTreeNodeFilter(CallTreeNode node);
 
 /// Build a filter version of a FunctionCallTree.
-abstract class _FilteredCallTreeBuilder {
+abstract class _FilteredCallTreeBuilder<NodeT extends CallTreeNode> {
   /// The filter.
   final CallTreeNodeFilter filter;
 
@@ -235,14 +235,15 @@ abstract class _FilteredCallTreeBuilder {
 
   CallTreeNode _findInChildren(CallTreeNode current, CallTreeNode needle) {
     for (var child in current.children) {
-      if (child.profileData == needle.profileData) {
+      if ((child as CallTreeNode).profileData ==
+          (needle as CallTreeNode).profileData) {
         return child;
       }
     }
     return null;
   }
 
-  CallTreeNode _copyNode(CallTreeNode node);
+  NodeT _copyNode(NodeT node);
 
   /// Add all nodes in [_currentPath].
   FunctionCallTreeNode _addCurrentPath() {
@@ -320,7 +321,8 @@ abstract class _FilteredCallTreeBuilder {
   }
 }
 
-class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
+class _FilteredFunctionCallTreeBuilder
+    extends _FilteredCallTreeBuilder<FunctionCallTreeNode> {
   _FilteredFunctionCallTreeBuilder(
       CallTreeNodeFilter filter, FunctionCallTree tree)
       : super(
@@ -329,8 +331,8 @@ class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
             new FunctionCallTree(
                 tree.inclusive,
                 new FunctionCallTreeNode(
-                    tree.root.profileData,
-                    tree.root.count,
+                    (tree.root as CallTreeNode).profileData,
+                    (tree.root as CallTreeNode).count,
                     tree.root.inclusiveNativeAllocations,
                     tree.root.exclusiveNativeAllocations)));
 
@@ -340,7 +342,8 @@ class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
   }
 }
 
-class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
+class _FilteredCodeCallTreeBuilder
+    extends _FilteredCallTreeBuilder<CodeCallTreeNode> {
   _FilteredCodeCallTreeBuilder(CallTreeNodeFilter filter, CodeCallTree tree)
       : super(
             filter,
@@ -359,7 +362,8 @@ class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
   }
 }
 
-class FunctionCallTree extends CallTree implements M.FunctionCallTree {
+class FunctionCallTree extends CallTree<FunctionCallTreeNode>
+    implements M.FunctionCallTree {
   FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
       : super(inclusive, root) {
     if ((root.inclusiveNativeAllocations != null) &&
@@ -439,7 +443,7 @@ class FunctionCallTree extends CallTree implements M.FunctionCallTree {
 
   _markFunctionCalls() {
     for (var child in root.children) {
-      _markFunctionCallsInner(null, child);
+      _markFunctionCallsInner(null, child as FunctionCallTreeNode);
     }
   }
 }
