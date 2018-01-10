@@ -237,11 +237,11 @@ async_star_regression_fisk_test: RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
 async_star_test/01: Pass
 async_star_test/01: RuntimeError
-async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
-async_star_test/03: RuntimeError # Issue 31402 (Invocation arguments)
-async_star_test/04: RuntimeError # Issue 31402 (Invocation arguments)
-async_star_test/05: RuntimeError # Issue 31402 (Invocation arguments)
-async_star_test/none: RuntimeError # Issue 31402 (Invocation arguments)
+async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/04: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/05: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 await_test: CompileTimeError # Issue 31541
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
@@ -438,6 +438,8 @@ function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure5_test: RuntimeError
 function_subtype_bound_closure5a_test: RuntimeError
 function_subtype_bound_closure6_test: RuntimeError
+function_subtype_bound_closure7_test: CompileTimeError # Issue 31402 (Variable declaration)
+function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError
@@ -465,6 +467,7 @@ generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_bounds_test: CompileTimeError
+generic_function_dcall_test: CompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -472,6 +475,10 @@ generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
+generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_unused_parameter_test: RuntimeError
+generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
@@ -490,6 +497,7 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
+instantiate_tearoff_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue13179_test: CompileTimeError # Issue 31402 (Parameter default value)
 issue18628_2_test/01: MissingCompileTimeError
@@ -1286,7 +1294,7 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_function_bounds_test: CompileTimeError
-generic_function_dcall_test: RuntimeError
+generic_function_dcall_test: CompileTimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -1301,7 +1309,7 @@ generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_unused_parameter_test: RuntimeError # Issue 31402 (Variable declaration)
+generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
@@ -1340,7 +1348,7 @@ initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
 instantiate_tearoff_after_contravariance_check_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_tearoff_test: RuntimeError
+instantiate_tearoff_test: CompileTimeError
 invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
@@ -1685,3 +1693,4 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
+

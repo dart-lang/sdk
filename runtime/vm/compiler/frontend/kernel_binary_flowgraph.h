@@ -1228,7 +1228,6 @@ class StreamingFlowGraphBuilder {
   Fragment BuildVectorCopy(TokenPosition* position);
   Fragment BuildClosureCreation(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position);
-  Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();

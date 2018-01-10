@@ -598,13 +598,6 @@ class BaseFlowGraphBuilder {
 
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
 
-  Fragment LoadArgDescriptor() {
-    ASSERT(parsed_function_->has_arg_desc_var());
-    return LoadLocal(parsed_function_->arg_desc_var());
-  }
-
-  JoinEntryInstr* BuildThrowNoSuchMethod();
-
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   intptr_t CurrentTryIndex();

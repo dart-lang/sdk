@@ -78,6 +78,18 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   }
 }
 
+JoinEntryInstr* PrologueBuilder::BuildThrowNoSuchMethod() {
+  JoinEntryInstr* nsm = BuildJoinEntry();
+
+  Fragment failing(nsm);
+  const Code& nsm_handler =
+      Code::ZoneHandle(StubCode::CallClosureNoSuchMethod_entry()->code());
+  failing += LoadArgDescriptor();
+  failing += TailCall(nsm_handler);
+
+  return nsm;
+}
+
 Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
                                                         JoinEntryInstr* nsm,
                                                         bool expect_type_args) {
