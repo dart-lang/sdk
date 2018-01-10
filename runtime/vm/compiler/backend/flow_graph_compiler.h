@@ -93,7 +93,6 @@ class ParallelMoveResolver : public ValueObject {
   // Helpers for non-trivial source-destination combinations that cannot
   // be handled by a single instruction.
   void MoveMemoryToMemory(const Address& dst, const Address& src);
-  void StoreObject(const Address& dst, const Object& obj);
   void Exchange(Register reg, const Address& mem);
   void Exchange(const Address& mem1, const Address& mem2);
   void Exchange(Register reg, Register base_reg, intptr_t stack_offset);

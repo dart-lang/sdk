@@ -1270,44 +1270,14 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
-    const Object& constant = source.constant();
-    if (destination.IsRegister()) {
-      if (source.constant_instruction()->representation() == kUnboxedInt32) {
-        __ LoadImmediate(destination.reg(), Smi::Cast(constant).Value());
-      } else {
-        __ LoadObject(destination.reg(), constant);
-      }
-    } else if (destination.IsFpuRegister()) {
-      const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
-      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0) &&
-          TargetCPUFeatures::neon_supported()) {
-        QRegister qdst = destination.fpu_reg();
-        __ veorq(qdst, qdst, qdst);
-      } else {
-        __ LoadObject(TMP, constant);
-        __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
-        __ vldrd(dst, Address(TMP, 0));
-      }
-    } else if (destination.IsDoubleStackSlot()) {
-      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0) &&
-          TargetCPUFeatures::neon_supported()) {
-        __ veorq(QTMP, QTMP, QTMP);
-      } else {
-        __ LoadObject(TMP, constant);
-        __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
-        __ vldrd(DTMP, Address(TMP, 0));
-      }
-      const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ StoreDToOffset(DTMP, destination.base_reg(), dest_offset);
+
+    if (destination.IsFpuRegister() || destination.IsDoubleStackSlot() ||
+        destination.IsStackSlot()) {
+      ScratchRegisterScope scratch(this, kNoRegister);
+      source.constant_instruction()->EmitMoveToLocation(compiler_, destination,
+                                                        scratch.reg());
     } else {
-      ASSERT(destination.IsStackSlot());
-      const intptr_t dest_offset = destination.ToStackSlotOffset();
-      if (source.constant_instruction()->representation() == kUnboxedInt32) {
-        __ LoadImmediate(TMP, Smi::Cast(constant).Value());
-      } else {
-        __ LoadObject(TMP, constant);
-      }
-      __ StoreToOffset(kWord, TMP, destination.base_reg(), dest_offset);
+      source.constant_instruction()->EmitMoveToLocation(compiler_, destination);
     }
   }
 
@@ -1414,10 +1384,6 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  UNREACHABLE();
-}
-
-void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   UNREACHABLE();
 }
 

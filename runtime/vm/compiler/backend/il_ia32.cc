@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
@@ -180,6 +181,65 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
+                                       const Location& destination,
+                                       Register tmp) {
+  if (destination.IsRegister()) {
+    if (value_.IsSmi() && Smi::Cast(value_).Value() == 0) {
+      __ xorl(destination.reg(), destination.reg());
+    } else if (value_.IsSmi() && (representation() == kUnboxedInt32)) {
+      __ movl(destination.reg(), Immediate(Smi::Cast(value_).Value()));
+    } else {
+      ASSERT(representation() == kTagged);
+      __ LoadObjectSafely(destination.reg(), value_);
+    }
+  } else if (destination.IsFpuRegister()) {
+    const double value_as_double = Double::Cast(value_).value();
+    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    if (addr == 0) {
+      __ pushl(EAX);
+      __ LoadObject(EAX, value_);
+      __ movsd(destination.fpu_reg(),
+               FieldAddress(EAX, Double::value_offset()));
+      __ popl(EAX);
+    } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
+      __ xorps(destination.fpu_reg(), destination.fpu_reg());
+    } else {
+      __ movsd(destination.fpu_reg(), Address::Absolute(addr));
+    }
+  } else if (destination.IsDoubleStackSlot()) {
+    const double value_as_double = Double::Cast(value_).value();
+    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    if (addr == 0) {
+      __ pushl(EAX);
+      __ LoadObject(EAX, value_);
+      __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+      __ popl(EAX);
+    } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
+      __ xorps(XMM0, XMM0);
+    } else {
+      __ movsd(XMM0, Address::Absolute(addr));
+    }
+    __ movsd(destination.ToStackSlotAddress(), XMM0);
+  } else {
+    ASSERT(destination.IsStackSlot());
+    if (value_.IsSmi() && representation() == kUnboxedInt32) {
+      __ movl(destination.ToStackSlotAddress(),
+              Immediate(Smi::Cast(value_).Value()));
+    } else {
+      if (Assembler::IsSafeSmi(value_) || value_.IsNull()) {
+        __ movl(destination.ToStackSlotAddress(),
+                Immediate(reinterpret_cast<int32_t>(value_.raw())));
+      } else {
+        __ pushl(EAX);
+        __ LoadObjectSafely(EAX, value_);
+        __ movl(destination.ToStackSlotAddress(), EAX);
+        __ popl(EAX);
+      }
+    }
+  }
+}
+
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -202,26 +262,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    switch (representation()) {
-      case kUnboxedDouble: {
-        XmmRegister result = locs()->out(0).fpu_reg();
-        if (constant_address() == 0) {
-          Register boxed = locs()->temp(0).reg();
-          __ LoadObjectSafely(boxed, value());
-          __ movsd(result, FieldAddress(boxed, Double::value_offset()));
-        } else if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
-          __ xorps(result, result);
-        } else {
-          __ movsd(result, Address::Absolute(constant_address()));
-        }
-        break;
-      }
-      case kUnboxedInt32:
-        __ movl(locs()->out(0).reg(), Immediate(Smi::Cast(value()).Value()));
-        break;
-      default:
-        UNREACHABLE();
-    }
+    EmitMoveToLocation(compiler, locs()->out(0));
   }
 }
 
