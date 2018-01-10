@@ -43,6 +43,24 @@ const Map<String, List<String>> WHITE_LIST = const {
   "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": const [
     "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
   ],
+  "pkg/kernel/lib/visitor.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/kernel/lib/text/ast_to_text.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/kernel/lib/target/vm.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/kernel/lib/clone.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/kernel/lib/binary/ast_to_binary.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
+  "pkg/kernel/lib/binary/ast_from_binary.dart": const [
+    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
+  ],
 };
 
 void main() {

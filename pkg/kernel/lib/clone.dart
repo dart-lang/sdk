@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.clone;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import 'ast.dart';
 import 'type_algebra.dart';
 

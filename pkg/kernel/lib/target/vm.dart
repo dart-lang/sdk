@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.target.vm;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
