@@ -299,6 +299,8 @@ abstract class GraphBuilder {
         return options.useContentSecurityPolicy;
       case 'IS_FULL_EMITTER':
         return !options.useStartupEmitter;
+      case 'STRONG_MODE':
+        return options.strongMode;
       default:
         return null;
     }

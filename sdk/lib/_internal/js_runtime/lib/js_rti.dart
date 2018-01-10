@@ -84,15 +84,15 @@ class TypeVariable {
 
 getMangledTypeName(TypeImpl type) => type._typeName;
 
-/**
- * Sets the runtime type information on [target]. [rti] is a type
- * representation of type 4 or 5, that is, either a JavaScript array or
- * `null`.
- */
+/// Sets the runtime type information on [target]. [rti] is a type
+/// representation of type 4 or 5, that is, either a JavaScript array or `null`.
+///
+/// Called from generated code.
+///
+/// This is used only for marking JavaScript Arrays (JSArray) with the element
+/// type.
 // Don't inline.  Let the JS engine inline this.  The call expression is much
 // more compact that the inlined expansion.
-// TODO(sra): For most objects it would be better to initialize the type info as
-// a field in the constructor: http://dartbug.com/22676 .
 @NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
@@ -101,10 +101,10 @@ Object setRuntimeTypeInfo(Object target, var rti) {
   return target;
 }
 
-/**
- * Returns the runtime type information of [target]. The returned value is a
- * list of type representations for the type arguments.
- */
+/// Returns the runtime type information of [target]. The returned value is a
+/// list of type representations for the type arguments.
+///
+/// Called from generated code.
 getRuntimeTypeInfo(Object target) {
   if (target == null) return null;
   String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
@@ -120,10 +120,10 @@ getRuntimeTypeArguments(target, substitutionName) {
   return substitute(substitution, getRuntimeTypeInfo(target));
 }
 
-/**
- * Returns the [index]th type argument of [target] as an instance of
- * [substitutionName].
- */
+/// Returns the [index]th type argument of [target] as an instance of
+/// [substitutionName].
+///
+/// Called from generated code.
 @NoThrows()
 @NoSideEffects()
 @NoInline()
@@ -132,6 +132,9 @@ getRuntimeTypeArgument(Object target, String substitutionName, int index) {
   return arguments == null ? null : getIndex(arguments, index);
 }
 
+/// Returns the [index]th type argument of [target].
+///
+/// Called from generated code.
 @NoThrows()
 @NoSideEffects()
 @NoInline()
@@ -153,22 +156,37 @@ String getClassName(var object) {
  * of type 4, the JavaScript array, where the first element represents the class
  * and the remaining elements represent the type arguments.
  */
-String getRuntimeTypeAsString(var rti, {String onTypeVariable(int i)}) {
+String _getRuntimeTypeAsStringV1(var rti, {String onTypeVariable(int i)}) {
   assert(isJsArray(rti));
   String className = rawRtiToJsConstructorName(getIndex(rti, 0));
-  return '$className${joinArguments(rti, 1, onTypeVariable: onTypeVariable)}';
+  return '$className${joinArgumentsV1(rti, 1, onTypeVariable: onTypeVariable)}';
 }
 
-/**
- * Returns a human-readable representation of the type representation [rti].
- */
+String _getRuntimeTypeAsStringV2(var rti, List<String> genericContext) {
+  assert(isJsArray(rti));
+  String className = rawRtiToJsConstructorName(getIndex(rti, 0));
+  return '$className${joinArgumentsV2(rti, 1, genericContext)}';
+}
+
+/// Returns a human-readable representation of the type representation [rti].
+///
+/// Called from generated code.
+///
+/// [onTypeVariable] is used only from dart:mirrors.
+@NoInline()
 String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
+  return JS_GET_FLAG('STRONG_MODE')
+      ? runtimeTypeToStringV2(rti, null)
+      : runtimeTypeToStringV1(rti, onTypeVariable: onTypeVariable);
+}
+
+String runtimeTypeToStringV1(var rti, {String onTypeVariable(int i)}) {
   if (rti == null) {
     return 'dynamic';
   }
   if (isJsArray(rti)) {
     // A list representing a type with arguments.
-    return getRuntimeTypeAsString(rti, onTypeVariable: onTypeVariable);
+    return _getRuntimeTypeAsStringV1(rti, onTypeVariable: onTypeVariable);
   }
   if (isJsFunction(rti)) {
     // A reference to the constructor.
@@ -185,15 +203,43 @@ String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
     String typedefPropertyName = JS_GET_NAME(JsGetName.TYPEDEF_TAG);
     var typedefInfo = JS('', '#[#]', rti, typedefPropertyName);
     if (typedefInfo != null) {
-      return runtimeTypeToString(typedefInfo, onTypeVariable: onTypeVariable);
+      return runtimeTypeToStringV1(typedefInfo, onTypeVariable: onTypeVariable);
     }
-    return _functionRtiToString(rti, onTypeVariable);
+    return _functionRtiToStringV1(rti, onTypeVariable);
   }
   // We should not get here.
   return 'unknown-reified-type';
 }
 
-String _functionRtiToString(var rti, String onTypeVariable(int i)) {
+String runtimeTypeToStringV2(var rti, List<String> genericContext) {
+  if (rti == null) {
+    return 'dynamic';
+  }
+  if (isJsArray(rti)) {
+    // A list representing a type with arguments.
+    return _getRuntimeTypeAsStringV2(rti, genericContext);
+  }
+  if (isJsFunction(rti)) {
+    // A reference to the constructor.
+    return rawRtiToJsConstructorName(rti);
+  }
+  if (isGenericFunctionTypeParameter(rti)) {
+    int index = rti;
+    if (genericContext == null || index < 0 || index >= genericContext.length) {
+      return 'unexpected-generic-index:${index}';
+    }
+    return '${genericContext[genericContext.length - index - 1]}';
+  }
+  String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
+  if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
+    // TODO(sra): If there is a typedef tag, use the typedef name.
+    return _functionRtiToStringV2(rti, genericContext);
+  }
+  // We should not get here.
+  return 'unknown-reified-type';
+}
+
+String _functionRtiToStringV1(var rti, String onTypeVariable(int i)) {
   String returnTypeText;
   String voidTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
   if (JS('bool', '!!#[#]', rti, voidTag)) {
@@ -202,7 +248,7 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
     var returnRti = JS('', '#[#]', rti, returnTypeTag);
     returnTypeText =
-        runtimeTypeToString(returnRti, onTypeVariable: onTypeVariable);
+        runtimeTypeToStringV1(returnRti, onTypeVariable: onTypeVariable);
   }
 
   String argumentsText = '';
@@ -216,7 +262,7 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     for (var argument in arguments) {
       argumentsText += sep;
       argumentsText +=
-          runtimeTypeToString(argument, onTypeVariable: onTypeVariable);
+          runtimeTypeToStringV1(argument, onTypeVariable: onTypeVariable);
       sep = ', ';
     }
   }
@@ -231,7 +277,7 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     for (var argument in optionalArguments) {
       argumentsText += sep;
       argumentsText +=
-          runtimeTypeToString(argument, onTypeVariable: onTypeVariable);
+          runtimeTypeToStringV1(argument, onTypeVariable: onTypeVariable);
       sep = ', ';
     }
     argumentsText += ']';
@@ -246,7 +292,8 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     sep = '';
     for (String name in extractKeys(namedArguments)) {
       argumentsText += sep;
-      argumentsText += runtimeTypeToString(JS('', '#[#]', namedArguments, name),
+      argumentsText += runtimeTypeToStringV1(
+          JS('', '#[#]', namedArguments, name),
           onTypeVariable: onTypeVariable);
       argumentsText += ' $name';
       sep = ', ';
@@ -261,12 +308,129 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
   return '(${argumentsText}) => ${returnTypeText}';
 }
 
+// Returns a formatted String version of a function type.
+//
+// [genericContext] is list of the names of generic type parameters for generic
+// function types. The de Bruijn indexing scheme references the type variables
+// from the inner scope out. The parameters for each scope are pushed in
+// reverse, e.g.  `<P,Q>(<R,S,T>(R))` creates the list `[Q,P,T,S,R]`. This
+// allows the de Bruijn index to simply index backwards from the end of
+// [genericContext], e.g. in the outer scope index `0` is P and `1` is Q, and in
+// the inner scope index `0` is R, `3` is P, and `4` is Q.
+//
+// [genericContext] is initially `null`.
+String _functionRtiToStringV2(var rti, List<String> genericContext) {
+  String typeParameters = '';
+  int outerContextLength;
+
+  String boundsTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG);
+  if (hasField(rti, boundsTag)) {
+    List boundsRti = JS('JSFixedArray', '#[#]', rti, boundsTag);
+    if (genericContext == null) {
+      genericContext = <String>[];
+    } else {
+      outerContextLength = genericContext.length;
+    }
+    int offset = genericContext.length;
+    for (int i = boundsRti.length; i > 0; i--) {
+      genericContext.add('T${offset + i}');
+    }
+    // All variables are in scope in the bounds.
+    String typeSep = '';
+    typeParameters = '<';
+    for (int i = 0; i < boundsRti.length; i++) {
+      typeParameters += typeSep;
+      typeParameters += genericContext[genericContext.length - i - 1];
+      typeSep = ', ';
+      var boundRti = boundsRti[i];
+      if (isInterestingBound(boundRti)) {
+        typeParameters +=
+            ' extends ' + runtimeTypeToStringV2(boundRti, genericContext);
+      }
+    }
+    typeParameters += '>';
+  }
+
+  String returnTypeText;
+  String voidTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
+  if (JS('bool', '!!#[#]', rti, voidTag)) {
+    returnTypeText = 'void';
+  } else {
+    String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
+    var returnRti = JS('', '#[#]', rti, returnTypeTag);
+    returnTypeText = runtimeTypeToStringV2(returnRti, genericContext);
+  }
+
+  String argumentsText = '';
+  String sep = '';
+
+  String requiredParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
+  if (hasField(rti, requiredParamsTag)) {
+    List arguments = JS('JSFixedArray', '#[#]', rti, requiredParamsTag);
+    for (var argument in arguments) {
+      argumentsText += sep;
+      argumentsText += runtimeTypeToStringV2(argument, genericContext);
+      sep = ', ';
+    }
+  }
+
+  String optionalParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
+  bool hasOptionalArguments = JS('bool', '# in #', optionalParamsTag, rti);
+  if (hasOptionalArguments) {
+    List optionalArguments = JS('JSFixedArray', '#[#]', rti, optionalParamsTag);
+    argumentsText += '$sep[';
+    sep = '';
+    for (var argument in optionalArguments) {
+      argumentsText += sep;
+      argumentsText += runtimeTypeToStringV2(argument, genericContext);
+      sep = ', ';
+    }
+    argumentsText += ']';
+  }
+
+  String namedParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
+  bool hasNamedArguments = JS('bool', '# in #', namedParamsTag, rti);
+  if (hasNamedArguments) {
+    var namedArguments = JS('', '#[#]', rti, namedParamsTag);
+    argumentsText += '$sep{';
+    sep = '';
+    for (String name in extractKeys(namedArguments)) {
+      argumentsText += sep;
+      argumentsText += runtimeTypeToStringV2(
+          JS('', '#[#]', namedArguments, name), genericContext);
+      argumentsText += ' $name';
+      sep = ', ';
+    }
+    argumentsText += '}';
+  }
+
+  if (outerContextLength != null) {
+    // Pop all of the generic type parameters.
+    JS('', '#.length = #', genericContext, outerContextLength);
+  }
+
+  // TODO(sra): Below is the same format as the VM. Change to:
+  //
+  //     return '${returnTypeText} Function${typeParameters}(${argumentsText})';
+  //
+  return '${typeParameters}(${argumentsText}) => ${returnTypeText}';
+}
+
 /**
  * Creates a comma-separated string of human-readable representations of the
  * type representations in the JavaScript array [types] starting at index
  * [startIndex].
  */
-String joinArguments(var types, int startIndex,
+String joinArguments(var types, int startIndex) {
+  return JS_GET_FLAG('STRONG_MODE')
+      ? joinArgumentsV2(types, startIndex, null)
+      : joinArgumentsV1(types, startIndex);
+}
+
+String joinArgumentsV1(var types, int startIndex,
     {String onTypeVariable(int i)}) {
   if (types == null) return '';
   assert(isJsArray(types));
@@ -283,7 +447,29 @@ String joinArguments(var types, int startIndex,
     if (argument != null) {
       allDynamic = false;
     }
-    buffer.write(runtimeTypeToString(argument, onTypeVariable: onTypeVariable));
+    buffer
+        .write(runtimeTypeToStringV1(argument, onTypeVariable: onTypeVariable));
+  }
+  return allDynamic ? '' : '<$buffer>';
+}
+
+String joinArgumentsV2(var types, int startIndex, List<String> genericContext) {
+  if (types == null) return '';
+  assert(isJsArray(types));
+  bool firstArgument = true;
+  bool allDynamic = true;
+  StringBuffer buffer = new StringBuffer('');
+  for (int index = startIndex; index < getLength(types); index++) {
+    if (firstArgument) {
+      firstArgument = false;
+    } else {
+      buffer.write(', ');
+    }
+    var argument = getIndex(types, index);
+    if (argument != null) {
+      allDynamic = false;
+    }
+    buffer.write(runtimeTypeToStringV2(argument, genericContext));
   }
   return allDynamic ? '' : '<$buffer>';
 }
@@ -811,3 +997,11 @@ bool isIdentical(var s, var t) => JS('bool', '# === #', s, t);
  * `null` and `undefined` (which we can avoid).
  */
 bool isNotIdentical(var s, var t) => JS('bool', '# !== #', s, t);
+
+/// 'Top' bounds are uninteresting: null/undefined and Object.
+bool isInterestingBound(rti) =>
+    rti != null &&
+    isNotIdentical(
+        rti,
+        JS_BUILTIN(
+            'depends:none;effects:none;', JsBuiltin.dartObjectConstructor));
