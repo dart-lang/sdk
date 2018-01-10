@@ -18,6 +18,9 @@ abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
 
   final List<TypeVariableBuilder> typeVariables;
 
+  /// List of type arguments provided by instantiate to bound.
+  List<TypeBuilder> get calculatedBounds;
+
   FunctionTypeAliasBuilder(List<MetadataBuilder> metadata, String name,
       this.typeVariables, this.type, LibraryBuilder parent, int charOffset)
       : super(metadata, null, name, parent, charOffset);

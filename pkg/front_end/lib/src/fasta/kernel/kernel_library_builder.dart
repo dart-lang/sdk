@@ -77,7 +77,6 @@ import 'kernel_builder.dart'
         QualifiedName,
         Scope,
         TypeBuilder,
-        TypeDeclarationBuilder,
         TypeVariableBuilder,
         VoidTypeBuilder,
         compareProcedures,
@@ -1016,34 +1015,24 @@ class KernelLibraryBuilder
     return count;
   }
 
-  /// Instantiates the type parameters in all raw generic types in [types] to
-  /// their bounds.  The list of types is cleared when done.
   int instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
     int count = 0;
 
-    for (var type in types) {
-      if (type.builder is! NamedTypeBuilder) {
-        continue;
-      }
-      NamedTypeBuilder typeBuilder = type.builder as NamedTypeBuilder;
-      TypeDeclarationBuilder typeDeclarationBuilder = typeBuilder.builder;
-      List<TypeVariableBuilder> typeParameters;
-
-      if (typeDeclarationBuilder is KernelClassBuilder) {
-        typeParameters = typeDeclarationBuilder.typeVariables;
-      } else if (typeDeclarationBuilder is KernelFunctionTypeAliasBuilder) {
-        typeParameters = typeDeclarationBuilder.typeVariables;
-      }
-
-      if (typeParameters != null &&
-          typeParameters.length > 0 &&
-          typeBuilder.arguments == null) {
-        typeBuilder.arguments =
-            calculateBounds(typeParameters, dynamicType, objectClass);
-        count += typeParameters.length;
+    for (var declarationBuilder in libraryDeclaration.members.values) {
+      if (declarationBuilder is KernelClassBuilder) {
+        if (declarationBuilder.typeVariables != null) {
+          declarationBuilder.calculatedBounds = calculateBounds(
+              declarationBuilder.typeVariables, dynamicType, objectClass);
+          count += declarationBuilder.calculatedBounds.length;
+        }
+      } else if (declarationBuilder is KernelFunctionTypeAliasBuilder) {
+        if (declarationBuilder.typeVariables != null) {
+          declarationBuilder.calculatedBounds = calculateBounds(
+              declarationBuilder.typeVariables, dynamicType, objectClass);
+          count += declarationBuilder.calculatedBounds.length;
+        }
       }
     }
-    types.clear();
 
     return count;
   }

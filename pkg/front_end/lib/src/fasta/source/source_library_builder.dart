@@ -582,13 +582,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  /// Resolves all unresolved types in [types]. The list of types is retained
-  /// and is used in [KernelLibraryBuilder.instantiateToBound] later.
+  /// Resolves all unresolved types in [types]. The list of types is cleared
+  /// when done.
   int resolveTypes() {
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
     }
+    types.clear();
     return typeCount;
   }
 
