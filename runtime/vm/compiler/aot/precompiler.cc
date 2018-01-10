@@ -777,7 +777,7 @@ void PrecompilerEntryPointsPrinter::Print() {
         Class::Handle(Isolate::Current()->class_table()->At(result_cid));
     DescribeClass(&writer, result_cls);
 
-    writer.PrintProperty("nullable", "false");
+    writer.PrintPropertyBool("nullable", false);
 
     writer.CloseObject();
     writer.CloseArray();
