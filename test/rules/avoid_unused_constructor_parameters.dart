@@ -91,3 +91,8 @@ class M {
   factory M(int a, int b) => new M._internal(a); // LINT
   factory M.redirect(int n) = M._internal; // OK because target constructor have parameters
 }
+
+class N {
+  external N(int n); // OK
+  external factory N.named(int n); // OK
+}
