@@ -63,7 +63,6 @@ LibTest/isolate/*/*: Skip
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
-Language/Statements/For/Asynchronous_For_in/execution_t04: Crash
 
 [ $compiler == dartkp && $strong ]
 *: SkipByDesign

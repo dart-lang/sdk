@@ -830,7 +830,6 @@ type_promotion_functions_test/06: Pass
 type_promotion_functions_test/07: Pass
 type_promotion_functions_test/08: Pass
 type_promotion_functions_test/10: Pass
-vm/async_await_catch_stacktrace_test: Crash
 
 [ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
 vm/type_vm_test/28: MissingRuntimeError
