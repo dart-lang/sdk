@@ -63,10 +63,11 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
   status = zx_vmar_map(zx_vmar_root_self(), 0, vmo, 0, size, flags, &address);
   zx_handle_close(vmo);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
+    LOG_ERR("zx_vmar_map(%ld, %u) failed: %s\n", size, flags,
             zx_status_get_string(status));
     return NULL;
   }
+  LOG_INFO("zx_vmar_map(%ld, %u) success\n", size, flags);
 
   MemoryRegion region(reinterpret_cast<void*>(address), size);
   return new VirtualMemory(region, region);
@@ -99,7 +100,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   status = zx_vmar_map(vmar, 0u, vmo, 0u, allocated_size, flags, &base);
   zx_handle_close(vmo);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
+    LOG_ERR("zx_vmar_map(%ld, %u) failed: %s\n", size, flags,
             zx_status_get_string(status));
     return NULL;
   }
@@ -129,12 +130,16 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 }
 
 VirtualMemory::~VirtualMemory() {
-  if (vm_owns_region()) {
+  // Reserved region may be empty due to VirtualMemory::Truncate.
+  if (vm_owns_region() && reserved_.size() != 0) {
     zx_status_t status =
         zx_vmar_unmap(zx_vmar_root_self(), reserved_.start(), reserved_.size());
     if (status != ZX_OK) {
-      FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
+      FATAL3("zx_vmar_unmap(%lx, %lx) failed: %s\n", reserved_.start(),
+             reserved_.size(), zx_status_get_string(status));
     }
+    LOG_INFO("zx_vmar_unmap(%lx, %lx) success\n", reserved_.start(),
+             reserved_.size());
   }
 }
 
@@ -142,9 +147,11 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   zx_status_t status = zx_vmar_unmap(
       zx_vmar_root_self(), reinterpret_cast<uintptr_t>(address), size);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
+    LOG_ERR("zx_vmar_unmap(%p, %lx) failed: %s\n", address, size,
+            zx_status_get_string(status));
     return false;
   }
+  LOG_INFO("zx_vmar_unmap(%p, %lx) success\n", address, size);
   return true;
 }
 
