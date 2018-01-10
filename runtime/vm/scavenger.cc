@@ -321,9 +321,8 @@ void SemiSpace::Delete() {
 
 void SemiSpace::WriteProtect(bool read_only) {
   if (reserved_ != NULL) {
-    bool success = reserved_->Protect(read_only ? VirtualMemory::kReadOnly
-                                                : VirtualMemory::kReadWrite);
-    ASSERT(success);
+    reserved_->Protect(read_only ? VirtualMemory::kReadOnly
+                                 : VirtualMemory::kReadWrite);
   }
 }
 

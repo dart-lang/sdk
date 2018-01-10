@@ -148,7 +148,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   return true;
 }
 
-bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   ASSERT(Thread::Current()->IsMutatorThread() ||
          Isolate::Current()->mutator_thread()->IsAtSafepoint());
   const uword start_address = reinterpret_cast<uword>(address);
@@ -176,13 +176,11 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   zx_status_t status = zx_vmar_protect(zx_vmar_root_self(), page_address,
                                        end_address - page_address, prot);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_protect(%lx, %lx, %x) success: %s\n", page_address,
-            end_address - page_address, prot, zx_status_get_string(status));
-    return false;
+    FATAL3("zx_vmar_protect(%lx, %lx) failed: %s\n", page_address,
+           end_address - page_address, zx_status_get_string(status));
   }
   LOG_INFO("zx_vmar_protect(%lx, %lx, %x) success\n", page_address,
            end_address - page_address, prot);
-  return true;
 }
 
 }  // namespace dart
