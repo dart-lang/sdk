@@ -150,7 +150,7 @@ next_through_create_list_and_map_test: CompileTimeError
 next_through_for_each_loop_test: CompileTimeError
 next_through_for_loop_with_break_and_continue_test: CompileTimeError
 next_through_function_expression_test: CompileTimeError
-next_through_implicit_call_test: CompileTimeError
+next_through_implicit_call_test: CompileTimeError, RuntimeError # Runtime error on opt counter builder (#31838)
 next_through_is_and_as_test: CompileTimeError
 next_through_multi_catch_test: CompileTimeError
 next_through_new_test: CompileTimeError

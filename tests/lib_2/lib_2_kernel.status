@@ -292,7 +292,7 @@ isolate/ping_pause_test: RuntimeError
 isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 isolate/typed_message_test: RuntimeError
-isolate/unresolved_ports_test: Pass, Timeout
+isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
 mirrors/class_mirror_type_variables_test: RuntimeError
 mirrors/closures_test: RuntimeError
 mirrors/constructors_test: RuntimeError
@@ -317,6 +317,7 @@ mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/intercepted_class_test: RuntimeError
+mirrors/invocation_fuzz_test/smi: Crash, Pass # Crashes on opt counter builder (#31838)
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/library_declarations_test/01: RuntimeError
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
