@@ -588,7 +588,7 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
     var args = sharedOptions.toList();
 
     var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/ddc_sdk.dill")
+        .append("/gen/utils/dartdevc/kernel/ddc_sdk.dill")
         .absolute
         .toNativePath();
 

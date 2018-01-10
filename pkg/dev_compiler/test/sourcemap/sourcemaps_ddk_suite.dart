@@ -52,7 +52,7 @@ class RunDdc implements DdcRunner {
     File sdkJsFile = findInOutDir("gen/utils/dartdevc/js/es6/dart_sdk.js");
     var jsSdkPath = sdkJsFile.uri;
 
-    File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/ddc_sdk.dill");
+    File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/kernel/ddc_sdk.dill");
 
     var ddc = getDdcDir().uri.resolve("bin/dartdevk.dart");
 
