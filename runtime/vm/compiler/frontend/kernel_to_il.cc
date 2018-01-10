@@ -2544,6 +2544,18 @@ Fragment BaseFlowGraphBuilder::StoreFpRelativeSlot(intptr_t offset) {
   return Fragment(instr);
 }
 
+JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
+  JoinEntryInstr* nsm = BuildJoinEntry();
+
+  Fragment failing(nsm);
+  const Code& nsm_handler =
+      Code::ZoneHandle(StubCode::CallClosureNoSuchMethod_entry()->code());
+  failing += LoadArgDescriptor();
+  failing += TailCall(nsm_handler);
+
+  return nsm;
+}
+
 RawObject* EvaluateMetadata(const Field& metadata_field) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {

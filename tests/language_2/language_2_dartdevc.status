@@ -117,6 +117,7 @@ type_promotion_functions_test/none: CompileTimeError # Issue 30895
 type_variable_scope_test/none: CompileTimeError
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
+instantiate_tearoff_test: RuntimeError
 
 [ $compiler == dartdevk ]
 abstract_factory_constructor_test/00: MissingCompileTimeError

@@ -80,7 +80,7 @@ isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
-isolate/static_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/static_function_test: RuntimeError # Issue 31402 (Invocation arguments)
 isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
@@ -438,4 +438,3 @@ mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign
-
