@@ -1558,6 +1558,7 @@ implicit_downcast_during_static_method_invocation_test: RuntimeError
 implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
+issue31596_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647
@@ -1579,6 +1580,7 @@ forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_test: RuntimeError, OK
+issue31596_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel && $minified ]

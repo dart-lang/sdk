@@ -57,6 +57,7 @@ instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
+issue31596_test: CompileTimeError
 method_override_test: CompileTimeError # Negative test
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
@@ -386,6 +387,7 @@ instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError
+issue31596_test: RuntimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 local_function_test/01: MissingCompileTimeError

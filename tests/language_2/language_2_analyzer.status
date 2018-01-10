@@ -1050,6 +1050,7 @@ instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
 int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interceptor6_test: CompileTimeError
+issue31596_test: CompileTimeError
 malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
