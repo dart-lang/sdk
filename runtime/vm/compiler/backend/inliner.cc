@@ -1069,6 +1069,8 @@ class CallSiteInliner : public ValueObject {
             // before 'SelectRepresentations' which inserts conversion nodes.
             callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            callee_graph->Canonicalize();
 #else
             UNREACHABLE();
 #endif  // DART_PRECOMPILER

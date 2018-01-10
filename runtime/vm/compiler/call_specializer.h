@@ -111,6 +111,8 @@ class CallSpecializer : public FlowGraphVisitor {
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call) = 0;
 
  protected:
+  void InlineImplicitInstanceGetter(Definition* call, const Field& field);
+
   SpeculativeInliningPolicy* speculative_policy_;
 
  private:
