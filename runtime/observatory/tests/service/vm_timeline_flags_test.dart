@@ -17,12 +17,12 @@ primeDartTimeline() {
   }
 }
 
-bool isDart(Map event) => event['cat'] == 'Dart';
-bool isMetaData(Map event) => event['ph'] == 'M';
-bool isNotMetaData(Map event) => !isMetaData(event);
-bool isNotDartAndMetaData(Map event) => !isDart(event) && !isMetaData(event);
+bool isDart(event) => event['cat'] == 'Dart';
+bool isMetaData(event) => event['ph'] == 'M';
+bool isNotMetaData(event) => !isMetaData(event);
+bool isNotDartAndMetaData(event) => !isDart(event) && !isMetaData(event);
 
-List<Map> filterEvents(List<Map> events, filter) {
+List filterEvents(List events, filter) {
   return events.where(filter).toList();
 }
 

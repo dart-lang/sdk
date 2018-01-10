@@ -26,7 +26,7 @@ doUncaught() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.reload();
+    Library lib = await isolate.rootLibrary.reload();
 
     var onPaused = null;
     var onResume = null;
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
         await t.future;
       }
 
-      var res = await fres;
+      dynamic res = await fres;
       print(res);
       if (shouldBeCaught) {
         expect(res.isInstance, isTrue);

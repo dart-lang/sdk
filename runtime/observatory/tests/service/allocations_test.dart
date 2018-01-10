@@ -18,17 +18,17 @@ void script() {
 }
 
 var tests = <IsolateTest>[
-  (Isolate isolate) => isolate.rootLibrary.load().then((Library lib) {
-        expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
-        expect(lib.classes.length, equals(1));
-        return lib.classes.first.load().then((Class fooClass) {
-          expect(fooClass.name, equals('Foo'));
-          expect(
-              fooClass.newSpace.current.instances +
-                  fooClass.oldSpace.current.instances,
-              equals(3));
-        });
-      }),
+  (Isolate isolate) async {
+    Library lib = await isolate.rootLibrary.load();
+    expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
+    expect(lib.classes.length, equals(1));
+    Class fooClass = await lib.classes.first.load();
+    expect(fooClass.name, equals('Foo'));
+    expect(
+        fooClass.newSpace.current.instances +
+            fooClass.oldSpace.current.instances,
+        equals(3));
+  },
 ];
 
 main(args) => runIsolateTests(args, tests, testeeBefore: script);
