@@ -2370,6 +2370,36 @@ void main() {
     }
   }
 
+  test_label_while() async {
+    addTestFile(r'''
+main() {
+  myLabel:
+  while (true) {
+    continue myLabel;
+    break myLabel;
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> statements = _getMainStatements(result);
+
+    LabeledStatement statement = statements[0];
+
+    Label label = statement.labels.single;
+    LabelElement labelElement = label.label.staticElement;
+
+    WhileStatement whileStatement = statement.statement;
+    Block whileBlock = whileStatement.body;
+
+    ContinueStatement continueStatement = whileBlock.statements[0];
+    expect(continueStatement.label.staticElement, same(labelElement));
+    expect(continueStatement.label.staticType, isNull);
+
+    BreakStatement breakStatement = whileBlock.statements[1];
+    expect(breakStatement.label.staticElement, same(labelElement));
+    expect(breakStatement.label.staticType, isNull);
+  }
+
   test_local_function() async {
     addTestFile(r'''
 void main() {

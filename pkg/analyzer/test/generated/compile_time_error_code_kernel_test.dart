@@ -68,25 +68,11 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_statement_label() async {
-    // Bad state: Expected element reference for analyzer offset 14; got one for kernel offset 21
-    await super.test_async_used_as_identifier_in_statement_label();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_switch_label() async {
-    // Bad state: No reference information for async at 31
-    await super.test_async_used_as_identifier_in_switch_label();
-  }
-
-  @override
-  @failingTest
-  // This test fails because the kernel driver element model produces a
-  // different element model result than the regular parser produces. Once these
-  // tests enable the faster parser (and not just the kernel driver), this
-  // should be looked at again.
   test_bug_23176() async {
+    // This test fails because the kernel driver element model produces a
+    // different element model result than the regular parser produces. Once these
+    // tests enable the faster parser (and not just the kernel driver), this
+    // should be looked at again.
     return super.test_bug_23176();
   }
 

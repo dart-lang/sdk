@@ -63,7 +63,6 @@ inference/instantiate_tearoff_of_call: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/super_initializer: Crash
 inference/super_initializer_substitution: Crash
-inference/switch_continue: Crash
 inference/top_level_return_and_yield: Fail
 inference/try_catch: Crash
 inference/try_catch_finally: Crash
@@ -89,11 +88,9 @@ override_check_two_substitutions: Fail
 override_check_with_covariant_modifier: Fail
 qualified: Crash
 rasta/abstract_constructor: Crash
-rasta/bad_continue: Crash
 rasta/bad_default_constructor: Crash
 rasta/bad_interpolation: Crash
 rasta/bad_redirection: Crash
-rasta/breaking_bad: Crash
 rasta/class_hierarchy: Crash
 rasta/deferred_load: Crash
 rasta/generic_factory: Crash
@@ -115,7 +112,6 @@ rasta/parser_error: Crash
 rasta/static: Crash
 rasta/super_initializer: Crash
 rasta/supports_reflection: VerificationError
-rasta/try_label: Crash
 rasta/type_literals: Crash
 rasta/typedef: Crash
 rasta/unresolved: Crash
