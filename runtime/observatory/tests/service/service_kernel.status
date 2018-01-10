@@ -92,6 +92,7 @@ next_through_create_list_and_map_test: RuntimeError
 next_through_for_each_loop_test: RuntimeError
 next_through_for_loop_with_break_and_continue_test: RuntimeError
 next_through_function_expression_test: RuntimeError
+next_through_implicit_call_test: RuntimeError
 next_through_is_and_as_test: RuntimeError
 next_through_multi_catch_test: RuntimeError
 next_through_new_test: RuntimeError
