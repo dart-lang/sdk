@@ -878,12 +878,6 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
 
     AddReceiverCheck(call);
   }
-  InlineImplicitInstanceGetter(call, field);
-  return true;
-}
-
-void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
-                                                   const Field& field) {
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
       new (Z) Value(call->ArgumentAt(0)), &field,
       AbstractType::ZoneHandle(Z, field.type()), call->token_pos(),
@@ -901,6 +895,7 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
       it.Current()->SetReachingType(NULL);
     }
   }
+  return true;
 }
 
 bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
