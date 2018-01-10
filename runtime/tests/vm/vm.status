@@ -88,6 +88,7 @@ dart/spawn_shutdown_test: Skip # VM Shutdown test
 
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
+cc/FreeVirtualMemory: Crash # Issue 31841
 cc/Read: Fail # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
 dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image.
 dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
