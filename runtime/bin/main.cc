@@ -381,6 +381,11 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                isolate_snapshot_instructions, flags,
                                isolate_data, error);
 #else
+  // Set the flag to load the vmservice library. If not set, the kernel
+  // loader might skip loading it. This is flag is not relevant for the
+  // non-kernel flow.
+  ASSERT(flags != NULL);
+  flags->load_vmservice_library = true;
   if (dfe.UsePlatformBinary()) {
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, NULL, dfe.kernel_platform(), flags, isolate_data, error);
