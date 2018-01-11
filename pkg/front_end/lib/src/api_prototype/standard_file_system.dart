@@ -9,8 +9,10 @@ import 'dart:io' as io;
 
 import 'file_system.dart';
 
-/// Concrete implementation of [FileSystem] which performs its operations using
-/// I/O.
+/// Concrete implementation of [FileSystem] handling standard URI schemes.
+///
+/// file: URIs are handled using file I/O.
+/// data: URIs return their data contents.
 ///
 /// Not intended to be implemented or extended by clients.
 class StandardFileSystem implements FileSystem {
@@ -20,28 +22,31 @@ class StandardFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme != 'file' && uri.scheme != '') {
+    if (uri.scheme == 'file' || uri.scheme == '') {
+      // TODO(askesc): Empty schemes should have been handled elsewhere.
+      return new _IoFileSystemEntity(Uri.base.resolveUri(uri));
+    } else if (uri.scheme == 'data') {
+      return new _DataFileSystemEntity(Uri.base.resolveUri(uri));
+    } else {
       throw new FileSystemException(
-          uri, 'StandardFileSystem only supports file:* URIs');
+          uri, 'StandardFileSystem only supports file:* and data:* URIs');
     }
-    return new _StandardFileSystemEntity(Uri.base.resolveUri(uri));
   }
 }
 
-/// Concrete implementation of [FileSystemEntity] for use by
-/// [StandardFileSystem].
-class _StandardFileSystemEntity implements FileSystemEntity {
+/// Concrete implementation of [FileSystemEntity] for file: URIs.
+class _IoFileSystemEntity implements FileSystemEntity {
   @override
   final Uri uri;
 
-  _StandardFileSystemEntity(this.uri);
+  _IoFileSystemEntity(this.uri);
 
   @override
   int get hashCode => uri.hashCode;
 
   @override
   bool operator ==(Object other) =>
-      other is _StandardFileSystemEntity && other.uri == uri;
+      other is _IoFileSystemEntity && other.uri == uri;
 
   @override
   Future<bool> exists() async {
@@ -80,5 +85,35 @@ class _StandardFileSystemEntity implements FileSystemEntity {
       message = osMessage;
     }
     return new FileSystemException(uri, message);
+  }
+}
+
+/// Concrete implementation of [FileSystemEntity] for data: URIs.
+class _DataFileSystemEntity implements FileSystemEntity {
+  @override
+  final Uri uri;
+
+  _DataFileSystemEntity(this.uri);
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _DataFileSystemEntity && other.uri == uri;
+
+  @override
+  Future<bool> exists() async {
+    return true;
+  }
+
+  @override
+  Future<List<int>> readAsBytes() async {
+    return uri.data.contentAsBytes();
+  }
+
+  @override
+  Future<String> readAsString() async {
+    return uri.data.contentAsString();
   }
 }

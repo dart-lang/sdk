@@ -8,6 +8,7 @@ library front_end.test.standard_file_system_test;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:math' show Random;
 
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
@@ -20,6 +21,7 @@ main() {
     defineReflectiveTests(StandardFileSystemTest);
     defineReflectiveTests(FileTest);
     defineReflectiveTests(DirectoryTest);
+    defineReflectiveTests(DataTest);
   });
 }
 
@@ -246,5 +248,25 @@ class _BaseTest {
       await new Future.delayed(new Duration(seconds: 1));
       tempDirectory.deleteSync(recursive: true);
     }
+  }
+}
+
+@reflectiveTest
+class DataTest {
+  test_Data_URIs() async {
+    String string = "<{[DART]}>";
+    Uri string_uri = new Uri.dataFromString(string, base64: false);
+    Uri string_uri_base64 = new Uri.dataFromString(string, base64: true);
+
+    Random random = new Random(123);
+    List<int> bytes = new List.generate(1000, (index) => random.nextInt(256));
+    Uri bytes_uri = new Uri.dataFromBytes(bytes, percentEncoded: true);
+    Uri bytes_uri_base64 = new Uri.dataFromBytes(bytes, percentEncoded: false);
+
+    StandardFileSystem fs = StandardFileSystem.instance;
+    expect(string, await fs.entityForUri(string_uri).readAsString());
+    expect(string, await fs.entityForUri(string_uri_base64).readAsString());
+    expect(bytes, await fs.entityForUri(bytes_uri).readAsBytes());
+    expect(bytes, await fs.entityForUri(bytes_uri_base64).readAsBytes());
   }
 }

@@ -37,7 +37,8 @@ class HybridFileSystemEntity implements FileSystemEntity {
   Future<FileSystemEntity> get delegate async {
     if (_delegate != null) return _delegate;
     FileSystemEntity entity = _fs.memory.entityForUri(uri);
-    if (uri.scheme != 'file' || await entity.exists()) {
+    if ((uri.scheme != 'file' && uri.scheme != 'data') ||
+        await entity.exists()) {
       _delegate = entity;
       return _delegate;
     }
