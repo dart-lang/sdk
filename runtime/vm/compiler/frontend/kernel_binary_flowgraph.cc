@@ -231,6 +231,11 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
         forwarding_stub_super_target_ = builder_->ReadCanonicalNameReference();
       }
       if (++next_read_ == field) return;
+    case kForwardingStubInterfaceTarget:
+      if (builder_->ReadTag() == kSomething) {
+        builder_->ReadCanonicalNameReference();
+      }
+      if (++next_read_ == field) return;
     case kFunction:
       if (builder_->ReadTag() == kSomething)
         builder_->SkipFunctionNode();  // read function node.

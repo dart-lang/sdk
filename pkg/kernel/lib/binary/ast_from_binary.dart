@@ -932,6 +932,8 @@ class BinaryBuilder {
             _disableLazyReading;
     var forwardingStubSuperTarget =
         readAndCheckOptionTag() ? readMemberReference() : null;
+    var forwardingStubInterfaceTarget =
+        readAndCheckOptionTag() ? readMemberReference() : null;
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -947,6 +949,7 @@ class BinaryBuilder {
       function?.parent = node;
       node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
       node.forwardingStubSuperTarget = forwardingStubSuperTarget;
+      node.forwardingStubInterfaceTarget = forwardingStubInterfaceTarget;
 
       assert((node.forwardingStubSuperTarget != null) ||
           !(node.isForwardingStub && node.function.body != null));

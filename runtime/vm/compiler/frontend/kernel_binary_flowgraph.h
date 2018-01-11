@@ -246,6 +246,7 @@ class ProcedureHelper {
     kSourceUriIndex,
     kAnnotations,
     kForwardingStubSuperTarget,
+    kForwardingStubInterfaceTarget,
     kFunction,
     kEnd,
   };
