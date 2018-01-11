@@ -1101,6 +1101,7 @@ class StreamingFlowGraphBuilder {
                         const Function& interface_target,
                         intptr_t argument_check_bits = 0,
                         intptr_t type_argument_check_bits = 0);
+  Fragment BuildArgumentTypeChecks();
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(

@@ -3442,7 +3442,8 @@ void StreamingFlowGraphBuilder::DiscoverEnclosingElements(
   }
 }
 
-void StreamingFlowGraphBuilder::ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub) {
+void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
+    ParsedFunction* set_forwarding_stub) {
   const Tag tag = PeekTag();
   if (tag == kProcedure) {
     ProcedureHelper procedure_helper(this);
@@ -3451,8 +3452,8 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode(ParsedFunction* set_forwar
       // Running a procedure without a function node doesn't make sense.
       UNREACHABLE();
     }
-    if (set_forwarding_stub != NULL && flow_graph_builder_ && procedure_helper.IsForwardingStub() &&
-        !procedure_helper.IsAbstract()) {
+    if (set_forwarding_stub != NULL && flow_graph_builder_ &&
+        procedure_helper.IsForwardingStub() && !procedure_helper.IsAbstract()) {
       ASSERT(procedure_helper.forwarding_stub_super_target_ != -1);
       set_forwarding_stub->MarkForwardingStub(
           procedure_helper.forwarding_stub_super_target_);
@@ -3882,6 +3883,19 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     body += PushArgument();
   }
 
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+
+  // Tearoffs of static methods needs to perform arguments checks since static
+  // methods they forward to don't do it themselves.
+  if (I->argument_type_checks() && !target.NeedsArgumentTypeChecks(I)) {
+    AlternativeReadingScope _(reader_);
+    body += BuildArgumentTypeChecks();
+  }
+
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kPositionalParameters);
+
   // Load all the arguments.
   if (!target.is_static()) {
     // The context has a fixed shape: a single variable which is the
@@ -3890,10 +3904,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     body += flow_graph_builder_->LoadField(Context::variable_offset(0));
     body += PushArgument();
   }
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
 
   // Positional.
   intptr_t positional_argument_count = ReadListLength();
@@ -3934,6 +3944,105 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
                 flow_graph_builder_->last_used_block_id_, prologue_info);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks() {
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
+  const Function& dart_function = parsed_function()->function();
+
+  Fragment body;
+
+  const Function* forwarding_target = NULL;
+  if (parsed_function()->is_forwarding_stub()) {
+    NameIndex target_name = parsed_function()->forwarding_stub_super_target();
+    const String& name = dart_function.IsSetterFunction()
+                             ? H.DartSetterName(target_name)
+                             : H.DartProcedureName(target_name);
+    forwarding_target =
+        &Function::ZoneHandle(Z, LookupMethodByMember(target_name, name));
+    ASSERT(!forwarding_target->IsNull());
+  }
+
+  // Type parameters
+  intptr_t list_length = ReadListLength();
+  TypeArguments& forwarding_params = TypeArguments::Handle(Z);
+  if (forwarding_target != NULL) {
+    forwarding_params = forwarding_target->type_parameters();
+    ASSERT(forwarding_params.Length() == list_length);
+  }
+  TypeParameter& forwarding_param = TypeParameter::Handle(Z);
+  for (intptr_t i = 0; i < list_length; ++i) {
+    ReadFlags();                                         // skip flags
+    SkipListOfExpressions();                             // skip annotations
+    String& name = H.DartSymbol(ReadStringReference());  // read name
+    AbstractType& bound = T.BuildType();                 // read bound
+
+    if (forwarding_target != NULL) {
+      forwarding_param ^= forwarding_params.TypeAt(i);
+      bound = forwarding_param.bound();
+    }
+
+    if (I->strong() && !bound.IsObjectType() &&
+        (I->reify_generic_functions() || dart_function.IsFactory())) {
+      ASSERT(!bound.IsDynamicType());
+      TypeParameter& param = TypeParameter::Handle(Z);
+      if (dart_function.IsFactory()) {
+        param ^= TypeArguments::Handle(
+                     Class::Handle(dart_function.Owner()).type_parameters())
+                     .TypeAt(i);
+      } else {
+        param ^=
+            TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
+      }
+      ASSERT(param.IsFinalized());
+      body += CheckTypeArgumentBound(param, bound, name);
+    }
+  }
+
+  function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kPositionalParameters);
+
+  // Positional.
+  list_length = ReadListLength();
+  const intptr_t positional_length = list_length;
+  const intptr_t kFirstParameterOffset = 1;
+  for (intptr_t i = 0; i < list_length; ++i) {
+    // ith variable offset.
+    const intptr_t offset = ReaderOffset();
+    LocalVariable* param = LookupVariable(offset + data_program_offset_);
+    const AbstractType* target_type = &param->type();
+    if (forwarding_target != NULL) {
+      // We add 1 to the parameter index to account for the receiver.
+      target_type = &AbstractType::ZoneHandle(
+          Z, forwarding_target->ParameterTypeAt(kFirstParameterOffset + i));
+    }
+    body += LoadLocal(param);
+    body += CheckArgumentType(param, *target_type);
+    body += Drop();
+    SkipVariableDeclaration();  // read ith variable.
+  }
+
+  // Named.
+  list_length = ReadListLength();
+  for (intptr_t i = 0; i < list_length; ++i) {
+    // ith variable offset.
+    LocalVariable* param =
+        LookupVariable(ReaderOffset() + data_program_offset_);
+    body += LoadLocal(param);
+    const AbstractType* target_type = &param->type();
+    if (forwarding_target != NULL) {
+      // We add 1 to the parameter index to account for the receiver.
+      target_type = &AbstractType::ZoneHandle(
+          Z, forwarding_target->ParameterTypeAt(positional_length + i + 1));
+    }
+    body += CheckArgumentType(param, *target_type);
+    body += Drop();
+    SkipVariableDeclaration();  // read ith variable.
+  }
+
+  return body;
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
@@ -4100,100 +4209,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
 
   // If we run in checked mode or strong mode, we have to check the type of the
   // passed arguments.
-  if (I->argument_type_checks()) {
+  if (dart_function.NeedsArgumentTypeChecks(I)) {
     AlternativeReadingScope _(reader_);
     SetOffset(type_parameters_offset);
-
-    const Function* forwarding_target = NULL;
-    if (parsed_function()->is_forwarding_stub()) {
-      NameIndex target_name = parsed_function()->forwarding_stub_super_target();
-      const String& name = dart_function.IsSetterFunction()
-                               ? H.DartSetterName(target_name)
-                               : H.DartProcedureName(target_name);
-      forwarding_target =
-          &Function::ZoneHandle(Z, LookupMethodByMember(target_name, name));
-      ASSERT(!forwarding_target->IsNull());
-    }
-
-    // Type parameters
-    intptr_t list_length = ReadListLength();
-    TypeArguments& forwarding_params = TypeArguments::Handle(Z);
-    if (forwarding_target != NULL) {
-        forwarding_params = forwarding_target->type_parameters();
-        ASSERT(forwarding_params.Length() == list_length);
-    }
-    TypeParameter& forwarding_param = TypeParameter::Handle(Z);
-    for (intptr_t i = 0; i < list_length; ++i) {
-      ReadFlags();                                         // skip flags
-      SkipListOfExpressions();                             // skip annotations
-      String& name = H.DartSymbol(ReadStringReference());  // read name
-      AbstractType& bound = T.BuildType();                 // read bound
-
-      if (forwarding_target != NULL) {
-        forwarding_param ^= forwarding_params.TypeAt(i);
-        bound = forwarding_param.bound();
-      }
-
-      if (I->strong() && !bound.IsObjectType() &&
-          (I->reify_generic_functions() || dart_function.IsFactory())) {
-        ASSERT(!bound.IsDynamicType());
-        TypeParameter& param = TypeParameter::Handle(Z);
-        if (dart_function.IsFactory()) {
-          param ^= TypeArguments::Handle(
-                       Class::Handle(dart_function.Owner()).type_parameters())
-                       .TypeAt(i);
-        } else {
-          param ^=
-              TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
-        }
-        ASSERT(param.IsFinalized());
-        body += CheckTypeArgumentBound(param, bound, name);
-      }
-    }
-
-    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
-    function_node_helper.ReadUntilExcluding(
-        FunctionNodeHelper::kPositionalParameters);
-
-    // Positional.
-    list_length = ReadListLength();
-    const intptr_t positional_length = list_length;
-    const intptr_t kFirstParameterOffset = 1;
-    for (intptr_t i = 0; i < list_length; ++i) {
-      // ith variable offset.
-      const intptr_t offset = ReaderOffset();
-      LocalVariable* param = LookupVariable(offset + data_program_offset_);
-      const AbstractType* target_type = &param->type();
-      if (forwarding_target != NULL) {
-        // We add 1 to the parameter index to account for the receiver.
-        target_type = &AbstractType::ZoneHandle(Z,
-            forwarding_target->ParameterTypeAt(kFirstParameterOffset + i));
-      }
-      body += LoadLocal(param);
-      body += CheckArgumentType(param, *target_type);
-      body += Drop();
-      SkipVariableDeclaration();  // read ith variable.
-    }
-
-    // Named.
-    list_length = ReadListLength();
-    for (intptr_t i = 0; i < list_length; ++i) {
-      // ith variable offset.
-      LocalVariable* param =
-          LookupVariable(ReaderOffset() + data_program_offset_);
-      body += LoadLocal(param);
-      const AbstractType* target_type = &param->type();
-      if (forwarding_target != NULL) {
-        // We add 1 to the parameter index to account for the receiver.
-        target_type = &AbstractType::ZoneHandle(Z,
-            forwarding_target->ParameterTypeAt(positional_length + i + 1));
-      }
-      body += CheckArgumentType(param, *target_type);
-      body += Drop();
-      SkipVariableDeclaration();  // read ith variable.
-    }
-
-    function_node_helper.SetNext(FunctionNodeHelper::kPositionalParameters);
+    body += BuildArgumentTypeChecks();
   }
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
