@@ -1050,6 +1050,7 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_regression_2238_test: RuntimeError
+async_star_regression_23116_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
 async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -1290,8 +1291,6 @@ generic_is_check_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_dynamic_test/02: MissingRuntimeError
-generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError

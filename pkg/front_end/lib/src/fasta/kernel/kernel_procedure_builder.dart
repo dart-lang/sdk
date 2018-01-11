@@ -114,17 +114,8 @@ abstract class KernelFunctionBuilder
     }
     actualBody = newBody;
     if (function != null) {
-      // A forwarding semi-stub is a method that is abstract in the source code,
-      // but which needs to have a forwarding stub body in order to ensure that
-      // covariance checks occur.  We don't want to replace the forwarding stub
-      // body with null.
-      var parent = function.parent;
-      if (!(newBody == null &&
-          parent is Procedure &&
-          parent.isForwardingSemiStub)) {
-        function.body = newBody;
-        newBody?.parent = function;
-      }
+      function.body = newBody;
+      newBody?.parent = function;
     }
   }
 
