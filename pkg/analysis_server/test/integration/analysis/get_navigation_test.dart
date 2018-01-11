@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
-    defineReflectiveTests(GetNavigationTest_PreviewDart2);
+    defineReflectiveTests(GetNavigationTest_UseCFE);
   });
 }
 
@@ -68,9 +68,9 @@ class Bar {
 }
 
 @reflectiveTest
-class GetNavigationTest_PreviewDart2 extends GetNavigationTest {
+class GetNavigationTest_UseCFE extends GetNavigationTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest

@@ -202,8 +202,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
         info, node.parent, localFunctionsNeedingRti, classesNeedingRti, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClassInfo closureClassInfo =
-        closedWorldBuilder.buildClosureClass(member, node, member.library,
-            boxedVariables, info, node.location, localsMap);
+        closedWorldBuilder.buildClosureClass(
+            member, node, member.library, boxedVariables, info, localsMap);
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.

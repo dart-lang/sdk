@@ -18,10 +18,19 @@ main() {
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -34,7 +43,7 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 @reflectiveTest
 class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
 //  @failingTest
 //  @potentialAnalyzerProblem
@@ -201,7 +210,7 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   @override
   test_part_getUnitElement_noLibrary() async {
-    fail('This test fails even with @failingTest');
+    _fail('This test fails even with @failingTest');
     await super.test_part_getUnitElement_noLibrary();
   }
 

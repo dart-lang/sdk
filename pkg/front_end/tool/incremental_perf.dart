@@ -53,7 +53,7 @@ import 'package:front_end/src/api_prototype/file_system.dart'
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
@@ -218,7 +218,7 @@ List<ChangeSet> parse(List json) {
 class OverlayFileSystem implements FileSystem {
   final MemoryFileSystem memory =
       new MemoryFileSystem(Uri.parse('org-dartlang-overlay:///'));
-  final PhysicalFileSystem physical = PhysicalFileSystem.instance;
+  final StandardFileSystem physical = StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) {

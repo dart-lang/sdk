@@ -32,6 +32,13 @@ const List<String> skipList = const <String>[
   'closure_tracer.dart',
   'closure_tracer_28919.dart',
   'index_call.dart',
+  'map_tracer_const.dart',
+  // Id equivalence doesn't support libraries.
+  'mixin_constructor_default_parameter_values.dart',
+  // Id equivalence doesn't support unused constructors.
+  'final_field2.dart',
+  // TODO(johnniwinther): Fix ast equivalence on instance fields in for.
+  'field_type.dart',
 ];
 
 main(List<String> args) {

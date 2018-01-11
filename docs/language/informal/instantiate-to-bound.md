@@ -1,61 +1,70 @@
 ## Feature: Instantiate to Bound
 
-Author: eernst@
+**Author**: eernst@
+
+**Version**: 0.5 (2018-01-11)
+
+**Status**: Under implementation.
 
 Based on [this description](https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397) by leafp@.
 
-**Status**: Under implementation. Remaining issue: Can a super-bounded
-type be created by instantiate to bound?
-
-**This document** is an informal specification of the the instantiate to bound
-mechanism in Dart 2. The feature described here, *instantiate to bound*, makes
-it possible to omit some or all actual type arguments in some types using
-generic classes. The missing type arguments will be added implicitly, and the
-chosen value for a given type argument will be the bound on the corresponding
-formal type parameter. In some situations no such bound can be expressed, in
-which case a compile-time error occurs. To resolve that, the type arguments
-can be given explicitly.
+**This document** is an informal specification of the the instantiate to
+bound mechanism in Dart 2. The feature described here, *instantiate to
+bound*, makes it possible to omit some or all actual type arguments in some
+types using generic classes. The missing type arguments will be added
+implicitly, and the chosen value for a given type argument will be the
+bound on the corresponding formal type parameter. In some situations no
+such bound can be expressed, in which case a compile-time error occurs. To
+resolve that, the type arguments can be given explicitly.
 
 ## Background
 
 In Dart 1.x, missing actual type arguments were filled in with the value
 `dynamic`, which was always a useful choice because that would yield types
-which were at the bottom of the set of similar types, as well as at the top.
+which were at the bottom of the set of similar types, as well as at the
+top.
+
 ```dart
 List xs = <int>[]; // OK, also dynamically: List<int> <: List<dynamic>.
 List<int> y = new List(); // OK, also dynamically: List<dynamic> <: List<int>.
 ```
+
 In Dart 2, type inference is used in many situations to infer missing type
 arguments, hence selecting values that will work in the given context.
-However, when the context does not provide any information to this inference
-process, some default choice must be made.
+However, when the context does not provide any information to this
+inference process, some default choice must be made.
 
 In Dart 2, `dynamic` is no longer a super- and subtype of all other types,
-and hence using `dynamic` as the default value for a missing actual
-type argument will create many malformed types:
+and hence using `dynamic` as the default value for a missing actual type
+argument will create many malformed types:
+
 ```dart
 class A<X extends num> {}
 A a = null; // A is malformed if interpreted as A<dynamic>.
 ```
-Hence, a new rule for finding default actual type arguments must be specified.
+
+Hence, a new rule for finding default actual type arguments must be
+specified.
 
 ## Motivation
 
-It is convenient for developers to be able to use a more concise notation for
-some types, and instantiate to bound will enable this.
+It is convenient for developers to be able to use a more concise notation
+for some types, and instantiate to bound will enable this.
 
-We will use a relatively simple mechanism which is allowed to fail. This means
-that developers will have to write actual type arguments explicitly in some
-ambiguous situations, thus adding visual complexity to the source code and
-requiring extra time and effort to choose and write those arguments. However,
-we consider the ability to reason straightforwardly about generic types in
-general more important than (possibly misleading) conciseness.
+We will use a relatively simple mechanism which is allowed to fail. This
+means that developers will have to write actual type arguments explicitly
+in some ambiguous situations, thus adding visual complexity to the source
+code and requiring extra time and effort to choose and write those
+arguments. However, we consider the ability to reason straightforwardly
+about generic types in general more important than (possibly misleading)
+conciseness.
 
-The performance characteristics of the chosen algorithm plays a role as well,
-because it is important to be able to find default type arguments in a short
-amount of time. Because of that, we have chosen to require explicit type
-arguments on bounds except for some "simple" cases. Again, this means that the
-source code will be somewhat more verbose, in return for overall simplicity.
+The performance characteristics of the chosen algorithm plays a role as
+well, because it is important to be able to find default type arguments in
+a short amount of time. Because of that, we have chosen to require explicit
+type arguments on bounds except for some "simple" cases. Again, this means
+that the source code will be somewhat more verbose, in return for overall
+simplicity.
 
 Here are some examples:
 
@@ -75,7 +84,7 @@ C x;
 
 class D<T extends Comparable<T>> {}
 
-// Error: no default type arguments can be computed for D.
+// The raw type D is completed to D<Comparable<dynamic>>.
 D x;
 
 // Error: T of D does not have a simple bound, so raw D cannot be a bound.
@@ -91,21 +100,24 @@ This mechanism does not require any grammar modifications.
 ## Static analysis
 
 Let _G_ be a generic class with formal type parameter declarations
-_F1 .. Fk_ containing formal type parameters _X1 .. Xk_ and bounds _B1
-.. Bk_. We say that the formal type parameter _Xj_ has a _simple bound_
-when one of the following requirements is satisfied:
+_F<sub>1</sub> .. F<sub>k</sub>_ containing formal type parameters
+_X<sub>1</sub> .. X<sub>k</sub>_ and bounds
+_B<sub>1</sub> .. B<sub>k</sub>_. We say that the formal type parameter
+_X<sub>j</sub>_ has a _simple bound_ when one of the following requirements
+is satisfied:
 
-1. _Bj_ is omitted.
+1. _B<sub>j</sub>_ is omitted.
 
-2. _Bj_ is included, but does not contain any of _X1 .. Xk_. If _Bj_
-   contains a type _T_ on the form `qualified` (*for instance, `C` or
-   `p.D`*) which denotes a generic class _G1_ (*that is, _T_ is a raw
-   type*), every type argument of _G1_ has a simple bound.
+2. _B<sub>j</sub>_ is included, but does not contain any of _X<sub>1</sub>
+   .. X<sub>k</sub>_. If _B<sub>j</sub>_ contains a type _T_ on the form
+   `qualified` (*for instance, `C` or `p.D`*) which denotes a generic class
+   _G<sub>1</sub>_ (*that is, _T_ is a raw type*), every type argument of
+   _G<sub>1</sub>_ has a simple bound.
 
-The notion of a simple bound must be interpreted inductively rather
-than coinductively, i.e., if a bound _Bj_ of a generic class _G_ is
-reached during an investigation of whether _Bj_ is a simple bound,
-the answer is no.
+The notion of a simple bound must be interpreted inductively rather than
+coinductively, i.e., if a bound _B<sub>j</sub>_ of a generic class _G_ is
+reached during an investigation of whether _B<sub>j</sub>_ is a simple
+bound, the answer is no.
 
 *For example, with `class C<X extends C> {}` the type parameter `X` does
 not have a simple bound.*
@@ -114,10 +126,10 @@ not have a simple bound.*
 involved types to be "simple enough". We impose the following constraint on
 all bounds because any generic type may be used as a raw type.*
 
-It is a compile-time error if a formal parameter bound _B_ contains
-a type _T_ on the form `qualified` and _T_ denotes a generic class
-_G_ (*that is, _T_ is a raw type*), unless every formal type parameter of
-_G_ has a simple bound.
+It is a compile-time error if a formal parameter bound _B_ contains a type
+_T_ on the form `qualified` and _T_ denotes a generic class _G_ (*that is,
+_T_ is a raw type*), unless every formal type parameter of _G_ has a simple
+bound.
 
 *In short, type arguments on bounds can only be omitted if they themselves
 have simple bounds. In particular, `class C<X extends C> {}` is a
@@ -141,56 +153,94 @@ it will not make the instantiate to bound feature obsolete: instatiate to
 bound would still be used in cases where no information is available to
 infer the omitted type arguments, e.g., for `List xs = [];`.*
 
-When type inference is providing actual type arguments for a term _G_ on
+*When type inference is providing actual type arguments for a term _G_ on
 the form `qualified` which denotes a generic class, instantiate to bound
-will provide the value for a single type argument in cases where no
-information is available for inferring such an actual type argument. In
-this situation, it is a compile-time error if instantiate to bound fails.
-
-In all these cases, instantiate to bound selects the value for an omitted
-actual type argument as follows:
+may be used to provide the value for type arguments where no information is
+available for inferring such an actual type argument. This document does
+not specify how inference interacts with instantiate to bound, that will be
+specified as part of the specification of inference. We will hence proceed
+to specify instantiate to bound as it applies to a type argument list which
+is omitted, such that a value for all the actual type arguments must be
+computed.*
 
 Let _T_ be a `qualified` term which denotes a generic class _G_ (*so _T_ is
-a raw type*), let _F1 .. Fk_ be the formal type parameter declarations in the
-declaration of _G_, with type parameters _X1 .. Xk_ and bounds _B1 .. Bk_
-with types _T1 .. Tk_, and let _j_ be the position of the actual type
-argument for which the selection will be made.
+a raw type*), let _F<sub>1</sub> .. F<sub>k</sub>_ be the formal type
+parameter declarations in the declaration of _G_, with type parameters
+_X<sub>1</sub> .. X<sub>k</sub>_ and bounds _B<sub>1</sub>
+.. B<sub>k</sub>_ with types _T<sub>1</sub> .. T<sub>k</sub>_. For _i_ in
+_1 .. k_, let _S<sub>i</sub>_ denote the result of performing instantiate
+to bound on the type in the bound, _T<sub>i</sub>_; in the case where
+_B<sub>i</sub>_ is omitted, let _S<sub>i</sub>_ be `dynamic`.
 
-If _Bj_ is omitted, the selected value for _Xj_ is `dynamic`.
+*Note that if _T<sub>i</sub>_ for some _i_ is raw then we know that all its
+omitted type arguments have simple bounds, which limits the complexity of
+the instantiate to bound step for _T<sub>i</sub>_.*
 
-Otherwise, if _Bj_ does not contain any of the formal type parameters
-_X1 .. Xk_, the selected value for _Xj_ is the result of performing
-instantiate to bound on the type in the bound, _Tj_.
+Instantiate to bound then computes an actual type argument list for _G_ as
+follows:
 
-*Note that if _Tj_ is raw then we know that all its omitted type arguments
-have simple bounds, which limits the complexity of the instantiate to bound
-step for _Tj_.*
+Let _U<sub>i,1</sub>_ be _S<sub>i</sub>_, for all _i_ in _1 .. k_. (*This
+is the "current value" of the bound for type variable _i_, at step 1; in
+general we will consider the current step, _m_, and use data for that step,
+e.g., the bound _U<sub>i,m</sub>_, to compute the data for step _m + 1_*).
 
-Otherwise, define the substitution _s_ as follows: for all _j_ in _1 .. k_,
-replace _Xj_ by the result of applying instantiate to bound on _Tj_. Now,
-repeatedly apply _s_ on the types in the bounds _T1 .. Tk_ until _Tj_ does
-not contain any of the formal type parameters _X1 .. Xk_.
+Let _--><sub>m</sub>_ be a relation among the type variables
+_X<sub>1</sub> .. X<sub>k</sub>_ such that
+_X<sub>p</sub> --><sub>m</sub> X<sub>q</sub>_ iff _X<sub>q</sub>_ occurs in
+_U<sub>p,m</sub>_ (*so each type variable is related to, that is, depends
+on, every type variable in its bound, possibly including itself*).
+Let _==><sub>m</sub>_ be the transitive closure of _--><sub>m</sub>_.
+For each _m_, let _U<sub>i,m+1</sub>_, for _i_ in _1 .. k_, be determined
+as follows:
 
-If this process terminates then the selected value is the final
-value of the bound in _Fj_. If it does not terminate, the instantiate
-to bounds process has failed.
+- Let _j_ be the lowest number such that
+  _X<sub>j</sub> ==><sub>m</sub> X<sub>j</sub>_ (*that is, such that this
+  type variable is a member of a dependency cycle*).
+  Let _{Y<sub>1</sub> .. Y<sub>p</sub>}_ be the the maximal subset
+  containing _X<sub>j</sub>_ of _{X<sub>1</sub> .. X<sub>k</sub>}_ where
+  every pair is related: _Y<sub>q</sub> ==><sub>m</sub> Y<sub>r</sub>_, for
+  all _q, r_ in _1 .. p_ (*i.e., this subset is a strongly connected
+  component in the dependency graph containing _X<sub>j</sub>_*).
+  Then _U<sub>i,m+1</sub>_ is the result of substituting, in
+  _U<sub>i,m</sub>_, `Null` for every contravariant occurrence
+  of _X<sub>j</sub>_, and `dynamic` for every covariant occurrence of
+  _X<sub>j</sub>_, for all _i_ in _1 .. k_ such that _X<sub>i</sub>_ is a
+  member of _{Y<sub>1</sub> .. Y<sub>p</sub>}_; and _U<sub>i,m+1</sub>_ is
+  _U<sub>i,m</sub>_, for all other _i_ in _1 .. k_.
+  *That is, we update the bounds of type variables in the dependency cycle
+  such that the type variables in the dependency cycle are replaced by
+  `Null` or `dynamic`, depending on the variance of the location.*
 
-*It can always be determined whether the process will terminate, because
-it always replaces each formal type parameter by a specific term, thus
-incrementally building a regular tree: If the bound in _Fj_ at some step
-_s_ contains some type parameter _Xm_, and it contains _Xm_ again at a
-later step _s+n_, then the process will not terminate. If no such
-repeated occurrence of a type parameter occurs then the process will
-terminate, because the set of formal type parameters is finite.*
+- Otherwise, (*if no such dependency cycle exists*) let _j_ be the
+  lowest number such that _X<sub>j</sub>_ occurs in
+  _U<sub>p,m</sub>_ for some _p_ and
+  _X<sub>j</sub> -/-><sub>m</sub> X<sub>q</sub>_ for all _q_ in _1..k_
+  (*that is, _U<sub>j,m</sub>_ is closed, that is, the current bound of
+  _X<sub>j</sub>_ does not depend on any other type variables; but
+  _X<sub>j</sub>_ is being depended on by the bounds of some other type
+  variables*). Then _U<sub>i,m+1</sub>_ is the result of substituting, in
+  _U<sub>i,m</sub>_, `Null` for every contravariant occurrence
+  of _X<sub>j</sub>_, and _U<sub>j,m</sub>_ for every covariant occurrence
+  of _X<sub>j</sub>_, for all _i_ in _1 .. k_.
 
-*Note that instantiate to bound will always fail if the bound
-on _Fj_ is an F-bound, e.g., `class A<T extends B<T>>`.*
+- Otherwise, (*when no dependencies exist*) terminate with the result
+  _&lt;U<sub>1,m</sub> ..., U<sub>k,m</sub>&gt;_.
+
+*This process will always terminate, because the total number of
+occurrences of type variables from _{X<sub>1</sub> .. X<sub>k</sub>}_ in
+the current bounds is strictly decreasing with each step, and we terminate
+when that number reaches zero.*
+
+*Note that this process may produce a
+[super-bounded type](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md).*
 
 When instantiate to bound is applied to a type it proceeds recursively: For
-a generic instantiation `G<T1..Tk>` it is applied to `T1..Tk`; for
-a function type `T0 Function(T1..Tj, {Tj+1 xj+1 .. Tk xk})` and
-a function type `T0 Function(T1..Tj, [Tj+1 .. Tk])` it is applied
-to `T0..Tk`.
+a generic instantiation _G<T<sub>1</sub> .. T<sub>k</sub>>_ it is applied
+to _T<sub>1</sub> .. T<sub>k</sub>_; for a function type
+_T<sub>0</sub> Function(T<sub>1</sub> .. T<sub>j</sub>, {T<sub>j+1</sub> x<sub>1</sub> .. T<sub>k</sub> x<sub>j+k</sub>})_
+and a function type
+_T<sub>0</sub> Function(T<sub>1</sub> .. T<sub>j</sub>, [T<sub>j+1</sub> .. T<sub>j+k</sub>])_
+it is applied to _T<sub>0</sub> .. T<sub>j+k</sub>_.
 
 *This means that instantiate to bound has no effect on a type that does not
 contain any raw types; conversely, instantiate to bound will act on types
@@ -199,33 +249,23 @@ which are syntactic subterms, no matter where they occur.*
 
 ## Dynamic semantics
 
-There is no separate dynamic semantics for this mechanism. The semantics
-of a given program _P_ is the semantics of the program _P'_ which is
-created from _P_ by applying instantiate to bound where applicable.
-
-
-## Discussion
-
-A more complex algorithm was considered, possibly involving support for
-recursive (infinite) types. For example:
-
-```dart
-// A global dependency: F and G could be in different libraries.
-class F<T extends G> {}
-class G<T extends F> {}
-```
-
-In this case, instantiating the bounds to the infinite terms
-`G<F<G<F<G<F<...>>>>>>` and `F<G<F<G<F<G<...>>>>>>` would be a consistent
-solution, which could be justified by means of a coinductive
-interpretation of what it means to be a 'simple bound'. However, we do not
-expect solutions to this kind of challenge to be sufficiently useful
-(if even possible) to justify the added complexity, both with respect to
-comprehensibility for human readers, and with respect to the performance
-of tools.
+The instantiate to bound transformation which is specified in the static
+analysis section is used to provide type arguments to dynamic invocations
+of generic functions, when no actual type arguments are passed. Otherwise,
+the semantics of a given program _P_ is the semantics of the program _P'_
+which is created from _P_ by applying instantiate to bound where
+applicable.
 
 
 ## Updates
+
+*   Jan 11th 2018, version 0.5: Revised treatment of variance based on
+    strongly connected components in the dependency graph.
+
+*   Dec 13th 2017: Revised to allow infinite substitution sequences when the
+    value of a type argument is computed, specifying how to detect that
+    the substitution sequence is infinite, and how to obtain a result from
+    there.
 
 *   Sep 15th 2017: Transferred to the SDK repository as
     [instantiate-to-bound.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md).

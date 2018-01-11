@@ -35,14 +35,14 @@ var tests = <IsolateTest>[
     expect(stack['frames'].length, greaterThanOrEqualTo(1));
     expect(stack['frames'][0].function.name, equals('foo'));
 
-    var lib = await isolate.rootLibrary.load();
-    var thing1 =
-        (await lib.variables.singleWhere((v) => v.name == "thing1").load())
-            .staticValue;
+    Library lib = await isolate.rootLibrary.load();
+    Field thing1Field =
+        await lib.variables.singleWhere((v) => v.name == "thing1").load();
+    var thing1 = thing1Field.staticValue;
     print(thing1);
-    var thing2 =
-        (await lib.variables.singleWhere((v) => v.name == "thing2").load())
-            .staticValue;
+    Field thing2Field =
+        await lib.variables.singleWhere((v) => v.name == "thing2").load();
+    var thing2 = thing2Field.staticValue;
     print(thing2);
 
     var result = await isolate

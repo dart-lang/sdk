@@ -55,7 +55,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     impactBuilder
         .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
     FunctionType type = _elementEnvironment.getFunctionType(element);
-    if (type.containsTypeVariables && _rtiNeed.methodNeedsRti(element)) {
+    if (type.containsTypeVariables && _rtiNeed.methodNeedsSignature(element)) {
       impactBuilder.addImpact(_registerComputeSignature());
     }
     return impactBuilder;
@@ -231,7 +231,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       ClassEntity cls = member.enclosingClass;
       if (member.name == Identifiers.call &&
           _elementEnvironment.isGenericClass(cls) &&
-          _rtiNeed.methodNeedsRti(member)) {
+          _rtiNeed.methodNeedsSignature(member)) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }

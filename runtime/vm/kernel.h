@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_KERNEL_H_
 #define RUNTIME_VM_KERNEL_H_
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -13,6 +12,22 @@
 #include "vm/object.h"
 #include "vm/token_position.h"
 
+namespace dart {
+namespace kernel {
+class NameIndex {
+ public:
+  NameIndex() : value_(-1) {}
+  explicit NameIndex(int value) : value_(value) {}
+
+  operator int() const { return value_; }
+
+ private:
+  int value_;
+};
+} // kernel
+} // dart
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
 class Field;
@@ -27,17 +42,6 @@ class StringIndex {
  public:
   StringIndex() : value_(-1) {}
   explicit StringIndex(int value) : value_(value) {}
-
-  operator int() const { return value_; }
-
- private:
-  int value_;
-};
-
-class NameIndex {
- public:
-  NameIndex() : value_(-1) {}
-  explicit NameIndex(int value) : value_(value) {}
 
   operator int() const { return value_; }
 

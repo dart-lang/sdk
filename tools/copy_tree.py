@@ -65,7 +65,8 @@ def CopyTree(src, dst, ignore=None):
   else:
     ignored_names = set()
 
-  os.makedirs(dst)
+  if not os.path.exists(dst):
+    os.makedirs(dst)
   errors = []
   for name in names:
     if name in ignored_names:
@@ -143,8 +144,6 @@ def Main(argv):
     SourcesToGN(args.gn_paths)
     return 0
 
-  if os.path.exists(args.to):
-    shutil.rmtree(args.to)
   if args.exclude_patterns == None:
     CopyTree(args.copy_from, args.to)
   else:

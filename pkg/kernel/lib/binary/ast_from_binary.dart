@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast_from_binary;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -928,6 +930,8 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
+    var forwardingStubSuperTarget =
+        readAndCheckOptionTag() ? readMemberReference() : null;
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -942,6 +946,10 @@ class BinaryBuilder {
       node.function = function;
       function?.parent = node;
       node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
+      node.forwardingStubSuperTarget = forwardingStubSuperTarget;
+
+      assert((node.forwardingStubSuperTarget != null) ||
+          !(node.isForwardingStub && node.function.body != null));
     }
     _byteOffset = endOffset;
     return node;

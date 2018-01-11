@@ -10,7 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SendEventTest);
-    defineReflectiveTests(SendEventTest_PreviewDart2);
+    defineReflectiveTests(SendEventTest_UseCFE);
   });
 }
 
@@ -32,7 +32,7 @@ class SendEventTest extends AbstractAnalysisServerIntegrationTest {
 }
 
 @reflectiveTest
-class SendEventTest_PreviewDart2 extends SendEventTest {
+class SendEventTest_UseCFE extends SendEventTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

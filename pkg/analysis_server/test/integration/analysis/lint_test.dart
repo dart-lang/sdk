@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
-    defineReflectiveTests(LintIntegrationTest_PreviewDart2);
+    defineReflectiveTests(LintIntegrationTest_UseCFE);
   });
 }
 
@@ -84,7 +84,7 @@ class a { // lint: not CamelCase
 }
 
 @reflectiveTest
-class LintIntegrationTest_PreviewDart2 extends LintIntegrationTest {
+class LintIntegrationTest_UseCFE extends LintIntegrationTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

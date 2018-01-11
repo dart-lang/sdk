@@ -9350,6 +9350,9 @@ bool Script::HasSource() const {
 RawString* Script::Source() const {
   String& source = String::Handle(raw_ptr()->source_);
   if (source.IsNull()) {
+    if (kind() == RawScript::kKernelTag) {
+      return String::null();
+    }
     return GenerateSource();
   }
   return raw_ptr()->source_;
@@ -14530,10 +14533,8 @@ RawCode* Code::FinalizeCode(const char* name,
 
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
-      bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                                           instrs.raw()->Size(),
-                                           VirtualMemory::kReadExecute);
-      ASSERT(status);
+      VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                             instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
   code.set_comments(assembler->GetCodeComments());

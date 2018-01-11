@@ -643,7 +643,7 @@ class Driver implements CommandLineStarter {
       PerformanceLog log = new PerformanceLog(null);
       AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
 
-      bool enableKernelDriver = options.previewDart2;
+      bool enableKernelDriver = options.useCFE;
       file_system.Folder kernelPlatformBinariesFolder;
       if (enableKernelDriver && options.dartSdkPlatformBinariesPath != null) {
         kernelPlatformBinariesFolder =
@@ -873,7 +873,7 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
-    if (options.previewDart2) {
+    if (options.useCFE) {
       contextOptions.useFastaParser = true;
     }
 

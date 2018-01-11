@@ -30,9 +30,6 @@ io/socket_info_ipv6_test: SkipByDesign
 io/socket_ipv6_test: SkipByDesign
 io/socket_source_address_test: SkipByDesign
 
-[ $compiler == app_jit ]
-assert_test: RuntimeError
-
 [ $compiler == dart2analyzer ]
 deferred_transitive_import_error_test: Skip
 
@@ -92,7 +89,6 @@ io/socket_connect_stream_data_close_cancel_test: Pass, Timeout # Issue 27453
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
 [ $strong && ($compiler == dartk || $compiler == dartkp) ]
-assert_test: RuntimeError
 io/dependency_graph_test: CompileTimeError
 io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
@@ -100,21 +96,24 @@ io/file_system_watcher_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
 io/http_auth_test: RuntimeError
+io/http_cookie_date_test: CompileTimeError
+io/http_headers_test: CompileTimeError
+io/http_parser_test: CompileTimeError
 io/http_proxy_advanced_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
 io/regress_10026_test: RuntimeError
+io/secure_socket_argument_test: CompileTimeError
 io/skipping_dart2js_compilations_test: CompileTimeError
 io/socket_upgrade_to_secure_test: RuntimeError
 io/test_harness_analyzer_test: CompileTimeError
 io/test_runner_test: CompileTimeError
 io/web_socket_pipe_test: RuntimeError
-io/web_socket_protocol_processor_test: RuntimeError
+io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 
 [ !$strong && ($compiler == dartk || $compiler == dartkp) ]
-assert_test: RuntimeError
 io/compile_all_test: Skip # Crashes
 io/http_client_connect_test: Skip # Flaky.
 io/http_content_length_test: Skip # Flaky.
@@ -142,11 +141,10 @@ regress_29350_test: MissingCompileTimeError
 [ $arch == arm || $arch == arm64 || $runtime != vm || $mode == debug && $system == windows ]
 fragmentation_test: Skip
 
-[ $compiler == dart2js || $compiler == dartdevc ]
+[ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
 *: SkipByDesign
 
 [ $mode == product || $runtime == dart_precompiled ]
-assert_test: SkipByDesign
 no_assert_test: SkipByDesign
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]

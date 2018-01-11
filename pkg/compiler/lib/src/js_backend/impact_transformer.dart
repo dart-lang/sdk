@@ -292,15 +292,15 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (!type.isInterfaceType) return;
     InterfaceType interfaceType = type;
     // If [argument] has type variables or is a type variable, this method
-    // registers a RTI dependency between the class where the type variable is
-    // defined (that is the enclosing class of the current element being
-    // resolved) and the class of [type]. If the class of [type] requires RTI,
-    // then the class of the type variable does too.
-    ClassEntity contextClass = DartTypes.getClassContext(interfaceType);
-    if (contextClass != null) {
-      _rtiNeedBuilder.registerRtiDependency(
-          interfaceType.element, contextClass);
-    }
+    // registers a RTI dependency between the entity that introduced the type
+    // variable and the class of [type]. If the class of [type] requires type
+    // arguments at runtime, then the entity that introduced the type variable
+    // does too.
+    interfaceType.forEachTypeVariable((TypeVariableType typeVariable) {
+      Entity typeDeclaration = typeVariable.element.typeDeclaration;
+      _rtiNeedBuilder.registerTypeArgumentDependency(
+          interfaceType.element, typeDeclaration);
+    });
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
@@ -428,11 +428,11 @@ class CodegenImpactTransformer {
     for (StaticUse staticUse in impact.staticUses) {
       if (staticUse.kind == StaticUseKind.CALL_METHOD) {
         FunctionEntity callMethod = staticUse.element;
-        if (_rtiNeed.methodNeedsRti(callMethod)) {
+        if (_rtiNeed.methodNeedsSignature(callMethod)) {
           _impacts.computeSignature
               .registerImpact(transformed, _elementEnvironment);
         } else if (callMethod is SynthesizedCallMethodElementX) {
-          if (_rtiNeed.localFunctionNeedsRti(callMethod.expression)) {
+          if (_rtiNeed.localFunctionNeedsSignature(callMethod.expression)) {
             _impacts.computeSignature
                 .registerImpact(transformed, _elementEnvironment);
           }

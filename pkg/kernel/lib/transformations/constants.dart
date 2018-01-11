@@ -2,23 +2,63 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This library implements a kernel2kernel constant evaluation transformation.
+///
+/// Even though it is expected that the frontend does not emit kernel AST which
+/// contains compile-time errors, this transformation still performs some
+/// valiation and throws a [ConstantEvaluationError] if there was a compile-time
+/// errors.
+///
+/// Due to the lack information which is is only available in the front-end,
+/// this validation is incomplete (e.g. whether an integer literal used the
+/// hexadecimal syntax or not).
+///
+/// Furthermore due to the lowering of certain constructs in the front-end
+/// (e.g. '??') we need to support a super-set of the normal constant expression
+/// language.  Issue(http://dartbug.com/31799)
 library kernel.transformations.constants;
 
 import '../kernel.dart';
 import '../ast.dart';
+import '../core_types.dart';
 import '../type_algebra.dart';
+import '../type_environment.dart';
+import '../class_hierarchy.dart';
 import 'treeshaker.dart' show findNativeName;
 
 Program transformProgram(Program program, ConstantsBackend backend,
-    {bool keepFields: false}) {
-  transformLibraries(program.libraries, backend, keepFields: keepFields);
+    {bool keepFields: false,
+    bool strongMode: false,
+    bool enableAsserts: false,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy}) {
+  coreTypes ??= new CoreTypes(program);
+  hierarchy ??= new ClosedWorldClassHierarchy(program);
+
+  final typeEnvironment =
+      new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
+
+  transformLibraries(program.libraries, backend, coreTypes, typeEnvironment,
+      keepFields: keepFields,
+      strongMode: strongMode,
+      enableAsserts: enableAsserts);
   return program;
 }
 
 void transformLibraries(List<Library> libraries, ConstantsBackend backend,
-    {bool keepFields: false, bool keepVariables: false}) {
-  final ConstantsTransformer constantsTransformer =
-      new ConstantsTransformer(backend, keepFields, keepVariables);
+    CoreTypes coreTypes, TypeEnvironment typeEnvironment,
+    {bool keepFields: false,
+    bool keepVariables: false,
+    bool strongMode: false,
+    bool enableAsserts: false}) {
+  final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
+      backend,
+      keepFields,
+      keepVariables,
+      coreTypes,
+      typeEnvironment,
+      strongMode,
+      enableAsserts);
   for (final Library library in libraries) {
     for (final Field field in library.fields.toList()) {
       constantsTransformer.convertField(field);
@@ -39,19 +79,39 @@ void transformLibraries(List<Library> libraries, ConstantsBackend backend,
         constantsTransformer.convertConstructor(constructor);
       }
     }
+    for (final Typedef td in library.typedefs) {
+      constantsTransformer.convertTypedef(td);
+    }
+
+    if (!keepFields) {
+      // The transformer API does not iterate over `Library.additionalExports`,
+      // so we manually delete the references to shaken nodes.
+      library.additionalExports.removeWhere((Reference reference) {
+        return reference.canonicalName == null;
+      });
+    }
   }
 }
 
 class ConstantsTransformer extends Transformer {
   final ConstantEvaluator constantEvaluator;
+  final CoreTypes coreTypes;
+  final TypeEnvironment typeEnvironment;
 
   /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
   final bool keepFields;
   final bool keepVariables;
 
   ConstantsTransformer(
-      ConstantsBackend backend, this.keepFields, this.keepVariables)
-      : constantEvaluator = new ConstantEvaluator(backend);
+      ConstantsBackend backend,
+      this.keepFields,
+      this.keepVariables,
+      this.coreTypes,
+      this.typeEnvironment,
+      bool strongMode,
+      bool enableAsserts)
+      : constantEvaluator = new ConstantEvaluator(
+            backend, typeEnvironment, coreTypes, strongMode, enableAsserts);
 
   // Transform the library/class members:
 
@@ -76,6 +136,13 @@ class ConstantsTransformer extends Transformer {
   void convertField(Field field) {
     constantEvaluator.withNewEnvironment(() {
       if (field.accept(this) == null) field.remove();
+    });
+  }
+
+  void convertTypedef(Typedef td) {
+    // A typedef can have annotations on variables which are constants.
+    constantEvaluator.withNewEnvironment(() {
+      td.accept(this);
     });
   }
 
@@ -166,6 +233,10 @@ class ConstantsTransformer extends Transformer {
 
 class ConstantEvaluator extends RecursiveVisitor {
   final ConstantsBackend backend;
+  final CoreTypes coreTypes;
+  final TypeEnvironment typeEnvironment;
+  final bool strongMode;
+  final bool enableAsserts;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant> nodeCache;
@@ -177,7 +248,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
 
-  ConstantEvaluator(this.backend)
+  ConstantEvaluator(this.backend, this.typeEnvironment, this.coreTypes,
+      this.strongMode, this.enableAsserts)
       : canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{};
 
@@ -204,6 +276,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitIntLiteral(IntLiteral node) {
+    // The frontend will ensure the integer literals are in signed 64-bit range
+    // in strong mode.
     return canonicalize(new IntConstant(node.value));
   }
 
@@ -335,6 +409,21 @@ class ConstantEvaluator extends RecursiveVisitor {
               typeArguments,
               evaluatePositionalArguments(init.arguments),
               evaluateNamedArguments(init.arguments));
+        } else if (init is AssertInitializer) {
+          if (enableAsserts) {
+            final Constant condition = init.statement.condition.accept(this);
+
+            if (condition is BoolConstant) {
+              if (!condition.value) {
+                final Constant message = init.statement.message?.accept(this);
+                throw new ConstantEvaluationError(
+                    'Assert initializer condition failed with message: $message.');
+              }
+            } else {
+              throw new ConstantEvaluationError(
+                  'Assert initializer did not evaluate to a boolean condition.');
+            }
+          }
         } else {
           throw new ConstantEvaluationError(
               'Cannot evaluate constant with [${init.runtimeType}].');
@@ -353,15 +442,19 @@ class ConstantEvaluator extends RecursiveVisitor {
 
     // Handle == and != first (it's common between all types).
     if (arguments.length == 1 && node.name.name == '==') {
-      ensurePrimitiveConstant(receiver);
+      // TODO(http://dartbug.com/31799): Re-enable these checks.
+      //ensurePrimitiveConstant(receiver);
       final right = arguments[0];
-      ensurePrimitiveConstant(right);
+      // TODO(http://dartbug.com/31799): Re-enable these checks.
+      //ensurePrimitiveConstant(right);
       return receiver == right ? trueConstant : falseConstant;
     }
     if (arguments.length == 1 && node.name.name == '!=') {
-      ensurePrimitiveConstant(receiver);
+      // TODO(http://dartbug.com/31799): Re-enable these checks.
+      //ensurePrimitiveConstant(receiver);
       final right = arguments[0];
-      ensurePrimitiveConstant(right);
+      // TODO(http://dartbug.com/31799): Re-enable these checks.
+      //ensurePrimitiveConstant(right);
       return receiver != right ? trueConstant : falseConstant;
     }
 
@@ -498,12 +591,14 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitConditionalExpression(ConditionalExpression node) {
-    final BoolConstant constant = evaluate(node.condition);
+    final Constant constant = evaluate(node.condition);
     if (constant == trueConstant) {
       return evaluate(node.then);
-    } else {
-      assert(constant == falseConstant);
+    } else if (constant == falseConstant) {
       return evaluate(node.otherwise);
+    } else {
+      throw new ConstantEvaluationError(
+          'Cannot use $constant as condition in a conditional expression.');
     }
   }
 
@@ -593,14 +688,19 @@ class ConstantEvaluator extends RecursiveVisitor {
       } else if (target.name.name == 'identical') {
         // Ensure the "identical()" function comes from dart:core.
         final parent = target.parent;
-        if (parent is Library && parent.importUri == 'dart:core') {
+        if (parent is Library && parent == coreTypes.coreLibrary) {
           final positionalArguments =
               evaluatePositionalArguments(node.arguments);
-          final left = positionalArguments[0];
-          ensurePrimitiveConstant(left);
-          final right = positionalArguments[1];
-          ensurePrimitiveConstant(right);
-          return left == right ? trueConstant : falseConstant;
+          final Constant left = positionalArguments[0];
+          // TODO(http://dartbug.com/31799): Re-enable these checks.
+          //ensurePrimitiveConstant(left);
+          final Constant right = positionalArguments[1];
+          // TODO(http://dartbug.com/31799): Re-enable these checks.
+          //ensurePrimitiveConstant(right);
+          // Since we canonicalize constants during the evaluation, we can use
+          // identical here.
+          assert(left == right);
+          return identical(left, right) ? trueConstant : falseConstant;
         }
       }
     }
@@ -609,7 +709,62 @@ class ConstantEvaluator extends RecursiveVisitor {
         'Calling "$target" during constant evaluation is disallowed.');
   }
 
+  visitAsExpression(AsExpression node) {
+    final Constant constant = node.operand.accept(this);
+    ensureIsSubtype(constant, evaluateDartType(node.type));
+    return constant;
+  }
+
+  visitNot(Not node) {
+    final Constant constant = node.operand.accept(this);
+    if (constant is BoolConstant) {
+      return constant == trueConstant ? falseConstant : trueConstant;
+    }
+    throw new ConstantEvaluationError(
+        'A not expression must have a boolean operand.');
+  }
+
+  visitSymbolLiteral(SymbolLiteral node) {
+    final value = canonicalize(new StringConstant(node.value));
+    return canonicalize(backend.buildSymbolConstant(value));
+  }
+
   // Helper methods:
+
+  void ensureIsSubtype(Constant constant, DartType type) {
+    DartType constantType;
+    if (constant is NullConstant) {
+      constantType = new InterfaceType(coreTypes.nullClass);
+    } else if (constant is BoolConstant) {
+      constantType = new InterfaceType(coreTypes.boolClass);
+    } else if (constant is IntConstant) {
+      constantType = new InterfaceType(coreTypes.intClass);
+    } else if (constant is DoubleConstant) {
+      constantType = new InterfaceType(coreTypes.doubleClass);
+    } else if (constant is StringConstant) {
+      constantType = new InterfaceType(coreTypes.stringClass);
+    } else if (constant is MapConstant) {
+      constantType = new InterfaceType(
+          coreTypes.mapClass, <DartType>[constant.keyType, constant.valueType]);
+    } else if (constant is ListConstant) {
+      constantType = new InterfaceType(
+          coreTypes.stringClass, <DartType>[constant.typeArgument]);
+    } else if (constant is InstanceConstant) {
+      constantType = new InterfaceType(constant.klass, constant.typeArguments);
+    } else if (constant is TearOffConstant) {
+      constantType = constant.procedure.function.functionType;
+    } else if (constant is TypeLiteralConstant) {
+      constantType = new InterfaceType(coreTypes.typeClass);
+    } else {
+      throw new ConstantEvaluationError(
+          'No support for obtaining the type of $constant.');
+    }
+
+    if (!typeEnvironment.isSubtypeOf(constantType, type)) {
+      throw new ConstantEvaluationError(
+          'Constant $constant is not a subtype of ${type}.');
+    }
+  }
 
   List<DartType> evaluateTypeArguments(Arguments arguments) {
     return evaluateDartTypes(arguments.types);
@@ -686,7 +841,7 @@ class ConstantEvaluator extends RecursiveVisitor {
         result = a - b;
         break;
       case '*':
-        result = a - b;
+        result = a * b;
         break;
       case '/':
         result = a / b;
@@ -695,13 +850,13 @@ class ConstantEvaluator extends RecursiveVisitor {
         result = a ~/ b;
         break;
       case '%':
-        result = a ~/ b;
+        result = a % b;
         break;
     }
 
     if (result != null) {
       return canonicalize(result is int
-          ? new IntConstant(result)
+          ? new IntConstant(_wrapAroundInteger(result))
           : new DoubleConstant(result as double));
     }
 
@@ -719,6 +874,16 @@ class ConstantEvaluator extends RecursiveVisitor {
     throw new ConstantEvaluationError(
         'Binary operation "$op" on num is disallowed.');
   }
+
+  int _wrapAroundInteger(int value) {
+    if (strongMode) {
+      return value.toSigned(64);
+    }
+    return value;
+  }
+
+  static const kMaxInt64 = (1 << 63) - 1;
+  static const kMinInt64 = -(1 << 63);
 }
 
 /// Holds the necessary information for a constant object, namely
@@ -798,6 +963,7 @@ abstract class ConstantsBackend {
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
       Map<String, Constant> namedArguments);
+  Constant buildSymbolConstant(StringConstant value);
 
   Constant lowerListConstant(ListConstant constant);
   Constant lowerMapConstant(MapConstant constant);

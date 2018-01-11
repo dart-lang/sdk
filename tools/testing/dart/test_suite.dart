@@ -173,7 +173,7 @@ abstract class TestSuite {
         throw 'Can not use --dart when testing Dart 2.0 configuration';
       }
 
-      dartExecutable = 'pkg/vm/tool/dart2';
+      dartExecutable = 'pkg/vm/tool/dart2$executableScriptSuffix';
     }
 
     if (dartExecutable == null) {
@@ -251,6 +251,7 @@ abstract class TestSuite {
   }
 
   String get executableBinarySuffix => Platform.isWindows ? '.exe' : '';
+  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 
   /**
    * Call the callback function onTest with a [TestCase] argument for each
@@ -1239,7 +1240,6 @@ class StandardTestSuite extends TestSuite {
     if (options != null) args.addAll(options);
     options = optionsFromFile['dart2jsOptions'] as List<String>;
     if (options != null) args.addAll(options);
-    print('options = ${args}');
 
     return Command.compilation(Compiler.dart2js.name, outputFile,
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,

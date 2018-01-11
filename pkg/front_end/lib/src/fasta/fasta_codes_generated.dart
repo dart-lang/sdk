@@ -20,9 +20,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeAbstractClassInstantiation =
     const Code<Message Function(String name)>(
-  "AbstractClassInstantiation",
-  templateAbstractClassInstantiation,
-);
+        "AbstractClassInstantiation", templateAbstractClassInstantiation,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAbstractClassInstantiation(String name) {
@@ -65,9 +64,9 @@ const Template<
 const Code<Message Function(String name)>
     codeAbstractRedirectedClassInstantiation =
     const Code<Message Function(String name)>(
-  "AbstractRedirectedClassInstantiation",
-  templateAbstractRedirectedClassInstantiation,
-);
+        "AbstractRedirectedClassInstantiation",
+        templateAbstractRedirectedClassInstantiation,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
@@ -229,6 +228,7 @@ const Template<Message Function(Token token)>
 const Code<Message Function(Token token)> codeBuiltInIdentifierInDeclaration =
     const Code<Message Function(Token token)>("BuiltInIdentifierInDeclaration",
         templateBuiltInIdentifierInDeclaration,
+        analyzerCode: "BUILT_IN_IDENTIFIER_IN_DECLARATION",
         dart2jsCode: "GENERIC");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -348,9 +348,8 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string)> codeCantInferTypeDueToCircularity =
     const Code<Message Function(String string)>(
-  "CantInferTypeDueToCircularity",
-  templateCantInferTypeDueToCircularity,
-);
+        "CantInferTypeDueToCircularity", templateCantInferTypeDueToCircularity,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantInferTypeDueToCircularity(String string) {
@@ -428,9 +427,8 @@ const Template<Message Function(String name)> templateConflictsWithConstructor =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConflictsWithConstructor =
     const Code<Message Function(String name)>(
-  "ConflictsWithConstructor",
-  templateConflictsWithConstructor,
-);
+        "ConflictsWithConstructor", templateConflictsWithConstructor,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithConstructor(String name) {
@@ -448,9 +446,8 @@ const Template<Message Function(String name)> templateConflictsWithFactory =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConflictsWithFactory =
     const Code<Message Function(String name)>(
-  "ConflictsWithFactory",
-  templateConflictsWithFactory,
-);
+        "ConflictsWithFactory", templateConflictsWithFactory,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithFactory(String name) {
@@ -468,13 +465,31 @@ const Template<Message Function(String name)> templateConflictsWithMember =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConflictsWithMember =
     const Code<Message Function(String name)>(
-  "ConflictsWithMember",
-  templateConflictsWithMember,
-);
+        "ConflictsWithMember", templateConflictsWithMember,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithMember(String name) {
   return new Message(codeConflictsWithMember,
+      message: """Conflicts with member '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateConflictsWithMemberWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with member '#name'.""",
+        withArguments: _withArgumentsConflictsWithMemberWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithMemberWarning =
+    const Code<Message Function(String name)>(
+        "ConflictsWithMemberWarning", templateConflictsWithMemberWarning,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithMemberWarning(String name) {
+  return new Message(codeConflictsWithMemberWarning,
       message: """Conflicts with member '$name'.""", arguments: {'name': name});
 }
 
@@ -487,13 +502,31 @@ const Template<Message Function(String name)> templateConflictsWithSetter =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConflictsWithSetter =
     const Code<Message Function(String name)>(
-  "ConflictsWithSetter",
-  templateConflictsWithSetter,
-);
+        "ConflictsWithSetter", templateConflictsWithSetter,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithSetter(String name) {
   return new Message(codeConflictsWithSetter,
+      message: """Conflicts with setter '$name'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateConflictsWithSetterWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Conflicts with setter '#name'.""",
+        withArguments: _withArgumentsConflictsWithSetterWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithSetterWarning =
+    const Code<Message Function(String name)>(
+        "ConflictsWithSetterWarning", templateConflictsWithSetterWarning,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithSetterWarning(String name) {
+  return new Message(codeConflictsWithSetterWarning,
       message: """Conflicts with setter '$name'.""", arguments: {'name': name});
 }
 
@@ -507,9 +540,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConflictsWithTypeVariable =
     const Code<Message Function(String name)>(
-  "ConflictsWithTypeVariable",
-  templateConflictsWithTypeVariable,
-);
+        "ConflictsWithTypeVariable", templateConflictsWithTypeVariable,
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictsWithTypeVariable(String name) {
@@ -525,6 +557,7 @@ const Code<Null> codeConflictsWithTypeVariableCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     "ConflictsWithTypeVariableCause",
+    severity: Severity.error,
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -655,9 +688,8 @@ const Template<Message Function(String name)> templateConstructorNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeConstructorNotFound =
     const Code<Message Function(String name)>(
-  "ConstructorNotFound",
-  templateConstructorNotFound,
-);
+        "ConstructorNotFound", templateConstructorNotFound,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstructorNotFound(String name) {
@@ -938,15 +970,40 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedExport",
-  templateDuplicatedExport,
-);
+        "DuplicatedExport", templateDuplicatedExport,
+        analyzerCode: "AMBIGUOUS_EXPORT",
+        dart2jsCode: "*ignored*",
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedExport,
+      message: """'$name' is exported from both '$uri' and '$uri2'.""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateDuplicatedExportInType =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate:
+            r"""'#name' is exported from both '#uri' and '#uri2'.""",
+        withArguments: _withArgumentsDuplicatedExportInType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeDuplicatedExportInType =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+        "DuplicatedExportInType", templateDuplicatedExportInType,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeDuplicatedExportInType,
       message: """'$name' is exported from both '$uri' and '$uri2'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
@@ -963,15 +1020,38 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedImport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "DuplicatedImport",
-  templateDuplicatedImport,
-);
+        "DuplicatedImport", templateDuplicatedImport,
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
   return new Message(codeDuplicatedImport,
+      message: """'$name' is imported from both '$uri' and '$uri2'.""",
+      arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_, Uri uri2_)>
+    templateDuplicatedImportInType =
+    const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        messageTemplate:
+            r"""'#name' is imported from both '#uri' and '#uri2'.""",
+        withArguments: _withArgumentsDuplicatedImportInType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_, Uri uri2_)>
+    codeDuplicatedImportInType =
+    const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
+        "DuplicatedImportInType", templateDuplicatedImportInType,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
+  String uri = relativizeUri(uri_);
+  String uri2 = relativizeUri(uri2_);
+  return new Message(codeDuplicatedImportInType,
       message: """'$name' is imported from both '$uri' and '$uri2'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
@@ -1325,7 +1405,9 @@ const Template<Message Function(Token token)> templateExpectedIdentifier =
 const Code<Message Function(Token token)> codeExpectedIdentifier =
     const Code<Message Function(Token token)>(
         "ExpectedIdentifier", templateExpectedIdentifier,
-        analyzerCode: "MISSING_IDENTIFIER", dart2jsCode: "*fatal*");
+        analyzerCode: "MISSING_IDENTIFIER",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedIdentifier(Token token) {
@@ -1432,9 +1514,8 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeExportHidesExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "ExportHidesExport",
-  templateExportHidesExport,
-);
+        "ExportHidesExport", templateExportHidesExport,
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
@@ -1485,9 +1566,8 @@ const Template<Message Function(String name)> templateExtendingRestricted =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeExtendingRestricted =
     const Code<Message Function(String name)>(
-  "ExtendingRestricted",
-  templateExtendingRestricted,
-);
+        "ExtendingRestricted", templateExtendingRestricted,
+        analyzerCode: "EXTENDS_DISALLOWED_CLASS", dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingRestricted(String name) {
@@ -1809,9 +1889,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeFinalInstanceVariableAlreadyInitialized =
     const Code<Message Function(String name)>(
-  "FinalInstanceVariableAlreadyInitialized",
-  templateFinalInstanceVariableAlreadyInitialized,
-);
+        "FinalInstanceVariableAlreadyInitialized",
+        templateFinalInstanceVariableAlreadyInitialized,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitialized(String name) {
@@ -1833,9 +1913,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeFinalInstanceVariableAlreadyInitializedCause =
     const Code<Message Function(String name)>(
-  "FinalInstanceVariableAlreadyInitializedCause",
-  templateFinalInstanceVariableAlreadyInitializedCause,
-);
+        "FinalInstanceVariableAlreadyInitializedCause",
+        templateFinalInstanceVariableAlreadyInitializedCause,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
@@ -1873,9 +1953,8 @@ const Template<Message Function(String name)> templateGetterNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeGetterNotFound =
     const Code<Message Function(String name)>(
-  "GetterNotFound",
-  templateGetterNotFound,
-);
+        "GetterNotFound", templateGetterNotFound,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGetterNotFound(String name) {
@@ -2026,9 +2105,8 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeImportHidesImport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-  "ImportHidesImport",
-  templateImportHidesImport,
-);
+        "ImportHidesImport", templateImportHidesImport,
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
@@ -2096,6 +2174,7 @@ const Code<Null> codeInternalProblemAlreadyInitialized =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
     "InternalProblemAlreadyInitialized",
+    severity: Severity.internalProblem,
     message: r"""Attempt to set initializer on field without initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2105,6 +2184,7 @@ const Code<Null> codeInternalProblemBodyOnAbstractMethod =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemBodyOnAbstractMethod =
     const MessageCode("InternalProblemBodyOnAbstractMethod",
+        severity: Severity.internalProblem,
         message: r"""Attempting to set body on abstract method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2118,9 +2198,9 @@ const Template<Message Function(String name, Uri uri_)>
 const Code<Message Function(String name, Uri uri_)>
     codeInternalProblemConstructorNotFound =
     const Code<Message Function(String name, Uri uri_)>(
-  "InternalProblemConstructorNotFound",
-  templateInternalProblemConstructorNotFound,
-);
+        "InternalProblemConstructorNotFound",
+        templateInternalProblemConstructorNotFound,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemConstructorNotFound(
@@ -2138,6 +2218,7 @@ const Code<Null> codeInternalProblemExtendingUnmodifiableScope =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemExtendingUnmodifiableScope =
     const MessageCode("InternalProblemExtendingUnmodifiableScope",
+        severity: Severity.internalProblem,
         message: r"""Can't extend an unmodifiable scope.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2147,9 +2228,31 @@ const Code<Null> codeInternalProblemMissingContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemMissingContext = const MessageCode(
     "InternalProblemMissingContext",
+    severity: Severity.internalProblem,
     message: r"""Compiler cannot run without a compiler context.""",
     tip:
         r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateInternalProblemMissingSeverity =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Message code missing severity: #string""",
+        withArguments: _withArgumentsInternalProblemMissingSeverity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeInternalProblemMissingSeverity =
+    const Code<Message Function(String string)>(
+        "InternalProblemMissingSeverity",
+        templateInternalProblemMissingSeverity,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemMissingSeverity(String string) {
+  return new Message(codeInternalProblemMissingSeverity,
+      message: """Message code missing severity: $string""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
@@ -2160,9 +2263,8 @@ const Template<Message Function(String name)> templateInternalProblemNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeInternalProblemNotFound =
     const Code<Message Function(String name)>(
-  "InternalProblemNotFound",
-  templateInternalProblemNotFound,
-);
+        "InternalProblemNotFound", templateInternalProblemNotFound,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFound(String name) {
@@ -2181,9 +2283,8 @@ const Template<Message Function(String name, String name2)>
 const Code<Message Function(String name, String name2)>
     codeInternalProblemNotFoundIn =
     const Code<Message Function(String name, String name2)>(
-  "InternalProblemNotFoundIn",
-  templateInternalProblemNotFoundIn,
-);
+        "InternalProblemNotFoundIn", templateInternalProblemNotFoundIn,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
@@ -2199,6 +2300,7 @@ const Code<Null> codeInternalProblemPreviousTokenNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemPreviousTokenNotFound =
     const MessageCode("InternalProblemPreviousTokenNotFound",
+        severity: Severity.internalProblem,
         message: r"""Couldn't find previous token.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2212,9 +2314,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeInternalProblemPrivateConstructorAccess =
     const Code<Message Function(String name)>(
-  "InternalProblemPrivateConstructorAccess",
-  templateInternalProblemPrivateConstructorAccess,
-);
+        "InternalProblemPrivateConstructorAccess",
+        templateInternalProblemPrivateConstructorAccess,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
@@ -2230,6 +2332,7 @@ const Code<Null> codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemProvidedBothCompileSdkAndSdkSummary =
     const MessageCode("InternalProblemProvidedBothCompileSdkAndSdkSummary",
+        severity: Severity.internalProblem,
         message:
             r"""The compileSdk and sdkSummary options are mutually exclusive""");
 
@@ -2244,9 +2347,8 @@ const Template<Message Function(String name, String string)>
 const Code<Message Function(String name, String string)>
     codeInternalProblemStackNotEmpty =
     const Code<Message Function(String name, String string)>(
-  "InternalProblemStackNotEmpty",
-  templateInternalProblemStackNotEmpty,
-);
+        "InternalProblemStackNotEmpty", templateInternalProblemStackNotEmpty,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
@@ -2266,9 +2368,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeInternalProblemSuperclassNotFound =
     const Code<Message Function(String name)>(
-  "InternalProblemSuperclassNotFound",
-  templateInternalProblemSuperclassNotFound,
-);
+        "InternalProblemSuperclassNotFound",
+        templateInternalProblemSuperclassNotFound,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemSuperclassNotFound(String name) {
@@ -2287,9 +2389,8 @@ const Template<Message Function(String string, String string2)>
 const Code<Message Function(String string, String string2)>
     codeInternalProblemUnexpected =
     const Code<Message Function(String string, String string2)>(
-  "InternalProblemUnexpected",
-  templateInternalProblemUnexpected,
-);
+        "InternalProblemUnexpected", templateInternalProblemUnexpected,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnexpected(String string, String string2) {
@@ -2309,9 +2410,8 @@ const Template<Message Function(String string, String string2)>
 const Code<Message Function(String string, String string2)>
     codeInternalProblemUnhandled =
     const Code<Message Function(String string, String string2)>(
-  "InternalProblemUnhandled",
-  templateInternalProblemUnhandled,
-);
+        "InternalProblemUnhandled", templateInternalProblemUnhandled,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnhandled(String string, String string2) {
@@ -2330,9 +2430,8 @@ const Template<Message Function(String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string)> codeInternalProblemUnimplemented =
     const Code<Message Function(String string)>(
-  "InternalProblemUnimplemented",
-  templateInternalProblemUnimplemented,
-);
+        "InternalProblemUnimplemented", templateInternalProblemUnimplemented,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnimplemented(String string) {
@@ -2350,9 +2449,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeInternalProblemUnsupported =
     const Code<Message Function(String name)>(
-  "InternalProblemUnsupported",
-  templateInternalProblemUnsupported,
-);
+        "InternalProblemUnsupported", templateInternalProblemUnsupported,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnsupported(String name) {
@@ -2370,10 +2468,9 @@ const Template<Message Function(Uri uri_)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Uri uri_)> codeInternalProblemUriMissingScheme =
-    const Code<Message Function(Uri uri_)>(
-  "InternalProblemUriMissingScheme",
-  templateInternalProblemUriMissingScheme,
-);
+    const Code<Message Function(Uri uri_)>("InternalProblemUriMissingScheme",
+        templateInternalProblemUriMissingScheme,
+        severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
@@ -2835,6 +2932,7 @@ const Code<Null> codeListLiteralTooManyTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     "ListLiteralTooManyTypeArguments",
+    severity: Severity.errorLegacyWarning,
     message: r"""Too many type arguments on List literal.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2844,6 +2942,7 @@ const Code<Null> codeListLiteralTypeArgumentMismatch =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageListLiteralTypeArgumentMismatch = const MessageCode(
     "ListLiteralTypeArgumentMismatch",
+    severity: Severity.errorLegacyWarning,
     message: r"""Map literal requires two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2858,9 +2957,8 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Uri uri_)> codeLoadLibraryHidesMember =
     const Code<Message Function(Uri uri_)>(
-  "LoadLibraryHidesMember",
-  templateLoadLibraryHidesMember,
-);
+        "LoadLibraryHidesMember", templateLoadLibraryHidesMember,
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLoadLibraryHidesMember(Uri uri_) {
@@ -2879,6 +2977,7 @@ const Code<Null> codeLoadLibraryTakesNoArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
+    severity: Severity.errorLegacyWarning,
     message: r"""'loadLibrary' takes no arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2893,9 +2992,8 @@ const Template<Message Function(String name, Uri uri_)>
 const Code<Message Function(String name, Uri uri_)>
     codeLocalDefinitionHidesExport =
     const Code<Message Function(String name, Uri uri_)>(
-  "LocalDefinitionHidesExport",
-  templateLocalDefinitionHidesExport,
-);
+        "LocalDefinitionHidesExport", templateLocalDefinitionHidesExport,
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalDefinitionHidesExport(String name, Uri uri_) {
@@ -2917,9 +3015,8 @@ const Template<Message Function(String name, Uri uri_)>
 const Code<Message Function(String name, Uri uri_)>
     codeLocalDefinitionHidesImport =
     const Code<Message Function(String name, Uri uri_)>(
-  "LocalDefinitionHidesImport",
-  templateLocalDefinitionHidesImport,
-);
+        "LocalDefinitionHidesImport", templateLocalDefinitionHidesImport,
+        severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
@@ -2957,9 +3054,8 @@ const Template<Message Function(String name)> templateMethodNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeMethodNotFound =
     const Code<Message Function(String name)>(
-  "MethodNotFound",
-  templateMethodNotFound,
-);
+        "MethodNotFound", templateMethodNotFound,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMethodNotFound(String name) {
@@ -3258,6 +3354,7 @@ const Code<Null> codeNonInstanceTypeVariableUse =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
+    severity: Severity.errorLegacyWarning,
     message: r"""Can only use type variables in instance methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3281,7 +3378,9 @@ const Template<Message Function(String name)> templateNotAType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeNotAType =
     const Code<Message Function(String name)>("NotAType", templateNotAType,
-        analyzerCode: "NOT_A_TYPE");
+        analyzerCode: "NOT_A_TYPE",
+        dart2jsCode: "*ignored*",
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAType(String name) {
@@ -3443,9 +3542,8 @@ const Template<
 const Code<Message Function(String name, String name2)>
     codeOverrideFewerNamedArguments =
     const Code<Message Function(String name, String name2)>(
-  "OverrideFewerNamedArguments",
-  templateOverrideFewerNamedArguments,
-);
+        "OverrideFewerNamedArguments", templateOverrideFewerNamedArguments,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerNamedArguments(String name, String name2) {
@@ -3470,9 +3568,9 @@ const Template<
 const Code<Message Function(String name, String name2)>
     codeOverrideFewerPositionalArguments =
     const Code<Message Function(String name, String name2)>(
-  "OverrideFewerPositionalArguments",
-  templateOverrideFewerPositionalArguments,
-);
+        "OverrideFewerPositionalArguments",
+        templateOverrideFewerPositionalArguments,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerPositionalArguments(
@@ -3499,9 +3597,9 @@ const Template<
 const Code<Message Function(String name, String name2, String name3)>
     codeOverrideMismatchNamedParameter =
     const Code<Message Function(String name, String name2, String name3)>(
-  "OverrideMismatchNamedParameter",
-  templateOverrideMismatchNamedParameter,
-);
+        "OverrideMismatchNamedParameter",
+        templateOverrideMismatchNamedParameter,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchNamedParameter(
@@ -3527,9 +3625,8 @@ const Template<
 const Code<Message Function(String name, String name2)>
     codeOverrideMoreRequiredArguments =
     const Code<Message Function(String name, String name2)>(
-  "OverrideMoreRequiredArguments",
-  templateOverrideMoreRequiredArguments,
-);
+        "OverrideMoreRequiredArguments", templateOverrideMoreRequiredArguments,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMoreRequiredArguments(String name, String name2) {
@@ -3645,9 +3742,8 @@ const Template<
 const Code<Message Function(String name, String name2)>
     codeOverrideTypeVariablesMismatch =
     const Code<Message Function(String name, String name2)>(
-  "OverrideTypeVariablesMismatch",
-  templateOverrideTypeVariablesMismatch,
-);
+        "OverrideTypeVariablesMismatch", templateOverrideTypeVariablesMismatch,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
@@ -3696,9 +3792,8 @@ const Template<
 const Code<Message Function(Uri uri_, String name, String name2)>
     codePartOfLibraryNameMismatch =
     const Code<Message Function(Uri uri_, String name, String name2)>(
-  "PartOfLibraryNameMismatch",
-  templatePartOfLibraryNameMismatch,
-);
+        "PartOfLibraryNameMismatch", templatePartOfLibraryNameMismatch,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfLibraryNameMismatch(
@@ -3743,9 +3838,8 @@ const Template<
 const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
     codePartOfUriMismatch =
     const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
-  "PartOfUriMismatch",
-  templatePartOfUriMismatch,
-);
+        "PartOfUriMismatch", templatePartOfUriMismatch,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, Uri uri3_) {
@@ -3776,9 +3870,8 @@ const Template<
 const Code<Message Function(Uri uri_, Uri uri2_, String name)>
     codePartOfUseUri =
     const Code<Message Function(Uri uri_, Uri uri2_, String name)>(
-  "PartOfUseUri",
-  templatePartOfUseUri,
-);
+        "PartOfUseUri", templatePartOfUseUri,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
@@ -3978,9 +4071,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeRedirectionTargetNotFound =
     const Code<Message Function(String name)>(
-  "RedirectionTargetNotFound",
-  templateRedirectionTargetNotFound,
-);
+        "RedirectionTargetNotFound", templateRedirectionTargetNotFound,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectionTargetNotFound(String name) {
@@ -4010,6 +4102,7 @@ const Code<Null> codeReturnTypeFunctionExpression =
 const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
     "ReturnTypeFunctionExpression",
     dart2jsCode: "*ignored*",
+    severity: Severity.errorLegacyWarning,
     message: r"""A function expression can't have a return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4090,9 +4183,8 @@ const Template<Message Function(String name)> templateSetterNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSetterNotFound =
     const Code<Message Function(String name)>(
-  "SetterNotFound",
-  templateSetterNotFound,
-);
+        "SetterNotFound", templateSetterNotFound,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSetterNotFound(String name) {
@@ -4301,9 +4393,10 @@ const Template<
 const Code<Message Function(String name)>
     codeSuperclassHasNoDefaultConstructor =
     const Code<Message Function(String name)>(
-  "SuperclassHasNoDefaultConstructor",
-  templateSuperclassHasNoDefaultConstructor,
-);
+        "SuperclassHasNoDefaultConstructor",
+        templateSuperclassHasNoDefaultConstructor,
+        analyzerCode: "NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT",
+        dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoDefaultConstructor(String name) {
@@ -4322,9 +4415,8 @@ const Template<Message Function(String name)> templateSuperclassHasNoGetter =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSuperclassHasNoGetter =
     const Code<Message Function(String name)>(
-  "SuperclassHasNoGetter",
-  templateSuperclassHasNoGetter,
-);
+        "SuperclassHasNoGetter", templateSuperclassHasNoGetter,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoGetter(String name) {
@@ -4343,7 +4435,9 @@ const Template<Message Function(String name)> templateSuperclassHasNoMethod =
 const Code<Message Function(String name)> codeSuperclassHasNoMethod =
     const Code<Message Function(String name)>(
         "SuperclassHasNoMethod", templateSuperclassHasNoMethod,
-        analyzerCode: "UNDEFINED_SUPER_METHOD");
+        analyzerCode: "UNDEFINED_SUPER_METHOD",
+        dart2jsCode: "*ignored*",
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoMethod(String name) {
@@ -4361,9 +4455,8 @@ const Template<Message Function(String name)> templateSuperclassHasNoSetter =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSuperclassHasNoSetter =
     const Code<Message Function(String name)>(
-  "SuperclassHasNoSetter",
-  templateSuperclassHasNoSetter,
-);
+        "SuperclassHasNoSetter", templateSuperclassHasNoSetter,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoSetter(String name) {
@@ -4385,9 +4478,9 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSuperclassMethodArgumentMismatch =
     const Code<Message Function(String name)>(
-  "SuperclassMethodArgumentMismatch",
-  templateSuperclassMethodArgumentMismatch,
-);
+        "SuperclassMethodArgumentMismatch",
+        templateSuperclassMethodArgumentMismatch,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
@@ -4452,6 +4545,7 @@ const Code<Null> codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchCaseFallThrough = const MessageCode(
     "SwitchCaseFallThrough",
+    severity: Severity.errorLegacyWarning,
     message: r"""Switch case may fall through to the next case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4543,9 +4637,8 @@ const Template<Message Function(String name, String string)>
 const Code<Message Function(String name, String string)>
     codeTypeArgumentMismatch =
     const Code<Message Function(String name, String string)>(
-  "TypeArgumentMismatch",
-  templateTypeArgumentMismatch,
-);
+        "TypeArgumentMismatch", templateTypeArgumentMismatch,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentMismatch(String name, String string) {
@@ -4565,9 +4658,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     const Code<Message Function(String name)>(
-  "TypeArgumentsOnTypeVariable",
-  templateTypeArgumentsOnTypeVariable,
-);
+        "TypeArgumentsOnTypeVariable", templateTypeArgumentsOnTypeVariable,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
@@ -4585,9 +4677,8 @@ const Template<Message Function(String name)> templateTypeNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeTypeNotFound =
     const Code<Message Function(String name)>(
-  "TypeNotFound",
-  templateTypeNotFound,
-);
+        "TypeNotFound", templateTypeNotFound,
+        severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeNotFound(String name) {
@@ -4632,6 +4723,7 @@ const Code<Null> codeTypeVariableInStaticContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeVariableInStaticContext = const MessageCode(
     "TypeVariableInStaticContext",
+    severity: Severity.errorLegacyWarning,
     message: r"""Type variables can't be used in static members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4790,6 +4882,16 @@ Message _withArgumentsUnexpectedToken(Token token) {
   return new Message(codeUnexpectedToken,
       message: """Unexpected token '$lexeme'.""", arguments: {'token': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnimplementedBoundsOnTypeVariables =
+    messageUnimplementedBoundsOnTypeVariables;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnimplementedBoundsOnTypeVariables = const MessageCode(
+    "UnimplementedBoundsOnTypeVariables",
+    severity: Severity.warning,
+    message: r"""Unimplemented bounds on type variables.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, Token token)>

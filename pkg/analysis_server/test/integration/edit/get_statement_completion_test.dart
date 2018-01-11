@@ -14,7 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetStatementCompletionTest);
-    defineReflectiveTests(GetStatementCompletionTest_PreviewDart2);
+    defineReflectiveTests(GetStatementCompletionTest_UseCFE);
   });
 }
 
@@ -55,10 +55,9 @@ void foo() { }''');
 }
 
 @reflectiveTest
-class GetStatementCompletionTest_PreviewDart2
-    extends GetStatementCompletionTest {
+class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest

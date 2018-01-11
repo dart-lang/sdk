@@ -375,7 +375,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.mapClass);
       // For map literals, the dependency between the implementation class
       // and [Map] is not visible, so we have to add it manually.
-      _rtiNeedBuilder.registerRtiDependency(
+      _rtiNeedBuilder.registerTypeArgumentDependency(
           _commonElements.mapLiteralClass, cls);
     } else if (cls == _commonElements.boundClosureClass) {
       _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);
@@ -468,6 +468,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     _addInterceptors(_commonElements.jsNullClass, impactBuilder);
     if (_options.enableTypeAssertions) {
       _registerBackendImpact(impactBuilder, _impacts.enableTypeAssertions);
+    }
+    if (_options.disableRtiOptimization) {
+      // When RTI optimization is disabled we always need all RTI helpers, so
+      // register these here.
+      _registerBackendImpact(impactBuilder, _impacts.computeSignature);
+      _registerBackendImpact(impactBuilder, _impacts.getRuntimeTypeArgument);
     }
 
     if (JavaScriptBackend.TRACE_CALLS) {

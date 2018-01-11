@@ -1216,46 +1216,12 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
-    const Object& constant = source.constant();
-    if (destination.IsRegister()) {
-      if (constant.IsSmi() &&
-          (source.constant_instruction()->representation() == kUnboxedInt32)) {
-        __ LoadImmediate(destination.reg(),
-                         static_cast<int32_t>(Smi::Cast(constant).Value()));
-      } else {
-        __ LoadObject(destination.reg(), constant);
-      }
-    } else if (destination.IsFpuRegister()) {
-      const VRegister dst = destination.fpu_reg();
-      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
-        __ veor(dst, dst, dst);
-      } else {
-        ScratchRegisterScope tmp(this, kNoRegister);
-        __ LoadObject(tmp.reg(), constant);
-        __ LoadDFieldFromOffset(dst, tmp.reg(), Double::value_offset());
-      }
-    } else if (destination.IsDoubleStackSlot()) {
-      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
-        __ veor(VTMP, VTMP, VTMP);
-      } else {
-        ScratchRegisterScope tmp(this, kNoRegister);
-        __ LoadObject(tmp.reg(), constant);
-        __ LoadDFieldFromOffset(VTMP, tmp.reg(), Double::value_offset());
-      }
-      const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ StoreDToOffset(VTMP, destination.base_reg(), dest_offset);
+    if (destination.IsStackSlot()) {
+      ScratchRegisterScope scratch(this, kNoRegister);
+      source.constant_instruction()->EmitMoveToLocation(compiler_, destination,
+                                                        scratch.reg());
     } else {
-      ASSERT(destination.IsStackSlot());
-      const intptr_t dest_offset = destination.ToStackSlotOffset();
-      ScratchRegisterScope tmp(this, kNoRegister);
-      if (constant.IsSmi() &&
-          (source.constant_instruction()->representation() == kUnboxedInt32)) {
-        __ LoadImmediate(tmp.reg(),
-                         static_cast<int32_t>(Smi::Cast(constant).Value()));
-      } else {
-        __ LoadObject(tmp.reg(), constant);
-      }
-      __ StoreToOffset(tmp.reg(), destination.base_reg(), dest_offset);
+      source.constant_instruction()->EmitMoveToLocation(compiler_, destination);
     }
   }
 
@@ -1352,10 +1318,6 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  UNREACHABLE();
-}
-
-void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   UNREACHABLE();
 }
 

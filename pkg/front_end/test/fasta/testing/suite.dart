@@ -10,8 +10,8 @@ import 'dart:io' show File, Platform;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart'
-    show PhysicalFileSystem;
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/base/libraries_specification.dart'
     show TargetLibrariesSpecification;
@@ -242,7 +242,10 @@ class Run extends Step<Uri, int, FastaContext> {
     StdioProcess process;
     try {
       var args = ['--kernel-binaries=${context.platformBinaries.toFilePath()}'];
-      if (context.strongMode) args.add('--strong');
+      if (context.strongMode) {
+        args.add('--strong');
+        args.add('--reify-generic-functions');
+      }
       args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
@@ -291,7 +294,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       KernelTarget sourceTarget = astKind == AstKind.Analyzer
           ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
           : new KernelTarget(
-              PhysicalFileSystem.instance, false, dillTarget, uriTranslator);
+              StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       Program p;
       try {

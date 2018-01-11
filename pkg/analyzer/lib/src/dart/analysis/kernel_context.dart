@@ -3,100 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
+import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/ast.dart' as kernel;
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel;
-import 'package:package_config/packages.dart';
-import 'package:package_config/src/packages_impl.dart';
-import 'package:path/path.dart' as pathos;
-
-/**
- * Create a new [KernelDriver] for the given configuration.
- */
-KernelDriver createKernelDriver(
-    PerformanceLog logger,
-    ByteStore byteStore,
-    AnalysisOptions analysisOptions,
-    Folder sdkFolder,
-    SourceFactory sourceFactory,
-    FileSystemState fsState,
-    pathos.Context pathContext) {
-  // Prepare SDK libraries.
-  Map<String, LibraryInfo> dartLibraries = {};
-  {
-    DartSdk dartSdk = sourceFactory.dartSdk;
-    dartSdk.sdkLibraries.forEach((sdkLibrary) {
-      var dartUri = sdkLibrary.shortName;
-      var name = Uri.parse(dartUri).path;
-      var path = dartSdk.mapDartUri(dartUri).fullName;
-      var fileUri = pathContext.toUri(path);
-      dartLibraries[name] = new LibraryInfo(name, fileUri, const []);
-    });
-  }
-
-  // Prepare packages.
-  Packages packages = Packages.noPackages;
-  {
-    Map<String, List<Folder>> packageMap = sourceFactory.packageMap;
-    if (packageMap != null) {
-      var map = <String, Uri>{};
-      for (var name in packageMap.keys) {
-        map[name] = packageMap[name].first.toUri();
-      }
-      packages = new MapPackages(map);
-    }
-  }
-
-  // Try to find the SDK outline.
-  // It is not used for unit testing, we compile SDK sources.
-  // But for running shared tests we need the patched SDK.
-  List<int> sdkOutlineBytes;
-  if (sdkFolder != null) {
-    try {
-      sdkOutlineBytes = sdkFolder
-          .getChildAssumingFile('vm_platform_strong.dill')
-          .readAsBytesSync();
-    } catch (_) {}
-  }
-
-  var uriTranslator = new UriTranslatorImpl(
-      new TargetLibrariesSpecification('none', dartLibraries), packages);
-  var errorListener = new KernelErrorListener();
-  var options = new ProcessedOptions(new CompilerOptions()
-    ..target = new _AnalysisTarget(
-        new TargetFlags(strongMode: analysisOptions.strongMode))
-    ..reportMessages = false
-    ..logger = logger
-    ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
-    ..byteStore = byteStore
-    ..onError = errorListener.onError);
-  return new KernelDriver(options, uriTranslator, errorListener,
-      metadataFactory: new AnalyzerMetadataFactory(),
-      sdkOutlineBytes: sdkOutlineBytes);
-}
 
 /**
  * Support for resynthesizing element model from Kernel.
@@ -156,24 +77,23 @@ class KernelContext {
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
       FileSystemState fsState,
-      KernelDriver driver) async {
+      FrontEndCompiler compiler) async {
     return logger.runAsync('Create kernel context', () async {
       Uri targetUri = targetLibrary.uri;
-      KernelResult kernelResult = await driver.getKernel(targetUri);
+      LibraryCompilationResult compilationResult =
+          await compiler.compile(targetUri);
 
-      // Remember Kernel libraries required to resynthesize the target.
+      // Remember Kernel libraries produced by the compiler.
+      // There might be more libraries than we actually need.
+      // This is probably OK, because we consume them lazily.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
-
-      void addLibrary(kernel.Library library) {
+      for (var library in compilationResult.program.libraries) {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
         FileState file = fsState.getFileForUri(library.importUri);
         libraryExistMap[uriStr] = file?.exists ?? false;
       }
-
-      kernelResult.dependencies.forEach(addLibrary);
-      addLibrary(kernelResult.libraryResult.library);
 
       if (DEBUG) {
         print('----------- ${targetLibrary.uriStr}');
@@ -192,8 +112,8 @@ class KernelContext {
       analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       // Create the resynthesizer bound to the analysis context.
-      var resynthesizer = new KernelResynthesizer(
-          analysisContext, kernelResult.types, libraryMap, libraryExistMap);
+      var resynthesizer = new KernelResynthesizer(analysisContext,
+          compilationResult.types, libraryMap, libraryExistMap);
 
       return new KernelContext._(analysisContext, resynthesizer);
     });
@@ -205,19 +125,6 @@ class KernelContext {
         .writeLibraryFile(library);
     return buffer.toString();
   }
-}
-
-/**
- * [Target] for static analysis, with all features enabled.
- */
-class _AnalysisTarget extends NoneTarget {
-  _AnalysisTarget(TargetFlags flags) : super(flags);
-
-  @override
-  List<String> get extraRequiredLibraries => const <String>['dart:_internal'];
-
-  @override
-  bool enableNative(Uri uri) => true;
 }
 
 /**
@@ -256,47 +163,5 @@ class _ContentCacheWrapper implements ContentCache {
   FileState _getFileForSource(Source source) {
     String path = source.fullName;
     return fsState.getFileForPath(path);
-  }
-}
-
-class _FileSystemAdaptor implements FileSystem {
-  final FileSystemState fsState;
-  final pathos.Context pathContext;
-
-  _FileSystemAdaptor(this.fsState, this.pathContext);
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri.isScheme('file')) {
-      var path = pathContext.fromUri(uri);
-      var file = fsState.getFileForPath(path);
-      return new _FileSystemEntityAdaptor(uri, file);
-    } else {
-      throw new ArgumentError(
-          'Only file:// URIs are supported, but $uri is given.');
-    }
-  }
-}
-
-class _FileSystemEntityAdaptor implements FileSystemEntity {
-  final Uri uri;
-  final FileState file;
-
-  _FileSystemEntityAdaptor(this.uri, this.file);
-
-  @override
-  Future<bool> exists() async {
-    return file.exists;
-  }
-
-  @override
-  Future<List<int>> readAsBytes() async {
-    // TODO(scheglov) Optimize.
-    return UTF8.encode(file.content);
-  }
-
-  @override
-  Future<String> readAsString() async {
-    return file.content;
   }
 }

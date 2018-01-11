@@ -1186,56 +1186,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
-    if (destination.IsRegister()) {
-      const Object& constant = source.constant();
-      if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
-        __ xorl(destination.reg(), destination.reg());
-      } else if (constant.IsSmi() &&
-                 (source.constant_instruction()->representation() ==
-                  kUnboxedInt32)) {
-        __ movl(destination.reg(), Immediate(Smi::Cast(constant).Value()));
-      } else {
-        __ LoadObjectSafely(destination.reg(), constant);
-      }
-    } else if (destination.IsFpuRegister()) {
-      const Double& constant = Double::Cast(source.constant());
-      uword addr = FlowGraphBuilder::FindDoubleConstant(constant.value());
-      if (addr == 0) {
-        __ pushl(EAX);
-        __ LoadObject(EAX, constant);
-        __ movsd(destination.fpu_reg(),
-                 FieldAddress(EAX, Double::value_offset()));
-        __ popl(EAX);
-      } else if (Utils::DoublesBitEqual(constant.value(), 0.0)) {
-        __ xorps(destination.fpu_reg(), destination.fpu_reg());
-      } else {
-        __ movsd(destination.fpu_reg(), Address::Absolute(addr));
-      }
-    } else if (destination.IsDoubleStackSlot()) {
-      const Double& constant = Double::Cast(source.constant());
-      uword addr = FlowGraphBuilder::FindDoubleConstant(constant.value());
-      if (addr == 0) {
-        __ pushl(EAX);
-        __ LoadObject(EAX, constant);
-        __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
-        __ popl(EAX);
-      } else if (Utils::DoublesBitEqual(constant.value(), 0.0)) {
-        __ xorps(XMM0, XMM0);
-      } else {
-        __ movsd(XMM0, Address::Absolute(addr));
-      }
-      __ movsd(destination.ToStackSlotAddress(), XMM0);
-    } else {
-      ASSERT(destination.IsStackSlot());
-      const Object& constant = source.constant();
-      if (constant.IsSmi() &&
-          (source.constant_instruction()->representation() == kUnboxedInt32)) {
-        __ movl(destination.ToStackSlotAddress(),
-                Immediate(Smi::Cast(constant).Value()));
-      } else {
-        StoreObject(destination.ToStackSlotAddress(), source.constant());
-      }
-    }
+    source.constant_instruction()->EmitMoveToLocation(compiler_, destination);
   }
 
   move->Eliminate();
@@ -1321,16 +1272,6 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
   ScratchRegisterScope ensure_scratch(this, kNoRegister);
   __ movl(ensure_scratch.reg(), src);
   __ movl(dst, ensure_scratch.reg());
-}
-
-void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  if (Assembler::IsSafeSmi(obj) || obj.IsNull()) {
-    __ movl(dst, Immediate(reinterpret_cast<int32_t>(obj.raw())));
-  } else {
-    ScratchRegisterScope ensure_scratch(this, kNoRegister);
-    __ LoadObjectSafely(ensure_scratch.reg(), obj);
-    __ movl(dst, ensure_scratch.reg());
-  }
 }
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {

@@ -11,6 +11,7 @@ import 'class_declaration_test.dart' as class_declaration;
 import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
 import 'export_directive_test.dart' as export_directive;
+import 'field_declaration_test.dart' as field_declaration;
 import 'forEach_statement_test.dart' as forEach_statement;
 import 'for_statement_test.dart' as for_statement;
 import 'if_statement_test.dart' as if_statement;
@@ -37,6 +38,7 @@ main() {
     continue_statement.main();
     do_statement.main();
     export_directive.main();
+    field_declaration.main();
     for_statement.main();
     forEach_statement.main();
     if_statement.main();

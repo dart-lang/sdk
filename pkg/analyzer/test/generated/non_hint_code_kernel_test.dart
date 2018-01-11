@@ -35,7 +35,7 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @failingTest
   @override

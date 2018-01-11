@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within
@@ -166,7 +167,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Expression leftHandSide = node.leftHandSide;
       if (leftHandSide != null) {
         String methodName = operatorType.lexeme;
-        DartType staticType = _getStaticType(leftHandSide);
+        DartType staticType = _getStaticType(leftHandSide, read: true);
         MethodElement staticMethod =
             _lookUpMethod(leftHandSide, staticType, methodName);
         node.staticElement = staticMethod;
@@ -979,7 +980,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         operatorType == TokenType.MINUS_MINUS) {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
-      DartType staticType = _getStaticType(operand);
+      DartType staticType = _getStaticType(operand, read: true);
       MethodElement staticMethod =
           _lookUpMethod(operand, staticType, methodName);
       node.staticElement = staticMethod;
@@ -1418,17 +1419,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given [element] is or inherits from a class marked
-   * with `@proxy`.
-   * 
-   * See [ClassElement.isOrInheritsProxy].
-   */
-  bool _hasProxy(Element element) =>
-      !_resolver.strongMode &&
-      element is ClassElement &&
-      element.isOrInheritsProxy;
-
-  /**
    * Look for any declarations of the given [identifier] that are imported using
    * a prefix. Return the element that was found, or `null` if the name is not
    * imported using a prefix.
@@ -1555,8 +1545,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Return the static type of the given [expression] that is to be used for
    * type analysis.
    */
-  DartType _getStaticType(Expression expression) {
-    DartType staticType = _getStaticTypeOrFunctionType(expression);
+  DartType _getStaticType(Expression expression, {bool read: false}) {
+    DartType staticType = _getStaticTypeOrFunctionType(expression, read: read);
     if (staticType is FunctionType) {
       //
       // All function types are subtypes of 'Function', which is itself a
@@ -1567,12 +1557,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     return staticType;
   }
 
-  DartType _getStaticTypeOrFunctionType(Expression expression) {
+  DartType _getStaticTypeOrFunctionType(Expression expression,
+      {bool read: false}) {
     if (expression is NullLiteral) {
       return _resolver.typeProvider.nullType;
     }
-    return _resolveTypeParameter(expression.staticType);
+    DartType type = read ? getReadType(expression) : expression.staticType;
+    return _resolveTypeParameter(type);
   }
+
+  /**
+   * Return `true` if the given [element] is or inherits from a class marked
+   * with `@proxy`.
+   *
+   * See [ClassElement.isOrInheritsProxy].
+   */
+  bool _hasProxy(Element element) =>
+      !_resolver.strongMode &&
+      element is ClassElement &&
+      element.isOrInheritsProxy;
 
   /**
    * Check for a generic method & apply type arguments if any were passed.

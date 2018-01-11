@@ -250,13 +250,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   AnalysisCache get analysisCache {
     fail("Unexpected invocation of analysisCache");
-    return null;
   }
 
   @override
   AnalysisOptions get analysisOptions {
     fail("Unexpected invocation of getAnalysisOptions");
-    return null;
   }
 
   @override
@@ -272,7 +270,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   CacheConsistencyValidator get cacheConsistencyValidator {
     fail("Unexpected invocation of cacheConsistencyValidator");
-    return null;
   }
 
   @override
@@ -283,26 +280,22 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   DeclaredVariables get declaredVariables {
     fail("Unexpected invocation of getDeclaredVariables");
-    return null;
   }
 
   @deprecated
   @override
   EmbedderYamlLocator get embedderYamlLocator {
     fail("Unexpected invocation of get embedderYamlLocator");
-    return null;
   }
 
   @override
   List<AnalysisTarget> get explicitTargets {
     fail("Unexpected invocation of visitCacheItems");
-    return null;
   }
 
   @override
   ResolverProvider get fileResolverProvider {
     fail("Unexpected invocation of fileResolverProvider");
-    return null;
   }
 
   @override
@@ -313,18 +306,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<Source> get htmlSources {
     fail("Unexpected invocation of getHtmlSources");
-    return null;
   }
 
   @override
   Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents {
     fail("Unexpected invocation of analyzedSources");
-    return null;
   }
 
   bool get isActive {
     fail("Unexpected invocation of isActive");
-    return false;
   }
 
   void set isActive(bool isActive) {
@@ -334,31 +324,26 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   bool get isDisposed {
     fail("Unexpected invocation of isDisposed");
-    return false;
   }
 
   @override
   List<Source> get launchableClientLibrarySources {
     fail("Unexpected invocation of getLaunchableClientLibrarySources");
-    return null;
   }
 
   @override
   List<Source> get launchableServerLibrarySources {
     fail("Unexpected invocation of getLaunchableServerLibrarySources");
-    return null;
   }
 
   @override
   List<Source> get librarySources {
     fail("Unexpected invocation of getLibrarySources");
-    return null;
   }
 
   @override
   String get name {
     fail("Unexpected invocation of name");
-    return null;
   }
 
   @override
@@ -369,31 +354,26 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   Stream<SourcesChangedEvent> get onSourcesChanged {
     fail("Unexpected invocation of onSourcesChanged");
-    return null;
   }
 
   @override
   List<Source> get prioritySources {
     fail("Unexpected invocation of getPrioritySources");
-    return null;
   }
 
   @override
   List<AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
-    return null;
   }
 
   @override
   CachePartition get privateAnalysisCachePartition {
     fail("Unexpected invocation of privateAnalysisCachePartition");
-    return null;
   }
 
   @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
-    return null;
   }
 
   @override
@@ -404,13 +384,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<Source> get sources {
     fail("Unexpected invocation of sources");
-    return null;
   }
 
   @override
   TypeProvider get typeProvider {
     fail("Unexpected invocation of getTypeProvider");
-    return null;
   }
 
   @override
@@ -421,19 +399,16 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   TypeSystem get typeSystem {
     fail("Unexpected invocation of getTypeSystem");
-    return null;
   }
 
   @override
   List<WorkManager> get workManagers {
     fail("Unexpected invocation of workManagers");
-    return null;
   }
 
   @override
   bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
     fail("Unexpected invocation of aboutToComputeResult");
-    return false;
   }
 
   @override
@@ -449,62 +424,52 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   void applyChanges(ChangeSet changeSet) {
     fail("Unexpected invocation of applyChanges");
-    return null;
   }
 
   @override
   String computeDocumentationComment(Element element) {
     fail("Unexpected invocation of computeDocumentationComment");
-    return null;
   }
 
   @override
   List<AnalysisError> computeErrors(Source source) {
     fail("Unexpected invocation of computeErrors");
-    return null;
   }
 
   @override
   List<Source> computeExportedLibraries(Source source) {
     fail("Unexpected invocation of computeExportedLibraries");
-    return null;
   }
 
   @override
   List<Source> computeImportedLibraries(Source source) {
     fail("Unexpected invocation of computeImportedLibraries");
-    return null;
   }
 
   @override
   SourceKind computeKindOf(Source source) {
     fail("Unexpected invocation of computeKindOf");
-    return null;
   }
 
   @override
   LibraryElement computeLibraryElement(Source source) {
     fail("Unexpected invocation of computeLibraryElement");
-    return null;
   }
 
   @override
   LineInfo computeLineInfo(Source source) {
     fail("Unexpected invocation of computeLineInfo");
-    return null;
   }
 
   @override
   CancelableFuture<CompilationUnit> computeResolvedCompilationUnitAsync(
       Source source, Source librarySource) {
     fail("Unexpected invocation of getResolvedCompilationUnitFuture");
-    return null;
   }
 
   @override
   V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     fail("Unexpected invocation of computeResult");
-    return null;
   }
 
   @override
@@ -515,150 +480,126 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<CompilationUnit> ensureResolvedDartUnits(Source source) {
     fail("Unexpected invocation of ensureResolvedDartUnits");
-    return null;
   }
 
   @override
   bool exists(Source source) {
     fail("Unexpected invocation of exists");
-    return false;
   }
 
   @override
   CacheEntry getCacheEntry(AnalysisTarget target) {
     fail("Unexpected invocation of visitCacheItems");
-    return null;
   }
 
   @override
   CompilationUnitElement getCompilationUnitElement(
       Source unitSource, Source librarySource) {
     fail("Unexpected invocation of getCompilationUnitElement");
-    return null;
   }
 
   @deprecated
   @override
   V getConfigurationData<V>(ResultDescriptor<V> key) {
     fail("Unexpected invocation of getConfigurationData");
-    return null;
   }
 
   @override
   TimestampedData<String> getContents(Source source) {
     fail("Unexpected invocation of getContents");
-    return null;
   }
 
   @override
   InternalAnalysisContext getContextFor(Source source) {
     fail("Unexpected invocation of getContextFor");
-    return null;
   }
 
   @override
   Element getElement(ElementLocation location) {
     fail("Unexpected invocation of getElement");
-    return null;
   }
 
   @override
   AnalysisErrorInfo getErrors(Source source) {
     fail("Unexpected invocation of getErrors");
-    return null;
   }
 
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
     fail("Unexpected invocation of getHtmlFilesReferencing");
-    return null;
   }
 
   @override
   SourceKind getKindOf(Source source) {
     fail("Unexpected invocation of getKindOf");
-    return null;
   }
 
   @override
   List<Source> getLibrariesContaining(Source source) {
     fail("Unexpected invocation of getLibrariesContaining");
-    return null;
   }
 
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
     fail("Unexpected invocation of getLibrariesDependingOn");
-    return null;
   }
 
   @override
   List<Source> getLibrariesReferencedFromHtml(Source htmlSource) {
     fail("Unexpected invocation of getLibrariesReferencedFromHtml");
-    return null;
   }
 
   @override
   LibraryElement getLibraryElement(Source source) {
     fail("Unexpected invocation of getLibraryElement");
-    return null;
   }
 
   @override
   LineInfo getLineInfo(Source source) {
     fail("Unexpected invocation of getLineInfo");
-    return null;
   }
 
   @override
   int getModificationStamp(Source source) {
     fail("Unexpected invocation of getModificationStamp");
-    return 0;
   }
 
   @override
   ChangeNoticeImpl getNotice(Source source) {
     fail("Unexpected invocation of getNotice");
-    return null;
   }
 
   @override
   Namespace getPublicNamespace(LibraryElement library) {
     fail("Unexpected invocation of getPublicNamespace");
-    return null;
   }
 
   @override
   CompilationUnit getResolvedCompilationUnit(
       Source unitSource, LibraryElement library) {
     fail("Unexpected invocation of getResolvedCompilationUnit");
-    return null;
   }
 
   @override
   CompilationUnit getResolvedCompilationUnit2(
       Source unitSource, Source librarySource) {
     fail("Unexpected invocation of getResolvedCompilationUnit");
-    return null;
   }
 
   @override
   V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     fail("Unexpected invocation of getResult");
-    return null;
   }
 
   @override
   List<Source> getSourcesWithFullName(String path) {
     fail("Unexpected invocation of getSourcesWithFullName");
-    return null;
   }
 
   @override
   bool handleContentsChanged(
       Source source, String originalContents, String newContents, bool notify) {
     fail("Unexpected invocation of handleContentsChanged");
-    return false;
   }
 
   @override
@@ -669,44 +610,37 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   bool isClientLibrary(Source librarySource) {
     fail("Unexpected invocation of isClientLibrary");
-    return false;
   }
 
   @override
   bool isServerLibrary(Source librarySource) {
     fail("Unexpected invocation of isServerLibrary");
-    return false;
   }
 
   @override
   Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultChanged");
-    return null;
   }
 
   @deprecated
   @override
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultComputed");
-    return null;
   }
 
   @override
   CompilationUnit parseCompilationUnit(Source source) {
     fail("Unexpected invocation of parseCompilationUnit");
-    return null;
   }
 
   @override
   Document parseHtmlDocument(Source source) {
     fail("Unexpected invocation of parseHtmlDocument");
-    return null;
   }
 
   @override
   AnalysisResult performAnalysisTask() {
     fail("Unexpected invocation of performAnalysisTask");
-    return null;
   }
 
   @override
@@ -723,14 +657,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   CompilationUnit resolveCompilationUnit(
       Source unitSource, LibraryElement library) {
     fail("Unexpected invocation of resolveCompilationUnit");
-    return null;
   }
 
   @override
   CompilationUnit resolveCompilationUnit2(
       Source unitSource, Source librarySource) {
     fail("Unexpected invocation of resolveCompilationUnit");
-    return null;
   }
 
   @override
@@ -753,7 +685,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   bool shouldErrorsBeAnalyzed(Source source) {
     fail("Unexpected invocation of shouldErrorsBeAnalyzed");
-    return false;
   }
 
   @override

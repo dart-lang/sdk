@@ -350,7 +350,7 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
-  bool get previewDart2 => false;
+  bool get useCFE => false;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -666,7 +666,7 @@ class ResolverTestCase extends EngineTestCase {
     }
     options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
-      if (previewDart2) {
+      if (useCFE) {
         (options as AnalysisOptionsImpl)
           ..strongMode = true
           ..useFastaParser = true;

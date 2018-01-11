@@ -455,7 +455,8 @@ class ResolutionStorer extends TypeInferenceListener {
     _replaceType(invokeType, resultOffset);
 
     if (!isImplicitCall) {
-      throw new UnimplementedError(); // TODO(scheglov): handle this case
+      _replaceReference(const NullNode('explicit-call'));
+      _replaceType(const NullType());
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -495,8 +496,8 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void propertyGetExitCall(Expression expression, DartType inferredType) {
-    throw new UnimplementedError(); // TODO(scheglov): handle this case
-    // super.propertyGetExitCall(expression, inferredType);
+    _recordReference(const NullNode('explicit-call'), expression.fileOffset);
+    _recordType(const NullType(), expression.fileOffset);
   }
 
   @override

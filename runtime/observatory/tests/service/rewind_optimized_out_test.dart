@@ -53,7 +53,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // We are at our breakpoint with global=100.
-    var result = await isolate.rootLibrary.evaluate('global');
+    Instance result = await isolate.rootLibrary.evaluate('global');
     print('global is $result');
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));

@@ -186,8 +186,4 @@ abstract class WorldBuilder {
   /// instantiated classes.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes;
-
-  /// Registers that [type] is checked in this world builder. The unaliased type
-  /// is returned.
-  void registerIsCheck(DartType type);
 }

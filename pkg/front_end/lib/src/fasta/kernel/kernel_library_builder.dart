@@ -20,7 +20,9 @@ import '../fasta_codes.dart'
         messageTypeVariableSameNameAsEnclosing,
         templateConflictsWithTypeVariable,
         templateDuplicatedExport,
+        templateDuplicatedExportInType,
         templateDuplicatedImport,
+        templateDuplicatedImportInType,
         templateExportHidesExport,
         templateIllegalMethodName,
         templateImportHidesImport,
@@ -75,7 +77,6 @@ import 'kernel_builder.dart'
         QualifiedName,
         Scope,
         TypeBuilder,
-        TypeDeclarationBuilder,
         TypeVariableBuilder,
         VoidTypeBuilder,
         compareProcedures,
@@ -924,14 +925,15 @@ class KernelLibraryBuilder
         var template = isExport
             ? templateLocalDefinitionHidesExport
             : templateLocalDefinitionHidesImport;
-        addNit(template.withArguments(name, hiddenUri), charOffset, fileUri);
+        addProblem(
+            template.withArguments(name, hiddenUri), charOffset, fileUri);
       } else if (isLoadLibrary) {
-        addNit(templateLoadLibraryHidesMember.withArguments(preferredUri),
+        addProblem(templateLoadLibraryHidesMember.withArguments(preferredUri),
             charOffset, fileUri);
       } else {
         var template =
             isExport ? templateExportHidesExport : templateImportHidesImport;
-        addNit(template.withArguments(name, preferredUri, hiddenUri),
+        addProblem(template.withArguments(name, preferredUri, hiddenUri),
             charOffset, fileUri);
       }
       return preferred;
@@ -951,8 +953,12 @@ class KernelLibraryBuilder
     var template =
         isExport ? templateDuplicatedExport : templateDuplicatedImport;
     Message message = template.withArguments(name, uri, otherUri);
-    addNit(message, charOffset, fileUri);
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
+    addProblem(message, charOffset, fileUri);
+    var builderTemplate = isExport
+        ? templateDuplicatedExportInType
+        : templateDuplicatedImportInType;
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri,
+        builderTemplate.withArguments(name, uri, otherUri));
   }
 
   int finishDeferredLoadTearoffs() {
@@ -1009,34 +1015,24 @@ class KernelLibraryBuilder
     return count;
   }
 
-  /// Instantiates the type parameters in all raw generic types in [types] to
-  /// their bounds.  The list of types is cleared when done.
   int instantiateToBound(TypeBuilder dynamicType, ClassBuilder objectClass) {
     int count = 0;
 
-    for (var type in types) {
-      if (type.builder is! NamedTypeBuilder) {
-        continue;
-      }
-      NamedTypeBuilder typeBuilder = type.builder as NamedTypeBuilder;
-      TypeDeclarationBuilder typeDeclarationBuilder = typeBuilder.builder;
-      List<TypeVariableBuilder> typeParameters;
-
-      if (typeDeclarationBuilder is KernelClassBuilder) {
-        typeParameters = typeDeclarationBuilder.typeVariables;
-      } else if (typeDeclarationBuilder is KernelFunctionTypeAliasBuilder) {
-        typeParameters = typeDeclarationBuilder.typeVariables;
-      }
-
-      if (typeParameters != null &&
-          typeParameters.length > 0 &&
-          typeBuilder.arguments == null) {
-        typeBuilder.arguments =
-            calculateBounds(typeParameters, dynamicType, objectClass);
-        count += typeParameters.length;
+    for (var declarationBuilder in libraryDeclaration.members.values) {
+      if (declarationBuilder is KernelClassBuilder) {
+        if (declarationBuilder.typeVariables != null) {
+          declarationBuilder.calculatedBounds = calculateBounds(
+              declarationBuilder.typeVariables, dynamicType, objectClass);
+          count += declarationBuilder.calculatedBounds.length;
+        }
+      } else if (declarationBuilder is KernelFunctionTypeAliasBuilder) {
+        if (declarationBuilder.typeVariables != null) {
+          declarationBuilder.calculatedBounds = calculateBounds(
+              declarationBuilder.typeVariables, dynamicType, objectClass);
+          count += declarationBuilder.calculatedBounds.length;
+        }
       }
     }
-    types.clear();
 
     return count;
   }

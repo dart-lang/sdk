@@ -25,7 +25,7 @@ testModPow() {
       }
 
       return slowModPow(x, e, m) == expectedResult;
-    });
+    }());
     var result = x.modPow(e, m);
     Expect.equals(expectedResult, result, "$x.modPow($e, $m)");
   }

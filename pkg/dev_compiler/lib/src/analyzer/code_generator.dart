@@ -4730,7 +4730,10 @@ class CodeGenerator extends Object
   int _asIntInRange(Expression expr, int low, int high) {
     expr = expr.unParenthesized;
     if (expr is IntegerLiteral) {
-      if (expr.value >= low && expr.value <= high) return expr.value;
+      var value = expr.value;
+      if (value != null && value >= low && value <= high) {
+        return expr.value;
+      }
       return null;
     }
 
@@ -4753,7 +4756,7 @@ class CodeGenerator extends Object
 
   bool _isDefinitelyNonNegative(Expression expr) {
     expr = expr.unParenthesized;
-    if (expr is IntegerLiteral) {
+    if (expr is IntegerLiteral && expr.value != null) {
       return expr.value >= 0;
     }
     if (_nodeIsBitwiseOperation(expr)) return true;
@@ -4786,7 +4789,7 @@ class CodeGenerator extends Object
     /// Determines how many bits are required to hold result of evaluation
     /// [expr].  [depth] is used to bound exploration of huge expressions.
     int bitWidth(Expression expr, int depth) {
-      if (expr is IntegerLiteral) {
+      if (expr is IntegerLiteral && expr.value != null) {
         return expr.value >= 0 ? expr.value.bitLength : MAX;
       }
       if (++depth > 5) return MAX;
@@ -5563,7 +5566,18 @@ class CodeGenerator extends Object
   }
 
   @override
-  visitIntegerLiteral(IntegerLiteral node) => js.number(node.value);
+  visitIntegerLiteral(IntegerLiteral node) {
+    // The analyzer is using int.parse and, in the the VM's new
+    // 64-bit mode, it's silently failing if the Literal is out of bounds.
+    // If the value is null, fall back on the string representation.  This
+    // is also fudging the number, but consistent with the old behavior.
+    // Ideally, this is a static error.
+    // TODO(vsm): Remove this hack.
+    if (node.value != null) {
+      return js.number(node.value);
+    }
+    return new JS.LiteralNumber('${node.literal}');
+  }
 
   @override
   visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);

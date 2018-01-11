@@ -19,6 +19,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
+import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/kernel_context.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
@@ -43,7 +44,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/incremental/kernel_driver.dart' show KernelDriver;
 import 'package:meta/meta.dart';
 
 /**
@@ -183,10 +183,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
 
   /**
-   * If [enableKernelDriver], then the instance of [KernelDriver].
+   * If [enableKernelDriver], then the instance of [FrontEndCompiler].
    * Otherwise `null`.
    */
-  KernelDriver _kernelDriver;
+  FrontEndCompiler _frontEndCompiler;
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -1103,7 +1103,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void removeFile(String path) {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
-    _kernelDriverInvalidate(path);
+    _frontEndCompilerInvalidate(path);
     _fileTracker.removeFile(path);
     _priorityResults.clear();
   }
@@ -1112,7 +1112,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Implementation for [changeFile].
    */
   void _changeFile(String path) {
-    _kernelDriverInvalidate(path);
+    _frontEndCompilerInvalidate(path);
     _fileTracker.changeFile(path);
     _priorityResults.clear();
   }
@@ -1191,6 +1191,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           if (enableKernelDriver) {
             kernelContext = await _createKernelContext(library);
             analyzer = new LibraryAnalyzer(
+                _logger,
                 analysisOptions,
                 declaredVariables,
                 sourceFactory,
@@ -1199,11 +1200,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.resynthesizer,
                 library,
                 enableKernelDriver: true,
-                previewDart2: _analysisOptions.useFastaParser,
-                kernelDriver: _kernelDriver);
+                useCFE: _analysisOptions.useFastaParser,
+                frontEndCompiler: _frontEndCompiler);
           } else {
             libraryContext = await _createLibraryContext(library);
             analyzer = new LibraryAnalyzer(
+                _logger,
                 analysisOptions,
                 declaredVariables,
                 sourceFactory,
@@ -1343,18 +1345,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         declaredVariables,
         _sourceFactory,
         fsState,
-        _kernelDriver);
+        _frontEndCompiler);
   }
 
   /**
-   * Creates a new [KernelDriver] in [_kernelDriver].
+   * Creates a new [FrontEndCompiler] in [_frontEndCompiler].
    *
    * This is used both on initial construction and whenever the configuration
    * changes.
    */
   void _createKernelDriver() {
     if (enableKernelDriver) {
-      _kernelDriver = createKernelDriver(
+      _frontEndCompiler = new FrontEndCompiler(
           _logger,
           _byteStore,
           analysisOptions,
@@ -1391,6 +1393,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     assert(crossContextOptions.length == AnalysisOptions.signatureLength);
     for (int i = 0; i < crossContextOptions.length; i++) {
       _salt[i + 1] = crossContextOptions[i];
+    }
+  }
+
+  /**
+   * Invalidate the file with the given [path] in the [_frontEndCompiler].
+   */
+  void _frontEndCompilerInvalidate(String path) {
+    if (_frontEndCompiler != null) {
+      var fileUri = _resourceProvider.pathContext.toUri(path);
+      _frontEndCompiler.invalidate(fileUri);
     }
   }
 
@@ -1464,16 +1476,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
-  }
-
-  /**
-   * Invalidate the file with the given [path] in the KernelDriver.
-   */
-  void _kernelDriverInvalidate(String path) {
-    if (_kernelDriver != null) {
-      var uri = _resourceProvider.pathContext.toUri(path);
-      _kernelDriver.invalidate(uri);
-    }
   }
 
   /**

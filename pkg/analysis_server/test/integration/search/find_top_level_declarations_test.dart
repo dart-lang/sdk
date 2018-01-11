@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindTopLevelDeclarationsTest);
-    defineReflectiveTests(FindTopLevelDeclarationsTest_PreviewDart2);
+    defineReflectiveTests(FindTopLevelDeclarationsTest_UseCFE);
   });
 }
 
@@ -57,8 +57,7 @@ class Foo {
 }
 
 @reflectiveTest
-class FindTopLevelDeclarationsTest_PreviewDart2
-    extends FindTopLevelDeclarationsTest {
+class FindTopLevelDeclarationsTest_UseCFE extends FindTopLevelDeclarationsTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

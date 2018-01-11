@@ -30,6 +30,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   final List<kernel.DartType> _types;
   int _typeIndex = 0;
 
+  /// The current label scope. Each [Block] adds a new one.
+  _LabelScope _labelScope = new _LabelScope(null);
+
   /// Indicates whether we are applying resolution to an annotation.
   ///
   /// When this field is `true`, [PropertyInducingElement]s should be replaced
@@ -66,6 +69,52 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitAdjacentStrings(AdjacentStrings node) {
     node.strings.accept(this);
     node.staticType = _typeContext.stringType;
+  }
+
+  @override
+  void visitAnnotation(Annotation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+
+    // Peek forward and check if the next element is a PrefixElement.
+    SimpleIdentifier topEntity;
+    if (_referencedElements[_referencedElementIndex] is PrefixElement) {
+      PrefixedIdentifier prefixedIdentifier = node.name;
+
+      SimpleIdentifier prefix = prefixedIdentifier.prefix;
+      PrefixElement prefixElement = _getReferenceFor(prefix);
+      _getTypeFor(prefix); // prefix type
+      prefix.staticElement = prefixElement;
+
+      topEntity = prefixedIdentifier.identifier;
+    } else {
+      topEntity = node.name;
+    }
+
+    Element element = _getReferenceFor(topEntity);
+    DartType type = _getTypeFor(topEntity);
+    node.element = element;
+
+    if (element is ConstructorElement) {
+      topEntity.staticElement = element.enclosingElement;
+
+      if (constructorName != null) {
+        constructorName.staticElement = element;
+        constructorName.staticType = element.type;
+      }
+
+      ArgumentList argumentList = node.arguments;
+      if (argumentList != null) {
+        _applyResolutionToArguments(argumentList);
+        _resolveNamedArguments(argumentList, element.parameters);
+      }
+    } else {
+      topEntity.staticElement = element;
+      topEntity.staticType = type;
+      if (constructorName != null) {
+        constructorName.accept(this);
+        node.element = constructorName.staticElement;
+      }
+    }
   }
 
   @override
@@ -108,6 +157,22 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     // Skip the synthetic Not for `!=`.
     if (operatorType == TokenType.BANG_EQ) {
       _getTypeFor(null, synthetic: true);
+    }
+  }
+
+  @override
+  void visitBlock(Block node) {
+    _labelScope = new _LabelScope(_labelScope);
+    super.visitBlock(node);
+    _labelScope = _labelScope.parent;
+  }
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    SimpleIdentifier label = node.label;
+    if (label != null) {
+      LabelElement labelElement = _labelScope[label.name];
+      label.staticElement = labelElement;
     }
   }
 
@@ -161,6 +226,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.fieldName.staticType = fieldElement.type;
 
     node.expression.accept(this);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    SimpleIdentifier label = node.label;
+    if (label != null) {
+      LabelElement labelElement = _labelScope[label.name];
+      label.staticElement = labelElement;
+    }
   }
 
   @override
@@ -346,57 +420,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitAnnotation(Annotation node) {
-    SimpleIdentifier constructorName = node.constructorName;
-
-    // Peek forward and check if the next element is a PrefixElement.
-    SimpleIdentifier topEntity;
-    if (_referencedElements[_referencedElementIndex] is PrefixElement) {
-      PrefixedIdentifier prefixedIdentifier = node.name;
-
-      SimpleIdentifier prefix = prefixedIdentifier.prefix;
-      PrefixElement prefixElement = _getReferenceFor(prefix);
-      _getTypeFor(prefix); // prefix type
-      prefix.staticElement = prefixElement;
-
-      topEntity = prefixedIdentifier.identifier;
-    } else {
-      topEntity = node.name;
-    }
-
-    Element element = _getReferenceFor(topEntity);
-    DartType type = _getTypeFor(topEntity);
-    node.element = element;
-
-    if (element is ConstructorElement) {
-      topEntity.staticElement = element.enclosingElement;
-
-      if (constructorName != null) {
-        constructorName.staticElement = element;
-        constructorName.staticType = element.type;
-      }
-
-      ArgumentList argumentList = node.arguments;
-      if (argumentList != null) {
-        _applyResolutionToArguments(argumentList);
-        _resolveNamedArguments(argumentList, element.parameters);
-      }
-    } else {
-      topEntity.staticElement = element;
-      topEntity.staticType = type;
-      if (constructorName != null) {
-        constructorName.accept(this);
-        node.element = constructorName.staticElement;
-      }
-    }
-  }
-
-  @override
   void visitIsExpression(IsExpression node) {
     node.expression.accept(this);
     applyToTypeAnnotation(
         _enclosingLibraryElement, _getTypeFor(node.isOperator), node.type);
     node.staticType = _getTypeFor(node.isOperator);
+  }
+
+  @override
+  void visitLabel(Label node) {
+    SimpleIdentifier label = node.label;
+    String name = label.name;
+    var element = new LabelElementImpl(name, label.offset, false, false);
+    _labelScope.add(name, element);
+    label.staticElement = element;
   }
 
   @override
@@ -440,8 +477,13 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     node.staticInvokeType = invokeType;
     node.staticType = resultType;
-    node.methodName.staticElement = invokeElement;
-    node.methodName.staticType = invokeType;
+
+    if (node.methodName.name == 'call' && invokeElement == null) {
+      // Don't resolve explicit call() invocation of function types.
+    } else {
+      node.methodName.staticElement = invokeElement;
+      node.methodName.staticType = invokeType;
+    }
 
     if (invokeType is FunctionType) {
       if (node.typeArguments != null &&
@@ -1027,5 +1069,28 @@ class ValidatingResolutionApplier extends ResolutionApplier {
           'got one for kernel offset $typeOffset');
     }
     return super._getTypeFor(entity);
+  }
+}
+
+/// The hierarchical scope for labels.
+class _LabelScope {
+  final _LabelScope parent;
+  final Map<String, LabelElement> elements = {};
+
+  _LabelScope(this.parent);
+
+  LabelElement operator [](String name) {
+    var element = elements[name];
+    if (element != null) {
+      return element;
+    }
+    if (parent != null) {
+      return parent[name];
+    }
+    return null;
+  }
+
+  void add(String name, LabelElement element) {
+    elements[name] = element;
   }
 }

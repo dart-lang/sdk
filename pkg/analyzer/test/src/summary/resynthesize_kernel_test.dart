@@ -5,29 +5,22 @@
 library analyzer.test.src.summary.resynthesize_kernel_test;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/uri_translator_impl.dart';
-import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
-import 'package:package_config/packages.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:test/src/frontend/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -59,7 +52,7 @@ class FastaProblem {
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   static const DEBUG = false;
 
-  final resourceProvider = new MemoryResourceProvider(context: pathos.posix);
+  final resourceProvider = new MemoryResourceProvider();
 
   @override
   bool get isSharedFrontEnd => true;
@@ -86,7 +79,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       {bool allowErrors: false, bool dumpSummaries: false}) async {
     new MockSdk(resourceProvider: resourceProvider);
 
-    File testFile = resourceProvider.newFile('/test.dart', text);
+    String testPath = resourceProvider.convertPath('/test.dart');
+    File testFile = resourceProvider.newFile(testPath, text);
     Uri testUri = testFile.toUri();
     String testUriStr = testUri.toString();
 
@@ -154,12 +148,6 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30266')
-  test_const_invalid_intLiteral() async {
-    await super.test_const_invalid_intLiteral();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
@@ -197,12 +185,6 @@ class C {
 
   @failingTest
   @notForDart2
-  test_export_configurations_useDefault() async {
-    await super.test_export_configurations_useDefault();
-  }
-
-  @failingTest
-  @notForDart2
   test_export_configurations_useFirst() async {
     await super.test_export_configurations_useFirst();
   }
@@ -211,12 +193,6 @@ class C {
   @notForDart2
   test_export_configurations_useSecond() async {
     await super.test_export_configurations_useSecond();
-  }
-
-  @failingTest
-  @notForDart2
-  test_exportImport_configurations_useDefault() async {
-    await super.test_exportImport_configurations_useDefault();
   }
 
   @failingTest
@@ -240,12 +216,6 @@ class C {
 
     // TODO(scheglov) Add some more checks?
     // TODO(scheglov) Add tests for other elements
-  }
-
-  @failingTest
-  @notForDart2
-  test_import_configurations_useDefault() async {
-    await super.test_import_configurations_useDefault();
   }
 
   @failingTest
@@ -365,12 +335,6 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
-  test_parts_invalidUri_nullStringValue() async {
-    await super.test_parts_invalidUri_nullStringValue();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31711')
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
@@ -418,39 +382,39 @@ class C {
   }
 
   Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {
-    Map<String, LibraryInfo> dartLibraries = {};
-    MockSdk.FULL_URI_MAP.forEach((dartUri, path) {
-      var name = Uri.parse(dartUri).path;
-      dartLibraries[name] =
-          new LibraryInfo(name, Uri.parse('file://$path'), const []);
-    });
+    var logger = new PerformanceLog(null);
+    var byteStore = new MemoryByteStore();
+    var analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
 
-    var uriTranslator = new UriTranslatorImpl(
-        new TargetLibrariesSpecification('none', dartLibraries),
-        Packages.noPackages);
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..target = new NoneTarget(new TargetFlags(strongMode: isStrongMode))
-      ..reportMessages = false
-      ..logger = new PerformanceLog(null)
-      ..fileSystem = new _FileSystemAdaptor(resourceProvider)
-      ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(
-        options, uriTranslator, new KernelErrorListener(),
-        metadataFactory: new AnalyzerMetadataFactory());
+    var fsState = new FileSystemState(
+        logger,
+        byteStore,
+        new FileContentOverlay(),
+        resourceProvider,
+        sourceFactory,
+        analysisOptions,
+        new Uint32List(0));
 
-    KernelResult kernelResult = await driver.getKernel(testUri);
+    var compiler = new FrontEndCompiler(
+        logger,
+        new MemoryByteStore(),
+        analysisOptions,
+        null,
+        sourceFactory,
+        fsState,
+        resourceProvider.pathContext);
 
+    LibraryCompilationResult libraryResult = await compiler.compile(testUri);
+
+    // Remember Kernel libraries produced by the compiler.
     var libraryMap = <String, kernel.Library>{};
     var libraryExistMap = <String, bool>{};
-
-    void addLibrary(kernel.Library library) {
+    for (var library in libraryResult.program.libraries) {
       String uriStr = library.importUri.toString();
       libraryMap[uriStr] = library;
-      libraryExistMap[uriStr] = true;
+      FileState file = fsState.getFileForUri(library.importUri);
+      libraryExistMap[uriStr] = file?.exists ?? false;
     }
-
-    kernelResult.dependencies.forEach(addLibrary);
-    addLibrary(kernelResult.libraryResult.library);
 
     if (DEBUG) {
       String testUriStr = testUri.toString();
@@ -459,7 +423,7 @@ class C {
     }
 
     var resynthesizer = new KernelResynthesizer(
-        context, kernelResult.types, libraryMap, libraryExistMap);
+        context, libraryResult.types, libraryMap, libraryExistMap);
     return resynthesizer;
   }
 
@@ -468,44 +432,5 @@ class C {
     new kernel.Printer(buffer, syntheticNames: new kernel.NameSystem())
         .writeLibraryFile(library);
     return buffer.toString();
-  }
-}
-
-class _FileSystemAdaptor implements FileSystem {
-  final ResourceProvider provider;
-
-  _FileSystemAdaptor(this.provider);
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri.isScheme('file')) {
-      var file = provider.getFile(uri.path);
-      return new _FileSystemEntityAdaptor(uri, file);
-    } else {
-      throw new ArgumentError(
-          'Only file:// URIs are supported, but $uri is given.');
-    }
-  }
-}
-
-class _FileSystemEntityAdaptor implements FileSystemEntity {
-  final Uri uri;
-  final File file;
-
-  _FileSystemEntityAdaptor(this.uri, this.file);
-
-  @override
-  Future<bool> exists() async {
-    return file.exists;
-  }
-
-  @override
-  Future<List<int>> readAsBytes() async {
-    return file.readAsBytesSync();
-  }
-
-  @override
-  Future<String> readAsString() async {
-    return file.readAsStringSync();
   }
 }

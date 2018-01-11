@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE_A = 19;
-const int LINE_B = 25;
+const int LINE_A = 20;
+const int LINE_B = 26;
 
 foo() {}
 
@@ -34,7 +35,7 @@ testeeDo() {
   });
 }
 
-checkAsyncVarDescriptors(Isolate isolate) async {
+Future checkAsyncVarDescriptors(Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
@@ -43,7 +44,7 @@ checkAsyncVarDescriptors(Isolate isolate) async {
   expect(vars, equals('param1 local1')); // no :async_op et al
 }
 
-checkAsyncStarVarDescriptors(Isolate isolate) async {
+Future checkAsyncStarVarDescriptors(Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));

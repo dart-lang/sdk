@@ -245,6 +245,7 @@ class ProcedureHelper {
     kName,
     kSourceUriIndex,
     kAnnotations,
+    kForwardingStubSuperTarget,
     kFunction,
     kEnd,
   };
@@ -262,6 +263,7 @@ class ProcedureHelper {
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
+    kForwardingStub = 1 << 4,
   };
 
   explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
@@ -282,6 +284,7 @@ class ProcedureHelper {
   bool IsAbstract() { return (flags_ & kAbstract) != 0; }
   bool IsExternal() { return (flags_ & kExternal) != 0; }
   bool IsConst() { return (flags_ & kConst) != 0; }
+  bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -290,6 +293,9 @@ class ProcedureHelper {
   uint8_t flags_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
+
+  // Only valid if the 'isForwardingStub' flag is set.
+  NameIndex forwarding_stub_super_target_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -927,7 +933,11 @@ class StreamingFlowGraphBuilder {
   String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
-  void ReadUntilFunctionNode();
+
+  // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
+  // will attach the forwarding stub target reference to the parsed function if
+  // it crosses a procedure node for a concrete forwarding stub.
+  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
   intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
@@ -954,6 +964,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
+  FlowGraph* BuildGraphOfForwardingStub(const Function& function);
 
   intptr_t GetOffsetForSourceInfo(intptr_t index);
 
@@ -1142,7 +1153,7 @@ class StreamingFlowGraphBuilder {
   Fragment CheckBooleanInCheckedMode();
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
-  Fragment CheckArgumentType(intptr_t variable_kernel_position);
+  Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
   Fragment CheckTypeArgumentBound(const AbstractType& parameter,
                                   const AbstractType& bound,
                                   const String& dst_name);

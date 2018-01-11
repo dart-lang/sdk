@@ -12,8 +12,8 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart'
-    show PhysicalFileSystem;
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -80,7 +80,7 @@ class FileBackedMemoryFileSystem implements FileSystem {
       }
       return entity;
     } else {
-      return PhysicalFileSystem.instance.entityForUri(uri);
+      return StandardFileSystem.instance.entityForUri(uri);
     }
   }
 }

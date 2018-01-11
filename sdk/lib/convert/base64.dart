@@ -63,6 +63,17 @@ class Base64Codec extends Codec<List<int>, String> {
   Base64Decoder get decoder => const Base64Decoder();
 
   /**
+   * Decodes [encoded].
+   *
+   * The input is decoded as if by `decoder.convert`.
+   *
+   * The returned [Uint8List] contains exactly the decoded bytes,
+   * so the [Uint8List.length] is precisely the number of decoded bytes.
+   * The [Uint8List.buffer] may be larger than the decoded bytes.
+   */
+  Uint8List decode(String encoded) => decoder.convert(encoded);
+
+  /**
    * Validates and normalizes the base64 encoded data in [source].
    *
    * Only acts on the substring from [start] to [end], with [end]
@@ -471,7 +482,17 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
 
-  List<int> convert(String input, [int start = 0, int end]) {
+  /**
+   * Decodes the characters of [input] from [start] to [end] as base64.
+   *
+   * If [start] is omitted, it defaults to the start of [input].
+   * If [end] is omitted, it defaults to the end of [input].
+   *
+   * The returned [Uint8List] contains exactly the decoded bytes,
+   * so the [Uint8List.length] is precisely the number of decoded bytes.
+   * The [Uint8List.buffer] may be larger than the decoded bytes.
+   */
+  Uint8List convert(String input, [int start = 0, int end]) {
     end = RangeError.checkValidRange(start, end, input.length);
     if (start == end) return new Uint8List(0);
     var decoder = new _Base64Decoder();

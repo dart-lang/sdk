@@ -809,10 +809,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -838,10 +838,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -903,10 +903,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -934,10 +934,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -963,10 +963,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -992,10 +992,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -1023,10 +1023,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isString, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 
@@ -1054,10 +1054,10 @@ class E extends D implements C<int> {}
       return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
     }
 
-    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isNull)(literal(0));
     _isFunction2Of(_isInt, _isString)(literal(1));
     _isFunction2Of(_isInt, _isString)(literal(2));
-    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(3));
     _isFunction2Of(_isInt, _isString)(literal(4));
   }
 

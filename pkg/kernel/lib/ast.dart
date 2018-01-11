@@ -1490,6 +1490,8 @@ class Procedure extends Member implements FileUriNode {
   /// The uri of the source file this procedure was loaded from.
   Uri fileUri;
 
+  Reference forwardingStubSuperTarget;
+
   Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
@@ -1499,7 +1501,8 @@ class Procedure extends Member implements FileUriNode {
       bool isForwardingSemiStub: false,
       int transformerFlags: 0,
       this.fileUri,
-      Reference reference})
+      Reference reference,
+      this.forwardingStubSuperTarget})
       : super(name, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;

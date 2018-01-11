@@ -119,7 +119,7 @@ Future<bool> computeSummary(List<String> args,
   var multiRoots = parsedArgs['multi-root'].map(Uri.base.resolve).toList();
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
-      multiRoots, fe.PhysicalFileSystem.instance);
+      multiRoots, fe.StandardFileSystem.instance);
   var sources = parsedArgs['source'].map(Uri.parse).toList();
   var state = await fe.initializeCompiler(
       // TODO(sigmund): pass an old state once we can make use of it.

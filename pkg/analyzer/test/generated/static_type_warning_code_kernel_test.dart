@@ -25,7 +25,7 @@ class StaticTypeWarningCodeTest_Kernel
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -1049,7 +1049,7 @@ class StrongModeStaticTypeWarningCodeTest_Kernel
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest

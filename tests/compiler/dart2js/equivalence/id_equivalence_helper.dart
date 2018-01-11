@@ -72,6 +72,14 @@ typedef void ComputeMemberDataFunction(
     Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose});
 
+/// Function that computes a data mapping for [cls].
+///
+/// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
+/// for the data origin.
+typedef void ComputeClassDataFunction(
+    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+    {bool verbose});
+
 const String stopAfterTypeInference = 'stopAfterTypeInference';
 
 /// Compute actual data for all members defined in the program with the
@@ -84,10 +92,10 @@ Future<CompiledData> computeData(
     ComputeMemberDataFunction computeMemberData,
     {List<String> options: const <String>[],
     bool verbose: false,
-    bool forMainLibraryOnly: true,
+    bool forUserLibrariesOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
-    bool forUserSourceFilesOnly: false}) async {
+    ComputeClassDataFunction computeClassData}) async {
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
@@ -145,22 +153,23 @@ Future<CompiledData> computeData(
     computeMemberData(compiler, member, actualMapFor(member), verbose: verbose);
   }
 
-  if (forMainLibraryOnly && !forUserSourceFilesOnly) {
-    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
-    elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
-      if (!elementEnvironment.isEnumClass(cls)) {
-        elementEnvironment.forEachConstructor(cls, processMember);
-      }
-      elementEnvironment.forEachLocalClassMember(cls, processMember);
-    });
-    elementEnvironment.forEachLibraryMember(mainLibrary, processMember);
-  } else if (forUserSourceFilesOnly) {
-    closedWorld.processedMembers
-        .where((MemberEntity member) =>
-            userFiles.contains(member.library.canonicalUri.pathSegments.last))
-        .forEach(processMember);
-  } else {
-    closedWorld.processedMembers.forEach(processMember);
+  bool excludeLibrary(LibraryEntity library) {
+    return forUserLibrariesOnly &&
+        (library.canonicalUri.scheme == 'dart' ||
+            library.canonicalUri.scheme == 'package');
+  }
+
+  if (computeClassData != null) {
+    for (LibraryEntity library in elementEnvironment.libraries) {
+      if (excludeLibrary(library)) continue;
+      elementEnvironment.forEachClass(library, (ClassEntity cls) {
+        computeClassData(compiler, cls, actualMapFor(cls), verbose: verbose);
+      });
+    }
+  }
+  for (MemberEntity member in closedWorld.processedMembers) {
+    if (excludeLibrary(member.library)) continue;
+    processMember(member);
   }
 
   return new CompiledData(compiler, elementEnvironment, entryPoint, actualMaps);
@@ -181,7 +190,7 @@ class CompiledData {
     thisMap.forEach((Id id, ActualData data1) {
       String value1 = '${data1.value}';
       annotations
-          .putIfAbsent(data1.sourceSpan.begin, () => [])
+          .putIfAbsent(data1.offset, () => [])
           .add(colorizeSingle(value1));
     });
     return annotations;
@@ -197,23 +206,20 @@ class CompiledData {
       if (data1.value != data2?.value) {
         String value2 = '${data2?.value ?? '---'}';
         annotations
-            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .putIfAbsent(data1.offset, () => [])
             .add(colorizeDiff(value1, ' | ', value2));
       } else if (includeMatches) {
         annotations
-            .putIfAbsent(data1.sourceSpan.begin, () => [])
+            .putIfAbsent(data1.offset, () => [])
             .add(colorizeMatch(value1));
       }
     });
     otherMap.forEach((Id id, ActualData data2) {
       if (!thisMap.containsKey(id)) {
-        int offset = compiler.reporter
-            .spanFromSpannable(computeSpannable(elementEnvironment, uri, id))
-            .begin;
         String value1 = '---';
         String value2 = '${data2.value}';
         annotations
-            .putIfAbsent(offset, () => [])
+            .putIfAbsent(data2.offset, () => [])
             .add(colorizeDiff(value1, ' | ', value2));
       }
     });
@@ -348,15 +354,16 @@ typedef void Callback();
 /// file and any supporting libraries.
 Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeMemberDataFunction computeFromKernel,
-    {List<String> skipforAst: const <String>[],
+    {List<String> skipForAst: const <String>[],
     List<String> skipForKernel: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[],
     Directory libDirectory: null,
-    bool forMainLibraryOnly: true,
-    bool forUserSourceFilesOnly: false,
-    Callback setUpFunction}) async {
+    bool forUserLibrariesOnly: true,
+    Callback setUpFunction,
+    ComputeClassDataFunction computeClassDataFromAst,
+    ComputeClassDataFunction computeClassDataFromKernel}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
 
@@ -413,16 +420,16 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipforAst.contains(name)) {
+    if (skipForAst.contains(name)) {
       print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');
       CompiledData compiledData1 = await computeData(
           entryPoint, memorySourceFiles, computeFromAst,
+          computeClassData: computeClassDataFromAst,
           options: testOptions,
           verbose: verbose,
-          forMainLibraryOnly: forMainLibraryOnly,
-          forUserSourceFilesOnly: forUserSourceFilesOnly);
+          forUserLibrariesOnly: forUserLibrariesOnly);
       await checkCode(code, expectedMaps[astMarker], compiledData1);
     }
     if (skipForKernel.contains(name)) {
@@ -431,10 +438,10 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
       print('--from kernel---------------------------------------------------');
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel,
+          computeClassData: computeClassDataFromKernel,
           options: [Flags.useKernel]..addAll(testOptions),
           verbose: verbose,
-          forMainLibraryOnly: forMainLibraryOnly,
-          forUserSourceFilesOnly: forUserSourceFilesOnly);
+          forUserLibrariesOnly: forUserLibrariesOnly);
       await checkCode(code, expectedMaps[kernelMarker], compiledData2,
           filterActualData: filterActualData);
     }
@@ -551,6 +558,14 @@ Spannable computeSpannable(
       }
       return member;
     }
+  } else if (id is ClassId) {
+    LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
+    ClassEntity cls =
+        elementEnvironment.lookupClass(library, id.className, required: true);
+    if (cls == null) {
+      throw new ArgumentError("No class '${id.className}' in $mainUri.");
+    }
+    return cls;
   }
   throw new UnsupportedError('Unsupported id $id.');
 }
@@ -594,7 +609,7 @@ Future<bool> compareData(
     ComputeMemberDataFunction computeAstData,
     ComputeMemberDataFunction computeIrData,
     {List<String> options: const <String>[],
-    bool forMainLibraryOnly: true,
+    bool forUserLibrariesOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
     bool verbose: false,
@@ -603,7 +618,7 @@ Future<bool> compareData(
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData,
       options: options,
-      forMainLibraryOnly: forMainLibraryOnly,
+      forUserLibrariesOnly: forUserLibrariesOnly,
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
   if (data1 == null) return false;
@@ -611,13 +626,13 @@ Future<bool> compareData(
   CompiledData data2 = await computeData(
       entryPoint, memorySourceFiles, computeIrData,
       options: [Flags.useKernel]..addAll(options),
-      forMainLibraryOnly: forMainLibraryOnly,
+      forUserLibrariesOnly: forUserLibrariesOnly,
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
   if (data2 == null) return false;
   await compareCompiledData(data1, data2,
       whiteList: whiteList,
-      skipMissingUris: !forMainLibraryOnly,
+      skipMissingUris: !forUserLibrariesOnly,
       verbose: verbose);
   return true;
 }

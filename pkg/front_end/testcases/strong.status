@@ -8,7 +8,7 @@
 
 DeltaBlue: Fail
 accessors: Fail
-argument_mismatch: TypeCheckError
+argument_mismatch: Fail # Test assumes Dart 1.0 semantics
 async_function: Fail
 await: Fail
 bug21938: TypeCheckError
@@ -22,8 +22,8 @@ closure: Fail
 covariant_generic: Fail
 cycles: Fail
 default_values: Fail
+dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
-expressions: Fail
 external: Fail
 fallthrough: Fail
 fibonacci: Fail
@@ -41,6 +41,9 @@ named_parameters: Fail
 null_aware: Fail
 operators: Fail
 optional: Fail
+override_check_accessor_after_inference: TypeCheckError # Issue #31620
+override_check_accessor_basic: TypeCheckError # Issue #31620
+override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
 override_check_after_inference: TypeCheckError # Issue #31620
 override_check_basic: TypeCheckError # Issue #31620
 override_check_with_covariant_modifier: TypeCheckError # Issue #31620
@@ -63,10 +66,9 @@ typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
-warn_unresolved_sends: RuntimeError # Test assumes Dart 1.0 semantics
+warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
 
 inference/abstract_class_instantiation: Fail # Issue #30040
-inference/block_bodied_lambdas_infer_bottom_async_star: RuntimeError
 inference/conflicts_can_happen: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
@@ -99,7 +101,6 @@ inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeC
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
 inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue #31304
-inference/generic_methods_uses_greatest_lower_bound: RuntimeError
 inference/infer_field_override_multiple: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
@@ -117,6 +118,10 @@ inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
+
+instantiate_to_bound/typedef_literal_map: Fail
+instantiate_to_bound/typedef_literal_list: Fail
+instantiate_to_bound/typedef_super_bounded_type: Fail
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail

@@ -12,7 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
-    defineReflectiveTests(OccurrencesTest_PreviewDart2);
+    defineReflectiveTests(OccurrencesTest_UseCFE);
   });
 }
 
@@ -50,7 +50,6 @@ main() {
           }
         }
         fail('No element found matching $elementName');
-        return null;
       }
 
       void check(String elementName, Iterable<String> expectedOccurrences) {
@@ -69,7 +68,7 @@ main() {
 }
 
 @reflectiveTest
-class OccurrencesTest_PreviewDart2 extends OccurrencesTest {
+class OccurrencesTest_UseCFE extends OccurrencesTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

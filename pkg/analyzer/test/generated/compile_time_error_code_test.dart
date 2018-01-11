@@ -85,8 +85,12 @@ class A {}
 class C = A with String, num;''');
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -547,8 +551,11 @@ class A {}
 class B {}
 class as = A with B;''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
+    ]);
     verify([source]);
   }
 
@@ -556,7 +563,9 @@ class as = A with B;''');
     Source source = addSource("import 'dart:async' as abstract;");
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
       HintCode.UNUSED_IMPORT
     ]);
     verify([source]);
@@ -595,24 +604,33 @@ f() {
   test_builtInIdentifierAsTypedefName_functionTypeAlias() async {
     Source source = addSource("typedef bool as();");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
+    ]);
     verify([source]);
   }
 
   test_builtInIdentifierAsTypeName() async {
     Source source = addSource("class as {}");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+    ]);
     verify([source]);
   }
 
   test_builtInIdentifierAsTypeParameterName() async {
     Source source = addSource("class A<as> {}");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
+    ]);
     verify([source]);
   }
 
@@ -2072,7 +2090,14 @@ class C = a.A with M;'''
 class M {}
 class C = bool with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2090,7 +2115,14 @@ class C = double with M;''');
 class M {}
 class C = int with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2117,7 +2149,14 @@ class C = num with M;''');
 class M {}
 class C = String with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2528,42 +2567,66 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_bool() async {
     Source source = addSource("class A implements bool {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_double() async {
     Source source = addSource("class A implements double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_int() async {
     Source source = addSource("class A implements int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_Null() async {
     Source source = addSource("class A implements Null {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_num() async {
     Source source = addSource("class A implements num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_String() async {
     Source source = addSource("class A implements String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2571,8 +2634,12 @@ class C = B with M implements a.A;'''
     Source source = addSource("class A implements String, num {}");
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -2583,7 +2650,11 @@ class A {}
 class M {}
 class C = A with M implements bool;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2593,7 +2664,11 @@ class A {}
 class M {}
 class C = A with M implements double;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2603,7 +2678,11 @@ class A {}
 class M {}
 class C = A with M implements int;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2613,7 +2692,11 @@ class A {}
 class M {}
 class C = A with M implements Null;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2623,7 +2706,11 @@ class A {}
 class M {}
 class C = A with M implements num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2633,7 +2720,11 @@ class A {}
 class M {}
 class C = A with M implements String;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2644,8 +2735,12 @@ class M {}
 class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -3873,42 +3968,66 @@ class C = Object with B;''');
   test_mixinOfDisallowedClass_class_bool() async {
     Source source = addSource("class A extends Object with bool {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_double() async {
     Source source = addSource("class A extends Object with double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_int() async {
     Source source = addSource("class A extends Object with int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_Null() async {
     Source source = addSource("class A extends Object with Null {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_num() async {
     Source source = addSource("class A extends Object with num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_String() async {
     Source source = addSource("class A extends Object with String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3917,7 +4036,11 @@ class C = Object with B;''');
 class A {}
 class C = A with bool;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3926,7 +4049,11 @@ class C = A with bool;''');
 class A {}
 class C = A with double;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3935,7 +4062,11 @@ class C = A with double;''');
 class A {}
 class C = A with int;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3944,7 +4075,11 @@ class C = A with int;''');
 class A {}
 class C = A with Null;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3953,7 +4088,11 @@ class C = A with Null;''');
 class A {}
 class C = A with num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3962,7 +4101,11 @@ class C = A with num;''');
 class A {}
 class C = A with String;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -5833,6 +5976,17 @@ class A {
     verify([source]);
   }
 
+  test_referencedBeforeDeclaration_hideInBlock_comment() async {
+    Source source = addSource(r'''
+main() {
+  /// [v] is a variable.
+  var v = 2;
+}
+print(x) {}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_referencedBeforeDeclaration_hideInBlock_function() async {
     Source source = addSource(r'''
 var v = 1;
@@ -5909,17 +6063,6 @@ void testTypeRef() {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
-  }
-
-  test_referencedBeforeDeclaration_hideInBlock_comment() async {
-    Source source = addSource(r'''
-main() {
-  /// [v] is a variable.
-  var v = 2;
-}
-print(x) {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_rethrowOutsideCatch() async {

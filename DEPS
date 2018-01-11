@@ -6,6 +6,13 @@
 # Before adding or updating dependencies, please review the documentation here:
 # https://github.com/dart-lang/sdk/wiki/Adding-and-Updating-Dependencies
 
+allowed_hosts = [
+  'boringssl.googlesource.com',
+  'chromium.googlesource.com',
+  'dart.googlesource.com',
+  'fuchsia.googlesource.com',
+]
+
 vars = {
   # The dart_root is the root of our sdk checkout. This is normally
   # simply sdk, but if using special gclient specs it can be different.
@@ -47,7 +54,7 @@ vars = {
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
-  "barback_tag" : "@0.15.2+13",
+  "barback_tag" : "@0.15.2+14",
   "bazel_worker_tag": "@v0.1.4",
   "boolean_selector_tag" : "@1.0.2",
   "boringssl_gen_rev": "@d2b56d1b7657e52eb5a1f075968c773aa3e53614",
@@ -73,13 +80,13 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "@1.0.7",  # Please see the note above before updating.
+  "dart_style_tag": "@1.0.9",  # Please see the note above before updating.
 
   "dartdoc_tag" : "@v0.15.0+1",
   "fixnum_tag": "@0.10.5",
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
-  "html_tag" : "@0.13.2+1",
+  "html_tag" : "@0.13.2+2",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
   "http_retry_tag": "@0.1.0",
@@ -105,13 +112,12 @@ vars = {
   "plugin_tag": "@0.2.0+2",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.4",
-  "protobuf_tag": "@0.5.4",
+  "protobuf_tag": "@0.6.0",
   "pub_rev": "@667281eef93b4be648cceca400e954e000edba38",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.27.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
-  "scheduled_test_tag": "@0.12.11+1",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
   "shelf_packages_handler_tag": "@1.0.3",
   "shelf_tag": "@0.7.1",
@@ -120,13 +126,15 @@ vars = {
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.4",
   "source_span_tag": "@1.4.0",
-  "stack_trace_tag": "@1.8.2",
+  "stack_trace_tag": "@1.9.0",
   "stream_channel_tag": "@1.6.2",
   "string_scanner_tag": "@1.0.2",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
+  "test_descriptor_tag": "@1.0.3",
+  "test_process_tag": "@1.0.1",
   "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.3",
-  "test_tag": "@0.12.24+6",
+  "test_tag": "@0.12.29+1",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@3.3.0",
@@ -283,8 +291,6 @@ deps = {
       + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
       Var("dart_git") + "resource.git" + Var("resource_rev"),
-  Var("dart_root") + "/third_party/pkg/scheduled_test":
-      Var("dart_git") + "scheduled_test.git" + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + Var("shelf_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
@@ -318,6 +324,10 @@ deps = {
       Var("dart_git") + "term_glyph.git" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + Var("test_tag"),
+  Var("dart_root") + "/third_party/pkg/test_descriptor":
+      Var("dart_git") + "test_descriptor.git" + Var("test_descriptor_tag"),
+  Var("dart_root") + "/third_party/pkg/test_process":
+      Var("dart_git") + "test_process.git" + Var("test_process_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       Var("test_reflective_loader_tag"),

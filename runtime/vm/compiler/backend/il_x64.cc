@@ -282,17 +282,65 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
+                                       const Location& destination,
+                                       Register tmp) {
+  if (destination.IsRegister()) {
+    if (representation() == kUnboxedInt32 ||
+        representation() == kUnboxedInt64) {
+      const int64_t value = value_.IsSmi() ? Smi::Cast(value_).Value()
+                                           : Mint::Cast(value_).value();
+      if (value == 0) {
+        __ xorl(destination.reg(), destination.reg());
+      } else {
+        __ movq(destination.reg(), Immediate(value));
+      }
+    } else {
+      ASSERT(representation() == kTagged);
+      __ LoadObject(destination.reg(), value_);
+    }
+  } else if (destination.IsFpuRegister()) {
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
+      __ xorps(destination.fpu_reg(), destination.fpu_reg());
+    } else {
+      ASSERT(tmp != kNoRegister);
+      __ LoadObject(tmp, value_);
+      __ movsd(destination.fpu_reg(),
+               FieldAddress(tmp, Double::value_offset()));
+    }
+  } else if (destination.IsDoubleStackSlot()) {
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
+      __ xorps(XMM0, XMM0);
+    } else {
+      ASSERT(tmp != kNoRegister);
+      __ LoadObject(tmp, value_);
+      __ movsd(XMM0, FieldAddress(tmp, Double::value_offset()));
+    }
+    __ movsd(destination.ToStackSlotAddress(), XMM0);
+  } else {
+    ASSERT(destination.IsStackSlot());
+    if (value_.IsSmi() && representation() == kUnboxedInt32) {
+      __ movl(destination.ToStackSlotAddress(),
+              Immediate(Smi::Cast(value_).Value()));
+    } else {
+      __ StoreObject(destination.ToStackSlotAddress(), value_);
+    }
+  }
+}
+
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = IsUnboxedSignedIntegerConstant() ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   switch (representation()) {
     case kUnboxedDouble:
       locs->set_out(0, Location::RequiresFpuRegister());
+      locs->set_temp(0, Location::RequiresRegister());
       break;
     case kUnboxedInt32:
+    case kUnboxedInt64:
       locs->set_out(0, Location::RequiresRegister());
       break;
     default:
@@ -305,24 +353,9 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    switch (representation()) {
-      case kUnboxedDouble: {
-        XmmRegister result = locs()->out(0).fpu_reg();
-        if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
-          __ xorps(result, result);
-        } else {
-          __ LoadObject(TMP, value());
-          __ movsd(result, FieldAddress(TMP, Double::value_offset()));
-        }
-        break;
-      }
-      case kUnboxedInt32:
-        __ movl(locs()->out(0).reg(),
-                Immediate(static_cast<int32_t>(Smi::Cast(value()).Value())));
-        break;
-      default:
-        UNREACHABLE();
-    }
+    const Register scratch =
+        IsUnboxedSignedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
+    EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
 
@@ -421,15 +454,6 @@ static Condition TokenKindToIntCondition(Token::Kind kind) {
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
-  if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
-  }
   if (operation_cid() == kDoubleCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
@@ -439,7 +463,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
-  if (operation_cid() == kSmiCid) {
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -529,12 +553,26 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToIntCondition(kind);
+  if (left.IsConstant() || right.IsConstant()) {
+    // Ensure constant is on the right.
+    ConstantInstr* constant = NULL;
+    if (left.IsConstant()) {
+      constant = left.constant_instruction();
+      Location tmp = right;
+      right = left;
+      left = tmp;
+      true_condition = FlipCondition(true_condition);
+    } else {
+      constant = right.constant_instruction();
+    }
 
-  if (left.IsConstant()) {
-    __ CompareObject(right.reg(), left.constant());
-    true_condition = FlipCondition(true_condition);
-  } else if (right.IsConstant()) {
-    __ CompareObject(left.reg(), right.constant());
+    if (constant->IsUnboxedSignedIntegerConstant()) {
+      __ cmpq(left.reg(),
+              Immediate(constant->GetUnboxedSignedIntegerConstantValue()));
+    } else {
+      ASSERT(constant->representation() == kTagged);
+      __ CompareObject(left.reg(), right.constant());
+    }
   } else if (right.IsStackSlot()) {
     __ cmpq(left.reg(), right.ToStackSlotAddress());
   } else {
@@ -708,30 +746,26 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(1, Location::RequiresFpuRegister());
     summary->set_out(0, Location::RequiresRegister());
     return summary;
-  } else if (operation_cid() == kMintCid) {
+  }
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
+    summary->set_in(0, Location::RegisterOrConstant(left()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    summary->set_in(1, summary->in(0).IsConstant()
+                           ? Location::RequiresRegister()
+                           : Location::RegisterOrConstant(right()));
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
-  ASSERT(operation_cid() == kSmiCid);
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterOrConstant(left()));
-  // Only one input can be a constant operand. The case of two constant
-  // operands should be handled by constant propagation.
-  summary->set_in(1, summary->in(0).IsConstant()
-                         ? Location::RequiresRegister()
-                         : Location::RegisterOrConstant(right()));
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
+  UNREACHABLE();
+  return NULL;
 }
 
 Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
-  if ((operation_cid() == kSmiCid) || (operation_cid() == kMintCid)) {
+  if (operation_cid() == kSmiCid || operation_cid() == kMintCid) {
     return EmitInt64ComparisonOp(compiler, *locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
@@ -5125,24 +5159,30 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(1, Location::RegisterOrConstant(right()));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
 
 void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register left = locs()->in(0).reg();
-  const Register right = locs()->in(1).reg();
-  const Register out = locs()->out(0).reg();
-
-  ASSERT(out == left);
-
   Label* deopt = NULL;
   if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
   }
+  const Location left = locs()->in(0);
+  const Location right = locs()->in(1);
+  const Location out = locs()->out(0);
+  ASSERT(out.reg() == left.reg());
 
-  EmitInt64Arithmetic(compiler, op_kind(), left, right, deopt);
+  if (right.IsConstant()) {
+    ConstantInstr* constant_instr = right.constant_instruction();
+    const int64_t value =
+        constant_instr->GetUnboxedSignedIntegerConstantValue();
+    EmitInt64Arithmetic(compiler, op_kind(), left.reg(), Immediate(value),
+                        deopt);
+  } else {
+    EmitInt64Arithmetic(compiler, op_kind(), left.reg(), right.reg(), deopt);
+  }
 }
 
 LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,

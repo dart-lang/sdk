@@ -10,6 +10,7 @@ class C {
 }
 
 class D extends C {
+/*@error=OverrideTypeVariablesMismatch*/
 /*@error=OverrideTypeMismatchReturnType*/ /*@topType=dynamic*/ m(
           /*@topType=dynamic*/ x) =>
       x;

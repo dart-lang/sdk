@@ -51,7 +51,6 @@ class ResultComparator extends AstComparator {
       _safelyWriteNodePath(buffer, first.owner);
     }
     fail(buffer.toString());
-    return false;
   }
 
   @override
@@ -78,7 +77,6 @@ class ResultComparator extends AstComparator {
       _safelyWriteNodePath(buffer, first);
     }
     fail(buffer.toString());
-    return false;
   }
 
   @override
@@ -92,7 +90,6 @@ class ResultComparator extends AstComparator {
       _safelyWriteNodePath(buffer, first);
     }
     fail(buffer.toString());
-    return false;
   }
 
   /**

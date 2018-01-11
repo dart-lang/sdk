@@ -2717,6 +2717,21 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
+  bool IsUnboxedSignedIntegerConstant() const {
+    return representation() == kUnboxedInt32 ||
+           representation() == kUnboxedInt64;
+  }
+
+  int64_t GetUnboxedSignedIntegerConstantValue() const {
+    ASSERT(IsUnboxedSignedIntegerConstant());
+    return value_.IsSmi() ? Smi::Cast(value_).Value()
+                          : Mint::Cast(value_).value();
+  }
+
+  void EmitMoveToLocation(FlowGraphCompiler* compiler,
+                          const Location& destination,
+                          Register tmp = kNoRegister);
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -5350,6 +5365,8 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
                           speculative_mode) {}
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
 

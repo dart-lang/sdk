@@ -1176,42 +1176,12 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else {
     ASSERT(source.IsConstant());
-    const Object& constant = source.constant();
-    if (destination.IsRegister()) {
-      if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
-        __ xorl(destination.reg(), destination.reg());
-      } else if (constant.IsSmi() &&
-                 (source.constant_instruction()->representation() ==
-                  kUnboxedInt32)) {
-        __ movl(destination.reg(), Immediate(Smi::Cast(constant).Value()));
-      } else {
-        __ LoadObject(destination.reg(), constant);
-      }
-    } else if (destination.IsFpuRegister()) {
-      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
-        __ xorps(destination.fpu_reg(), destination.fpu_reg());
-      } else {
-        __ LoadObject(TMP, constant);
-        __ movsd(destination.fpu_reg(),
-                 FieldAddress(TMP, Double::value_offset()));
-      }
-    } else if (destination.IsDoubleStackSlot()) {
-      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
-        __ xorps(XMM0, XMM0);
-      } else {
-        __ LoadObject(TMP, constant);
-        __ movsd(XMM0, FieldAddress(TMP, Double::value_offset()));
-      }
-      __ movsd(destination.ToStackSlotAddress(), XMM0);
+    if (destination.IsFpuRegister() || destination.IsDoubleStackSlot()) {
+      ScratchRegisterScope scratch(this, kNoRegister);
+      source.constant_instruction()->EmitMoveToLocation(compiler_, destination,
+                                                        scratch.reg());
     } else {
-      ASSERT(destination.IsStackSlot());
-      if (constant.IsSmi() &&
-          (source.constant_instruction()->representation() == kUnboxedInt32)) {
-        __ movl(destination.ToStackSlotAddress(),
-                Immediate(Smi::Cast(constant).Value()));
-      } else {
-        StoreObject(destination.ToStackSlotAddress(), constant);
-      }
+      source.constant_instruction()->EmitMoveToLocation(compiler_, destination);
     }
   }
 
@@ -1296,10 +1266,6 @@ void ParallelMoveResolver::EmitSwap(int index) {
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
   __ MoveMemoryToMemory(dst, src);
-}
-
-void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  __ StoreObject(dst, obj);
 }
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {

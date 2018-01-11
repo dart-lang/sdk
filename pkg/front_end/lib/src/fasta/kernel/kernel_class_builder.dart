@@ -66,6 +66,7 @@ import 'kernel_builder.dart'
         ProcedureBuilder,
         Scope,
         TypeVariableBuilder,
+        TypeBuilder,
         computeDefaultTypeArguments;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
@@ -73,6 +74,9 @@ import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 abstract class KernelClassBuilder
     extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
   KernelClassBuilder actualOrigin;
+
+  @override
+  List<TypeBuilder> calculatedBounds;
 
   KernelClassBuilder(
       List<MetadataBuilder> metadata,
@@ -120,6 +124,7 @@ abstract class KernelClassBuilder
 
   InterfaceType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    arguments ??= calculatedBounds;
     List<DartType> typeArguments;
     if (arguments != null) {
       typeArguments = buildTypeArguments(library, arguments);
@@ -167,7 +172,7 @@ abstract class KernelClassBuilder
               if (builder.isConst) {
                 addCompileTimeError(message, builder.charOffset);
               } else {
-                addWarning(message, builder.charOffset);
+                addProblem(message, builder.charOffset);
               }
               // CoreTypes aren't computed yet, and this is the outline
               // phase. So we can't and shouldn't create a method body.
@@ -225,6 +230,16 @@ abstract class KernelClassBuilder
           checkMethodOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
         }
+        if (declaredMember.kind == ProcedureKind.Getter &&
+            interfaceMember.kind == ProcedureKind.Getter) {
+          checkGetterOverride(
+              hierarchy, typeEnvironment, declaredMember, interfaceMember);
+        }
+        if (declaredMember.kind == ProcedureKind.Setter &&
+            interfaceMember.kind == ProcedureKind.Setter) {
+          checkSetterOverride(
+              hierarchy, typeEnvironment, declaredMember, interfaceMember);
+        }
       }
       // TODO(ahe): Handle other cases: accessors, operators, and fields.
     });
@@ -251,7 +266,7 @@ abstract class KernelClassBuilder
     }
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
-      addWarning(
+      addProblem(
           templateOverrideTypeVariablesMismatch.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -364,7 +379,7 @@ abstract class KernelClassBuilder
             interfaceFunction.requiredParameterCount ||
         declaredFunction.positionalParameters.length <
             interfaceFunction.positionalParameters.length) {
-      addWarning(
+      addProblem(
           templateOverrideFewerPositionalArguments.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -377,7 +392,7 @@ abstract class KernelClassBuilder
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
-      addWarning(
+      addProblem(
           templateOverrideMoreRequiredArguments.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -409,7 +424,7 @@ abstract class KernelClassBuilder
     }
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
-      addWarning(
+      addProblem(
           templateOverrideFewerNamedArguments.withArguments(
               "$name::${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}::"
@@ -430,7 +445,7 @@ abstract class KernelClassBuilder
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
-          addWarning(
+          addProblem(
               templateOverrideMismatchNamedParameter.withArguments(
                   "$name::${declaredMember.name.name}",
                   interfaceNamedParameters.current.name,
@@ -455,6 +470,51 @@ abstract class KernelClassBuilder
           declaredParameter.isCovariant,
           declaredParameter);
     }
+  }
+
+  void checkGetterOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Procedure declaredMember,
+      Procedure interfaceMember) {
+    if (declaredMember.enclosingClass != cls) {
+      // TODO(paulberry): Include these checks as well, but the message needs to
+      // explain that [declaredMember] is inherited.
+      return;
+    }
+    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+        hierarchy, declaredMember, interfaceMember, null, null);
+    var declaredType = declaredMember.getterType;
+    var interfaceType = interfaceMember.getterType;
+    _checkTypes(typeEnvironment, interfaceSubstitution, declaredMember,
+        interfaceMember, declaredType, interfaceType, false, null);
+  }
+
+  void checkSetterOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Procedure declaredMember,
+      Procedure interfaceMember) {
+    if (declaredMember.enclosingClass != cls) {
+      // TODO(paulberry): Include these checks as well, but the message needs to
+      // explain that [declaredMember] is inherited.
+      return;
+    }
+    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+        hierarchy, declaredMember, interfaceMember, null, null);
+    var declaredType = declaredMember.setterType;
+    var interfaceType = interfaceMember.setterType;
+    var declaredParameter = declaredMember.function.positionalParameters[0];
+    bool isCovariant = declaredParameter.isCovariant;
+    _checkTypes(
+        typeEnvironment,
+        interfaceSubstitution,
+        declaredMember,
+        interfaceMember,
+        declaredType,
+        interfaceType,
+        isCovariant,
+        declaredParameter);
   }
 
   String get fullNameForErrors {

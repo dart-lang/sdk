@@ -590,6 +590,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _applyType(element.bound, node.bound);
       }
     }
+    _setGenericFunctionType(node.bound, element.bound);
     super.visitTypeParameter(node);
     _resolveMetadata(node, node.metadata, element);
     return null;

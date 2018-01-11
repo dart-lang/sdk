@@ -4,4 +4,4 @@
 
 library deferred_constants1_lib2;
 
-export 'deferred_constant1_lib1.dart' show C2, C3;
+export 'deferred_constant1_lib3.dart' show C2, C3, C4, C5, C6, C7;

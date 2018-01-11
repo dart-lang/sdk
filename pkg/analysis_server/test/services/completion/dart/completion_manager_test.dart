@@ -76,7 +76,6 @@ part '$testFile';
         }
       }
       fail('Failed to find $expectedUri in $uriList');
-      return null;
     }
 
     void assertImportedLib(String expectedUri) {

@@ -73,7 +73,6 @@ class EngineTestCase {
       }
     }
     fail("Could not find getter named $getterName in ${type.displayName}");
-    return null;
   }
 
   /**
@@ -90,7 +89,6 @@ class EngineTestCase {
       }
     }
     fail("Could not find method named $methodName in ${type.displayName}");
-    return null;
   }
 
   void setUp() {

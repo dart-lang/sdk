@@ -51,6 +51,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   static final _testDir = '${path.separator}test${path.separator}';
 
+  static final _testingDir = '${path.separator}testing${path.separator}';
+
   /**
    * The class containing the AST nodes being visited, or `null` if we are not in the scope of
    * a class.
@@ -879,10 +881,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     bool inCurrentLibrary(Element element) =>
         element.library == _currentLibrary;
 
+    bool inExportDirective(SimpleIdentifier identifier) =>
+        identifier.parent is Combinator &&
+        identifier.parent.parent is ExportDirective;
+
     bool inTestDirectory(LibraryElement library) =>
-        library.definingCompilationUnit.source.fullName.contains(_testDir);
+        library.definingCompilationUnit.source.fullName.contains(_testDir) ||
+        library.definingCompilationUnit.source.fullName.contains(_testingDir);
 
     Element element = identifier.bestElement;
+    if (!isProtected(element) && !isVisibleForTesting(element)) {
+      return;
+    }
+
     if (isProtected(element)) {
       if (inCurrentLibrary(element) || inCommentReference(identifier)) {
         // The access is valid; even if [element] is also marked
@@ -894,18 +905,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           identifier.getAncestor((AstNode node) => node is ClassDeclaration);
       if (_hasTypeOrSuperType(accessingClass?.element, definingClass.type)) {
         return;
-      } else {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
       }
     }
-    if (isVisibleForTesting(element) &&
-        !inCurrentLibrary(element) &&
-        !inTestDirectory(_currentLibrary) &&
-        !inCommentReference(identifier)) {
-      Element definingClass = element.enclosingElement;
+    if (isVisibleForTesting(element)) {
+      if (inCurrentLibrary(element) ||
+          inTestDirectory(_currentLibrary) ||
+          inExportDirective(identifier) ||
+          inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked
+        // `protected`, the "visibilities" are unioned.
+        return;
+      }
+    }
+
+    // At this point, [identifier] was not cleared as protected access, nor
+    // cleared as access for testing. Report the appropriate violation(s).
+    Element definingClass = element.enclosingElement;
+    if (isProtected(element)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
+    }
+    if (isVisibleForTesting(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
           identifier,
@@ -4188,7 +4210,7 @@ class InferenceContext {
    * already has a context type. This recorded type will be the least upper
    * bound of all types added with [addReturnOrYieldType].
    */
-  void popReturnContext(BlockFunctionBody node) {
+  void popReturnContext(FunctionBody node) {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
@@ -4204,7 +4226,7 @@ class InferenceContext {
   /**
    * Push a block function body's return type onto the return stack.
    */
-  void pushReturnContext(BlockFunctionBody node) {
+  void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
     _inferredReturn.add(_typeProvider.nullType);
   }
@@ -4769,6 +4791,12 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionBody _currentFunctionBody;
 
   /**
+   * The type of the expression of the immediately enclosing [SwitchStatement],
+   * or `null` if not in a [SwitchStatement].
+   */
+  DartType _enclosingSwitchStatementExpressionType;
+
+  /**
    * Are we running in strong mode or not.
    */
   bool strongMode;
@@ -5217,6 +5245,8 @@ class ResolverVisitor extends ScopedVisitor {
     Expression leftOperand = node.leftOperand;
     Expression rightOperand = node.rightOperand;
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      InferenceContext.setType(leftOperand, typeProvider.boolType);
+      InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -5240,6 +5270,8 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     } else if (operatorType == TokenType.BAR_BAR) {
+      InferenceContext.setType(leftOperand, typeProvider.boolType);
+      InferenceContext.setType(rightOperand, typeProvider.boolType);
       leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -5537,6 +5569,7 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitDoStatement(DoStatement node) {
     _overrideManager.enterScope();
     try {
+      InferenceContext.setType(node.condition, typeProvider.boolType);
       super.visitDoStatement(node);
     } finally {
       _overrideManager.exitScope();
@@ -5590,9 +5623,19 @@ class ResolverVisitor extends ScopedVisitor {
     _overrideManager.enterScope();
     try {
       InferenceContext.setTypeFromNode(node.expression, node);
+      inferenceContext.pushReturnContext(node);
       super.visitExpressionFunctionBody(node);
+
+      DartType type = node.expression.staticType;
+      if (_enclosingFunction.isAsynchronous) {
+        type = type.flattenFutures(typeSystem);
+      }
+      if (type != null) {
+        inferenceContext.addReturnOrYieldType(type);
+      }
     } finally {
       _overrideManager.exitScope();
+      inferenceContext.popReturnContext(node);
     }
     return null;
   }
@@ -5624,25 +5667,40 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForEachStatementInScope(ForEachStatement node) {
+    Expression iterable = node.iterable;
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    SimpleIdentifier identifier = node.identifier;
+
+    identifier?.accept(this);
+
+    DartType valueType;
+    if (loopVariable != null) {
+      TypeAnnotation typeAnnotation = loopVariable.type;
+      valueType = typeAnnotation?.type ?? typeProvider.dynamicType;
+    }
+    if (identifier != null) {
+      Element element = identifier.staticElement;
+      if (element is VariableElement) {
+        valueType = element.type;
+      } else if (element is PropertyAccessorElement) {
+        if (element.parameters.isNotEmpty) {
+          valueType = element.parameters[0].type;
+        }
+      }
+    }
+    if (valueType != null) {
+      InterfaceType targetType = (node.awaitKeyword == null)
+          ? typeProvider.iterableType
+          : typeProvider.streamType;
+      InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+    }
+
     //
     // We visit the iterator before the loop variable because the loop variable
     // cannot be in scope while visiting the iterator.
     //
-    Expression iterable = node.iterable;
-    DeclaredIdentifier loopVariable = node.loopVariable;
-    SimpleIdentifier identifier = node.identifier;
-    if (loopVariable?.type?.type != null) {
-      InterfaceType targetType = (node.awaitKeyword == null)
-          ? typeProvider.iterableType
-          : typeProvider.streamType;
-      InferenceContext.setType(
-          iterable,
-          targetType
-              .instantiate([resolutionMap.typeForTypeName(loopVariable.type)]));
-    }
     iterable?.accept(this);
     loopVariable?.accept(this);
-    identifier?.accept(this);
     Statement body = node.body;
     if (body != null) {
       _overrideManager.enterScope();
@@ -5694,6 +5752,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitForStatementInScope(ForStatement node) {
     node.variables?.accept(this);
     node.initialization?.accept(this);
+    InferenceContext.setType(node.condition, typeProvider.boolType);
     node.condition?.accept(this);
     _overrideManager.enterScope();
     try {
@@ -5810,6 +5869,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
     Map<VariableElement, DartType> thenOverrides =
         const <VariableElement, DartType>{};
@@ -6074,6 +6134,8 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitSwitchCase(SwitchCase node) {
     _overrideManager.enterScope();
     try {
+      InferenceContext.setType(
+          node.expression, _enclosingSwitchStatementExpressionType);
       super.visitSwitchCase(node);
     } finally {
       _overrideManager.exitScope();
@@ -6088,6 +6150,19 @@ class ResolverVisitor extends ScopedVisitor {
       super.visitSwitchDefault(node);
     } finally {
       _overrideManager.exitScope();
+    }
+    return null;
+  }
+
+  @override
+  Object visitSwitchStatementInScope(SwitchStatement node) {
+    var previousExpressionType = _enclosingSwitchStatementExpressionType;
+    try {
+      node.expression?.accept(this);
+      _enclosingSwitchStatementExpressionType = node.expression.staticType;
+      node.members.accept(this);
+    } finally {
+      _enclosingSwitchStatementExpressionType = previousExpressionType;
     }
     return null;
   }
@@ -6147,6 +6222,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
       Expression condition = node.condition;
+      InferenceContext.setType(condition, typeProvider.boolType);
       condition?.accept(this);
       Statement body = node.body;
       if (body != null) {
@@ -7543,12 +7619,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
               new LabelScope(labelScope, labelName.name, member, labelElement);
         }
       }
-      super.visitSwitchStatement(node);
+      visitSwitchStatementInScope(node);
     } finally {
       labelScope = outerScope;
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
+  }
+
+  void visitSwitchStatementInScope(SwitchStatement node) {
+    super.visitSwitchStatement(node);
   }
 
   @override

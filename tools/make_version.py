@@ -62,7 +62,7 @@ def makeFile(quiet, output_file, input_file, ignore_svn_revision):
   version_cc_text = version_cc_text.replace("{{VERSION_STR}}",
                                             version_string)
   version_time = utils.GetGitTimestamp()
-  if version_time == None:
+  if ignore_svn_revision or version_time == None:
     version_time = "Unknown timestamp"
   version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}",
                                             version_time)

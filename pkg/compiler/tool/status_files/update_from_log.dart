@@ -33,10 +33,18 @@ final dart2jsConfigurations = {
   'host-checked':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]',
   'minified': r'[ $compiler == dart2js && $dart2js_with_kernel && $minified ]',
+  'host-checked-strong':
+      r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]',
+  'minified-strong':
+      r'[ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]',
   'fast-startup':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
+  'fast-startup-strong':
+      r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]',
   'checked-mode':
       r'[ $compiler == dart2js && $checked && $dart2js_with_kernel ]',
+  'checked-mode-strong':
+      r'[ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]',
 };
 
 final dart2jsStatusFiles = {

@@ -1925,7 +1925,6 @@ class DartObjectImplTest extends EngineTestCase {
       return new DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
     }
     fail("Invalid boolean value used in test");
-    return null;
   }
 
   DartObjectImpl _doubleValue(double value) {

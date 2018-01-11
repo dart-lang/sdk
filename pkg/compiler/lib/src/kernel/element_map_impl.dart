@@ -810,8 +810,16 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   Map<ir.Library, IndexedLibrary> _libraryMap = <ir.Library, IndexedLibrary>{};
   Map<ir.Class, IndexedClass> _classMap = <ir.Class, IndexedClass>{};
   Map<ir.Typedef, IndexedTypedef> _typedefMap = <ir.Typedef, IndexedTypedef>{};
-  Map<ir.TypeParameter, IndexedTypeVariable> _typeVariableMap =
-      <ir.TypeParameter, IndexedTypeVariable>{};
+
+  /// Map from [ir.TypeParameter] nodes to the corresponding
+  /// [TypeVariableEntity].
+  ///
+  /// Normally the type variables are [IndexedTypeVariable]s, but for type
+  /// parameters on local function (in the frontend) these are _not_ since
+  /// their type declaration is neither a class nor a member. In the backend,
+  /// these type parameters belong to the call-method and are therefore indexed.
+  Map<ir.TypeParameter, TypeVariableEntity> _typeVariableMap =
+      <ir.TypeParameter, TypeVariableEntity>{};
   Map<ir.Member, IndexedConstructor> _constructorMap =
       <ir.Member, IndexedConstructor>{};
   Map<ir.Procedure, IndexedFunction> _methodMap =
@@ -822,6 +830,7 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   Name getName(ir.Name node);
   FunctionType getFunctionType(ir.FunctionNode node);
   MemberEntity getMember(ir.Member node);
+  Entity getClosure(ir.FunctionDeclaration node);
 
   Iterable<LibraryEntity> get _libraryList {
     if (_env.length != _libraryMap.length) {
@@ -890,8 +899,7 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
           ir.Constructor constructor = func.parent;
           ir.Class cls = constructor.enclosingClass;
           return _getTypeVariable(cls.typeParameters[index]);
-        }
-        if (func.parent is ir.Procedure) {
+        } else if (func.parent is ir.Procedure) {
           ir.Procedure procedure = func.parent;
           if (procedure.kind == ir.ProcedureKind.Factory) {
             ir.Class cls = procedure.enclosingClass;
@@ -1162,6 +1170,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     return true;
   }
 
+  DartType _getTypeVariableBound(TypeVariableEntity typeVariable) {
+    if (typeVariable is KLocalTypeVariable) return typeVariable.bound;
+    return super._getTypeVariableBound(typeVariable);
+  }
+
   @override
   void _forEachNestedClosure(
       MemberEntity member, void f(FunctionEntity closure)) {
@@ -1206,12 +1219,18 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   }
 
   @override
+  Entity getClosure(ir.FunctionDeclaration node) {
+    return getLocalFunction(node);
+  }
+
+  @override
   Local getLocalFunction(ir.TreeNode node) {
     assert(
         node is ir.FunctionDeclaration || node is ir.FunctionExpression,
         failedAt(
             CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
-    return _localFunctionMap.putIfAbsent(node, () {
+    KLocalFunction localFunction = _localFunctionMap[node];
+    if (localFunction == null) {
       MemberEntity memberContext;
       Entity executableContext;
       ir.TreeNode parent = node.parent;
@@ -1230,16 +1249,25 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         parent = parent.parent;
       }
       String name;
-      FunctionType functionType;
+      ir.FunctionNode function;
       if (node is ir.FunctionDeclaration) {
         name = node.variable.name;
-        functionType = getFunctionType(node.function);
+        function = node.function;
       } else if (node is ir.FunctionExpression) {
-        functionType = getFunctionType(node.function);
+        function = node.function;
       }
-      return new KLocalFunction(
-          name, memberContext, executableContext, functionType, node);
-    });
+      localFunction = _localFunctionMap[node] =
+          new KLocalFunction(name, memberContext, executableContext, node);
+      int index = 0;
+      for (ir.TypeParameter typeParameter in function.typeParameters) {
+        KLocalTypeVariable typeVariable = _typeVariableMap[typeParameter] =
+            new KLocalTypeVariable(localFunction, typeParameter.name, index);
+        typeVariable.bound = getDartType(typeParameter.bound);
+        index++;
+      }
+      localFunction.functionType = getFunctionType(function);
+    }
+    return localFunction;
   }
 
   bool _implementsFunction(IndexedClass cls) {
@@ -2045,9 +2073,14 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
     return _backend._members.getEntity(member.memberIndex);
   }
 
-  TypeVariableEntity toBackendTypeVariable(
-      covariant IndexedTypeVariable typeVariable) {
-    return _backend._typeVariables.getEntity(typeVariable.typeVariableIndex);
+  TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
+    if (typeVariable is KLocalTypeVariable) {
+      failedAt(
+          typeVariable, "Local function type variables are not supported.");
+    }
+    IndexedTypeVariable indexedTypeVariable = typeVariable;
+    return _backend._typeVariables
+        .getEntity(indexedTypeVariable.typeVariableIndex);
   }
 }
 
@@ -2133,9 +2166,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       if (oldTypeVariable.typeDeclaration is ClassEntity) {
         IndexedClass cls = oldTypeVariable.typeDeclaration;
         newTypeDeclaration = _classes.getEntity(cls.classIndex);
-      } else {
+      } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
         IndexedMember member = oldTypeVariable.typeDeclaration;
         newTypeDeclaration = _members.getEntity(member.memberIndex);
+      } else {
+        assert(oldTypeVariable.typeDeclaration is Local);
       }
       IndexedTypeVariable newTypeVariable = createTypeVariable(
           newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
@@ -2144,6 +2179,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       assert(newTypeVariable.typeVariableIndex ==
           oldTypeVariable.typeVariableIndex);
     }
+  }
+
+  @override
+  Entity getClosure(ir.FunctionDeclaration node) {
+    throw new UnsupportedError('JsKernelToElementMap.getClosure');
   }
 
   @override
@@ -2358,7 +2398,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
       JLibrary enclosingLibrary,
       Map<Local, JRecordField> recordFieldsVisibleInScope,
       KernelScopeInfo info,
-      ir.Location location,
       KernelToLocalsMap localsMap,
       InterfaceType supertype) {
     InterfaceType memberThisType = member.enclosingClass != null
@@ -2418,6 +2457,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _nestedClosureMap
         .putIfAbsent(member, () => <FunctionEntity>[])
         .add(callMethod);
+    int index = 0;
+    for (ir.TypeParameter typeParameter in node.typeParameters) {
+      _typeVariableMap[typeParameter] = _typeVariables.register(
+          createTypeVariable(callMethod, typeParameter.name, index),
+          new TypeVariableData(typeParameter));
+      index++;
+    }
     _members.register<IndexedFunction, FunctionData>(
         callMethod,
         new ClosureFunctionData(

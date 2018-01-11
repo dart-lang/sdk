@@ -21,7 +21,7 @@ class InvalidCodeTest_Kernel extends InvalidCodeTest {
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @failingTest
   @override

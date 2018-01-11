@@ -411,6 +411,7 @@ class ForwardingNode extends Procedure {
     }
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
+    procedure.forwardingStubSuperTarget = superTarget.reference;
   }
 
   /// Creates a forwarding stub based on the given [target].

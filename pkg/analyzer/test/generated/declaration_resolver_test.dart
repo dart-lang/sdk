@@ -353,7 +353,6 @@ const b = null;
       node = node.parent;
     }
     fail('Node not found');
-    return null;
   }
 }
 

@@ -16,6 +16,9 @@ for arg in "$@"; do
     --with-fast-startup|--fast-startup)
       fast_startup=true
       ;;
+    --strong)
+      strong=true
+      ;;
     --with-checked-mode|--checked-mode|--checked)
       checked_mode=true
       ;;
@@ -31,7 +34,11 @@ for arg in "$@"; do
 done
 
 if [ -z "$suites" ]; then
-  suites="dart2js_native dart2js_extra language language_2 corelib corelib_2 html"
+  if [[ "$strong" == true ]]; then
+    suites="language_2 corelib_2"
+  else
+    suites="dart2js_native dart2js_extra language corelib html"
+  fi
 fi
 
 repodir=$(cd $(dirname ${BASH_SOURCE[0]})/../../../../; pwd)
@@ -41,6 +48,23 @@ binaries_dir=out/ReleaseX64
 
 tmp=$(mktemp -d)
 
+function update_suite_with_flags {
+  local name=$1
+  local suite=$2
+  shift 2
+  local args=$@
+  if [[ "$strong" == true ]]; then
+    name="$name-strong"
+    args="--strong $args"
+  fi
+
+  echo "  - $name tests"
+  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
+      --dart2js-with-kernel $args $suite > $tmp/$suite-$name.txt
+  echo $tmp/$suite-$name.txt
+  $dart $update_script $name $tmp/$suite-$name.txt
+}
+
 function update_suite {
   local suite=$1
   local runtime="d8"
@@ -48,39 +72,13 @@ function update_suite {
     runtime="drt"
   fi
   echo -e "\nupdate suite: [32m$suite[0m"
-  echo "  - minified tests"
-  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
-      --use-sdk --minified --dart2js-with-kernel \
-      $suite > $tmp/$suite-minified.txt
-  $dart $update_script minified $tmp/$suite-minified.txt
-
-
-  echo "  - host-checked tests"
-  ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
-    --host-checked \
-    --dart2js-options="--platform-binaries=$binaries_dir" \
-    --dart2js-with-kernel \
-    $suite > $tmp/$suite-host-checked.txt
-  $dart $update_script host-checked $tmp/$suite-host-checked.txt
-
+  update_suite_with_flags minified $suite "--minified --use-sdk"
+  update_suite_with_flags host-checked $suite "--host-checked"
   if [ "$fast_startup" = true ]; then
-    echo "  - fast-startup tests"
-    ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
-      --fast-startup \
-      --dart2js-options="--platform-binaries=$binaries_dir" \
-      --dart2js-with-kernel \
-      $suite > $tmp/$suite-fast-startup.txt
-    $dart $update_script fast-startup $tmp/$suite-fast-startup.txt
+    update_suite_with_flags fast-startup $suite "--fast-startup"
   fi
-
   if [ "$checked_mode" = true ]; then
-    echo "  - checked mode tests"
-    ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
-      --checked \
-      --dart2js-options="--platform-binaries=$binaries_dir" \
-      --dart2js-with-kernel \
-      $suite > $tmp/$suite-checked-mode.txt
-    $dart $update_script checked-mode $tmp/$suite-checked-mode.txt
+    update_suite_with_flags checked-mode $suite "--checked"
   fi
 }
 

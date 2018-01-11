@@ -31,10 +31,13 @@ main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
+    defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
+    defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
+    defineReflectiveTests(OptionsTest_UseCFE);
   }, name: 'Driver');
 }
 
@@ -51,6 +54,8 @@ class BaseTest {
   String bulletToDash(item) => '$item'.replaceAll('•', '-');
 
   bool get usePreviewDart2 => false;
+
+  bool get useCFE => false;
 
   /// Start a driver for the given [source], optionally providing additional
   /// [args] and an [options] file path. The value of [options] defaults to an
@@ -69,6 +74,9 @@ class BaseTest {
     ]..addAll(args);
     if (usePreviewDart2) {
       cmd.insert(0, '--preview-dart-2');
+    }
+    if (useCFE) {
+      cmd.insert(0, '--use-cfe');
     }
     await driver.start(cmd);
   }
@@ -611,6 +619,19 @@ class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
     // TODO(devoncarew): This test times out when used with @failingTest.
     return new Future.error('failing test');
   }
+}
+
+@reflectiveTest
+class ExitCodesTest_UseCFE extends ExitCodesTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_fatalErrors() {
+    // TODO(devoncarew): This test times out when used with @failingTest.
+    return new Future.error('failing test');
+  }
 
   @override
   @failingTest
@@ -725,6 +746,12 @@ class LinterTest_PreviewDart2 extends LinterTest {
 }
 
 @reflectiveTest
+class LinterTest_UseCFE extends LinterTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class OptionsTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
@@ -788,10 +815,16 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
 
-  @failingTest
   test_previewDart2() async {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--preview-dart-2']);
+    expect(driver.context.analysisOptions.useFastaParser, isFalse);
+  }
+
+  @failingTest
+  test_useCFE() async {
+    await drive('data/options_tests_project/test_file.dart',
+        args: ['--use-cfe']);
     expect(driver.context.analysisOptions.useFastaParser, isTrue);
   }
 
@@ -835,6 +868,12 @@ class OptionsTest extends BaseTest {
 class OptionsTest_PreviewDart2 extends OptionsTest {
   @override
   bool get usePreviewDart2 => true;
+}
+
+@reflectiveTest
+class OptionsTest_UseCFE extends OptionsTest {
+  @override
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -856,6 +895,10 @@ class OptionsTest_PreviewDart2 extends OptionsTest {
   @failingTest
   test_withFlags_overrideFatalWarning() =>
       super.test_withFlags_overrideFatalWarning();
+
+  @override
+  @failingTest
+  test_previewDart2() => super.test_previewDart2();
 }
 
 class TestSource implements Source {

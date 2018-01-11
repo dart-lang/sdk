@@ -844,7 +844,8 @@ class ProgramBuilder {
   }
 
   bool _methodNeedsStubs(FunctionEntity method) {
-    return method.parameterStructure.optionalParameters != 0;
+    return method.parameterStructure.optionalParameters != 0 ||
+        method.parameterStructure.typeParameters != 0;
   }
 
   bool _methodCanBeReflected(FunctionEntity method) {

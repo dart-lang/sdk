@@ -38,7 +38,7 @@ void defineTests() {
             reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
       });
 
-      test('$benchmarkId-preview-dart-2', () {
+      test('$benchmarkId-use-cfe', () {
         ProcessResult r = Process.runSync(
           Platform.resolvedExecutable,
           [
@@ -46,7 +46,7 @@ void defineTests() {
             'run',
             '--repeat=1',
             '--quick',
-            '--preview-dart-2',
+            '--use-cfe',
             benchmarkId
           ],
           workingDirectory: _serverSourcePath,

@@ -56,6 +56,7 @@
   * Renamed the `HtmlEscapeMode` constants `UNKNOWN`, `ATTRIBUTE`,
     `SQ_ATTRIBUTE` and `ELEMENT` to `unknown`, `attribute`, `sqAttribute` and
     `elements`.
+  * Changed return type of `Base64Codec.decode` to `Uint8List`.
 
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional

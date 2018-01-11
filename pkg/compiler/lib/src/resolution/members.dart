@@ -1131,6 +1131,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       sendStructure = new IsStructure(type);
     }
 
+    // GENERIC_METHODS: Method type variables are not reified so we must warn
+    // about the error which will occur at runtime.
+    if (type is MethodTypeVariableType) {
+      reporter.reportWarningMessage(
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+    }
+
     registry.registerTypeUse(new TypeUse.isCheck(type));
     registry.registerSendStructure(node, sendStructure);
     return const NoneResult();
@@ -1144,6 +1151,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Node typeNode = node.arguments.head;
     ResolutionDartType type =
         resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
+
+    // GENERIC_METHODS: Method type variables are not reified, so we must inform
+    // the developer about the potentially bug-inducing semantics.
+    if (type is MethodTypeVariableType) {
+      reporter.reportHintMessage(
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC);
+    }
 
     registry.registerTypeUse(new TypeUse.asCast(type));
     registry.registerSendStructure(node, new AsStructure(type));
@@ -1913,6 +1927,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Clean up registration of elements and selectors
       // for this case.
     } else {
+      // GENERIC_METHODS: Method type variables are not reified so we must warn
+      // about the error which will occur at runtime.
+      if (element.type is MethodTypeVariableType) {
+        reporter.reportWarningMessage(
+            node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+      }
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
 

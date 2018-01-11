@@ -1114,7 +1114,6 @@ class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
       }
     }
     fail('Annotation not found');
-    return null;
   }
 
   test_annotation_with_args() {
@@ -1269,7 +1268,6 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
       }
     }
     fail('Annotation not found');
-    return null;
   }
 
   test_annotation_non_const_constructor() {

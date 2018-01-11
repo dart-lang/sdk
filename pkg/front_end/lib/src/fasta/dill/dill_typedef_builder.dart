@@ -14,15 +14,13 @@ import '../kernel/kernel_builder.dart'
         KernelFunctionTypeBuilder,
         LibraryBuilder,
         MetadataBuilder,
-        TypeVariableBuilder;
+        TypeBuilder;
 
 import '../problems.dart' show unimplemented;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_class_builder.dart' show DillClassBuilder;
-
-import 'built_type_variable_builder.dart' show BuiltTypeVariableBuilder;
 
 import 'built_type_builder.dart' show BuiltTypeBuilder;
 
@@ -35,23 +33,24 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
     return unimplemented("metadata", -1, null);
   }
 
-  @override
-  List<TypeVariableBuilder> get typeVariables {
+  List<TypeBuilder> get calculatedBounds {
+    if (super.calculatedBounds != null) {
+      return super.calculatedBounds;
+    }
     DillLibraryBuilder parentLibraryBuilder = parent;
     DillClassBuilder objectClassBuilder =
         parentLibraryBuilder.loader.coreLibrary["Object"];
     Class objectClass = objectClassBuilder.cls;
     List<TypeParameter> targetTypeParameters = target.typeParameters;
-    List<DartType> calculatedBounds =
+    List<DartType> calculatedBoundTypes =
         calculateBounds(targetTypeParameters, objectClass);
-    List<TypeVariableBuilder> typeVariables =
-        new List<BuiltTypeVariableBuilder>(targetTypeParameters.length);
-    for (int i = 0; i < typeVariables.length; i++) {
-      TypeParameter parameter = targetTypeParameters[i];
-      typeVariables[i] = new BuiltTypeVariableBuilder(parameter.name, parameter,
-          null, charOffset, new BuiltTypeBuilder(calculatedBounds[i]));
+    List<TypeBuilder> result =
+        new List<BuiltTypeBuilder>(targetTypeParameters.length);
+    for (int i = 0; i < result.length; i++) {
+      result[i] = new BuiltTypeBuilder(calculatedBoundTypes[i]);
     }
-    return typeVariables;
+    super.calculatedBounds = result;
+    return super.calculatedBounds;
   }
 
   @override

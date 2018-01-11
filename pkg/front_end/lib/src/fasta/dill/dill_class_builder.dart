@@ -16,15 +16,13 @@ import '../kernel/kernel_builder.dart'
         KernelClassBuilder,
         KernelTypeBuilder,
         Scope,
-        TypeVariableBuilder;
+        TypeBuilder;
 
 import '../modifier.dart' show abstractMask;
 
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
-
-import 'built_type_variable_builder.dart' show BuiltTypeVariableBuilder;
 
 import 'built_type_builder.dart' show BuiltTypeBuilder;
 
@@ -62,22 +60,24 @@ class DillClassBuilder extends KernelClassBuilder {
     }
   }
 
-  List<TypeVariableBuilder> get typeVariables {
+  List<TypeBuilder> get calculatedBounds {
+    if (super.calculatedBounds != null) {
+      return super.calculatedBounds;
+    }
     DillLibraryBuilder parentLibraryBuilder = parent;
     DillClassBuilder objectClassBuilder =
         parentLibraryBuilder.loader.coreLibrary["Object"];
     Class objectClass = objectClassBuilder.cls;
     List<TypeParameter> targetTypeParameters = target.typeParameters;
-    List<DartType> calculatedBounds =
+    List<DartType> calculatedBoundTypes =
         calculateBounds(targetTypeParameters, objectClass);
-    List<TypeVariableBuilder> typeVariables =
-        new List<BuiltTypeVariableBuilder>(targetTypeParameters.length);
-    for (int i = 0; i < typeVariables.length; i++) {
-      TypeParameter parameter = targetTypeParameters[i];
-      typeVariables[i] = new BuiltTypeVariableBuilder(parameter.name, parameter,
-          null, charOffset, new BuiltTypeBuilder(calculatedBounds[i]));
+    List<TypeBuilder> result =
+        new List<BuiltTypeBuilder>(targetTypeParameters.length);
+    for (int i = 0; i < result.length; i++) {
+      result[i] = new BuiltTypeBuilder(calculatedBoundTypes[i]);
     }
-    return typeVariables;
+    super.calculatedBounds = result;
+    return super.calculatedBounds;
   }
 
   /// Returns true if this class is the result of applying a mixin to its

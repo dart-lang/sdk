@@ -19,7 +19,10 @@ import 'messages.dart'
         SummaryTemplate,
         Template,
         messagePlatformPrivateLibraryAccess,
+        templateInternalProblemMissingSeverity,
         templateSourceBodySummary;
+
+import 'problems.dart' show internalProblem;
 
 import 'severity.dart' show Severity;
 
@@ -191,22 +194,29 @@ abstract class Loader<L> {
   /// otherwise it is added to [unhandledErrors].
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
       {bool wasHandled: false, LocatedMessage context}) {
-    if (addMessage(message, charOffset, fileUri, Severity.error,
-        context: context)) {
-      (wasHandled ? handledErrors : unhandledErrors)
-          .add(message.withLocation(fileUri, charOffset));
+    addMessage(message, charOffset, fileUri, Severity.error,
+        wasHandled: wasHandled, context: context);
+  }
+
+  /// Register [message] as a problem with a severity determined by the
+  /// intrinsic severity of the message.
+  void addProblem(Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {
+    Severity severity = message.code.severity;
+    if (severity == null) {
+      addMessage(message, charOffset, fileUri, Severity.error,
+          context: context);
+      internalProblem(
+          templateInternalProblemMissingSeverity
+              .withArguments(message.code.name),
+          charOffset,
+          fileUri);
     }
-  }
-
-  void addWarning(Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
-    addMessage(message, charOffset, fileUri, Severity.warning,
-        context: context);
-  }
-
-  void addNit(Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
-    addMessage(message, charOffset, fileUri, Severity.nit, context: context);
+    if (severity == Severity.errorLegacyWarning) {
+      severity =
+          target.backendTarget.strongMode ? Severity.error : Severity.warning;
+    }
+    addMessage(message, charOffset, fileUri, severity, context: context);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
@@ -217,7 +227,7 @@ abstract class Loader<L> {
   /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
   bool addMessage(
       Message message, int charOffset, Uri fileUri, Severity severity,
-      {LocatedMessage context}) {
+      {bool wasHandled: false, LocatedMessage context}) {
     String trace = """
 message: ${message.message}
 charOffset: $charOffset
@@ -230,6 +240,10 @@ severity: $severity
       target.context.report(context, severity);
     }
     recordMessage(severity, message, charOffset, fileUri, context: context);
+    if (severity == Severity.error) {
+      (wasHandled ? handledErrors : unhandledErrors)
+          .add(message.withLocation(fileUri, charOffset));
+    }
     return true;
   }
 

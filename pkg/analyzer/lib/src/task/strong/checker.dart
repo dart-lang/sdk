@@ -7,6 +7,7 @@
 library analyzer.src.task.strong.checker;
 
 import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -37,8 +38,15 @@ import 'ast_properties.dart';
 /// because we know it evaluates to a specific, concrete function, and we can
 /// treat "dynamic" as top for that case, which is more permissive.
 DartType getDefiniteType(
-    Expression expression, TypeSystem typeSystem, TypeProvider typeProvider) {
-  DartType type = expression.staticType ?? DynamicTypeImpl.instance;
+    Expression expression, TypeSystem typeSystem, TypeProvider typeProvider,
+    {bool read: false}) {
+  DartType type;
+  if (read) {
+    type = getReadType(expression);
+  } else {
+    type = expression.staticType;
+  }
+  type ??= DynamicTypeImpl.instance;
   if (typeSystem is StrongTypeSystemImpl &&
       type is FunctionType &&
       hasStrictArrow(expression)) {
@@ -46,6 +54,35 @@ DartType getDefiniteType(
     return typeSystem.functionTypeToConcreteType(type);
   }
   return type;
+}
+
+DartType getReadType(Expression expression) {
+  if (expression is IndexExpression) {
+    return expression.auxiliaryElements?.staticElement?.returnType;
+  }
+  {
+    Element setter;
+    if (expression is PrefixedIdentifier) {
+      setter = expression.staticElement;
+    } else if (expression is PropertyAccess) {
+      setter = expression.propertyName.staticElement;
+    } else if (expression is SimpleIdentifier) {
+      setter = expression.staticElement;
+    }
+    if (setter is PropertyAccessorElement && setter.isSetter) {
+      var getter = setter.variable.getter;
+      if (getter != null) {
+        return getter.returnType;
+      }
+    }
+  }
+  if (expression is SimpleIdentifier) {
+    var aux = expression.auxiliaryElements;
+    if (aux != null) {
+      return aux.staticElement?.returnType;
+    }
+  }
+  return expression.staticType;
 }
 
 bool hasStrictArrow(Expression expression) {

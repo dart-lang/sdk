@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/core_types.dart';
@@ -153,7 +153,8 @@ Future<CompilerResult> _compile(List<String> args,
       .toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
-      path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
+      path.join(path.dirname(path.dirname(Platform.resolvedExecutable)), 'lib',
+          '_internal', 'ddc_sdk.dill');
 
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
@@ -164,11 +165,7 @@ Future<CompilerResult> _compile(List<String> args,
 
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
-    // TODO(jmesserly): front end warning levels do not seem to follow the
-    // Strong Mode/Dart 2 spec. So for now, we treat all warnings as
-    // compile time errors.
-    if (error.severity == fe.Severity.error ||
-        error.severity == fe.Severity.warning) {
+    if (error.severity == fe.Severity.error) {
       succeeded = false;
     }
   }
@@ -179,7 +176,7 @@ Future<CompilerResult> _compile(List<String> args,
   // the correct location and keeps the real file location hidden from the
   // front end.
   var fileSystem = new MultiRootFileSystem(
-      customScheme, multiRoots, PhysicalFileSystem.instance);
+      customScheme, multiRoots, StandardFileSystem.instance);
 
   compilerState = await fe.initializeCompiler(
       compilerState,
@@ -367,5 +364,14 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
       i++;
     }
   }
+
+  // Add platform defined variables
+  declaredVariables['dart.isVM'] = 'false';
+
+  // TODO(vsm): Should this be hardcoded?
+  declaredVariables['dart.library.html'] = 'true';
+  declaredVariables['dart.library.io'] = 'false';
+  declaredVariables['dart.library.ui'] = 'false';
+
   return declaredVariables;
 }

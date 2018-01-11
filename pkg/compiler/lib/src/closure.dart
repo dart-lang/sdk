@@ -1243,7 +1243,7 @@ class ClosureTranslator extends Visitor {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
-        rtiNeed.classNeedsRti(outermostElement.enclosingClass)) {
+        rtiNeed.classNeedsTypeArguments(outermostElement.enclosingClass)) {
       if (outermostElement.isConstructor || outermostElement.isField) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember) {
@@ -1435,7 +1435,7 @@ class ClosureTranslator extends Visitor {
       closures.add(node);
       nodeMappingCache[node] = closureData = globalizeClosure(node, closure);
       needsRti = compiler.options.enableTypeAssertions ||
-          rtiNeed.localFunctionNeedsRti(closure);
+          rtiNeed.localFunctionNeedsSignature(closure);
     } else {
       outermostElement = element;
       ThisLocal thisElement = null;
@@ -1448,7 +1448,7 @@ class ClosureTranslator extends Visitor {
       memberMappingCache[element.declaration] = closureData;
       if (element is MethodElement) {
         needsRti = compiler.options.enableTypeAssertions ||
-            rtiNeed.methodNeedsRti(element);
+            rtiNeed.methodNeedsSignature(element);
       }
     }
     if (closureData.callMethod != null) {

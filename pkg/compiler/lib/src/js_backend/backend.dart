@@ -368,7 +368,9 @@ class JavaScriptBackend {
     return result;
   }
 
-  RuntimeTypesImpl _rti;
+  RuntimeTypesChecksBuilder _rtiChecksBuilder;
+
+  RuntimeTypesSubstitutions _rtiSubstitutions;
 
   RuntimeTypesEncoder _rtiEncoder;
 
@@ -532,22 +534,22 @@ class JavaScriptBackend {
 
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
-        _rti != null,
+        _rtiChecksBuilder != null,
         failedAt(NO_LOCATION_SPANNABLE,
             "RuntimeTypesChecksBuilder has not been created yet."));
     assert(
-        !_rti.rtiChecksBuilderClosed,
+        !_rtiChecksBuilder.rtiChecksBuilderClosed,
         failedAt(NO_LOCATION_SPANNABLE,
             "RuntimeTypesChecks has already been computed."));
-    return _rti;
+    return _rtiChecksBuilder;
   }
 
   RuntimeTypesSubstitutions get rtiSubstitutions {
     assert(
-        _rti != null,
+        _rtiSubstitutions != null,
         failedAt(NO_LOCATION_SPANNABLE,
             "RuntimeTypesSubstitutions has not been created yet."));
-    return _rti;
+    return _rtiSubstitutions;
   }
 
   RuntimeTypesEncoder get rtiEncoder {
@@ -595,9 +597,11 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(closedWorld, codegenWorldBuilder)
-        : new Namer(closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(
+                closedWorld, codegenWorldBuilder, compiler.options)
+            : new MinifyNamer(
+                closedWorld, codegenWorldBuilder, compiler.options)
+        : new Namer(closedWorld, codegenWorldBuilder, compiler.options);
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -979,8 +983,18 @@ class JavaScriptBackend {
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
     BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
-    _rti = new RuntimeTypesImpl(
-        closedWorld.elementEnvironment, closedWorld.dartTypes);
+    if (compiler.options.disableRtiOptimization) {
+      _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(
+          closedWorld.elementEnvironment, closedWorld.dartTypes);
+      _rtiChecksBuilder =
+          new TrivialRuntimeTypesChecksBuilder(closedWorld, _rtiSubstitutions);
+    } else {
+      RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(
+          closedWorld.elementEnvironment, closedWorld.dartTypes);
+      _rtiChecksBuilder = runtimeTypesImpl;
+      _rtiSubstitutions = runtimeTypesImpl;
+    }
+
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
         closedWorld.elementEnvironment,

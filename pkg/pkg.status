@@ -36,6 +36,11 @@ dart_messages/test/dart_messages_test: Skip  # Requires a package root.
 
 # Skip dev_compiler codegen tests
 dev_compiler/test/codegen/*: Skip
+dev_compiler/test/codegen_test: Skip
+dev_compiler/test/options/*: Skip
+dev_compiler/test/sourcemap/*: SkipByDesign
+dev_compiler/test/sourcemap/testfiles/*: SkipByDesign
+dev_compiler/test/worker/*: Skip
 dev_compiler/gen/*: SkipByDesign
 
 # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
@@ -79,11 +84,11 @@ kernel/test/closures_test: Skip
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
 
-# Analyze dev_compiler but don't run its tests
-[ $compiler != dart2analyzer ]
+# Analyze dev_compiler but only run its tests on the vm
+[ $compiler != dart2analyzer && $runtime != vm ]
 dev_compiler/test/*: Skip
 
-[ $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer || $runtime != vm ]
 dev_compiler/test/options/*: SkipByDesign
 
 [ $compiler == none && $runtime == drt ]
@@ -95,9 +100,15 @@ front_end/*: SkipByDesign
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/completion: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
+analysis_server/test/integration/edit/format_test: Pass, Slow
+analysis_server/test/integration/analysis/error_test: Pass, Slow
+analysis_server/test/integration/analysis/lint_test: Pass, Slow
+analysis_server/test/integration/edit/import_elements_test: Pass, Slow
+analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Pass, Slow
+analysis_server/test/integration/edit/sort_members_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
@@ -116,9 +127,6 @@ front_end/tool/_fasta/*: Skip # Issue 28629
 compiler/tool/generate_kernel_test*: Skip # Issue 28629
 front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 kernel/test/metadata_test: Skip # Issue 28629
-
-[ $runtime == vm && ! $use_sdk ]
-front_end/tool/perf_test: Skip # Issue 28698
 
 [ $runtime == vm && $use_sdk ]
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
@@ -152,7 +160,7 @@ front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
 front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
-front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
+front_end/test/standard_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/file_repository_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
@@ -219,7 +227,7 @@ dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
 [ $browser || $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
-[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te) ]
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te || $arch == simdbc64) ]
 # Timeout. These are not unit tests. They do not run efficiently on our
 # simulator or low-end devices.
 *: Skip

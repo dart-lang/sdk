@@ -34,8 +34,8 @@ class VirtualMemory {
   bool Contains(uword addr) const { return region_.Contains(addr); }
 
   // Changes the protection of the virtual memory area.
-  static bool Protect(void* address, intptr_t size, Protection mode);
-  bool Protect(Protection mode) { return Protect(address(), size(), mode); }
+  static void Protect(void* address, intptr_t size, Protection mode);
+  void Protect(Protection mode) { return Protect(address(), size(), mode); }
 
   // Reserves and commits a virtual memory segment with size. If a segment of
   // the requested size cannot be allocated, NULL is returned.

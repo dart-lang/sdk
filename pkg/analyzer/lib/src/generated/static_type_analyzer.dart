@@ -18,7 +18,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/checker.dart' show getDefiniteType;
+import 'package:analyzer/src/task/strong/checker.dart'
+    show getDefiniteType, getReadType;
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -128,6 +129,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         // inferred a type in some fashion.
         if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
           inferredType = ts.upperBoundForType(inferredType);
+          if (inferredType.isDartCoreNull) {
+            inferredType = _typeProvider.objectType;
+          }
           if (!inferredType.isDynamic) {
             p.type = inferredType;
             inferred = true;
@@ -314,7 +318,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       // The static type of a compound assignment using ??= is the least upper
       // bound of the static types of the LHS and RHS.
-      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
+      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
+          read: true);
       return null;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -323,7 +328,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       staticType = _typeSystem.refineBinaryExpressionType(
-          node.leftHandSide.staticType,
+          _getStaticType(node.leftHandSide, read: true),
           operator,
           node.rightHandSide.staticType,
           staticType);
@@ -1062,11 +1067,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
-    DartType staticType = _getStaticType(operand);
+    DartType staticType = _getStaticType(operand, read: true);
     TokenType operator = node.operator.type;
     if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
       DartType intType = _typeProvider.intType;
-      if (identical(_getStaticType(node.operand), intType)) {
+      if (identical(staticType, intType)) {
         staticType = intType;
       }
     }
@@ -1171,7 +1176,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (operator == TokenType.MINUS_MINUS ||
           operator == TokenType.PLUS_PLUS) {
         DartType intType = _typeProvider.intType;
-        if (identical(_getStaticType(node.operand), intType)) {
+        if (identical(_getStaticType(node.operand, read: true), intType)) {
           staticType = intType;
         }
       }
@@ -1444,9 +1449,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * of the static (propagated) types of subexpressions [expr1] and [expr2].
    */
   void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2) {
-    DartType staticType1 = _getDefiniteType(expr1);
-    DartType staticType2 = _getDefiniteType(expr2);
+      Expression node, Expression expr1, Expression expr2,
+      {bool read: false}) {
+    DartType staticType1 = _getDefiniteType(expr1, read: read);
+    DartType staticType2 = _getDefiniteType(expr2, read: read);
     if (staticType1 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType1 = _dynamicType;
@@ -1658,8 +1664,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * See [getDefiniteType] for more information. Without strong mode, this is
    * equivalent to [_getStaticType].
    */
-  DartType _getDefiniteType(Expression expr) =>
-      getDefiniteType(expr, _typeSystem, _typeProvider);
+  DartType _getDefiniteType(Expression expr, {bool read: false}) =>
+      getDefiniteType(expr, _typeSystem, _typeProvider, read: read);
 
   /**
    * If the given element name can be mapped to the name of a class defined within the given
@@ -1793,8 +1799,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * Return the static type of the given [expression].
    */
-  DartType _getStaticType(Expression expression) {
-    DartType type = expression.staticType;
+  DartType _getStaticType(Expression expression, {bool read: false}) {
+    DartType type;
+    if (read) {
+      type = getReadType(expression);
+    } else {
+      type = expression.staticType;
+    }
     if (type == null) {
       // TODO(brianwilkerson) Determine the conditions for which the static type
       // is null.
@@ -2012,36 +2023,27 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * (in strong mode) a local function declaration.
    */
   void _inferLocalFunctionReturnType(FunctionExpression node) {
-    bool recordInference = false;
     ExecutableElementImpl functionElement =
         node.element as ExecutableElementImpl;
 
     FunctionBody body = node.body;
-    DartType computedType;
-    if (body is ExpressionFunctionBody) {
-      computedType = _getStaticType(body.expression);
-    } else {
-      computedType = _dynamicType;
-    }
 
-    // If we had a better type from the function body, use it.
-    //
-    // This helps in a few cases:
-    // * ExpressionFunctionBody, when the surrounding context had a better type.
-    // * BlockFunctionBody, if we inferred a type from yield/return.
-    // * we also normalize bottom to dynamic here.
-    if (_strongMode &&
-        (computedType.isDartCoreNull || computedType.isDynamic)) {
-      DartType contextType = InferenceContext.getContext(body);
-      computedType = contextType ?? _dynamicType;
-      recordInference = !computedType.isDynamic;
+    DartType computedType;
+    if (_strongMode) {
+      computedType = InferenceContext.getContext(body) ?? _dynamicType;
+    } else {
+      if (body is ExpressionFunctionBody) {
+        computedType = _getStaticType(body.expression);
+      } else {
+        computedType = _dynamicType;
+      }
     }
 
     computedType = _computeReturnTypeOfFunction(body, computedType);
     functionElement.returnType = computedType;
     _recordPropagatedTypeOfFunction(functionElement, node.body);
     _recordStaticType(node, functionElement.type);
-    if (recordInference) {
+    if (_strongMode) {
       _resolver.inferenceContext.recordInference(node, functionElement.type);
     }
   }

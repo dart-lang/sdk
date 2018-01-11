@@ -98,7 +98,11 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       program = coq.transformProgram(coreTypes, program);
       break;
     case 'constants':
-      final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
+      // We use the -D defines supplied to this VM instead of explicitly using a
+      // constructed map of constants.
+      final Map<String, String> defines = null;
+      final VmConstantsBackend backend =
+          new VmConstantsBackend(defines, coreTypes);
       program = constants.transformProgram(program, backend);
       break;
     case 'treeshake':

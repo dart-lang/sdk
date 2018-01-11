@@ -94,7 +94,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 60);
 
   /**
    * Connection to the analysis server.
@@ -253,10 +253,10 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
-   * Whether to run integration tests with the --preview-dart-2 flag.
+   * Whether to run integration tests with the --use-cfe flag.
    */
-  // TODO(devoncarew): Remove this when --preview-dart-2 goes away.
-  bool get usePreviewDart2 => false;
+  // TODO(devoncarew): Remove this when --use-cfe goes away.
+  bool get useCFE => false;
 
   /**
    * Start [server].
@@ -265,13 +265,13 @@ abstract class AbstractAnalysisServerIntegrationTest
     bool checked: true,
     int diagnosticPort,
     int servicesPort,
-    bool previewDart2: false,
+    bool cfe: false,
   }) {
     return server.start(
         checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
-        previewDart2: previewDart2 || usePreviewDart2);
+        useCFE: cfe || useCFE);
   }
 
   /**
@@ -669,7 +669,7 @@ class Server {
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
-    bool previewDart2: false,
+    bool useCFE: false,
     bool useAnalysisHighlight2: false,
   }) async {
     if (_process != null) {
@@ -724,8 +724,8 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (previewDart2) {
-      arguments.add('--preview-dart-2');
+    if (useCFE) {
+      arguments.add('--use-cfe');
     }
     // TODO(devoncarew): We could experiment with instead launching the analysis
     // server in a separate isolate. This would make it easier to debug the

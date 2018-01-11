@@ -145,7 +145,6 @@ var b = new Text('bbb');
       }
     }
     fail('Not found $name in $unit');
-    return null;
   }
 
   InstanceCreationExpression _getTopVariableCreation(String name,

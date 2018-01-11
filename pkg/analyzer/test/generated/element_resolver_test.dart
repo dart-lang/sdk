@@ -36,6 +36,15 @@ main() {
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class ElementResolverCodeTest extends ResolverTestCase {
   test_annotation_class_namedConstructor() async {
@@ -317,7 +326,7 @@ class ElementResolverTest extends EngineTestCase {
   ElementResolver _resolver;
 
   void fail_visitExportDirective_combinators() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     // Need to set up the exported library so that the identifier can be
     // resolved.
     ExportDirective directive = AstTestFactory.exportDirective2(null, [
@@ -328,12 +337,12 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void fail_visitFunctionExpressionInvocation() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
   void fail_visitImportDirective_combinators_noPrefix() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be
     // resolved.
     ImportDirective directive = AstTestFactory.importDirective3(null, null, [
@@ -344,7 +353,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void fail_visitImportDirective_combinators_prefix() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     // Need to set up the imported library so that the identifiers can be
     // resolved.
     String prefixName = "p";
@@ -361,7 +370,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void fail_visitRedirectingConstructorInvocation() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 

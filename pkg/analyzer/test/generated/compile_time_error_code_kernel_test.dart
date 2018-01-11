@@ -22,20 +22,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   bool get enableKernelDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
   test_accessPrivateEnumField() async {
     // 'package:analyzer/src/dart/analysis/library_analyzer.dart': Failed assertion: line 1082 pos 18: 'memberElement != null': is not true.
     await super.test_accessPrivateEnumField();
-  }
-
-  @override
-  @failingTest
-  test_ambiguousExport() async {
-    // Expected 1 errors of type CompileTimeErrorCode.AMBIGUOUS_EXPORT, found 0
-    await super.test_ambiguousExport();
   }
 
   @override
@@ -75,40 +68,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_statement_label() async {
-    // Bad state: Expected element reference for analyzer offset 14; got one for kernel offset 21
-    await super.test_async_used_as_identifier_in_statement_label();
-  }
-
-  @override
-  @failingTest
-  test_async_used_as_identifier_in_switch_label() async {
-    // Bad state: No reference information for async at 31
-    await super.test_async_used_as_identifier_in_switch_label();
-  }
-
-  @override
-  @failingTest
-  // This test fails because the kernel driver element model produces a
-  // different element model result than the regular parser produces. Once these
-  // tests enable the faster parser (and not just the kernel driver), this
-  // should be looked at again.
   test_bug_23176() async {
+    // This test fails because the kernel driver element model produces a
+    // different element model result than the regular parser produces. Once these
+    // tests enable the faster parser (and not just the kernel driver), this
+    // should be looked at again.
     return super.test_bug_23176();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsMixinName_classTypeAlias() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, found 0
-    await super.test_builtInIdentifierAsMixinName_classTypeAlias();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsPrefixName() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME, found 0
-    await super.test_builtInIdentifierAsPrefixName();
   }
 
   @override
@@ -132,27 +97,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_builtInIdentifierAsType_variableDeclaration() async {
     // Bad state: No reference information for typedef at 8
     await super.test_builtInIdentifierAsType_variableDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsTypedefName_functionTypeAlias() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, found 0
-    await super.test_builtInIdentifierAsTypedefName_functionTypeAlias();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsTypeName() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, found 0
-    await super.test_builtInIdentifierAsTypeName();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsTypeParameterName() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, found 0
-    await super.test_builtInIdentifierAsTypeParameterName();
   }
 
   @override
@@ -892,29 +836,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_extendsDisallowedClass_class_bool() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0;
-    //          1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
-    await super.test_extendsDisallowedClass_class_bool();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_class_double() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_class_double();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_class_int() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0;
-    //          1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
-    await super.test_extendsDisallowedClass_class_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_extendsDisallowedClass_class_Null() async {
     // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0;
     //          1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
@@ -923,59 +845,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_extendsDisallowedClass_class_num() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_class_num();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_class_String() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0;
-    //          1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
-    await super.test_extendsDisallowedClass_class_String();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_classTypeAlias_bool() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_classTypeAlias_bool();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_classTypeAlias_double() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_classTypeAlias_double();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_classTypeAlias_int() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_classTypeAlias_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_extendsDisallowedClass_classTypeAlias_Null() async {
     // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
     await super.test_extendsDisallowedClass_classTypeAlias_Null();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_classTypeAlias_num() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_classTypeAlias_num();
-  }
-
-  @override
-  @failingTest
-  test_extendsDisallowedClass_classTypeAlias_String() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0
-    await super.test_extendsDisallowedClass_classTypeAlias_String();
   }
 
   @override
@@ -1206,27 +1079,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_implementsDisallowedClass_class_bool() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_class_bool();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_class_double() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_class_double();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_class_int() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_class_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_implementsDisallowedClass_class_Null() async {
     // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
     await super.test_implementsDisallowedClass_class_Null();
@@ -1234,72 +1087,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_implementsDisallowedClass_class_num() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_class_num();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_class_String() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_class_String();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_class_String_num() async {
-    // Expected 2 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_class_String_num();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_bool() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_classTypeAlias_bool();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_double() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_classTypeAlias_double();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_int() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_classTypeAlias_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_implementsDisallowedClass_classTypeAlias_Null() async {
     // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
     await super.test_implementsDisallowedClass_classTypeAlias_Null();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_num() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_classTypeAlias_num();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_String() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_classTypeAlias_String();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_String_num() async {
-    // Expected 2 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
-    await super.test_implementsDisallowedClass_classTypeAlias_String_num();
   }
 
   @override
@@ -1760,6 +1551,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_export() async {
+    return super.test_invalidUri_export();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_import() async {
+    return super.test_invalidUri_import();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
+  test_invalidUri_part() async {
+    return super.test_invalidUri_part();
+  }
+
+  @override
+  @failingTest
   test_isInConstInstanceCreation_restored() async {
     // Expected 1 errors of type CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, found 0
     await super.test_isInConstInstanceCreation_restored();
@@ -1923,27 +1735,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_mixinOfDisallowedClass_class_bool() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_class_bool();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_class_double() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_class_double();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_class_int() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_class_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_mixinOfDisallowedClass_class_Null() async {
     // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
     await super.test_mixinOfDisallowedClass_class_Null();
@@ -1951,58 +1743,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_mixinOfDisallowedClass_class_num() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_class_num();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_class_String() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_class_String();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_classTypeAlias_bool() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_classTypeAlias_bool();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_classTypeAlias_double() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_classTypeAlias_double();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_classTypeAlias_int() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_classTypeAlias_int();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_mixinOfDisallowedClass_classTypeAlias_Null() async {
     // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
     await super.test_mixinOfDisallowedClass_classTypeAlias_Null();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_classTypeAlias_num() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_classTypeAlias_num();
-  }
-
-  @override
-  @failingTest
-  test_mixinOfDisallowedClass_classTypeAlias_String() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
-    await super.test_mixinOfDisallowedClass_classTypeAlias_String();
   }
 
   @override
@@ -2183,20 +1927,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_noDefaultSuperConstructorImplicit_mixinWithOptionalParam() async {
     // Expected 1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
     await super.test_noDefaultSuperConstructorImplicit_mixinWithOptionalParam();
-  }
-
-  @override
-  @failingTest
-  test_noDefaultSuperConstructorImplicit_superHasParameters() async {
-    // Expected 1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
-    await super.test_noDefaultSuperConstructorImplicit_superHasParameters();
-  }
-
-  @override
-  @failingTest
-  test_noDefaultSuperConstructorImplicit_superOnlyNamed() async {
-    // Expected 1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
-    await super.test_noDefaultSuperConstructorImplicit_superOnlyNamed();
   }
 
   @override

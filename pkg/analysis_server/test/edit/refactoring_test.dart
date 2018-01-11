@@ -31,6 +31,15 @@ main() {
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
   test_function() {
@@ -1214,7 +1223,7 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
 
   @failingTest
   test_OK() {
-    fail('The move file refactoring is not supported under the new driver');
+    _fail('The move file refactoring is not supported under the new driver');
     newFile('/project/bin/lib.dart');
     addTestFile('''
 import 'dart:math';

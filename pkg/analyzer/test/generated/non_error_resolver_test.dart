@@ -6396,6 +6396,13 @@ f() sync* {
     verify([source]);
   }
 
+  test_typeArgument_boundToFunctionType() async {
+    Source source = addSource("class A<T extends void Function<T>(T)>{}");
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   Future<Null> _check_wrongNumberOfParametersForOperator(
       String name, String parameters) async {
     Source source = addSource("""

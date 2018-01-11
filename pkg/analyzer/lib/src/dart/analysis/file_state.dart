@@ -95,6 +95,11 @@ class FileState {
   final Uri uri;
 
   /**
+   * The absolute file URI of the file.
+   */
+  final Uri fileUri;
+
+  /**
    * The [Source] of the file with the [uri].
    */
   final Source source;
@@ -137,12 +142,13 @@ class FileState {
    */
   bool hasErrorOrWarning = false;
 
-  FileState._(this._fsState, this.path, this.uri, this.source)
+  FileState._(this._fsState, this.path, this.uri, this.fileUri, this.source)
       : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
+        fileUri = null,
         source = null {
     _apiSignature = new Uint8List(16);
   }
@@ -729,7 +735,7 @@ class FileSystemState {
    */
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      _unresolvedFile = new FileState._(this, null, null, null);
+      _unresolvedFile = new FileState._(this, null, null, null, null);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -756,8 +762,9 @@ class FileSystemState {
         return file;
       }
       // Create a new file.
+      Uri fileUri = _resourceProvider.pathContext.toUri(path);
       FileSource uriSource = new FileSource(resource, uri);
-      file = new FileState._(this, path, uri, uriSource);
+      file = new FileState._(this, path, uri, fileUri, uriSource);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -796,8 +803,9 @@ class FileSystemState {
 
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
+      Uri fileUri = _resourceProvider.pathContext.toUri(path);
       FileSource source = new FileSource(resource, uri);
-      file = new FileState._(this, path, uri, source);
+      file = new FileState._(this, path, uri, fileUri, source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh();

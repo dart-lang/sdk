@@ -78,7 +78,7 @@ bool VirtualMemory::FreeSubSegment(void* address,
   return false;
 }
 
-bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   ASSERT(Thread::Current()->IsMutatorThread() ||
          Isolate::Current()->mutator_thread()->IsAtSafepoint());
   uword start_address = reinterpret_cast<uword>(address);
@@ -103,9 +103,10 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       break;
   }
   DWORD old_prot = 0;
-  bool result = VirtualProtect(reinterpret_cast<void*>(page_address),
-                               end_address - page_address, prot, &old_prot);
-  return result;
+  if (VirtualProtect(reinterpret_cast<void*>(page_address),
+                     end_address - page_address, prot, &old_prot) == 0) {
+    FATAL1("VirtualProtect failed %d\n", GetLastError());
+  }
 }
 
 }  // namespace dart

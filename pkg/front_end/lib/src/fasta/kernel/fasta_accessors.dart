@@ -149,7 +149,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void addWarning(Message message, int charOffset, int length);
+  void addProblemErrorIfConst(Message message, int charOffset, int length);
 
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
@@ -672,7 +672,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
+        buildSimpleRead(), callName, arguments, arguments.fileOffset,
         isImplicitCall: true);
   }
 
@@ -814,7 +814,7 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
 
   Expression doInvocation(int offset, Arguments arguments) {
     if (arguments.positional.length > 0 || arguments.named.length > 0) {
-      helper.addWarning(
+      helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset);
@@ -1043,7 +1043,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       int offset = offsetForToken(token);
       if (declaration is KernelInvalidTypeBuilder) {
         KernelInvalidTypeBuilder declaration = this.declaration;
-        helper.addWarning(
+        helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)

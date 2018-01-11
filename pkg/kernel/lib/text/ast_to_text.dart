@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast_to_text;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import '../ast.dart';
 import '../import_table.dart';
 

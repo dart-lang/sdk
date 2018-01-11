@@ -33,7 +33,7 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   @failingTest
@@ -96,64 +96,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_covarianceChecks_superclass() async {
     // NoSuchMethodError: The method 'toList' was called on null.
     await super.test_covarianceChecks_superclass();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_assignment_typedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_assignment_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_assignment_unTypedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_assignment_unTypedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionExpressionInvocation_typedArguments() async {
-    // Bad state: Expected a type for null at 154; got one for kernel offset 142
-    await super
-        .test_functionLiteral_functionExpressionInvocation_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionExpressionInvocation_unTypedArguments() async {
-    // Bad state: Expected a type for null at 150; got one for kernel offset 142
-    await super
-        .test_functionLiteral_functionExpressionInvocation_unTypedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionInvocation_typedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_functionInvocation_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_functionInvocation_unTypedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_functionInvocation_unTypedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_methodInvocation_typedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_methodInvocation_typedArguments();
-  }
-
-  @override
-  @failingTest
-  test_functionLiteral_methodInvocation_unTypedArguments() async {
-    // Expected: InterfaceTypeImpl:<String>
-    await super.test_functionLiteral_methodInvocation_unTypedArguments();
   }
 
   @override
@@ -336,7 +278,7 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 
   @override
   test_futureOr_promotion3() async {
@@ -530,5 +472,5 @@ class StrongModeTypePropagationTest_Kernel
   bool get enableNewAnalysisDriver => true;
 
   @override
-  bool get previewDart2 => true;
+  bool get useCFE => true;
 }

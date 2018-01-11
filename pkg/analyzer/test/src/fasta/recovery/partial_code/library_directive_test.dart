@@ -40,8 +40,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
               'library _s_;',
               failing: allExceptEof),
           new TestDescriptor('name', 'library lib',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;',
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], 'library lib;'),
           new TestDescriptor(
               'nameDot',
               'library lib.',
@@ -52,8 +51,7 @@ class LibraryDirectivesTest extends PartialCodeTest {
               'library lib._s_;',
               failing: allExceptEof),
           new TestDescriptor('nameDotName', 'library lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;',
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], 'library lib.a;'),
         ],
         PartialCodeTest.prePartSuffixes);
   }

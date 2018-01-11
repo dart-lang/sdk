@@ -113,7 +113,7 @@ buildGraph() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    final rootLib = await isolate.rootLibrary.load();
+    final Library rootLib = await isolate.rootLibrary.load();
     final raw =
         await isolate.fetchHeapSnapshot(M.HeapSnapshotRoots.vm, false).last;
     final snapshot = new HeapSnapshot();

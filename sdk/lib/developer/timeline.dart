@@ -6,7 +6,10 @@ part of dart.developer;
 
 const bool _isProduct = const bool.fromEnvironment("dart.vm.product");
 
+/// A typedef for the function argument to [Timeline.timeSync].
 typedef dynamic TimelineSyncFunction();
+
+// TODO: This typedef is not used.
 typedef Future TimelineAsyncFunction();
 
 /// A class to represent Flow events.

@@ -229,7 +229,10 @@ EntityRefBuilder _createLinkedType(
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
-    if (element is GenericFunctionTypeElement) {
+    if (element is GenericFunctionTypeElementForLink) {
+      // TODO(mfairhurst) update the typeParameterContext to be the current
+      // element. See test_constExpr_makeTypedList_functionType. This causes
+      // serious breakages elsewhere.
       result.entityKind = EntityRefKind.genericFunctionType;
       result.syntheticReturnType = _createLinkedType(
           type.returnType, compilationUnit, typeParameterContext);
@@ -237,6 +240,8 @@ EntityRefBuilder _createLinkedType(
           .map((ParameterElement param) => _serializeSyntheticParam(
               param, compilationUnit, typeParameterContext))
           .toList();
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
     // TODO(paulberry): implement other cases.
@@ -1982,10 +1987,13 @@ abstract class ExecutableElementForLink extends Object
    * better return type).
    */
   DartType _computeDefaultReturnType() {
-    if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
+    var kind = _unlinkedExecutable.kind;
+    var isMethod = kind == UnlinkedExecutableKind.functionOrMethod;
+    var isSetter = kind == UnlinkedExecutableKind.setter;
+    if ((isSetter || isMethod && _unlinkedExecutable.name == '[]=') &&
         (library as LibraryElementForLink)._linker.strongMode) {
-      // In strong mode, setters without an explicit return type are
-      // considered to return `void`.
+      // In strong mode, setters and `[]=` operators without an explicit
+      // return type are considered to return `void`.
       return VoidTypeImpl.instance;
     } else {
       return DynamicTypeImpl.instance;
@@ -2528,7 +2536,7 @@ class ExprTypeComputer {
     DartType itemType = numItems == 0
         ? DynamicTypeImpl.instance
         : _popList(numItems).reduce(_leastUpperBound);
-    itemType = _dynamicIfNull(itemType);
+    itemType ??= DynamicTypeImpl.instance;
     stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
   }
 
@@ -2546,8 +2554,8 @@ class ExprTypeComputer {
             valueType == null ? type : _leastUpperBound(valueType, type);
       }
     }
-    keyType = _dynamicIfNull(keyType);
-    valueType = _dynamicIfNull(valueType);
+    keyType ??= DynamicTypeImpl.instance;
+    valueType ??= DynamicTypeImpl.instance;
     stack.add(typeProvider.mapType.instantiate(<DartType>[keyType, valueType]));
   }
 

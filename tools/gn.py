@@ -28,6 +28,8 @@ DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 # use instead of --platform-sdk
 DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
 
+DART_GN_ARGS = "DART_GN_ARGS"
+
 def UseASAN():
   return DART_USE_ASAN in os.environ
 
@@ -58,6 +60,13 @@ def TargetSysroot(args):
 
 def MakePlatformSDK():
   return DART_MAKE_PLATFORM_SDK in os.environ
+
+
+def GetGNArgs(args):
+  if args.gn_args != None:
+    return args.gn_args
+  args = os.environ.get(DART_GN_ARGS) or ""
+  return args.split()
 
 
 def GetOutDir(mode, arch, target_os):
@@ -484,8 +493,7 @@ def Main(argv):
         out_dir = GetOutDir(mode, arch, target_os)
         command = [gn, 'gen', out_dir, '--check']
         gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
-        if args.gn_args != None:
-          gn_args += args.gn_args
+        gn_args += GetGNArgs(args)
         if args.verbose:
           print "gn gen --check in %s" % out_dir
         if args.ide:

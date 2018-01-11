@@ -156,8 +156,7 @@ void HeapPage::WriteProtect(bool read_only) {
   } else {
     prot = VirtualMemory::kReadWrite;
   }
-  bool status = memory_->Protect(prot);
-  ASSERT(status);
+  memory_->Protect(prot);
 }
 
 // The initial estimate of how many words we can mark per microsecond (usage

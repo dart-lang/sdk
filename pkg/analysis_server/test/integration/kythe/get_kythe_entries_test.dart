@@ -11,7 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetKytheEntriesTest);
-    defineReflectiveTests(GetKytheEntriesTest_PreviewDart2);
+    defineReflectiveTests(GetKytheEntriesTest_UseCFE);
   });
 }
 
@@ -40,7 +40,7 @@ class Bar {
 }
 
 @reflectiveTest
-class GetKytheEntriesTest_PreviewDart2 extends GetKytheEntriesTest {
+class GetKytheEntriesTest_UseCFE extends GetKytheEntriesTest {
   @override
-  bool get usePreviewDart2 => true;
+  bool get useCFE => true;
 }

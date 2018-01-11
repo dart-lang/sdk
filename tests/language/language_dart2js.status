@@ -72,7 +72,6 @@ assertion_initializer_const_function_test/01: RuntimeError
 assertion_initializer_test: CompileTimeError
 assign_static_type_test/01: Fail
 assign_static_type_test/02: MissingCompileTimeError
-async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 async_star_cancel_while_paused_test: RuntimeError
@@ -212,7 +211,6 @@ final_field_initialization_order_test: RuntimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_type_expression_test/01: RuntimeError
 generic_methods_type_expression_test/03: RuntimeError
 generic_methods_type_expression_test/none: RuntimeError
@@ -222,7 +220,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -376,7 +373,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
@@ -515,7 +511,6 @@ arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_star_cancel_while_paused_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
@@ -616,7 +611,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -768,7 +762,6 @@ named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 no_such_method_test: RuntimeError
 null_test/02: MissingCompileTimeError
@@ -832,7 +825,6 @@ type_checks_in_factory_method_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 async_star_cancel_while_paused_test: RuntimeError
 async_test/setter1: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
@@ -937,7 +929,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -1086,7 +1077,6 @@ named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
 no_main_test/01: CompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
@@ -1156,7 +1146,6 @@ type_checks_in_factory_method_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 async_star_cancel_while_paused_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
@@ -1264,7 +1253,6 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 generic_closure_test: RuntimeError
-generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_type_expression_test/01: RuntimeError
 generic_methods_type_expression_test/03: RuntimeError
 generic_methods_type_expression_test/none: RuntimeError
@@ -1275,7 +1263,6 @@ getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
-infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
 integer_division_by_zero_test: RuntimeError
@@ -1425,7 +1412,6 @@ named_parameters_type_test/01: MissingRuntimeError
 named_parameters_type_test/02: MissingRuntimeError
 named_parameters_type_test/03: MissingRuntimeError
 nan_identical_test: RuntimeError
-nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError

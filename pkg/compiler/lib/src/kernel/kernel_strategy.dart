@@ -134,8 +134,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   }
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return _runtimeTypesNeedBuilder ??=
-        new RuntimeTypesNeedBuilderImpl(elementEnvironment, _elementMap.types);
+    return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
+        ? const TrivialRuntimeTypesNeedBuilder()
+        : new RuntimeTypesNeedBuilderImpl(
+            elementEnvironment, _elementMap.types);
   }
 
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>

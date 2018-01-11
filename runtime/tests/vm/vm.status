@@ -296,12 +296,7 @@ cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
 cc/StackTraceFormat: Fail
 cc/UseDartApi: Fail
-dart/data_uri_import_test/base64: CompileTimeError
-dart/data_uri_import_test/nocharset: CompileTimeError
-dart/data_uri_import_test/nomime: CompileTimeError
-dart/data_uri_import_test/percentencoded: Fail
-dart/data_uri_import_test/wrongmime: CompileTimeError
-dart/data_uri_spawn_test: RuntimeError
+dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
 dart/redirection_type_shuffling_test/00: Crash
 dart/redirection_type_shuffling_test/none: Crash
 dart/spawn_shutdown_test: SkipSlow
@@ -335,24 +330,22 @@ dart/data_uri_spawn_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+dart/spawn_infinite_loop_test: RuntimeError
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
-dart/spawn_infinite_loop_test: Crash # Please triage.
+dart/spawn_infinite_loop_test: Crash
 
 [ $compiler == dartkp && !$strong ]
 dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/data_uri_import_test/base64: CompileTimeError
-dart/data_uri_import_test/nocharset: CompileTimeError
-dart/data_uri_import_test/nomime: CompileTimeError
-dart/data_uri_import_test/percentencoded: CompileTimeError
-dart/data_uri_import_test/wrongmime: CompileTimeError
-dart/data_uri_spawn_test: RuntimeError
+dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 

@@ -13,7 +13,7 @@ import '../fasta/severity.dart' show Severity;
 
 import 'compilation_message.dart';
 import 'file_system.dart';
-import 'physical_file_system.dart';
+import 'standard_file_system.dart';
 
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationMessage error);
@@ -115,7 +115,7 @@ class CompilerOptions {
   /// mechanism, with one exception: if no value is specified for
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
-  FileSystem fileSystem = PhysicalFileSystem.instance;
+  FileSystem fileSystem = StandardFileSystem.instance;
 
   /// The byte storage to access serialized data.
   ByteStore byteStore = new NullByteStore();

@@ -104,7 +104,6 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 isolate_stress_test: Pass, Slow # Issue 10697
 
 [ $compiler == dartk && $strong ]
-isolate_complex_messages_test: Crash
 issue_21398_parent_isolate1_test: RuntimeError
 issue_22778_test: Crash
 message3_test/byteBuffer: RuntimeError
@@ -121,7 +120,7 @@ spawn_function_custom_class_test: CompileTimeError
 spawn_uri_nested_vm_test: CompileTimeError
 static_function_test: CompileTimeError
 typed_message_test: CompileTimeError
-unresolved_ports_test: Pass, Timeout
+unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

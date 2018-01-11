@@ -225,14 +225,31 @@ def _CheckStatusFiles(input_api, output_api):
   return []
 
 
+def _CheckValidHostsInDEPS(input_api, output_api):
+  """Checks that DEPS file deps are from allowed_hosts."""
+  # Run only if DEPS file has been modified to annoy fewer bystanders.
+  if all(f.LocalPath() != 'DEPS' for f in input_api.AffectedFiles()):
+    return []
+  # Outsource work to gclient verify
+  try:
+    input_api.subprocess.check_output(['gclient', 'verify'])
+    return []
+  except input_api.subprocess.CalledProcessError, error:
+    return [output_api.PresubmitError(
+        'DEPS file must have only dependencies from allowed hosts.',
+        long_text=error.output)]
+
+
 def CheckChangeOnCommit(input_api, output_api):
-  return (_CheckBuildStatus(input_api, output_api) +
+  return (_CheckValidHostsInDEPS(input_api, output_api) +
+          _CheckBuildStatus(input_api, output_api) +
           _CheckNewTests(input_api, output_api) +
           _CheckDartFormat(input_api, output_api) +
           _CheckStatusFiles(input_api, output_api))
 
 
 def CheckChangeOnUpload(input_api, output_api):
-  return (_CheckNewTests(input_api, output_api) +
+  return (_CheckValidHostsInDEPS(input_api, output_api) +
+          _CheckNewTests(input_api, output_api) +
           _CheckDartFormat(input_api, output_api) +
           _CheckStatusFiles(input_api, output_api))

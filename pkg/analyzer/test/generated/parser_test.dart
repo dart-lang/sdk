@@ -8668,18 +8668,42 @@ abstract class FormalParameterParserTestMixin
     expect(list.rightParenthesis, isNotNull);
   }
 
+  void test_parseFormalParameterList_prefixedType_missingName() {
+    FormalParameterList list = parseFormalParameterList('(io.File)',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]);
+    expect(list, isNotNull);
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    // TODO(danrubel): Investigate and improve recovery of parameter type/name.
+    SimpleFormalParameter parameter = list.parameters[0];
+    expect(parameter.toSource(), 'io.File ');
+    expect(parameter.identifier.token.isSynthetic, isTrue);
+    TypeName type = parameter.type;
+    PrefixedIdentifier typeName = type.name;
+    expect(typeName.prefix.token.isSynthetic, isFalse);
+    expect(typeName.identifier.token.isSynthetic, isFalse);
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
   void test_parseFormalParameterList_prefixedType_partial() {
-    int errorOffset = usingFastaParser ? 4 : 3;
     FormalParameterList list = parseFormalParameterList('(io.)', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1)
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
     ]);
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
     expect(list.leftDelimiter, isNull);
     expect(list.parameters, hasLength(1));
     // TODO(danrubel): Investigate and improve recovery of parameter type/name.
-    expect(list.parameters[0].toSource(), 'io. ');
+    SimpleFormalParameter parameter = list.parameters[0];
+    expect(parameter.toSource(), 'io. ');
+    expect(parameter.identifier.token.isSynthetic, isTrue);
+    TypeName type = parameter.type;
+    PrefixedIdentifier typeName = type.name;
+    expect(typeName.prefix.token.isSynthetic, isFalse);
+    expect(typeName.identifier.token.isSynthetic, isTrue);
     expect(list.rightDelimiter, isNull);
     expect(list.rightParenthesis, isNotNull);
   }
@@ -10428,10 +10452,17 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_const() {
-    CompilationUnit unit = parseCompilationUnit("const ", codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+    CompilationUnit unit = parseCompilationUnit("const ",
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                CompileTimeErrorCode.CONST_NOT_INITIALIZED
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -10445,10 +10476,17 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_final() {
-    CompilationUnit unit = parseCompilationUnit("final ", codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+    CompilationUnit unit = parseCompilationUnit("final ",
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                StaticWarningCode.FINAL_NOT_INITIALIZED
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -10482,10 +10520,17 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   const
-}''', codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+}''',
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                CompileTimeErrorCode.CONST_NOT_INITIALIZED
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
