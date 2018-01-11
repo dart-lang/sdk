@@ -36,6 +36,8 @@
 % - Require that a top-level "main" declaration is a valid script-entry
 %   function declaration.
 % - State that the return type of a setter or []= is void when not specified.
+% - Clarify that "noSuchMethod" must be implemented, not just redeclared
+%   abstractly, to eliminate certain diagnostic messages.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1458,7 +1460,7 @@ In classes used as mixins, it is often useful to introduce such declarations for
 It is a static warning if an abstract member $m$ is declared or inherited in a concrete class $C$ unless:
 \begin{itemize}
 \item $m$ overrides a concrete member, or
-\item $C$ has a \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
+\item $C$ has a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
 \end{itemize}
 
 \rationale{
@@ -2236,7 +2238,7 @@ Finally, static members never override anything.
 }
 
 \LMHash{}
-It is a static warning if a non-abstract class inherits an abstract method.
+It is a static warning if a concrete class inherits an abstract method.
 
 \commentary{
 For convenience, here is a summary of the relevant rules.
@@ -2284,7 +2286,7 @@ The types of these are all \DYNAMIC{}.
 If this is impossible then no member $m$ appears in the interface.
 \end{itemize} (\ref{interfaceInheritanceAndOverriding})
 \item Rule \ref{typeSigAssignable} applies to interfaces as well as classes (\ref{interfaceInheritanceAndOverriding}).
-\item It is a static warning if a concrete class does not have an implementation for a method in any of its superinterfaces unless it has a \code{noSuchMethod} method (\ref{superinterfaces}).
+\item It is a static warning if a concrete class does not have an implementation for a method in any of its superinterfaces unless it has a concrete \code{noSuchMethod} method (\ref{superinterfaces}) distinct from the one in class \code{Object}.
 \item The identifier of a named constructor cannot be the same as the name of a member declared (as opposed to inherited) in the same class (\ref{constructors}).
 \end{enumerate}
 }
@@ -2329,8 +2331,8 @@ That said, problems like these are local and easily corrected on the spot, so we
 It is a compile-time error if the interface of a class $C$ is a superinterface of itself.
 
 \LMHash{}
-Let $C$ be a concrete class that does not have a \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
-It is a static warning if the implicit interface of $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding non-abstract instance member $m$ of type $F'$ such that $F' <: F$.
+Let $C$ be a concrete class that does not have a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
+It is a static warning if the implicit interface of $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding concrete instance member $m$ of type $F'$ such that $F' <: F$.
 
 \commentary{
 A class does not inherit members from its superinterfaces.
@@ -2339,7 +2341,7 @@ However, its implicit interface does.
 
 \rationale{
 We choose to issue these warnings only for concrete classes; an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of the interface.
-We also disable these warnings if a \code{noSuchMethod()} declaration is present or inherited from any class other than \code{Object}.
+We also disable these warnings if a concrete \code{noSuchMethod()} declaration is present or inherited from any class other than \code{Object}.
 In such cases, the supported interface is going to be implemented via \code{noSuchMethod()} and no actual declarations of the implemented interface's members are needed.
 This allows proxy classes for specific types to be implemented without provoking type warnings.
 }
@@ -4532,7 +4534,7 @@ If getter lookup has also failed, then a new instance $im$ of the predefined cla
 Then the method \code{noSuchMethod()} is looked up in $v_o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
 \commentary{
-It is not possible to override the \code{noSuchMethod} if class \code{Object}
+It is not possible to override the \code{noSuchMethod} of class \code{Object}
 in such a way that it cannot be invoked with one argument of type \code{Invocation}.
 }
 
@@ -8327,7 +8329,7 @@ A function type $T$ may be assigned to a function type $S$, written $T \Longleft
 A function is always an instance of some class that implements the class \code{Function} and implements a \CALL{} method with the same signature as the function.
 All function types are subtypes of \code{Function}.
 If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{} is the function type $F$, then $I$ is considered to be more specific than $F$.
-It is a static warning if a concrete class implements \code{Function} and does not have a concrete method named \CALL{} unless that class has an implementation of \code{noSuchMethod()} distinct from the one declared in class \code{Object}.
+It is a static warning if a concrete class implements \code{Function} and does not have a concrete method named \CALL{} unless that class has a concrete \code{noSuchMethod()} distinct from the one declared in class \code{Object}.
 
 %\commentary{Need to specify how a function values dynamic type is derived from its static signature.}
 
