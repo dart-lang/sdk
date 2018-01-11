@@ -16,7 +16,6 @@ mirrors/variable_is_const_test/01: Crash
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash
-isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -82,7 +81,7 @@ isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
-isolate/static_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
 isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
@@ -437,4 +436,3 @@ mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign
-

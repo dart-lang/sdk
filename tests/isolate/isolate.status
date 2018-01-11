@@ -135,7 +135,7 @@ unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt
 scenarios/short_package/short_package_test: Fail, OK # We do not plan to support the tested behavior anyway.
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkp) ]
-static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+static_function_test: Skip # Times out. Issue 31855
 
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
 compile_time_error_test/01: Skip # Issue 12587
@@ -231,4 +231,3 @@ function_send_test: Pass, Fail # Closure identity
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 message3_test/fun: Pass, Fail # Closure identity
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
-
