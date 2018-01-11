@@ -26,13 +26,15 @@ mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter
 mirrors/variable_is_const_test/01: Crash # Please triage.
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
-mirrors/invocation_fuzz_test/emptyarray: Pass
-mirrors/invocation_fuzz_test/false: Pass
-mirrors/invocation_fuzz_test/none: Pass
-mirrors/invocation_fuzz_test/string: Pass
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
+
+[ $compiler == dartk && $runtime == vm && !$checked && $strong ]
+mirrors/invocation_fuzz_test/emptyarray: Crash
+mirrors/invocation_fuzz_test/false: Crash
+mirrors/invocation_fuzz_test/none: Crash
+mirrors/invocation_fuzz_test/string: Crash
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
@@ -134,10 +136,6 @@ mirrors/hot_set_field_test: RuntimeError
 mirrors/inherit_field_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/intercepted_class_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/intercepted_object_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/invocation_fuzz_test/emptyarray: Crash
-mirrors/invocation_fuzz_test/false: Crash
-mirrors/invocation_fuzz_test/none: Crash
-mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/invoke_throws_test: Crash
