@@ -1,3 +1,8 @@
+# 0.1.42
+
+* added support for external constructors in `avoid_unused_constructor_parameters`
+* added code reference resolution docs for `comment_references`
+
 # 0.1.41
 
 * broadened `args` package dependency to support versions `1.*`
