@@ -1,0 +1,76 @@
+{
+  "roots": [
+    {
+      "library": "dart:core",
+      "class": "Object",
+      "name": "noSuchMethod",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "List",
+      "name": "_fromLiteral",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "Map",
+      "name": "_fromLiteral",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_ImmutableList",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_ImmutableMap",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_StringBase",
+      "name": "_interpolate",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_StringBase",
+      "name": "_interpolateSingle",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "name": "_classRangeAssert",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "name": "_classIdEqualsAssert",
+      "action": "call"
+    },
+    {
+      "library": "dart:_internal",
+      "name": "_classRangeCheck",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_AssertionError",
+      "name": "_evaluateAssertion",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_resolveScriptUri",
+      "action": "call"
+    },
+    {
+      "library": "dart:math",
+      "class": "_Random",
+      "name": "_A",
+      "action": "get"
+    }
+  ]
+}

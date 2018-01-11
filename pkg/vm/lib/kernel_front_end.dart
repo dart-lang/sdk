@@ -19,6 +19,11 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'transformations/devirtualization.dart' as devirtualization
     show transformProgram;
+import 'transformations/type_flow/transformer.dart' as globalTypeFlow
+    show transformProgram;
+
+// Flag to enable global type flow analysis and related transformations.
+const kUseGlobalTypeFlow = const bool.fromEnvironment('use.global.type.flow');
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source]. Intended for whole program (non-modular) compilation.
@@ -49,7 +54,11 @@ _runGlobalTransformations(Program program, bool strongMode) {
   if (strongMode) {
     final coreTypes = new CoreTypes(program);
 
-    devirtualization.transformProgram(coreTypes, program);
+    if (kUseGlobalTypeFlow) {
+      globalTypeFlow.transformProgram(coreTypes, program);
+    } else {
+      devirtualization.transformProgram(coreTypes, program);
+    }
   }
 }
 
