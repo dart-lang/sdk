@@ -16,18 +16,14 @@ main(List<String> args) {
       "file:///C:/full/windows/path.foo");
 
   // Relative Windows path
-  expect(
-      stringToUri("partial\\windows\\path.foo", windows: true).toString(),
-      "file://${Directory.current.path.replaceAll(r'\', r'/')}"
-      "/partial/windows/path.foo");
+  expect(stringToUri("partial\\windows\\path.foo", windows: true).toString(),
+      "file://${Directory.current.path}/partial/windows/path.foo");
 
   // Full Unix path
   expect(stringToUri("/full/path/to/foo.bar", windows: false).toString(),
       "file:///full/path/to/foo.bar");
 
   // Relative Unix path
-  expect(
-      stringToUri("partial/path/to/foo.bar", windows: false).toString(),
-      "file://${Directory.current.path.replaceAll(r'\', r'/')}"
-      "/partial/path/to/foo.bar");
+  expect(stringToUri("partial/path/to/foo.bar", windows: false).toString(),
+      "file://${Directory.current.path}/partial/path/to/foo.bar");
 }
