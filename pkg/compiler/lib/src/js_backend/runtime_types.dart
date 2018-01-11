@@ -553,15 +553,18 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   bool methodNeedsSignature(FunctionEntity function) {
-    return methodsNeedingSignature.contains(function) ||
-        _backendUsage.isRuntimeTypeUsed;
+    return _backendUsage.isRuntimeTypeUsed ||
+        methodsNeedingSignature.contains(function);
   }
 
   // TODO(johnniwinther): Optimize to only include generic methods that really
   // need the RTI.
   bool methodNeedsTypeArguments(FunctionEntity function) {
-    return methodsNeedingTypeArguments.contains(function) ||
-        _backendUsage.isRuntimeTypeUsed;
+    if (function.parameterStructure.typeParameters == 0) return false;
+    if (_backendUsage.isRuntimeTypeUsed) return true;
+    // TODO(johnniwinther): Include instance members in analysis.
+    if (function.isInstanceMember) return true;
+    return methodsNeedingTypeArguments.contains(function);
   }
 
   bool localFunctionNeedsSignature(Local function) {

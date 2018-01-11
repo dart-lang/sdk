@@ -20,19 +20,19 @@ import 'package:meta/dart2js.dart';
 test(o) => o is double || o is String || o is int;
 
 @noInline
-genericMethod1<T>(T t) {
+method1<T>(T t) {
   test(t);
-  print('genericMethod1:');
+  print('method1:');
   print('$t is $T = ${t is T}');
   print('"foo" is $T = ${"foo" is T}');
   print('');
 }
 
 @noInline
-genericMethod2<T, S>(S s, T t) {
+method2<T, S>(S s, T t) {
   test(t);
   test(s);
-  print('genericMethod2:');
+  print('method2:');
   print('$t is $T = ${t is T}');
   print('$s is $T = ${s is T}');
   print('$t is $S = ${t is S}');
@@ -41,10 +41,10 @@ genericMethod2<T, S>(S s, T t) {
 }
 
 @tryInline
-genericMethod3<T, S>(T t, S s) {
+method3<T, S>(T t, S s) {
   test(t);
   test(s);
-  print('genericMethod3:');
+  print('method3:');
   print('$t is $T = ${t is T}');
   print('$s is $T = ${s is T}');
   print('$t is $S = ${t is S}');
@@ -60,12 +60,12 @@ class Class1<T> {
   String toString() => 'c$index';
 }
 
-genericMethod4<T>(int index) => new Class1<T>(index);
+method4<T>(int index) => new Class1<T>(index);
 
-testGenericMethod4() {
-  print('genericMethod4:');
-  var c1 = genericMethod4<int>(1);
-  var c2 = genericMethod4<String>(2);
+testMethod4() {
+  print('method4:');
+  var c1 = method4<int>(1);
+  var c2 = method4<String>(2);
   print('$c1 is Class1<int> = ${c1 is Class1<int>}');
   print('$c2 is Class1<int> = ${c2 is Class1<int>}');
   print('$c1 is Class1<String> = ${c1 is Class1<String>}');
@@ -75,50 +75,94 @@ testGenericMethod4() {
 
 class Class2 {
   @tryInline
-  genericMethod5<T>(T t) {
+  method5<T>(T t) {
     test(t);
-    print('genericMethod5:');
+    print('Class2.method5:');
+    print('$t is $T = ${t is T}');
+    print('"foo" is $T = ${"foo" is T}');
+    print('');
+  }
+
+  @noInline
+  method6(o) {
+    print('Class2.method6:');
+    print('$o is int = ${o is int}');
+    print('$o is String = ${o is String}');
+    print('');
+  }
+}
+
+class Class3 {
+  @noInline
+  method6<T>(T t) {
+    test(t);
+    print('Class3.method6:');
     print('$t is $T = ${t is T}');
     print('"foo" is $T = ${"foo" is T}');
     print('');
   }
 }
 
-main() {
-  genericMethod1<int>(0);
-  genericMethod2<String, double>(0.5, 'foo');
-  genericMethod3<double, String>(1.5, 'bar');
-  testGenericMethod4();
-  new Class2().genericMethod5<int>(0);
+main(args) {
+  method1<int>(0);
+  method2<String, double>(0.5, 'foo');
+  method3<double, String>(1.5, 'bar');
+  testMethod4();
+  new Class2().method5<int>(0);
+  new Class3().method6<int>(0);
+  dynamic c3 = args != null ? new Class3() : new Class2();
+  c3.method6(0); // Missing type arguments.
+  try {
+    dynamic c2 = args == null ? new Class3() : new Class2();
+    c2.method6(0); // Valid call.
+    c2.method6<int>(0); // Extra type arguments.
+  } catch (e) {
+    print('noSuchMethod: Class2.method6<int>');
+    print('');
+  }
 }
 ''';
 
 const String OUTPUT = r'''
-genericMethod1:
+method1:
 0 is int = true
 "foo" is int = false
 
-genericMethod2:
+method2:
 foo is String = true
 0.5 is String = false
 foo is double = false
 0.5 is double = true
 
-genericMethod3:
+method3:
 1.5 is double = true
 bar is double = false
 1.5 is String = false
 bar is String = true
 
-genericMethod4:
+method4:
 c1 is Class1<int> = true
 c2 is Class1<int> = false
 c1 is Class1<String> = false
 c2 is Class1<String> = true
 
-genericMethod5:
+Class2.method5:
 0 is int = true
 "foo" is int = false
+
+Class3.method6:
+0 is int = true
+"foo" is int = false
+
+Class3.method6:
+0 is dynamic = true
+"foo" is dynamic = true
+
+Class2.method6:
+0 is int = true
+0 is String = false
+
+noSuchMethod: Class2.method6<int>
 
 ''';
 
@@ -132,16 +176,28 @@ main(List<String> args) {
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
-    void checkMethod(String name, int expectedParameterCount) {
-      FunctionEntity function = elementEnvironment.lookupLibraryMember(
-          elementEnvironment.mainLibrary, name);
-      Expect.isNotNull(function, "Method '$name' not found.");
-      js.Fun fun = compiler.backend.generatedCode[function];
+    void checkMethod(String methodName,
+        {String className, int expectedParameterCount}) {
+      FunctionEntity method;
+      if (className != null) {
+        ClassEntity cls = elementEnvironment.lookupClass(
+            elementEnvironment.mainLibrary, className);
+        Expect.isNotNull(cls, "Class '$className' not found.");
+        method = elementEnvironment.lookupClassMember(cls, methodName);
+        Expect.isNotNull(method, "Method '$methodName' not found in $cls.");
+      } else {
+        method = elementEnvironment.lookupLibraryMember(
+            elementEnvironment.mainLibrary, methodName);
+        Expect.isNotNull(method, "Method '$methodName' not found.");
+      }
+      js.Fun fun = compiler.backend.generatedCode[method];
       Expect.equals(expectedParameterCount, fun.params.length,
-          "Unexpected parameter count for $function:\n${js.nodeToString(fun)}");
+          "Unexpected parameter count for $method:\n${js.nodeToString(fun)}");
     }
 
-    checkMethod('genericMethod1', 2);
-    checkMethod('genericMethod2', 4);
+    checkMethod('method1', expectedParameterCount: 2);
+    checkMethod('method2', expectedParameterCount: 4);
+    checkMethod('method6', className: 'Class2', expectedParameterCount: 1);
+    checkMethod('method6', className: 'Class3', expectedParameterCount: 2);
   });
 }

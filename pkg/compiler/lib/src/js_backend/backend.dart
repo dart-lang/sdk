@@ -597,9 +597,11 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
-            : new MinifyNamer(closedWorld, codegenWorldBuilder)
-        : new Namer(closedWorld, codegenWorldBuilder);
+            ? new FrequencyBasedNamer(
+                closedWorld, codegenWorldBuilder, compiler.options)
+            : new MinifyNamer(
+                closedWorld, codegenWorldBuilder, compiler.options)
+        : new Namer(closedWorld, codegenWorldBuilder, compiler.options);
   }
 
   void validateInterceptorImplementsAllObjectMethods(

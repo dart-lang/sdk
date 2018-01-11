@@ -492,9 +492,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
         ParameterStructure parameters = method.parameterStructure;
-        if (parameters.optionalParameters == 0 ||
-            parameters.requiredParameters + parameters.optionalParameters ==
-                node.selector.argumentCount) {
+        if (parameters.totalParameters == node.selector.argumentCount &&
+            parameters.typeParameters ==
+                node.selector.callStructure.typeArgumentCount) {
           node.element = method;
         }
       }

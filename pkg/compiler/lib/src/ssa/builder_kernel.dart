@@ -4709,7 +4709,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       }
     }
-    assert(argumentIndex == compiledArguments.length);
+    assert(
+        argumentIndex == compiledArguments.length,
+        failedAt(
+            function,
+            "Only ${argumentIndex} of ${compiledArguments.length} "
+            "arguments have been read from: ${compiledArguments}"));
 
     _returnType =
         _elementMap.elementEnvironment.getFunctionType(function).returnType;
