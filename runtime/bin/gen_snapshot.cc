@@ -1392,13 +1392,8 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
-  Dart_IsolateFlags isolate_flags;
-  Dart_IsolateFlagsInitialize(&isolate_flags);
-  // We need to capture the vmservice library in the core snapshot, so load it
-  // in the main isolate as well.
-  isolate_flags.load_vmservice_library = true;
   Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
-      NULL, NULL, kernel_program, &isolate_flags, isolate_data, &error);
+      NULL, NULL, kernel_program, NULL, isolate_data, &error);
   if (isolate == NULL) {
     delete isolate_data;
     Log::PrintErr("%s\n", error);

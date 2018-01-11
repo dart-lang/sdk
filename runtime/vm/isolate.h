@@ -680,13 +680,6 @@ class Isolate : public BaseIsolate {
     isolate_flags_ = IsServiceIsolateBit::update(value, isolate_flags_);
   }
 
-  bool should_load_vmservice() const {
-    return ShouldLoadVmServiceBit::decode(isolate_flags_);
-  }
-  void set_should_load_vmservice(bool value) {
-    isolate_flags_ = ShouldLoadVmServiceBit::update(value, isolate_flags_);
-  }
-
   Dart_QualifiedFunctionName* embedder_entry_points() const {
     return embedder_entry_points_;
   }
@@ -848,8 +841,7 @@ class Isolate : public BaseIsolate {
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
-  V(CompactionInProgress)                                                      \
-  V(ShouldLoadVmService)
+  V(CompactionInProgress)
 
   // Isolate specific flags.
   enum FlagBits {
