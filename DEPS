@@ -96,7 +96,7 @@ vars = {
   "intl_tag": "@0.15.2",
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_tag": "@2.0.4",
+  "json_rpc_2_tag": "@2.0.6",
   "linter_tag": "@0.1.42",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.0.0",
