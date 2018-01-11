@@ -605,7 +605,7 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 static bool FileModifiedCallback(const char* url, int64_t since) {
-  if (strncmp(url, "file:///", 8) == 0) {
+  if (strncmp(url, "file:///", 8) != 0) {
     // If it isn't a file on local disk, we don't know if it has been
     // modified.
     return true;
