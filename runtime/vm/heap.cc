@@ -359,7 +359,10 @@ void Heap::NotifyIdle(int64_t deadline) {
   // Because we use a deadline instead of a timeout, we automatically take any
   // time used up by a scavenge into account when deciding if we can complete
   // a mark-sweep on time.
-  if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
+  if (old_space_.ShouldPerformIdleMarkCompact(deadline)) {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectOldSpaceGarbage(thread, kCompaction);
+  } else if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kIdle);
   }
@@ -628,7 +631,7 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
     case kOldSpace:
       return "old space";
     case kCompaction:
-      return "compaction";
+      return "compact";
     case kFull:
       return "full";
     case kIdle:
