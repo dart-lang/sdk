@@ -29,26 +29,21 @@ analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 
-# Analyzer2dart is not maintained anymore.
-analyzer2dart/test/*: Skip
+analyzer2dart/test/*: Skip # Analyzer2dart is not maintained anymore.
 
 dart_messages/test/dart_messages_test: Skip  # Requires a package root.
 
-# Skip dev_compiler codegen tests
-dev_compiler/test/codegen/*: Skip
-dev_compiler/test/codegen_test: Skip
-dev_compiler/test/options/*: Skip
-dev_compiler/test/sourcemap/*: SkipByDesign
-dev_compiler/test/sourcemap/testfiles/*: SkipByDesign
-dev_compiler/test/worker/*: Skip
-dev_compiler/gen/*: SkipByDesign
+dev_compiler/test/codegen/*: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/codegen_test: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/options/*: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/sourcemap/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/worker/*: Skip # Skip dev_compiler codegen tests
+dev_compiler/gen/*: SkipByDesign # Skip dev_compiler codegen tests
 
-# Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
-front_end/test/fasta/rasta/*: SkipByDesign
+front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
 
-# sdk_test would take too long to complete, and should be run in a different
-# way.
-front_end/test/fasta/sdk_test: SkipByDesign
+front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
 
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
@@ -59,12 +54,10 @@ front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/tool/incremental_perf_test: Slow, Pass
 
-# These are not tests but input for tests.
-kernel/testcases/*: Skip
-front_end/testcases/*: Skip
+kernel/testcases/*: Skip # These are not tests but input for tests.
+front_end/testcases/*: Skip # These are not tests but input for tests.
 
 front_end/test/fasta/analyze_test: Pass, Slow
-
 kernel/test/closures_test: Slow, Pass
 
 front_end/tool/_fasta/compile_platform_test: Fail
@@ -196,13 +189,8 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 
-[ $runtime == safarimobilesim ]
-# Unexplained errors only occurring on Safari 6.1 and earlier.
-typed_data/test/typed_buffers_test: RuntimeError
-
 [ $compiler == dart2js && $csp ]
-# This test cannot run under CSP because it is injecting a JavaScript polyfill
-mutation_observer: Skip
+mutation_observer: Skip # This test cannot run under CSP because it is injecting a JavaScript polyfill
 
 [ $compiler == dart2js && $browser ]
 crypto/test/sha256_test: Slow, Pass
@@ -227,22 +215,20 @@ dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
 [ $browser || $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
+# Timeout. These tests do not run efficiently on our simulator or low-end
+# devices.
 [ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te || $arch == simdbc64) ]
-# Timeout. These are not unit tests. They do not run efficiently on our
-# simulator or low-end devices.
 *: Skip
 
 [ $runtime == vm ]
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
-# Skip tests on the VM if the package depends on dart:html
-mutation_observer: Skip
+mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
-# See: https://build.chromium.org/p/client.dart/builders/analyzer-win7-release-be/builds/3113/steps/analyzer%20unit%20tests/logs/stdio
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 
 [ $runtime == dart_precompiled ]
