@@ -31,11 +31,9 @@ bool isModifier(Token token) {
   return true;
 }
 
-/// Parse modifiers in the token stream, and return a context with information
-/// about what was parsed. [start] is the last token consumed by the parser
-/// prior to calling this method and [context.lastModifier] is the last token
-/// consumed by this method when this method returns. If no modifiers were
-/// parsed, then [context.lastModifier] will be the same as [start].
+/// Parse modifiers in the token stream, and return a [ModifierContext]
+/// with information about what was parsed. [start] is the last token consumed
+/// by the parser prior to calling [parseModifiersOpt].
 ///
 /// This method is used in most locations where modifiers can occur. However,
 /// it isn't used when parsing a class or when parsing the modifiers of a
@@ -67,13 +65,17 @@ ModifierContext parseModifiersOpt(
   parser.listener.handleModifiers(context.modifierCount);
 
   context.typeContinuation ??=
-      (isVarAllowed || context.memberKind == MemberKind.GeneralizedFunctionType)
-          ? TypeContinuation.Required
-          : TypeContinuation.Optional;
+      typeContinuationFromMemberKind(isVarAllowed, context.memberKind);
   context.lastModifier = token;
 
   return context;
 }
+
+TypeContinuation typeContinuationFromMemberKind(
+        bool isVarAllowed, MemberKind memberKind) =>
+    (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
+        ? TypeContinuation.Required
+        : TypeContinuation.Optional;
 
 class ModifierContext {
   final Parser parser;

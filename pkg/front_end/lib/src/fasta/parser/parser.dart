@@ -81,7 +81,8 @@ import 'modifier_context.dart'
         ModifierContext,
         TopLevelMethodModifierContext,
         isModifier,
-        parseModifiersOpt;
+        parseModifiersOpt,
+        typeContinuationFromMemberKind;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -1151,18 +1152,22 @@ class Parser {
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token);
-    listener.beginFormalParameter(token.next, memberKind);
-    ModifierContext modifierContext = parseModifiersOpt(
-        this,
-        token,
-        memberKind,
-        parameterKind,
-        false,
-        typeContiunationFromFormalParameterKind(parameterKind));
-    TypeContinuation typeContinuation = modifierContext.typeContinuation;
-    memberKind = modifierContext.memberKind;
-    token = modifierContext.lastModifier;
-    modifierContext = null;
+    Token next = token.next;
+    listener.beginFormalParameter(next, memberKind);
+
+    TypeContinuation typeContinuation =
+        typeContiunationFromFormalParameterKind(parameterKind);
+    if (isModifier(next)) {
+      ModifierContext modifierContext = parseModifiersOpt(
+          this, token, memberKind, parameterKind, false, typeContinuation);
+      typeContinuation = modifierContext.typeContinuation;
+      memberKind = modifierContext.memberKind;
+      token = modifierContext.lastModifier;
+      modifierContext = null;
+    } else {
+      listener.handleModifiers(0);
+      typeContinuation ??= typeContinuationFromMemberKind(false, memberKind);
+    }
 
     return parseType(token, typeContinuation, null, memberKind);
   }
@@ -5327,12 +5332,20 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     token = parseMetadataStar(token);
-    ModifierContext modifierContext =
-        parseModifiersOpt(this, token, MemberKind.Local, null, true, null);
-    token = modifierContext.lastModifier;
-    TypeContinuation typeContinuation = modifierContext.typeContinuation;
-    MemberKind memberKind = modifierContext.memberKind;
-    modifierContext = null;
+
+    MemberKind memberKind = MemberKind.Local;
+    TypeContinuation typeContinuation;
+    if (isModifier(token.next)) {
+      ModifierContext modifierContext =
+          parseModifiersOpt(this, token, memberKind, null, true, null);
+      token = modifierContext.lastModifier;
+      typeContinuation = modifierContext.typeContinuation;
+      memberKind = modifierContext.memberKind;
+      modifierContext = null;
+    } else {
+      listener.handleModifiers(0);
+      typeContinuation = typeContinuationFromMemberKind(true, memberKind);
+    }
 
     token = parseType(token, typeContinuation, null, memberKind);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
