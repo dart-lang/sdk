@@ -671,6 +671,7 @@ double_parse_test/02: Skip # Temporarily disable the following tests until we fi
 double_parse_test/03: Skip # Temporarily disable the following tests until we figure out why they started failing.
 double_parse_test/04: Skip # Temporarily disable the following tests until we figure out why they started failing.
 double_parse_test/none: Skip # Temporarily disable the following tests until we figure out why they started failing.
+iterable_reduce_test/01: CompileTimeError # Issue 31533
 
 [ $compiler == dartkp || $compiler == precompiler ]
 apply3_test: SkipByDesign

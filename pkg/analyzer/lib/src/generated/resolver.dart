@@ -5676,7 +5676,7 @@ class ResolverVisitor extends ScopedVisitor {
     DartType valueType;
     if (loopVariable != null) {
       TypeAnnotation typeAnnotation = loopVariable.type;
-      valueType = typeAnnotation?.type ?? typeProvider.dynamicType;
+      valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     }
     if (identifier != null) {
       Element element = identifier.staticElement;
