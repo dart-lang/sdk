@@ -834,6 +834,7 @@ super_operator_index_test/07: MissingCompileTimeError
 switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
+syntax_test/59: MissingCompileTimeError,OK # Issue 30516.
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
 transitive_private_library_access_test: MissingCompileTimeError

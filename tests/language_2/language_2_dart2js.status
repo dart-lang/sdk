@@ -595,6 +595,7 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
+regress_30516_test: CompileTimeError # Issue 30515.
 regress_31057_test: RuntimeError
 regress_31591_test: RuntimeError, OK # strong mode only
 return_type_test: MissingCompileTimeError

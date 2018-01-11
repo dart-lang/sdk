@@ -676,6 +676,7 @@ regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
+regress_30516_test: CompileTimeError # Issue 30470.
 setter4_test: MissingCompileTimeError # Issue 14736
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
@@ -707,6 +708,7 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
+syntax_test/59: Pass # Issue 30470.
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537
@@ -1541,6 +1543,7 @@ regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
+regress_30516_test: CompileTimeError # Issue 30470.
 setter4_test: MissingCompileTimeError # Issue 14736
 setter_no_getter_test/01: Pass, CompileTimeError # Issue 31533 (started passing after switching to batch-mode)
 setter_override_test/01: MissingCompileTimeError
@@ -1575,6 +1578,7 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
+syntax_test/59: Pass # Issue 30470.
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
 type_promotion_functions_test/03: CompileTimeError # Issue 31537

@@ -597,6 +597,7 @@ regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError
+regress_30516_test: CompileTimeError # Issue 30470.
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
