@@ -405,6 +405,12 @@ abstract class EntityRef extends base.SummaryClass {
   EntityRefKind get entityKind;
 
   /**
+   * Notice: This will be deprecated. However, its not deprecated yet, as we're
+   * keeping it for backwards compatibilty, and marking it deprecated makes it
+   * unreadable.
+   *
+   * TODO(mfairhurst) mark this deprecated, and remove its logic.
+   *
    * If this is a reference to a function type implicitly defined by a
    * function-typed parameter, a list of zero-based indices indicating the path
    * from the entity referred to by [reference] to the appropriate type

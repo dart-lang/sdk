@@ -230,9 +230,8 @@ EntityRefBuilder _createLinkedType(
       return result;
     }
     if (element is GenericFunctionTypeElementForLink) {
-      // TODO(mfairhurst) update the typeParameterContext to be the current
-      // element. See test_constExpr_makeTypedList_functionType. This causes
-      // serious breakages elsewhere.
+      // Function types are their own type parameter context
+      typeParameterContext = element;
       result.entityKind = EntityRefKind.genericFunctionType;
       result.syntheticReturnType = _createLinkedType(
           type.returnType, compilationUnit, typeParameterContext);
@@ -4324,6 +4323,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   TopLevelInferenceErrorBuilder _inferenceError;
   DartType _declaredType;
   bool _inheritsCovariant = false;
+
+  @override
+  String get identifier => name;
 
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
