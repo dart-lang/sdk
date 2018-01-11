@@ -124,7 +124,6 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
-arithmetic_test: RuntimeError # Issue 31763
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc03: MissingCompileTimeError
@@ -418,7 +417,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
-mint_compares_test: RuntimeError # Issue 31763
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -996,4 +994,3 @@ void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 [ $compiler == dartdevk || $compiler == dartdevc && $runtime == none ]
 instantiate_type_variable_test/01: CompileTimeError
 setter_no_getter_call_test/01: CompileTimeError
-

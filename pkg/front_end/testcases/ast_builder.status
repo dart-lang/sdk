@@ -145,3 +145,4 @@ super_call: Crash
 type_variable_as_super: Crash
 uninitialized_fields: Crash
 warn_unresolved_sends: Fail
+minimum_int: Crash
