@@ -129,8 +129,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       new MirrorsResolutionAnalysisImpl(backend, _compiler.resolution);
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
-    return _runtimeTypesNeedBuilder ??=
-        new ResolutionRuntimeTypesNeedBuilderImpl(
+    return _runtimeTypesNeedBuilder ??= _compiler.options.disableRtiOptimization
+        ? const TrivialRuntimeTypesNeedBuilder()
+        : new ResolutionRuntimeTypesNeedBuilderImpl(
             elementEnvironment, dartTypes);
   }
 

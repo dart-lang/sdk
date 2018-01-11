@@ -97,6 +97,10 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   bool isMemberProcessed(MemberEntity member);
   void registerProcessedMember(MemberEntity member);
   Iterable<MemberEntity> get processedMembers;
+
+  /// Registers that [type] is checked in this world builder. The unaliased type
+  /// is returned.
+  void registerIsCheck(DartType type);
 }
 
 /// The type and kind of an instantiation registered through

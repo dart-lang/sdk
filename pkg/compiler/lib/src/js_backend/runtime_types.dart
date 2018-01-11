@@ -98,6 +98,28 @@ abstract class RuntimeTypesNeed {
   bool classUsesTypeVariableExpression(ClassEntity cls);
 }
 
+class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
+  const TrivialRuntimeTypesNeed();
+
+  @override
+  bool classNeedsTypeArguments(ClassEntity cls) => true;
+
+  @override
+  bool classUsesTypeVariableExpression(ClassEntity cls) => true;
+
+  @override
+  bool localFunctionNeedsSignature(Local localFunction) => true;
+
+  @override
+  bool methodNeedsSignature(FunctionEntity method) => true;
+
+  @override
+  bool classNeedsRtiField(ClassEntity cls) => true;
+
+  @override
+  bool methodNeedsTypeArguments(FunctionEntity method) => true;
+}
+
 /// Interface for computing classes and methods that need runtime types.
 abstract class RuntimeTypesNeedBuilder {
   /// Registers that [cls] contains a type variable literal.
@@ -134,6 +156,23 @@ abstract class RuntimeTypesNeedBuilder {
       {bool enableTypeAssertions});
 }
 
+class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
+  const TrivialRuntimeTypesNeedBuilder();
+
+  @override
+  void registerClassUsingTypeVariableExpression(ClassEntity cls) {}
+
+  @override
+  RuntimeTypesNeed computeRuntimeTypesNeed(
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
+      {bool enableTypeAssertions}) {
+    return const TrivialRuntimeTypesNeed();
+  }
+
+  @override
+  void registerTypeArgumentDependency(Entity element, Entity dependency) {}
+}
+
 /// Interface for the needed runtime type checks.
 abstract class RuntimeTypesChecks {
   /// Returns the required runtime type checks.
@@ -145,6 +184,23 @@ abstract class RuntimeTypesChecks {
 
   /// Return all classes that use type arguments.
   Set<ClassEntity> getRequiredArgumentClasses();
+}
+
+class TrivialTypesChecks implements RuntimeTypesChecks {
+  final TypeChecks _typeChecks;
+  final Set<ClassEntity> _allClasses;
+
+  TrivialTypesChecks(this._typeChecks)
+      : _allClasses = _typeChecks.classes.toSet();
+
+  @override
+  TypeChecks get requiredChecks => _typeChecks;
+
+  @override
+  Set<ClassEntity> getRequiredArgumentClasses() => _allClasses;
+
+  @override
+  Set<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
 }
 
 /// Interface for computing the needed runtime type checks.
@@ -162,6 +218,185 @@ abstract class RuntimeTypesChecksBuilder {
   /// This function must be called after all is-checks have been registered.
   void registerImplicitChecks(Set<InterfaceType> instantiatedTypes,
       Iterable<ClassEntity> classesUsingChecks, Set<DartType> implicitIsChecks);
+
+  bool get rtiChecksBuilderClosed;
+}
+
+class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
+  final ClosedWorld _closedWorld;
+  final TrivialRuntimeTypesSubstitutions _substitutions;
+  bool rtiChecksBuilderClosed = false;
+
+  TrivialRuntimeTypesChecksBuilder(this._closedWorld, this._substitutions);
+
+  ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
+
+  @override
+  void registerTypeVariableBoundsSubtypeCheck(
+      DartType typeArgument, DartType bound) {}
+
+  @override
+  void registerImplicitChecks(
+      Set<InterfaceType> instantiatedTypes,
+      Iterable<ClassEntity> classesUsingChecks,
+      Set<DartType> implicitIsChecks) {}
+
+  @override
+  RuntimeTypesChecks computeRequiredChecks(
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    Set<ClassEntity> classes = _closedWorld
+        .getClassSet(_closedWorld.commonElements.objectClass)
+        .subtypes()
+        .toSet();
+    rtiChecksBuilderClosed = true;
+    TypeChecks typeChecks = _substitutions._requiredChecks = _substitutions
+        ._computeChecks(/*collector.*/ classes, /*collector.*/ classes);
+    return new TrivialTypesChecks(typeChecks);
+  }
+}
+
+class ClassCollector extends ArgumentCollector {
+  final ElementEnvironment _elementEnvironment;
+
+  ClassCollector(this._elementEnvironment);
+
+  void addClass(ClassEntity cls) {
+    if (classes.add(cls)) {
+      _elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
+        collect(type, isTypeArgument: true);
+      });
+    }
+  }
+}
+
+abstract class RuntimeTypesSubstitutionsMixin
+    implements RuntimeTypesSubstitutions {
+  ElementEnvironment get _elementEnvironment;
+  DartTypes get _types;
+  TypeChecks get _requiredChecks;
+
+  TypeChecks _computeChecks(
+      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+    // Run through the combination of instantiated and checked
+    // arguments and record all combination where the element of a checked
+    // argument is a superclass of the element of an instantiated type.
+    TypeCheckMapping result = new TypeCheckMapping();
+    for (ClassEntity element in instantiated) {
+      if (checked.contains(element)) {
+        result.add(element, element, null);
+      }
+      // Find all supertypes of [element] in [checkedArguments] and add checks
+      // and precompute the substitutions for them.
+      for (InterfaceType supertype in _types.getSupertypes(element)) {
+        ClassEntity superelement = supertype.element;
+        if (checked.contains(superelement)) {
+          Substitution substitution =
+              computeSubstitution(element, superelement);
+          result.add(element, superelement, substitution);
+        }
+      }
+    }
+    return result;
+  }
+
+  @override
+  Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks) {
+    Set<ClassEntity> instantiated = new Set<ClassEntity>();
+    ArgumentCollector collector = new ArgumentCollector();
+    for (ClassEntity target in checks.classes) {
+      instantiated.add(target);
+      for (TypeCheck check in checks[target]) {
+        Substitution substitution = check.substitution;
+        if (substitution != null) {
+          collector.collectAll(substitution.arguments);
+        }
+      }
+    }
+    return instantiated..addAll(collector.classes);
+
+    // TODO(sra): This computation misses substitutions for reading type
+    // parameters.
+  }
+
+  // TODO(karlklose): maybe precompute this value and store it in typeChecks?
+  @override
+  bool isTrivialSubstitution(ClassEntity cls, ClassEntity check) {
+    if (cls.isClosure) {
+      // TODO(karlklose): handle closures.
+      return true;
+    }
+
+    // If there are no type variables or the type is the same, we do not need
+    // a substitution.
+    if (!_elementEnvironment.isGenericClass(check) || cls == check) {
+      return true;
+    }
+
+    InterfaceType originalType = _elementEnvironment.getThisType(cls);
+    InterfaceType type = _types.asInstanceOf(originalType, check);
+    // [type] is not a subtype of [check]. we do not generate a check and do not
+    // need a substitution.
+    if (type == null) return true;
+
+    // Run through both lists of type variables and check if the type variables
+    // are identical at each position. If they are not, we need to calculate a
+    // substitution function.
+    List<DartType> variables = originalType.typeArguments;
+    List<DartType> arguments = type.typeArguments;
+    if (variables.length != arguments.length) {
+      return false;
+    }
+    for (int index = 0; index < variables.length; index++) {
+      if (variables[index] != arguments[index]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  Substitution getSubstitution(ClassEntity cls, ClassEntity other) {
+    // Look for a precomputed check.
+    for (TypeCheck check in _requiredChecks[cls]) {
+      if (check.cls == other) {
+        return check.substitution;
+      }
+    }
+    // There is no precomputed check for this pair (because the check is not
+    // done on type arguments only.  Compute a new substitution.
+    return computeSubstitution(cls, other);
+  }
+
+  Substitution computeSubstitution(ClassEntity cls, ClassEntity check,
+      {bool alwaysGenerateFunction: false}) {
+    if (isTrivialSubstitution(cls, check)) return null;
+
+    // Unnamed mixin application classes do not need substitutions, because they
+    // are never instantiated and their checks are overwritten by the class that
+    // they are mixed into.
+    InterfaceType type = _elementEnvironment.getThisType(cls);
+    InterfaceType target = _types.asInstanceOf(type, check);
+    List<DartType> typeVariables = type.typeArguments;
+    if (typeVariables.isEmpty && !alwaysGenerateFunction) {
+      return new Substitution.list(target.typeArguments);
+    } else {
+      return new Substitution.function(target.typeArguments, typeVariables);
+    }
+  }
+}
+
+class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
+  final ElementEnvironment _elementEnvironment;
+  final DartTypes _types;
+  TypeChecks _requiredChecks;
+
+  TrivialRuntimeTypesSubstitutions(this._elementEnvironment, this._types);
+
+  @override
+  TypeChecks computeChecks(
+      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+    return _requiredChecks;
+  }
 }
 
 /// Interface for computing substitutions need for runtime type checks.
@@ -622,7 +857,8 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
 }
 
 class RuntimeTypesImpl extends _RuntimeTypesBase
-    implements RuntimeTypesChecksBuilder, RuntimeTypesSubstitutions {
+    with RuntimeTypesSubstitutionsMixin
+    implements RuntimeTypesChecksBuilder {
   final ElementEnvironment _elementEnvironment;
 
   // The set of type arguments tested against type variable bounds.
@@ -636,6 +872,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   RuntimeTypesImpl(this._elementEnvironment, DartTypes types) : super(types);
 
+  @override
+  TypeChecks get _requiredChecks => cachedRequiredChecks;
+
   Set<ClassEntity> directlyInstantiatedArguments;
   Set<ClassEntity> allInstantiatedArguments;
   Set<ClassEntity> checkedArguments;
@@ -645,31 +884,6 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       DartType typeArgument, DartType bound) {
     checkedTypeArguments.add(typeArgument);
     checkedBounds.add(bound);
-  }
-
-  @override
-  TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
-    // Run through the combination of instantiated and checked
-    // arguments and record all combination where the element of a checked
-    // argument is a superclass of the element of an instantiated type.
-    TypeCheckMapping result = new TypeCheckMapping();
-    for (ClassEntity element in instantiated) {
-      if (checked.contains(element)) {
-        result.add(element, element, null);
-      }
-      // Find all supertypes of [element] in [checkedArguments] and add checks
-      // and precompute the substitutions for them.
-      for (InterfaceType supertype in _types.getSupertypes(element)) {
-        ClassEntity superelement = supertype.element;
-        if (checked.contains(superelement)) {
-          Substitution substitution =
-              computeSubstitution(element, superelement);
-          result.add(element, superelement, substitution);
-        }
-      }
-    }
-    return result;
   }
 
   RuntimeTypesChecks computeRequiredChecks(
@@ -798,88 +1012,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   @override
-  Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks) {
-    Set<ClassEntity> instantiated = new Set<ClassEntity>();
-    ArgumentCollector collector = new ArgumentCollector();
-    for (ClassEntity target in checks.classes) {
-      instantiated.add(target);
-      for (TypeCheck check in checks[target]) {
-        Substitution substitution = check.substitution;
-        if (substitution != null) {
-          collector.collectAll(substitution.arguments);
-        }
-      }
-    }
-    return instantiated..addAll(collector.classes);
-
-    // TODO(sra): This computation misses substitutions for reading type
-    // parameters.
-  }
-
-  // TODO(karlklose): maybe precompute this value and store it in typeChecks?
-  @override
-  bool isTrivialSubstitution(ClassEntity cls, ClassEntity check) {
-    if (cls.isClosure) {
-      // TODO(karlklose): handle closures.
-      return true;
-    }
-
-    // If there are no type variables or the type is the same, we do not need
-    // a substitution.
-    if (!_elementEnvironment.isGenericClass(check) || cls == check) {
-      return true;
-    }
-
-    InterfaceType originalType = _elementEnvironment.getThisType(cls);
-    InterfaceType type = _types.asInstanceOf(originalType, check);
-    // [type] is not a subtype of [check]. we do not generate a check and do not
-    // need a substitution.
-    if (type == null) return true;
-
-    // Run through both lists of type variables and check if the type variables
-    // are identical at each position. If they are not, we need to calculate a
-    // substitution function.
-    List<DartType> variables = originalType.typeArguments;
-    List<DartType> arguments = type.typeArguments;
-    if (variables.length != arguments.length) {
-      return false;
-    }
-    for (int index = 0; index < variables.length; index++) {
-      if (variables[index] != arguments[index]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  Substitution getSubstitution(ClassEntity cls, ClassEntity other) {
-    // Look for a precomputed check.
-    for (TypeCheck check in cachedRequiredChecks[cls]) {
-      if (check.cls == other) {
-        return check.substitution;
-      }
-    }
-    // There is no precomputed check for this pair (because the check is not
-    // done on type arguments only.  Compute a new substitution.
-    return computeSubstitution(cls, other);
-  }
-
-  Substitution computeSubstitution(ClassEntity cls, ClassEntity check,
-      {bool alwaysGenerateFunction: false}) {
-    if (isTrivialSubstitution(cls, check)) return null;
-
-    // Unnamed mixin application classes do not need substitutions, because they
-    // are never instantiated and their checks are overwritten by the class that
-    // they are mixed into.
-    InterfaceType type = _elementEnvironment.getThisType(cls);
-    InterfaceType target = _types.asInstanceOf(type, check);
-    List<DartType> typeVariables = type.typeArguments;
-    if (typeVariables.isEmpty && !alwaysGenerateFunction) {
-      return new Substitution.list(target.typeArguments);
-    } else {
-      return new Substitution.function(target.typeArguments, typeVariables);
-    }
+  TypeChecks computeChecks(
+      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+    return _computeChecks(instantiated, checked);
   }
 }
 
@@ -1307,8 +1442,8 @@ class TypeCheckMapping implements TypeChecks {
   String toString() {
     StringBuffer sb = new StringBuffer();
     for (ClassEntity holder in classes) {
-      for (ClassEntity check in [holder]) {
-        sb.write('${holder.name}.' '${check.name}, ');
+      for (TypeCheck check in this[holder]) {
+        sb.write('${holder.name} <: ${check.cls.name}, ');
       }
     }
     return '[$sb]';
@@ -1317,6 +1452,10 @@ class TypeCheckMapping implements TypeChecks {
 
 class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
+
+  void addClass(ClassEntity cls) {
+    classes.add(cls);
+  }
 
   collect(DartType type, {bool isTypeArgument: false}) {
     visit(type, isTypeArgument);
@@ -1335,7 +1474,7 @@ class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
   }
 
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
-    if (isTypeArgument) classes.add(type.element);
+    if (isTypeArgument) addClass(type.element);
     collectAll(type.typeArguments, isTypeArgument: true);
   }
 
@@ -1402,6 +1541,9 @@ class Substitution {
         parameters = const <DartType>[];
 
   Substitution.function(this.arguments, this.parameters) : isFunction = true;
+
+  String toString() => 'Substitution(isFunction=$isFunction,'
+      'arguments=$arguments,parameters=$parameters)';
 }
 
 /**
@@ -1415,4 +1557,6 @@ class TypeCheck {
   static int _nextHash = 0;
 
   TypeCheck(this.cls, this.substitution);
+
+  String toString() => 'TypeCheck(cls=$cls,substitution=$substitution)';
 }

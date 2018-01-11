@@ -319,7 +319,7 @@ class Class implements FieldContainer {
   int get superclassHolderIndex =>
       (superclass == null) ? 0 : superclass.holder.index;
 
-  String toString() => 'Class(name=${name},element=$element)';
+  String toString() => 'Class(name=${name.key},element=$element)';
 }
 
 class MixinApplication extends Class {
@@ -524,7 +524,7 @@ class StubMethod extends Method {
       : super(element, name, code);
 
   String toString() {
-    return 'StubMethod(name=${name},element=${element}'
+    return 'StubMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }

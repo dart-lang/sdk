@@ -469,6 +469,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     if (_options.enableTypeAssertions) {
       _registerBackendImpact(impactBuilder, _impacts.enableTypeAssertions);
     }
+    if (_options.disableRtiOptimization) {
+      // When RTI optimization is disabled we always need all RTI helpers, so
+      // register these here.
+      _registerBackendImpact(impactBuilder, _impacts.computeSignature);
+      _registerBackendImpact(impactBuilder, _impacts.getRuntimeTypeArgument);
+    }
 
     if (JavaScriptBackend.TRACE_CALLS) {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);

@@ -17,6 +17,7 @@ class Flags {
   static const String disableNativeLiveTypeAnalysis =
       '--disable-native-live-type-analysis';
   static const String disableTypeInference = '--disable-type-inference';
+  static const String disableRtiOptimization = '--disable-rti-optimization';
   static const String dumpInfo = '--dump-info';
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
