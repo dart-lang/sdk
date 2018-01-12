@@ -759,7 +759,6 @@ generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_function_dcall_test: RuntimeError
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
-instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
