@@ -85,7 +85,6 @@ deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLo
 deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 deferred_custom_loader_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
@@ -121,8 +120,6 @@ private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
-string_interpolation_dynamic_test: RuntimeError
-string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
@@ -165,8 +162,6 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 regress/4562_test/none: CompileTimeError
-string_interpolation_dynamic_test: RuntimeError
-string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
@@ -212,8 +207,6 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
-string_interpolation_dynamic_test: RuntimeError
-string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
@@ -259,14 +252,14 @@ private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
-string_interpolation_dynamic_test: RuntimeError
-string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 expose_this1_test: RuntimeError # Issue 31254
 expose_this2_test: RuntimeError # Issue 31254
+string_interpolation_dynamic_test: Fail # CRLF handling clarified, see Issue 23562
+string_interpolation_test: Fail # CRLF handling clarified, see Issue 23562
 
 [ $compiler == dart2js && $fast_startup ]
 21666_test: Fail # mirrors not supported
