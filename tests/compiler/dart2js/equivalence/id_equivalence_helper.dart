@@ -366,12 +366,15 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     ComputeClassDataFunction computeClassDataFromKernel}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
+  bool shouldContinue = args.remove('-c');
+  bool continued = false;
 
   var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
   await for (FileSystemEntity entity in dataDir.list()) {
     String name = entity.uri.pathSegments.last;
-    if (args.isNotEmpty && !args.contains(name)) continue;
+    if (args.isNotEmpty && !args.contains(name) && !continued) continue;
+    if (shouldContinue) continued = true;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);

@@ -21,6 +21,8 @@ class Class {
   method() => 42;
 }
 
+// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
+// world leads to concluding [exact=Class].
 /*element: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
   var c = new Class();
@@ -29,10 +31,10 @@ closurizedCallToString() {
   local. /*invoke: [subtype=Function]*/ toString();
   local();
   local
-      . /*invoke: Union([exact=Class], [exact=Closure_fromTearOff_closure])*/
+      . /*invoke: [exact=Class]*/
       toString();
   local.call();
   return local
-      . /*invoke: Union([exact=Class], [exact=Closure_fromTearOff_closure])*/
+      . /*invoke: [exact=Class]*/
       toString();
 }

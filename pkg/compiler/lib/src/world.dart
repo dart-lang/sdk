@@ -1388,7 +1388,10 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     assert(callMethod != null, failedAt(cls, "No call method in $cls"));
     assert(_allFunctions == null,
         failedAt(cls, "Function set has already be created."));
-    liveInstanceMembers.add(callMethod);
+    // TODO(johnniwinther): Include the call method when we can also represent
+    // the synthesized call methods for static and instance method
+    // closurizations.
+    //liveInstanceMembers.add(callMethod);
   }
 
   void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {

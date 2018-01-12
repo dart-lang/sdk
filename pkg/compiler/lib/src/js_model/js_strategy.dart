@@ -268,6 +268,7 @@ class JsClosedWorldBuilder {
         map.toBackendMemberSet(closedWorld.processedMembers);
 
     RuntimeTypesNeed rtiNeed;
+    // ignore: unused_local_variable
     Iterable<FunctionEntity> callMethods;
 
     if (_options.disableRtiOptimization) {
@@ -339,7 +340,10 @@ class JsClosedWorldBuilder {
         classSets: _classSets,
         implementedClasses: implementedClasses,
         liveNativeClasses: liveNativeClasses,
-        liveInstanceMembers: liveInstanceMembers..addAll(callMethods),
+        // TODO(johnniwinther): Include the call method when we can also
+        // represent the synthesized call methods for static and instance method
+        // closurizations.
+        liveInstanceMembers: liveInstanceMembers /*..addAll(callMethods)*/,
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
