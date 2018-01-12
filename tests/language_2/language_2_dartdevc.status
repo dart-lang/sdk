@@ -737,7 +737,6 @@ function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringT
 function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure5a_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure6_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure7_test: RuntimeError # ReferenceError: TTodynamic is not defined
 function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
 function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
@@ -760,10 +759,7 @@ generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_function_dcall_test: RuntimeError
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
-generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
-instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor

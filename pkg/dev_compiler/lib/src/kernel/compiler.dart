@@ -4773,7 +4773,10 @@ class ProgramCompiler
 
   @override
   visitInstantiation(Instantiation node) {
-    return defaultExpression(node);
+    return _callHelper('gbind(#, #)', [
+      _visitExpression(node.expression),
+      node.typeArguments.map(_emitType).toList()
+    ]);
   }
 
   @override
