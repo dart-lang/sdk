@@ -66,14 +66,12 @@ debugger_location_test: RuntimeError
 debugging_inlined_finally_test: RuntimeError
 debugging_test: RuntimeError
 dev_fs_spawn_test: RuntimeError
-developer_service_get_isolate_id_test: RuntimeError
 external_service_asynchronous_invocation_test: CompileTimeError
 external_service_disappear_test: CompileTimeError
 external_service_notification_invocation_test: CompileTimeError
 external_service_registration_test: CompileTimeError
 external_service_registration_via_notification_test: CompileTimeError
 external_service_synchronous_invocation_test: CompileTimeError
-get_object_rpc_test: RuntimeError
 get_object_store_rpc_test: RuntimeError
 get_stack_rpc_test: RuntimeError
 issue_25465_test: CompileTimeError
@@ -105,7 +103,6 @@ next_through_simple_linear_test: RuntimeError
 parameters_in_scope_at_entry_test: RuntimeError
 positive_token_pos_test: RuntimeError
 regress_28443_test: RuntimeError
-regress_28980_test: RuntimeError
 rewind_optimized_out_test: RuntimeError
 rewind_test: RuntimeError
 set_library_debuggable_test: RuntimeError
