@@ -174,6 +174,10 @@ _full_sdk_snapshots = [
     "utils_wrapper",
     "../utils/compiler:utils_wrapper",
   ],
+  [
+    "kernel-service",
+    "../utils/kernel-service",
+  ],
 ]
 
 # Libraries that go under lib/
@@ -565,9 +569,9 @@ copy("copy_dev_compiler_summary") {
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$gen_dir/kernel/ddc_sdk.dill",
     # TODO(vsm): Remove post CFE.
     "$gen_dir/ddc_sdk.sum",
+    "$gen_dir/kernel/ddc_sdk.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -650,7 +654,8 @@ copy("copy_dev_compiler_js_amd_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk_kernel_summary",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary", "target_gen_dir")
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+                           "target_gen_dir")
   sources = [
     "$gen_dir/kernel/amd/dart_sdk.js",
     "$gen_dir/kernel/amd/dart_sdk.js.map",
@@ -667,7 +672,8 @@ copy("copy_dev_compiler_js_common_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk_kernel_summary",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary", "target_gen_dir")
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+                           "target_gen_dir")
   sources = [
     "$gen_dir/kernel/common/dart_sdk.js",
     "$gen_dir/kernel/common/dart_sdk.js.map",
@@ -684,7 +690,8 @@ copy("copy_dev_compiler_js_es6_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk_kernel_summary",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary", "target_gen_dir")
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+                           "target_gen_dir")
   sources = [
     "$gen_dir/kernel/es6/dart_sdk.js",
     "$gen_dir/kernel/es6/dart_sdk.js.map",
@@ -700,7 +707,8 @@ copy("copy_dev_compiler_js_legacy_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk_kernel_summary",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary", "target_gen_dir")
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+                           "target_gen_dir")
   sources = [
     "$gen_dir/kernel/legacy/dart_sdk.js",
     "$gen_dir/kernel/legacy/dart_sdk.js.map",
@@ -719,12 +727,12 @@ group("copy_dev_compiler_js") {
   ]
   deps = [
     ":copy_dev_compiler_js_amd",
-    ":copy_dev_compiler_js_common",
-    ":copy_dev_compiler_js_es6",
-    ":copy_dev_compiler_js_legacy",
     ":copy_dev_compiler_js_amd_kernel",
+    ":copy_dev_compiler_js_common",
     ":copy_dev_compiler_js_common_kernel",
+    ":copy_dev_compiler_js_es6",
     ":copy_dev_compiler_js_es6_kernel",
+    ":copy_dev_compiler_js_legacy",
     ":copy_dev_compiler_js_legacy_kernel",
   ]
 }

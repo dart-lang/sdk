@@ -4,19 +4,59 @@
 
 #include "bin/dfe.h"
 #include "bin/dartutils.h"
+#include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/file.h"
+#include "bin/platform.h"
+#include "bin/utils.h"
 
 #include "vm/kernel.h"
+
+extern "C" {
+extern const uint8_t kKernelServiceDill[];
+extern intptr_t kKernelServiceDillSize;
+}
 
 namespace dart {
 namespace bin {
 
+#if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
+const uint8_t* kernel_service_dill = NULL;
+const intptr_t kernel_service_dill_size = 0;
+#else
+const uint8_t* kernel_service_dill = kKernelServiceDill;
+const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
+#endif
+
+const char kKernelServiceSnapshot[] = "kernel-service.dart.snapshot";
+const char kSnapshotsDirectory[] = "snapshots";
 const char kPlatformBinaryName[] = "vm_platform.dill";
 const char kPlatformStrongBinaryName[] = "vm_platform_strong.dill";
 
+void* DFE::kKernelServiceProgram = NULL;
+
+static char* GetDirectoryPrefixFromExeName() {
+  const char* name = Platform::GetExecutableName();
+  const char* sep = File::PathSeparator();
+  // Locate the last occurance of |sep| in |name|.
+  intptr_t i;
+  for (i = strlen(name) - 1; i >= 0; --i) {
+    const char* str = name + i;
+    if (strstr(str, sep) == str) {
+      break;
+    }
+  }
+
+  if (i < 0) {
+    return strdup("");
+  }
+
+  return StringUtils::StrNDup(name, i + 1);
+}
+
 DFE::DFE()
-    : frontend_filename_(NULL),
+    : use_dfe_(false),
+      frontend_filename_(NULL),
       kernel_binaries_path_(NULL),
       platform_binary_filename_(NULL),
       kernel_platform_(NULL),
@@ -24,6 +64,9 @@ DFE::DFE()
       kernel_file_specified_(false) {}
 
 DFE::~DFE() {
+  if (frontend_filename_ != NULL) {
+    free(frontend_filename_);
+  }
   frontend_filename_ = NULL;
 
   free(kernel_binaries_path_);
@@ -37,6 +80,46 @@ DFE::~DFE() {
 
   delete reinterpret_cast<kernel::Program*>(application_kernel_binary_);
   application_kernel_binary_ = NULL;
+}
+
+char* DFE::FrontendFilename() {
+  if (frontend_filename_ == NULL) {
+    // Look for the frontend snapshot next to the executable.
+    char* dir_prefix = GetDirectoryPrefixFromExeName();
+    // |dir_prefix| includes the last path seperator.
+    frontend_filename_ =
+        OS::SCreate(NULL, "%s%s", dir_prefix, kKernelServiceSnapshot);
+
+    if (!File::Exists(NULL, frontend_filename_)) {
+      // If the frontend snapshot is not found next to the executable,
+      // then look for it in the "snapshots" directory.
+      free(frontend_filename_);
+      // |dir_prefix| includes the last path seperator.
+      frontend_filename_ =
+          OS::SCreate(NULL, "%s%s%s%s", dir_prefix, kSnapshotsDirectory,
+                      File::PathSeparator(), kKernelServiceSnapshot);
+    }
+
+    free(dir_prefix);
+    if (!File::Exists(NULL, frontend_filename_)) {
+      free(frontend_filename_);
+      frontend_filename_ = NULL;
+    }
+  }
+  return frontend_filename_;
+}
+
+static void NoopRelease(uint8_t* buffer) {}
+
+void* DFE::KernelServiceProgram() {
+  if (kernel_service_dill == NULL) {
+    return NULL;
+  }
+  if (kKernelServiceProgram == NULL) {
+    kKernelServiceProgram = Dart_ReadKernelBinary(
+        kernel_service_dill, kernel_service_dill_size, NoopRelease);
+  }
+  return kKernelServiceProgram;
 }
 
 void DFE::SetKernelBinaries(const char* name) {

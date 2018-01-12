@@ -66,6 +66,8 @@ CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE* Options::dfe_ = NULL;
 
+DEFINE_BOOL_OPTION_CB(preview_dart_2, { Options::dfe()->set_use_dfe(); });
+
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 
 DEFINE_STRING_OPTION_CB(kernel_binaries,
