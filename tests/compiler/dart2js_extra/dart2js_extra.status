@@ -139,6 +139,7 @@ constant_javascript_semantics_test/none: CompileTimeError # Large integer litera
 dummy_compiler_test: Crash # Issue 31715
 recursive_import_test: Crash # Issue 31715
 round_constant_folding_test: CompileTimeError # Large integer literal
+typevariable_typedef_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.foo#func)) for j:constructor(B.).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 23056_test: Pass
