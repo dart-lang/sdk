@@ -7,6 +7,7 @@ library dart2js.js_emitter.parameter_stub_generator;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
@@ -31,9 +32,16 @@ class ParameterStubGenerator {
   final InterceptorData _interceptorData;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final ClosedWorld _closedWorld;
+  final SourceInformationStrategy _sourceInformationStrategy;
 
-  ParameterStubGenerator(this._emitterTask, this._namer, this._nativeData,
-      this._interceptorData, this._codegenWorldBuilder, this._closedWorld);
+  ParameterStubGenerator(
+      this._emitterTask,
+      this._namer,
+      this._nativeData,
+      this._interceptorData,
+      this._codegenWorldBuilder,
+      this._closedWorld,
+      this._sourceInformationStrategy);
 
   Emitter get _emitter => _emitterTask.emitter;
 
@@ -59,6 +67,11 @@ class ParameterStubGenerator {
   ParameterStubMethod generateParameterStub(
       FunctionEntity member, Selector selector, Selector callSelector) {
     CallStructure callStructure = selector.callStructure;
+    SourceInformationBuilder sourceInformationBuilder =
+        _sourceInformationStrategy.createBuilderForContext(member);
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildStub(member, callStructure);
+
     ParameterStructure parameterStructure = member.parameterStructure;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
     bool needsTypeArguments =
@@ -182,7 +195,8 @@ class ParameterStubGenerator {
           [_emitter.staticFunctionAccess(member), argumentsBuffer]);
     }
 
-    jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
+    jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body])
+        .withSourceInformation(sourceInformation);
 
     jsAst.Name name = member.isStatic ? null : _namer.invocationName(selector);
     jsAst.Name callName =

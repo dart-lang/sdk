@@ -11,6 +11,7 @@ import '../common.dart';
 import '../elements/entities.dart';
 import '../js/js_source_mapping.dart';
 import '../js/js.dart' as js;
+import '../universe/call_structure.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
 
@@ -286,6 +287,13 @@ class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
   SourceInformation buildDeclaration(MemberEntity member) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildDeclaration(member)).toList());
+  }
+
+  @override
+  SourceInformation buildStub(
+      FunctionEntity function, CallStructure callStructure) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildStub(function, callStructure)).toList());
   }
 
   @override

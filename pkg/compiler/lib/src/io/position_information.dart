@@ -9,11 +9,12 @@ library dart2js.source_information.position;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show MemberElement, ResolvedAst, ResolvedAstKind;
+    show MemberElement, MethodElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
 import '../tree/tree.dart' show Node, Send;
+import '../universe/call_structure.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_file.dart';
 import 'source_information.dart';
@@ -158,7 +159,8 @@ class PositionSourceInformationBuilder
 
   SourceInformation buildDeclaration(MemberElement member) {
     ResolvedAst resolvedAst = member.resolvedAst;
-    SourceFile sourceFile = computeSourceFile(member.resolvedAst);
+    String name = computeElementNameForSourceMaps(resolvedAst.element);
+    SourceFile sourceFile = computeSourceFile(resolvedAst);
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(
@@ -170,6 +172,20 @@ class PositionSourceInformationBuilder
           new OffsetSourceLocation(
               sourceFile, resolvedAst.node.getEndToken().charOffset, name));
     }
+  }
+
+  @override
+  SourceInformation buildStub(
+      MethodElement function, CallStructure callStructure) {
+    ResolvedAst resolvedAst = function.resolvedAst;
+    String name =
+        computeElementNameForSourceMaps(resolvedAst.element, callStructure);
+    SourceFile sourceFile = computeSourceFile(resolvedAst);
+    SourceSpan span = resolvedAst.element.sourcePosition;
+    assert(
+        span != null, failedAt(function, "No source position for $function."));
+    return new PositionSourceInformation(
+        new OffsetSourceLocation(sourceFile, span.begin, name));
   }
 
   /// Builds a source information object pointing the start position of [node].
