@@ -115,8 +115,8 @@ abstract class Map<K, V> {
    * The keys computed by the source [iterable] do not need to be unique. The
    * last occurrence of a key will simply overwrite any previous value.
    */
-  factory Map.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) = LinkedHashMap<K, V>.fromIterable;
+  factory Map.fromIterable<E>(Iterable<E> iterable,
+      {K key(E element), V value(E element)}) = LinkedHashMap<K, V>.fromIterable;
 
   /**
    * Creates a Map instance associating the given [keys] to [values].
