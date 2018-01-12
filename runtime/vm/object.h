@@ -2053,19 +2053,6 @@ class ICData : public Object {
 // Often used constants for number of free function type parameters.
 enum {
   kNoneFree = 0,
-
-  // 'kCurrentAndEnclosingFree' is used when partially applying a signature
-  // function to a set of type arguments. It indicates that the set of type
-  // parameters declared by the current function and enclosing functions should
-  // be considered free, and the current function type parameters should be
-  // substituted as well.
-  //
-  // For instance, if the signature "<T>(T, R) => T" is instantiated with
-  // function type arguments [int, String] and kCurrentAndEnclosingFree is
-  // supplied, the result of the instantiation will be "(String, int) => int".
-  kCurrentAndEnclosingFree = kMaxInt32 - 1,
-
-  // Only parameters declared by enclosing functions are free.
   kAllFree = kMaxInt32,
 };
 
@@ -8664,8 +8651,6 @@ class Closure : public Instance {
                          const Function& function,
                          const Context& context,
                          Heap::Space space = Heap::kNew);
-
-  RawFunction* GetInstantiatedSignature(Zone* zone) const;
 
  private:
   static RawClosure* New();

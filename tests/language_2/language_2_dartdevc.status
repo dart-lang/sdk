@@ -55,7 +55,6 @@ import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
-instantiate_tearoff_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 issue31596_test: CompileTimeError
