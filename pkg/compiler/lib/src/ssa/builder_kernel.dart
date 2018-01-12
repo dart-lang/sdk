@@ -3003,7 +3003,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     if (isFixedListConstructorCall) {
-      assert(arguments.length == 1);
+      assert(
+          arguments.length == 1,
+          failedAt(
+              function,
+              "Unexpected arguments. "
+              "Expected 1 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
       if (!lengthInput.isNumber(closedWorld)) {
         HTypeConversion conversion = new HTypeConversion(

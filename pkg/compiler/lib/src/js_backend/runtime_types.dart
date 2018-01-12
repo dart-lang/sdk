@@ -117,7 +117,10 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   bool classNeedsRtiField(ClassEntity cls) => true;
 
   @override
-  bool methodNeedsTypeArguments(FunctionEntity method) => true;
+  bool methodNeedsTypeArguments(FunctionEntity method) =>
+      // TODO(johnniwinther): Align handling of type arguments passed to factory
+      // constructors with type arguments passed the regular generic methods.
+      !(method is ConstructorEntity && method.isFactoryConstructor);
 }
 
 /// Interface for computing classes and methods that need runtime types.

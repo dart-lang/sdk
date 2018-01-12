@@ -112,7 +112,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       KernelScopeInfo scope,
       ir.Node node,
       Set<ir.Node> localFunctionsNeedingRti,
-      Set<ClassEntity> classesNeedingRti,
+      Iterable<ClassEntity> classesNeedingRti,
       MemberEntity outermostEntity) {
     if (localFunctionsNeedingRti.contains(node) ||
         classesNeedingRti.contains(outermostEntity.enclosingClass) ||
@@ -131,7 +131,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       JsClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ScopeModel> closureModels,
       Set<ir.Node> localFunctionsNeedingRti,
-      Set<ClassEntity> classesNeedingRti) {
+      Iterable<ClassEntity> classesNeedingRti) {
     List<FunctionEntity> callMethods = <FunctionEntity>[];
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
@@ -197,7 +197,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       KernelScopeInfo info,
       Map<Local, JRecordField> boxedVariables,
       Set<ir.Node> localFunctionsNeedingRti,
-      Set<ClassEntity> classesNeedingRti) {
+      Iterable<ClassEntity> classesNeedingRti) {
     _updateScopeBasedOnRtiNeed(
         info, node.parent, localFunctionsNeedingRti, classesNeedingRti, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
