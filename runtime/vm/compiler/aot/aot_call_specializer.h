@@ -26,6 +26,7 @@ class AotCallSpecializer : public CallSpecializer {
   void ReplaceArrayBoundChecks();
 
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitPolymorphicInstanceCall(
       PolymorphicInstanceCallInstr* instr);
 
@@ -44,6 +45,7 @@ class AotCallSpecializer : public CallSpecializer {
   bool TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call);
 
   bool TryInlineFieldAccess(InstanceCallInstr* call);
+  bool TryInlineFieldAccess(StaticCallInstr* call);
 
   Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
 

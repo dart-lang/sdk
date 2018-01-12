@@ -251,6 +251,20 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   return false;
 }
 
+bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
+  if (call->function().IsImplicitGetterFunction()) {
+    Field& field =
+        Field::ZoneHandle(call->function().LookupImplicitGetterSetterField());
+    if (should_clone_fields_) {
+      field = field.CloneFromOriginal();
+    }
+    InlineImplicitInstanceGetter(call, field);
+    return true;
+  }
+
+  return false;
+}
+
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
@@ -823,6 +837,13 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     instr->ReplaceWith(call, current_iterator());
     return;
   }
+}
+
+void AotCallSpecializer::VisitStaticCall(StaticCallInstr* instr) {
+  if (TryInlineFieldAccess(instr)) {
+    return;
+  }
+  CallSpecializer::VisitStaticCall(instr);
 }
 
 bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,

@@ -5585,22 +5585,24 @@ void Function::set_saved_args_desc(const Array& value) const {
 }
 
 RawField* Function::LookupImplicitGetterSetterField() const {
-  ASSERT((kind() == RawFunction::kImplicitGetter) ||
-         (kind() == RawFunction::kImplicitSetter) ||
-         (kind() == RawFunction::kImplicitStaticFinalGetter));
-  const Class& owner = Class::Handle(Owner());
-  ASSERT(!owner.IsNull());
-  const Array& fields = Array::Handle(owner.fields());
-  ASSERT(!fields.IsNull());
-  Field& field = Field::Handle();
-  for (intptr_t i = 0; i < fields.Length(); i++) {
-    field ^= fields.At(i);
-    ASSERT(!field.IsNull());
-    if (field.token_pos() == token_pos()) {
-      return field.raw();
-    }
+  // TODO(27590) Store Field object inside RawFunction::data_ if possible.
+  Zone* Z = Thread::Current()->zone();
+  String& field_name = String::Handle(Z, name());
+  switch (kind()) {
+    case RawFunction::kImplicitGetter:
+    case RawFunction::kImplicitStaticFinalGetter:
+      field_name = Field::NameFromGetter(field_name);
+      break;
+    case RawFunction::kImplicitSetter:
+      field_name = Field::NameFromSetter(field_name);
+      break;
+    default:
+      UNREACHABLE();
   }
-  return Field::null();
+  ASSERT(field_name.IsSymbol());
+  const Class& owner = Class::Handle(Z, Owner());
+  ASSERT(!owner.IsNull());
+  return owner.LookupField(field_name);
 }
 
 RawFunction* Function::parent_function() const {
