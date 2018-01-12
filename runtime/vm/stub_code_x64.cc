@@ -756,7 +756,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // | saved PC (return to DartEntry::InvokeFunction) |
 
   const intptr_t kInitialOffset = 2;
-  // Save arguments descriptor array.
+  // Save arguments descriptor array, later replaced by Smi argument count.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset)*kWordSize;
   __ pushq(kArgDescReg);
 
@@ -807,9 +807,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Push arguments. At this point we only need to preserve kTargetCodeReg.
   ASSERT(kTargetCodeReg != RDX);
 
-  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
-  // Load number of arguments into RBX.
+  // Load number of arguments into RBX and adjust count for type arguments.
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addq(RBX, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+  // Save number of arguments as Smi on stack, replacing saved ArgumentsDesc.
+  __ movq(Address(RBP, kArgumentsDescOffset), RBX);
   __ SmiUntag(RBX);
 
   // Compute address of 'arguments array' data area into RDX.
@@ -835,11 +842,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(kTargetCodeReg, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ call(kTargetCodeReg);  // R10 is the arguments descriptor array.
 
-  // Read the saved arguments descriptor array to obtain the number of passed
-  // arguments.
-  __ movq(kArgDescReg, Address(RBP, kArgumentsDescOffset));
-  __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(RDX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  // Read the saved number of passed arguments as Smi.
+  __ movq(RDX, Address(RBP, kArgumentsDescOffset));
+
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 

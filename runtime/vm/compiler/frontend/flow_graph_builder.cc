@@ -3318,15 +3318,24 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
 
   const ParsedFunction& pf = owner_->parsed_function();
   const String& name = String::ZoneHandle(Z, function.native_name());
-  ZoneGrowableArray<PushArgumentInstr*>& args =
-      *new (Z) ZoneGrowableArray<PushArgumentInstr*>(function.NumParameters());
+  const intptr_t num_params = function.NumParameters();
+  ZoneGrowableArray<PushArgumentInstr*>* args = NULL;
+  if (function.IsGeneric() && owner()->isolate()->reify_generic_functions()) {
+    args = new (Z) ZoneGrowableArray<PushArgumentInstr*>(1 + num_params);
+    LocalVariable* type_args = pf.RawTypeArgumentsVariable();
+    ASSERT(type_args != NULL);
+    Value* value = Bind(new (Z) LoadLocalInstr(*type_args, node->token_pos()));
+    args->Add(PushArgument(value));
+  } else {
+    args = new (Z) ZoneGrowableArray<PushArgumentInstr*>(num_params);
+  }
   for (intptr_t i = 0; i < function.NumParameters(); ++i) {
     LocalVariable* parameter = pf.RawParameterVariable(i);
     Value* value = Bind(new (Z) LoadLocalInstr(*parameter, node->token_pos()));
-    args.Add(PushArgument(value));
+    args->Add(PushArgument(value));
   }
   NativeCallInstr* native_call = new (Z) NativeCallInstr(
-      &name, &function, FLAG_link_natives_lazily, node->token_pos(), &args);
+      &name, &function, FLAG_link_natives_lazily, node->token_pos(), args);
   ReturnDefinition(native_call);
 }
 

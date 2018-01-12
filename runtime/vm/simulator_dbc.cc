@@ -1324,7 +1324,6 @@ RawObject* Simulator::Call(const Code& code,
 
   // Load argument descriptor.
   argdesc_ = arguments_descriptor.raw();
-  ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() == 0);
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.

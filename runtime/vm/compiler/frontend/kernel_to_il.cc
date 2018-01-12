@@ -1397,7 +1397,12 @@ Fragment BaseFlowGraphBuilder::NullConstant() {
 Fragment FlowGraphBuilder::NativeCall(const String* name,
                                       const Function* function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
-  ArgumentArray arguments = GetArguments(function->NumParameters());
+  const intptr_t num_args =
+      function->NumParameters() +
+      ((function->IsGeneric() && Isolate::Current()->reify_generic_functions())
+           ? 1
+           : 0);
+  ArgumentArray arguments = GetArguments(num_args);
   NativeCallInstr* call =
       new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
                               TokenPosition::kNoSource, arguments);
@@ -2015,6 +2020,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());
+      if (function.IsGeneric() &&
+          Isolate::Current()->reify_generic_functions()) {
+        body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
+        body += PushArgument();
+      }
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         body += LoadLocal(parsed_function_->RawParameterVariable(i));
         body += PushArgument();

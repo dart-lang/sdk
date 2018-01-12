@@ -314,6 +314,7 @@ namespace dart {
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
+  V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 3)                                          \
   V(InvocationMirror_decodePositionalCountEntry, 1)                            \
   V(InvocationMirror_decodeTypeArgsLenEntry, 1)                                \

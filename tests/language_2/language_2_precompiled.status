@@ -282,7 +282,6 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 export_ambiguous_main_negative_test: Skip # Issue 29895
 export_ambiguous_main_test: Crash
 export_double_same_main_test: Skip # Issue 29895
-extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory1_test/00: MissingCompileTimeError
