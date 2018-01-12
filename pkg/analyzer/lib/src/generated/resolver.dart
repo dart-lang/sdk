@@ -2992,6 +2992,12 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     valuesField.evaluationResult = new EvaluationResultImpl(
         new DartObjectImpl(valuesField.type, new ListState(constantValues)));
+    // Update toString() return type.
+    {
+      MethodElementImpl toStringMethod = enumElement.methods[0];
+      toStringMethod.returnType = _typeProvider.stringType;
+      toStringMethod.type = new FunctionTypeImpl(toStringMethod);
+    }
     //
     // Finish building the enum.
     //

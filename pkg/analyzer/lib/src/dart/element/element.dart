@@ -63,6 +63,11 @@ abstract class AbstractClassElementImpl extends ElementImpl
   List<FieldElement> _fields;
 
   /**
+   * A list containing all of the methods contained in this class.
+   */
+  List<MethodElement> _methods;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
@@ -175,6 +180,18 @@ abstract class AbstractClassElementImpl extends ElementImpl
       PropertyAccessorElement accessor = accessors[i];
       if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement getMethod(String methodName) {
+    int length = methods.length;
+    for (int i = 0; i < length; i++) {
+      MethodElement method = methods[i];
+      if (method.name == methodName) {
+        return method;
       }
     }
     return null;
@@ -470,11 +487,6 @@ class ClassElementImpl extends AbstractClassElementImpl
    * `null`.
    */
   List<ConstructorElement> _constructors;
-
-  /**
-   * A list containing all of the methods contained in this class.
-   */
-  List<MethodElement> _methods;
 
   /**
    * A flag indicating whether the types associated with the instance members of
@@ -1110,18 +1122,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       TypeParameterElementImpl typeParameterImpl = typeParameter;
       if (typeParameterImpl.identifier == identifier) {
         return typeParameterImpl;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElement getMethod(String methodName) {
-    int length = methods.length;
-    for (int i = 0; i < length; i++) {
-      MethodElement method = methods[i];
-      if (method.name == methodName) {
-        return method;
       }
     }
     return null;
@@ -3777,7 +3777,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
       if (_kernel != null || _unlinkedEnum != null) {
-        _resynthesizeFieldsAndPropertyAccessors();
+        _resynthesizeMembers();
       }
     }
     return _accessors ?? const <PropertyAccessorElement>[];
@@ -3833,7 +3833,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   List<FieldElement> get fields {
     if (_fields == null) {
       if (_kernel != null || _unlinkedEnum != null) {
-        _resynthesizeFieldsAndPropertyAccessors();
+        _resynthesizeMembers();
       }
     }
     return _fields ?? const <FieldElement>[];
@@ -3889,7 +3889,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<MethodElement> get methods => const <MethodElement>[];
+  List<MethodElement> get methods {
+    if (_methods == null) {
+      if (_kernel != null || _unlinkedEnum != null) {
+        _resynthesizeMembers();
+      }
+    }
+    return _methods ?? const <MethodElement>[];
+  }
 
   @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
@@ -3945,8 +3952,18 @@ class EnumElementImpl extends AbstractClassElementImpl {
     }
   }
 
-  @override
-  MethodElement getMethod(String name) => null;
+  /**
+   * Create the only method enums have - `toString()`.
+   */
+  void createToStringMethodElement() {
+    var method = new MethodElementImpl('toString', -1);
+    if (_kernel != null || _unlinkedEnum != null) {
+      method.returnType = context.typeProvider.stringType;
+      method.type = new FunctionTypeImpl(method);
+    }
+    method.enclosingElement = this;
+    _methods = <MethodElement>[method];
+  }
 
   @override
   ConstructorElement getNamedConstructor(String name) => null;
@@ -3954,7 +3971,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) => false;
 
-  void _resynthesizeFieldsAndPropertyAccessors() {
+  void _resynthesizeMembers() {
     List<FieldElementImpl> fields = <FieldElementImpl>[];
     // Build the 'index' field.
     fields.add(new FieldElementImpl('index', -1)
@@ -3993,6 +4010,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
             new PropertyAccessorElementImpl_ImplicitGetter(field)
               ..enclosingElement = this)
         .toList(growable: false);
+    createToStringMethodElement();
   }
 }
 

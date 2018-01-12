@@ -228,6 +228,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       for (EnumConstantDeclaration constant in node.constants) {
         _match(constant.name, _walker.getVariable());
       }
+      _walker.getFunction(); // toString()
       super.visitEnumDeclaration(node);
     });
     _resolveMetadata(node, node.metadata, element);

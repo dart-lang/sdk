@@ -3746,6 +3746,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 class C {
 }
@@ -3775,6 +3776,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 class C {
 }
@@ -4407,6 +4409,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 final E vValue;
 final List<E> vValues;
@@ -4420,6 +4423,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 final dynamic vValue;
 final dynamic vValues;
@@ -4439,6 +4443,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E a;
+  String toString() {}
 }
 final String vToString;
 ''');
@@ -4448,6 +4453,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E a;
+  String toString() {}
 }
 final dynamic vToString;
 ''');
@@ -5377,6 +5383,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 ''');
   }
@@ -5401,6 +5408,7 @@ enum E {
   static const E a;
   /// bbb
   static const E b;
+  String toString() {}
 }
 ''');
   }
@@ -5413,6 +5421,7 @@ enum E {
   synthetic static const List<E> values;
   static const E v1;
   static const E v2;
+  String toString() {}
 }
 ''');
   }
@@ -5424,11 +5433,13 @@ enum E1 {
   synthetic final int index;
   synthetic static const List<E1> values;
   static const E1 v1;
+  String toString() {}
 }
 enum E2 {
   synthetic final int index;
   synthetic static const List<E2> values;
   static const E2 v2;
+  String toString() {}
 }
 ''');
   }
@@ -5460,6 +5471,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 class M {
 }
@@ -7873,6 +7885,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 const dynamic a = null;
 ''');
@@ -9116,6 +9129,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9143,6 +9157,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9161,6 +9176,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9190,6 +9206,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9217,6 +9234,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9260,6 +9278,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 E e;
 ''');

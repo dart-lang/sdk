@@ -223,6 +223,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       constantName.staticElement = constantField;
     }
     enumElement.fields = fields;
+    enumElement.createToStringMethodElement();
 
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;

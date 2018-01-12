@@ -1677,6 +1677,29 @@ class B<U> {
     }
   }
 
+  test_enum_toString() async {
+    addTestFile(r'''
+enum MyEnum { A, B, C }
+main(MyEnum e) {
+  e.toString();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    EnumDeclaration enumNode = result.unit.declarations[0];
+    ClassElement enumElement = enumNode.element;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.staticInvokeType.toString(), '() → String');
+
+    MethodElement methodElement = invocation.methodName.staticElement;
+    expect(methodElement.name, 'toString');
+    expect(methodElement.enclosingElement, same(enumElement));
+  }
+
   test_error_unresolvedTypeAnnotation() async {
     String content = r'''
 main() {
