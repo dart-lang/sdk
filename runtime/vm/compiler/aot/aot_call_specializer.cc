@@ -403,7 +403,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
           } else {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new BinaryInt64OpInstr(
+            replacement = new (Z) BinaryInt64OpInstr(
                 op_kind, left_value, right_value, Thread::kNoDeoptId,
                 Instruction::kNotSpeculative);
           }
@@ -437,7 +437,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       break;
   }
 
-  if (replacement != NULL) {
+  if (replacement != NULL && !replacement->ComputeCanDeoptimize()) {
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 instr->ToCString(), replacement->ToCString());
