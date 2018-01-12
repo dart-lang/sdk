@@ -554,5 +554,6 @@ class JSNumber extends Interceptor implements int, double {
     return i;
   }
 
+  @notNull
   int operator ~() => JS('int', r'(~#) >>> 0', this);
 }

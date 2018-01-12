@@ -75,12 +75,6 @@ bool isJsPeerInterface(Expression value) =>
 bool isNativeAnnotation(Expression value) =>
     _isBuiltinAnnotation(value, '_js_helper', 'Native');
 
-bool isNotNullAnnotation(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'NotNull');
-
-bool isNullCheckAnnotation(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'NullCheck');
-
 bool isJSAnonymousType(Class namedClass) {
   return _isJSNative(namedClass) &&
       findAnnotation(namedClass, isJSAnonymousAnnotation) != null;

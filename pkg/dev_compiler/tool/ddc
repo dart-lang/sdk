@@ -30,7 +30,7 @@ fi
 
 if [ "$KERNEL" = true ]; then
   dart -c $DDC_PATH/bin/dartdevk.dart --modules=node \
-      -o $BASENAME.js $*
+      -o $LIBROOT/$BASENAME.js $*
 else
   dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
       --dart-sdk-summary=$DDC_PATH/gen/sdk/ddc_sdk.sum \

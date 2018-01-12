@@ -21,24 +21,22 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
 
   List<Step> _steps;
 
-  List<Step> get steps {
-    return _steps ??= <Step>[
-      const Setup(),
-      new Compile(new RunDdc(environment.containsKey("debug"))),
-      const StepWithD8(),
-      new CheckSteps(environment.containsKey("debug")),
-    ];
-  }
+  List<Step> get steps => _steps ??= <Step>[
+        const Setup(),
+        new Compile(new DevCompilerRunner(environment.containsKey("debug"))),
+        const StepWithD8(),
+        new CheckSteps(environment.containsKey("debug")),
+      ];
 
   bool debugging() => environment.containsKey("debug");
 }
 
-class RunDdc implements DdcRunner {
+class DevCompilerRunner implements CompilerRunner {
   final bool debugging;
 
-  const RunDdc([this.debugging = false]);
+  const DevCompilerRunner([this.debugging = false]);
 
-  Future<Null> runDDC(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
+  Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;
 
