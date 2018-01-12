@@ -1886,6 +1886,32 @@ class A {
     expect(parameterNode.identifier.staticType, typeProvider.intType);
   }
 
+  test_forwardingStub_class() async {
+    addTestFile(r'''
+class A<T> {
+  void m(T t) {}
+}
+class B extends A<int> {}
+main(B b) {
+  b.m(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassElement eElement = aNode.element;
+    MethodElement mElement = eElement.getMethod('m');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.staticInvokeType.toString(), '(int) → void');
+    if (useCFE) {
+      expect(invocation.methodName.staticElement, same(mElement));
+    }
+  }
+
   test_functionExpressionInvocation() async {
     addTestFile(r'''
 typedef Foo<S> = S Function<T>(T x);
