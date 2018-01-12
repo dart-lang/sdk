@@ -75,6 +75,9 @@ eval_test: Pass, Slow
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
 
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+isolate_lifecycle_test: Skip # Times out.
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
