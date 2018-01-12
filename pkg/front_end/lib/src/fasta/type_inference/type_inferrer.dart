@@ -136,8 +136,48 @@ class ClosureContext {
   void handleReturn(TypeInferrerImpl inferrer, DartType type,
       Expression expression, int fileOffset) {
     if (isGenerator) return;
+    _updateInferredReturnType(
+        inferrer, type, expression, fileOffset, true, false);
+  }
+
+  void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type,
+      Expression expression, int fileOffset) {
+    if (!isGenerator) return;
+    _updateInferredReturnType(
+        inferrer, type, expression, fileOffset, false, isYieldStar);
+  }
+
+  DartType inferReturnType(TypeInferrerImpl inferrer) {
+    assert(_needToInferReturnType);
+    DartType inferredReturnType = _wrapAsyncOrGenerator(
+        inferrer, inferrer.inferReturnType(_inferredReturnType));
+    if (returnContext != null &&
+        !_analyzerSubtypeOf(inferrer, inferredReturnType, returnContext)) {
+      // If the inferred return type isn't a subtype of the context, we use the
+      // context.
+      return greatestClosure(inferrer.coreTypes, returnContext);
+    }
+
+    return inferredReturnType;
+  }
+
+  void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type,
+      Expression expression, int fileOffset, bool isReturn, bool isYieldStar) {
+    if (_needImplicitDowncasts) {
+      var expectedType = isYieldStar
+          ? _wrapAsyncOrGenerator(inferrer, returnContext)
+          : returnContext;
+      if (expectedType != null) {
+        expectedType = greatestClosure(inferrer.coreTypes, expectedType);
+        if (inferrer.checkAssignability(
+                expectedType, type, expression, fileOffset) !=
+            null) {
+          type = expectedType;
+        }
+      }
+    }
     var unwrappedType = type;
-    if (isAsync) {
+    if (isAsync && isReturn) {
       if (type is InterfaceType) {
         if (identical(type.classNode, inferrer.coreTypes.futureClass)) {
           unwrappedType = type.typeArguments[0];
@@ -146,16 +186,7 @@ class ClosureContext {
           unwrappedType = type.typeArguments[0];
         }
       }
-    }
-    _updateInferredReturnType(
-        inferrer, type, unwrappedType, expression, fileOffset, false);
-  }
-
-  void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type,
-      Expression expression, int fileOffset) {
-    if (!isGenerator) return;
-    var unwrappedType = type;
-    if (isYieldStar) {
+    } else if (isYieldStar) {
       unwrappedType = inferrer.getDerivedTypeArgumentOf(
               type,
               isAsync
@@ -163,48 +194,12 @@ class ClosureContext {
                   : inferrer.coreTypes.iterableClass) ??
           type;
     }
-    _updateInferredReturnType(
-        inferrer, type, unwrappedType, expression, fileOffset, isYieldStar);
-  }
-
-  DartType inferReturnType(TypeInferrerImpl inferrer) {
-    assert(_needToInferReturnType);
-    DartType inferredReturnType = inferrer.inferReturnType(_inferredReturnType);
-    if (returnContext != null &&
-        !_analyzerSubtypeOf(inferrer, inferredReturnType, returnContext)) {
-      // If the inferred return type isn't a subtype of the context, we use the
-      // context.
-      inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
-    }
-
-    return _wrapAsyncOrGenerator(inferrer, inferredReturnType);
-  }
-
-  void _updateInferredReturnType(
-      TypeInferrerImpl inferrer,
-      DartType type,
-      DartType unwrappedType,
-      Expression expression,
-      int fileOffset,
-      bool isYieldStar) {
     if (_needToInferReturnType) {
       if (_inferredReturnType == null) {
         _inferredReturnType = unwrappedType;
       } else {
         _inferredReturnType = inferrer.typeSchemaEnvironment
             .getLeastUpperBound(_inferredReturnType, unwrappedType);
-      }
-    }
-    if (_needImplicitDowncasts) {
-      var expectedType = isYieldStar
-          ? _wrapAsyncOrGenerator(inferrer, returnContext)
-          : returnContext;
-      if (expectedType != null) {
-        inferrer.checkAssignability(
-            greatestClosure(inferrer.coreTypes, expectedType),
-            type,
-            expression,
-            fileOffset);
       }
     }
   }
