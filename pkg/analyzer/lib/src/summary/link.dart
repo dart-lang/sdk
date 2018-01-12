@@ -250,6 +250,13 @@ EntityRefBuilder _createLinkedType(
   throw new UnimplementedError('${type.runtimeType}');
 }
 
+DartType _dynamicIfBottom(DartType type) {
+  if (type == null || type.isBottom) {
+    return DynamicTypeImpl.instance;
+  }
+  return type;
+}
+
 DartType _dynamicIfNull(DartType type) {
   if (type == null || type.isBottom || type.isDartCoreNull) {
     return DynamicTypeImpl.instance;
@@ -3266,7 +3273,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   void _setInferredType(DartType type) {
     // TODO(paulberry): store the inferred return type in the summary.
     assert(!_hasTypeBeenInferred);
-    _inferredReturnType = _dynamicIfNull(type);
+    _inferredReturnType = _dynamicIfBottom(type);
   }
 }
 
@@ -4324,9 +4331,6 @@ class ParameterElementForLink implements ParameterElementImpl {
   DartType _declaredType;
   bool _inheritsCovariant = false;
 
-  @override
-  String get identifier => name;
-
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.initializer?.bodyExpr != null) {
@@ -4371,6 +4375,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   @override
   bool get hasImplicitType =>
       !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
+
+  @override
+  String get identifier => name;
 
   @override
   bool get inheritsCovariant => _inheritsCovariant;

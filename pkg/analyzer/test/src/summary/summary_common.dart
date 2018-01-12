@@ -16,7 +16,6 @@ import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
@@ -1513,9 +1512,9 @@ class E {}
       closure = executable.localFunctions[0];
     }
     if (strongMode) {
-      // Strong mode infers a type for the closure of `() => dynamic`, so the
-      // inferred return type slot should be empty.
-      expect(getTypeRefForSlot(closure.inferredReturnTypeSlot), isNull);
+      // Strong mode infers a type for the closure of `() => Null`.
+      checkInferredTypeSlot(
+          closure.inferredReturnTypeSlot, 'dart:core', 'Null');
     } else {
       // Spec mode infers a type for the closure of `() => Bottom`.
       checkInferredTypeSlot(closure.inferredReturnTypeSlot, null, '*bottom*',
