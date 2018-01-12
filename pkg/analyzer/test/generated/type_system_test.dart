@@ -55,6 +55,7 @@ abstract class BoundTestBase {
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
   StrongTypeSystemImpl get strongTypeSystem =>
       typeSystem as StrongTypeSystemImpl;
 
@@ -1235,6 +1236,60 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
 
   void test_dynamic_void() {
     _checkGreatestLowerBound(dynamicType, voidType, voidType);
+  }
+
+  void test_bounds_of_top_types_sanity() {
+    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
+    final futureOrFutureOrDynamicType =
+        futureOrType.instantiate([futureOrDynamicType]);
+
+    // Sanity check specific cases of top for GLB/LUB.
+    _checkGreatestLowerBound(objectType, dynamicType, dynamicType);
+    _checkLeastUpperBound(objectType, dynamicType, objectType);
+    _checkGreatestLowerBound(futureOrDynamicType, dynamicType, dynamicType);
+    _checkLeastUpperBound(futureOrDynamicType, objectType, futureOrDynamicType);
+    _checkLeastUpperBound(futureOrDynamicType, futureOrFutureOrDynamicType,
+        futureOrFutureOrDynamicType);
+  }
+
+  void test_bounds_of_top_types_complete() {
+    // Test every combination of a subset of Tops programatically.
+    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
+    final futureOrObjectType = futureOrType.instantiate([objectType]);
+    final futureOrFutureOrDynamicType =
+        futureOrType.instantiate([futureOrDynamicType]);
+    final futureOrFutureOrObjectType =
+        futureOrType.instantiate([futureOrObjectType]);
+
+    final orderedTops = [
+      // Lower index, so lower Top
+      futureOrFutureOrObjectType,
+      futureOrFutureOrDynamicType,
+      futureOrObjectType,
+      futureOrDynamicType,
+      objectType,
+      dynamicType,
+      // Higher index, higher Top
+    ];
+
+    // We could sort and check the sort result is correct in O(n log n), but a
+    // good sorting algorithm would only run n tests here (that each value is
+    // correct relative to its nearest neighbors). But O(n^2) for n=6 is stupid
+    // fast, in this case, so just do the brute force check because we can.
+    for (var i = 0; i < orderedTops.length; ++i) {
+      for (var lower = 0; lower <= i; ++lower) {
+        _checkGreatestLowerBound(
+            orderedTops[i], orderedTops[lower], orderedTops[i]);
+        _checkLeastUpperBound(
+            orderedTops[i], orderedTops[lower], orderedTops[lower]);
+      }
+      for (var greater = i; greater < orderedTops.length; ++greater) {
+        _checkGreatestLowerBound(
+            orderedTops[i], orderedTops[greater], orderedTops[greater]);
+        _checkLeastUpperBound(
+            orderedTops[i], orderedTops[greater], orderedTops[i]);
+      }
+    }
   }
 
   void test_functionsDifferentNamedTakeUnion() {
