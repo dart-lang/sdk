@@ -458,6 +458,8 @@ abstract class ServiceObjectOwner extends ServiceObject {
 abstract class Location implements M.Location {
   Script get script;
   int get tokenPos;
+  Future<int> getLine();
+  Future<int> getColumn();
 }
 
 /// A [SourceLocation] represents a location or range in the source code.
@@ -1362,7 +1364,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
   static const kProfileReport = '_Profile';
 
-  Future<ServiceMap> getSourceReport(List<String> report_kinds,
+  Future<ServiceObject> getSourceReport(List<String> report_kinds,
       [Script script, int startPos, int endPos]) {
     var params = <String, dynamic>{'reports': report_kinds};
     if (script != null) {
@@ -2448,7 +2450,8 @@ class Library extends HeapObject implements M.Library {
     functions.sort(ServiceObject.LexicalSortName);
   }
 
-  Future<ServiceObject> evaluate(String expression, {Map scope}) {
+  Future<ServiceObject> evaluate(String expression,
+      {Map<String, ServiceObject> scope}) {
     return isolate.eval(this, expression, scope: scope);
   }
 
@@ -2626,7 +2629,8 @@ class Class extends HeapObject implements M.Class {
     subclasses.sort(ServiceObject.LexicalSortName);
   }
 
-  Future<ServiceObject> evaluate(String expression, {Map scope}) {
+  Future<ServiceObject> evaluate(String expression,
+      {Map<String, ServiceObject> scope}) {
     return isolate.eval(this, expression, scope: scope);
   }
 
@@ -2991,7 +2995,8 @@ class Instance extends HeapObject implements M.Instance {
     return 'a ${clazz.name}';
   }
 
-  Future<ServiceObject> evaluate(String expression, {Map scope}) {
+  Future<ServiceObject> evaluate(String expression,
+      {Map<String, ServiceObject> scope}) {
     return isolate.eval(this, expression, scope: scope);
   }
 
@@ -3588,7 +3593,7 @@ class Script extends HeapObject implements M.Script {
     library = map['library'];
   }
 
-  void _parseTokenPosTable(List<List<int>> table) {
+  void _parseTokenPosTable(List/*<List<int>>*/ table) {
     if (table == null) {
       return;
     }
@@ -4398,7 +4403,7 @@ class Code extends HeapObject implements M.Code {
     }
   }
 
-  void _processDescriptors(List<Map> descriptors) {
+  void _processDescriptors(List/*<Map>*/ descriptors) {
     for (Map descriptor in descriptors) {
       var pcOffset = int.parse(descriptor['pcOffset'], radix: 16);
       var address = startAddress + pcOffset;
@@ -4558,7 +4563,7 @@ class ServiceMetric extends ServiceObject implements M.Metric {
   String toString() => "ServiceMetric($_id)";
 }
 
-Future<Null> printFrames(List<Frame> frames) async {
+Future<Null> printFrames(List/*<Frame>*/ frames) async {
   for (int i = 0; i < frames.length; i++) {
     final Frame frame = frames[i];
     String frameText = await frame.toUserString();

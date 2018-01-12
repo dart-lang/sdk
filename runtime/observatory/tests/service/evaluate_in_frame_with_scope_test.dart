@@ -45,25 +45,26 @@ var tests = <IsolateTest>[
     var thing2 = thing2Field.staticValue;
     print(thing2);
 
-    var result = await isolate
-        .evalFrame(0, "x + y + a + b", scope: {"a": thing1, "b": thing2});
+    Instance result = await isolate.evalFrame(0, "x + y + a + b",
+        scope: <String, ServiceObject>{"a": thing1, "b": thing2});
     print(result);
     expect(result.valueAsString, equals('2033'));
 
-    result = await isolate
-        .evalFrame(0, "local + a + b", scope: {"a": thing1, "b": thing2});
+    result = await isolate.evalFrame(0, "local + a + b",
+        scope: <String, ServiceObject>{"a": thing1, "b": thing2});
     print(result);
     expect(result.valueAsString, equals('2033'));
 
     // Note the eval's scope is shadowing the locals' scope.
-    result =
-        await isolate.evalFrame(0, "x + y", scope: {"x": thing1, "y": thing2});
+    result = await isolate.evalFrame(0, "x + y",
+        scope: <String, ServiceObject>{"x": thing1, "y": thing2});
     print(result);
     expect(result.valueAsString, equals('7'));
 
     bool didThrow = false;
     try {
-      await lib.evaluate("x + y", scope: {"x": lib, "y": lib});
+      await lib.evaluate("x + y",
+          scope: <String, ServiceObject>{"x": lib, "y": lib});
     } catch (e) {
       didThrow = true;
       expect(e.toString(),
@@ -73,8 +74,8 @@ var tests = <IsolateTest>[
 
     didThrow = false;
     try {
-      result =
-          await lib.evaluate("x + y", scope: {"not&an&identifier": thing1});
+      result = await lib.evaluate("x + y",
+          scope: <String, ServiceObject>{"not&an&identifier": thing1});
       print(result);
     } catch (e) {
       didThrow = true;

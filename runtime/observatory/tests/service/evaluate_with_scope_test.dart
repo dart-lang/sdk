@@ -27,12 +27,14 @@ var tests = <IsolateTest>[
     var thing2 = thing2Field.staticValue;
     print(thing2);
 
-    var result = await lib.evaluate("x + y", scope: {"x": thing1, "y": thing2});
+    Instance result = await lib.evaluate("x + y",
+        scope: <String, ServiceObject>{"x": thing1, "y": thing2});
     expect(result.valueAsString, equals('7'));
 
     bool didThrow = false;
     try {
-      result = await lib.evaluate("x + y", scope: {"x": lib, "y": lib});
+      result = await lib.evaluate("x + y",
+          scope: <String, ServiceObject>{"x": lib, "y": lib});
       print(result);
     } catch (e) {
       didThrow = true;
@@ -43,8 +45,8 @@ var tests = <IsolateTest>[
 
     didThrow = false;
     try {
-      result =
-          await lib.evaluate("x + y", scope: {"not&an&identifier": thing1});
+      result = await lib.evaluate("x + y",
+          scope: <String, ServiceObject>{"not&an&identifier": thing1});
       print(result);
     } catch (e) {
       didThrow = true;

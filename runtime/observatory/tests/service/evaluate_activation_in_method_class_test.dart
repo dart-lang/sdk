@@ -6,6 +6,7 @@
 // Tests that expressions evaluated in a frame see the same scope as the
 // frame's method.
 
+import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -28,7 +29,7 @@ testeeDo() {
   obj.test();
 }
 
-testerDo(Isolate isolate) async {
+Future testerDo(Isolate isolate) async {
   await hasStoppedAtBreakpoint(isolate);
 
   // Make sure we are in the right place.
@@ -39,7 +40,7 @@ testerDo(Isolate isolate) async {
   expect(stack['frames'][topFrame].function.dartOwner.name,
       equals('Superclass&Klass'));
 
-  var result;
+  Instance result;
 
   result = await isolate.evalFrame(topFrame, '_local');
   print(result);

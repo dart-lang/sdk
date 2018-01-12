@@ -156,7 +156,7 @@ main(args, msg) {
     result = await vm.invokeRpcNoUpgrade('_spawnUri', {
       'token': 'mySpawnToken1',
       'uri': '${fsUri}${filePaths[1]}',
-      'args': ['one', 'two', 'three']
+      'args': <String>['one', 'two', 'three']
     });
     expect(result['type'], equals('Success'));
     spawnedIsolate = await completer.future;
