@@ -15,6 +15,7 @@ constant_javascript_semantics_test/03: Crash # Issue 31762
 constant_javascript_semantics_test/04: Crash # Issue 31762
 constant_javascript_semantics_test/none: Crash # Issue 31762
 dummy_compiler_test: Slow, Pass
+local_function_call_test: RuntimeError # Issue 31879
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
 no_such_method_test: Fail # Wrong Invocation.memberName.
