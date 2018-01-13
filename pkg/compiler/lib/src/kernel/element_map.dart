@@ -255,6 +255,10 @@ enum MemberKind {
   // A field corresponding to a captured variable in the closure. It does not
   // have a corresponding ir.Node.
   closureField,
+  // A method that describes the type of a function (in this case the type of
+  // the closure class. It does not have a corresponding ir.Node or a method
+  // body.
+  signature,
 }
 
 /// Definition information for a [MemberEntity].

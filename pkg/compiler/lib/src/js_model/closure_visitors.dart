@@ -237,26 +237,18 @@ class CapturedScopeBuilder extends ir.Visitor {
         _useTypeVariableAsLocal(new ir.TypeParameterType(typeParameter));
       }
 
-      if (_executableContext is ir.Member &&
-          _executableContext is! ir.Field &&
-          _hasThisLocal) {
+      if (_executableContext is ir.Member && _executableContext is! ir.Field) {
         // In checked mode, using a type variable in a type annotation may lead
         // to a runtime type check that needs to access the type argument and
         // therefore the closure needs a this-element, if it is not in a field
         // initializer; field initializers are evaluated in a context where
         // the type arguments are available in locals.
 
-        // TODO(efortuna): This is not correct for the case of type variables on
-        // methods. For example, the code:
-        //     class Foo<T> {
-        //         int bar<E>(...) {
-        //             ...use of E...
-        //         }
-        //     }
-        // We do not need the `this` variable in this case to use E.
-        // Add code to distinguish between this case and the case of a class
-        // type variable (like T, where we need `this`).
-        _registerNeedsThis();
+        if (_hasThisLocal) {
+          _registerNeedsThis();
+        } else {
+          _useTypeVariableAsLocal(new ir.TypeParameterType(typeParameter));
+        }
       }
     }
   }
@@ -461,7 +453,17 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   visitTypeParameterType(ir.TypeParameterType type) {
-    _analyzeType(type);
+    if (_outermostNode is ir.Member) {
+      ir.Member outermostMember = _outermostNode;
+      if (_isFieldOrConstructor(_outermostNode)) {
+        _useTypeVariableAsLocal(type, onlyForRtiChecks: true);
+      } else if (type.parameter.parent is ir.FunctionNode) {
+        // This is a function type parameter reference: foo<T>(...) {...}
+        _useTypeVariableAsLocal(type, onlyForRtiChecks: true);
+      } else if (outermostMember.isInstanceMember) {
+        _registerNeedsThis(onlyIfNeedsRti: true);
+      }
+    }
   }
 
   /// Returns true if the node is a field, or a constructor (factory or
@@ -470,17 +472,6 @@ class CapturedScopeBuilder extends ir.Visitor {
       node is ir.Constructor ||
       node is ir.Field ||
       (node is ir.Procedure && node.isFactory);
-
-  void _analyzeType(ir.TypeParameterType type) {
-    if (_outermostNode is ir.Member) {
-      ir.Member outermostMember = _outermostNode;
-      if (_isFieldOrConstructor(_outermostNode)) {
-        _useTypeVariableAsLocal(type, onlyForRtiChecks: true);
-      } else if (outermostMember.isInstanceMember) {
-        _registerNeedsThis(onlyIfNeedsRti: true);
-      }
-    }
-  }
 
   /// If [onlyForRtiChecks] is true, the variable will be added to a list
   /// indicating it *may* be used only if runtime type information is checked.

@@ -644,6 +644,43 @@ class FunctionDataImpl extends MemberDataImpl
   }
 }
 
+class SignatureFunctionData implements FunctionData {
+  final FunctionType functionType;
+  final MemberDefinition definition;
+  final InterfaceType memberThisType;
+  final ClassTypeVariableAccess classTypeVariableAccess;
+  final List<ir.TypeParameter> typeParameters;
+
+  SignatureFunctionData(this.definition, this.memberThisType, this.functionType,
+      this.typeParameters, this.classTypeVariableAccess);
+
+  FunctionType getFunctionType(covariant KernelToElementMapBase elementMap) {
+    return functionType;
+  }
+
+  List<TypeVariableType> getFunctionTypeVariables(
+      KernelToElementMap elementMap) {
+    return typeParameters
+        .map<TypeVariableType>((ir.TypeParameter typeParameter) {
+      return elementMap.getDartType(new ir.TypeParameterType(typeParameter));
+    }).toList();
+  }
+
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    throw new UnimplementedError('SignatureData.forEachParameter');
+  }
+
+  @override
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return const <ConstantValue>[];
+  }
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return memberThisType;
+  }
+}
+
 abstract class ConstructorData extends FunctionData {
   ConstantConstructor getConstructorConstant(
       KernelToElementMapBase elementMap, ConstructorEntity constructor);

@@ -228,6 +228,23 @@ class KernelSsaGraphBuilder extends ir.Visitor
         case MemberKind.closureField:
           failedAt(targetElement, "Unexpected closure field: $targetElement");
           break;
+        case MemberKind.signature:
+          ir.Node target = definition.node;
+          ir.FunctionNode originalClosureNode;
+          if (target is ir.Procedure) {
+            originalClosureNode = target.function;
+          } else if (target is ir.FunctionExpression) {
+            originalClosureNode = target.function;
+          } else if (target is ir.FunctionDeclaration) {
+            originalClosureNode = target.function;
+          } else {
+            failedAt(
+                targetElement,
+                "Unexpected function signature: "
+                "$targetElement inside a non-closure: $target");
+          }
+          buildMethodSignature(originalClosureNode);
+          break;
       }
       assert(graph.isValid());
 
@@ -482,8 +499,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Create the runtime type information, if needed.
       bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
       if (hasRtiInput) {
-        // Read the values of the type arguments and create a HTypeInfoExpression
-        // to set on the newly create object.
+        // Read the values of the type arguments and create a
+        // HTypeInfoExpression to set on the newly created object.
         List<HInstruction> typeArguments = <HInstruction>[];
         InterfaceType thisType =
             _elementMap.elementEnvironment.getThisType(cls);
@@ -868,6 +885,35 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _buildInitializers(constructor, constructorData);
     });
     localsHandler.scopeInfo = oldScopeInfo;
+  }
+
+  /// Constructs a special signature function for a closure. It is unique in
+  /// that no corresponding ir.Node actually exists for it. We just use the
+  /// targetElement.
+  void buildMethodSignature(ir.FunctionNode originalClosureNode) {
+    openFunction(targetElement);
+    List<HInstruction> typeArguments = <HInstruction>[];
+
+    // Add function type variables.
+    FunctionType functionType =
+        _elementMap.getFunctionType(originalClosureNode);
+    functionType.forEachTypeVariable((TypeVariableType typeVariableType) {
+      DartType result = localsHandler.substInContext(typeVariableType);
+      HInstruction argument =
+          typeBuilder.analyzeTypeArgument(result, sourceElement);
+      typeArguments.add(argument);
+    });
+    push(new HTypeInfoExpression(
+        TypeInfoExpressionKind.COMPLETE,
+        _elementMap.getFunctionType(originalClosureNode),
+        typeArguments,
+        commonMasks.functionType));
+    HInstruction value = pop();
+    close(new HReturn(
+            value, _sourceInformationBuilder.buildReturn(originalClosureNode)))
+        .addSuccessor(graph.exit);
+
+    closeFunction();
   }
 
   /// Builds generative constructor body.

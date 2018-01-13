@@ -2452,6 +2452,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         localsMap, recordFieldsVisibleInScope, memberMap);
 
+    if (options.addMethodSignatures) {
+      _constructSignatureMethod(closureClassInfo, memberMap, node,
+          memberThisType, location, typeVariableAccess);
+    }
+
     FunctionEntity callMethod = new JClosureCallMethod(
         closureClassInfo, _getParameterStructure(node), getAsyncMarker(node));
     _nestedClosureMap
@@ -2600,6 +2605,32 @@ class JsKernelToElementMap extends KernelToElementMapBase
     closureClassInfo.localToFieldMap[recordField.box] = closureField;
     closureClassInfo.boxedVariables[capturedLocal] = recordField;
     return true;
+  }
+
+  void _constructSignatureMethod(
+      KernelClosureClassInfo closureClassInfo,
+      Map<String, MemberEntity> memberMap,
+      ir.FunctionNode closureSourceNode,
+      InterfaceType memberThisType,
+      SourceSpan location,
+      ClassTypeVariableAccess typeVariableAccess) {
+    FunctionEntity signatureMethod = new JSignatureMethod(
+        closureClassInfo.closureClassEntity.library,
+        closureClassInfo.closureClassEntity,
+        // SignatureMethod takes no arguments.
+        const ParameterStructure(0, 0, const [], 0),
+        getAsyncMarker(closureSourceNode));
+    _members.register<IndexedFunction, FunctionData>(
+        signatureMethod,
+        new SignatureFunctionData(
+            new SpecialMemberDefinition(signatureMethod,
+                closureSourceNode.parent, MemberKind.signature),
+            memberThisType,
+            null,
+            closureSourceNode.typeParameters,
+            typeVariableAccess));
+    memberMap[signatureMethod.name] =
+        closureClassInfo.signatureMethod = signatureMethod;
   }
 
   _constructClosureField(

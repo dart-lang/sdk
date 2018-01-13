@@ -203,7 +203,14 @@ class _FunctionUsage extends _MemberUsage {
   bool hasInvoke = false;
   bool hasRead = false;
 
-  _FunctionUsage(FunctionEntity function) : super.internal(function);
+  _FunctionUsage(FunctionEntity function) : super.internal(function) {
+    if (function is JSignatureMethod) {
+      // We mark signature methods as "always used" to prevent them from being
+      // optimized away.
+      // TODO(johnniwinther): Make this a part of the regular enqueueing.
+      invoke();
+    }
+  }
 
   EnumSet<MemberUse> get _originalUse =>
       entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;

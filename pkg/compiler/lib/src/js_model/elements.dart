@@ -537,6 +537,18 @@ class JClosureCallMethod extends JMethod {
   String get _kind => 'closure_call';
 }
 
+/// A method that returns the signature of the Dart closure/tearoff that this
+/// method's parent class is representing.
+class JSignatureMethod extends JMethod {
+  JSignatureMethod(LibraryEntity enclosingLibrary, ClassEntity enclosingClass,
+      ParameterStructure parameterStructure, AsyncMarker asyncMarker)
+      : super(enclosingLibrary, enclosingClass, const PublicName('\$signature'),
+            parameterStructure, asyncMarker,
+            isStatic: false, isExternal: false, isAbstract: false);
+
+  String get _kind => 'signature';
+}
+
 class JTypeVariable extends IndexedTypeVariable {
   final Entity typeDeclaration;
   final String name;

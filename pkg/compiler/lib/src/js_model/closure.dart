@@ -94,8 +94,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// with the stated type.
   final bool _addTypeChecks;
 
+  /// If true, disable the optimization of trimming out passing extra
+  /// information for RTI checks.
+  final bool _disableRtiOptimization;
+
   KernelClosureConversionTask(Measurer measurer, this._elementMap,
-      this._globalLocalsMap, this._addTypeChecks)
+      this._globalLocalsMap, this._addTypeChecks, this._disableRtiOptimization)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -116,7 +120,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       MemberEntity outermostEntity) {
     if (localFunctionsNeedingRti.contains(node) ||
         classesNeedingRti.contains(outermostEntity.enclosingClass) ||
-        _addTypeChecks) {
+        _addTypeChecks ||
+        _disableRtiOptimization) {
       if (outermostEntity is FunctionEntity &&
           outermostEntity is! ConstructorEntity) {
         scope.thisUsedAsFreeVariable = scope.thisUsedAsFreeVariableIfNeedsRti ||
@@ -178,6 +183,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             classesNeedingRti);
         // Add also for the call method.
         _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
+        _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
         callMethods.add(closureClassInfo.callMethod);
       }
     });
@@ -208,6 +214,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     // We want the original declaration where that function is used to point
     // to the correct closure class.
     _memberClosureRepresentationMap[closureClassInfo.callMethod] =
+        closureClassInfo;
+    _memberClosureRepresentationMap[closureClassInfo.signatureMethod] =
         closureClassInfo;
     _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
     if (node.parent is ir.Member) {
@@ -247,6 +255,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       case MemberKind.constructor:
       case MemberKind.constructorBody:
       case MemberKind.closureCall:
+      case MemberKind.signature:
         return _capturedScopesMap[definition.node] ?? const CapturedScope();
       default:
         throw failedAt(entity, "Unexpected member definition $definition");
@@ -477,6 +486,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
 class KernelClosureClassInfo extends JsScopeInfo
     implements ClosureRepresentationInfo {
   JFunction callMethod;
+  JSignatureMethod signatureMethod;
   final Local closureEntity;
   final Local thisLocal;
   final JClass closureClassEntity;
