@@ -26,52 +26,19 @@ string_static_test: MissingCompileTimeError
 error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
-bool_from_environment2_test/01: MissingCompileTimeError
-bool_from_environment2_test/02: MissingCompileTimeError
-bool_from_environment2_test/03: MissingCompileTimeError
-bool_from_environment2_test/04: MissingCompileTimeError
-from_environment_const_type_test/01: Pass
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/05: Pass
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/10: Pass
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/15: Pass
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_test/none: Pass
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
+apply3_test: CompileTimeError
+bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-int_parse_radix_bad_handler_test: MissingCompileTimeError
+iterable_reduce_test/01: CompileTimeError
 map_test: Crash # crash in front_end.
-string_from_environment3_test/01: MissingCompileTimeError
-string_from_environment3_test/02: MissingCompileTimeError
-string_from_environment3_test/03: MissingCompileTimeError
-string_from_environment3_test/04: MissingCompileTimeError
+null_nosuchmethod_test/01: CompileTimeError
+null_nosuchmethod_test/none: CompileTimeError
+splay_tree_from_iterable_test: RuntimeError
+string_from_environment3_test/03: Crash
 symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
@@ -161,7 +128,7 @@ int_parse_radix_bad_handler_test: Pass
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
 
 # All static_tests have expected compile-time errors.
-[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $strong ]
+[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
 splay_tree_test/02: MissingCompileTimeError
@@ -344,102 +311,27 @@ apply3_test: Fail # mirrors not supported
 dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == dartdevc && $runtime != none ]
-apply2_test: RuntimeError # Issue 29921
-apply3_test: RuntimeError # Issue 29921
-bigint_test: Pass, Slow
-compare_to2_test: RuntimeError # Issue 30170
-date_time10_test: RuntimeError # Issue 29921
-error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
-hash_set_test/01: RuntimeError # Issue 29921
-int_modulo_arith_test/none: RuntimeError # Issue 29921
-int_parse_radix_test/01: RuntimeError # Issue 29921
-int_parse_radix_test/02: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
-integer_arith_vm_test/modPow: RuntimeError # Issue 30170
-integer_parsed_arith_vm_test: RuntimeError # Issue 29921
-integer_to_radix_string_test: RuntimeError # Issue 29921
-integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_fold_test/02: RuntimeError # different type inference problem
-iterable_reduce_test/01: RuntimeError
-iterable_reduce_test/none: RuntimeError
-iterable_return_type_test/02: RuntimeError # Issue 29921
-iterable_to_list_test/*: RuntimeError
-json_map_test: RuntimeError # Issue 29921
-list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
-list_removeat_test: RuntimeError # Issue 29921
-list_replace_range_test: RuntimeError # Issue 29921
-list_set_all_test: RuntimeError # Issue 29921
-main_test: RuntimeError # Issue 29921
-nan_infinity_test/01: RuntimeError # Issue 29921
-null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
-regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
-regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
-regexp/bol-with-multiline_test: RuntimeError # Issue 29921
-regexp/capture-3_test: RuntimeError # Issue 29921
-regexp/char-insensitive_test: RuntimeError # Issue 29921
-regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
-regexp/compile-crash_test: RuntimeError # Issue 29921
-regexp/default_arguments_test: RuntimeError # Issue 29921
-regexp/early-acid3-86_test: RuntimeError # Issue 29921
-regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
-regexp/extended-characters-match_test: RuntimeError # Issue 29921
-regexp/extended-characters-more_test: RuntimeError # Issue 29921
-regexp/find-first-asserted_test: RuntimeError # Issue 29921
-regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
-regexp/look-ahead_test: RuntimeError # Issue 29921
-regexp/loop-capture_test: RuntimeError # Issue 29921
-regexp/malformed-escapes_test: RuntimeError # Issue 29921
-regexp/many-brackets_test: RuntimeError # Issue 29921
-regexp/negative-special-characters_test: RuntimeError # Issue 29921
-regexp/no-extensions_test: RuntimeError # Issue 29921
-regexp/non-bmp_test: RuntimeError # Issue 29921
-regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
-regexp/non-capturing-groups_test: RuntimeError # Issue 29921
-regexp/non-character_test: RuntimeError # Issue 29921
-regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
-regexp/pcre-test-4_test: RuntimeError # Issue 29921
-regexp/quantified-assertions_test: RuntimeError # Issue 29921
-regexp/range-bound-ffff_test: RuntimeError # Issue 29921
-regexp/range-out-of-order_test: RuntimeError # Issue 29921
-regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
-regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
-regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
-regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
-regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
-regexp/results-cache_test: RuntimeError # Issue 29921
-regexp/stack-overflow2_test: RuntimeError # Issue 29921
-regexp/stack-overflow_test: RuntimeError # Issue 29921
-regexp/unicode-handling_test: RuntimeError # Issue 29921
-regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
-regress_r21715_test: RuntimeError # Issue 29921
-string_operations_with_null_test: RuntimeError # Issue 29921
 symbol_operator_test: RuntimeError # Issue 29921
-symbol_operator_test/03: RuntimeError # Issue 29921
-symbol_reserved_word_test/06: RuntimeError # Issue 29921
-symbol_reserved_word_test/09: RuntimeError # Issue 29921
-symbol_reserved_word_test/12: RuntimeError # Issue 29921
-symbol_test/none: RuntimeError # Issue 29921
-typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 
-[ $compiler != dartdevc && $compiler != dartk && $compiler != dartkp ]
+[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp ]
 iterable_element_at_test/static: MissingCompileTimeError
 
-[ $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none ]
+[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $runtime != none ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
 
-[ $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
+[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
 iterable_mapping_test/01: MissingCompileTimeError
 
-[ $compiler != dartdevc && $runtime != none && !$checked && !$strong ]
-null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
-
-[ $compiler != dartdevc && $checked && !$strong ]
+[ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
 splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
+
+[ $compiler != dartdevc && $runtime != none && !$checked && !$strong ]
+null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -532,14 +424,14 @@ splay_tree_from_iterable_test: RuntimeError
 apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 error_stack_trace1_test: Skip # Expects unobfuscated stack trace
 
-[ $runtime == drt && ($compiler == dart2js || $compiler == dartdevc) ]
+[ $runtime == drt && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
 symbol_test/02: MissingCompileTimeError # Issue 11669
 symbol_test/03: MissingCompileTimeError # Issue 11669
 
-[ $runtime != none && ($compiler == dart2js || $compiler == dartdevc) ]
+[ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
 bit_twiddling_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
 compare_to2_test: RuntimeError, OK # Requires fixed-size int64 support.
 double_ceil_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
@@ -556,6 +448,83 @@ integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 json_map_test: RuntimeError
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+
+[ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
+apply2_test: RuntimeError # Issue 29921
+apply3_test: RuntimeError # Issue 29921
+bigint_test: Pass, Slow
+compare_to2_test: RuntimeError # Issue 30170
+date_time10_test: RuntimeError # Issue 29921
+error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+hash_set_test/01: RuntimeError # Issue 29921
+int_modulo_arith_test/none: RuntimeError # Issue 29921
+int_parse_radix_test/01: RuntimeError # Issue 29921
+int_parse_radix_test/02: RuntimeError # Issue 29921
+int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+integer_arith_vm_test/modPow: RuntimeError # Issue 30170
+integer_parsed_arith_vm_test: RuntimeError # Issue 29921
+integer_to_radix_string_test: RuntimeError # Issue 29921
+integer_to_string_test/01: RuntimeError # Issue 29921
+iterable_fold_test/02: RuntimeError # different type inference problem
+iterable_reduce_test/01: RuntimeError
+iterable_reduce_test/none: RuntimeError
+iterable_return_type_test/02: RuntimeError # Issue 29921
+iterable_to_list_test/*: RuntimeError
+json_map_test: RuntimeError # Issue 29921
+list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
+list_removeat_test: RuntimeError # Issue 29921
+list_replace_range_test: RuntimeError # Issue 29921
+list_set_all_test: RuntimeError # Issue 29921
+main_test: RuntimeError # Issue 29921
+nan_infinity_test/01: RuntimeError # Issue 29921
+null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
+regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
+regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
+regexp/bol-with-multiline_test: RuntimeError # Issue 29921
+regexp/capture-3_test: RuntimeError # Issue 29921
+regexp/char-insensitive_test: RuntimeError # Issue 29921
+regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
+regexp/compile-crash_test: RuntimeError # Issue 29921
+regexp/default_arguments_test: RuntimeError # Issue 29921
+regexp/early-acid3-86_test: RuntimeError # Issue 29921
+regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
+regexp/extended-characters-match_test: RuntimeError # Issue 29921
+regexp/extended-characters-more_test: RuntimeError # Issue 29921
+regexp/find-first-asserted_test: RuntimeError # Issue 29921
+regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
+regexp/look-ahead_test: RuntimeError # Issue 29921
+regexp/loop-capture_test: RuntimeError # Issue 29921
+regexp/malformed-escapes_test: RuntimeError # Issue 29921
+regexp/many-brackets_test: RuntimeError # Issue 29921
+regexp/negative-special-characters_test: RuntimeError # Issue 29921
+regexp/no-extensions_test: RuntimeError # Issue 29921
+regexp/non-bmp_test: RuntimeError # Issue 29921
+regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
+regexp/non-capturing-groups_test: RuntimeError # Issue 29921
+regexp/non-character_test: RuntimeError # Issue 29921
+regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
+regexp/pcre-test-4_test: RuntimeError # Issue 29921
+regexp/quantified-assertions_test: RuntimeError # Issue 29921
+regexp/range-bound-ffff_test: RuntimeError # Issue 29921
+regexp/range-out-of-order_test: RuntimeError # Issue 29921
+regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
+regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
+regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
+regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
+regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
+regexp/results-cache_test: RuntimeError # Issue 29921
+regexp/stack-overflow2_test: RuntimeError # Issue 29921
+regexp/stack-overflow_test: RuntimeError # Issue 29921
+regexp/unicode-handling_test: RuntimeError # Issue 29921
+regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
+regress_r21715_test: RuntimeError # Issue 29921
+string_operations_with_null_test: RuntimeError # Issue 29921
+symbol_operator_test/03: RuntimeError # Issue 29921
+symbol_reserved_word_test/06: RuntimeError # Issue 29921
+symbol_reserved_word_test/09: RuntimeError # Issue 29921
+symbol_reserved_word_test/12: RuntimeError # Issue 29921
+symbol_test/none: RuntimeError # Issue 29921
+typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 
 [ $runtime == vm && !$checked && ($compiler == app_jit || $compiler == none) ]
 iterable_generate_test/01: RuntimeError

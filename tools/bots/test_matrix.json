@@ -316,7 +316,8 @@
             "--checked",
             "--strong",
             "--use-sdk",
-            "language_2"
+            "language_2",
+            "corelib_2"
           ]
         },
         {
@@ -375,8 +376,7 @@
             "--use-sdk",
             "language_2",
             "corelib_2",
-            "lib_2",
-            "lib_strong"
+            "lib_2"
           ]
         },
         {
@@ -386,7 +386,8 @@
             "--checked",
             "--strong",
             "--use-sdk",
-            "language_2"
+            "language_2",
+            "corelib_2"
           ]
         },
         {
