@@ -248,7 +248,7 @@ class KernelWorkItem implements ResolutionWorkItem {
         WorldImpact worldImpact =
             _impactTransformer.transformResolutionImpact(impact);
         if (impactCache != null) {
-          impactCache[element] = impact;
+          impactCache[element] = worldImpact;
         }
         return worldImpact;
       });

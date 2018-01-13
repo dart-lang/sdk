@@ -2612,7 +2612,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           // there is no prefix the old FE wouldn't treat this in any special
           // way. Also, if the prefix points to a constant in the main output
           // unit, the old FE would still generate a deferred wrapper here.
-          if (!unit.isMainOutput) {
+          if (!compiler.backend.outputUnitData
+              .hasOnlyNonDeferredImportPaths(targetElement, field)) {
             stack.add(graph.addDeferredConstant(
                 value, unit, sourceInformation, compiler, closedWorld));
           } else {

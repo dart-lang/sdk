@@ -18,9 +18,7 @@ import 'package:compiler/src/constants/values.dart';
 
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[
-  'dont_inline_deferred_constants.dart',
-];
+const List<String> skipForKernel = const <String>[];
 
 ///  Add in options to pass to the compiler like
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
@@ -97,6 +95,7 @@ void computeAstOutputUnitData(
   if (member is FieldElement && member.isConst) {
     var node = member.initializer;
     var constant = compiler.constants.getConstantValue(member.constant);
+    if (constant.isPrimitive) return;
     _registerValue(
         new NodeId(node.getBeginToken().charOffset, IdKind.node),
         outputUnitString(data.outputUnitForConstant(constant)),
@@ -136,6 +135,7 @@ void computeKernelOutputUnitData(
   if (memberNode is ir.Field && memberNode.isConst) {
     ir.Expression node = memberNode.initializer;
     ConstantValue constant = elementMap.getConstantValue(node);
+    if (constant.isPrimitive) return;
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     if (node is ir.ConstructorInvocation ||
         node is ir.ListLiteral ||

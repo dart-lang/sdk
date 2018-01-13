@@ -15,6 +15,7 @@ import '../elements/elements.dart'
         AstElement,
         AccessorElement,
         ClassElement,
+        ConstructorElement,
         Element,
         ExportElement,
         ImportElement,
@@ -145,6 +146,11 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     TreeElements treeElements = element.resolvedAst.elements;
     assert(treeElements != null);
 
+    Set<ast.Node> metadataNodes = element.implementation.metadata
+        .map((m) => m.node)
+        .toSet()
+          ..addAll(element.declaration.metadata.map((m) => m.node));
+
     // TODO(johnniwinther): Add only expressions that are actually needed.
     // Currently we have some noise here: Some potential expressions are
     // seen that should never be added (for instance field initializers
@@ -154,6 +160,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     // See dartbug.com/26406 for context.
     treeElements
         .forEachConstantNode((ast.Node node, ConstantExpression expression) {
+      if (metadataNodes.contains(node)) return;
       if (compiler.serialization.isDeserialized(element)) {
         if (!expression.isPotential) {
           // Enforce evaluation of [expression].
@@ -366,4 +373,10 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     assert(result != null);
     return result;
   }
+
+  bool ignoreEntityInDump(covariant Element element) =>
+      // origin element will already be dumped.
+      element.isPatch ||
+      // redirecting factories are not visible to the kernel ir
+      element is ConstructorElement && element.isRedirectingFactory;
 }

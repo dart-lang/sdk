@@ -48,7 +48,7 @@ const C5 = /*OutputUnit(main, {})*/ const C(5);
 /// ---------------------------------------------------------------------------
 
 /*element: C6:OutputUnit(1, {lib2})*/
-const C6 = /*OutputUnit(1, {lib2})*/ "string6";
+const C6 = "string6";
 
 /*element: C7:OutputUnit(1, {lib2})*/
 const C7 = /*OutputUnit(1, {lib2})*/ const C(const C(7));
