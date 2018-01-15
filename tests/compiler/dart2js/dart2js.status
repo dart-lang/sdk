@@ -13,7 +13,8 @@ codegen/number_output_test: RuntimeError # Issue 31762
 codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
 deferred_loading/deferred_loading_test: Slow, Pass
 equivalence/id_equivalence_test: Pass, Slow
-inference/inference_test: Slow, Pass
+inference/inference0_test: Slow, Pass
+inference/inference1_test: Slow, Pass
 inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
 inference/simple_inferrer_const_closure_test: Fail # Issue 16507
 inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507

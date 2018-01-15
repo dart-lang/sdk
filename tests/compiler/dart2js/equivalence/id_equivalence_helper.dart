@@ -363,7 +363,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
     ComputeClassDataFunction computeClassDataFromAst,
-    ComputeClassDataFunction computeClassDataFromKernel}) async {
+    ComputeClassDataFunction computeClassDataFromKernel,
+    int shards: 1,
+    int shardIndex: 0}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
   bool shouldContinue = args.remove('-c');
@@ -371,7 +373,13 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
   var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
-  await for (FileSystemEntity entity in dataDir.list()) {
+  List<FileSystemEntity> entities = dataDir.listSync();
+  if (shards > 1) {
+    int start = entities.length * shardIndex ~/ shards;
+    int end = entities.length * (shardIndex + 1) ~/ shards;
+    entities = entities.sublist(start, end);
+  }
+  for (FileSystemEntity entity in entities) {
     String name = entity.uri.pathSegments.last;
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
