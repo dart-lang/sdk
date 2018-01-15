@@ -254,6 +254,10 @@ void* DFE::ReadScript(const char* script_uri) const {
 bool DFE::TryReadKernelFile(const char* script_uri,
                             const uint8_t** kernel_ir,
                             intptr_t* kernel_ir_size) const {
+  if (strlen(script_uri) >= 8 && strncmp(script_uri, "file:///", 8) == 0) {
+    script_uri = script_uri + 7;
+  }
+
   *kernel_ir = NULL;
   *kernel_ir_size = -1;
   void* script_file = DartUtils::OpenFile(script_uri, false);

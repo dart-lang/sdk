@@ -126,7 +126,38 @@ unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-*: Skip
+checked_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+count_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+cross_isolate_message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+error_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+illegal_msg_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+illegal_msg_mirror_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate_complex_messages_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+issue_21398_parent_isolate1_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+issue_21398_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+issue_24243_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+mandel_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+message2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+mint_maker_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+nested_spawn2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+nested_spawn_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+raw_port_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+request_reply_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_function_custom_class_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_exported_main_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_missing_from_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_missing_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_multi_test/01: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_multi_test/none: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_nested_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+spawn_uri_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+static_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.

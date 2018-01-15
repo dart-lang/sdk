@@ -75,9 +75,6 @@ eval_test: Pass, Slow
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
 
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-isolate_lifecycle_test: Skip # Times out.
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -86,10 +83,8 @@ bad_reload_test: RuntimeError # Please triage.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
 dev_fs_spawn_test: RuntimeError # Please triage.
-developer_service_get_isolate_id_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
 get_source_report_test: RuntimeError # Please triage.
-issue_30555_test: RuntimeError # Please triage.
 library_dependency_test: RuntimeError # Please triage.
 reload_sources_test: Timeout, Skip # Please triage.
 set_name_rpc_test: RuntimeError # Please triage.

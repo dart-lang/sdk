@@ -336,14 +336,31 @@ typed_data/int32x4_static_test/02: MissingCompileTimeError
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-isolate/*: Skip
+isolate/cross_isolate_message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/error_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/issue_21398_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/issue_24243_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/message2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/nested_spawn2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/nested_spawn_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/raw_port_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/request_reply_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_function_custom_class_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_function_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_uri_exported_main_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_uri_multi_test/none: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_uri_nested_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_uri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/spawn_uri_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
+isolate/unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 mirrors/invocation_fuzz_test/emptyarray: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/false: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash, Crash, Pass # Please triage.
 mirrors/invocation_fuzz_test/string: CompileTimeError, Pass # Please triage.
 mirrors/library_uri_io_test: RuntimeError # Please triage.
-mirrors/spawn_function_root_library_test: Skip
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]

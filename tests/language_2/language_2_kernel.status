@@ -793,7 +793,6 @@ class_cycle_test/03: MissingCompileTimeError # Please triage.
 duplicate_implements_test/01: MissingCompileTimeError # Please triage.
 duplicate_implements_test/02: MissingCompileTimeError # Please triage.
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Please triage.
-issue23244_test: RuntimeError # Please triage.
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 mixin_black_listed_test/02: MissingCompileTimeError # Please triage.
 null_test/02: MissingCompileTimeError # Please triage.
