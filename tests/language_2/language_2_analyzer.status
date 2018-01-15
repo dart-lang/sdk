@@ -69,8 +69,8 @@ list_literal2_negative_test: CompileTimeError
 list_literal_negative_test: CompileTimeError
 map_literal_negative_test: CompileTimeError
 method_override7_test/03: Fail # Issue 11497
-method_override_test: StaticWarning
 method_override_test: CompileTimeError
+method_override_test: StaticWarning
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
@@ -1133,39 +1133,48 @@ void_type_function_types_test/none: CompileTimeError # Issue 30177
 void_type_override_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/call_as: CompileTimeError # Issue 30177
 void_type_usage_test/call_for: CompileTimeError # Issue 30177
+void_type_usage_test/call_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/call_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/field_assign: CompileTimeError # Issue 30177
 void_type_usage_test/field_assign2: CompileTimeError # Issue 30177
 void_type_usage_test/final_local_as: CompileTimeError # Issue 30177
 void_type_usage_test/final_local_for: CompileTimeError # Issue 30177
+void_type_usage_test/final_local_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/global_as: CompileTimeError # Issue 30177
 void_type_usage_test/global_for: CompileTimeError # Issue 30177
 void_type_usage_test/global_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/global_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/global_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_as: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_for: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30177
+void_type_usage_test/instance2_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_as: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_for: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30177
+void_type_usage_test/instance3_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/instance_as: CompileTimeError # Issue 30177
 void_type_usage_test/instance_for: CompileTimeError # Issue 30177
+void_type_usage_test/instance_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/instance_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/local_as: CompileTimeError # Issue 30177
 void_type_usage_test/local_assign: CompileTimeError # Issue 30177
 void_type_usage_test/local_for: CompileTimeError # Issue 30177
 void_type_usage_test/local_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/local_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/local_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/param_as: CompileTimeError # Issue 30177
 void_type_usage_test/param_for: CompileTimeError # Issue 30177
 void_type_usage_test/param_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/param_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/param_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/paren_as: CompileTimeError # Issue 30177
 void_type_usage_test/paren_for: CompileTimeError # Issue 30177
+void_type_usage_test/paren_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/paren_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/setter_assign: CompileTimeError # Issue 30177
 

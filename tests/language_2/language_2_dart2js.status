@@ -2741,6 +2741,7 @@ void_type_function_types_test/none: CompileTimeError
 void_type_override_test/none: CompileTimeError
 void_type_usage_test/call_as: CompileTimeError
 void_type_usage_test/call_for: CompileTimeError
+void_type_usage_test/call_return_to_void: CompileTimeError
 void_type_usage_test/call_stmt: CompileTimeError
 void_type_usage_test/conditional2_argument: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2752,6 +2753,7 @@ void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:fron
 void_type_usage_test/conditional2_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_return_to_void: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 192 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_stmt: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_throw: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_void_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2768,6 +2770,7 @@ void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:fron
 void_type_usage_test/conditional3_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_return_to_void: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 192 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_stmt: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_throw: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_void_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2778,38 +2781,46 @@ void_type_usage_test/field_assign: CompileTimeError
 void_type_usage_test/field_assign2: CompileTimeError
 void_type_usage_test/final_local_as: CompileTimeError
 void_type_usage_test/final_local_for: CompileTimeError
+void_type_usage_test/final_local_return_to_void: CompileTimeError
 void_type_usage_test/final_local_stmt: CompileTimeError
 void_type_usage_test/global_as: CompileTimeError
 void_type_usage_test/global_for: CompileTimeError
 void_type_usage_test/global_for_in2: CompileTimeError
 void_type_usage_test/global_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/global_return_to_void: CompileTimeError
 void_type_usage_test/global_stmt: CompileTimeError
 void_type_usage_test/instance2_as: CompileTimeError
 void_type_usage_test/instance2_for: CompileTimeError
 void_type_usage_test/instance2_for_in3: CompileTimeError
+void_type_usage_test/instance2_return_to_void: CompileTimeError
 void_type_usage_test/instance2_stmt: CompileTimeError
 void_type_usage_test/instance3_as: CompileTimeError
 void_type_usage_test/instance3_for: CompileTimeError
 void_type_usage_test/instance3_for_in3: CompileTimeError
+void_type_usage_test/instance3_return_to_void: CompileTimeError
 void_type_usage_test/instance3_stmt: CompileTimeError
 void_type_usage_test/instance_as: CompileTimeError
 void_type_usage_test/instance_for: CompileTimeError
+void_type_usage_test/instance_return_to_void: CompileTimeError
 void_type_usage_test/instance_stmt: CompileTimeError
 void_type_usage_test/local_as: CompileTimeError
 void_type_usage_test/local_assign: CompileTimeError
 void_type_usage_test/local_for: CompileTimeError
 void_type_usage_test/local_for_in2: CompileTimeError
 void_type_usage_test/local_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/local_return_to_void: CompileTimeError
 void_type_usage_test/local_stmt: CompileTimeError
 void_type_usage_test/none: CompileTimeError
 void_type_usage_test/param_as: CompileTimeError
 void_type_usage_test/param_for: CompileTimeError
 void_type_usage_test/param_for_in2: CompileTimeError
 void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/param_return_to_void: CompileTimeError
 void_type_usage_test/param_stmt: CompileTimeError
 void_type_usage_test/paren_as: CompileTimeError
 void_type_usage_test/paren_for: CompileTimeError
 void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/paren_return_to_void: CompileTimeError
 void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
@@ -3478,39 +3489,48 @@ void_type_function_types_test/none: CompileTimeError
 void_type_override_test/none: CompileTimeError
 void_type_usage_test/call_as: CompileTimeError
 void_type_usage_test/call_for: CompileTimeError
+void_type_usage_test/call_return_to_void: CompileTimeError
 void_type_usage_test/call_stmt: CompileTimeError
 void_type_usage_test/field_assign: CompileTimeError
 void_type_usage_test/field_assign2: CompileTimeError
 void_type_usage_test/final_local_as: CompileTimeError
 void_type_usage_test/final_local_for: CompileTimeError
+void_type_usage_test/final_local_return_to_void: CompileTimeError
 void_type_usage_test/final_local_stmt: CompileTimeError
 void_type_usage_test/global_as: CompileTimeError
 void_type_usage_test/global_for: CompileTimeError
 void_type_usage_test/global_for_in2: CompileTimeError
+void_type_usage_test/global_return_to_void: CompileTimeError
 void_type_usage_test/global_stmt: CompileTimeError
 void_type_usage_test/instance2_as: CompileTimeError
 void_type_usage_test/instance2_for: CompileTimeError
 void_type_usage_test/instance2_for_in3: CompileTimeError
+void_type_usage_test/instance2_return_to_void: CompileTimeError
 void_type_usage_test/instance2_stmt: CompileTimeError
 void_type_usage_test/instance3_as: CompileTimeError
 void_type_usage_test/instance3_for: CompileTimeError
 void_type_usage_test/instance3_for_in3: CompileTimeError
+void_type_usage_test/instance3_return_to_void: CompileTimeError
 void_type_usage_test/instance3_stmt: CompileTimeError
 void_type_usage_test/instance_as: CompileTimeError
 void_type_usage_test/instance_for: CompileTimeError
+void_type_usage_test/instance_return_to_void: CompileTimeError
 void_type_usage_test/instance_stmt: CompileTimeError
 void_type_usage_test/local_as: CompileTimeError
 void_type_usage_test/local_assign: CompileTimeError
 void_type_usage_test/local_for: CompileTimeError
 void_type_usage_test/local_for_in2: CompileTimeError
+void_type_usage_test/local_return_to_void: CompileTimeError
 void_type_usage_test/local_stmt: CompileTimeError
 void_type_usage_test/none: CompileTimeError
 void_type_usage_test/param_as: CompileTimeError
 void_type_usage_test/param_for: CompileTimeError
 void_type_usage_test/param_for_in2: CompileTimeError
+void_type_usage_test/param_return_to_void: CompileTimeError
 void_type_usage_test/param_stmt: CompileTimeError
 void_type_usage_test/paren_as: CompileTimeError
 void_type_usage_test/paren_for: CompileTimeError
+void_type_usage_test/paren_return_to_void: CompileTimeError
 void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
