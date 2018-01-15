@@ -122,7 +122,7 @@ class ClosureContext {
       }
     } else if (isAsync) {
       returnContext = inferrer.wrapFutureOrType(
-          inferrer.typeSchemaEnvironment.flattenFutures(returnContext));
+          inferrer.typeSchemaEnvironment.unfutureType(returnContext));
     }
     return new ClosureContext._(isAsync, isGenerator, returnContext,
         needToInferReturnType, needImplicitDowncasts);
@@ -178,14 +178,7 @@ class ClosureContext {
     }
     var unwrappedType = type;
     if (isAsync && isReturn) {
-      if (type is InterfaceType) {
-        if (identical(type.classNode, inferrer.coreTypes.futureClass)) {
-          unwrappedType = type.typeArguments[0];
-        } else if (identical(
-            type.classNode, inferrer.coreTypes.futureOrClass)) {
-          unwrappedType = type.typeArguments[0];
-        }
-      }
+      unwrappedType = inferrer.typeSchemaEnvironment.unfutureType(type);
     } else if (isYieldStar) {
       unwrappedType = inferrer.getDerivedTypeArgumentOf(
               type,
@@ -1426,12 +1419,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   DartType wrapFutureType(DartType type) {
     var typeWithoutFutureOr = type ?? const DynamicType();
-    if (type is InterfaceType &&
-        identical(type.classNode, coreTypes.futureOrClass)) {
-      typeWithoutFutureOr = type.typeArguments[0];
-    }
-    return new InterfaceType(coreTypes.futureClass,
-        <DartType>[typeSchemaEnvironment.flattenFutures(typeWithoutFutureOr)]);
+    return new InterfaceType(
+        coreTypes.futureClass, <DartType>[typeWithoutFutureOr]);
   }
 
   DartType wrapType(DartType type, Class class_) {

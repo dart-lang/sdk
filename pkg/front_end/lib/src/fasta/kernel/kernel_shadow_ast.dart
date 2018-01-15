@@ -174,7 +174,7 @@ class ShadowAwaitExpression extends AwaitExpression
     }
     var inferredType =
         inferrer.inferExpression(operand, typeContext, typeNeeded);
-    inferredType = inferrer.typeSchemaEnvironment.flattenFutures(inferredType);
+    inferredType = inferrer.typeSchemaEnvironment.unfutureType(inferredType);
     inferrer.listener.awaitExpressionExit(this, inferredType);
     return inferredType;
   }

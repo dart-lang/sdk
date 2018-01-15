@@ -7057,10 +7057,18 @@ import 'dart:async';
 var v = (Future<Future<Future<int>>> f) async => await f;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'dart:async';
+(Future<Future<Future<int>>>) → Future<Future<int>> v;
+''');
+      } else {
+        // The analyzer type system over-flattens - see dartbug.com/31887
+        checkElementText(library, r'''
 import 'dart:async';
 (Future<Future<Future<int>>>) → Future<int> v;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'dart:async';

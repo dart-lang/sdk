@@ -61,11 +61,27 @@ class TypeEnvironment extends SubtypeTester {
     return new InterfaceType(coreTypes.futureClass, <DartType>[type]);
   }
 
-  /// Removes any number of `Future<>` types wrapping a type.
+  /// Removes a level of `Future<>` types wrapping a type.
+  ///
+  /// This implements the function `flatten` from the spec, which unwraps a
+  /// layer of Future or FutureOr from a type.
   DartType unfutureType(DartType type) {
-    return type is InterfaceType && type.classNode == coreTypes.futureClass
-        ? unfutureType(type.typeArguments[0])
-        : type;
+    if (type is InterfaceType) {
+      if (type.classNode == coreTypes.futureOrClass ||
+          type.classNode == coreTypes.futureClass) {
+        return type.typeArguments[0];
+      }
+      // It is a compile-time error to implement, extend, or mixin FutureOr so
+      // we aren't concerned with it.  If a class implements multiple
+      // instantiations of Future, getTypeAsInstanceOf is responsible for
+      // picking the least one in the sense required by the spec.
+      InterfaceType future =
+          hierarchy.getTypeAsInstanceOf(type, coreTypes.futureClass);
+      if (future != null) {
+        return future.typeArguments[0];
+      }
+    }
+    return type;
   }
 
   /// Called if the computation of a static type failed due to a type error.

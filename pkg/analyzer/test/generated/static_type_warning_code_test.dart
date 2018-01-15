@@ -143,13 +143,14 @@ f(Object x) {
   }
 
   test_await_flattened() async {
+    // The analyzer type system over-flattens - see dartbug.com/31887
     await assertErrorsInCode('''
 import 'dart:async';
 Future<Future<int>> ffi() => null;
 f() async {
   Future<int> b = await ffi(); // Warning: int not assignable to Future<int>
 }
-''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', useCFE ? [] : [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
   test_await_simple() async {
