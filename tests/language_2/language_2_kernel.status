@@ -489,7 +489,6 @@ issue18628_2_test/01: MissingCompileTimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
 issue_25671b_test/01: DartkCrash
-language_2/least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
@@ -1295,7 +1294,7 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
-generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
+generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError # Issue 31402 (Variable declaration)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
@@ -1344,8 +1343,7 @@ issue21079_test: SkipByDesign
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
 issue_25671b_test/01: Crash
-language_2/least_upper_bound_expansive_test/none: CompileTimeError
-least_upper_bound_expansive_test/none: CompileTimeError
+least_upper_bound_expansive_test/none: RuntimeError
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
