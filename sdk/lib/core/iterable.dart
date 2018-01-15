@@ -118,7 +118,7 @@ abstract class Iterable<E> {
    * instances of [T], or if only elements that are actually instances of [T]
    * are accessed, then the resulting iterable can be used as an `Iterable<T>`.
    */
-  static Iterable<T> castTo<S, T>(Iterable<S> source) =>
+  static Iterable<T> castFrom<S, T>(Iterable<S> source) =>
       new CastIterable<S, T>(source);
 
   /**
