@@ -760,17 +760,20 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   FunctionNode rewrite() {
     var statements = <Statement>[];
 
-    // _AsyncStarStreamController :controller;
+    final elementType = elementTypeFromReturnType(helper.streamClass);
+
+    // _AsyncStarStreamController<T> :controller;
     controllerVariable = new VariableDeclaration(":controller",
-        type: new InterfaceType(helper.asyncStarStreamControllerClass,
-            [elementTypeFromReturnType(helper.streamClass)]));
+        type: new InterfaceType(
+            helper.asyncStarStreamControllerClass, [elementType]));
     statements.add(controllerVariable);
 
     setupAsyncContinuations(statements);
 
-    // :controller = new _AsyncStarStreamController(:async_op);
-    var arguments =
-        new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]);
+    // :controller = new _AsyncStarStreamController<T>(:async_op);
+    var arguments = new Arguments(
+        <Expression>[new VariableGet(nestedClosureVariable)],
+        types: [elementType]);
     var buildController = new ConstructorInvocation(
         helper.asyncStarStreamControllerConstructor, arguments)
       ..fileOffset = enclosingFunction.fileOffset;
