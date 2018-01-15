@@ -22,7 +22,6 @@ convert/codec1_test: RuntimeError
 convert/json_toEncodable_reviver_test: CompileTimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
-html/element_test/*: CompileTimeError
 html/js_typed_interop_anonymous2_exp_test: Crash
 html/js_typed_interop_anonymous2_test: RuntimeError
 html/js_typed_interop_anonymous_exp_test: Crash
