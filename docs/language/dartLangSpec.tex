@@ -36,9 +36,13 @@
 % - Require that a top-level "main" declaration is a valid script-entry
 %   function declaration.
 % - State that the return type of a setter or []= is void when not specified.
+<<<<<<< HEAD
 % - Clarify that "noSuchMethod" must be implemented, not just redeclared
 %   abstractly, to eliminate certain diagnostic messages.
 % - Add generic functions and methods to the language.
+=======
+% - Don't cause warning if a non-system library import shadows a system library.
+>>>>>>> Docs
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -8455,14 +8459,15 @@ The greatly increases the chance that a member can be added to a library without
 \LMHash{}
 A {\em system library} is a library that is part of the Dart implementation.
 Any other library is a {\em non-system library}.
-If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the top level scope of $L$ by
-imports of two libraries, $L_1$ and $L_2$, and the exported namespace of $L_1$ binds $N$ to a declaration originating in a system library:
 
-%an import of a system library and an import of a non-system library:
-\begin{itemize}
-\item The import of $L_1$ is implicitly extended by a \code{\HIDE{} $N$} clause.
-\item A static warning is issued.
-\end{itemize}
+If a name $N$ is referenced by a library $L$
+and $N$ would be introduced into the top level scope of $L$
+by imports of two libraries, $L_1$ and $L_2$,
+the exported namespace of $L_1$ binds $N$
+to a declaration originating in a system library,
+and the exported namespace of $L_2$ binds $N$ to a declaration
+that does not originate in a system library,
+then the import of $L_1$ is implicitly extended by a \code{\HIDE{} $N$} clause.
 
 \rationale{
 Whereas normal conflicts are resolved at deployment time, the functionality of \code{dart:} libraries is injected into an application at run time, and may vary over time as browsers are upgraded.
@@ -8478,7 +8483,6 @@ If a name $N$ is referenced by a library $L$ and $N$ is introduced into the top 
 \item A static warning occurs.
 \item If $N$ is referenced as a function, getter or setter, a \code{NoSuchMethodError} is thrown.
 \item If $N$ is referenced as a type, it is treated as a malformed type.
-
 \end{itemize}
 
 \LMHash{}
@@ -8590,12 +8594,13 @@ For each
 entry mapping key $k$ to declaration $d$ in $NS_n$ an entry mapping $k$ to $d$ is added to the exported namespace of $L$ unless a top-level declaration with the name $k$ exists in $L$.
 
 \LMHash{}
-If a name $N$ is referenced by a library $L$ and $N$ would be introduced into the exported namespace of $L$ by exports of two libraries, $L_1$ and $L_2$, and the exported namespace of $L_1$ binds $N$ to a declaration originating in a system library:
-%an export of a system library and an export of a non-system library:
-\begin{itemize}
-\item The export of $L_1$ is implicitly extended by a \code{\HIDE{} $N$} clause.
-\item A static warning is issued.
-\end{itemize}
+If a name $N$ is not declared by a library $L$
+and $N$ would be introduced into the exported namespace of $L$
+by exports of two libraries, $L_1$ and $L_2$,
+the exported namespace of $L_1$ binds $N$ to a declaration originating in a system library,
+and the exported namespace of $L_2$ binds $N$ to a declaration
+that does not originate in a system library,
+then the export of $L_1$ is implicitly extended by a \code{\HIDE{} $N$} clause.
 
 \rationale{
 See the discussion in section \ref{imports} for the reasoning behind this rule.
