@@ -379,23 +379,9 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_implicitBounds() async {
-    // Expected: 'B<num>'
-    await super.test_implicitBounds();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_instantiateToBounds_class_error_recursion() async {
     return super.test_instantiateToBounds_class_error_recursion();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_class_ok_simpleBounds() async {
-    // Expected: 'B<num>'
-    await super.test_instantiateToBounds_class_ok_simpleBounds();
   }
 
   @override

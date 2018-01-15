@@ -1852,7 +1852,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     if (name is TypeDeclarationAccessor) {
-      push(name.buildType(arguments));
+      push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is FastaAccessor) {
       addProblem(fasta.templateNotAType.withArguments(beginToken.lexeme),
           beginToken.charOffset);

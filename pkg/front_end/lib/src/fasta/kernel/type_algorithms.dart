@@ -9,7 +9,9 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelTypeVariableBuilder,
         KernelClassBuilder,
-        KernelFunctionTypeAliasBuilder;
+        KernelFunctionTypeAliasBuilder,
+        NamedTypeBuilder,
+        TypeDeclarationBuilder;
 
 KernelTypeBuilder substituteRec(
     KernelTypeBuilder type,
@@ -74,4 +76,36 @@ List<KernelTypeBuilder> calculateBounds(
         refinedBounds[i], substitution, dynamicType, typeParameters.length - 1);
   }
   return result;
+}
+
+List<KernelTypeBuilder> calculateBoundsForDeclaration(
+    TypeDeclarationBuilder typeDeclarationBuilder,
+    KernelTypeBuilder dynamicType,
+    KernelClassBuilder objectClass) {
+  List<TypeVariableBuilder> typeParameters;
+
+  if (typeDeclarationBuilder is KernelClassBuilder) {
+    typeParameters = typeDeclarationBuilder.typeVariables;
+  } else if (typeDeclarationBuilder is KernelFunctionTypeAliasBuilder) {
+    typeParameters = typeDeclarationBuilder.typeVariables;
+  }
+
+  if (typeParameters == null || typeParameters.length == 0) {
+    return null;
+  }
+
+  return calculateBounds(typeParameters, dynamicType, objectClass);
+}
+
+int instantiateToBoundInPlace(NamedTypeBuilder typeBuilder,
+    KernelTypeBuilder dynamicType, KernelClassBuilder objectClass) {
+  int count = 0;
+
+  if (typeBuilder.arguments == null) {
+    typeBuilder.arguments = calculateBoundsForDeclaration(
+        typeBuilder.builder, dynamicType, objectClass);
+    count = typeBuilder.arguments?.length ?? 0;
+  }
+
+  return count;
 }
