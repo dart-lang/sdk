@@ -43,7 +43,6 @@ final subpackageRules = {
     "lib/src/fasta/dill",
     "lib/src/fasta/kernel",
     'lib/src/fasta/source',
-    'lib/src/incremental',
   ]),
   'lib/src/api_prototype': new SubpackageRules(allowedDependencies: [
     'lib/src',

@@ -8,6 +8,8 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
+import 'package:kernel/ast.dart' show Program;
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
@@ -22,7 +24,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show FastaDelta, IncrementalCompiler;
+    show IncrementalCompiler;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -53,25 +55,25 @@ test({bool sdkFromSource}) async {
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));
 
-  FastaDelta delta = await compiler.computeDelta();
+  Program program = await compiler.computeDelta();
 
   if (sdkFromSource) {
     // Expect that the new program contains at least the following libraries:
     // dart:core, dart:async, and hello.dart.
-    Expect.isTrue(delta.newProgram.libraries.length > 2,
-        "${delta.newProgram.libraries.length} <= 2");
+    Expect.isTrue(
+        program.libraries.length > 2, "${program.libraries.length} <= 2");
   } else {
     // Expect that the new program contains exactly hello.dart.
-    Expect.isTrue(delta.newProgram.libraries.length == 1,
-        "${delta.newProgram.libraries.length} != 1");
+    Expect.isTrue(
+        program.libraries.length == 1, "${program.libraries.length} != 1");
   }
 
   compiler.invalidate(helloDart);
 
-  delta = await compiler.computeDelta(entryPoint: helloDart);
+  program = await compiler.computeDelta(entryPoint: helloDart);
   // Expect that the new program contains exactly hello.dart
-  Expect.isTrue(delta.newProgram.libraries.length == 1,
-      "${delta.newProgram.libraries.length} != 1");
+  Expect.isTrue(
+      program.libraries.length == 1, "${program.libraries.length} != 1");
 }
 
 void main() {

@@ -7,21 +7,38 @@
 /// reload on the running program.
 library front_end.incremental.hot_reload_e2e_test;
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'dart:async' show Completer, Future;
 
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/testing/hybrid_file_system.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/binary/limited_ast_to_binary.dart';
-import 'package:test/test.dart';
+import 'dart:convert' show LineSplitter, UTF8;
 
-import '../../tool/reload.dart';
+import 'dart:io' show Directory, File, Platform, Process;
+
+import 'package:kernel/ast.dart' show Program;
+
+import 'package:kernel/binary/limited_ast_to_binary.dart'
+    show LimitedBinaryPrinter;
+
+import 'package:test/test.dart'
+    show expect, isEmpty, isTrue, lessThan, setUp, tearDown, test;
+
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
+
+import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
+
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalKernelGenerator;
+
+import 'package:front_end/src/api_prototype/memory_file_system.dart'
+    show MemoryFileSystem;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
+import 'package:front_end/src/testing/hybrid_file_system.dart'
+    show HybridFileSystem;
+
+import '../../tool/reload.dart' show RemoteVm;
 
 main() {
   IncrementalKernelGenerator compiler;
@@ -40,10 +57,9 @@ main() {
     writeFile(fs, 'a.dart', sourceA);
     writeFile(fs, 'b.dart', sourceB);
     writeFile(fs, '.packages', '');
-    compiler = await createIncrementalCompiler(
+    compiler = createIncrementalCompiler(
         'org-dartlang-test:///a.dart', new HybridFileSystem(fs));
     await rebuild(compiler, outputUri); // this is a full compile.
-    compiler.acceptLastDelta();
   });
 
   tearDown(() async {
@@ -71,7 +87,7 @@ main() {
     var vmArgs = [
       '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
       '--pause_isolates_on_start',
-      '--kernel-binaries=${dartVm.resolve(".").toFilePath()}',
+      '--kernel-binaries=${sdkRoot.toFilePath()}',
       outputUri.toFilePath()
     ];
     vmArgs.add('$reloadCount');
@@ -108,7 +124,6 @@ main() {
     var remoteVm = new RemoteVm(port);
     var reloadResult = await remoteVm.reload(outputUri);
     expect(reloadResult['success'], isTrue);
-    compiler.acceptLastDelta();
     await remoteVm.disconnect();
   }
 
@@ -171,25 +186,23 @@ main() {
   });
 }
 
-var dartVm = Uri.base.resolve(Platform.resolvedExecutable);
-var sdkRoot = dartVm.resolve("patched_sdk/");
+final Uri sdkRoot = computePlatformBinariesLocation();
 
-Future<IncrementalKernelGenerator> createIncrementalCompiler(
+IncrementalKernelGenerator createIncrementalCompiler(
     String entry, FileSystem fs) {
   var entryUri = Uri.base.resolve(entry);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..strongMode = false
-    ..compileSdk = true // the incremental generator requires the sdk sources
-    ..fileSystem = fs
-    ..byteStore = new MemoryByteStore();
-  return IncrementalKernelGenerator.newInstance(options, entryUri);
+    ..fileSystem = fs;
+  return new IncrementalKernelGenerator(options, entryUri);
 }
 
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
   compiler.invalidate(Uri.parse("org-dartlang-test:///a.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///b.dart"));
-  var program = (await compiler.computeDelta()).newProgram;
+  var program = await compiler.computeDelta();
   if (program != null && !program.libraries.isEmpty) {
     await writeProgram(program, outputUri);
     return true;

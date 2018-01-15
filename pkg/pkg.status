@@ -146,9 +146,6 @@ analyzer/tool/*: Skip # Issue 26813
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
 
-[ $builder_tag == swarming && $runtime == vm ]
-front_end/test/src/incremental/hot_reload_e2e_test: Pass, RuntimeError # Please triage this failure
-
 # Analyze dev_compiler but only run its tests on the vm
 [ $compiler != dart2analyzer && $runtime != vm ]
 dev_compiler/test/*: Skip
@@ -212,7 +209,6 @@ compiler/tool/generate_kernel_test*: Skip # Issue 28629
 front_end/test/fasta/*: Skip # Issue 28629
 front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
 front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
 front_end/tool/_fasta/*: Skip # Issue 28629
 front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
