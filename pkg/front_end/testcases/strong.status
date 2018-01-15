@@ -111,6 +111,7 @@ inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
 instantiate_to_bound/typedef_super_bounded_type: Fail
+instantiate_to_bound/body_typedef_super_bounded_type: Fail
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
