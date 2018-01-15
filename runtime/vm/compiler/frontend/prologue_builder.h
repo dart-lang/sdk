@@ -50,8 +50,6 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
   intptr_t last_used_block_id() const { return last_used_block_id_; }
 
  private:
-  JoinEntryInstr* BuildThrowNoSuchMethod();
-
   Fragment BuildTypeArgumentsLengthCheck(bool strong,
                                          JoinEntryInstr* nsm,
                                          bool expect_type_args);
@@ -66,11 +64,6 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
 
   LocalVariable* ParameterVariable(intptr_t index) {
     return parsed_function_->RawParameterVariable(index);
-  }
-
-  Fragment LoadArgDescriptor() {
-    ASSERT(parsed_function_->has_arg_desc_var());
-    return LoadLocal(parsed_function_->arg_desc_var());
   }
 
   const Instance& DefaultParameterValueAt(intptr_t i) {

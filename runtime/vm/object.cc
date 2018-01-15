@@ -6533,25 +6533,34 @@ RawFunction* Function::InstantiateSignatureFrom(
   // Note that parent pointers in newly instantiated signatures still points to
   // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
-  ASSERT(!HasInstantiatedSignature(kAny, num_free_fun_type_params));
 
-  // A generic typedef may declare a non-generic function type and get
-  // instantiated with unrelated function type parameters. In that case, its
-  // signature is still uninstantiated, because these type parameters are
-  // free (they are not declared by the typedef).
-  // For that reason, we only adjust num_free_fun_type_params if this
-  // signature is generic or has a generic parent.
-  if (IsGeneric() || HasGenericParent()) {
-    // We only consider the function type parameters declared by the parents
-    // of this signature function as free.
-    const int num_parent_type_params = NumParentTypeParameters();
-    if (num_parent_type_params < num_free_fun_type_params) {
-      num_free_fun_type_params = num_parent_type_params;
+  // See the comment on kCurrentAndEnclosingFree to understand why we don't
+  // adjust 'num_free_fun_type_params' downward in this case.
+  bool delete_type_parameters = false;
+  if (num_free_fun_type_params == kCurrentAndEnclosingFree) {
+    num_free_fun_type_params = kAllFree;
+    delete_type_parameters = true;
+  } else {
+    ASSERT(!HasInstantiatedSignature(kAny, num_free_fun_type_params));
+
+    // A generic typedef may declare a non-generic function type and get
+    // instantiated with unrelated function type parameters. In that case, its
+    // signature is still uninstantiated, because these type parameters are
+    // free (they are not declared by the typedef).
+    // For that reason, we only adjust num_free_fun_type_params if this
+    // signature is generic or has a generic parent.
+    if (IsGeneric() || HasGenericParent()) {
+      // We only consider the function type parameters declared by the parents
+      // of this signature function as free.
+      const int num_parent_type_params = NumParentTypeParameters();
+      if (num_parent_type_params < num_free_fun_type_params) {
+        num_free_fun_type_params = num_parent_type_params;
+      }
     }
   }
 
   Function& sig = Function::Handle(zone, Function::null());
-  if (IsConvertedClosureFunction()) {
+  if (IsConvertedClosureFunction() && !delete_type_parameters) {
     sig = Function::NewConvertedClosureFunction(
         String::Handle(zone, name()), parent, TokenPosition::kNoSource);
     // TODO(30455): Kernel generic methods undone. Handle type parameters
@@ -6562,7 +6571,9 @@ RawFunction* Function::InstantiateSignatureFrom(
   } else {
     sig = Function::NewSignatureFunction(owner, parent,
                                          TokenPosition::kNoSource, space);
-    sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+    if (!delete_type_parameters) {
+      sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+    }
   }
 
   AbstractType& type = AbstractType::Handle(zone, result_type());
@@ -6587,6 +6598,10 @@ RawFunction* Function::InstantiateSignatureFrom(
     sig.SetParameterTypeAt(i, type);
   }
   sig.set_parameter_names(Array::Handle(zone, parameter_names()));
+
+  if (delete_type_parameters) {
+    ASSERT(sig.HasInstantiatedSignature(kFunctions));
+  }
   return sig.raw();
 }
 
@@ -7476,7 +7491,9 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
     return genericity == kCurrentClass || NumTypeParameters() == 0;
   }
 
-  if (genericity != kCurrentClass) {
+  if (num_free_fun_type_params == kCurrentAndEnclosingFree) {
+    num_free_fun_type_params = kAllFree;
+  } else if (genericity != kCurrentClass) {
     // A generic typedef may declare a non-generic function type and get
     // instantiated with unrelated function type parameters. In that case, its
     // signature is still uninstantiated, because these type parameters are
@@ -15701,18 +15718,12 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
   }
   const Class& cls = Class::Handle(clazz());
   if (cls.IsClosureClass()) {
-    const Function& signature =
-        Function::Handle(Closure::Cast(*this).function());
+    Function& signature =
+        Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(
+            Thread::Current()->zone()));
     Type& type = Type::Handle(signature.SignatureType());
-    if (!type.IsInstantiated()) {
-      const TypeArguments& instantiator_type_arguments = TypeArguments::Handle(
-          Closure::Cast(*this).instantiator_type_arguments());
-      const TypeArguments& function_type_arguments =
-          TypeArguments::Handle(Closure::Cast(*this).function_type_arguments());
-      // No bound error possible, since the instance exists.
-      type ^= type.InstantiateFrom(instantiator_type_arguments,
-                                   function_type_arguments, kAllFree, NULL,
-                                   NULL, NULL, space);
+    if (!type.IsFinalized()) {
+      type.SetIsFinalized();
     }
     type ^= type.Canonicalize();
     return type.raw();
@@ -15799,16 +15810,8 @@ bool Instance::IsInstanceOf(
     }
     Function& other_signature =
         Function::Handle(zone, Type::Cast(instantiated_other).signature());
-    Function& sig_fun = Function::Handle(zone, Closure::Cast(*this).function());
-    if (!sig_fun.HasInstantiatedSignature()) {
-      const TypeArguments& instantiator_type_arguments = TypeArguments::Handle(
-          zone, Closure::Cast(*this).instantiator_type_arguments());
-      const TypeArguments& function_type_arguments = TypeArguments::Handle(
-          zone, Closure::Cast(*this).function_type_arguments());
-      sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
-                                                 function_type_arguments,
-                                                 kAllFree, Heap::kOld);
-    }
+    const Function& sig_fun =
+        Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(zone));
     return sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
@@ -22435,6 +22438,26 @@ RawClosure* Closure::New() {
   RawObject* raw =
       Object::Allocate(Closure::kClassId, Closure::InstanceSize(), Heap::kOld);
   return reinterpret_cast<RawClosure*>(raw);
+}
+
+RawFunction* Closure::GetInstantiatedSignature(Zone* zone) const {
+  Function& sig_fun = Function::Handle(zone, function());
+  const TypeArguments& fn_type_args =
+      TypeArguments::Handle(zone, function_type_arguments());
+  const TypeArguments& inst_type_args =
+      TypeArguments::Handle(zone, instantiator_type_arguments());
+  // We detect the case of a partial tearoff type application and substitute the
+  // type arguments for the type parameters of the function.
+  intptr_t num_free_params =
+      sig_fun.IsImplicitClosureFunction() && !fn_type_args.IsNull()
+          ? kCurrentAndEnclosingFree
+          : kAllFree;
+  if (num_free_params == kCurrentAndEnclosingFree ||
+      !sig_fun.HasInstantiatedSignature(kAny)) {
+    return sig_fun.InstantiateSignatureFrom(inst_type_args, fn_type_args,
+                                            num_free_params, Heap::kOld);
+  }
+  return sig_fun.raw();
 }
 
 intptr_t StackTrace::Length() const {

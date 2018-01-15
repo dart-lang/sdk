@@ -351,7 +351,7 @@ mirrors/invocation_fuzz_test/false: CompileTimeError, Pass # Please triage.
 mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
 mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash, Crash, Pass # Please triage.
 mirrors/invocation_fuzz_test/string: CompileTimeError, Pass # Please triage.
-mirrors/library_uri_io_test: CompileTimeError # Please triage.
+mirrors/library_uri_io_test: RuntimeError # Please triage.
 mirrors/spawn_function_root_library_test: Skip
 
 # ===== Skip dartk and darkp in !$strong mode ====

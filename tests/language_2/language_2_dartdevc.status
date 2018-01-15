@@ -55,6 +55,7 @@ import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 issue31596_test: CompileTimeError
@@ -786,6 +787,7 @@ regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
+instantiate_tearoff_test: RuntimeError
 
 # Compiler tests for dartdevc and dartdevk.  These contain common expectations
 # for all runtimes including $runtime == none.  They are organized by: shared
