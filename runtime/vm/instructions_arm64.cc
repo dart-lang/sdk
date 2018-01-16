@@ -69,10 +69,6 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
                              reinterpret_cast<uword>(func));
 }
 
-intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
-  return Array::element_offset(index);
-}
-
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
