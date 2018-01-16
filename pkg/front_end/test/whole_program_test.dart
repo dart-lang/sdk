@@ -18,7 +18,8 @@ final Uri dump = Uri.base.resolve('pkg/kernel/bin/dump.dart');
 
 final Uri packagesFile = Uri.base.resolve('.packages');
 
-final Uri dartVm = Uri.base.resolve(Platform.resolvedExecutable);
+final Uri dartVm =
+    Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
 
 Future main() async {
   asyncStart();

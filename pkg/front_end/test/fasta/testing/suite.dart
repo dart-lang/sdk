@@ -189,7 +189,7 @@ class FastaContext extends ChainContext {
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
     Uri sdk = Uri.base.resolve("sdk/");
-    Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+    Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
     var options = new ProcessedOptions(new CompilerOptions()
       ..sdkRoot = sdk
