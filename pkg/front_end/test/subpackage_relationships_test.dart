@@ -160,6 +160,7 @@ final subpackageRules = {
     'lib/src/fasta/scanner',
   ]),
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
+    'lib/src',
     'lib/src/api_prototype',
   ]),
 };
