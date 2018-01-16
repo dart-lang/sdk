@@ -427,7 +427,7 @@ class ResolutionStorer extends TypeInferenceListener {
     if (!isImplicitCall) {
       interfaceMember = _getRealTarget(interfaceMember);
       _replaceReference(interfaceMember);
-      _replaceType(calleeType);
+      _replaceType(const NullType()); // callee type
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -453,7 +453,7 @@ class ResolutionStorer extends TypeInferenceListener {
 
     if (!isImplicitCall) {
       _replaceReference(const NullNode('explicit-call'));
-      _replaceType(const NullType());
+      _replaceType(const NullType()); // callee type
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -604,7 +604,7 @@ class ResolutionStorer extends TypeInferenceListener {
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
     _replaceType(invokeType);
-    _replaceType(calleeType);
+    _replaceType(const NullType()); // callee type
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
