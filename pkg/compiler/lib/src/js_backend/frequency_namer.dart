@@ -24,6 +24,7 @@ class FrequencyBasedNamer extends Namer
   String get requiredParameterField => r'$R';
   String get defaultValuesField => r'$D';
   String get operatorSignature => r'$S';
+  String get genericInstantiationPrefix => r'$I';
 
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= getFreshName(instanceScope, 'static');

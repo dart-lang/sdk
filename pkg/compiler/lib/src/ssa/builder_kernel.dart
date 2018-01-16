@@ -3868,6 +3868,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
+  void visitInstantiation(ir.Instantiation node) {
+    var arguments = <HInstruction>[];
+    node.expression.accept(this);
+    arguments.add(pop());
+    for (ir.DartType type in node.typeArguments) {
+      HInstruction instruction = typeBuilder.analyzeTypeArgument(
+          _elementMap.getDartType(type), sourceElement);
+      arguments.add(instruction);
+    }
+    Selector selector =
+        new Selector.genericInstantiation(node.typeArguments.length);
+    _pushDynamicInvocation(node, commonMasks.functionType, selector, arguments,
+        null /*_sourceInformationBuilder.?*/);
+  }
+
+  @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
     invocation.receiver.accept(this);
     HInstruction receiver = pop();

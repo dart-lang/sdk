@@ -19,6 +19,9 @@ class CallStructure {
   static const CallStructure TWO_ARGS = const CallStructure.unnamed(2);
   static const CallStructure THREE_ARGS = const CallStructure.unnamed(3);
 
+  /// The number of type arguments of the call.
+  final int typeArgumentCount;
+
   /// The numbers of arguments of the call. Includes named arguments.
   final int argumentCount;
 
@@ -27,9 +30,6 @@ class CallStructure {
 
   /// The number of positional argument of the call.
   int get positionalArgumentCount => argumentCount;
-
-  /// The number of type argument of the call.
-  final int typeArgumentCount;
 
   const CallStructure.unnamed(this.argumentCount, [this.typeArgumentCount = 0]);
 

@@ -11,7 +11,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Selectors;
+import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
@@ -862,10 +862,24 @@ class Namer {
             _disambiguateMember(selector.memberName, suffix);
         return disambiguatedName; // Methods other than call are not annotated.
 
+      case SelectorKind.SPECIAL:
+        return specialSelectorName(selector);
+
       default:
         throw failedAt(CURRENT_ELEMENT_SPANNABLE,
             'Unexpected selector kind: ${selector.kind}');
     }
+  }
+
+  jsAst.Name specialSelectorName(Selector selector) {
+    assert(selector.kind == SelectorKind.SPECIAL);
+    if (selector.memberName == Names.genericInstantiation) {
+      return new StringBackedName('${genericInstantiationPrefix}'
+          '${selector.callStructure.typeArgumentCount}');
+    }
+
+    throw failedAt(
+        CURRENT_ELEMENT_SPANNABLE, 'Unexpected special selector: $selector');
   }
 
   /**
@@ -1610,6 +1624,8 @@ class Namer {
   String get operatorAsPrefix => r'$as';
 
   String get operatorSignature => r'$signature';
+
+  String get genericInstantiationPrefix => r'$instantiate';
 
   String get typedefTag => r'typedef';
 

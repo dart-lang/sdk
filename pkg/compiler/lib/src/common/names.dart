@@ -73,6 +73,8 @@ class Names {
   static const Name length = const PublicName(Identifiers.length);
 
   static const Name runtimeType_ = const PublicName(Identifiers.runtimeType_);
+
+  static const Name genericInstantiation = const PublicName('instantiate');
 }
 
 /// [Selector]s commonly used.
