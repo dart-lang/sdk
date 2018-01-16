@@ -831,9 +831,6 @@ vm/type_vm_test/34: MissingRuntimeError
 vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
 
-[ $compiler == dartkp && $mode == release && $strong ]
-await_test: RuntimeError
-
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked && $strong ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/32: MissingCompileTimeError # KernelVM bug: Constant evaluation.
