@@ -571,6 +571,8 @@ named_parameters_test/10: MissingCompileTimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: DartkCrash
 no_main_test/01: Skip
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/04: MissingCompileTimeError
@@ -1432,6 +1434,9 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: Skip
 no_such_method_mock_test: RuntimeError
 no_such_method_test: SkipByDesign
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/04: RuntimeError # Issue #31911
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError

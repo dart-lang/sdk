@@ -1497,6 +1497,7 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError # Strong mode error
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
