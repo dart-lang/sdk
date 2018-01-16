@@ -152,6 +152,10 @@ abstract class Target {
   /// extensions, but targets like dart2js only enable it on the core libraries.
   bool enableNative(Uri uri) => false;
 
+  /// Returns whether the given condition Uri should evaluate to true for the
+  /// purposes of resolving conditional imports.
+  String lookupImportCondition(String condition) => "";
+
   /// There are two variants of the `native` language extension. The VM expects
   /// the native token to be followed by string, whereas dart2js and DDC do not.
   // TODO(sigmund, ahe): ideally we should remove the `native` syntax, if not,
