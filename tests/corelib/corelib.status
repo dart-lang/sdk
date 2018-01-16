@@ -12,33 +12,7 @@ num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 
 [ $compiler == dart2js ]
-bit_twiddling_bigint_test: Crash # Issue 31762
-bit_twiddling_test: Crash # Issue 31762
-double_ceil_test: Crash # Issue 31762
-double_floor_test: Crash # Issue 31762
-double_round_test: Crash # Issue 31762
-double_truncate_test: Crash # Issue 31762
-int_ceil_test: Crash # Issue 31762
-int_ceil_to_double_test: Crash # Issue 31762
-int_floor_test: Crash # Issue 31762
-int_floor_to_double_test: Crash # Issue 31762
-int_from_environment_test: Crash # Issue 31762
-int_modulo_arith_test/bignum: Crash # Issue 31762
-int_modulo_arith_test/modPow: Crash # Issue 31762
-int_modulo_arith_test/none: Crash # Issue 31762
-int_parse_radix_test/02: Crash # Issue 31762
-int_round_test: Crash # Issue 31762
-int_round_to_double_test: Crash # Issue 31762
-int_to_int_test: Crash # Issue 31762
-int_truncate_test: Crash # Issue 31762
-int_truncate_to_double_test: Crash # Issue 31762
-integer_to_radix_string_test: Crash # Issue 31762
-integer_to_string_test/01: Crash # Issue 31762
-num_parse_test/01: Crash # Issue 31762
-num_parse_test/none: Crash # Issue 31762
-num_sign_test: Crash # Issue 31762
 regexp/pcre_test: Pass, Slow # Issue 21593
-regress_r21715_test: Crash # Issue 31762
 
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign # Imports dart:mirrors

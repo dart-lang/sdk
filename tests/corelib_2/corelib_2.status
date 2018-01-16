@@ -9,16 +9,7 @@ num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
-double_ceil_test/int64: Crash # Issue 31762
-double_floor_test/int64: Crash # Issue 31762
-double_round_test/int64: Crash # Issue 31762
-double_truncate_test/int64: Crash # Issue 31762
 hash_set_test/01: RuntimeError # Issue 11551
-int_from_environment_test: Crash # Issue 31762
-int_parse_radix_test/01: Crash # Issue 31762
-int_parse_radix_test/02: Crash # Issue 31762
-int_parse_radix_test/badTypes: Crash # Issue 31762
-int_parse_radix_test/none: Crash # Issue 31762
 integer_to_radix_string_test: RuntimeError # Issue 29921
 string_static_test: MissingCompileTimeError
 

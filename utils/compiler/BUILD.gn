@@ -63,6 +63,7 @@ application_snapshot("dart2js") {
   deps = [
     ":dart2js_create_snapshot_entries",
   ]
+  vm_args = ["--no_limit_ints_to_64_bits"]
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
@@ -76,6 +77,7 @@ application_snapshot("utils_wrapper") {
   deps = [
     ":dart2js_create_snapshot_entries",
   ]
+  vm_args = ["--no_limit_ints_to_64_bits"]
   main_dart = "$target_gen_dir/utils_wrapper.dart"
   training_args = [ "--help" ]
 }
