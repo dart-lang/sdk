@@ -150,7 +150,7 @@ class ProxyServer {
   }
 
   Future<ProxyServer> start() {
-    var x = new Completer();
+    var x = new Completer<ProxyServer>();
     var host = ipV6 ? "::1" : "localhost";
     HttpServer.bind(host, 0).then((s) {
       server = s;
@@ -257,8 +257,8 @@ class ProxyServer {
                 .add(HttpHeaders.VIA, "${viaPrefix}1.1 localhost:$port");
             // Copy all content.
             return request.pipe(clientRequest);
-          }).then((HttpClientResponse clientResponse) {
-            clientResponse.pipe(request.response);
+          }).then((clientResponse) {
+            (clientResponse as HttpClientResponse).pipe(request.response);
           });
         }
       });

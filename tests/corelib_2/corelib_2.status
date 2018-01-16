@@ -25,7 +25,6 @@ iterable_reduce_test/01: CompileTimeError
 map_test: Crash # crash in front_end.
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
-splay_tree_from_iterable_test: RuntimeError
 string_from_environment3_test/03: Crash
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/07: MissingCompileTimeError
@@ -347,7 +346,6 @@ list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-splay_tree_from_iterable_test: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
@@ -379,7 +377,6 @@ list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError

@@ -95,7 +95,8 @@ void main([args, port]) {
   test("send objects and receive them back", () {
     ReceivePort response = new ReceivePort();
     Isolate.spawn(pingPong, response.sendPort);
-    response.first.then((SendPort remote) {
+    response.first.then((_remote) {
+      SendPort remote = _remote;
       // Send objects and receive them back.
       for (int i = 0; i < elements.length; i++) {
         var sentObject = elements[i];

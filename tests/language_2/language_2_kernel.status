@@ -459,7 +459,6 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
-issue13179_test: CompileTimeError # Issue 31402 (Parameter default value)
 issue18628_2_test/01: MissingCompileTimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
@@ -1196,7 +1195,7 @@ duplicate_export_negative_test: Fail # Issue 6134
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
-dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
+dynamic_test: RuntimeError # Issue 31402 (Variable declaration)
 emit_const_fields_test: CompileTimeError # Issue 31533
 enum_mirror_test: SkipByDesign
 example_constructor_test: Fail, OK
@@ -1314,7 +1313,6 @@ invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
-issue13179_test: CompileTimeError # Issue 31402 (Parameter default value)
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: SkipByDesign
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.

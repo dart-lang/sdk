@@ -9,9 +9,7 @@ html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 [ $compiler == dartdevk ]
 async/future_or_strong_test: RuntimeError
 async/future_value_chain4_test: CompileTimeError
-async/slow_consumer3_test: CompileTimeError
 async/slow_consumer_test: CompileTimeError
-async/stream_from_iterable_test: CompileTimeError
 async/zone_run_unary_test: CompileTimeError # Issue 31537
 collection/list_test: RuntimeError
 convert/chunked_conversion1_test: RuntimeError
@@ -19,7 +17,6 @@ convert/chunked_conversion_utf82_test: RuntimeError
 convert/chunked_conversion_utf86_test: RuntimeError
 convert/chunked_conversion_utf87_test: RuntimeError
 convert/codec1_test: RuntimeError
-convert/json_toEncodable_reviver_test: CompileTimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
 html/js_typed_interop_anonymous2_exp_test: Crash

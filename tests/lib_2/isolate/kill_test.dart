@@ -21,7 +21,8 @@ void main() {
   var completer = new Completer(); // Completed by first reply from isolate.
   RawReceivePort reply = new RawReceivePort(completer.complete);
   Isolate.spawn(isomain1, reply.sendPort).then((Isolate isolate) {
-    completer.future.then((SendPort echoPort) {
+    completer.future.then((_echoPort) {
+      SendPort echoPort = _echoPort;
       List result = [];
       reply.handler = (v) {
         result.add(v);

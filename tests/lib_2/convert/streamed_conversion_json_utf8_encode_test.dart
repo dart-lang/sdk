@@ -19,7 +19,7 @@ Stream<List<int>> encode(Object o) {
   return controller.stream.transform(jsonUtf8.encoder);
 }
 
-void testUnpaused(List<int> expected, Stream stream) {
+void testUnpaused(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   stream.toList().then((list) {
     var combined = <int>[];
@@ -29,7 +29,7 @@ void testUnpaused(List<int> expected, Stream stream) {
   });
 }
 
-void testWithPauses(List<int> expected, Stream stream) {
+void testWithPauses(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   var accumulated = <int>[];
   var sub;

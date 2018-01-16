@@ -256,8 +256,8 @@ void runTests(SendPort ping, Queue checks) {
     x[0] = 22;
     Expect.equals(22, x[0]);
     // Must be extendable.
-    x["gee"] = 499;
-    Expect.equals(499, x["gee"]);
+    x[123] = 499;
+    Expect.equals(499, x[123]);
   });
 
   Map cyclicMap = {};
@@ -457,7 +457,8 @@ void main() {
   Isolate
       .spawn(echoMain, [initialReplyPort.sendPort, testPort.sendPort])
       .then((_) => initialReplyPort.first)
-      .then((SendPort ping) {
+      .then((_ping) {
+        SendPort ping = _ping;
         runTests(ping, checks);
         Expect.isTrue(checks.length > 0);
         completer.future.then((_) => ping.send("halt")).then((_) => asyncEnd());
