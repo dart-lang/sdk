@@ -38,9 +38,6 @@ developer_extension_test: SkipByDesign
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 get_isolate_after_language_error_test: SkipByDesign
 
-[ $compiler == dartk ]
-next_through_simple_async_test: Pass, Fail # Issue 29145
-
 # Kernel version of tests
 [ $compiler != dartk ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test

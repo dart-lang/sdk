@@ -27,6 +27,12 @@ spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 
+[ $compiler == dartk ]
+message3_test/int32x4: Crash
+
+[ $compiler == dartkp ]
+message3_test/int32x4: Crash
+
 [ $mode == product ]
 issue_24243_parent_isolate_test: Skip # Requires checked mode
 
@@ -103,9 +109,15 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
+[ $compiler == dartk && $system == windows && $strong ]
+issue_22778_test: Fail
+message3_test/int32x4: Fail
+
+[ $compiler == dartk && $system == windows && !$strong ]
+message3_test/int32x4: Fail
+
 [ $compiler == dartk && $strong ]
 issue_21398_parent_isolate1_test: RuntimeError
-issue_22778_test: Crash
 message3_test/byteBuffer: RuntimeError
 message3_test/constInstance: RuntimeError
 message3_test/constList: RuntimeError
@@ -183,7 +195,6 @@ compile_time_error_test/01: MissingCompileTimeError
 deferred_in_isolate2_test: Skip # Timeout. Deferred loading kernel issue 28335.
 deferred_in_isolate_test: Skip # Timeout. Deferred loading kernel issue 28335.
 issue_21398_parent_isolate2_test/01: Skip # Timeout. Deferred loading kernel issue 28335.
-message3_test/int32x4: Crash
 ping_pause_test: Pass, Timeout
 spawn_function_custom_class_test: Pass, Timeout
 spawn_uri_nested_vm_test: Pass, Timeout
@@ -262,3 +273,4 @@ function_send_test: Pass, Fail # Closure identity
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 message3_test/fun: Pass, Fail # Closure identity
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
+

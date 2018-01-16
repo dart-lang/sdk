@@ -9,12 +9,14 @@
 # in the existing sections, if possible keep the alphabetic ordering. If we are
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
-# ===== Skip dartk and darkp in !$strong mode ====
 
 [ $compiler == dartkp ]
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
+
+[ $compiler == dartk && $mode == debug ]
+await_test: CompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 bad_named_parameters_test/01: Crash # Issue(http://dartbug.com/31630)
@@ -262,10 +264,6 @@ call_with_no_such_method_test: CompileTimeError # Issue 31402 (Invocation argume
 callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt1_test: RuntimeError
-cha_deopt2_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt3_test: RuntimeError
 check_member_static_test/01: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
@@ -361,6 +359,7 @@ deferred_load_inval_code_test: CompileTimeError # KernelVM bug: Deferred loading
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_mixin_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_mixin_test: RuntimeError
 deferred_no_such_method_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_only_constant_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -452,7 +451,6 @@ generic_tearoff_test: CompileTimeError
 generic_tearoff_test: RuntimeError
 generic_test: RuntimeError
 getter_override_test/03: MissingCompileTimeError
-hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
@@ -626,15 +624,12 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 recursive_generic_test: RuntimeError
-recursive_mixin_test: Crash
-recursive_mixin_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-redirecting_factory_reflection_test: Crash, Pass
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_22976_test/01: CompileTimeError # Issue 31402 (Variable declaration)
 regress_23089_test: Crash
@@ -764,6 +759,21 @@ void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
+[ $compiler == dartk && $system == windows && $strong ]
+ct_const2_test: Fail
+hello_dart_test: Fail
+recursive_mixin_test: Fail
+redirecting_factory_reflection_test: Fail
+
+[ $compiler == dartk && $system != windows && $strong ]
+hello_dart_test: Crash
+recursive_mixin_test: Crash
+redirecting_factory_reflection_test: Crash
+
+[ $compiler == dartk && $strong ]
+cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 28335.
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -780,6 +790,9 @@ null_test/03: MissingCompileTimeError # Please triage.
 
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
+
+[ $compiler == dartkp && $mode == debug ]
+await_test: CompileTimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 bad_named_parameters_test/01: Crash
@@ -815,6 +828,9 @@ vm/type_vm_test/33: MissingRuntimeError
 vm/type_vm_test/34: MissingRuntimeError
 vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
+
+[ $compiler == dartkp && $mode == release && $strong ]
+await_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked && $strong ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -1654,3 +1670,4 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
+

@@ -118,7 +118,8 @@
       "builders": [
         "vm-kernel-precomp-linux-release-x64",
         "vm-kernel-precomp-linux-release-simarm",
-        "vm-kernel-precomp-linux-release-simarm64"
+        "vm-kernel-precomp-linux-release-simarm64",
+        "vm-kernel-precomp-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel release builder."
@@ -234,7 +235,8 @@
         "vm-kernel-linux-release-simdbc64",
         "vm-kernel-linux-release-x64",
         "vm-kernel-mac-debug-x64",
-        "vm-kernel-mac-release-x64"
+        "vm-kernel-mac-release-x64",
+        "vm-kernel-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group."
