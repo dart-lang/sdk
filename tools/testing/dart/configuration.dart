@@ -179,6 +179,18 @@ class Configuration {
     return _servers;
   }
 
+  /// Returns true if this configuration uses the new front end (fasta)
+  /// as the first stage of compilation.
+  bool get usesFasta {
+    var fastaCompilers = const [
+      Compiler.dartk,
+      Compiler.dartkp,
+      Compiler.dartdevk
+    ];
+    return fastaCompilers.contains(compiler) ||
+        compiler == Compiler.dart2js && useDart2JSWithKernel;
+  }
+
   /// Returns true if this configuration is considered Dart 2.0 configuration
   /// by VM (which is identified by using common front-end and strong mode).
   /// In this case instead of invoking VM binary directly we use
@@ -457,6 +469,7 @@ class Configuration {
         'csp': isCsp,
         'system': system.name,
         'vm_options': vmOptions,
+        'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
         'fast_startup': useFastStartup,
