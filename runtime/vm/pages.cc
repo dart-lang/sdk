@@ -867,14 +867,13 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
 
+  // Discount two pages to account for the newest data and code pages, whose
+  // partial use doesn't indicate fragmentation.
   const intptr_t excess_in_words =
-      usage_.capacity_in_words - usage_.used_in_words;
-  bool fragmented = false;
-  if (excess_in_words > 2 * kPageSizeInWords) {
-    const double f = static_cast<double>(excess_in_words) /
-                     static_cast<double>(usage_.capacity_in_words);
-    fragmented = f > 0.05;
-  }
+      usage_.capacity_in_words - usage_.used_in_words - 2 * kPageSizeInWords;
+  const double excess_ratio = static_cast<double>(excess_in_words) /
+                              static_cast<double>(usage_.capacity_in_words);
+  const bool fragmented = excess_ratio > 0.05;
 
   if (!fragmented &&
       !page_space_controller_.NeedsIdleGarbageCollection(usage_)) {
