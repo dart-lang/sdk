@@ -123,13 +123,8 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 js_interop_test: RuntimeError # Issue 31082
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
-21579_test: CompileTimeError # Large integer literal
-constant_javascript_semantics_test/03: CompileTimeError # Large integer literal
-constant_javascript_semantics_test/04: CompileTimeError # Large integer literal
-constant_javascript_semantics_test/none: CompileTimeError # Large integer literal
 dummy_compiler_test: Crash # Issue 31715
 recursive_import_test: Crash # Issue 31715
-round_constant_folding_test: CompileTimeError # Large integer literal
 typevariable_typedef_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.foo#func)) for j:constructor(B.).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]

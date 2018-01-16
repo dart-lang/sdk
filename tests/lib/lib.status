@@ -478,15 +478,13 @@ convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 async/timer_not_available_test: Fail, OK
+convert/base64_test/01: CompileTimeError # Large integer literal
 convert/json_utf8_chunk_test: RuntimeError # Large integers
+convert/utf82_test: CompileTimeError # Large integer literal
 js/*: Skip
+math/double_pow_test: CompileTimeError # Large integer literal
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
-
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || $compiler == dart2js && $dart2js_with_kernel ]
-convert/base64_test/01: CompileTimeError # Large integer literal
-convert/utf82_test: CompileTimeError # Large integer literal
-math/double_pow_test: CompileTimeError # Large integer literal
 typed_data/int32x4_bigint_test: CompileTimeError # Large integer literal
 
 [ $runtime == safari || $runtime == safarimobilesim ]

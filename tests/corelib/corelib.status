@@ -378,15 +378,10 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 *: Skip
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+big_integer_arith_vm_test: CompileTimeError # Large integer literal
 big_integer_parsed_arith_vm_test: RuntimeError # Large integers
 big_integer_parsed_div_rem_vm_test: RuntimeError # Large integers
 big_integer_parsed_mul_div_vm_test: RuntimeError # Large integers
-regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
-regexp/global_test: Skip # Timeout. Issue 21709 and 21708
-regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
-
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || ($compiler == dart2js && $dart2js_with_kernel) ]
-big_integer_arith_vm_test: CompileTimeError # Large integer literal
 bit_twiddling_bigint_test: CompileTimeError # Large integer literal
 bit_twiddling_test: CompileTimeError # Large integer literal
 double_ceil_test: CompileTimeError # Large integer literal
@@ -410,6 +405,9 @@ integer_to_string_test/01: CompileTimeError # Large integer literal
 num_parse_test/01: CompileTimeError # Large integer literal
 num_parse_test/none: CompileTimeError # Large integer literal
 num_sign_test: CompileTimeError # Large integer literal
+regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
+regexp/global_test: Skip # Timeout. Issue 21709 and 21708
+regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 regress_r21715_test: CompileTimeError # Large integer literal
 
 # Firefox takes advantage of the ECMAScript number parsing cop-out clause
