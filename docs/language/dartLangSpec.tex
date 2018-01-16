@@ -1334,8 +1334,8 @@ It is a static warning if a class $C$ declares an instance method named $n$ and 
 
 {\bf operator:}`\~{}';
   binaryOperator;
-  `[' `]' ;
-  `[' `]' `='
+  `[]' ;
+  `[]='
   .
 
 {\bf binaryOperator:}multiplicativeOperator;
@@ -3361,8 +3361,8 @@ A string can be a sequence of single line strings and multiline strings.
 \begin{grammar}
 {\bf singleLineString:}`{\escapegrammar \code{"}}' stringContentDQ* `{\escapegrammar \code{"}}';
   `{\escapegrammar \code{'}}' stringContentSQ* `{\escapegrammar \code{'}}';
-  `r' `{\escapegrammar \code{'}}' (\~{}( `{\escapegrammar \code{'}}' $|$ NEWLINE ))* `{\escapegrammar \code{'}}';
-  `r' `{\escapegrammar \code{"}}' (\~{}( `{\escapegrammar \code{"}}' $|$ NEWLINE ))* `{\escapegrammar \code{"}}'
+  `r{\escapegrammar \code{'}}' (\~{}( `{\escapegrammar \code{'}}' $|$ NEWLINE ))* `{\escapegrammar \code{'}}';
+  `r{\escapegrammar \code{"}}' (\~{}( `{\escapegrammar \code{"}}' $|$ NEWLINE ))* `{\escapegrammar \code{"}}'
   .
 \end{grammar}
 
@@ -3429,19 +3429,19 @@ This can be expressed by writing smaller strings separated by whitespace, as sho
 \begin{grammar}
 {\bf multilineString:}`{\escapegrammar \texttt{"""}}' stringContentTDQ* `{\escapegrammar \texttt{"""}}';
   `{\escapegrammar \code{'}\code{'}\code{'}}' stringContentTSQ* `{\escapegrammar \code{'}\code{'}\code{'}}';
-  `r' `{\escapegrammar \texttt{"""}}' (\~{} `{\escapegrammar \texttt{"""}}')* `{\escapegrammar \texttt{"""}}';
-  `r' `{\escapegrammar \code{'}\code{'}\code{'}}' (\~{} `{\escapegrammar \code{'}\code{'}\code{'}}')* `{\escapegrammar \code{'}\code{'}\code{'}}'
+  `r{\escapegrammar \texttt{"""}}' (\~{} `{\escapegrammar \texttt{"""}}')* `{\escapegrammar \texttt{"""}}';
+  `r{\escapegrammar \code{'}\code{'}\code{'}}' (\~{} `{\escapegrammar \code{'}\code{'}\code{'}}')* `{\escapegrammar \code{'}\code{'}\code{'}}'
   .
 
-{\bf ESCAPE\_SEQUENCE:}`$\backslash$ n';
-  `$\backslash$ r';
-  `$\backslash$ f';
-  `$\backslash$ b';
-  `$\backslash$ t';
-  `$\backslash$ v';
-  `$\backslash$ x' HEX\_DIGIT HEX\_DIGIT;
-  `$\backslash$ u' HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT;
-  `$\backslash$ u\{' HEX\_DIGIT\_SEQUENCE `\}'
+{\bf ESCAPE\_SEQUENCE:}`$\backslash$n';
+  `$\backslash$r';
+  `$\backslash$f';
+  `$\backslash$b';
+  `$\backslash$t';
+  `$\backslash$v';
+  `$\backslash$x' HEX\_DIGIT HEX\_DIGIT;
+  `$\backslash$u' HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT;
+  `$\backslash$u\{' HEX\_DIGIT\_SEQUENCE `\}'
   .
 
 {\bf HEX\_DIGIT\_SEQUENCE:}HEX\_DIGIT HEX\_DIGIT? HEX\_DIGIT?
@@ -3512,9 +3512,9 @@ It is a compile-time error if a non-raw string literal contains a character sequ
   stringInterpolation
   .
 
-{\bf NEWLINE:}$\backslash$ n;
-  $\backslash$ r;
-  $\backslash$ r $\backslash$ n
+{\bf NEWLINE:}$\backslash$n;
+  $\backslash$r;
+  $\backslash$r$\backslash$n
   .
 \end{grammar}
 
@@ -3533,7 +3533,7 @@ This process is known as {\em string interpolation}.
 
 \begin{grammar}
 {\bf stringInterpolation:}`\$' IDENTIFIER\_NO\_DOLLAR;
-  `\$' `\{' expression `\}'
+  `\$\{' expression `\}'
   .
 \end{grammar}
 
