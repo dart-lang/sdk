@@ -112,6 +112,9 @@ mutation_observer: Skip # Skip tests on the VM if the package depends on dart:ht
 [ $runtime != vm ]
 dev_compiler/test/options/*: SkipByDesign
 
+[ $system == windows ]
+pkg/front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
+
 [ $browser ]
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
 analysis_server/test/*: SkipByDesign # Uses dart:io.
