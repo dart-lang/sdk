@@ -5,19 +5,14 @@
 /// Common compiler options and helper functions used for testing.
 library front_end.testing.compiler_options_common;
 
-import 'dart:async' show Future;
+import 'dart:async';
 
-import 'package:kernel/ast.dart' show Library, Program;
+import 'dart:io' show Platform;
 
-import '../api_prototype/front_end.dart'
-    show CompilerOptions, kernelForBuildUnit, kernelForProgram, summaryFor;
-
-import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-
-import '../compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
-import '../testing/hybrid_file_system.dart' show HybridFileSystem;
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/testing/hybrid_file_system.dart';
+import 'package:kernel/ast.dart';
 
 /// Generate kernel for a script.
 ///
@@ -104,7 +99,8 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     ..packagesFileUri = toTestUri('.packages');
 
   if (options.sdkSummary == null) {
-    options.sdkRoot = computePlatformBinariesLocation();
+    options.sdkRoot =
+        Uri.base.resolve(Platform.resolvedExecutable).resolve("./");
   }
 }
 
