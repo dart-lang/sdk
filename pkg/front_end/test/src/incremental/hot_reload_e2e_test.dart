@@ -13,13 +13,14 @@ import 'dart:convert' show LineSplitter, UTF8;
 
 import 'dart:io' show Directory, File, Platform, Process;
 
+import 'package:async_helper/async_helper.dart' show asyncTest;
+
+import 'package:expect/expect.dart' show Expect;
+
 import 'package:kernel/ast.dart' show Program;
 
 import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
-
-import 'package:test/test.dart'
-    show expect, isEmpty, isTrue, lessThan, setUp, tearDown, test;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -40,7 +41,7 @@ import 'package:front_end/src/testing/hybrid_file_system.dart'
 
 import '../../tool/reload.dart' show RemoteVm;
 
-main() {
+abstract class TestCase {
   IncrementalKernelGenerator compiler;
   MemoryFileSystem fs;
   Directory outDir;
@@ -48,7 +49,21 @@ main() {
   List<Future<String>> lines;
   Future programIsDone;
 
-  setUp(() async {
+  String get name;
+
+  Future run();
+
+  Future test() async {
+    await setUp();
+    try {
+      await run();
+      print("$name done");
+    } finally {
+      await tearDown();
+    }
+  }
+
+  setUp() async {
     outDir = Directory.systemTemp.createTempSync('hotreload_test');
     outputUri = outDir.uri.resolve('test.dill');
     var root = Uri.parse('org-dartlang-test:///');
@@ -60,16 +75,16 @@ main() {
     compiler = createIncrementalCompiler(
         'org-dartlang-test:///a.dart', new HybridFileSystem(fs));
     await rebuild(compiler, outputUri); // this is a full compile.
-  });
+  }
 
-  tearDown(() async {
+  tearDown() async {
     outDir.deleteSync(recursive: true);
     lines = null;
-  });
+  }
 
   Future<int> computeVmPort() async {
     var portLine = await lines[0];
-    expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
+    Expect.isTrue(observatoryPortRegExp.hasMatch(portLine));
     var match = observatoryPortRegExp.firstMatch(portLine);
     return int.parse(match.group(1));
   }
@@ -104,14 +119,14 @@ main() {
         new List.generate(expectedLines, (_) => new Completer<String>());
     lines = completers.map((c) => c.future).toList();
     vm.stdout.transform(UTF8.decoder).transform(splitter).listen((line) {
-      expect(i, lessThan(expectedLines));
+      Expect.isTrue(i < expectedLines);
       completers[i++].complete(line);
     }, onDone: () {
-      expect(i, expectedLines);
+      Expect.equals(expectedLines, i);
     });
 
     vm.stderr.transform(UTF8.decoder).transform(splitter).toList().then((err) {
-      expect(err, isEmpty, reason: err.join('\n'));
+      Expect.isTrue(err.isEmpty, err.join('\n'));
     });
 
     programIsDone = vm.exitCode;
@@ -123,66 +138,106 @@ main() {
     var port = await computeVmPort();
     var remoteVm = new RemoteVm(port);
     var reloadResult = await remoteVm.reload(outputUri);
-    expect(reloadResult['success'], isTrue);
+    Expect.isTrue(reloadResult['success']);
     await remoteVm.disconnect();
   }
+}
 
-  test('initial program is valid', () async {
+class InitialProgramIsValid extends TestCase {
+  @override
+  String get name => 'initial program is valid';
+
+  @override
+  Future run() async {
     await startProgram(0);
     await programIsDone;
-    expect(await lines[1], "part1 part2");
-  });
+    Expect.stringEquals("part1 part2", await lines[1]);
+  }
+}
 
-  test('reload after leaf library modification', () async {
+class ReloadAfterLeafLibraryModification extends TestCase {
+  @override
+  String get name => 'reload after leaf library modification';
+
+  @override
+  Future run() async {
     await startProgram(1);
-    expect(await lines[1], "part1 part2");
+    Expect.stringEquals("part1 part2", await lines[1]);
 
     writeFile(fs, 'b.dart', sourceB.replaceAll("part1", "part3"));
     await rebuild(compiler, outputUri);
     await hotReload();
     await programIsDone;
-    expect(await lines[2], "part3 part2");
-  });
+    Expect.stringEquals("part3 part2", await lines[2]);
+  }
+}
 
-  test('reload after non-leaf library modification', () async {
+class ReloadAfterNonLeafLibraryModification extends TestCase {
+  @override
+  String get name => "reload after non-leaf library modification";
+
+  @override
+  Future run() async {
     await startProgram(1);
-    expect(await lines[1], "part1 part2");
+    Expect.stringEquals("part1 part2", await lines[1]);
 
     writeFile(fs, 'a.dart', sourceA.replaceAll("part2", "part4"));
     await rebuild(compiler, outputUri);
     await hotReload();
     await programIsDone;
-    expect(await lines[2], "part1 part4");
-  });
+    Expect.stringEquals("part1 part4", await lines[2]);
+  }
+}
 
-  test('reload after whole program modification', () async {
+class ReloadAfterWholeProgramModification extends TestCase {
+  @override
+  String get name => "reload after whole program modification";
+
+  @override
+  Future run() async {
     await startProgram(1);
-    expect(await lines[1], "part1 part2");
+    Expect.stringEquals("part1 part2", await lines[1]);
 
     writeFile(fs, 'b.dart', sourceB.replaceAll("part1", "part5"));
     writeFile(fs, 'a.dart', sourceA.replaceAll("part2", "part6"));
     await rebuild(compiler, outputUri);
     await hotReload();
     await programIsDone;
-    expect(await lines[2], "part5 part6");
-  });
+    Expect.stringEquals("part5 part6", await lines[2]);
+  }
+}
 
-  test('reload twice', () async {
+class ReloadTwice extends TestCase {
+  @override
+  String get name => "reload twice";
+
+  @override
+  Future run() async {
     await startProgram(2);
-    expect(await lines[1], "part1 part2");
+    Expect.stringEquals("part1 part2", await lines[1]);
 
     writeFile(fs, 'b.dart', sourceB.replaceAll("part1", "part5"));
     writeFile(fs, 'a.dart', sourceA.replaceAll("part2", "part6"));
     await rebuild(compiler, outputUri);
     await hotReload();
-    expect(await lines[2], "part5 part6");
+    Expect.stringEquals("part5 part6", await lines[2]);
 
     writeFile(fs, 'b.dart', sourceB.replaceAll("part1", "part7"));
     writeFile(fs, 'a.dart', sourceA.replaceAll("part2", "part8"));
     await rebuild(compiler, outputUri);
     await hotReload();
     await programIsDone;
-    expect(await lines[3], "part7 part8");
+    Expect.stringEquals("part7 part8", await lines[3]);
+  }
+}
+
+main() {
+  asyncTest(() async {
+    await new InitialProgramIsValid().test();
+    await new ReloadAfterLeafLibraryModification().test();
+    await new ReloadAfterNonLeafLibraryModification().test();
+    await new ReloadAfterWholeProgramModification().test();
+    await new ReloadTwice().test();
   });
 }
 
