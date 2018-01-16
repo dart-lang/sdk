@@ -1,6 +1,6 @@
 ## Feature: Generalized Void
 
-Author: eernst@
+**Author**: eernst@
 
 **Status**: Under implementation.
 

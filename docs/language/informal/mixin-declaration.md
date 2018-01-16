@@ -1,10 +1,10 @@
 # Dart 2.0 Mixins
 
-Author: [lrn@google.com](mailto:lrn@google.com)
+**Author**: [lrn@google.com](mailto:lrn@google.com)
 
-Version 0.6 (2017-06-14)
+**Version**: 0.6 (2017-06-14)
 
-Status: Mostly designed, ready for external comments.
+**Status**: Mostly designed, ready for external comments.
 
 ## Proposal
 This proposal introduces a new syntax for declaring mixins, separate from deriving a mixin from a class declaration. It expects to deprecate and remove the ability to derive a mixin from a class declaration, but doesn't require it.
