@@ -95,7 +95,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return new Program(
           libraries: new List<Library>.from(userCode.loader.libraries),
           uriToSource: new Map<Uri, Source>.from(userCode.uriToSource))
-        ..mainMethod = programWithDill.mainMethod;
+        ..mainMethod = programWithDill?.mainMethod;
     });
   }
 

@@ -74,6 +74,9 @@ test({bool sdkFromSource}) async {
   // Expect that the new program contains exactly hello.dart
   Expect.isTrue(
       program.libraries.length == 1, "${program.libraries.length} != 1");
+
+  program = await compiler.computeDelta(entryPoint: helloDart);
+  Expect.isTrue(program.libraries.isEmpty);
 }
 
 void main() {

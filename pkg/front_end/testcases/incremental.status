@@ -4,4 +4,11 @@
 
 # Status file for the test suite ../test/fasta/incremental_test.dart.
 
-dartino/change_in_part.incremental: Crash # Parts aren't handled correctly
+dartino/change_in_part.incremental: Fail # Issue 31908 (parts aren't handled correctly)
+dartino/compile_time_error_004.incremental: Fail # Issue 31909
+dartino/compile_time_error_field_becomes_removed_function.incremental: Fail # Issue 31909
+dartino/fix_compile_time_error_in_field.incremental: Fail # Issue 31909
+dartino/override_field_with_method_conflict.incremental: Fail # Issue 31909
+dartino/override_getter_with_method_conflict.incremental: Fail # Issue 31909
+dartino/override_method_with_field_conflict.incremental: Fail # Issue 31909
+dartino/override_method_with_getter_conflict.incremental: Fail # Issue 31909
