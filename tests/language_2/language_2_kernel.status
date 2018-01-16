@@ -16,9 +16,6 @@ generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
-[ $arch == simdbc64 && $compiler == dartk && $strong ]
-instantiate_tearoff_test: Crash #Issue 31880
-
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 bad_named_parameters_test/01: Crash # Issue(http://dartbug.com/31630)
 bad_named_parameters_test/02: Crash # Issue(http://dartbug.com/31630)
@@ -324,9 +321,9 @@ covariant_subtyping_test: RuntimeError
 ct_const2_test: Pass, Crash # Flaky
 ct_const_test: RuntimeError
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
-cyclic_type2_test: CompileTimeError
-cyclic_type_test/02: CompileTimeError
-cyclic_type_test/04: CompileTimeError
+cyclic_type2_test: RuntimeError, CompileTimeError
+cyclic_type_test/02: RuntimeError, CompileTimeError
+cyclic_type_test/04: RuntimeError, CompileTimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
