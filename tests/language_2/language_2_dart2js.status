@@ -3547,7 +3547,6 @@ assertion_initializer_test: Crash
 bad_constructor_test/05: CompileTimeError
 bad_typedef_test/00: Crash # Issue 28214
 bug31436_test: RuntimeError
-built_in_identifier_type_annotation_test/13: Crash # Issue 28815
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 built_in_identifier_type_annotation_test/30: Crash # Issue 28815
 built_in_identifier_type_annotation_test/52: Crash # Issue 28815
@@ -3566,7 +3565,6 @@ built_in_identifier_type_annotation_test/65: Crash # Issue 28815
 built_in_identifier_type_annotation_test/66: Crash # Issue 28815
 built_in_identifier_type_annotation_test/67: Crash # Issue 28815
 built_in_identifier_type_annotation_test/68: Crash # Issue 28815
-built_in_identifier_type_annotation_test/81: Crash # Issue 28815
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
 closure_param_null_to_object_test: RuntimeError

@@ -3127,6 +3127,26 @@ class Foo {
     ]);
   }
 
+  void test_exportAsType() {
+    parseCompilationUnit('export<dynamic> foo;',
+        errors: usingFastaParser
+            ? [
+                expectedError(
+                    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 0, 6)
+              ]
+            : []);
+  }
+
+  void test_exportAsType_inClass() {
+    parseCompilationUnit('class C { export<dynamic> foo; }',
+        errors: usingFastaParser
+            ? [
+                expectedError(
+                    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 6)
+              ]
+            : []);
+  }
+
   void test_externalAfterConst() {
     createParser('const external C();');
     ClassMember member = parser.parseClassMember('C');
@@ -3411,6 +3431,16 @@ class Foo {
   void test_finalClass() {
     parseCompilationUnit("final class C {}",
         errors: [expectedError(ParserErrorCode.FINAL_CLASS, 0, 5)]);
+  }
+
+  void test_finalClassMember_modifierOnly() {
+    createParser('final');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 0)
+    ]);
   }
 
   void test_finalConstructor() {
@@ -11126,7 +11156,7 @@ class C {
     // would be to insert a synthetic comma after the `n`.
     CompilationUnit unit = parseCompilationUnit('String n x = "";',
         codes: usingFastaParser
-            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            ? [ParserErrorCode.UNEXPECTED_TOKEN]
             : [
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -11135,7 +11165,7 @@ class C {
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     if (usingFastaParser) {
       expect(declarations, hasLength(1));
-      verify(declarations[0], 'String', 'x', ';');
+      verify(declarations[0], 'n', 'x', ';');
     } else {
       expect(declarations, hasLength(2));
       verify(declarations[0], 'String', 'n', '');
@@ -11227,9 +11257,10 @@ class C {
             ? [
                 expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 4),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1),
                 expectedError(
-                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 7, 4),
-                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 7, 4)
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 12, 2)
               ]
             : [expectedError(ParserErrorCode.NON_STRING_LITERAL_AS_URI, 7, 4)]);
   }
