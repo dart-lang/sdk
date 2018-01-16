@@ -714,8 +714,8 @@ truncdiv_test: RuntimeError # Issue 29920
 
 [ $compiler == dartdevk && $runtime != none ]
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
-conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+conditional_import_string_test: CompileTimeError # Test is broken
+conditional_import_test: CompileTimeError # Test is broken
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
 cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
 enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
