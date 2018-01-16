@@ -70,7 +70,6 @@ step_through_constructor_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]
 awaiter_async_stack_contents_test: RuntimeError
-code_test: RuntimeError
 external_service_asynchronous_invocation_test: CompileTimeError # Issue 31696
 external_service_disappear_test: CompileTimeError # Issue 31696
 external_service_notification_invocation_test: CompileTimeError # Issue 31696
@@ -78,9 +77,5 @@ external_service_registration_test: CompileTimeError # Issue 31696
 external_service_registration_via_notification_test: CompileTimeError # Issue 31696
 external_service_synchronous_invocation_test: CompileTimeError # Issue 31696
 get_object_rpc_test: RuntimeError
-get_stack_rpc_test: RuntimeError
-next_through_implicit_call_test: RuntimeError
-next_through_operator_bracket_on_super_test: RuntimeError
 step_through_arithmetic_test: RuntimeError
-step_through_constructor_test: RuntimeError
 

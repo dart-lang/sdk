@@ -348,7 +348,7 @@ cc/Service_Code: Fail
 dart/redirection_type_shuffling_test/00: Fail
 dart/redirection_type_shuffling_test/none: Fail
 
-[ $compiler == dartk && $system != windows && !$strong ]
+[ $compiler == dartk && $system != windows ]
 cc/DartAPI_New: Crash
 cc/DartAPI_TypeGetParameterizedTypes: Crash
 dart/redirection_type_shuffling_test/00: Crash

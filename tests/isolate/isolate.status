@@ -116,6 +116,9 @@ message3_test/int32x4: Fail
 [ $compiler == dartk && $system == windows && !$strong ]
 message3_test/int32x4: Fail
 
+[ $compiler == dartk && $system != windows && $strong ]
+issue_22778_test: Crash
+
 [ $compiler == dartk && $strong ]
 issue_21398_parent_isolate1_test: RuntimeError
 message3_test/byteBuffer: RuntimeError
