@@ -1720,7 +1720,8 @@ class RawDatagramSocket {
   }
 }
 
-class _RawDatagramSocket extends Stream implements RawDatagramSocket {
+class _RawDatagramSocket extends Stream<RawSocketEvent>
+    implements RawDatagramSocket {
   _NativeSocket _socket;
   StreamController<RawSocketEvent> _controller;
   bool _readEventsEnabled = true;
@@ -1728,7 +1729,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
 
   _RawDatagramSocket(this._socket) {
     var zone = Zone.current;
-    _controller = new StreamController(
+    _controller = new StreamController<RawSocketEvent>(
         sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
