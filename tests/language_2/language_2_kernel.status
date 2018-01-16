@@ -15,9 +15,6 @@ generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
-[ $compiler == dartk && $mode == debug ]
-await_test: CompileTimeError
-
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 bad_named_parameters_test/01: Crash # Issue(http://dartbug.com/31630)
 bad_named_parameters_test/02: Crash # Issue(http://dartbug.com/31630)
@@ -792,9 +789,6 @@ null_test/03: MissingCompileTimeError # Please triage.
 
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
-
-[ $compiler == dartkp && $mode == debug ]
-await_test: CompileTimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 bad_named_parameters_test/01: Crash
