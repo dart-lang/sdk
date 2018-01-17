@@ -40,20 +40,10 @@ ModifierContext parseModifiersOpt(
     MemberKind memberKind,
     FormalParameterKind parameterKind,
     bool isVarAllowed,
-    TypeContinuation typeContiunation) {
-  // Find the last modifier if not specified.
-  if (lastModifier == null) {
-    lastModifier = start;
-    Token next = lastModifier.next;
-    while (isModifier(next)) {
-      lastModifier = next;
-      next = lastModifier.next;
-    }
-  }
-
+    TypeContinuation typeContinuation) {
   // Parse modifiers
   ModifierContext context = new ModifierContext(parser, memberKind,
-      parameterKind, isVarAllowed, typeContiunation, lastModifier);
+      parameterKind, isVarAllowed, typeContinuation, lastModifier);
   Token token = context.parseOpt(start);
 
   // If the next token is a modifier,
@@ -61,7 +51,7 @@ ModifierContext parseModifiersOpt(
   if (token != lastModifier) {
     // Recovery
     context = new ModifierRecoveryContext(parser, memberKind, parameterKind,
-        isVarAllowed, typeContiunation, lastModifier);
+        isVarAllowed, typeContinuation, lastModifier);
     token = context.parseOpt(start);
   }
 
@@ -71,6 +61,17 @@ ModifierContext parseModifiersOpt(
       typeContinuationFromMemberKind(isVarAllowed, context.memberKind);
 
   return context;
+}
+
+/// Skip modifier tokens until the last modifier token is reached
+/// and return that token. If [token] is not a modifier, then return [token].
+Token skipToLastModifier(Token token) {
+  Token next = token.next;
+  while (isModifier(next)) {
+    token = next;
+    next = token.next;
+  }
+  return token;
 }
 
 TypeContinuation typeContinuationFromMemberKind(

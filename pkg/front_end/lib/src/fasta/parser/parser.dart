@@ -82,6 +82,7 @@ import 'modifier_context.dart'
         TopLevelMethodModifierContext,
         isModifier,
         parseModifiersOpt,
+        skipToLastModifier,
         typeContinuationFromMemberKind;
 
 import 'recovery_listeners.dart'
@@ -90,7 +91,7 @@ import 'recovery_listeners.dart'
 import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
 import 'type_continuation.dart'
-    show TypeContinuation, typeContiunationFromFormalParameterKind;
+    show TypeContinuation, typeContinuationFromFormalParameterKind;
 
 import 'util.dart' show beforeCloseBraceTokenFor, closeBraceTokenFor, optional;
 
@@ -1156,10 +1157,16 @@ class Parser {
     listener.beginFormalParameter(next, memberKind);
 
     TypeContinuation typeContinuation =
-        typeContiunationFromFormalParameterKind(parameterKind);
+        typeContinuationFromFormalParameterKind(parameterKind);
     if (isModifier(next)) {
-      ModifierContext modifierContext = parseModifiersOpt(this, token, null,
-          memberKind, parameterKind, false, typeContinuation);
+      ModifierContext modifierContext = parseModifiersOpt(
+          this,
+          token,
+          skipToLastModifier(token),
+          memberKind,
+          parameterKind,
+          false,
+          typeContinuation);
       typeContinuation = modifierContext.typeContinuation;
       memberKind = modifierContext.memberKind;
       token = modifierContext.lastModifier;
@@ -2811,7 +2818,7 @@ class Parser {
         isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
         null,
         true,
-        typeContiunationFromFormalParameterKind(null));
+        typeContinuationFromFormalParameterKind(null));
     TypeContinuation typeContinuation = modifierContext.typeContinuation;
     MemberKind memberKind = modifierContext.memberKind;
     Token varFinalOrConst = modifierContext.varFinalOrConst;
@@ -3443,7 +3450,7 @@ class Parser {
       ++count;
     }
     token = token.next;
-    expect('}', token);
+    assert(optional('}', token));
     listener.endClassBody(count, begin, token);
     return token;
   }
@@ -5357,8 +5364,8 @@ class Parser {
     MemberKind memberKind = MemberKind.Local;
     TypeContinuation typeContinuation;
     if (isModifier(token.next)) {
-      ModifierContext modifierContext =
-          parseModifiersOpt(this, token, null, memberKind, null, true, null);
+      ModifierContext modifierContext = parseModifiersOpt(
+          this, token, skipToLastModifier(token), memberKind, null, true, null);
       token = modifierContext.lastModifier;
       typeContinuation = modifierContext.typeContinuation;
       memberKind = modifierContext.memberKind;
