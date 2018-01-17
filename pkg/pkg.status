@@ -116,7 +116,7 @@ front_end/test/src/incremental/hot_reload_e2e_test: Skip
 [ $system == windows ]
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
-front_end/test/test/whole_program_test: Skip # Issue 31902
+front_end/test/whole_program_test: Skip # Issue 31902
 
 [ $browser ]
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
