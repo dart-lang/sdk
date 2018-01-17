@@ -1935,6 +1935,19 @@ const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
     message: r"""Can't have a default value in a function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFunctionTypedParameterVar =
+    messageFunctionTypedParameterVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFunctionTypedParameterVar = const MessageCode(
+    "FunctionTypedParameterVar",
+    analyzerCode: "FUNCTION_TYPED_PARAMETER_VAR",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
+    tip: r"""Try replacing the keyword with a return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -74,6 +74,22 @@ Token skipToLastModifier(Token token) {
   return token;
 }
 
+TypeContinuation typeContinuationAfterVar(TypeContinuation typeContinuation) {
+  switch (typeContinuation ?? TypeContinuation.Required) {
+    case TypeContinuation.NormalFormalParameter:
+      return TypeContinuation.NormalFormalParameterAfterVar;
+
+    case TypeContinuation.OptionalPositionalFormalParameter:
+      return TypeContinuation.OptionalPositionalFormalParameterAfterVar;
+
+    case TypeContinuation.NamedFormalParameter:
+      return TypeContinuation.NamedFormalParameterAfterVar;
+
+    default:
+      return TypeContinuation.OptionalAfterVar;
+  }
+}
+
 TypeContinuation typeContinuationFromMemberKind(
         bool isVarAllowed, MemberKind memberKind) =>
     (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
@@ -109,6 +125,7 @@ class ModifierContext {
       memberKind != MemberKind.NonStaticField;
 
   Token parseOpt(Token token) {
+    assert(lastModifier != null);
     if (token != lastModifier) {
       if (optional('external', token.next)) {
         token = parseExternalOpt(token);
@@ -268,24 +285,7 @@ class ModifierContext {
           next, fasta.templateExtraneousModifier);
       return next;
     }
-    switch (typeContinuation ?? TypeContinuation.Required) {
-      case TypeContinuation.NormalFormalParameter:
-        typeContinuation = TypeContinuation.NormalFormalParameterAfterVar;
-        break;
-
-      case TypeContinuation.OptionalPositionalFormalParameter:
-        typeContinuation =
-            TypeContinuation.OptionalPositionalFormalParameterAfterVar;
-        break;
-
-      case TypeContinuation.NamedFormalParameter:
-        typeContinuation = TypeContinuation.NamedFormalParameterAfterVar;
-        break;
-
-      default:
-        typeContinuation = TypeContinuation.OptionalAfterVar;
-        break;
-    }
+    typeContinuation = typeContinuationAfterVar(typeContinuation);
     varFinalOrConst ??= next;
     modifierCount++;
     return parser.parseModifier(token);
@@ -306,7 +306,7 @@ class ModifierRecoveryContext extends ModifierContext {
       FormalParameterKind parameterKind,
       bool isVarAllowed,
       TypeContinuation typeContinuation,
-      Token lastModifier)
+      [Token lastModifier])
       : super(parser, memberKind, parameterKind, isVarAllowed, typeContinuation,
             lastModifier);
 
@@ -339,6 +339,52 @@ class ModifierRecoveryContext extends ModifierContext {
       } else {
         token = parseExtraneousModifier(token);
       }
+    }
+
+    return token;
+  }
+
+  Token parseRecovery(Token token,
+      {Token covariantToken, Token varFinalOrConst}) {
+    if (covariantToken != null) {
+      this.covariantToken = covariantToken;
+      ++modifierCount;
+    }
+    if (varFinalOrConst != null) {
+      ++modifierCount;
+      if (optional('var', varFinalOrConst)) {
+        varToken = varFinalOrConst;
+      } else if (optional('final', varFinalOrConst)) {
+        finalToken = varFinalOrConst;
+      } else if (optional('const', varFinalOrConst)) {
+        constToken = varFinalOrConst;
+      } else {
+        throw "Internal error: Unexpected varFinalOrConst '$varFinalOrConst'.";
+      }
+    }
+
+    // Process invalid and out-of-order modifiers
+    Token next = token.next;
+    while (isModifier(next)) {
+      final value = next.stringValue;
+      if (identical('abstract', value)) {
+        token = parseAbstract(token);
+      } else if (identical('const', value)) {
+        token = parseConst(token);
+      } else if (identical('covariant', value)) {
+        token = parseCovariantOpt(token);
+      } else if (identical('external', value)) {
+        token = parseExternalOpt(token);
+      } else if (identical('final', value)) {
+        token = parseFinal(token);
+      } else if (identical('static', value)) {
+        token = parseStaticOpt(token);
+      } else if (identical('var', value)) {
+        token = parseVar(token);
+      } else {
+        token = parseExtraneousModifier(token);
+      }
+      next = token.next;
     }
 
     return token;

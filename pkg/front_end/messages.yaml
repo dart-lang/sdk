@@ -278,6 +278,16 @@ MissingConstFinalVarOrType:
   script:
     - "class C { static f; }"
 
+FunctionTypedParameterVar:
+  template: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
+  tip: "Try replacing the keyword with a return type."
+  analyzerCode: FUNCTION_TYPED_PARAMETER_VAR
+  dart2jsCode: "*fatal*"
+  script:
+    - "void f(const x()) {}"
+    - "void f(final x()) {}"
+    - "void f(var x()) {}"
+
 AbstractClassMember:
   template: "Members of classes can't be declared to be 'abstract'."
   tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."

@@ -3480,16 +3480,20 @@ class Foo {
   void test_functionTypedParameter_const() {
     parseCompilationUnit("void f(const x()) {}",
         errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 7, 5)]
+            ? [
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 7, 5),
+                expectedError(
+                    ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 5)
+              ]
             : [
                 expectedError(
-                    ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 9)
+                    ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 5)
               ]);
   }
 
   void test_functionTypedParameter_final() {
     parseCompilationUnit("void f(final x()) {}", errors: [
-      expectedError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 9)
+      expectedError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 5)
     ]);
   }
 
@@ -3516,7 +3520,7 @@ class Foo {
 
   void test_functionTypedParameter_var() {
     parseCompilationUnit("void f(var x()) {}", errors: [
-      expectedError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 7)
+      expectedError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 7, 3)
     ]);
   }
 
@@ -8815,8 +8819,9 @@ abstract class FormalParameterParserTestMixin
   }
 
   void test_parseNormalFormalParameter_field_const_noType() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('const this.a');
+    NormalFormalParameter parameter = parseNormalFormalParameter('const this.a',
+        errorCodes:
+            usingFastaParser ? [ParserErrorCode.EXTRANEOUS_MODIFIER] : []);
     expect(parameter, isNotNull);
     expect(parameter, new isInstanceOf<FieldFormalParameter>());
     FieldFormalParameter fieldParameter = parameter;
@@ -8827,15 +8832,11 @@ abstract class FormalParameterParserTestMixin
   }
 
   void test_parseNormalFormalParameter_field_const_type() {
-    NormalFormalParameter parameter =
-        parseNormalFormalParameter('const A this.a');
+    NormalFormalParameter parameter = parseNormalFormalParameter(
+        'const A this.a',
+        errorCodes:
+            usingFastaParser ? [ParserErrorCode.EXTRANEOUS_MODIFIER] : []);
     expect(parameter, isNotNull);
-    if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
-    } else {
-      assertNoErrors();
-    }
     expect(parameter, new isInstanceOf<FieldFormalParameter>());
     FieldFormalParameter fieldParameter = parameter;
     expect(fieldParameter.keyword, isNotNull);

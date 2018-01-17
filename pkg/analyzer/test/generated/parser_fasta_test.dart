@@ -389,14 +389,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_functionTypedParameter_final() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, found 0
-    super.test_functionTypedParameter_final();
-  }
-
-  @override
-  @failingTest
   void test_functionTypedParameter_incomplete1() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'FormalParameterListImpl' is not a subtype of type 'TypeParameterList' of 'typeParameters' where
@@ -413,14 +405,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
     //   test/generated/parser_fasta_test.dart 2543:35                      FastaParserTestCase.parseCompilationUnit
     super.test_functionTypedParameter_incomplete1();
-  }
-
-  @override
-  @failingTest
-  void test_functionTypedParameter_var() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, found 0
-    super.test_functionTypedParameter_var();
   }
 
   @override
@@ -2129,36 +2113,6 @@ class FastaParserTestCase extends Object
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_noType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
-    super.test_parseNormalFormalParameter_field_const_noType();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_noType2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_noType();
-    assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
-    super.test_parseNormalFormalParameter_field_const_type();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_type();
-    assertNoErrors();
-  }
-
   @override
   void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
     // Ignored: Fasta does not support the generic comment syntax.

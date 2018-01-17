@@ -153,8 +153,6 @@ Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
-Language/Functions/Formal_Parameters/Required_Formals/syntax_t06: MissingCompileTimeError
-Language/Functions/Formal_Parameters/Required_Formals/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.
