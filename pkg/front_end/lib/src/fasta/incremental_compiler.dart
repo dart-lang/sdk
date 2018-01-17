@@ -106,24 +106,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Uri> invalidatedFileUris = invalidatedUris.toSet();
 
     // Maps all non-platform LibraryBuilders from their import URI.
-    Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
+    Map<Uri, SourceLibraryBuilder> builders = <Uri, SourceLibraryBuilder>{};
 
     // Invalidated URIs translated back to their import URI (package:, dart:,
     // etc.).
     List<Uri> invalidatedImportUris = <Uri>[];
 
     // Compute [builders] and [invalidatedImportUris].
-    userCode.loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader != platform.loader) {
-        assert(library is SourceLibraryBuilder);
+    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
+      if (libraryBuilder.loader != platform.loader) {
+        assert(libraryBuilder is SourceLibraryBuilder);
+        SourceLibraryBuilder library = libraryBuilder;
         builders[uri] = library;
         if (invalidatedFileUris.contains(uri) ||
             (uri != library.fileUri &&
                 invalidatedFileUris.contains(library.fileUri))) {
           invalidatedImportUris.add(uri);
         }
+        for (var part in library.parts) {
+          addBuilderAndInvalidateUris(part.uri, part);
+        }
       }
-    });
+    }
+
+    userCode.loader.builders.forEach(addBuilderAndInvalidateUris);
 
     SourceGraph graph = new SourceGraph(builders);
 
@@ -153,7 +159,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    return builders.values.toList();
+    return builders.values.where((builder) => !builder.isPart).toList();
   }
 
   @override
