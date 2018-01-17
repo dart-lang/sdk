@@ -2768,19 +2768,20 @@ class ProgramCompiler
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
-    var returnType = _getExpectedReturnType(function, coreTypes.futureClass);
+    // Return type of an async body is `Future<flatten(T)>`, where T is the
+    // declared return type.
+    var returnType = types.unfutureType(function.functionType.returnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(coreTypes.asyncLibrary), _emitType(returnType), gen])
       ..sourceInformation = function;
   }
 
-  // TODO(leafp): Various analyzer pieces computed similar things.
-  // Share this logic somewhere?
+  /// Gets the expected return type of a `sync*` or `async*` body.
   DartType _getExpectedReturnType(FunctionNode f, Class expected) {
     var type = f.functionType.returnType;
     if (type is InterfaceType) {
       var match = hierarchy.getTypeAsInstanceOf(type, expected);
-      return match.typeArguments[0];
+      if (match != null) return match.typeArguments[0];
     }
     return const DynamicType();
   }
