@@ -83,7 +83,6 @@ async_star_regression_2238_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
 asyncstar_yield_test: RuntimeError
 asyncstar_yieldstar_test: RuntimeError
-bug31436_test: RuntimeError
 compile_time_constant_checked_test/02: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
@@ -863,7 +862,6 @@ async_return_types_test/none: RuntimeError
 async_star_take_reyield_test: RuntimeError
 asyncstar_yield_test: RuntimeError
 asyncstar_yieldstar_test: RuntimeError
-bug31436_test: RuntimeError
 compile_time_constant_checked_test/02: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError

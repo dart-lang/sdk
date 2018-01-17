@@ -18,7 +18,6 @@ assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 black_listed_test/none: Fail # Issue 14228
-bug31436_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
@@ -145,7 +144,6 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bug31436_test: RuntimeError
 built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
