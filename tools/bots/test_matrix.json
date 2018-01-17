@@ -1243,6 +1243,7 @@
             "--compiler=none",
             "--runtime=vm",
             "--checked",
+            "--timeout=120",
             "--use-sdk",
             "pkg/front_end"
           ]
@@ -1306,7 +1307,8 @@
             "--use-sdk",
             "--compiler=none",
             "--runtime=vm",
-            "--checked"
+            "--checked",
+            "--timeout=120"
           ],
           "tests": ["pkg"]
         },
