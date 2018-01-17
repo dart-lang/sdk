@@ -189,15 +189,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_covariantConstructor() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.COVARIANT_CONSTRUCTOR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (10)
-    super.test_covariantConstructor();
-  }
-
-  @override
-  @failingTest
   void test_duplicateLabelInSwitchStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, found 0
@@ -256,19 +247,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:test                                                       expect
     //   test/generated/parser_fasta_test.dart 2852:5                       ParserProxy.parseTopLevelDeclaration
     super.test_expectedExecutable_topLevel_beforeType();
-  }
-
-  @override
-  @failingTest
-  void test_expectedExecutable_topLevel_eof() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected CompilationUnit, but found [CompilationUnit, TopLevelMember]
-    //   package:test                                                       fail
-    //   test/generated/parser_fasta_listener.dart 50:7                     ForwardingTestListener.expectIn
-    //   test/generated/parser_fasta_listener.dart 1030:5                   ForwardingTestListener.endTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 264:14              Parser.parseTopLevelDeclaration
-    //   test/generated/parser_fasta_test.dart 2851:22                      ParserProxy.parseTopLevelDeclaration
-    super.test_expectedExecutable_topLevel_eof();
   }
 
   @override
@@ -407,15 +385,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, found 0
     super.test_fieldInitializerOutsideConstructor();
-  }
-
-  @override
-  @failingTest
-  void test_functionTypedParameter_const() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (8)
-    super.test_functionTypedParameter_const();
   }
 
   @override
@@ -1213,34 +1182,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingNameInLibraryDirective() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, found 0
-    super.test_missingNameInLibraryDirective();
-  }
-
-  @override
-  @failingTest
-  void test_missingNameInPartOfDirective() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'KeywordToken' is not a subtype of type 'Comment' of 'comment' where
-    //   KeywordToken is from package:front_end/src/scanner/token.dart
-    //   Comment is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1457:23                AstBuilder.endPartOf
-    //   package:front_end/src/fasta/parser/parser.dart 499:14              Parser.parsePartOf
-    //   package:front_end/src/fasta/parser/parser.dart 467:14              Parser.parsePartOrPartOf
-    //   package:front_end/src/fasta/parser/parser.dart 296:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3016:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_missingNameInPartOfDirective();
-  }
-
-  @override
-  @failingTest
   void test_missingStatement() {
     // TODO(brianwilkerson) Does not recover.
     //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
@@ -1401,30 +1342,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_nonUserDefinableOperator() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'SimpleIdentifierImpl' is not a subtype of type 'TypeAnnotation' of 'returnType' where
-    //   SimpleIdentifierImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeAnnotation is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1620:33                AstBuilder.endMethod
-    //   test/generated/parser_fasta_listener.dart 926:14                   ForwardingTestListener.endMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2433:14             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3766:39                      ParserProxy._run
-    super.test_nonUserDefinableOperator();
-  }
-
-  void test_nonUserDefinableOperator_ignoreErrors() {
-    // TODO(danrubel): Remove this test
-    // once test_nonUserDefinableOperator passes.
-    createParser('operator +=(int x) => x + 1;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_missingIdentifier() {
     // TODO(brianwilkerson) Testing at too low a level.
     super.test_parseCascadeSection_missingIdentifier();
@@ -1479,22 +1396,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_staticGetterWithoutBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_GETTER_WITHOUT_BODY, found 0
-    super.test_staticGetterWithoutBody();
-  }
-
-  @override
-  @failingTest
-  void test_staticSetterWithoutBody() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_SETTER_WITHOUT_BODY, found 0
-    super.test_staticSetterWithoutBody();
-  }
-
-  @override
-  @failingTest
   void test_topLevelVariable_withMetadata() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
@@ -1523,14 +1424,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0;
     // 1 errors of type ParserErrorCode.EXPECTED_EXECUTABLE, found 0
     super.test_typedef_namedFunction();
-  }
-
-  @override
-  @failingTest
-  void test_unexpectedTerminatorForParameterGroup_named() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, found 0
-    super.test_unexpectedTerminatorForParameterGroup_named();
   }
 
   @override
@@ -1571,41 +1464,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
-  void test_unexpectedToken_semicolonBetweenClassMembers() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected ClassBody, but found [CompilationUnit, ClassOrNamedMixinApplication, ClassDeclaration, ClassBody, Member]
-    //   package:test                                                       fail
-    //   test/generated/parser_fasta_listener.dart 50:7                     ForwardingTestListener.expectIn
-    //   test/generated/parser_fasta_listener.dart 55:5                     ForwardingTestListener.end
-    //   test/generated/parser_fasta_listener.dart 615:5                    ForwardingTestListener.endClassBody
-    //   package:front_end/src/fasta/parser/parser.dart 2220:14             Parser.parseClassBody
-    //   package:front_end/src/fasta/parser/parser.dart 897:13              Parser.parseClass
-    //   package:front_end/src/fasta/parser/parser.dart 850:14              Parser.parseClassOrNamedMixinApplication
-    //   package:front_end/src/fasta/parser/parser.dart 283:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   test/generated/parser_fasta_test.dart 3896:22                      ParserProxy.parseTopLevelDeclaration
-    super.test_unexpectedToken_semicolonBetweenClassMembers();
-  }
-
-  @override
-  @failingTest
-  void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Internal problem: Compiler cannot run without a compiler context.
-    //   Tip: Are calls to the compiler wrapped in CompilerContext.runInContext?
-    //   package:front_end/src/fasta/compiler_context.dart 81:7             CompilerContext.current
-    //   package:front_end/src/fasta/problems.dart 29:25                    internalProblem
-    //   package:front_end/src/fasta/source/stack_listener.dart 148:7       StackListener.checkEmpty
-    //   package:analyzer/src/fasta/ast_builder.dart 1163:5                 AstBuilder.endCompilationUnit
-    //   package:front_end/src/fasta/parser/parser.dart 255:14              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3371:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_unexpectedToken_semicolonBetweenCompilationUnitMembers();
-  }
-
-  @override
   void test_varAndType_local() {
     // The inherited test is marked as failing.
     super.test_varAndType_local();
@@ -1615,14 +1473,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   void test_varAndType_parameter() {
     // The inherited test is marked as failing.
     super.test_varAndType_parameter();
-  }
-
-  @override
-  @failingTest
-  void test_varAsTypeName_as() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.VAR_AS_TYPE_NAME, found 0
-    super.test_varAsTypeName_as();
   }
 
   @override
@@ -1679,24 +1529,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   void test_voidVariable_statement_noInitializer() {
     // TODO(brianwilkerson) Passes, but ought to fail.
     super.test_voidVariable_statement_noInitializer();
-  }
-
-  @override
-  @failingTest
-  void test_wrongTerminatorForParameterGroup_named() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, found 0;
-    // 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_wrongTerminatorForParameterGroup_named();
-  }
-
-  @override
-  @failingTest
-  void test_wrongTerminatorForParameterGroup_optional() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, found 0;
-    // 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_wrongTerminatorForParameterGroup_optional();
   }
 }
 
@@ -2698,30 +2530,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_isExpression_noType() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_isExpression_noType();
-  }
-
-  @override
-  @failingTest
-  void test_keywordInPlaceOfIdentifier() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_keywordInPlaceOfIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_missingGet() {
-    // TODO(brianwilkerson) exception:
-    //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.
-    //   Receiver: Instance of '_KernelLibraryBuilder'
-    //   Tried calling: addCompileTimeError(Instance of 'Message', 17, Instance of '_Uri')
-    //   dart:core                                                          Object.noSuchMethod
-    //   package:analyzer/src/generated/parser_fasta.dart 20:60             _KernelLibraryBuilder.noSuchMethod
-    //   package:analyzer/src/fasta/ast_builder.dart 1956:13                AstBuilder.addCompileTimeError
-    //   package:front_end/src/fasta/source/stack_listener.dart 271:5       StackListener.handleRecoverableError
-    //   package:front_end/src/fasta/parser/parser.dart 4099:16             Parser.reportRecoverableErrorWithToken
-    //   package:front_end/src/fasta/parser/parser.dart 1744:7              Parser.checkFormals
-    //    package:front_end/src/fasta/parser/parser.dart 2406:5              Parser.parseMethod
-    super.test_missingGet();
   }
 
   @override

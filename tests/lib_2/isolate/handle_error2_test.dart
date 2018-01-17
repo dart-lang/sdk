@@ -33,7 +33,7 @@ isomain1(replyPort) {
 /// Returns a list of `[isolate, commandPort]` in a future.
 Future spawn(entry) {
   ReceivePort reply = new ReceivePort();
-  Future isolate = Isolate.spawn(entry, reply.sendPort, paused: true);
+  var isolate = Isolate.spawn(entry, reply.sendPort, paused: true);
   return isolate.then((Isolate isolate) {
     isolate.setErrorsFatal(false);
     isolate.resume(isolate.pauseCapability);

@@ -62,13 +62,15 @@ var tests = <IsolateTest>[
     expect(await futureBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('0'));
+    Instance result = await rootLib.evaluate('value');
+    expect(result.valueAsString, equals('0'));
 
     isolate.resume();
     await hasStoppedAtBreakpoint(isolate);
 
     // The second breakpoint hits after value has been modified once.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('1'));
+    result = await rootLib.evaluate('value');
+    expect(result.valueAsString, equals('1'));
 
     // Remove the breakpoints.
     expect(

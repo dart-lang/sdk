@@ -363,19 +363,33 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
     ComputeClassDataFunction computeClassDataFromAst,
-    ComputeClassDataFunction computeClassDataFromKernel}) async {
+    ComputeClassDataFunction computeClassDataFromKernel,
+    int shards: 1,
+    int shardIndex: 0}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
+  bool shouldContinue = args.remove('-c');
+  bool continued = false;
 
   var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
-  await for (FileSystemEntity entity in dataDir.list()) {
+  List<FileSystemEntity> entities = dataDir.listSync();
+  if (shards > 1) {
+    int start = entities.length * shardIndex ~/ shards;
+    int end = entities.length * (shardIndex + 1) ~/ shards;
+    entities = entities.sublist(start, end);
+  }
+  for (FileSystemEntity entity in entities) {
     String name = entity.uri.pathSegments.last;
-    if (args.isNotEmpty && !args.contains(name)) continue;
+    if (args.isNotEmpty && !args.contains(name) && !continued) continue;
+    if (shouldContinue) continued = true;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
+    } else if (name.endsWith('_strong.dart')) {
+      testOptions.add(Flags.strongMode);
     }
+
     print('----------------------------------------------------------------');
     print('Test: $name');
     // Pretend this is a dart2js_native test to allow use of 'native' keyword
@@ -420,7 +434,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForAst.contains(name)) {
+    if (skipForAst.contains(name) || testOptions.contains(Flags.strongMode)) {
       print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');
@@ -531,6 +545,12 @@ Spannable computeSpannable(
   if (id is NodeId) {
     return new SourceSpan(mainUri, id.value, id.value + 1);
   } else if (id is ElementId) {
+    String memberName = id.memberName;
+    bool isSetter = false;
+    if (memberName != '[]=' && memberName.endsWith('=')) {
+      isSetter = true;
+      memberName = memberName.substring(0, memberName.length - 1);
+    }
     LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
     if (id.className != null) {
       ClassEntity cls =
@@ -538,23 +558,22 @@ Spannable computeSpannable(
       if (cls == null) {
         throw new ArgumentError("No class '${id.className}' in $mainUri.");
       }
-      MemberEntity member =
-          elementEnvironment.lookupClassMember(cls, id.memberName);
+      MemberEntity member = elementEnvironment
+          .lookupClassMember(cls, memberName, setter: isSetter);
       if (member == null) {
         ConstructorEntity constructor =
-            elementEnvironment.lookupConstructor(cls, id.memberName);
+            elementEnvironment.lookupConstructor(cls, memberName);
         if (constructor == null) {
-          throw new ArgumentError(
-              "No class member '${id.memberName}' in $cls.");
+          throw new ArgumentError("No class member '${memberName}' in $cls.");
         }
         return constructor;
       }
       return member;
     } else {
-      MemberEntity member =
-          elementEnvironment.lookupLibraryMember(library, id.memberName);
+      MemberEntity member = elementEnvironment
+          .lookupLibraryMember(library, memberName, setter: isSetter);
       if (member == null) {
-        throw new ArgumentError("No member '${id.memberName}' in $mainUri.");
+        throw new ArgumentError("No member '${memberName}' in $mainUri.");
       }
       return member;
     }

@@ -81,7 +81,9 @@ import 'modifier_context.dart'
         ModifierContext,
         TopLevelMethodModifierContext,
         isModifier,
-        parseModifiersOpt;
+        parseModifiersOpt,
+        skipToLastModifier,
+        typeContinuationFromMemberKind;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -89,7 +91,7 @@ import 'recovery_listeners.dart'
 import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
 import 'type_continuation.dart'
-    show TypeContinuation, typeContiunationFromFormalParameterKind;
+    show TypeContinuation, typeContinuationFromFormalParameterKind;
 
 import 'util.dart' show beforeCloseBraceTokenFor, closeBraceTokenFor, optional;
 
@@ -1151,18 +1153,28 @@ class Parser {
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     token = parseMetadataStar(token);
-    listener.beginFormalParameter(token.next, memberKind);
-    ModifierContext modifierContext = parseModifiersOpt(
-        this,
-        token,
-        memberKind,
-        parameterKind,
-        false,
-        typeContiunationFromFormalParameterKind(parameterKind));
-    TypeContinuation typeContinuation = modifierContext.typeContinuation;
-    memberKind = modifierContext.memberKind;
-    token = modifierContext.lastModifier;
-    modifierContext = null;
+    Token next = token.next;
+    listener.beginFormalParameter(next, memberKind);
+
+    TypeContinuation typeContinuation =
+        typeContinuationFromFormalParameterKind(parameterKind);
+    if (isModifier(next)) {
+      ModifierContext modifierContext = parseModifiersOpt(
+          this,
+          token,
+          skipToLastModifier(token),
+          memberKind,
+          parameterKind,
+          false,
+          typeContinuation);
+      typeContinuation = modifierContext.typeContinuation;
+      memberKind = modifierContext.memberKind;
+      token = modifierContext.lastModifier;
+      modifierContext = null;
+    } else {
+      listener.handleModifiers(0);
+      typeContinuation ??= typeContinuationFromMemberKind(false, memberKind);
+    }
 
     return parseType(token, typeContinuation, null, memberKind);
   }
@@ -1272,8 +1284,10 @@ class Parser {
     int kind = token.kind;
     if (IDENTIFIER_TOKEN == kind) return true;
     if (KEYWORD_TOKEN == kind) {
-      String value = token.type.lexeme;
-      return token.type.isPseudo ||
+      TokenType type = token.type;
+      String value = type.lexeme;
+      return type.isPseudo ||
+          (type.isBuiltIn && optional('.', token.next)) ||
           (identical(value, 'dynamic')) ||
           (identical(value, 'void'));
     }
@@ -1506,6 +1520,7 @@ class Parser {
     if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
+      ensureBlock(token, fasta.templateExpectedClassBody);
     }
     token = parseClassBody(token);
     listener.endClassDeclaration(begin, token);
@@ -2718,7 +2733,8 @@ class Parser {
         // but missing a variable name.
         insertSyntheticIdentifier(
             token, IdentifierContext.topLevelVariableDeclaration);
-        return parseFields(beforeStart, token, true);
+        return parseFields(
+            beforeStart, token.isModifier ? token : beforeStart, token, true);
       } else {
         return reportInvalidTopLevelDeclaration(token);
       }
@@ -2741,7 +2757,16 @@ class Parser {
     }
     Token beforeType;
     if (!identifiers.isEmpty) {
-      if (isValidTypeReference(identifiers.head.next)) {
+      Token maybeType = identifiers.head.next;
+      if (isValidTypeReference(maybeType)) {
+        beforeType = identifiers.head;
+        identifiers = identifiers.tail;
+      } else if (maybeType.type.isBuiltIn && optional('<', maybeType.next)) {
+        // Recovery
+        // It is an error when built-in keyword is being used
+        // as a type, as in `abstract<t> foo`.
+        // This error is reported by parseFields and parseTopLevelMethod
+        // via ensureIdentifier.
         beforeType = identifiers.head;
         identifiers = identifiers.tail;
       }
@@ -2776,22 +2801,24 @@ class Parser {
         if (identical(token.next.kind, EOF_TOKEN)) return token;
       }
     }
-    Token afterModifiers =
-        identifiers.isNotEmpty ? identifiers.head.next.next : beforeStart.next;
+    Token lastModifier =
+        identifiers.isNotEmpty ? identifiers.head.next : beforeStart;
     return isField
-        ? parseFields(beforeStart, beforeName, true)
+        ? parseFields(beforeStart, lastModifier, beforeName, true)
         : parseTopLevelMethod(
-            beforeStart, afterModifiers, beforeType, getOrSet, beforeName);
+            beforeStart, lastModifier, beforeType, getOrSet, beforeName);
   }
 
-  Token parseFields(Token start, Token beforeName, bool isTopLevel) {
+  Token parseFields(
+      Token start, Token lastModifier, Token beforeName, bool isTopLevel) {
     ModifierContext modifierContext = parseModifiersOpt(
         this,
         start,
+        lastModifier,
         isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
         null,
         true,
-        typeContiunationFromFormalParameterKind(null));
+        typeContinuationFromFormalParameterKind(null));
     TypeContinuation typeContinuation = modifierContext.typeContinuation;
     MemberKind memberKind = modifierContext.memberKind;
     Token varFinalOrConst = modifierContext.varFinalOrConst;
@@ -2828,8 +2855,9 @@ class Parser {
     return token;
   }
 
-  Token parseTopLevelMethod(Token start, Token afterModifiers, Token beforeType,
+  Token parseTopLevelMethod(Token start, Token lastModifier, Token beforeType,
       Token getOrSet, Token beforeName) {
+    Token afterModifiers = lastModifier.next;
     Token beforeToken = start;
     Token token = start = start.next;
     Token name = beforeName.next;
@@ -3030,7 +3058,7 @@ class Parser {
           }
         } else if (token.type.isBuiltIn) {
           // Handle the edge case where a built-in keyword is being used
-          // as the identifier, as in "abstract<T>() => 0;"
+          // as the identifier, as in "abstract<T>() => 0;".
           if (optional('<', token.next)) {
             Token beforeIdentifier = previous;
             Token identifier = token;
@@ -3413,20 +3441,16 @@ class Parser {
   /// ;
   /// ```
   Token parseClassBody(Token token) {
-    Token previousToken = token;
     Token begin = token = token.next;
+    assert(optional('{', token));
     listener.beginClassBody(token);
-    if (!optional('{', token)) {
-      token =
-          begin = ensureBlock(previousToken, fasta.templateExpectedClassBody);
-    }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
       token = parseClassMember(token);
       ++count;
     }
     token = token.next;
-    expect('}', token);
+    assert(optional('}', token));
     listener.endClassBody(count, begin, token);
     return token;
   }
@@ -3504,7 +3528,16 @@ class Parser {
     }
     Token beforeType;
     if (!identifiers.isEmpty) {
-      if (isValidTypeReference(identifiers.head.next)) {
+      Token maybeType = identifiers.head.next;
+      if (isValidTypeReference(maybeType)) {
+        beforeType = identifiers.head;
+        identifiers = identifiers.tail;
+      } else if (maybeType.type.isBuiltIn && optional('<', maybeType.next)) {
+        // Recovery
+        // It is an error when built-in keyword is being used
+        // as a type, as in `abstract<t> foo`.
+        // This error is reported by parseFields and parseMethod
+        // via ensureIdentifier.
         beforeType = identifiers.head;
         identifiers = identifiers.tail;
       }
@@ -3550,7 +3583,7 @@ class Parser {
 
     Token lastModifier = identifiers.isNotEmpty ? identifiers.head.next : start;
     token = isField
-        ? parseFields(start, beforeName, false)
+        ? parseFields(start, lastModifier, beforeName, false)
         : parseMethod(start, lastModifier, beforeType, getOrSet, beforeName);
     listener.endMember();
     return token;
@@ -5327,12 +5360,20 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     token = parseMetadataStar(token);
-    ModifierContext modifierContext =
-        parseModifiersOpt(this, token, MemberKind.Local, null, true, null);
-    token = modifierContext.lastModifier;
-    TypeContinuation typeContinuation = modifierContext.typeContinuation;
-    MemberKind memberKind = modifierContext.memberKind;
-    modifierContext = null;
+
+    MemberKind memberKind = MemberKind.Local;
+    TypeContinuation typeContinuation;
+    if (isModifier(token.next)) {
+      ModifierContext modifierContext = parseModifiersOpt(
+          this, token, skipToLastModifier(token), memberKind, null, true, null);
+      token = modifierContext.lastModifier;
+      typeContinuation = modifierContext.typeContinuation;
+      memberKind = modifierContext.memberKind;
+      modifierContext = null;
+    } else {
+      listener.handleModifiers(0);
+      typeContinuation = typeContinuationFromMemberKind(true, memberKind);
+    }
 
     token = parseType(token, typeContinuation, null, memberKind);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
@@ -5997,30 +6038,39 @@ class Parser {
       listener.endMember();
       return next;
     }
+
     // Skip modifiers
     while (isModifier(next)) {
       token = next;
       next = token.next;
     }
+    Token lastModifier = token;
+
     if (isValidTypeReference(next) || optional('var', next)) {
       if (isPostIdentifierForRecovery(
           next.next, IdentifierContext.fieldDeclaration)) {
         // Looks like a field declaration but missing a field name.
         insertSyntheticIdentifier(next, IdentifierContext.fieldDeclaration);
-        return parseFields(start, next, false);
+        token = parseFields(start, lastModifier, next, false);
+        listener.endMember();
+        return token;
       } else if (next.next.isKeywordOrIdentifier &&
           isPostIdentifierForRecovery(
               next.next.next, IdentifierContext.fieldDeclaration)) {
         // Looks like a field declaration but missing a semicolon
         // which parseFields will insert.
-        return parseFields(start, next, false);
+        token = parseFields(start, lastModifier, next, false);
+        listener.endMember();
+        return token;
       }
     } else if (token != start &&
         isPostIdentifierForRecovery(next, IdentifierContext.fieldDeclaration)) {
       // If there is at least one modifier, then
       // looks like the start of a field but missing field name.
       insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
-      return parseFields(start, token, false);
+      token = parseFields(start, lastModifier, token, false);
+      listener.endMember();
+      return token;
     }
     return reportUnrecoverableErrorWithToken(
         start, fasta.templateExpectedClassMember);

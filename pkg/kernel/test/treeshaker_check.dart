@@ -23,7 +23,7 @@ main(List<String> args) {
   }
   var program = loadProgramFromBinary(args[0]);
   var coreTypes = new CoreTypes(program);
-  var hierarchy = new ClosedWorldClassHierarchy(program);
+  var hierarchy = new ClassHierarchy(program);
   var shaker = new TreeShaker(coreTypes, hierarchy, program);
   shaker.transform(program);
   new TreeShakingSanityCheck(shaker).visit(program);

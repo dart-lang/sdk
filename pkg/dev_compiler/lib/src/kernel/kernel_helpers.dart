@@ -248,5 +248,5 @@ Expression getInvocationReceiver(InvocationExpression node) =>
 
 bool isInlineJS(Member e) =>
     e is Procedure &&
-    e.name == 'JS' &&
+    e.name.name == 'JS' &&
     e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';

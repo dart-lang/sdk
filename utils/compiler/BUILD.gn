@@ -25,7 +25,7 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-compiled_action("dart2js_create_snapshot_entries") {
+compiled_action("dart2js_create_snapshot_entry") {
   tool = "../../runtime/bin:dart"
   deps = [
     ":dart2js_files_stamp",
@@ -44,11 +44,8 @@ compiled_action("dart2js_create_snapshot_entries") {
     "../../tools/VERSION",
   ]
 
-  utils_output = "$target_gen_dir/utils_wrapper.dart"
-  dart2js_output = "$target_gen_dir/dart2js.dart"
   outputs = [
-    utils_output,
-    dart2js_output,
+    "$target_gen_dir/dart2js.dart"
   ]
 
   args = [
@@ -61,8 +58,9 @@ compiled_action("dart2js_create_snapshot_entries") {
 
 application_snapshot("dart2js") {
   deps = [
-    ":dart2js_create_snapshot_entries",
+    ":dart2js_create_snapshot_entry",
   ]
+  vm_args = ["--no_limit_ints_to_64_bits"]
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
@@ -70,14 +68,6 @@ application_snapshot("dart2js") {
     "--categories=all",
     rebase_path("$target_gen_dir/dart2js.dart"),
   ]
-}
-
-application_snapshot("utils_wrapper") {
-  deps = [
-    ":dart2js_create_snapshot_entries",
-  ]
-  main_dart = "$target_gen_dir/utils_wrapper.dart"
-  training_args = [ "--help" ]
 }
 
 compile_platform("compile_dart2js_platform") {

@@ -69,7 +69,9 @@ Uri computeDartSdk() {
   if (dartSdkPath != null) {
     return Uri.base.resolveUri(new Uri.file(dartSdkPath));
   } else {
-    return Uri.base.resolve(Platform.resolvedExecutable).resolve("../");
+    return Uri.base
+        .resolveUri(new Uri.file(Platform.resolvedExecutable))
+        .resolve("../");
   }
 }
 

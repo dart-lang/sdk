@@ -356,6 +356,7 @@ type Procedure extends Member {
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
   Option<MemberReference> forwardingStubSuperTarget;
+  Option<MemberReference> forwardingStubInterfaceTarget;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }

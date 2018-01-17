@@ -10,7 +10,7 @@ import 'package:kernel/kernel.dart'
     show Library, Program, Source, loadProgramFromBytes;
 
 import '../api_prototype/incremental_kernel_generator.dart'
-    show DeltaProgram, IncrementalKernelGenerator;
+    show IncrementalKernelGenerator;
 
 import 'builder/builder.dart' show LibraryBuilder;
 
@@ -24,44 +24,11 @@ import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'problems.dart' show unsupported;
-
 import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
 
-abstract class DeprecatedIncrementalKernelGenerator
-    implements IncrementalKernelGenerator {
-  /// This does nothing. It will be deprecated.
-  @override
-  void acceptLastDelta() {}
-
-  /// Always throws an error. Will be deprecated.
-  @override
-  void rejectLastDelta() => unsupported("rejectLastDelta", -1, null);
-
-  /// Always throws an error. Will be deprecated.
-  @override
-  void reset() => unsupported("rejectLastDelta", -1, null);
-
-  /// Always throws an error. Will be deprecated.
-  @override
-  void setState(String state) => unsupported("setState", -1, null);
-}
-
-abstract class DeprecatedDeltaProgram implements DeltaProgram {
-  @override
-  String get state => unsupported("state", -1, null);
-}
-
-class FastaDelta extends DeprecatedDeltaProgram {
-  @override
-  final Program newProgram;
-
-  FastaDelta(this.newProgram);
-}
-
-class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
+class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
 
   final Ticker ticker;
@@ -75,10 +42,10 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
   IncrementalCompiler(this.context) : ticker = context.options.ticker;
 
   @override
-  Future<FastaDelta> computeDelta({Uri entryPoint}) async {
+  Future<Program> computeDelta({Uri entryPoint}) async {
     ticker.reset();
     entryPoint ??= context.options.inputs.single;
-    return context.runInContext<Future<FastaDelta>>((CompilerContext c) async {
+    return context.runInContext<Future<Program>>((CompilerContext c) async {
       if (platform == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();
         ticker.logMs("Read packages file");
@@ -105,6 +72,9 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
             " of ${userCode.loader.builders.length} libraries");
       }
 
+      platform.loader.builders.forEach((Uri uri, LibraryBuilder builder) {
+        reusedLibraries.add(builder);
+      });
       userCode = new KernelTarget(
           c.fileSystem, false, platform, platform.uriTranslator,
           uriToSource: c.uriToSource);
@@ -125,17 +95,15 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
           await userCode.buildProgram(verify: c.options.verify);
 
       // This is the incremental program.
-      Program program = new Program(
-          nameRoot: programWithDill.root,
+      return new Program(
           libraries: new List<Library>.from(userCode.loader.libraries),
-          uriToSource: new Map<Uri, Source>.from(userCode.uriToSource));
-
-      return new FastaDelta(program);
+          uriToSource: new Map<Uri, Source>.from(userCode.uriToSource))
+        ..mainMethod = programWithDill?.mainMethod;
     });
   }
 
   List<LibraryBuilder> computeReusedLibraries(Iterable<Uri> invalidatedUris) {
-    if (userCode == null) return const <LibraryBuilder>[];
+    if (userCode == null) return <LibraryBuilder>[];
 
     // [invalidatedUris] converted to a set.
     Set<Uri> invalidatedFileUris = invalidatedUris.toSet();
@@ -148,17 +116,23 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = <Uri>[];
 
     // Compute [builders] and [invalidatedImportUris].
-    userCode.loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader != platform.loader) {
-        assert(library is SourceLibraryBuilder);
+    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
+      if (libraryBuilder.loader != platform.loader) {
+        assert(libraryBuilder is SourceLibraryBuilder);
+        SourceLibraryBuilder library = libraryBuilder;
         builders[uri] = library;
         if (invalidatedFileUris.contains(uri) ||
             (uri != library.fileUri &&
                 invalidatedFileUris.contains(library.fileUri))) {
           invalidatedImportUris.add(uri);
         }
+        for (var part in library.parts) {
+          addBuilderAndInvalidateUris(part.uri, part);
+        }
       }
-    });
+    }
+
+    userCode.loader.builders.forEach(addBuilderAndInvalidateUris);
 
     SourceGraph graph = new SourceGraph(builders);
 
@@ -188,7 +162,7 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
       }
     }
 
-    return builders.values.toList();
+    return builders.values.where((builder) => !builder.isPart).toList();
   }
 
   @override

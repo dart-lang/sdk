@@ -71,10 +71,10 @@ bool isNativeAnnotation(DartObjectImpl value) =>
     isBuiltinAnnotation(value, '_js_helper', 'Native');
 
 bool isNotNullAnnotation(DartObjectImpl value) =>
-    isBuiltinAnnotation(value, '_js_helper', 'NotNull');
+    isBuiltinAnnotation(value, '_js_helper', '_NotNull');
 
 bool isNullCheckAnnotation(DartObjectImpl value) =>
-    isBuiltinAnnotation(value, '_js_helper', 'NullCheck');
+    isBuiltinAnnotation(value, '_js_helper', '_NullCheck');
 
 /// Returns the name value of the `JSExportName` annotation (when compiling
 /// the SDK), or `null` if there's none. This is used to control the name

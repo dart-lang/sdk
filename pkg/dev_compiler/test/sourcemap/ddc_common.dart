@@ -13,8 +13,8 @@ import 'package:testing/testing.dart';
 
 import 'common.dart';
 
-abstract class DdcRunner {
-  Future<Null> runDDC(Uri inputFile, Uri outputFile, Uri outWrapperPath);
+abstract class CompilerRunner {
+  Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperPath);
 }
 
 abstract class WithCompilerState {
@@ -22,9 +22,9 @@ abstract class WithCompilerState {
 }
 
 class Compile extends Step<Data, Data, ChainContext> {
-  final DdcRunner ddcRunner;
+  final CompilerRunner runner;
 
-  const Compile(this.ddcRunner);
+  const Compile(this.runner);
 
   String get name => "compile";
 
@@ -42,18 +42,18 @@ class Compile extends Step<Data, Data, ChainContext> {
     var outputFile = outDirUri.resolve(outputFilename);
     var outWrapperPath = outDirUri.resolve("wrapper.js");
 
-    await ddcRunner.runDDC(testFile, outputFile, outWrapperPath);
+    await runner.run(testFile, outputFile, outWrapperPath);
 
     return pass(data);
   }
 }
 
 class TestStackTrace extends Step<Data, Data, ChainContext> {
-  final DdcRunner ddcRunner;
+  final CompilerRunner runner;
   final String marker;
   final List<String> knownMarkers;
 
-  const TestStackTrace(this.ddcRunner, this.marker, this.knownMarkers);
+  const TestStackTrace(this.runner, this.marker, this.knownMarkers);
 
   String get name => "TestStackTrace";
 
@@ -71,8 +71,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 
   Future<bool> _compile(String input, String output) async {
     var outWrapperPath = _getWrapperPathFromDirectoryFile(new Uri.file(input));
-    await ddcRunner.runDDC(
-        new Uri.file(input), new Uri.file(output), outWrapperPath);
+    await runner.run(new Uri.file(input), new Uri.file(output), outWrapperPath);
     return true;
   }
 

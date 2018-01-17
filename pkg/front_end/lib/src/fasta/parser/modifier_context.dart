@@ -31,54 +31,67 @@ bool isModifier(Token token) {
   return true;
 }
 
-/// Parse modifiers in the token stream, and return a context with information
-/// about what was parsed. [start] is the last token consumed by the parser
-/// prior to calling this method and [context.lastModifier] is the last token
-/// consumed by this method when this method returns. If no modifiers were
-/// parsed, then [context.lastModifier] will be the same as [start].
-///
-/// This method is used in most locations where modifiers can occur. However,
-/// it isn't used when parsing a class or when parsing the modifiers of a
-/// member function (non-local), but is used when parsing their formal
-/// parameters.
-///
-/// When parsing the formal parameters of any function, [parameterKind] is
-/// non-null.
+/// Parse modifiers in the token stream, and return a [ModifierContext]
+/// with information about what was parsed.
 ModifierContext parseModifiersOpt(
     Parser parser,
     Token start,
+    Token lastModifier,
     MemberKind memberKind,
     FormalParameterKind parameterKind,
     bool isVarAllowed,
-    TypeContinuation typeContiunation) {
-  ModifierContext context = new ModifierContext(
-      parser, memberKind, parameterKind, isVarAllowed, typeContiunation);
+    TypeContinuation typeContinuation) {
+  // Parse modifiers
+  ModifierContext context = new ModifierContext(parser, memberKind,
+      parameterKind, isVarAllowed, typeContinuation, lastModifier);
   Token token = context.parseOpt(start);
 
   // If the next token is a modifier,
   // then it's probably out of order and we need to recover from that.
-  if (isModifier(token.next)) {
+  if (token != lastModifier) {
     // Recovery
-    context = new ModifierRecoveryContext(
-        parser, memberKind, parameterKind, isVarAllowed, typeContiunation);
+    context = new ModifierRecoveryContext(parser, memberKind, parameterKind,
+        isVarAllowed, typeContinuation, lastModifier);
     token = context.parseOpt(start);
   }
 
   parser.listener.handleModifiers(context.modifierCount);
 
   context.typeContinuation ??=
-      (isVarAllowed || context.memberKind == MemberKind.GeneralizedFunctionType)
-          ? TypeContinuation.Required
-          : TypeContinuation.Optional;
-  context.lastModifier = token;
+      typeContinuationFromMemberKind(isVarAllowed, context.memberKind);
 
   return context;
 }
 
+/// Skip modifier tokens until the last modifier token is reached
+/// and return that token. If [token] is not a modifier, then return [token].
+Token skipToLastModifier(Token token) {
+  Token next = token.next;
+  while (isModifier(next)) {
+    token = next;
+    next = token.next;
+  }
+  return token;
+}
+
+TypeContinuation typeContinuationFromMemberKind(
+        bool isVarAllowed, MemberKind memberKind) =>
+    (isVarAllowed || memberKind == MemberKind.GeneralizedFunctionType)
+        ? TypeContinuation.Required
+        : TypeContinuation.Optional;
+
+/// This class is used to parse modifiers in most locations where modifiers
+/// can occur. However, it isn't used when parsing a class or when parsing
+/// the modifiers of a member function (non-local),
+/// but is used when parsing their formal parameters.
 class ModifierContext {
   final Parser parser;
   MemberKind memberKind;
+
+  /// When parsing the formal parameters of any function,
+  /// [parameterKind] is non-null.
   final FormalParameterKind parameterKind;
+
   final bool isVarAllowed;
   TypeContinuation typeContinuation;
   int modifierCount = 0;
@@ -89,37 +102,45 @@ class ModifierContext {
   Token lastModifier;
 
   ModifierContext(this.parser, this.memberKind, this.parameterKind,
-      this.isVarAllowed, this.typeContinuation);
+      this.isVarAllowed, this.typeContinuation, this.lastModifier);
 
   bool get isCovariantFinalAllowed =>
       memberKind != MemberKind.StaticField &&
       memberKind != MemberKind.NonStaticField;
 
   Token parseOpt(Token token) {
-    if (optional('external', token.next)) {
-      token = parseExternalOpt(token);
-    }
-
-    if (optional('static', token.next)) {
-      token = parseStaticOpt(token);
-    } else if (optional('covariant', token.next)) {
-      token = parseCovariantOpt(token);
-      if (optional('final', token.next)) {
-        if (isCovariantFinalAllowed) {
-          token = parseFinal(token);
-        }
-      } else if (optional('var', token.next)) {
-        token = parseVar(token);
+    if (token != lastModifier) {
+      if (optional('external', token.next)) {
+        token = parseExternalOpt(token);
       }
-      return token;
-    }
 
-    if (optional('final', token.next)) {
-      token = parseFinal(token);
-    } else if (optional('var', token.next)) {
-      token = parseVar(token);
-    } else if (optional('const', token.next)) {
-      token = parseConst(token);
+      if (token != lastModifier) {
+        if (optional('static', token.next)) {
+          token = parseStaticOpt(token);
+        } else if (optional('covariant', token.next)) {
+          token = parseCovariantOpt(token);
+          if (token != lastModifier) {
+            if (optional('final', token.next)) {
+              if (isCovariantFinalAllowed) {
+                token = parseFinal(token);
+              }
+            } else if (optional('var', token.next)) {
+              token = parseVar(token);
+            }
+          }
+          return token;
+        }
+      }
+
+      if (token != lastModifier) {
+        if (optional('final', token.next)) {
+          token = parseFinal(token);
+        } else if (optional('var', token.next)) {
+          token = parseVar(token);
+        } else if (optional('const', token.next)) {
+          token = parseConst(token);
+        }
+      }
     }
     return token;
   }
@@ -284,9 +305,10 @@ class ModifierRecoveryContext extends ModifierContext {
       MemberKind memberKind,
       FormalParameterKind parameterKind,
       bool isVarAllowed,
-      TypeContinuation typeContinuation)
-      : super(
-            parser, memberKind, parameterKind, isVarAllowed, typeContinuation);
+      TypeContinuation typeContinuation,
+      Token lastModifier)
+      : super(parser, memberKind, parameterKind, isVarAllowed, typeContinuation,
+            lastModifier);
 
   @override
   Token parseOpt(Token token) {
@@ -298,7 +320,7 @@ class ModifierRecoveryContext extends ModifierContext {
     parser.listener = primaryListener;
 
     // Process invalid and out-of-order modifiers
-    while (isModifier(token.next)) {
+    while (token != lastModifier) {
       final value = token.next.stringValue;
       if (identical('abstract', value)) {
         token = parseAbstract(token);
@@ -433,8 +455,14 @@ class ModifierRecoveryContext extends ModifierContext {
 
   Token parseExtraneousModifier(Token token) {
     Token next = token.next;
-    parser.reportRecoverableErrorWithToken(
-        next, fasta.templateExtraneousModifier);
+    if (next.isModifier) {
+      parser.reportRecoverableErrorWithToken(
+          next, fasta.templateExtraneousModifier);
+    } else {
+      // TODO(danrubel): Provide more specific error messages.
+      parser.reportRecoverableErrorWithToken(
+          next, fasta.templateUnexpectedToken);
+    }
     return next;
   }
 

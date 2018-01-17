@@ -1324,7 +1324,6 @@ RawObject* Simulator::Call(const Code& code,
 
   // Load argument descriptor.
   argdesc_ = arguments_descriptor.raw();
-  ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() == 0);
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
@@ -3952,6 +3951,8 @@ RawObject* Simulator::Call(const Code& code,
     const bool has_dart_caller = (reinterpret_cast<uword>(pc) & 2) == 0;
     const intptr_t argc = has_dart_caller ? Bytecode::DecodeArgc(pc[-1])
                                           : (reinterpret_cast<uword>(pc) >> 2);
+    const bool has_function_type_args =
+        has_dart_caller && SimulatorHelpers::ArgDescTypeArgsLen(argdesc_) > 0;
 
     SP = FrameArguments(FP, 0);
     RawObject** args = SP - argc;
@@ -3961,7 +3962,7 @@ RawObject* Simulator::Call(const Code& code,
     }
 
     *++SP = null_value;
-    *++SP = args[0];  // Closure object.
+    *++SP = args[has_function_type_args ? 1 : 0];  // Closure object.
     *++SP = argdesc_;
     *++SP = null_value;  // Array of arguments (will be filled).
 

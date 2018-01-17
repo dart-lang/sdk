@@ -38,6 +38,31 @@ bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
       identical(t, UnknownInferredType.instance);
 }
 
+/**
+ * `void`, `dynamic`, and `Object` are all equivalent. However, this makes
+ * LUB/GLB indeterministic. Therefore, for the cases of LUB/GLB, we have some
+ * types which are more top than others.
+ *
+ * So, `void` < `Object` < `dynamic` for the purposes of LUB and GLB.
+ *
+ * This is expressed by their topiness (higher = more toppy).
+ */
+int _getTopiness(DartType t) {
+  assert(_isTop(t), 'only Top types have a topiness');
+
+  // Highest top
+  if (t.isDynamic) return 2;
+  if (t.isObject) return 1;
+  if (t.isDartAsyncFutureOr)
+    return -2 + _getTopiness((t as InterfaceType).typeArguments[0]);
+  // Lowest top
+
+  assert(false, 'a Top type without a defined topiness');
+
+  // Try to ensure that if this happens, its less toppy than an actual Top type.
+  return -100000;
+}
+
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<TypeImpl> visitedTypes);
 
 /**
@@ -146,6 +171,12 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
     if (identical(type2, UnknownInferredType.instance)) {
       return type1;
+    }
+
+    // If both are top, we have a preferred "greatest" top to return.
+    if (_isTop(type1, dynamicIsBottom: dynamicIsBottom) &&
+        _isTop(type2, dynamicIsBottom: dynamicIsBottom)) {
+      return _getTopiness(type1) > _getTopiness(type2) ? type1 : type2;
     }
 
     // The GLB of top and any type is just that type.
@@ -1161,6 +1192,12 @@ abstract class TypeSystem {
     }
     if (identical(type2, UnknownInferredType.instance)) {
       return type1;
+    }
+
+    // If both are top, we have a preferred "least" top to return.
+    if (_isTop(type1, dynamicIsBottom: dynamicIsBottom) &&
+        _isTop(type2, dynamicIsBottom: dynamicIsBottom)) {
+      return _getTopiness(type1) < _getTopiness(type2) ? type1 : type2;
     }
 
     // The least upper bound of top and any type T is top.

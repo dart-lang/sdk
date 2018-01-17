@@ -2,15 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# dartk: JIT failures
 [ $compiler == dartk ]
+Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
 Language/Metadata/before_type_param_t01: RuntimeError
 LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 
-# dartk: precompilation failures
 [ $compiler == dartkp ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
@@ -20,6 +19,7 @@ Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
@@ -38,7 +38,6 @@ LibTest/core/DateTime/parse_A01_t02: Crash # Please triage.
 LibTest/core/DateTime/parse_A01_t03: Crash # Please triage.
 LibTest/core/DateTime/parse_A03_t01: Crash # Please triage.
 
-# dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
@@ -60,7 +59,6 @@ Language/Expressions/Spawning_an_Isolate/*: Skip
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # Please triaage.
 LibTest/isolate/*/*: Skip
 
-# dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
 
@@ -71,7 +69,6 @@ Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Instance_Variables/constant_t01: Crash
 
-# dartk: checked mode failures
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 Language/Classes/Constructors/Factories/arguments_type_t01: RuntimeError
 Language/Classes/Constructors/Factories/function_type_t02: Fail # dartbug.com/30527
@@ -127,7 +124,6 @@ Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
 Language/Expressions/Constants/bitwise_operators_t06: Crash
-Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/exception_t04: MissingCompileTimeError
 Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
@@ -204,6 +200,7 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 Language/Types/Static_Types/deferred_type_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Types/Type_Void/syntax_t01: Pass # Issue 30470
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.

@@ -69,7 +69,7 @@ enum TypeContinuation {
   NamedFormalParameterAfterVar,
 }
 
-TypeContinuation typeContiunationFromFormalParameterKind(
+TypeContinuation typeContinuationFromFormalParameterKind(
     FormalParameterKind type) {
   if (type != null) {
     switch (type) {

@@ -244,8 +244,8 @@ class KernelTarget extends TargetImplementation {
       if (metadataCollector != null) {
         program.addMetadataRepository(metadataCollector.repository);
       }
-      loader.computeHierarchy(program);
       computeCoreTypes();
+      loader.computeHierarchy();
       if (!loader.target.disableTypeInference) {
         loader.prepareTopLevelInference(myClasses);
         loader.performTopLevelInference(myClasses);

@@ -99,7 +99,6 @@ io/http_auth_test: RuntimeError
 io/http_cookie_date_test: CompileTimeError
 io/http_headers_test: CompileTimeError
 io/http_parser_test: CompileTimeError
-io/http_proxy_advanced_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError

@@ -331,7 +331,7 @@ class RuntimeTypeGenerator {
         if (generated.contains(superclass)) return;
 
         if (classesUsingTypeVariableTests.contains(superclass) ||
-            _rtiNeed.classUsesTypeVariableExpression(superclass) ||
+            _rtiNeed.classUsesTypeVariableLiteral(superclass) ||
             checkedClasses.contains(superclass)) {
           // Generate substitution.  If no substitution is necessary, emit
           // `null` to overwrite a (possibly) existing substitution from the

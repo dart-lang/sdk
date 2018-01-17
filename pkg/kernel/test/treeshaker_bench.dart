@@ -50,7 +50,7 @@ void main(List<String> args) {
   ClassHierarchy buildClassHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClosedWorldClassHierarchy(program);
+        : new ClassHierarchy(program);
   }
 
   CoreTypes coreTypes = new CoreTypes(program);

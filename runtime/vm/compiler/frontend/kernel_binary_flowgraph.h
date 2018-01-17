@@ -246,6 +246,7 @@ class ProcedureHelper {
     kSourceUriIndex,
     kAnnotations,
     kForwardingStubSuperTarget,
+    kForwardingStubInterfaceTarget,
     kFunction,
     kEnd,
   };
@@ -1101,6 +1102,7 @@ class StreamingFlowGraphBuilder {
                         const Function& interface_target,
                         intptr_t argument_check_bits = 0,
                         intptr_t type_argument_check_bits = 0);
+  Fragment BuildArgumentTypeChecks();
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
@@ -1228,6 +1230,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildVectorCopy(TokenPosition* position);
   Fragment BuildClosureCreation(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position);
+  Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();

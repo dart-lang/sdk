@@ -163,7 +163,7 @@ void HeapPage::WriteProtect(bool read_only) {
 // before / mark-sweep time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first mark-sweep, we instead use a value
 // based on the device's actual speed.
-static const intptr_t kConservativeInitialMarkSweepSpeed = 20;
+static const intptr_t kConservativeInitialMarkSpeed = 20;
 
 PageSpace::PageSpace(Heap* heap,
                      intptr_t max_capacity_in_words,
@@ -192,7 +192,7 @@ PageSpace::PageSpace(Heap* heap,
                              FLAG_old_gen_growth_time_ratio),
       gc_time_micros_(0),
       collections_(0),
-      mark_sweep_words_per_micro_(kConservativeInitialMarkSweepSpeed) {
+      mark_words_per_micro_(kConservativeInitialMarkSpeed) {
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
@@ -839,7 +839,7 @@ void PageSpace::WriteProtectCode(bool read_only) {
 }
 
 bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
-  // To make a consistent decision, we should not yeild for a safepoint in the
+  // To make a consistent decision, we should not yield for a safepoint in the
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
 
@@ -852,15 +852,54 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
     if (tasks() > 0) {
       // A concurrent sweeper is running. If we start a mark sweep now
       // we'll have to wait for it, and this wait time is not included in
-      // mark_sweep_words_per_micro_.
+      // mark_words_per_micro_.
       return false;
     }
   }
 
   int64_t estimated_mark_completion =
-      OS::GetCurrentMonotonicMicros() +
-      UsedInWords() / mark_sweep_words_per_micro_;
+      OS::GetCurrentMonotonicMicros() + UsedInWords() / mark_words_per_micro_;
   return estimated_mark_completion <= deadline;
+}
+
+bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
+  // To make a consistent decision, we should not yield for a safepoint in the
+  // middle of deciding whether to perform an idle GC.
+  NoSafepointScope no_safepoint;
+
+  // Discount two pages to account for the newest data and code pages, whose
+  // partial use doesn't indicate fragmentation.
+  const intptr_t excess_in_words =
+      usage_.capacity_in_words - usage_.used_in_words - 2 * kPageSizeInWords;
+  const double excess_ratio = static_cast<double>(excess_in_words) /
+                              static_cast<double>(usage_.capacity_in_words);
+  const bool fragmented = excess_ratio > 0.05;
+
+  if (!fragmented &&
+      !page_space_controller_.NeedsIdleGarbageCollection(usage_)) {
+    return false;
+  }
+
+  {
+    MonitorLocker locker(tasks_lock());
+    if (tasks() > 0) {
+      // A concurrent sweeper is running. If we start a mark sweep now
+      // we'll have to wait for it, and this wait time is not included in
+      // mark_words_per_micro_.
+      return false;
+    }
+  }
+
+  // Assuming compaction takes as long as marking.
+  intptr_t mark_compact_words_per_micro = mark_words_per_micro_ / 2;
+  if (mark_compact_words_per_micro == 0) {
+    mark_compact_words_per_micro = 1;  // Prevent division by zero.
+  }
+
+  int64_t estimated_mark_compact_completion =
+      OS::GetCurrentMonotonicMicros() +
+      UsedInWords() / mark_compact_words_per_micro;
+  return estimated_mark_compact_completion <= deadline;
 }
 
 void PageSpace::CollectGarbage(bool compact) {
@@ -1001,14 +1040,13 @@ void PageSpace::CollectGarbage(bool compact) {
     page_space_controller_.EvaluateGarbageCollection(
         usage_before, GetCurrentUsage(), start, end);
 
-    int64_t mark_sweep_micros = end - start;
-    if (mark_sweep_micros == 0) {
-      mark_sweep_micros = 1;
+    int64_t mark_micros = mid3 - start;
+    if (mark_micros == 0) {
+      mark_micros = 1;  // Prevent division by zero.
     }
-    mark_sweep_words_per_micro_ =
-        usage_before.used_in_words / mark_sweep_micros;
-    if (mark_sweep_words_per_micro_ == 0) {
-      mark_sweep_words_per_micro_ = 1;
+    mark_words_per_micro_ = usage_before.used_in_words / mark_micros;
+    if (mark_words_per_micro_ == 0) {
+      mark_words_per_micro_ = 1;  // Prevent division by zero.
     }
 
     heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);

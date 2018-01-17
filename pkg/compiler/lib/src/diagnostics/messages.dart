@@ -287,6 +287,7 @@ enum MessageKind {
   MIRRORS_EXPECTED_STRING_OR_TYPE,
   MIRRORS_EXPECTED_STRING_TYPE_OR_LIST,
   MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
+  MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL,
   MISSING_ARGUMENT,
   MISSING_ENUM_CASES,
   MISSING_FACTORY_KEYWORD,
@@ -3820,6 +3821,11 @@ dart:mirrors library is not supported when using this backend.
 Your app imports dart:mirrors via:"""
           """
 $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
+
+      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL:
+          const MessageTemplate(
+              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL, """
+dart:mirrors library is not supported when using the new kernel front end."""),
 
       MessageKind.DIRECTLY_THROWING_NSM: const MessageTemplate(
           MessageKind.DIRECTLY_THROWING_NSM,

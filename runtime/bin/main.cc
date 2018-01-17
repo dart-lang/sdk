@@ -299,51 +299,60 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
 // Returns newly created Kernel Isolate on success, NULL on failure.
 // For now we only support the kernel isolate coming up from an
-// application snapshot or from sources which are compiled by the
-// VM parser.
-static Dart_Isolate CreateAndSetupKernelIsolate(const char* main,
+// application snapshot or from a .dill file.
+static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
+                                                const char* main,
                                                 const char* package_root,
                                                 const char* packages_config,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
-  if (!dfe.UseDartFrontend()) {
-    *error = strdup("Kernel isolate not supported.");
-    return NULL;
-  }
-  const char* script_uri = dfe.frontend_filename();
+  const char* kernel_snapshot_uri = dfe.FrontendFilename();
+  const char* uri =
+      kernel_snapshot_uri != NULL ? kernel_snapshot_uri : script_uri;
+
   if (packages_config == NULL) {
     packages_config = Options::packages_file();
   }
 
-  // Kernel isolate uses an app snapshot or the core libraries snapshot.
+  Dart_Isolate isolate;
+  IsolateData* isolate_data = NULL;
   bool isolate_run_app_snapshot = false;
-  const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      core_isolate_snapshot_instructions;
-  AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(script_uri);
-  if (app_snapshot != NULL) {
-    isolate_run_app_snapshot = true;
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+  if (kernel_snapshot_uri != NULL) {
+    // Kernel isolate uses an app snapshot or the core libraries snapshot.
+    const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
+    const uint8_t* isolate_snapshot_instructions =
+        core_isolate_snapshot_instructions;
+    AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(uri);
+    if (app_snapshot != NULL) {
+      isolate_run_app_snapshot = true;
+      const uint8_t* ignore_vm_snapshot_data;
+      const uint8_t* ignore_vm_snapshot_instructions;
+      app_snapshot->SetBuffers(
+          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+          &isolate_snapshot_data, &isolate_snapshot_instructions);
+    }
+    IsolateData* isolate_data =
+        new IsolateData(uri, package_root, packages_config, app_snapshot);
+    isolate = Dart_CreateIsolate(
+        DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
+        isolate_snapshot_instructions, flags, isolate_data, error);
+  } else {
+    void* kernel_service_program = DFE::KernelServiceProgram();
+    IsolateData* isolate_data =
+        new IsolateData(uri, package_root, packages_config, NULL);
+    isolate_data->kernel_program = kernel_service_program;
+    isolate = Dart_CreateIsolateFromKernel(uri, main, kernel_service_program,
+                                           flags, isolate_data, error);
   }
 
-  IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, packages_config, app_snapshot);
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_data, error);
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
   }
 
-  return IsolateSetupHelper(isolate, false, script_uri, package_root,
-                            packages_config, isolate_snapshot_data,
-                            isolate_run_app_snapshot, error, exit_code);
+  return IsolateSetupHelper(isolate, false, uri, package_root, packages_config,
+                            true, isolate_run_app_snapshot, error, exit_code);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -381,6 +390,11 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                isolate_snapshot_instructions, flags,
                                isolate_data, error);
 #else
+  // Set the flag to load the vmservice library. If not set, the kernel
+  // loader might skip loading it. This is flag is not relevant for the
+  // non-kernel flow.
+  ASSERT(flags != NULL);
+  flags->load_vmservice_library = true;
   if (dfe.UsePlatformBinary()) {
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, NULL, dfe.kernel_platform(), flags, isolate_data, error);
@@ -537,8 +551,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   int exit_code = 0;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
-    return CreateAndSetupKernelIsolate(main, package_root, package_config,
-                                       flags, error, &exit_code);
+    return CreateAndSetupKernelIsolate(script_uri, main, package_root,
+                                       package_config, flags, error,
+                                       &exit_code);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
@@ -600,7 +615,7 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 static bool FileModifiedCallback(const char* url, int64_t since) {
-  if (strncmp(url, "file:///", 8) == 0) {
+  if (strncmp(url, "file:///", 8) != 0) {
     // If it isn't a file on local disk, we don't know if it has been
     // modified.
     return true;

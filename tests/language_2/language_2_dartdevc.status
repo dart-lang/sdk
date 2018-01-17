@@ -55,6 +55,7 @@ import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 issue31596_test: CompileTimeError
@@ -124,7 +125,6 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
-arithmetic_test: RuntimeError # Issue 31763
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc03: MissingCompileTimeError
@@ -144,7 +144,7 @@ async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: Crash # Maltyped input from Fasta, issue 31414
-await_test: CompileTimeError # Issue 31541
+await_test: Crash # Issue 31541
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -269,7 +269,6 @@ duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
-dynamic_test: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
@@ -385,7 +384,6 @@ initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
-issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_test: RuntimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
@@ -418,7 +416,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
-mint_compares_test: RuntimeError # Issue 31763
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -598,6 +595,7 @@ regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError
+regress_30516_test: CompileTimeError # Issue 30470.
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
@@ -716,11 +714,10 @@ truncdiv_test: RuntimeError # Issue 29920
 
 [ $compiler == dartdevk && $runtime != none ]
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
-conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+conditional_import_string_test: CompileTimeError # Test is broken
+conditional_import_test: CompileTimeError # Test is broken
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
 cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
-deferred_closurize_load_library_test: RuntimeError # NoSuchMethodError: method not found: 'then'
 enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
@@ -729,7 +726,6 @@ enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unex
 enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
-field_override_optimization_test: RuntimeError # Expect.fail('This should also be unreachable')
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
@@ -737,7 +733,6 @@ function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringT
 function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure5a_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure6_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure7_test: RuntimeError # ReferenceError: TTodynamic is not defined
 function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
 function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
@@ -760,11 +755,7 @@ generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_function_dcall_test: RuntimeError
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
-generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
-instantiate_tearoff_after_contravariance_check_test: RuntimeError
-instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
@@ -793,6 +784,7 @@ regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
+instantiate_tearoff_test: RuntimeError
 
 # Compiler tests for dartdevc and dartdevk.  These contain common expectations
 # for all runtimes including $runtime == none.  They are organized by: shared
@@ -888,6 +880,7 @@ named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails
 nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31425
 null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
@@ -929,6 +922,7 @@ multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
+no_such_method_tearoff_fta_test: RuntimeError # Issue http://dartbug.com/31897
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
@@ -957,43 +951,51 @@ void_type_function_types_test/none: CompileTimeError # Issue 30514
 void_type_override_test/none: CompileTimeError # Issue 30514
 void_type_usage_test/call_as: CompileTimeError # Issue 30514
 void_type_usage_test/call_for: CompileTimeError # Issue 30514
+void_type_usage_test/call_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/call_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/field_assign: CompileTimeError # Issue 30514
 void_type_usage_test/field_assign2: CompileTimeError # Issue 30514
 void_type_usage_test/final_local_as: CompileTimeError # Issue 30514
 void_type_usage_test/final_local_for: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/global_as: CompileTimeError # Issue 30514
 void_type_usage_test/global_for: CompileTimeError # Issue 30514
 void_type_usage_test/global_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/global_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/global_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/instance2_as: CompileTimeError # Issue 30514
 void_type_usage_test/instance2_for: CompileTimeError # Issue 30514
 void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/instance3_as: CompileTimeError # Issue 30514
 void_type_usage_test/instance3_for: CompileTimeError # Issue 30514
 void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/instance_as: CompileTimeError # Issue 30514
 void_type_usage_test/instance_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/instance_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/local_as: CompileTimeError # Issue 30514
 void_type_usage_test/local_assign: CompileTimeError # Issue 30514
 void_type_usage_test/local_for: CompileTimeError # Issue 30514
 void_type_usage_test/local_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/local_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/local_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/none: CompileTimeError # Issue 30514
 void_type_usage_test/param_as: CompileTimeError # Issue 30514
 void_type_usage_test/param_for: CompileTimeError # Issue 30514
 void_type_usage_test/param_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/param_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/param_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/paren_as: CompileTimeError # Issue 30514
 void_type_usage_test/paren_for: CompileTimeError # Issue 30514
+void_type_usage_test/paren_return_to_void: CompileTimeError # Issue 30514
 void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
 void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 
 [ $compiler == dartdevk || $compiler == dartdevc && $runtime == none ]
 instantiate_type_variable_test/01: CompileTimeError
 setter_no_getter_call_test/01: CompileTimeError
-

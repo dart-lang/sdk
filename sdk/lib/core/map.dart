@@ -156,7 +156,7 @@ abstract class Map<K, V> {
    * and if all entries added to the returned map have [K] keys and [V]] values,
    * then the returned map can be used as a `Map<K2, V2>`.
    */
-  static Map<K2, V2> castTo<K, V, K2, V2>(Map<K, V> source) =>
+  static Map<K2, V2> castFrom<K, V, K2, V2>(Map<K, V> source) =>
       new CastMap<K, V, K2, V2>(source);
 
   /**

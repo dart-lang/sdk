@@ -311,6 +311,144 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
+static bool ExtractInterfaceTypeArgs(Zone* zone,
+                                     const Class& instance_cls,
+                                     const TypeArguments& instance_type_args,
+                                     const Class& interface_cls,
+                                     TypeArguments* interface_type_args) {
+  Class& cur_cls = Class::Handle(zone, instance_cls.raw());
+  // The following code is a specialization of Class::TypeTestNonRecursive().
+  Array& interfaces = Array::Handle(zone);
+  AbstractType& interface = AbstractType::Handle(zone);
+  Class& cur_interface_cls = Class::Handle(zone);
+  TypeArguments& cur_interface_type_args = TypeArguments::Handle(zone);
+  Error& error = Error::Handle(zone);
+  while (true) {
+    // Additional subtyping rules related to 'FutureOr' are not applied.
+    if (cur_cls.raw() == interface_cls.raw()) {
+      *interface_type_args = instance_type_args.raw();
+      return true;
+    }
+    interfaces = cur_cls.interfaces();
+    for (intptr_t i = 0; i < interfaces.Length(); i++) {
+      interface ^= interfaces.At(i);
+      ASSERT(interface.IsFinalized() && !interface.IsMalbounded());
+      cur_interface_cls = interface.type_class();
+      cur_interface_type_args = interface.arguments();
+      if (!cur_interface_type_args.IsNull() &&
+          !cur_interface_type_args.IsInstantiated()) {
+        error = Error::null();
+        cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
+            instance_type_args, Object::null_type_arguments(), kNoneFree,
+            &error, NULL, NULL, Heap::kNew);
+        if (!error.IsNull()) {
+          continue;  // Another interface may work better.
+        }
+      }
+      if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,
+                                   cur_interface_type_args, interface_cls,
+                                   interface_type_args)) {
+        return true;
+      }
+    }
+    cur_cls = cur_cls.SuperClass();
+    if (cur_cls.IsNull()) {
+      return false;
+    }
+  }
+}
+
+DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& extract =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+
+  Class& interface_cls = Class::Handle(zone);
+  intptr_t num_type_args = 0;  // Remains 0 when executing Dart 1.0 code.
+  // TODO(regis): Check for strong mode too?
+  if (Isolate::Current()->reify_generic_functions()) {
+    const TypeArguments& function_type_args =
+        TypeArguments::Handle(zone, arguments->NativeTypeArgs());
+    if (function_type_args.Length() == 1) {
+      const AbstractType& function_type_arg =
+          AbstractType::Handle(zone, function_type_args.TypeAt(0));
+      if (function_type_arg.IsType() &&
+          (function_type_arg.arguments() == TypeArguments::null())) {
+        interface_cls = function_type_arg.type_class();
+        num_type_args = interface_cls.NumTypeParameters();
+      }
+    }
+    if (num_type_args == 0) {
+      Exceptions::ThrowArgumentError(String::Handle(
+          zone,
+          String::New(
+              "single function type argument must specify a generic class")));
+    }
+  }
+  if (instance.IsNull()) {
+    Exceptions::ThrowArgumentError(instance);
+  }
+  // Function 'extract' must be generic and accept the same number of type args,
+  // unless we execute Dart 1.0 code.
+  if (extract.IsNull() || !extract.IsClosure() ||
+      ((num_type_args > 0) &&  // Dart 1.0 if num_type_args == 0.
+       (Function::Handle(zone, Closure::Cast(extract).function())
+            .NumTypeParameters() != num_type_args))) {
+    Exceptions::ThrowArgumentError(String::Handle(
+        zone,
+        String::New("argument 'extract' is not a generic function or not one "
+                    "accepting the correct number of type arguments")));
+  }
+  TypeArguments& extracted_type_args = TypeArguments::Handle(zone);
+  if (num_type_args > 0) {
+    // The passed instance must implement interface_cls.
+    TypeArguments& interface_type_args = TypeArguments::Handle(zone);
+    interface_type_args = TypeArguments::New(num_type_args);
+    Class& instance_cls = Class::Handle(zone, instance.clazz());
+    TypeArguments& instance_type_args = TypeArguments::Handle(zone);
+    if (instance_cls.NumTypeArguments() > 0) {
+      instance_type_args = instance.GetTypeArguments();
+    }
+    if (!ExtractInterfaceTypeArgs(zone, instance_cls, instance_type_args,
+                                  interface_cls, &interface_type_args)) {
+      Exceptions::ThrowArgumentError(String::Handle(
+          zone, String::New("type of argument 'instance' is not a subtype of "
+                            "the function type argument")));
+    }
+    if (!interface_type_args.IsNull()) {
+      extracted_type_args = TypeArguments::New(num_type_args);
+      const intptr_t offset = interface_cls.NumTypeArguments() - num_type_args;
+      AbstractType& type_arg = AbstractType::Handle(zone);
+      for (intptr_t i = 0; i < num_type_args; i++) {
+        type_arg = interface_type_args.TypeAt(offset + i);
+        extracted_type_args.SetTypeAt(i, type_arg);
+      }
+      extracted_type_args = extracted_type_args.Canonicalize();  // Can be null.
+    }
+  }
+  // Call the closure 'extract'.
+  Array& args_desc = Array::Handle(zone);
+  Array& args = Array::Handle(zone);
+  if (extracted_type_args.IsNull()) {
+    args_desc = ArgumentsDescriptor::New(0, 1);
+    args = Array::New(1);
+    args.SetAt(0, extract);
+  } else {
+    args_desc = ArgumentsDescriptor::New(num_type_args, 1);
+    args = Array::New(2);
+    args.SetAt(0, extracted_type_args);
+    args.SetAt(1, extract);
+  }
+  const Object& result =
+      Object::Handle(zone, DartEntry::InvokeClosure(args, args_desc));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  return result.raw();
+}
+
 DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));

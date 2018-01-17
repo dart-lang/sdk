@@ -648,14 +648,36 @@ bin_to_assembly("isolate_snapshot_instructions_assembly") {
   executable = true
 }
 
+action("kernel_service_dill_cc") {
+  deps = [
+    "../../utils/kernel-service:kernel_service_dill",
+  ]
+  script = "../tools/dill_to_data_cc.py"
+  inputs = [
+    "../tools/dill_to_data_cc.py",
+    "$root_gen_dir/kernel_service.dill",
+  ]
+  outputs = [
+    "$root_gen_dir/kernel_service.dill.cc",
+  ]
+  args = [
+    "--dill_file=" + rebase_path("$root_gen_dir/kernel_service.dill"),
+    "--data_symbol=kKernelServiceDill",
+    "--size_symbol=kKernelServiceDillSize",
+    "--output=" + rebase_path("$root_gen_dir/kernel_service.dill.cc"),
+  ]
+}
+
 source_set("dart_snapshot_cc") {
   deps = [
     ":isolate_snapshot_data_assembly",
     ":isolate_snapshot_instructions_assembly",
+    ":kernel_service_dill_cc",
     ":vm_snapshot_data_assembly",
     ":vm_snapshot_instructions_assembly",
   ]
   sources = [
+    "$root_gen_dir/kernel_service.dill.cc",
     "$target_gen_dir/isolate_snapshot_data.S",
     "$target_gen_dir/isolate_snapshot_instructions.S",
     "$target_gen_dir/vm_snapshot_data.S",

@@ -5,28 +5,25 @@
 # Kernel works slightly different. There are kernel specific versions.
 # These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk ]
-*_reload_*: Skip # no reload support for now
 add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
-address_mapper_test: CompileTimeError # These 3 tests fail with 'dart:vmservice_io': error: [...] native function 'VMServiceIO_Shutdown' (0 arguments) cannot be found because of '--compile_all'
-address_mapper_test: Crash
-async_generator_breakpoint_test: Skip # Issue 29158, Async debugging
 async_single_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_star_single_step_into_test: RuntimeError # Issue 29158, Async debugging
 async_star_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_step_out_test: RuntimeError # Issue 29158, Async debugging
 awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
-capture_stdio_test: CompileTimeError # These 3 tests fail with 'dart:vmservice_io': error: [...] native function 'VMServiceIO_Shutdown' (0 arguments) cannot be found because of '--compile_all'
-capture_stdio_test: Crash
+complex_reload_test: RuntimeError
 developer_extension_test: CompileTimeError
-eval_internal_class_test: Skip # no evaluation test for now
-evaluate_*: Skip # no evaluation test for now
+eval_internal_class_test: RuntimeError
+evaluate_activation_in_method_class_test: RuntimeError
+evaluate_activation_test/instance: RuntimeError
+evaluate_activation_test/scope: RuntimeError
+evaluate_in_sync_star_activation_test: RuntimeError
 get_isolate_after_language_error_test: CompileTimeError
-isolate_lifecycle_test: Pass, RuntimeError # Inherited from service.status
 library_dependency_test: CompileTimeError # Deferred loading kernel issue 28335.
 pause_on_unhandled_async_exceptions2_test: RuntimeError # --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 pause_on_unhandled_async_exceptions_test: RuntimeError #  --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
-vm_restart_test: Crash
+unused_changes_in_last_reload_test: RuntimeError
 
 [ $compiler == dartkp ]
 *: Skip # Non-kernel also skips precompiled mode.
@@ -42,84 +39,43 @@ pause_idle_isolate_test: Skip # Flaky
 [ $compiler == dartk && $mode == debug && $strong ]
 external_service_disappear_test: Crash # Issue 31587
 
-# Issue 31587
-[ $compiler == dartk && $strong ]
-add_breakpoint_rpc_kernel_test: CompileTimeError
-async_next_test: RuntimeError
-async_scope_test: RuntimeError
-async_single_step_exception_test: RuntimeError
-async_single_step_into_test: RuntimeError
-awaiter_async_stack_contents_test: RuntimeError
-bad_web_socket_address_test: CompileTimeError
-break_on_function_test: RuntimeError
-breakpoint_in_parts_class_test: RuntimeError
-breakpoint_two_args_checked_test: CompileTimeError
-caching_test: RuntimeError
-causal_async_stack_contents_test: RuntimeError
-causal_async_stack_presence_test: RuntimeError
-causal_async_star_stack_contents_test: RuntimeError
-causal_async_star_stack_presence_test: RuntimeError
+[ $compiler == dartk && $system == windows ]
+coverage_leaf_function_test: RuntimeError
+coverage_optimized_function_test: Skip # Timeout
+get_source_report_test: RuntimeError
+step_test: Pass, Slow
+step_through_constructor_test: Pass, Slow
+
+[ $compiler == dartk && $system == windows && $strong ]
+add_breakpoint_rpc_kernel_test: Skip # Timeout
+issue_30555_test: Skip # Timeout
+next_through_implicit_call_test: Skip # Timeout
+next_through_operator_bracket_on_super_test: Skip # Timeout
+next_through_operator_bracket_on_this_test: Skip # Timeout
+next_through_operator_bracket_test: Skip # Timeout
+next_through_simple_async_test: Skip # Timeout
+step_through_constructor_calls_test: Skip # Timeout
+step_through_property_set_test: Skip # Timeout
+
+[ $compiler == dartk && $system == windows && !$strong ]
 code_test: RuntimeError
-command_test: CompileTimeError
-debugger_location_second_test: RuntimeError
-debugger_location_test: RuntimeError
-debugging_inlined_finally_test: RuntimeError
-debugging_test: RuntimeError
-dev_fs_spawn_test: RuntimeError
-developer_service_get_isolate_id_test: RuntimeError
-external_service_asynchronous_invocation_test: CompileTimeError
-external_service_disappear_test: CompileTimeError
-external_service_notification_invocation_test: CompileTimeError
-external_service_registration_test: CompileTimeError
-external_service_registration_via_notification_test: CompileTimeError
-external_service_synchronous_invocation_test: CompileTimeError
+field_script_test: Skip # Timeout
 get_object_rpc_test: RuntimeError
-get_object_store_rpc_test: RuntimeError
 get_stack_rpc_test: RuntimeError
-issue_25465_test: CompileTimeError
-issue_27238_test: RuntimeError
-issue_27287_test: RuntimeError
-local_variable_declaration_test: RuntimeError
-mixin_break_test: RuntimeError
-next_through_assign_call_test: RuntimeError
-next_through_assign_int_test: RuntimeError
-next_through_call_on_field_in_class_test: RuntimeError
-next_through_call_on_field_test: RuntimeError
-next_through_call_on_static_field_in_class_test: RuntimeError
-next_through_catch_test: RuntimeError
-next_through_closure_test: RuntimeError
-next_through_create_list_and_map_test: RuntimeError
-next_through_for_each_loop_test: RuntimeError
-next_through_for_loop_with_break_and_continue_test: RuntimeError
-next_through_function_expression_test: RuntimeError
-next_through_implicit_call_test: RuntimeError
-next_through_is_and_as_test: RuntimeError
-next_through_multi_catch_test: RuntimeError
-next_through_new_test: RuntimeError
-next_through_operator_bracket_on_super_test: RuntimeError
-next_through_operator_bracket_on_this_test: RuntimeError
-next_through_operator_bracket_test: RuntimeError
-next_through_simple_async_with_returns_test: RuntimeError
-next_through_simple_linear_2_test: RuntimeError
-next_through_simple_linear_test: RuntimeError
-parameters_in_scope_at_entry_test: RuntimeError
-positive_token_pos_test: RuntimeError
-regress_28443_test: RuntimeError
-regress_28980_test: RuntimeError
-rewind_optimized_out_test: RuntimeError
-rewind_test: RuntimeError
-set_library_debuggable_test: RuntimeError
-steal_breakpoint_test: RuntimeError
-step_into_async_no_await_test: RuntimeError
-step_over_await_test: RuntimeError
+next_through_catch_test: Skip # Timeout
+next_through_for_loop_with_break_and_continue_test: Skip # Timeout
+next_through_simple_async_test: Skip # Timeout
+step_test: Skip # Timeout
+step_through_constructor_test: Skip # Timeout
+
+[ $compiler == dartk && $strong ]
+awaiter_async_stack_contents_test: RuntimeError
+external_service_asynchronous_invocation_test: CompileTimeError # Issue 31696
+external_service_disappear_test: CompileTimeError # Issue 31696
+external_service_notification_invocation_test: CompileTimeError # Issue 31696
+external_service_registration_test: CompileTimeError # Issue 31696
+external_service_registration_via_notification_test: CompileTimeError # Issue 31696
+external_service_synchronous_invocation_test: CompileTimeError # Issue 31696
+get_object_rpc_test: RuntimeError
 step_through_arithmetic_test: RuntimeError
-step_through_constructor_calls_test: RuntimeError
-step_through_constructor_test: RuntimeError
-step_through_function_2_test: RuntimeError
-step_through_function_test: RuntimeError
-step_through_getter_test: RuntimeError
-step_through_property_get_test: RuntimeError
-step_through_property_set_test: RuntimeError
-step_through_setter_test: RuntimeError
-step_through_switch_test: RuntimeError
-step_through_switch_with_continue_test: RuntimeError
+

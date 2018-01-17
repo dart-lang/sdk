@@ -766,6 +766,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeOptionalReference(node.forwardingStubSuperTarget);
+    writeOptionalReference(node.forwardingStubInterfaceTarget);
     writeOptionalNode(node.function);
     _variableIndexer = null;
 

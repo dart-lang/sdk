@@ -1852,7 +1852,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     if (name is TypeDeclarationAccessor) {
-      push(name.buildType(arguments));
+      push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is FastaAccessor) {
       addProblem(fasta.templateNotAType.withArguments(beginToken.lexeme),
           beginToken.charOffset);
@@ -2222,16 +2222,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (optional("-", token)) {
         operator = "unary-";
 
-        var new_receiver = null;
         if (receiver is LargeIntAccessor) {
           int value =
               int.parse("-" + receiver.token.lexeme, onError: (_) => null);
           if (value != null) {
-            new_receiver = new ShadowIntLiteral(value)
-              ..fileOffset = offsetForToken(token);
+            push(new ShadowIntLiteral(value)
+              ..fileOffset = offsetForToken(token));
+            return;
           }
         }
-        if (new_receiver != null) receiver = new_receiver;
       }
       bool isSuper = false;
       Expression receiverValue;

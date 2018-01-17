@@ -667,6 +667,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
     return closureClass.methodElement.memberContext;
   }
 
+  SourceSpan get sourcePosition => expression.sourcePosition;
+
   bool get hasNode => node != null;
 
   FunctionExpression parseNode(ParsingContext parsing) => node;

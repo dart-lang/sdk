@@ -59,7 +59,7 @@ main() {
   });
 
   test("iterable-paused", () {
-    Stream stream = new Stream.fromIterable(iter);
+    var stream = new Stream<int>.fromIterable(iter);
     Events actual = new Events();
     StreamSubscription subscription;
     subscription = stream.listen((int value) {

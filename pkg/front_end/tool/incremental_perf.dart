@@ -132,17 +132,14 @@ Future benchmark(
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   collector.start("Initial compilation");
-  var generator = await IncrementalKernelGenerator.newInstance(
-      compilerOptions, entryUri,
-      useMinimalGenerator: useMinimalGenerator);
+  var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
 
-  var delta = await generator.computeDelta();
-  generator.acceptLastDelta();
+  var program = await generator.computeDelta();
   collector.stop("Initial compilation");
   if (verbose) {
-    print("Libraries changed: ${delta.newProgram.libraries.length}");
+    print("Libraries changed: ${program.libraries.length}");
   }
-  if (delta.newProgram.libraries.length < 1) {
+  if (program.libraries.length < 1) {
     throw "No libraries were changed";
   }
 
@@ -151,14 +148,13 @@ Future benchmark(
     await applyEdits(
         changeSet.edits, overlayFs, generator, uriTranslator, verbose);
     collector.start(name);
-    delta = await generator.computeDelta();
-    generator.acceptLastDelta();
+    program = await generator.computeDelta();
     collector.stop(name);
     if (verbose) {
       print("Change '${changeSet.name}' - "
-          "Libraries changed: ${delta.newProgram.libraries.length}");
+          "Libraries changed: ${program.libraries.length}");
     }
-    if (delta.newProgram.libraries.length < 1) {
+    if (program.libraries.length < 1) {
       throw "No libraries were changed";
     }
   }

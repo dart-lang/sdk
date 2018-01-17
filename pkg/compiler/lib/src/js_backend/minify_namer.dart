@@ -31,6 +31,7 @@ class MinifyNamer extends Namer
   String get requiredParameterField => r'$R';
   String get defaultValuesField => r'$D';
   String get operatorSignature => r'$S';
+  String get genericInstantiationPrefix => r'$I';
 
   final ALPHABET_CHARACTERS = 52; // a-zA-Z.
   final ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.

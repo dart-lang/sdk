@@ -19,9 +19,9 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
 
@@ -370,7 +370,7 @@ class KernelDriver {
         results.first.libraryResults.map((l) => l.library).toList();
     var program = new Program(nameRoot: nameRoot, libraries: coreLibraries);
     return new TypeEnvironment(
-        new CoreTypes(program), new IncrementalClassHierarchy());
+        new CoreTypes(program), new ClassHierarchy(program));
   }
 
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already

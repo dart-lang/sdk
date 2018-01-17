@@ -180,6 +180,12 @@ checkNames(
           if (interval != null && interval.contains(sourcePosition)) {
             AstElement innerElement = findInnermost(element);
             String expectedName = computeElementNameForSourceMaps(innerElement);
+            int stubIndex = name.indexOf('[function-entry');
+            if (stubIndex != -1) {
+              Expect.isTrue(innerElement is FunctionElement,
+                  "Unexpected element $innerElement for stub '$name'.");
+              name = name.substring(0, stubIndex);
+            }
             if (name != expectedName) {
               // For the code
               //    (){}();

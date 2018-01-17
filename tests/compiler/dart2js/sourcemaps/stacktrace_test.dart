@@ -92,7 +92,11 @@ Future runTest(Test test, String config,
       jsPreambles: (input, output) =>
           ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js'],
       afterExceptions: testAfterExceptions,
-      beforeExceptions: beforeExceptions);
+      beforeExceptions: beforeExceptions,
+      verbose: verbose,
+      printJs: printJs,
+      writeJs: writeJs,
+      stackTraceLimit: 100);
 }
 
 /// Lines allowed before the intended stack trace. Typically from helper
@@ -119,4 +123,13 @@ const List<LineException> afterExceptions = const [
   const LineException('_Future._propagateToListeners', 'future_impl.dart'),
   const LineException(
       '_Future._addListener.<anonymous function>', 'future_impl.dart'),
+  const LineException('_microtaskLoop', 'schedule_microtask.dart'),
+  const LineException('_startMicrotaskLoop', 'schedule_microtask.dart'),
+  const LineException('_AsyncRun._scheduleImmediateJsOverride.internalCallback',
+      'async_patch.dart'),
+  const LineException('invokeClosure.<anonymous function>', 'js_helper.dart'),
+  const LineException('_IsolateContext.eval', 'isolate_helper.dart'),
+  const LineException('_callInIsolate', 'isolate_helper.dart'),
+  const LineException('invokeClosure', 'js_helper.dart'),
+  const LineException('convertDartClosureToJS', 'js_helper.dart'),
 ];

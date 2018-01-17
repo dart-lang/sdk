@@ -54,7 +54,7 @@ final _combinations = {
       'compiler': 'none'
     },
     {
-      'runtimes': ['safari', 'safarimobilesim'],
+      'runtimes': ['safari'],
       'modes': ['release'],
       'archs': ['ia32'],
       'compiler': 'dart2js'

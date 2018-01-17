@@ -784,7 +784,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
   // All arguments are already @RSP due to preceding PushArgument()s.
-  ASSERT(ArgumentCount() == function().NumParameters());
+  ASSERT(ArgumentCount() == function().NumParameters() +
+                                (function().IsGeneric() &&
+                                 Isolate::Current()->reify_generic_functions())
+             ? 1
+             : 0);
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());

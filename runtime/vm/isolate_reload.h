@@ -231,7 +231,7 @@ class IsolateReloadContext {
   void CheckpointClasses();
 
   bool ScriptModifiedSince(const Script& script, int64_t since);
-  BitVector* FindModifiedLibraries(bool force_reload);
+  BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
 
   void CheckpointLibraries();
 

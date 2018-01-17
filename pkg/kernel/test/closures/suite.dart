@@ -98,7 +98,7 @@ class Run extends Step<Uri, int, ClosureConversionContext> {
   Future<Result<int>> run(Uri uri, ClosureConversionContext context) async {
     final File generated = new File.fromUri(uri);
     try {
-      Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+      Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
       final StdioProcess process = await StdioProcess.run(vm.toFilePath(), [
         "--reify",
         "--reify_generic_functions",

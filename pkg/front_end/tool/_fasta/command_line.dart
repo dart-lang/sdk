@@ -147,7 +147,7 @@ class ParsedArguments {
                       "but expected one of: 'true', 'false', 'yes', or 'no'.");
                 }
               } else if (valueSpecification == Uri) {
-                parsedValue = Uri.base.resolve(value);
+                parsedValue = Uri.base.resolveUri(new Uri.file(value));
               } else if (valueSpecification == String) {
                 parsedValue = value;
               } else if (valueSpecification is String) {

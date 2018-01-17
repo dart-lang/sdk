@@ -106,12 +106,9 @@ class IncrementalCompiler extends Compiler {
   @override
   Future<Program> compileInternal(Uri script) async {
     if (generator == null) {
-      generator = await IncrementalKernelGenerator.newInstance(options, script);
+      generator = new IncrementalKernelGenerator(options, script);
     }
-    DeltaProgram deltaProgram = await generator.computeDelta();
-    // TODO(aam): Accepting/rejecting should be done based on VM response.
-    generator.acceptLastDelta();
-    return deltaProgram.newProgram;
+    return await generator.computeDelta();
   }
 
   void invalidate(Uri uri) {

@@ -118,7 +118,8 @@
       "builders": [
         "vm-kernel-precomp-linux-release-x64",
         "vm-kernel-precomp-linux-release-simarm",
-        "vm-kernel-precomp-linux-release-simarm64"
+        "vm-kernel-precomp-linux-release-simarm64",
+        "vm-kernel-precomp-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel release builder."
@@ -234,7 +235,8 @@
         "vm-kernel-linux-release-simdbc64",
         "vm-kernel-linux-release-x64",
         "vm-kernel-mac-debug-x64",
-        "vm-kernel-mac-release-x64"
+        "vm-kernel-mac-release-x64",
+        "vm-kernel-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group."
@@ -316,7 +318,9 @@
             "--checked",
             "--strong",
             "--use-sdk",
-            "language_2"
+            "language_2",
+            "corelib_2",
+            "lib_2"
           ]
         },
         {
@@ -375,8 +379,7 @@
             "--use-sdk",
             "language_2",
             "corelib_2",
-            "lib_2",
-            "lib_strong"
+            "lib_2"
           ]
         },
         {
@@ -386,7 +389,9 @@
             "--checked",
             "--strong",
             "--use-sdk",
-            "language_2"
+            "language_2",
+            "corelib_2",
+            "lib_2"
           ]
         },
         {
@@ -1238,6 +1243,7 @@
             "--compiler=none",
             "--runtime=vm",
             "--checked",
+            "--timeout=120",
             "--use-sdk",
             "pkg/front_end"
           ]
@@ -1301,7 +1307,8 @@
             "--use-sdk",
             "--compiler=none",
             "--runtime=vm",
-            "--checked"
+            "--checked",
+            "--timeout=120"
           ],
           "tests": ["pkg"]
         },

@@ -188,7 +188,15 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   __ Bind(&fall_through);
 }
 
-// Clobbers RCX.
+// Call stub to perform subtype test using a cache (see
+// stub_code_x64.cc:GenerateSubtypeNTestCacheStub)
+//
+// Inputs:
+//   - RAX : instance to test against.
+//   - RDX : instantiator type arguments (if necessary).
+//   - RCX : function type arguments (if necessary).
+//
+// Preserves RAX/RCX/RDX.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
@@ -197,37 +205,27 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  ASSERT(temp_reg == kNoRegister);
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
-  __ LoadUniqueObject(temp_reg, type_test_cache);
-  __ pushq(temp_reg);      // Subtype test cache.
-  __ pushq(instance_reg);  // Instance.
+  __ LoadUniqueObject(R9, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(instantiator_type_arguments_reg == kNoRegister);
     ASSERT(function_type_arguments_reg == kNoRegister);
-    __ PushObject(Object::null_object());  // Unused instantiator type args.
-    __ PushObject(Object::null_object());  // Unused function type args.
     __ Call(*StubCode::Subtype1TestCache_entry());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(instantiator_type_arguments_reg == kNoRegister);
     ASSERT(function_type_arguments_reg == kNoRegister);
-    __ PushObject(Object::null_object());  // Unused instantiator type args.
-    __ PushObject(Object::null_object());  // Unused function type args.
     __ Call(*StubCode::Subtype2TestCache_entry());
   } else if (test_kind == kTestTypeFourArgs) {
-    __ pushq(instantiator_type_arguments_reg);
-    __ pushq(function_type_arguments_reg);
+    ASSERT(RDX == instantiator_type_arguments_reg);
+    ASSERT(RCX == function_type_arguments_reg);
     __ Call(*StubCode::Subtype4TestCache_entry());
   } else {
     UNREACHABLE();
   }
-  // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
-  ASSERT(instance_reg != RCX);
-  ASSERT(temp_reg != RCX);
-  __ Drop(2);
-  __ popq(instance_reg);  // Restore receiver.
-  __ popq(temp_reg);      // Discard.
-  GenerateBoolToJump(RCX, is_instance_lbl, is_not_instance_lbl);
+  // Result is in R8: null -> not found, otherwise Bool::True or Bool::False.
+  GenerateBoolToJump(R8, is_instance_lbl, is_not_instance_lbl);
   return type_test_cache.raw();
 }
 
@@ -301,7 +299,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   // Regular subtype test cache involving instance's type arguments.
   const Register kInstantiatorTypeArgumentsReg = kNoRegister;
   const Register kFunctionTypeArgumentsReg = kNoRegister;
-  const Register kTempReg = R10;
+  const Register kTempReg = kNoRegister;
   return GenerateCallSubtypeTestStub(kTestTypeTwoArgs, kInstanceReg,
                                      kInstantiatorTypeArgumentsReg,
                                      kFunctionTypeArgumentsReg, kTempReg,
@@ -320,9 +318,13 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 }
 
 // Testing against an instantiated type with no arguments, without
-// SubtypeTestCache.
-// RAX: instance to test against (preserved).
-// Clobbers R10, R13.
+// SubtypeTestCache
+//
+// Inputs:
+//   - RAX : instance to test against
+//
+// Preserves RAX/RCX/RDX.
+//
 // Returns true if there is a fallthrough.
 bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     TokenPosition token_pos,
@@ -387,9 +389,13 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 }
 
 // Uses SubtypeTestCache to store instance class and result.
-// RAX: instance to test.
-// Clobbers R10, R13.
 // Immediate class test already done.
+//
+// Inputs:
+//   RAX : instance to test against.
+//
+// Preserves RAX/RCX/RDX.
+//
 // TODO(srdjan): Implement a quicker subtype check, as type test
 // arrays can grow too high, but they may be useful when optimizing
 // code (type-feedback).
@@ -410,7 +416,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 
   const Register kInstantiatorTypeArgumentsReg = kNoRegister;
   const Register kFunctionTypeArgumentsReg = kNoRegister;
-  const Register kTempReg = R10;
+  const Register kTempReg = kNoRegister;
   return GenerateCallSubtypeTestStub(kTestTypeOneArg, kInstanceReg,
                                      kInstantiatorTypeArgumentsReg,
                                      kFunctionTypeArgumentsReg, kTempReg,
@@ -418,20 +424,27 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 }
 
 // Generates inlined check if 'type' is a type parameter or type itself
-// RAX: instance (preserved).
-// Clobbers RDI, RDX, R10.
+//
+// Inputs:
+//   - RAX : instance to test against.
+//   - RDX : instantiator type arguments (if necessary).
+//   - RCX : function type arguments (if necessary).
+//
+// Preserves RAX/RCX/RDX.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     TokenPosition token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  const Register kInstanceReg = RAX;
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+  const Register kTempReg = kNoRegister;
   __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    __ movq(RDX, Address(RSP, 1 * kWordSize));  // Get instantiator type args.
-    __ movq(RCX, Address(RSP, 0 * kWordSize));  // Get function type args.
     // RDX: instantiator type arguments.
     // RCX: function type arguments.
     const Register kTypeArgumentsReg =
@@ -463,13 +476,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ jmp(&fall_through);
 
     __ Bind(&not_smi);
-    // RAX: instance.
-    // RDX: instantiator type arguments.
-    // RCX: function type arguments.
-    const Register kInstanceReg = RAX;
-    const Register kInstantiatorTypeArgumentsReg = RDX;
-    const Register kFunctionTypeArgumentsReg = RCX;
-    const Register kTempReg = R10;
     const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
         zone(), GenerateCallSubtypeTestStub(
                     kTestTypeFourArgs, kInstanceReg,
@@ -479,16 +485,10 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     return type_test_cache.raw();
   }
   if (type.IsType()) {
-    const Register kInstanceReg = RAX;
-    const Register kInstantiatorTypeArgumentsReg = RDX;
-    const Register kFunctionTypeArgumentsReg = RCX;
     __ testq(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
     __ j(ZERO, is_not_instance_lbl);
-    __ movq(kInstantiatorTypeArgumentsReg, Address(RSP, 1 * kWordSize));
-    __ movq(kFunctionTypeArgumentsReg, Address(RSP, 0 * kWordSize));
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator(s).
-    const Register kTempReg = R10;
     return GenerateCallSubtypeTestStub(kTestTypeFourArgs, kInstanceReg,
                                        kInstantiatorTypeArgumentsReg,
                                        kFunctionTypeArgumentsReg, kTempReg,
@@ -498,13 +498,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 }
 
 // Inputs:
-// - RAX: instance to test against (preserved).
-// - RDX: optional instantiator type arguments (preserved).
-// - RCX: optional function type arguments (preserved).
-// Clobbers R10, R13.
-// Returns:
-// - preserved instance in RAX, optional instantiator type arguments in RDX, and
-//   optional function type arguments in RCX.
+//   - RAX : instance to test against.
+//   - RDX : instantiator type arguments.
+//   - RCX : function type arguments.
+//
+// Preserves RAX/RCX/RDX.
+//
 // Note that this inlined code must be followed by the runtime_call code, as it
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
@@ -557,9 +556,6 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
 
-  __ pushq(RDX);  // Store instantiator type arguments.
-  __ pushq(RCX);  // Store function type arguments.
-
   Label is_instance, is_not_instance;
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
@@ -577,6 +573,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
 
   // Generate inline instanceof test.
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
+  // The registers RAX, RCX, RDX are preserved across the call.
   test_cache =
       GenerateInlineInstanceof(token_pos, type, &is_instance, &is_not_instance);
 
@@ -584,8 +581,6 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    __ movq(RDX, Address(RSP, 1 * kWordSize));  // Get instantiator type args.
-    __ movq(RCX, Address(RSP, 0 * kWordSize));  // Get function type args.
     __ PushObject(Object::null_object());       // Make room for the result.
     __ pushq(RAX);                              // Push the instance.
     __ PushObject(type);                        // Push the type.
@@ -607,8 +602,6 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   __ Bind(&is_instance);
   __ LoadObject(RAX, Bool::Get(true));
   __ Bind(&done);
-  __ popq(RCX);  // Remove pushed function type arguments.
-  __ popq(RDX);  // Remove pushed instantiator type arguments.
 }
 
 // Optimize assignable type check by adding inlined tests for:
@@ -635,8 +628,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
           !dst_type.IsVoidType()));
-  __ pushq(RDX);  // Store instantiator type arguments.
-  __ pushq(RCX);  // Store function type arguments.
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
   __ CompareObject(RAX, Object::null_object());
@@ -654,19 +645,16 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ int3();
 
     __ Bind(&is_assignable);  // For a null object.
-    __ popq(RCX);             // Remove pushed function type arguments.
-    __ popq(RDX);             // Remove pushed instantiator type arguments.
     return;
   }
 
   // Generate inline type check, linking to runtime call if not assignable.
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
+  // The registers RAX, RCX, RDX are preserved across the call.
   test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
                                         &runtime_call);
 
   __ Bind(&runtime_call);
-  __ movq(RDX, Address(RSP, 1 * kWordSize));  // Get instantiator type args.
-  __ movq(RCX, Address(RSP, 0 * kWordSize));  // Get function type args.
   __ PushObject(Object::null_object());       // Make room for the result.
   __ pushq(RAX);                              // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
@@ -682,8 +670,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ popq(RAX);
 
   __ Bind(&is_assignable);
-  __ popq(RCX);  // Remove pushed function type arguments.
-  __ popq(RDX);  // Remove pushed instantiator type arguments.
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {

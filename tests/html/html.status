@@ -123,6 +123,15 @@ xsltprocessor_test/supported: Fail # IE11 Feature support statuses - These resul
 
 [ $runtime == safari ]
 audiobuffersourcenode_test/functional: RuntimeError
+canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+element_animate_test: Fail # Element.animate not supported on these browsers.
+element_test: Pass, Fail # Issue 21434
+element_types_test/supported_content: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_datalist: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_shadow: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+fileapi_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_3_test: Skip # Times out 1 out of 10.
@@ -133,20 +142,17 @@ input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: RuntimeError
 input_element_test/supported_time: RuntimeError
 input_element_test/supported_week: RuntimeError
+media_stream_test/supported_MediaStreamEvent: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamTrackEvent: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_media: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 notification_test/constructors: Fail # Safari doesn't let us access the fields of the Notification to verify them.
+rtc_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+shadow_dom_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+speechrecognition_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 touchevent_test/supported: Fail # Safari does not support TouchEvents
-
-[ $runtime == safarimobilesim ]
-element_offset_test/offset: RuntimeError # Issue 18573
-element_types_test/supported_meter: RuntimeError # Issue 18573
-element_types_test/supported_template: Fail
-event_test: RuntimeError # Safarimobilesim does not support WheelEvent
-indexeddb_1_test/supported: Fail
-notification_test/constructors: Pass # Safari mobile will pass this test on the basis that notifications aren't supported at all.
-notification_test/supported_notification: RuntimeError # Issue 22869
-performance_api_test/supported: Fail
-wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
-xhr_test/json: Fail # Safari doesn't support JSON response type
+webgl_1_test: Pass, Fail # Issue 8219
+worker_api_test: Skip # Issue 13221
 
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
@@ -343,7 +349,7 @@ svgelement_test/supported_altGlyph: RuntimeError # Issue 25787
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $runtime == safarimobilesim || $ie) ]
+[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
@@ -365,26 +371,6 @@ webgl_1_test: Pass, Fail # Issue 8219
 # a browser environment.
 [ $runtime == dart_precompiled || $runtime == vm ]
 *: Skip
-
-[ $runtime == safari || $runtime == safarimobilesim ]
-canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
-element_animate_test: Fail # Element.animate not supported on these browsers.
-element_test: Pass, Fail # Issue 21434
-element_types_test/supported_content: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-element_types_test/supported_datalist: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-element_types_test/supported_shadow: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-fileapi_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-gamepad_test: Fail # Safari does not support Navigator.getGamepads()
-media_stream_test/supported_MediaStreamEvent: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-media_stream_test/supported_MediaStreamTrackEvent: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-media_stream_test/supported_media: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
-rtc_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-shadow_dom_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-speechrecognition_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
-webgl_1_test: Pass, Fail # Issue 8219
-worker_api_test: Skip # Issue 13221
 
 [ $system == windows || $runtime == drt && $system == macos ]
 xhr_test/xhr: Skip # Times out.  Issue 21527

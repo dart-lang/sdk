@@ -228,6 +228,23 @@ class KernelSsaGraphBuilder extends ir.Visitor
         case MemberKind.closureField:
           failedAt(targetElement, "Unexpected closure field: $targetElement");
           break;
+        case MemberKind.signature:
+          ir.Node target = definition.node;
+          ir.FunctionNode originalClosureNode;
+          if (target is ir.Procedure) {
+            originalClosureNode = target.function;
+          } else if (target is ir.FunctionExpression) {
+            originalClosureNode = target.function;
+          } else if (target is ir.FunctionDeclaration) {
+            originalClosureNode = target.function;
+          } else {
+            failedAt(
+                targetElement,
+                "Unexpected function signature: "
+                "$targetElement inside a non-closure: $target");
+          }
+          buildMethodSignature(originalClosureNode);
+          break;
       }
       assert(graph.isValid());
 
@@ -482,8 +499,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Create the runtime type information, if needed.
       bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
       if (hasRtiInput) {
-        // Read the values of the type arguments and create a HTypeInfoExpression
-        // to set on the newly create object.
+        // Read the values of the type arguments and create a
+        // HTypeInfoExpression to set on the newly created object.
         List<HInstruction> typeArguments = <HInstruction>[];
         InterfaceType thisType =
             _elementMap.elementEnvironment.getThisType(cls);
@@ -868,6 +885,35 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _buildInitializers(constructor, constructorData);
     });
     localsHandler.scopeInfo = oldScopeInfo;
+  }
+
+  /// Constructs a special signature function for a closure. It is unique in
+  /// that no corresponding ir.Node actually exists for it. We just use the
+  /// targetElement.
+  void buildMethodSignature(ir.FunctionNode originalClosureNode) {
+    openFunction(targetElement);
+    List<HInstruction> typeArguments = <HInstruction>[];
+
+    // Add function type variables.
+    FunctionType functionType =
+        _elementMap.getFunctionType(originalClosureNode);
+    functionType.forEachTypeVariable((TypeVariableType typeVariableType) {
+      DartType result = localsHandler.substInContext(typeVariableType);
+      HInstruction argument =
+          typeBuilder.analyzeTypeArgument(result, sourceElement);
+      typeArguments.add(argument);
+    });
+    push(new HTypeInfoExpression(
+        TypeInfoExpressionKind.COMPLETE,
+        _elementMap.getFunctionType(originalClosureNode),
+        typeArguments,
+        commonMasks.functionType));
+    HInstruction value = pop();
+    close(new HReturn(
+            value, _sourceInformationBuilder.buildReturn(originalClosureNode)))
+        .addSuccessor(graph.exit);
+
+    closeFunction();
   }
 
   /// Builds generative constructor body.
@@ -2566,7 +2612,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           // there is no prefix the old FE wouldn't treat this in any special
           // way. Also, if the prefix points to a constant in the main output
           // unit, the old FE would still generate a deferred wrapper here.
-          if (!unit.isMainOutput) {
+          if (!compiler.backend.outputUnitData
+              .hasOnlyNonDeferredImportPaths(targetElement, field)) {
             stack.add(graph.addDeferredConstant(
                 value, unit, sourceInformation, compiler, closedWorld));
           } else {
@@ -3003,7 +3050,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     if (isFixedListConstructorCall) {
-      assert(arguments.length == 1);
+      assert(
+          arguments.length == 1,
+          failedAt(
+              function,
+              "Unexpected arguments. "
+              "Expected 1 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
       if (!lengthInput.isNumber(closedWorld)) {
         HTypeConversion conversion = new HTypeConversion(
@@ -3813,6 +3865,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitFunctionExpression(ir.FunctionExpression funcExpression) {
     funcExpression.function.accept(this);
+  }
+
+  @override
+  void visitInstantiation(ir.Instantiation node) {
+    var arguments = <HInstruction>[];
+    node.expression.accept(this);
+    arguments.add(pop());
+    for (ir.DartType type in node.typeArguments) {
+      HInstruction instruction = typeBuilder.analyzeTypeArgument(
+          _elementMap.getDartType(type), sourceElement);
+      arguments.add(instruction);
+    }
+    Selector selector =
+        new Selector.genericInstantiation(node.typeArguments.length);
+    _pushDynamicInvocation(node, commonMasks.functionType, selector, arguments,
+        null /*_sourceInformationBuilder.?*/);
   }
 
   @override

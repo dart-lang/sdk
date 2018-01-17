@@ -282,7 +282,6 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 export_ambiguous_main_negative_test: Skip # Issue 29895
 export_ambiguous_main_test: Crash
 export_double_same_main_test: Skip # Issue 29895
-extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory1_test/00: MissingCompileTimeError
@@ -878,6 +877,7 @@ super_test: Fail, OK
 switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
+syntax_test/59: MissingCompileTimeError,OK # Issue 30516.
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
 transitive_private_library_access_test: MissingCompileTimeError

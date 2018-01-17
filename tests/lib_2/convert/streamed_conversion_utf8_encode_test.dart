@@ -25,7 +25,7 @@ Stream<List<int>> encode(String string, int chunkSize) {
   return controller.stream.transform(utf8.encoder);
 }
 
-void testUnpaused(List<int> expected, Stream stream) {
+void testUnpaused(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   stream.toList().then((list) {
     var combined = [];
@@ -36,7 +36,7 @@ void testUnpaused(List<int> expected, Stream stream) {
   });
 }
 
-void testWithPauses(List<int> expected, Stream stream) {
+void testWithPauses(List<int> expected, Stream<List<int>> stream) {
   asyncStart();
   var combined = <int>[];
   var sub;

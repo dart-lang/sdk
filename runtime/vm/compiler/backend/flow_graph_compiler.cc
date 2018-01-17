@@ -984,12 +984,16 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
-  // Intrinsification skips arguments checks, therefore disable if in checked
-  // mode or strong mode.
-  if (FLAG_intrinsify && !isolate()->argument_type_checks()) {
+  if (FLAG_intrinsify) {
     const Class& owner = Class::Handle(parsed_function().function().Owner());
     String& name = String::Handle(parsed_function().function().name());
 
+    // Intrinsification skips arguments checks, therefore disable if in checked
+    // mode or strong mode.
+    //
+    // Though for implicit getters, which have only the receiver as parameter,
+    // there are no checks necessary in any case and we can therefore intrinsify
+    // them even in checked mode and strong mode.
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // TODO(27590) Store Field object inside RawFunction::data_ if possible.
       name = Field::NameFromGetter(name);
@@ -1004,19 +1008,21 @@ bool FlowGraphCompiler::TryIntrinsify() {
         return !isolate()->use_field_guards();
       }
       return false;
-    }
-    if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
-      // TODO(27590) Store Field object inside RawFunction::data_ if possible.
-      name = Field::NameFromSetter(name);
-      const Field& field = Field::Handle(owner.LookupFieldAllowPrivate(name));
-      ASSERT(!field.IsNull());
+    } else if (parsed_function().function().kind() ==
+               RawFunction::kImplicitSetter) {
+      if (!isolate()->argument_type_checks()) {
+        // TODO(27590) Store Field object inside RawFunction::data_ if possible.
+        name = Field::NameFromSetter(name);
+        const Field& field = Field::Handle(owner.LookupFieldAllowPrivate(name));
+        ASSERT(!field.IsNull());
 
-      if (field.is_instance() &&
-          (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
-        GenerateInlinedSetter(field.Offset());
-        return !isolate()->use_field_guards();
+        if (field.is_instance() &&
+            (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+          GenerateInlinedSetter(field.Offset());
+          return !isolate()->use_field_guards();
+        }
+        return false;
       }
-      return false;
     }
   }
 

@@ -52,6 +52,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  bool get isPart => false;
+
   @override
   String get debugName => "LibraryBuilder";
 

@@ -186,14 +186,12 @@ cc/DartAPI_LoadSource_LateLoad: Crash
 cc/DartAPI_LookupLibrary: Crash
 cc/DartAPI_NativeFieldAccess: Fail
 cc/DartAPI_NegativeNativeFieldInIsolateMessage: Crash
-cc/DartAPI_New: Crash
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
 cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Fail
 cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Fail
 cc/DartAPI_TestNativeFieldsAccess: Crash
-cc/DartAPI_TypeGetParameterizedTypes: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -211,8 +209,6 @@ cc/IsolateReload_ChangeInstanceFormat7: Skip
 cc/IsolateReload_ChangeInstanceFormat8: Skip
 cc/IsolateReload_ClassFieldAdded: Skip # Crash, Timeout
 cc/IsolateReload_ClassFieldAdded2: Skip # Crash, Timeout
-cc/IsolateReload_DanglingGetter_Class: Fail
-cc/IsolateReload_DanglingGetter_Instance: Fail
 cc/IsolateReload_DanglingGetter_Library: Fail
 cc/IsolateReload_DanglingSetter_Class: Fail
 cc/IsolateReload_DanglingSetter_Instance: Fail
@@ -226,7 +222,6 @@ cc/IsolateReload_ExportedLibModified: Crash
 cc/IsolateReload_ImportedLibModified: Crash
 cc/IsolateReload_ImportedMixinFunction: Crash
 cc/IsolateReload_LibraryHide: Crash
-cc/IsolateReload_LibraryLookup: Fail
 cc/IsolateReload_LibraryShow: Crash
 cc/IsolateReload_LiveStack: Fail
 cc/IsolateReload_MainLibModified: Crash
@@ -243,16 +238,7 @@ cc/IsolateReload_RunNewFieldInitializersThrows: Skip
 cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_ShapeChangeRetainsHash: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
-cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_AddArguments2: Fail
-cc/IsolateReload_TearOff_Class_Identity: Fail
-cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_Library_Identity: Fail
-cc/IsolateReload_TearOff_List_Set: Fail
 cc/IsolateReload_TopLevelParseError: Fail
-cc/IsolateReload_TypeIdentity: Fail
-cc/IsolateReload_TypeIdentityGeneric: Fail
-cc/IsolateReload_TypeIdentityParameter: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
@@ -296,9 +282,7 @@ cc/SourceReport_MultipleReports: Fail
 cc/SourceReport_PossibleBreakpoints_Simple: Fail
 cc/StackTraceFormat: Fail
 cc/UseDartApi: Fail
-dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
-dart/redirection_type_shuffling_test/00: Crash
-dart/redirection_type_shuffling_test/none: Crash
+dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
@@ -325,13 +309,54 @@ cc/Parser_AllocateVariables_MiddleChain: Crash
 cc/Parser_AllocateVariables_NestedCapturedVar: Crash
 cc/Parser_AllocateVariables_TwoChains: Crash
 
+[ $compiler == dartk && $system == linux ]
+cc/IsolateReload_DanglingGetter_Class: Fail
+cc/IsolateReload_DanglingGetter_Instance: Fail
+cc/IsolateReload_LibraryLookup: Fail
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_AddArguments2: Fail
+cc/IsolateReload_TearOff_Class_Identity: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_Library_Identity: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
+cc/IsolateReload_TypeIdentity: Fail
+cc/IsolateReload_TypeIdentityGeneric: Fail
+cc/IsolateReload_TypeIdentityParameter: Fail
+
+[ $compiler == dartk && $system == windows ]
+cc/DartAPI_New: Fail
+cc/DartAPI_TypeGetParameterizedTypes: Fail
+cc/IsolateReload_DanglingGetter_Class: Crash
+cc/IsolateReload_DanglingGetter_Instance: Crash
+cc/IsolateReload_LibraryLookup: Crash
+cc/IsolateReload_TearOff_AddArguments: Crash
+cc/IsolateReload_TearOff_AddArguments2: Crash
+cc/IsolateReload_TearOff_Class_Identity: Crash
+cc/IsolateReload_TearOff_Instance_Equality: Crash
+cc/IsolateReload_TearOff_Library_Identity: Crash
+cc/IsolateReload_TearOff_List_Set: Crash
+cc/IsolateReload_TypeIdentity: Crash
+cc/IsolateReload_TypeIdentityGeneric: Crash
+cc/IsolateReload_TypeIdentityParameter: Crash
+cc/Profiler_BasicSourcePosition: Fail
+cc/Profiler_CodeTicks: Fail
+cc/Profiler_FunctionTicks: Fail
+cc/Profiler_ToggleRecordAllocation: Fail
+cc/Profiler_TrivialRecordAllocation: Fail
+cc/Service_Address: Fail
+cc/Service_Code: Fail
+dart/redirection_type_shuffling_test/00: Fail
+dart/redirection_type_shuffling_test/none: Fail
+
+[ $compiler == dartk && $system != windows ]
+cc/DartAPI_New: Crash
+cc/DartAPI_TypeGetParameterizedTypes: Crash
+dart/redirection_type_shuffling_test/00: Crash
+dart/redirection_type_shuffling_test/none: Crash
+
 [ $compiler == dartk && $strong ]
-dart/data_uri_spawn_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
-
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-dart/spawn_infinite_loop_test: RuntimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -339,7 +364,6 @@ dart/spawn_infinite_loop_test: RuntimeError
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
-dart/spawn_infinite_loop_test: Crash
 
 [ $compiler == dartkp && !$strong ]
 dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).

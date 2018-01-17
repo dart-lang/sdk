@@ -14,7 +14,7 @@ class StackTraceContext extends ChainContextWithCleanupHelper {
     const Setup(),
     const SetCwdToSdkRoot(),
     const TestStackTrace(
-        const ddc.RunDdc(false), "ddc.", const ["ddc.", "ddk."]),
+        const ddc.DevCompilerRunner(false), "ddc.", const ["ddc.", "ddk."]),
   ];
 }
 

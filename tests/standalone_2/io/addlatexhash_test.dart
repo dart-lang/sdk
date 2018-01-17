@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../../../tools/addlatexhash.dart';
 
-final execDir = path.dirname(path.fromUri(Platform.executable));
+final execDir = path.dirname(Platform.resolvedExecutable);
 final dartRootDir = path.dirname(path.dirname(execDir));
 final dartRootPath = dartRootDir.toString();
 

@@ -562,6 +562,7 @@ typedef struct {
   Dart_QualifiedFunctionName* entry_points;
   bool reify_generic_functions;
   bool strong;
+  bool load_vmservice_library;
 } Dart_IsolateFlags;
 
 /**

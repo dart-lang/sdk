@@ -169,7 +169,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * of [S],
    * then the returned list can be used as a `List<T>`.
    */
-  static List<T> castTo<S, T>(List<S> source) => new CastList<S, T>(source);
+  static List<T> castFrom<S, T>(List<S> source) => new CastList<S, T>(source);
 
   /**
    * Returns the object at the given [index] in the list

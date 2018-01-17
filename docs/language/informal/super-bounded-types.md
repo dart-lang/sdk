@@ -4,7 +4,7 @@
 
 **Version**: 0.5 (2018-01-11).
 
-**Status**: Under discussion.
+**Status**: Under implementation.
 
 **This document** is an informal specification of the support in Dart 2 for
 using certain generic types where the declared bounds are violated. The

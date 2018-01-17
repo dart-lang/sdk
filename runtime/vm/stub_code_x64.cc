@@ -756,7 +756,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // | saved PC (return to DartEntry::InvokeFunction) |
 
   const intptr_t kInitialOffset = 2;
-  // Save arguments descriptor array.
+  // Save arguments descriptor array, later replaced by Smi argument count.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset)*kWordSize;
   __ pushq(kArgDescReg);
 
@@ -807,9 +807,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Push arguments. At this point we only need to preserve kTargetCodeReg.
   ASSERT(kTargetCodeReg != RDX);
 
-  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
-  // Load number of arguments into RBX.
+  // Load number of arguments into RBX and adjust count for type arguments.
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addq(RBX, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+  // Save number of arguments as Smi on stack, replacing saved ArgumentsDesc.
+  __ movq(Address(RBP, kArgumentsDescOffset), RBX);
   __ SmiUntag(RBX);
 
   // Compute address of 'arguments array' data area into RDX.
@@ -835,11 +842,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(kTargetCodeReg, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ call(kTargetCodeReg);  // R10 is the arguments descriptor array.
 
-  // Read the saved arguments descriptor array to obtain the number of passed
-  // arguments.
-  __ movq(kArgDescReg, Address(RBP, kArgumentsDescOffset));
-  __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(RDX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  // Read the saved number of passed arguments as Smi.
+  __ movq(RDX, Address(RBP, kArgumentsDescOffset));
+
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
@@ -1702,59 +1707,67 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ jmp(&done_stepping, Assembler::kNearJump);
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: function type arguments (only if n == 4, can be raw_null).
-// TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in RCX: null -> not found, otherwise result (true or false).
+// Used to check class and type arguments. Arguments passed in registers:
+//
+// Inputs:
+//   - R9  : RawSubtypeTestCache
+//   - RAX : instance to test against.
+//   - RDX : instantiator type arguments (for n=4).
+//   - RCX : function type arguments (for n=4).
+//
+//   - TOS + 0: return address.
+//
+// Preserves R9/RAX/RCX/RDX.
+//
+// Result in R8: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT((n == 1) || (n == 2) || (n == 4));
-  const intptr_t kFunctionTypeArgumentsInBytes = 1 * kWordSize;
-  const intptr_t kInstantiatorTypeArgumentsInBytes = 2 * kWordSize;
-  const intptr_t kInstanceOffsetInBytes = 3 * kWordSize;
-  const intptr_t kCacheOffsetInBytes = 4 * kWordSize;
-  __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
-  __ LoadObject(R9, Object::null_object());
+
+  const Register kCacheReg = R9;
+  const Register kInstanceReg = RAX;
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+
+  __ LoadObject(R8, Object::null_object());
   if (n > 1) {
-    __ LoadClass(R10, RAX);
+    __ LoadClass(R10, kInstanceReg);
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
-    __ movq(R13, R9);
+    __ movq(R13, R8);
     __ movl(RDI,
             FieldAddress(R10,
                          Class::type_arguments_field_offset_in_words_offset()));
     __ cmpl(RDI, Immediate(Class::kNoTypeArguments));
     __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-    __ movq(R13, FieldAddress(RAX, RDI, TIMES_8, 0));
+    __ movq(R13, FieldAddress(kInstanceReg, RDI, TIMES_8, 0));
     __ Bind(&has_no_type_arguments);
   }
-  __ LoadClassId(R10, RAX);
+  __ LoadClassId(R10, kInstanceReg);
   // RAX: instance, R10: instance class id.
   // R13: instance type arguments or null, used only if n > 1.
-  __ movq(RDX, Address(RSP, kCacheOffsetInBytes));
-  // RDX: SubtypeTestCache.
-  __ movq(RDX, FieldAddress(RDX, SubtypeTestCache::cache_offset()));
-  __ addq(RDX, Immediate(Array::data_offset() - kHeapObjectTag));
-  // RDX: Entry start.
+  __ movq(RSI, kCacheReg);
+  // RSI: SubtypeTestCache.
+  __ movq(RSI, FieldAddress(RSI, SubtypeTestCache::cache_offset()));
+  __ addq(RSI, Immediate(Array::data_offset() - kHeapObjectTag));
+  // RSI: Entry start.
   // R10: instance class id.
   // R13: instance type arguments (still null if closure).
   Label loop, found, not_found, next_iteration;
   __ SmiTag(R10);
   __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movq(R13, FieldAddress(RAX, Closure::function_type_arguments_offset()));
-  __ cmpq(R13, R9);  // Cache cannot be used for generic closures.
+  __ movq(R13, FieldAddress(kInstanceReg,
+                            Closure::function_type_arguments_offset()));
+  __ cmpq(R13, R8);  // Cache cannot be used for generic closures.
   __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
-  __ movq(R13,
-          FieldAddress(RAX, Closure::instantiator_type_arguments_offset()));
-  __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
+  __ movq(R13, FieldAddress(kInstanceReg,
+                            Closure::instantiator_type_arguments_offset()));
+  __ movq(R10, FieldAddress(kInstanceReg, Closure::function_offset()));
   // R10: instance class id as Smi or function.
   __ Bind(&loop);
-  __ movq(RDI, Address(RDX, kWordSize *
+  __ movq(RDI, Address(RSI, kWordSize *
                                 SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmpq(RDI, R9);
+  __ cmpq(RDI, R8);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpq(RDI, R10);
   if (n == 1) {
@@ -1762,34 +1775,33 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ movq(RDI,
-            Address(RDX, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+            Address(RSI, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
     __ cmpq(RDI, R13);
     if (n == 2) {
       __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ movq(RDI,
-              Address(RDX, kWordSize *
+              Address(RSI, kWordSize *
                                SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmpq(RDI, Address(RSP, kInstantiatorTypeArgumentsInBytes));
+      __ cmpq(RDI, kInstantiatorTypeArgumentsReg);
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movq(RDI, Address(RDX, kWordSize *
+      __ movq(RDI, Address(RSI, kWordSize *
                                     SubtypeTestCache::kFunctionTypeArguments));
-      __ cmpq(RDI, Address(RSP, kFunctionTypeArgumentsInBytes));
+      __ cmpq(RDI, kFunctionTypeArgumentsReg);
       __ j(EQUAL, &found, Assembler::kNearJump);
     }
   }
 
   __ Bind(&next_iteration);
-  __ addq(RDX, Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
+  __ addq(RSI, Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
   // Fall through to not found.
   __ Bind(&not_found);
-  __ movq(RCX, R9);
   __ ret();
 
   __ Bind(&found);
-  __ movq(RCX, Address(RDX, kWordSize * SubtypeTestCache::kTestResult));
+  __ movq(R8, Address(RSI, kWordSize * SubtypeTestCache::kTestResult));
   __ ret();
 }
 
@@ -1799,7 +1811,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 // TOS + 2: raw_null.
 // TOS + 3: instance.
 // TOS + 4: SubtypeTestCache.
-// Result in RCX: null -> not found, otherwise result (true or false).
+// Result in R8: null -> not found, otherwise result (true or false).
+// Preserves RCX/RDX.
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
@@ -1810,7 +1823,8 @@ void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 // TOS + 2: raw_null.
 // TOS + 3: instance.
 // TOS + 4: SubtypeTestCache.
-// Result in RCX: null -> not found, otherwise result (true or false).
+// Result in R8: null -> not found, otherwise result (true or false).
+// Preserves RCX/RDX.
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
 }
@@ -1821,7 +1835,8 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // TOS + 2: instantiator type arguments (can be raw_null).
 // TOS + 3: instance.
 // TOS + 4: SubtypeTestCache.
-// Result in RCX: null -> not found, otherwise result (true or false).
+// Result in R8: null -> not found, otherwise result (true or false).
+// Preserves RCX/RDX.
 void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
 }

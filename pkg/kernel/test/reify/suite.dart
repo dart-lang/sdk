@@ -76,7 +76,7 @@ enum Environment {
 
 Future<TestContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+  Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   Uri platformBinaries = computePlatformBinariesLocation();
   Uri platform = platformBinaries.resolve("vm_platform.dill");
   bool updateExpectations = environment["updateExpectations"] == "true";

@@ -22,13 +22,10 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
+[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
-[ $compiler != dartdevc && !$checked ]
-function_type/*: Skip # Needs checked mode.
-
-[ $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
+[ $compiler != dart2js && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
@@ -37,15 +34,25 @@ issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
 
+[ $compiler != dartdevc && !$checked ]
+function_type/*: Skip # Needs checked mode.
+
 [ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM front-end.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error_test/01: Fail
 
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ $compiler == none && $runtime == vm && !$checked ]
+*: Skip
+
 [ $compiler != spec_parser && !$checked && !$strong ]
 closure_type_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError # Requires type check.
 
 [ $compiler != spec_parser && !$strong ]
 class_literal_static_test: MissingCompileTimeError # Requires strong mode
@@ -98,6 +105,9 @@ map_literal4_test/03: MissingCompileTimeError
 map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/05: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError # Issue #31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError

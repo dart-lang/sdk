@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
@@ -426,11 +425,9 @@ class ResolutionStorer extends TypeInferenceListener {
     _replaceType(invokeType, resultOffset);
 
     if (!isImplicitCall) {
-      if (interfaceMember is ForwardingStub) {
-        interfaceMember = ForwardingStub.getInterfaceTarget(interfaceMember);
-      }
+      interfaceMember = _getRealTarget(interfaceMember);
       _replaceReference(interfaceMember);
-      _replaceType(calleeType);
+      _replaceType(const NullType()); // callee type
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -456,7 +453,7 @@ class ResolutionStorer extends TypeInferenceListener {
 
     if (!isImplicitCall) {
       _replaceReference(const NullNode('explicit-call'));
-      _replaceType(const NullType());
+      _replaceType(const NullType()); // callee type
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -477,9 +474,7 @@ class ResolutionStorer extends TypeInferenceListener {
       DartType writeContext,
       Procedure combiner,
       DartType inferredType) {
-    if (writeMember is ForwardingStub) {
-      writeMember = ForwardingStub.getInterfaceTarget(writeMember);
-    }
+    writeMember = _getRealTarget(writeMember);
     _replaceReference(new MemberSetterNode(writeMember));
     _replaceType(writeContext);
     _recordReference(
@@ -609,7 +604,7 @@ class ResolutionStorer extends TypeInferenceListener {
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
     _replaceType(invokeType);
-    _replaceType(calleeType);
+    _replaceType(const NullType()); // callee type
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
@@ -738,6 +733,15 @@ class ResolutionStorer extends TypeInferenceListener {
   void _replaceType(DartType type, [int newOffset = -1]) {
     int slot = _deferredTypeSlots.removeLast();
     _types[slot] = type;
+  }
+
+  /// If the [member] is a forwarding stub, return the target it forwards to.
+  /// Otherwise return the given [member].
+  static Member _getRealTarget(Member member) {
+    if (member is Procedure && member.isForwardingStub) {
+      return member.forwardingStubInterfaceTarget.node;
+    }
+    return member;
   }
 }
 

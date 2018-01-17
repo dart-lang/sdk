@@ -72,7 +72,11 @@ CompilerDiagnostics createCompilerDiagnostics(
 Expando<MemorySourceFileProvider> expando =
     new Expando<MemorySourceFileProvider>();
 
+// Cached kernel state for non-strong mode.
 fe.InitializedCompilerState kernelInitializedCompilerState;
+
+// Cached kernel state for strong mode.
+fe.InitializedCompilerState strongKernelInitializedCompilerState;
 
 /// memorySourceFiles can contain a map of string filename to string file
 /// contents or string file name to binary file contents (hence the `dynamic`
@@ -110,14 +114,20 @@ Future<CompilationResult> runCompiler(
   if (beforeRun != null) {
     beforeRun(compiler);
   }
+  fe.InitializedCompilerState compilerState;
   bool isSuccess = await compiler.run(entryPoint);
   if (compiler.libraryLoader is KernelLibraryLoaderTask) {
     KernelLibraryLoaderTask loader = compiler.libraryLoader;
-    kernelInitializedCompilerState = loader.initializedCompilerState;
+    if (compiler.options.strongMode) {
+      compilerState = strongKernelInitializedCompilerState =
+          loader.initializedCompilerState;
+    } else {
+      compilerState =
+          kernelInitializedCompilerState = loader.initializedCompilerState;
+    }
   }
   return new CompilationResult(compiler,
-      isSuccess: isSuccess,
-      kernelInitializedCompilerState: kernelInitializedCompilerState);
+      isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }
 
 CompilerImpl compilerFor(
@@ -172,21 +182,25 @@ CompilerImpl compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
+  CompilerOptions compilerOptions = new CompilerOptions.parse(
+      entryPoint: entryPoint,
+      resolutionInputs: resolutionInputs,
+      libraryRoot: libraryRoot,
+      packageRoot: packageRoot,
+      options: options,
+      environment: {},
+      platformBinaries: platformBinaries,
+      packageConfig: packageConfig,
+      packagesDiscoveryProvider: packagesDiscoveryProvider);
+  if (compilerOptions.strongMode) {
+    compilerOptions.kernelInitializedCompilerState =
+        strongKernelInitializedCompilerState;
+  } else {
+    compilerOptions.kernelInitializedCompilerState =
+        kernelInitializedCompilerState;
+  }
   CompilerImpl compiler = new CompilerImpl(
-      provider,
-      outputProvider,
-      diagnosticHandler,
-      new CompilerOptions.parse(
-          entryPoint: entryPoint,
-          resolutionInputs: resolutionInputs,
-          libraryRoot: libraryRoot,
-          packageRoot: packageRoot,
-          options: options,
-          environment: {},
-          platformBinaries: platformBinaries,
-          packageConfig: packageConfig,
-          packagesDiscoveryProvider: packagesDiscoveryProvider)
-        ..kernelInitializedCompilerState = kernelInitializedCompilerState);
+      provider, outputProvider, diagnosticHandler, compilerOptions);
 
   if (cachedCompiler != null) {
     Map copiedLibraries = {};

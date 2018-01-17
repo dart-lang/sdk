@@ -194,7 +194,7 @@ testNames(mirrors) {
       equals(const Symbol('MirrorsTest.Class.field')));
 }
 
-testLibraryUri(var value, bool check(Uri)) {
+testLibraryUri(var value, bool check(Uri uri)) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
   LibraryMirror valueLibrary = valueClass.owner;

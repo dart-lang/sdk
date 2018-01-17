@@ -41,7 +41,7 @@ main(List<String> args) {
   ClassHierarchy buildHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClosedWorldClassHierarchy(program);
+        : new ClassHierarchy(program);
   }
 
   var watch = new Stopwatch()..start();

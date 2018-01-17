@@ -868,9 +868,12 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load arguments descriptor array into R4, which is passed to Dart code.
   __ LoadFromOffset(R4, R1, VMHandles::kOffsetOfRawPtrInHandle);
 
-  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
-  // Load number of arguments into S5.
+  // Load number of arguments into R5 and adjust count for type arguments.
   __ LoadFieldFromOffset(R5, R4, ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R5, 1);  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R5, R5, TMP, EQ);  // R5 <- (R3 == 0) ? R5 : TMP + 1 (R5 : R5 + 2).
   __ SmiUntag(R5);
 
   // Compute address of 'arguments array' data area into R2.

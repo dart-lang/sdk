@@ -1,0 +1,2128 @@
+{
+  "roots": [
+    {
+      "library": "dart:core",
+      "class": "Object",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_LibraryPrefix",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Type",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_TypeRef",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_TypeParameter",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_BoundedType",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_MixinAppType",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Smi",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Mint",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Bigint",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Double",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "bool",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_GrowableList",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float32x4",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int32x4",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float64x2",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "_CapabilityImpl",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "_RawReceivePortImpl",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "_SendPortImpl",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_StackTrace",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_RegExp",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_WeakProperty",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:mirrors",
+      "class": "_MirrorReference",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:collection",
+      "class": "_InternalLinkedHashMap",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:developer",
+      "class": "_UserTag",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_ImmutableList",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_OneByteString",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_TwoByteString",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_ExternalOneByteString",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_ExternalTwoByteString",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int8List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint8List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint8ClampedList",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int16List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint16List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int32List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint32List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int64List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint64List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float32List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float64List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float32x4List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int32x4List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float64x2List",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int8ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint8ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint8ClampedArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int16ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint16ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int32ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint32ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int64ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Uint64ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float32ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float64ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float32x4ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Int32x4ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_Float64x2ArrayView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ByteDataView",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalInt8Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalUint8Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalUint8ClampedArray",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalInt16Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalUint16Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalInt32Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalUint32Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalInt64Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalUint64Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalFloat32Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalFloat64Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalFloat32x4Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalInt32x4Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ExternalFloat64x2Array",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ByteBuffer",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "Null",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "AbstractClassInstantiationError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "ArgumentError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "ArgumentError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "CyclicInitializationError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "FallThroughError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "FormatException",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "NoSuchMethodError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "NullThrownError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "OutOfMemoryError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "RangeError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "RangeError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "StackOverflowError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "UnsupportedError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_AssertionError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_CastError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_InternalError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_TypeError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "IsolateSpawnException",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:io",
+      "class": "CertificateException",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:io",
+      "class": "FileSystemException",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:io",
+      "class": "HandshakeException",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:io",
+      "class": "OSError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:io",
+      "class": "TlsException",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "name": "_completeDeferredLoads",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "name": "identityHashCode",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "AbstractClassInstantiationError",
+      "name": "AbstractClassInstantiationError._create",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "ArgumentError",
+      "name": "ArgumentError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "ArgumentError",
+      "name": "ArgumentError.value",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "CyclicInitializationError",
+      "name": "CyclicInitializationError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "FallThroughError",
+      "name": "FallThroughError._create",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "FormatException",
+      "name": "FormatException",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "NoSuchMethodError",
+      "name": "NoSuchMethodError._withType",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "NullThrownError",
+      "name": "NullThrownError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "OutOfMemoryError",
+      "name": "OutOfMemoryError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "RangeError",
+      "name": "RangeError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "RangeError",
+      "name": "RangeError.range",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "StackOverflowError",
+      "name": "StackOverflowError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "UnsupportedError",
+      "name": "UnsupportedError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_AssertionError",
+      "name": "_AssertionError._create",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_CastError",
+      "name": "_CastError._create",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_InternalError",
+      "name": "_InternalError",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_InvocationMirror",
+      "name": "_allocateInvocationMirror",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_TypeError",
+      "name": "_TypeError._create",
+      "action": "call"
+    },
+    {
+      "library": "dart:collection",
+      "name": "_rehashObjects",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "IsolateSpawnException",
+      "name": "IsolateSpawnException",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "name": "_startIsolate",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "_RawReceivePortImpl",
+      "name": "_handleMessage",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "_RawReceivePortImpl",
+      "name": "_lookupHandler",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "class": "_SendPortImpl",
+      "name": "send",
+      "action": "call"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "ByteData",
+      "name": "ByteData",
+      "action": "call"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "ByteData",
+      "name": "ByteData._view",
+      "action": "call"
+    },
+    {
+      "library": "dart:typed_data",
+      "class": "_ByteBuffer",
+      "name": "_ByteBuffer._New",
+      "action": "call"
+    },
+    {
+      "library": "dart:_vmservice",
+      "name": "boot",
+      "action": "call"
+    },
+    {
+      "library": "dart:_vmservice",
+      "name": "_registerIsolate",
+      "action": "call"
+    },
+    {
+      "library": "dart:developer",
+      "class": "Metrics",
+      "name": "_printMetrics",
+      "action": "call"
+    },
+    {
+      "library": "dart:developer",
+      "name": "_runExtension",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "name": "_runPendingImmediateCallback",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "Error",
+      "name": "_stackTrace",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "Error",
+      "name": "_stackTrace",
+      "action": "set"
+    },
+    {
+      "library": "dart:core",
+      "name": "_uriBaseClosure",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "name": "_uriBaseClosure",
+      "action": "set"
+    },
+    {
+      "library": "dart:math",
+      "class": "_Random",
+      "name": "_state",
+      "action": "get"
+    },
+    {
+      "library": "dart:math",
+      "class": "_Random",
+      "name": "_state",
+      "action": "set"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_getPrintClosure",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_libraryFilePath",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_resolveInWorkingDirectory",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_setPackageRoot",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_setPackagesMap",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_setWorkingDirectory",
+      "action": "call"
+    },
+    {
+      "library": "dart:async",
+      "name": "_setScheduleImmediateClosure",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "name": "_getUriBaseClosure",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "name": "_getWatchSignalInternal",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "name": "_makeDatagram",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "name": "_makeUint8ListView",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "name": "_setupHooks",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "_EmbedderConfig",
+      "name": "_mayExit",
+      "action": "get"
+    },
+    {
+      "library": "dart:io",
+      "class": "_EmbedderConfig",
+      "name": "_mayExit",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ExternalBuffer",
+      "name": "end",
+      "action": "get"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ExternalBuffer",
+      "name": "start",
+      "action": "get"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ExternalBuffer",
+      "name": "data",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ExternalBuffer",
+      "name": "end",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ExternalBuffer",
+      "name": "start",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_Namespace",
+      "name": "_setupNamespace",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "_Platform",
+      "name": "_nativeScript",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ProcessStartStatus",
+      "name": "_errorCode",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_ProcessStartStatus",
+      "name": "_errorMessage",
+      "action": "set"
+    },
+    {
+      "library": "dart:io",
+      "class": "_SecureFilterImpl",
+      "name": "buffers",
+      "action": "get"
+    },
+    {
+      "library": "dart:io",
+      "class": "_SecureFilterImpl",
+      "name": "ENCRYPTED_SIZE",
+      "action": "get"
+    },
+    {
+      "library": "dart:io",
+      "class": "_SecureFilterImpl",
+      "name": "SIZE",
+      "action": "get"
+    },
+    {
+      "library": "dart:io",
+      "class": "CertificateException",
+      "name": "CertificateException",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "Directory",
+      "name": "Directory",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "File",
+      "name": "File",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "FileSystemException",
+      "name": "FileSystemException",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "HandshakeException",
+      "name": "HandshakeException",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "Link",
+      "name": "Link",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "OSError",
+      "name": "OSError",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "TlsException",
+      "name": "TlsException",
+      "action": "call"
+    },
+    {
+      "library": "dart:io",
+      "class": "X509Certificate",
+      "name": "X509Certificate._",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "name": "_getIsolateScheduleImmediateClosure",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "name": "_setupHooks",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
+      "name": "_startMainIsolate",
+      "action": "call"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "main",
+      "action": "call"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_isolateId",
+      "action": "get"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_isolateId",
+      "action": "set"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_loadPort",
+      "action": "get"
+    },
+    {
+      "library": "dart:_builtin",
+      "name": "_loadPort",
+      "action": "set"
+    },
+    {
+      "library": "dart:_internal",
+      "name": "_printClosure",
+      "action": "get"
+    },
+    {
+      "library": "dart:_internal",
+      "name": "_printClosure",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_autoStart",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_autoStart",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_ip",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_ip",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_isFuchsia",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_isFuchsia",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_isWindows",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_isWindows",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_originCheckDisabled",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_originCheckDisabled",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_port",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_port",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_signalWatch",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_signalWatch",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_traceLoading",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_traceLoading",
+      "action": "set"
+    }
+  ],
+  "native-methods": {
+    "Identical_comparison": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "ClassID_getID": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "List_allocate": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_List",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetInt8": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetUint8": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetInt16": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetUint16": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetFloat32": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetFloat64": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetFloat32x4": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "TypedData_GetInt32x4": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Double_add": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_sub": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_mul": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_div": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float32x4_fromDoubles": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_zero": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_splat": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_fromInt32x4Bits": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_fromFloat64x2": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_shuffle": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_shuffleMix": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_cmpequal": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_cmpgt": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_cmpgte": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_cmplt": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_cmplte": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_cmpnequal": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_min": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_max": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_scale": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_sqrt": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_reciprocalSqrt": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_reciprocal": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_negate": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_abs": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_clamp": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_setX": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_setY": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_setZ": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_setW": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float64x2_fromDoubles": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_zero": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_splat": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_fromFloat32x4": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_getX": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float64x2_getY": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float64x2_negate": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_abs": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_sqrt": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_scale": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_setX": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_setY": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_min": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Float64x2_max": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2",
+        "nullable": false
+      }
+    ],
+    "Int32x4_fromInts": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_fromBools": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_fromFloat32x4Bits": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_getFlagX": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Int32x4_getFlagY": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Int32x4_getFlagZ": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Int32x4_getFlagW": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Int32x4_shuffle": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_shuffleMix": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_select": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_setFlagX": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_setFlagY": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_setFlagZ": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Int32x4_setFlagW": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4",
+        "nullable": false
+      }
+    ],
+    "Bigint_getNeg": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Bigint_getUsed": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Bigint_getDigits": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint32List",
+        "nullable": false
+      }
+    ],
+    "LinkedHashMap_getIndex": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint32List",
+        "nullable": false
+      }
+    ],
+    "LinkedHashMap_getData": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_List",
+        "nullable": false
+      }
+    ],
+    "LinkedHashMap_getUsedData": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "LinkedHashMap_getHashMask": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "LinkedHashMap_getDeletedKeys": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Smi_bitNegate": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Smi_bitLength": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Smi_bitAndFromSmi": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Double_getIsNaN": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Double_getIsInfinite": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Double_getIsNegative": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Double_doubleFromInteger": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "GrowableList_allocate": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_GrowableList",
+        "nullable": false
+      }
+    ],
+    "Object_equals": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Object_runtimeType": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Type",
+        "nullable": false
+      }
+    ],
+    "Object_haveSameRuntimeType": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "String_getHashCode": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "String_getHashCode": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "OneByteString_substringUnchecked": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_OneByteString",
+        "nullable": false
+      }
+    ],
+    "OneByteString_allocate": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_OneByteString",
+        "nullable": false
+      }
+    ],
+    "Type_getHashCode": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Object_getHash": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "TypedData_Int8Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int8List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Uint8Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint8List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Uint8ClampedArray_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint8ClampedList",
+        "nullable": false
+      }
+    ],
+    "TypedData_Int16Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int16List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Uint16Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint16List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Int32Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Uint32Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint32List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Int64Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int64List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Uint64Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Uint64List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Float32Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Float64Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Float32x4Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Int32x4Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Int32x4List",
+        "nullable": false
+      }
+    ],
+    "TypedData_Float64x2Array_new": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float64x2List",
+        "nullable": false
+      }
+    ],
+    "Integer_greaterThanFromInteger": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "Integer_equalToInteger": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "bool",
+        "nullable": false
+      }
+    ],
+    "List_getLength": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "List_getLength": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "GrowableList_getLength": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "GrowableList_getCapacity": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "String_getLength": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "String_codeUnitAt": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "String_codeUnitAt": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "String_codeUnitAt": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "String_codeUnitAt": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Double_flipSignBit": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_truncate": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_round": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_floor": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_ceil": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Double_modulo": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "TypedData_length": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Smi",
+        "nullable": false
+      }
+    ],
+    "Float32x4_getX": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float32x4_getY": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float32x4_getZ": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float32x4_getW": [
+      {
+        "action": "return",
+        "library": "dart:core",
+        "class": "_Double",
+        "nullable": false
+      }
+    ],
+    "Float32x4_mul": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_sub": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ],
+    "Float32x4_add": [
+      {
+        "action": "return",
+        "library": "dart:typed_data",
+        "class": "_Float32x4",
+        "nullable": false
+      }
+    ]
+  }
+}

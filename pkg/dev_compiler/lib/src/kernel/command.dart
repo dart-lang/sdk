@@ -11,7 +11,6 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
@@ -152,9 +151,7 @@ Future<CompilerResult> _compile(List<String> args,
       .map((s) => stringToCustomUri(s, multiRoots, customScheme))
       .toList();
 
-  var sdkSummaryPath = argResults['dart-sdk-summary'] ??
-      path.join(path.dirname(path.dirname(Platform.resolvedExecutable)), 'lib',
-          '_internal', 'ddc_sdk.dill');
+  var sdkSummaryPath = argResults['dart-sdk-summary'] ?? defaultSdkSummaryPath;
 
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
@@ -219,7 +216,7 @@ Future<CompilerResult> _compile(List<String> args,
 
 JS.Program compileToJSModule(Program p, List<Program> summaries,
     List<Uri> summaryUris, Map<String, String> declaredVariables) {
-  var compiler = new ProgramCompiler(new NativeTypeSet(p, new CoreTypes(p)),
+  var compiler = new ProgramCompiler(new NativeTypeSet(p),
       declaredVariables: declaredVariables);
   return compiler.emitProgram(p, summaries, summaryUris);
 }
@@ -375,3 +372,10 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 
   return declaredVariables;
 }
+
+/// The default path of the kernel summary for the Dart SDK.
+final defaultSdkSummaryPath = path.join(
+    path.dirname(path.dirname(Platform.resolvedExecutable)),
+    'lib',
+    '_internal',
+    'ddc_sdk.dill');

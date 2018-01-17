@@ -21,6 +21,7 @@ main() {
 class KeywordContributorTest extends DartCompletionContributorTest {
   static const List<Keyword> CLASS_BODY_KEYWORDS = const [
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.FACTORY,
     Keyword.FINAL,
@@ -36,6 +37,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.FINAL,
     Keyword.TYPEDEF,
@@ -47,6 +49,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.EXPORT,
     Keyword.FINAL,
@@ -62,6 +65,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.EXPORT,
     Keyword.FINAL,
@@ -769,7 +773,7 @@ class C {
 }
 ''');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.CONST, Keyword.FINAL]);
+    assertSuggestKeywords([Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL]);
   }
 
   test_class_member_final_afterStatic() async {
@@ -779,7 +783,7 @@ class C {
 }
 ''');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.CONST, Keyword.FINAL]);
+    assertSuggestKeywords([Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL]);
   }
 
   test_class_name() async {

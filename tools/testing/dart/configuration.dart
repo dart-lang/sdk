@@ -179,6 +179,18 @@ class Configuration {
     return _servers;
   }
 
+  /// Returns true if this configuration uses the new front end (fasta)
+  /// as the first stage of compilation.
+  bool get usesFasta {
+    var fastaCompilers = const [
+      Compiler.dartk,
+      Compiler.dartkp,
+      Compiler.dartdevk
+    ];
+    return fastaCompilers.contains(compiler) ||
+        compiler == Compiler.dart2js && useDart2JSWithKernel;
+  }
+
   /// Returns true if this configuration is considered Dart 2.0 configuration
   /// by VM (which is identified by using common front-end and strong mode).
   /// In this case instead of invoking VM binary directly we use
@@ -305,11 +317,6 @@ class Configuration {
       },
       Runtime.safari: const {
         System.macos: '/Applications/Safari.app/Contents/MacOS/Safari'
-      },
-      Runtime.safariMobileSim: const {
-        System.macos: '/Applications/Xcode.app/Contents/Developer/Platforms/'
-            'iPhoneSimulator.platform/Developer/Applications/'
-            'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
       },
       Runtime.ie9: const {
         System.windows: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
@@ -457,6 +464,7 @@ class Configuration {
         'csp': isCsp,
         'system': system.name,
         'vm_options': vmOptions,
+        'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
         'fast_startup': useFastStartup,
@@ -580,7 +588,6 @@ class Compiler {
           Runtime.ie11,
           Runtime.opera,
           Runtime.chromeOnAndroid,
-          Runtime.safariMobileSim
         ];
 
       case Compiler.dartdevc:
@@ -716,7 +723,6 @@ class Runtime {
   static const ie11 = const Runtime._('ie11');
   static const opera = const Runtime._('opera');
   static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
-  static const safariMobileSim = const Runtime._('safarimobilesim');
   static const contentShellOnAndroid = const Runtime._('ContentShellOnAndroid');
   static const selfCheck = const Runtime._('self_check');
   static const none = const Runtime._('none');
@@ -738,7 +744,6 @@ class Runtime {
     ie11,
     opera,
     chromeOnAndroid,
-    safariMobileSim,
     contentShellOnAndroid,
     selfCheck,
     none
@@ -768,7 +773,6 @@ class Runtime {
         chrome,
         firefox,
         chromeOnAndroid,
-        safariMobileSim,
         contentShellOnAndroid
       ].contains(this);
 
@@ -803,7 +807,6 @@ class Runtime {
       case ie11:
       case opera:
       case chromeOnAndroid:
-      case safariMobileSim:
       case contentShellOnAndroid:
         return Compiler.dart2js;
 

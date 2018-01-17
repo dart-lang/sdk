@@ -15,13 +15,8 @@ import '../kernel/compiler_helper.dart';
 const String SOURCE = r'''
 import 'package:meta/dart2js.dart';
 
-// TODO(johnniwinther): Remove these when the needed RTI is correctly computed
-// for function type variables.
-test(o) => o is double || o is String || o is int;
-
 @noInline
 method1<T>(T t) {
-  test(t);
   print('method1:');
   print('$t is $T = ${t is T}');
   print('"foo" is $T = ${"foo" is T}');
@@ -30,8 +25,6 @@ method1<T>(T t) {
 
 @noInline
 method2<T, S>(S s, T t) {
-  test(t);
-  test(s);
   print('method2:');
   print('$t is $T = ${t is T}');
   print('$s is $T = ${s is T}');
@@ -42,8 +35,6 @@ method2<T, S>(S s, T t) {
 
 @tryInline
 method3<T, S>(T t, S s) {
-  test(t);
-  test(s);
   print('method3:');
   print('$t is $T = ${t is T}');
   print('$s is $T = ${s is T}');
@@ -76,7 +67,6 @@ testMethod4() {
 class Class2 {
   @tryInline
   method5<T>(T t) {
-    test(t);
     print('Class2.method5:');
     print('$t is $T = ${t is T}');
     print('"foo" is $T = ${"foo" is T}');
@@ -95,7 +85,6 @@ class Class2 {
 class Class3 {
   @noInline
   method6<T>(T t) {
-    test(t);
     print('Class3.method6:');
     print('$t is $T = ${t is T}');
     print('"foo" is $T = ${"foo" is T}');
@@ -168,11 +157,13 @@ noSuchMethod: Class2.method6<int>
 
 main(List<String> args) {
   asyncTest(() async {
-    Compiler compiler = await runWithD8(
-        memorySourceFiles: {'main.dart': SOURCE},
-        options: [Flags.useKernel, Flags.strongMode],
-        expectedOutput: OUTPUT,
-        printJs: args.contains('-v'));
+    Compiler compiler = await runWithD8(memorySourceFiles: {
+      'main.dart': SOURCE
+    }, options: [
+      Flags.useKernel,
+      Flags.strongMode,
+      Flags.disableRtiOptimization
+    ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

@@ -18,9 +18,16 @@ class DFE {
   DFE();
   ~DFE();
 
-  const char* frontend_filename() const { return frontend_filename_; }
-  void set_frontend_filename(const char* name) { frontend_filename_ = name; }
-  bool UseDartFrontend() const { return frontend_filename_ != NULL; }
+  char* FrontendFilename();
+  void set_frontend_filename(const char* name) {
+    if (frontend_filename_ != NULL) {
+      free(frontend_filename_);
+    }
+    frontend_filename_ = strdup(name);
+    set_use_dfe();
+  }
+  void set_use_dfe() { use_dfe_ = true; }
+  bool UseDartFrontend() const { return use_dfe_; }
 
   const char* GetPlatformBinaryFilename();
 
@@ -64,6 +71,8 @@ class DFE {
   // valid kernel file, false otherwise.
   void* ReadScript(const char* script_uri) const;
 
+  static void* KernelServiceProgram();
+
  private:
   // Tries to read [script_uri] as a Kernel IR file.
   // Returns `true` if successful and sets [kernel_file] and [kernel_length]
@@ -74,7 +83,8 @@ class DFE {
                          const uint8_t** kernel_ir,
                          intptr_t* kernel_ir_size) const;
 
-  const char* frontend_filename_;
+  bool use_dfe_;
+  char* frontend_filename_;
   char* kernel_binaries_path_;
   char* platform_binary_filename_;
   void* kernel_platform_;
@@ -84,6 +94,8 @@ class DFE {
   void* application_kernel_binary_;
 
   bool kernel_file_specified_;  // Kernel file was specified on the cmd line.
+
+  static void* kKernelServiceProgram;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };

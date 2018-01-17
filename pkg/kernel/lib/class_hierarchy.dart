@@ -9,10 +9,27 @@ import 'dart:typed_data';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
+import 'src/incremental_class_hierarchy.dart' show IncrementalClassHierarchy;
+
 /// Interface for answering various subclassing queries.
 /// TODO(scheglov) Several methods are not used, or used only in tests.
 /// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
+  factory ClassHierarchy(Program program) {
+    int numberOfClasses = 0;
+    for (var library in program.libraries) {
+      numberOfClasses += library.classes.length;
+    }
+    return new ClosedWorldClassHierarchy._internal(program, numberOfClasses)
+      .._initialize();
+  }
+
+  /// Use [ClassHierarchy] factory instead.
+  @deprecated
+  factory ClassHierarchy.deprecated_incremental([Program program]) {
+    return new IncrementalClassHierarchy.deprecated();
+  }
+
   /// Given the [unordered] classes, return them in such order that classes
   /// occur after their superclasses.  If some superclasses are not in
   /// [unordered], they are not included.
@@ -264,8 +281,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   final Map<Class, _ClassInfo> _infoFor = <Class, _ClassInfo>{};
 
-  ClosedWorldClassHierarchy(Program program)
-      : this._internal(program, _countClasses(program));
+  ClosedWorldClassHierarchy._internal(this._program, int numberOfClasses)
+      : classes = new List<Class>(numberOfClasses);
 
   @override
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
@@ -607,11 +624,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyChanges(Iterable<Class> classes) {
     if (classes.isEmpty) return this;
-    return new ClosedWorldClassHierarchy(_program);
+    return new ClassHierarchy(_program);
   }
 
-  ClosedWorldClassHierarchy._internal(this._program, int numberOfClasses)
-      : classes = new List<Class>(numberOfClasses) {
+  void _initialize() {
     // Build the class ordering based on a topological sort.
     for (var library in _program.libraries) {
       for (var classNode in library.classes) {
@@ -643,6 +659,20 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var class_ = classes[i];
       _buildInterfaceMembers(class_, _infoFor[class_], setters: true);
       _buildInterfaceMembers(class_, _infoFor[class_], setters: false);
+    }
+
+    for (int i = 0; i < classes.length; ++i) {
+      Class cls = classes[i];
+      if (cls == null) {
+        throw "No class at index $i.";
+      }
+      _ClassInfo info = _infoFor[cls];
+      if (info == null) {
+        throw "No info for ${cls.name} from ${cls.fileUri}.";
+      }
+      if (info.topologicalIndex != i) {
+        throw "Unexpected topologicalIndex (${info.topologicalIndex} != $i) for ${cls.name} from ${cls.fileUri}.";
+      }
     }
   }
 
@@ -736,6 +766,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
       {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
     List<Member> members =
         setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
     if (members != null) return members;
@@ -916,14 +949,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         ? submixtureSetBuilder.buildIntervalList()
         : info.subclassIntervalList;
     info.subtypeIntervalList = subtypeSetBuilder.buildIntervalList();
-  }
-
-  static int _countClasses(Program program) {
-    int count = 0;
-    for (var library in program.libraries) {
-      count += library.classes.length;
-    }
-    return count;
   }
 
   /// Creates a histogram such that index `N` contains the number of classes

@@ -1657,7 +1657,10 @@ class _LoadedLibrariesAdapter implements LoadedLibraries {
     assert(rootLibrary != null);
   }
 
-  bool containsLibrary(Uri uri) => getLibrary(uri) != null;
+  bool containsLibrary(Uri uri) {
+    var lib = getLibrary(uri);
+    return lib != null && _newLibraries.contains(lib);
+  }
 
   LibraryEntity getLibrary(Uri uri) => worldBuilder.lookupLibrary(uri);
 

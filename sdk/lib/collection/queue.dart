@@ -32,6 +32,23 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   factory Queue.from(Iterable elements) = ListQueue<E>.from;
 
   /**
+   * Adapts [source] to be a `Queue<T>`.
+   *
+   * Any time the queue would produce an element that is not a [T],
+   * the element access will throw.
+   *
+   * Any time a [T] value is attempted stored into the adapted queue,
+   * the store will throw unless the value is also an instance of [S].
+   *
+   * If all accessed elements of [source] are actually instances of [T],
+   * and if all elements stored into the returned queue are actually instance
+   * of [S],
+   * then the returned queue can be used as a `Queue<T>`.
+   */
+  static Queue<T> castFrom<S, T>(Queue<S> source) =>
+      new CastQueue<S, T>(source);
+
+  /**
    * Removes and returns the first element of this queue.
    *
    * The queue must not be empty when this method is called.

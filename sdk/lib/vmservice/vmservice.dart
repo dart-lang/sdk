@@ -511,12 +511,21 @@ class VMService extends MessageRouter {
       return encodeInvalidParamError(message, 'uri');
     }
     var args = message.params['args'];
-    if (args != null && args is! List<String>) {
-      return encodeInvalidParamError(message, 'args');
+    var argsOfString = new List<String>();
+    if (args != null) {
+      if (args is! List) {
+        return encodeInvalidParamError(message, 'args');
+      }
+      for (var arg in args) {
+        if (arg is! String) {
+          return encodeInvalidParamError(message, 'args');
+        }
+        argsOfString.add(arg);
+      }
     }
     var msg = message.params['message'];
 
-    Isolate.spawnUri(Uri.parse(uri), args, msg).then((isolate) {
+    Isolate.spawnUri(Uri.parse(uri), argsOfString, msg).then((isolate) {
       _spawnUriNotify(isolate.controlPort, token);
     }).catchError((e) {
       _spawnUriNotify(e.toString(), token);

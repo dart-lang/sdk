@@ -20,7 +20,7 @@ main(List args, SendPort replyPort) {
 """;
 
     RawReceivePort receivePort;
-    receivePort = new RawReceivePort(expectAsync((int message) {
+    receivePort = new RawReceivePort(expectAsync((message) {
       expect(message, equals(42));
       receivePort.close();
     }));

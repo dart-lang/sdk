@@ -16,7 +16,8 @@ name(DeclarationMirror mirror) {
 stringifyMap(Map map) {
   var buffer = new StringBuffer();
   bool first = true;
-  for (String key in map.keys.map(MirrorSystem.getName).toList()..sort()) {
+  var names = map.keys.map((s) => MirrorSystem.getName(s)).toList()..sort();
+  for (String key in names) {
     if (!first) buffer.write(', ');
     first = false;
     buffer.write(key);

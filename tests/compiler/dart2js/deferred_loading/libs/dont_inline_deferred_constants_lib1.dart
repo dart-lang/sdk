@@ -6,18 +6,27 @@ import "dont_inline_deferred_constants_main.dart" show C;
 import "dont_inline_deferred_constants_main.dart" as main;
 
 /*element: C1:OutputUnit(1, {lib1})*/
-const C1 = /*OutputUnit(1, {lib1})*/ "string1";
+const C1 = "string1";
+
+/*element: C1b:OutputUnit(1, {lib1})*/
+const C1b = /*OutputUnit(1, {lib1})*/ const C("string1");
 
 /*element: C2:OutputUnit(1, {lib1})*/
-const C2 = /*OutputUnit(1, {lib1})*/ 1010;
+const C2 = 1010;
+
+/*element: C2b:OutputUnit(1, {lib1})*/
+const C2b = /*OutputUnit(1, {lib1})*/ const C(1010);
 
 class D {
   /*element: D.C3:OutputUnit(1, {lib1})*/
-  static const C3 = /*OutputUnit(1, {lib1})*/ "string2";
+  static const C3 = "string2";
+
+  /*element: D.C3b:OutputUnit(1, {lib1})*/
+  static const C3b = /*OutputUnit(1, {lib1})*/ const C("string2");
 }
 
 /*element: C4:OutputUnit(1, {lib1})*/
-const C4 = /*OutputUnit(main, {})*/ "string4";
+const C4 = "string4";
 
 /*element: C5:OutputUnit(1, {lib1})*/
 const C5 = /*OutputUnit(main, {})*/ const C(1);

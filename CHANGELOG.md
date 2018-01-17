@@ -172,8 +172,12 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
 * Emit exit code 66 when a path dependency doesn't exist ([issue 1747][pub#1747]).
 
+* `pub publish` throws a more explicit error if the `publish_to` field isn't an
+  absolute URL ([issue 1769][pub#1769]).
+
 [pub#1556]: https://github.com/dart-lang/pub/issues/1556
 [pub#1747]: https://github.com/dart-lang/pub/issues/1747
+[pub#1769]: https://github.com/dart-lang/pub/issues/1769
 
 ##### Bug Fixes
 

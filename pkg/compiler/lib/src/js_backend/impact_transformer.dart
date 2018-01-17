@@ -179,16 +179,18 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
           if (type.isTypeVariable) {
             TypeVariableType typeVariable = type;
-            if (typeVariable.element.typeDeclaration is ClassEntity) {
-              // GENERIC_METHODS: The `is!` test above filters away method type
-              // variables, because they have the value `dynamic` with the
-              // incomplete support for generic methods offered with
-              // '--generic-method-syntax'. This must be revised in order to
-              // support generic methods fully.
-              ClassEntity cls = typeVariable.element.typeDeclaration;
-              _rtiNeedBuilder.registerClassUsingTypeVariableExpression(cls);
-              registerImpact(_impacts.typeVariableExpression);
+            Entity typeDeclaration = typeVariable.element.typeDeclaration;
+            if (typeDeclaration is ClassEntity) {
+              _rtiNeedBuilder
+                  .registerClassUsingTypeVariableLiteral(typeDeclaration);
+            } else if (typeDeclaration is FunctionEntity) {
+              _rtiNeedBuilder
+                  .registerMethodUsingTypeVariableLiteral(typeDeclaration);
+            } else if (typeDeclaration is Local) {
+              _rtiNeedBuilder.registerLocalFunctionUsingTypeVariableLiteral(
+                  typeDeclaration);
             }
+            registerImpact(_impacts.typeVariableExpression);
           }
           hasTypeLiteral = true;
           break;

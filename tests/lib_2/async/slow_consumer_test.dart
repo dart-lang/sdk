@@ -29,7 +29,8 @@ class SlowConsumer extends StreamConsumer {
     bool done = false;
     Completer completer = new Completer();
     var subscription;
-    subscription = stream.listen((List<int> data) {
+    subscription = stream.listen((Object _data) {
+      List data = _data;
       current = current.then((count) {
         // Simulated amount of time it takes to handle the data.
         int ms = data.length * 1000 ~/ bytesPerSecond;

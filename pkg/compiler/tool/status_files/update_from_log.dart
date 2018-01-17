@@ -78,7 +78,8 @@ mainInternal(List<String> args, Map<String, String> configurations,
     exit(1);
   }
 
-  var uri = Uri.base.resolve(args[1]);
+  var uri =
+      Uri.base.resolveUri(new Uri.file(args[1], windows: Platform.isWindows));
   var file = new File.fromUri(uri);
   if (!file.existsSync()) {
     print('file not found: $file');
@@ -105,6 +106,10 @@ void updateLogs(String mode, String log, Map<String, String> configurations,
     if (section?.suite != record.suite) {
       section?.update(globalReason);
       var statusFile = statusFiles[record.suite];
+      if (statusFile == null) {
+        print("No status file for suite '${record.suite}'.");
+        continue;
+      }
       var condition = configurations[mode];
       section = ConfigurationInSuiteSection.create(
           record.suite, mode, statusFile, condition);

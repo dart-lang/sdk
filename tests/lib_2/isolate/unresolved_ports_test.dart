@@ -41,7 +41,7 @@ bobIsolate(init) {
       .then((msg) => msg[1].send('${msg[0]}\nBob says: we are all coming!'));
 }
 
-Future<SendPort> spawnFunction(function) {
+Future spawnFunction(function) {
   ReceivePort init = new ReceivePort();
   Isolate.spawn(function, init.sendPort);
   return init.first;

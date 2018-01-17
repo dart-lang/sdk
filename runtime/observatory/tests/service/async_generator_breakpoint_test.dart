@@ -4,24 +4,25 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override --verbose-debug
 // VMOptions=--error_on_bad_type --error_on_bad_override --verbose-debug --stacktrace-every=55 --stress-async-stacks
 
+import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 printSync() {
-  print('sync'); // Line 11
+  print('sync'); // Line 12
 }
 
 printAsync() async {
-  print('async'); // Line 15
+  print('async'); // Line 16
 }
 
 printAsyncStar() async* {
-  print('async*'); // Line 19
+  print('async*'); // Line 20
 }
 
 printSyncStar() sync* {
-  print('sync*'); // Line 23
+  print('sync*'); // Line 24
 }
 
 var testerReady = false;
@@ -38,38 +39,38 @@ testeeDo() {
   var stream = printAsyncStar();
   var iterator = printSyncStar();
 
-  print('middle'); // Line 41
+  print('middle'); // Line 42
 
   future.then((v) => print(v));
   stream.toList();
   iterator.toList();
 }
 
-testAsync(Isolate isolate) async {
+Future testAsync(Isolate isolate) async {
   await isolate.rootLibrary.load();
   var script = isolate.rootLibrary.scripts[0];
 
-  var bp1 = await isolate.addBreakpoint(script, 11);
+  var bp1 = await isolate.addBreakpoint(script, 12);
   expect(bp1, isNotNull);
   expect(bp1 is Breakpoint, isTrue);
-  var bp2 = await isolate.addBreakpoint(script, 15);
+  var bp2 = await isolate.addBreakpoint(script, 16);
   expect(bp2, isNotNull);
   expect(bp2 is Breakpoint, isTrue);
-  var bp3 = await isolate.addBreakpoint(script, 19);
+  var bp3 = await isolate.addBreakpoint(script, 20);
   expect(bp3, isNotNull);
   expect(bp3 is Breakpoint, isTrue);
-  var bp4 = await isolate.addBreakpoint(script, 23);
+  var bp4 = await isolate.addBreakpoint(script, 24);
   expect(bp4, isNotNull);
   expect(bp4 is Breakpoint, isTrue);
-  var bp5 = await isolate.addBreakpoint(script, 41);
+  var bp5 = await isolate.addBreakpoint(script, 42);
   print("BP5 - $bp5");
   expect(bp5, isNotNull);
   expect(bp5 is Breakpoint, isTrue);
 
   var hits = [];
 
-  isolate.rootLibrary.evaluate('testerReady = true;').then((Instance result) {
-    expect(result.valueAsString, equals('true'));
+  isolate.rootLibrary.evaluate('testerReady = true;').then((result) {
+    expect((result as Instance).valueAsString, equals('true'));
   });
 
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);

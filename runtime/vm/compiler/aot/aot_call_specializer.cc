@@ -251,6 +251,20 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   return false;
 }
 
+bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
+  if (call->function().IsImplicitGetterFunction()) {
+    Field& field =
+        Field::ZoneHandle(call->function().LookupImplicitGetterSetterField());
+    if (should_clone_fields_) {
+      field = field.CloneFromOriginal();
+    }
+    InlineImplicitInstanceGetter(call, field);
+    return true;
+  }
+
+  return false;
+}
+
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
@@ -403,7 +417,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
           } else {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new BinaryInt64OpInstr(
+            replacement = new (Z) BinaryInt64OpInstr(
                 op_kind, left_value, right_value, Thread::kNoDeoptId,
                 Instruction::kNotSpeculative);
           }
@@ -437,7 +451,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       break;
   }
 
-  if (replacement != NULL) {
+  if (replacement != NULL && !replacement->ComputeCanDeoptimize()) {
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 instr->ToCString(), replacement->ToCString());
@@ -823,6 +837,13 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     instr->ReplaceWith(call, current_iterator());
     return;
   }
+}
+
+void AotCallSpecializer::VisitStaticCall(StaticCallInstr* instr) {
+  if (TryInlineFieldAccess(instr)) {
+    return;
+  }
+  CallSpecializer::VisitStaticCall(instr);
 }
 
 bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,

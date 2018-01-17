@@ -586,13 +586,10 @@ class StandardTestSuite extends TestSuite {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
-      var snapshotPath = new Path(buildDir)
-          .join(new Path('dart-sdk/bin/snapshots/'
-              'utils_wrapper.dart.snapshot'))
-          .absolute
-          .toString();
       _dart2JsBootstrapDependencies = [
-        new Uri(scheme: 'file', path: snapshotPath)
+        Uri.base
+            .resolveUri(new Uri.directory(buildDir))
+            .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
     }
   }

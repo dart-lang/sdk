@@ -44,7 +44,9 @@ import '../quote.dart' show unescapeString;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'unhandled_listener.dart' show NullValue, Unhandled, UnhandledListener;
+import 'unhandled_listener.dart' show NullValue, UnhandledListener;
+
+import '../configuration.dart' show Configuration;
 
 enum MethodBody {
   Abstract,
@@ -143,7 +145,7 @@ class OutlineBuilder extends UnhandledListener {
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
     List<Combinator> combinators = pop();
-    Unhandled conditionalUris = pop();
+    List<Configuration> conditionalUris = pop();
     int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
@@ -171,13 +173,36 @@ class OutlineBuilder extends UnhandledListener {
     bool isDeferred = pop();
     int prefixOffset = pop();
     String prefix = pop(NullValue.Prefix);
-    Unhandled conditionalUris = pop();
+    List<Configuration> configurations = pop();
     int uriOffset = popCharOffset();
-    String uri = pop();
+    String uri = pop(); // For a conditional import, this is the default URI.
     List<MetadataBuilder> metadata = pop();
-    library.addImport(metadata, uri, conditionalUris, prefix, combinators,
+    library.addImport(metadata, uri, configurations, prefix, combinators,
         isDeferred, importKeyword.charOffset, prefixOffset, uriOffset);
     checkEmpty(importKeyword.charOffset);
+  }
+
+  @override
+  void endConditionalUris(int count) {
+    debugEvent("EndConditionalUris");
+    push(popList(count) ?? NullValue.ConditionalUris);
+  }
+
+  @override
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
+    debugEvent("EndConditionalUri");
+    int charOffset = popCharOffset();
+    String uri = pop();
+    if (equalSign != null) popCharOffset();
+    String condition = popIfNotNull(equalSign) ?? "true";
+    String dottedName = pop();
+    push(new Configuration(charOffset, dottedName, condition, uri));
+  }
+
+  @override
+  void handleDottedName(int count, Token firstIdentifier) {
+    debugEvent("DottedName");
+    push(popIdentifierList(count).join('.'));
   }
 
   @override

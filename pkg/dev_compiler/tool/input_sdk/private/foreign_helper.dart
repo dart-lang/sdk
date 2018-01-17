@@ -106,7 +106,7 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-JS(String typeDescription, String codeTemplate,
+T JS<T>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,

@@ -34,8 +34,8 @@ class CallSpecializer : public FlowGraphVisitor {
                   bool should_clone_fields)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
         speculative_policy_(speculative_policy),
-        flow_graph_(flow_graph),
-        should_clone_fields_(should_clone_fields) {}
+        should_clone_fields_(should_clone_fields),
+        flow_graph_(flow_graph) {}
 
   virtual ~CallSpecializer() {}
 
@@ -111,7 +111,10 @@ class CallSpecializer : public FlowGraphVisitor {
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call) = 0;
 
  protected:
+  void InlineImplicitInstanceGetter(Definition* call, const Field& field);
+
   SpeculativeInliningPolicy* speculative_policy_;
+  const bool should_clone_fields_;
 
  private:
   bool TypeCheckAsClassEquality(const AbstractType& type);
@@ -169,7 +172,6 @@ class CallSpecializer : public FlowGraphVisitor {
       const AbstractType& type);
 
   FlowGraph* flow_graph_;
-  const bool should_clone_fields_;
 };
 
 }  // namespace dart
