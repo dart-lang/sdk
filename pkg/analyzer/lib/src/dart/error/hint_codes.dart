@@ -38,18 +38,6 @@ class HintCode extends ErrorCode {
       "The argument type '{0}' can't be assigned to the parameter type '{1}'.");
 
   /**
-   * This hint is generated when a function type is assigned to a function
-   * typed location, and the assignment will be invalid after fuzzy arrows
-   * (the treatment of dynamic as bottom in certain locations) is removed.
-   *
-   */
-  static const HintCode USES_DYNAMIC_AS_BOTTOM = const HintCode(
-      'USES_DYNAMIC_AS_BOTTOM',
-      "A function of type '{0}' can't be assigned to a variable of type '{1}'.",
-      "Try changing the type of the function, or "
-      "casting the right-hand type to '{1}'.");
-
-  /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
    */

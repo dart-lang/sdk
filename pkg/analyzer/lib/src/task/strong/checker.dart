@@ -1123,7 +1123,7 @@ class CodeChecker extends RecursiveAstVisitor {
       var cTo = rules.typeToConcreteType(to);
       // If still true, no warning needed
       if (rules.isSubtypeOf(cFrom, cTo)) return;
-      _recordMessage(expr, HintCode.USES_DYNAMIC_AS_BOTTOM, [from, to]);
+      _recordMessage(expr, StrongModeCode.USES_DYNAMIC_AS_BOTTOM, [from, to]);
     }
   }
 
@@ -1276,9 +1276,7 @@ class CodeChecker extends RecursiveAstVisitor {
         errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
       severity = ErrorSeverity.ERROR;
     }
-    if (severity != ErrorSeverity.INFO ||
-        _options.strongModeHints ||
-        errorCode == HintCode.USES_DYNAMIC_AS_BOTTOM) {
+    if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
       int begin = node is AnnotatedNode
           ? node.firstTokenAfterCommentAndMetadata.offset
           : node.offset;
