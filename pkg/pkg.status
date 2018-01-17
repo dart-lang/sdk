@@ -113,6 +113,11 @@ mutation_observer: Skip # Skip tests on the VM if the package depends on dart:ht
 dev_compiler/test/options/*: SkipByDesign
 front_end/test/src/incremental/hot_reload_e2e_test: Skip
 
+[ $system == windows ]
+front_end/test/fasta/bootstrap_test: Skip # Issue 31902
+front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
+front_end/test/test/whole_program_test: Skip # Issue 31902
+
 [ $browser ]
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
 analysis_server/test/*: SkipByDesign # Uses dart:io.
@@ -192,9 +197,6 @@ analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # 
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
 analyzer/test/src/task/strong/checker_test: Pass, Slow
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
-front_end/test/fasta/bootstrap_test: RuntimeError # Issue 31902
-front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
-front_end/test/test/whole_program_test: RuntimeError # Issue 31902
 
 [ $runtime == vm && $system == windows && $checked ]
 front_end/tool/perf_test: Slow, Pass
