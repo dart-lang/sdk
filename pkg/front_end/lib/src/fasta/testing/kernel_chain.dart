@@ -9,7 +9,7 @@ library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show Directory, File, IOSink;
+import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -275,7 +275,17 @@ class BytesCollector implements Sink<List<int>> {
 }
 
 Future<String> runDiff(Uri expected, String actual) async {
-  // TODO(ahe): Implement this for Windows.
+  if (Platform.isWindows) {
+    // TODO(ahe): Implement this for Windows.
+    return """
+==> Expected ($expected) <==
+${new File.fromUri(expected).readAsStringSync()}
+
+==> Actual <==
+$actual
+
+""";
+  }
   StdioProcess process = await StdioProcess
       .run("diff", <String>["-u", expected.toFilePath(), "-"], input: actual);
   return process.output;
