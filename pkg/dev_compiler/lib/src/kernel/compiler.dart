@@ -115,7 +115,7 @@ class ProgramCompiler
   /// unit.
   final virtualFields = new VirtualFieldModel();
 
-  JSTypeRep _typeRep;
+  final JSTypeRep _typeRep;
 
   bool _superAllowed = true;
 
@@ -188,17 +188,28 @@ class ProgramCompiler
 
   final ConstantVisitor _constants;
 
-  NullableInference _nullableInference;
+  final NullableInference _nullableInference;
 
-  ProgramCompiler(NativeTypeSet nativeTypes,
-      {this.emitMetadata: true,
-      this.replCompile: false,
-      this.declaredVariables: const {}})
+  factory ProgramCompiler(Program program,
+      {bool emitMetadata: true,
+      bool replCompile: false,
+      Map<String, String> declaredVariables: const {}}) {
+    var nativeTypes = new NativeTypeSet(program);
+    var types = new TypeSchemaEnvironment(
+        nativeTypes.coreTypes, new ClassHierarchy(program), true);
+    return new ProgramCompiler._(
+        nativeTypes, new JSTypeRep(types, nativeTypes.sdk),
+        emitMetadata: emitMetadata,
+        replCompile: replCompile,
+        declaredVariables: declaredVariables);
+  }
+
+  ProgramCompiler._(NativeTypeSet nativeTypes, this._typeRep,
+      {this.emitMetadata, this.replCompile, this.declaredVariables})
       : _extensionTypes = nativeTypes,
+        types = _typeRep.types,
         coreTypes = nativeTypes.coreTypes,
         _constants = new ConstantVisitor(nativeTypes.coreTypes),
-        types = new TypeSchemaEnvironment(nativeTypes.coreTypes,
-            new ClassHierarchy.deprecated_incremental(), true),
         _jsArrayClass =
             nativeTypes.sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =
@@ -214,10 +225,8 @@ class ProgramCompiler
         identityHashSetImplClass =
             nativeTypes.sdk.getClass('dart:collection', '_IdentityHashSet'),
         syncIterableClass =
-            nativeTypes.sdk.getClass('dart:_js_helper', 'SyncIterable') {
-    _typeRep = new JSTypeRep(types, nativeTypes.sdk);
-    _nullableInference = new NullableInference(_typeRep);
-  }
+            nativeTypes.sdk.getClass('dart:_js_helper', 'SyncIterable'),
+        _nullableInference = new NullableInference(_typeRep);
 
   ClassHierarchy get hierarchy => types.hierarchy;
 

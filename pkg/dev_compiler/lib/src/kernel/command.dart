@@ -19,7 +19,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as JS;
 import 'compiler.dart';
-import 'native_types.dart';
 import 'source_map_printer.dart';
 
 const _binaryName = 'dartdevk';
@@ -221,8 +220,7 @@ Future<CompilerResult> _compile(List<String> args,
 
 JS.Program compileToJSModule(Program p, List<Program> summaries,
     List<Uri> summaryUris, Map<String, String> declaredVariables) {
-  var compiler = new ProgramCompiler(new NativeTypeSet(p),
-      declaredVariables: declaredVariables);
+  var compiler = new ProgramCompiler(p, declaredVariables: declaredVariables);
   return compiler.emitProgram(p, summaries, summaryUris);
 }
 
