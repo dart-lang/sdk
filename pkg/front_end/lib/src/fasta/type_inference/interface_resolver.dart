@@ -1068,7 +1068,12 @@ class InterfaceResolver {
     }
     if (procedure.kind != ProcedureKind.Setter &&
         ShadowProcedure.hasImplicitReturnType(procedure)) {
-      return true;
+      // Inference of the return type of `[]=` is handled separately by
+      // KernelProcedureBuilder.build, since there are no dependencies.
+      if (procedure.kind != ProcedureKind.Operator ||
+          procedure.name.name != '[]=') {
+        return true;
+      }
     }
     var function = procedure.function;
     for (var parameter in function.positionalParameters) {

@@ -45,6 +45,7 @@ generics_test: StaticWarning
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
+index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail # Issue 11585
