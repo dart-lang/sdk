@@ -29,7 +29,6 @@ abstract class RuntimeConfiguration {
       case Runtime.ie9:
       case Runtime.opera:
       case Runtime.safari:
-      case Runtime.safariMobileSim:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
 

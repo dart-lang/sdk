@@ -72,6 +72,11 @@ string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 string_case_test/01: Fail, OK
 unicode_test: Fail
 
+[ $runtime == safari ]
+double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
 [ $runtime == vm ]
 string_case_test/01: RuntimeError
 
@@ -163,11 +168,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 regexp/lookahead_test: RuntimeError
 regexp/no-extensions_test: RuntimeError
 regexp/overflow_test: RuntimeError
-
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
-string_trimlr_test/01: Fail
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
@@ -655,11 +655,6 @@ string_split_test: RuntimeError # does not return List<String>
 [ $runtime == ff || $runtime == jsshell ]
 double_parse_test/02: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
-
-[ $runtime == safari || $runtime == safarimobilesim ]
-double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Pass, Timeout # Issue 31659

@@ -271,9 +271,6 @@ html/file_sample_test: Skip # FileSystem not supported on Safari.
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
 
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-isolate/compile_time_error_test/none: Pass, Slow
-
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
@@ -780,7 +777,7 @@ html/fileapi_file_entry_test: Fail, Pass # TODO(dart2js-team): Please triage thi
 html/fileapi_file_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $runtime == safarimobilesim || $ie) ]
+[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.

@@ -40,8 +40,8 @@ regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Iss
 [ $compiler == dart2js && $runtime == none && $dart2js_with_kernel ]
 *: Fail, Pass, Crash # TODO(sigmund): we should have no crashes when migration completes
 
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-call_through_getter_test: Fail, OK # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
+[ $compiler == dart2js && $runtime == safari ]
+round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $system == windows && ($runtime == chrome || $runtime == ff) ]
 string_literals_test: RuntimeError # Issue 27533
@@ -1651,9 +1651,6 @@ mixin_mixin6_test: Fail # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 mixin_mixin_bound_test: RuntimeError # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857
-
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
-round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ !$dart2js_with_kernel && $minified ]
 regress_21795_test: RuntimeError # Issue 12605

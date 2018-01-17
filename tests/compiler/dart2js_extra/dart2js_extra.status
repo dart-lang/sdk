@@ -302,7 +302,7 @@ runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.
 typevariable_typedef_test: Fail, OK # Tests extected output of Type.toString().
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari || $runtime == safarimobilesim) ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate2_test/01: Fail # Issue 14458.
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == d8 || $runtime == drt) ]
