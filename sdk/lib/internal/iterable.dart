@@ -730,7 +730,7 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> where(bool test(E element)) => this;
 
-  Iterable<T> map<T>(T f(E element)) => const EmptyIterable();
+  Iterable<T> map<T>(T f(E element)) => new EmptyIterable<T>();
 
   E reduce(E combine(E value, E element)) {
     throw IterableElementError.noElement();

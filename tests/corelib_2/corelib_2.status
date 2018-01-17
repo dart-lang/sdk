@@ -333,7 +333,6 @@ bigint_test: Pass, Timeout # Please triage.
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
 compare_to2_test: RuntimeError
-iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -362,7 +361,6 @@ unicode_test: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
 compare_to2_test: RuntimeError
-iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
