@@ -317,6 +317,8 @@ class Isolate : public BaseIsolate {
 #endif
   }
 
+  void NotifyIdle(int64_t deadline);
+
   bool compaction_in_progress() const {
     return CompactionInProgressBit::decode(isolate_flags_);
   }

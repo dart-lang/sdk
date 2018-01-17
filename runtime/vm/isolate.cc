@@ -1638,6 +1638,10 @@ void Isolate::Run() {
                          reinterpret_cast<uword>(this));
 }
 
+void Isolate::NotifyIdle(int64_t deadline) {
+  heap()->NotifyIdle(deadline);
+}
+
 void Isolate::AddClosureFunction(const Function& function) const {
   ASSERT(!Compiler::IsBackgroundCompilation());
   GrowableObjectArray& closures =
