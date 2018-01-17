@@ -79,7 +79,7 @@ main() {
     PRINT_GRAPH = true;
     TRACE_FILTER_PATTERN_FOR_TEST = 'x';
     await test([
-      'tests/compiler/dart2js/data/deferred_helper.dart',
+      'tests/compiler/dart2js/deferred/data/deferred_helper.dart',
       '--out=custom.js',
       '--deferred-map=def/deferred.json',
       Flags.dumpInfo,
@@ -111,7 +111,7 @@ main() {
 
     await test(
         [
-          'tests/compiler/dart2js/data/deferred_helper.dart',
+          'tests/compiler/dart2js/deferred/data/deferred_helper.dart',
           Flags.useContentSecurityPolicy,
         ]..addAll(additionOptionals),
         expectedOutput,
@@ -120,7 +120,7 @@ main() {
     if (!useKernel) {
       // Option --resolve-only is only supported for the old frontend.
       await test([
-        'tests/compiler/dart2js/data/deferred_helper.dart',
+        'tests/compiler/dart2js/deferred/data/deferred_helper.dart',
         '--out=custom.data',
         '--resolve-only',
       ], [

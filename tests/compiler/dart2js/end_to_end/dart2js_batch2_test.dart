@@ -39,7 +39,7 @@ Future setup() {
     tmpDir = directory;
     String newPath = path.join(directory.path, "dart2js_batch2_run.dart");
     File source = new File.fromUri(
-        Platform.script.resolve("../data/dart2js_batch2_run.dart"));
+        Platform.script.resolve("data/dart2js_batch2_run.dart"));
     source.copySync(newPath);
   });
 }
