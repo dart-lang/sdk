@@ -148,7 +148,7 @@ list_concurrent_modify_test: RuntimeError # dart2js does not fully implement the
 list_test/*: RuntimeError # dart2js doesn't implement strong mode covariance checks
 nan_infinity_test/01: RuntimeError
 regexp/pcre_test: Pass, Slow # Issue 21593
-string_split_test: RuntimeError # Issue 30548: does not return List<String>
+string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
