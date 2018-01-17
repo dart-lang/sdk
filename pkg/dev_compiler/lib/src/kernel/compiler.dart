@@ -658,7 +658,7 @@ class ProgramCompiler
         var jsParams = _emitFormalParameters(ctor.function);
         var ctorBody = <JS.Statement>[];
         if (mixinCtor != null) ctorBody.add(mixinCtor);
-        if (ctor.name != '' || hasUnnamedSuper) {
+        if (ctor.name.name != '' || hasUnnamedSuper) {
           ctorBody.add(
               _emitSuperConstructorCall(className, ctor.name.name, jsParams));
         }
@@ -2029,12 +2029,12 @@ class ProgramCompiler
     var lazyFields = <Field>[];
     for (var field in fields) {
       // Skip our magic undefined constant.
-      if (field.name == 'undefined') continue;
+      if (field.name.name == 'undefined') continue;
 
       var init = field.initializer;
       if (init == null ||
           init is BasicLiteral ||
-          _isJSInvocation(init) ||
+          _isInlineJSCall(init) ||
           init is ConstructorInvocation &&
               isSdkInternalRuntime(init.target.enclosingLibrary)) {
         _moduleItems.add(js.statement('# = #;', [
@@ -2047,9 +2047,6 @@ class ProgramCompiler
     }
     return _emitLazyFields(_currentLibrary, lazyFields);
   }
-
-  bool _isJSInvocation(Expression expr) =>
-      expr is StaticInvocation && isInlineJS(expr.target);
 
   JS.Statement _emitLazyFields(NamedNode target, Iterable<Field> fields) {
     var accessors = <JS.Method>[];
@@ -3032,8 +3029,14 @@ class ProgramCompiler
   defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
 
   @override
-  visitExpressionStatement(ExpressionStatement node) =>
-      _visitAndMarkExpression(node.expression).toStatement();
+  visitExpressionStatement(ExpressionStatement node) {
+    var expr = node.expression;
+    if (_isInlineJSCall(expr)) {
+      var inlineJS = _emitInlineJSCode(expr);
+      return inlineJS is JS.Expression ? inlineJS.toStatement() : inlineJS;
+    }
+    return _visitAndMarkExpression(expr).toStatement();
+  }
 
   @override
   visitBlock(Block node) =>
@@ -4096,13 +4099,11 @@ class ProgramCompiler
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    var result = _emitForeignJS(node);
-    if (result != null) return result;
-    if (node.target.isFactory) {
-      return _emitFactoryInvocation(node);
-    }
     var target = node.target;
-    if (target?.name == 'extensionSymbol' &&
+    if (isInlineJS(target)) return _emitInlineJSCode(node);
+    if (target.isFactory) return _emitFactoryInvocation(node);
+
+    if (target.name.name == 'extensionSymbol' &&
         isSdkInternalRuntime(target.enclosingLibrary)) {
       var args = node.arguments;
       var firstArg = args.positional.length == 1 ? args.positional[0] : null;
@@ -4158,27 +4159,32 @@ class ProgramCompiler
   }
 
   /// Emits code for the `JS(...)` macro.
-  JS.Expression _emitForeignJS(StaticInvocation node) {
-    if (!isInlineJS(node.target)) return null;
+  JS.Node _emitInlineJSCode(StaticInvocation node) {
     var args = node.arguments.positional;
     // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
     var code = args[1];
     List<Expression> templateArgs;
     String source;
     if (code is StringConcatenation) {
-      if (args.length > 2) {
-        throw new ArgumentError(
-            "Can't mix template args and string interpolation in JS calls.");
-      }
-      templateArgs = <Expression>[];
-      source = code.expressions.map((expression) {
-        if (expression is StringLiteral) {
-          return expression.value;
-        } else {
-          templateArgs.add(expression);
-          return '#';
+      if (code.expressions.every((e) => e is StringLiteral)) {
+        templateArgs = args.skip(2).toList();
+        source = code.expressions.map((e) => (e as StringLiteral).value).join();
+      } else {
+        if (args.length > 2) {
+          throw new ArgumentError(
+              "Can't mix template args and string interpolation in JS calls: "
+              "`$node`");
         }
-      }).join();
+        templateArgs = <Expression>[];
+        source = code.expressions.map((expression) {
+          if (expression is StringLiteral) {
+            return expression.value;
+          } else {
+            templateArgs.add(expression);
+            return '#';
+          }
+        }).join();
+      }
     } else {
       templateArgs = args.skip(2).toList();
       source = (code as StringLiteral).value;
@@ -4209,7 +4215,7 @@ class ProgramCompiler
       if (arg is StaticInvocation) {
         var target = arg.target;
         var positional = arg.arguments.positional;
-        if (target.name == 'getGenericClass' &&
+        if (target.name.name == 'getGenericClass' &&
             isSdkInternalRuntime(target.enclosingLibrary) &&
             positional.length == 1) {
           var typeArg = positional[0];
@@ -4364,9 +4370,9 @@ class ProgramCompiler
         case 'Map':
         case 'HashMap':
         case 'LinkedHashMap':
-          if (ctor.name == '') {
+          if (ctor.name.name == '') {
             return js.call('new #.new()', _emitMapImplType(type));
-          } else if (ctor.name == 'identity') {
+          } else if (ctor.name.name == 'identity') {
             return js.call(
                 'new #.new()', _emitMapImplType(type, identity: true));
           }
@@ -4374,15 +4380,15 @@ class ProgramCompiler
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
-          if (ctor.name == '') {
+          if (ctor.name.name == '') {
             return js.call('new #.new()', _emitSetImplType(type));
-          } else if (ctor.name == 'identity') {
+          } else if (ctor.name.name == 'identity') {
             return js.call(
                 'new #.new()', _emitSetImplType(type, identity: true));
           }
           break;
         case 'List':
-          if (ctor.name == '' && type is InterfaceType) {
+          if (ctor.name.name == '' && type is InterfaceType) {
             return _emitList(type.typeArguments[0], []);
           }
           break;
@@ -4515,9 +4521,9 @@ class ProgramCompiler
   @override
   visitAsExpression(AsExpression node) {
     Expression fromExpr = node.operand;
-    var from = fromExpr.getStaticType(types);
     var to = node.type;
     var jsFrom = _visitAndMarkExpression(fromExpr);
+    var from = fromExpr.getStaticType(types);
 
     // If the check was put here by static analysis to ensure soundness, we
     // can't skip it. For example, one could implement covariant generic caller
@@ -4536,10 +4542,6 @@ class ProgramCompiler
     //        c.add('hi);
     //      }
     //
-    // NOTE: due to implementation details, we do not currently reify the the
-    // `C<T>.add` check in CoercionReifier, so it does not reach this point;
-    // rather we check for it explicitly when emitting methods and fields.
-    // However we do reify the `c.f` check, so we must not eliminate it.
     var isTypeError = node.isTypeError;
     if (!isTypeError && types.isSubtypeOf(from, to)) return jsFrom;
 
@@ -4865,12 +4867,11 @@ bool _isInlineJSFunction(Statement body) {
     if (statements.length != 1) return false;
     body = statements[0];
   }
-  if (body is ReturnStatement) {
-    var e = body.expression;
-    return e is MethodInvocation && isInlineJS(e.interfaceTarget);
-  }
-  return false;
+  return body is ReturnStatement && _isInlineJSCall(body.expression);
 }
+
+bool _isInlineJSCall(Expression expr) =>
+    expr is StaticInvocation && isInlineJS(expr.target);
 
 /// Return true if this is one of the methods/properties on all Dart Objects
 /// (toString, hashCode, noSuchMethod, runtimeType).

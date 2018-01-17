@@ -3898,93 +3898,91 @@ class CodeGenerator extends Object
 
   /// Emits code for the `JS(...)` macro.
   JS.Node _emitForeignJS(MethodInvocation node, Element e) {
-    if (isInlineJS(e)) {
-      var args = node.argumentList.arguments;
-      // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
-      var code = args[1];
-      List<Expression> templateArgs;
-      String source;
-      if (code is StringInterpolation) {
-        if (args.length > 2) {
-          throw new ArgumentError(
-              "Can't mix template args and string interpolation in JS calls.");
-        }
-        templateArgs = <Expression>[];
-        source = code.elements.map((element) {
-          if (element is InterpolationExpression) {
-            templateArgs.add(element.expression);
-            return '#';
-          } else {
-            return (element as InterpolationString).value;
-          }
-        }).join();
-      } else {
-        templateArgs = args.skip(2).toList();
-        source = (code as StringLiteral).stringValue;
-      }
+    if (!isInlineJS(e)) return null;
 
-      // TODO(vsm): Constructors in dart:html and friends are trying to
-      // allocate a type defined on window/self, but this often conflicts a
-      // with the generated extension class in scope.  We really should
-      // qualify explicitly in dart:html itself.
-      var constructorPattern = new RegExp("new [A-Z][A-Za-z]+\\(");
-      if (constructorPattern.matchAsPrefix(source) != null) {
-        var containingClass = node.parent;
-        while (
-            containingClass != null && containingClass is! ClassDeclaration) {
-          containingClass = containingClass.parent;
+    var args = node.argumentList.arguments;
+    // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
+    var code = args[1];
+    List<Expression> templateArgs;
+    String source;
+    if (code is StringInterpolation) {
+      if (args.length > 2) {
+        throw new ArgumentError(
+            "Can't mix template args and string interpolation in JS calls.");
+      }
+      templateArgs = <Expression>[];
+      source = code.elements.map((element) {
+        if (element is InterpolationExpression) {
+          templateArgs.add(element.expression);
+          return '#';
+        } else {
+          return (element as InterpolationString).value;
         }
-        if (containingClass is ClassDeclaration &&
-            _extensionTypes.isNativeClass(containingClass.element)) {
-          var constructorName = source.substring(4, source.indexOf('('));
-          var className = containingClass.name.name;
-          if (className == constructorName) {
-            source =
-                source.replaceFirst('new $className(', 'new self.$className(');
-          }
+      }).join();
+    } else {
+      templateArgs = args.skip(2).toList();
+      source = (code as StringLiteral).stringValue;
+    }
+
+    // TODO(vsm): Constructors in dart:html and friends are trying to
+    // allocate a type defined on window/self, but this often conflicts a
+    // with the generated extension class in scope.  We really should
+    // qualify explicitly in dart:html itself.
+    var constructorPattern = new RegExp("new [A-Z][A-Za-z]+\\(");
+    if (constructorPattern.matchAsPrefix(source) != null) {
+      var containingClass = node.parent;
+      while (containingClass != null && containingClass is! ClassDeclaration) {
+        containingClass = containingClass.parent;
+      }
+      if (containingClass is ClassDeclaration &&
+          _extensionTypes.isNativeClass(containingClass.element)) {
+        var constructorName = source.substring(4, source.indexOf('('));
+        var className = containingClass.name.name;
+        if (className == constructorName) {
+          source =
+              source.replaceFirst('new $className(', 'new self.$className(');
         }
       }
+    }
 
-      JS.Expression visitTemplateArg(Expression arg) {
-        if (arg is InvocationExpression) {
-          var e = arg is MethodInvocation
-              ? arg.methodName.staticElement
-              : (arg as FunctionExpressionInvocation).staticElement;
-          if (e?.name == 'getGenericClass' &&
-              e.library.name == 'dart._runtime' &&
-              arg.argumentList.arguments.length == 1) {
-            var typeArg = arg.argumentList.arguments[0];
-            if (typeArg is SimpleIdentifier) {
-              var typeElem = typeArg.staticElement;
-              if (typeElem is TypeDefiningElement &&
-                  typeElem.type is ParameterizedType) {
-                return _emitTopLevelNameNoInterop(typeElem, suffix: '\$');
-              }
+    JS.Expression visitTemplateArg(Expression arg) {
+      if (arg is InvocationExpression) {
+        var e = arg is MethodInvocation
+            ? arg.methodName.staticElement
+            : (arg as FunctionExpressionInvocation).staticElement;
+        if (e?.name == 'getGenericClass' &&
+            e.library.name == 'dart._runtime' &&
+            arg.argumentList.arguments.length == 1) {
+          var typeArg = arg.argumentList.arguments[0];
+          if (typeArg is SimpleIdentifier) {
+            var typeElem = typeArg.staticElement;
+            if (typeElem is TypeDefiningElement &&
+                typeElem.type is ParameterizedType) {
+              return _emitTopLevelNameNoInterop(typeElem, suffix: '\$');
             }
           }
         }
-        return _visitExpression(arg);
       }
-
-      // TODO(rnystrom): The JS() calls are almost never nested, and probably
-      // really shouldn't be, but there are at least a couple of calls in the
-      // HTML library where an argument to JS() is itself a JS() call. If those
-      // go away, this can just assert(!_isInForeignJS).
-      // Inside JS(), type names evaluate to the raw runtime type, not the
-      // wrapped Type object.
-      var wasInForeignJS = _isInForeignJS;
-      _isInForeignJS = true;
-      var jsArgs = templateArgs.map(visitTemplateArg).toList();
-      _isInForeignJS = wasInForeignJS;
-
-      var result = js.parseForeignJS(source).instantiate(jsArgs);
-
-      // `throw` is emitted as a statement by `parseForeignJS`.
-      assert(result is JS.Expression ||
-          result is JS.Throw && node.parent is ExpressionStatement);
-      return result;
+      return _visitExpression(arg);
     }
-    return null;
+
+    // TODO(rnystrom): The JS() calls are almost never nested, and probably
+    // really shouldn't be, but there are at least a couple of calls in the
+    // HTML library where an argument to JS() is itself a JS() call. If those
+    // go away, this can just assert(!_isInForeignJS).
+    // Inside JS(), type names evaluate to the raw runtime type, not the
+    // wrapped Type object.
+    var wasInForeignJS = _isInForeignJS;
+    _isInForeignJS = true;
+    var jsArgs = templateArgs.map(visitTemplateArg).toList();
+    _isInForeignJS = wasInForeignJS;
+
+    var result = js.parseForeignJS(source).instantiate(jsArgs);
+
+    // `throw` is emitted as a statement by `parseForeignJS`.
+    assert(result is JS.Expression ||
+        result is JS.Throw && node.parent is ExpressionStatement);
+    return result;
   }
 
   @override

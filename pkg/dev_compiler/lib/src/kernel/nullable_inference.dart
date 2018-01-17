@@ -164,13 +164,6 @@ class NullableInference extends ExpressionVisitor<bool> {
     var target = node.target;
     if (target == types.coreTypes.identicalProcedure) return false;
     if (isInlineJS(target)) {
-      // Fix types for JS builtin calls.
-      //
-      // This code was taken from analyzer. It's not super sophisticated:
-      // only looks for the type name in dart:core, so we just copy it here.
-      //
-      // TODO(jmesserly): we'll likely need something that can handle a wider
-      // variety of types, especially when we get to JS interop.
       var args = node.arguments.positional;
       var first = args.isNotEmpty ? args.first : null;
       if (first is StringLiteral) {
