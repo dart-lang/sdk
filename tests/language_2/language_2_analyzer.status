@@ -1372,6 +1372,7 @@ invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
 invocation_mirror_test: StaticWarning
+issue13179_test: StaticWarning
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 known_identifier_prefix_error_test/none: Pass
 least_upper_bound_expansive_test/01: MissingCompileTimeError
