@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
+import '../options.dart';
 import 'closure.dart';
 
 /// This builder walks the code to determine what variables are captured/free at
@@ -12,6 +13,8 @@ import 'closure.dart';
 /// about how a particular variable is being used at any point in the code.
 class CapturedScopeBuilder extends ir.Visitor {
   ScopeModel _model;
+
+  CompilerOptions _options;
 
   /// A map of each visited call node with the associated information about what
   /// variables are captured/used. Each ir.Node key corresponds to a scope that
@@ -61,17 +64,16 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   final bool _hasThisLocal;
 
-  /// If true add type assetions to assert that at runtime the type is in line
-  /// with the stated type.
-  final bool _addTypeChecks;
-
   /// Keeps track of the number of boxes that we've created so that they each
   /// have unique names.
   int _boxCounter = 0;
 
-  CapturedScopeBuilder(this._model, {bool hasThisLocal, bool addTypeChecks})
-      : this._hasThisLocal = hasThisLocal,
-        this._addTypeChecks = addTypeChecks;
+  CapturedScopeBuilder(this._model, this._options, {bool hasThisLocal})
+      : this._hasThisLocal = hasThisLocal;
+
+  /// If true add type assetions to assert that at runtime the type is in line
+  /// with the stated type.
+  bool get _addTypeChecks => _options.enableTypeAssertions;
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
@@ -202,7 +204,7 @@ class CapturedScopeBuilder extends ir.Visitor {
       ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ variable,
       {bool onlyForRtiChecks = false}) {
     assert(variable is ir.VariableDeclaration ||
-        variable is TypeParameterTypeWithContext);
+        variable is TypeVariableTypeWithContext);
     if (_isInsideClosure && !_inCurrentContext(variable)) {
       // If the element is not declared in the current function and the element
       // is not the closure itself we need to mark the element as free variable.
@@ -230,11 +232,15 @@ class CapturedScopeBuilder extends ir.Visitor {
   void visitTypeParameter(ir.TypeParameter typeParameter) {
     if (_addTypeChecks) {
       ir.TreeNode context = _executableContext;
+      TypeVariableTypeWithContext typeVariable =
+          new TypeVariableTypeWithContext(
+              new ir.TypeParameterType(typeParameter),
+              typeParameter.parent.parent);
       if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
         // This is a closure in a factory constructor.  Since there is no
         // [:this:], we have to mark the type arguments as free variables to
         // capture them in the closure.
-        _useTypeVariableAsLocal(new ir.TypeParameterType(typeParameter));
+        _useTypeVariableAsLocal(typeVariable);
       }
 
       if (_executableContext is ir.Member && _executableContext is! ir.Field) {
@@ -247,7 +253,7 @@ class CapturedScopeBuilder extends ir.Visitor {
         if (_hasThisLocal) {
           _registerNeedsThis();
         } else {
-          _useTypeVariableAsLocal(new ir.TypeParameterType(typeParameter));
+          _useTypeVariableAsLocal(typeVariable);
         }
       }
     }
@@ -415,9 +421,9 @@ class CapturedScopeBuilder extends ir.Visitor {
   /// context.
   bool _inCurrentContext(ir.Node variable) {
     assert(variable is ir.VariableDeclaration ||
-        variable is TypeParameterTypeWithContext);
-    if (variable is TypeParameterTypeWithContext) {
-      return variable.memberContext == _executableContext;
+        variable is TypeVariableTypeWithContext);
+    if (variable is TypeVariableTypeWithContext) {
+      return variable.context == _executableContext;
     }
     ir.TreeNode node = variable;
     while (node != _outermostNode && node != _executableContext) {
@@ -453,16 +459,13 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   visitTypeParameterType(ir.TypeParameterType type) {
-    if (_outermostNode is ir.Member) {
-      ir.Member outermostMember = _outermostNode;
-      if (_isFieldOrConstructor(_outermostNode)) {
-        _useTypeVariableAsLocal(type, onlyForRtiChecks: true);
-      } else if (type.parameter.parent is ir.FunctionNode) {
-        // This is a function type parameter reference: foo<T>(...) {...}
-        _useTypeVariableAsLocal(type, onlyForRtiChecks: true);
-      } else if (outermostMember.isInstanceMember) {
-        _registerNeedsThis(onlyIfNeedsRti: true);
-      }
+    _analyzeTypeVariable(type);
+  }
+
+  @override
+  visitTypeLiteral(ir.TypeLiteral node) {
+    if (node.type is ir.TypeParameterType) {
+      _analyzeTypeVariable(node.type, onlyIfNeedsRti: false);
     }
   }
 
@@ -473,11 +476,44 @@ class CapturedScopeBuilder extends ir.Visitor {
       node is ir.Field ||
       (node is ir.Procedure && node.isFactory);
 
+  void _analyzeTypeVariable(ir.TypeParameterType type,
+      {bool onlyIfNeedsRti: true}) {
+    if (_outermostNode is ir.Member) {
+      TypeVariableTypeWithContext typeVariable =
+          new TypeVariableTypeWithContext(type, _outermostNode);
+      switch (typeVariable.kind) {
+        case TypeVariableKind.cls:
+          if (_isFieldOrConstructor(_outermostNode)) {
+            // Class type variable used in a field or constructor.
+            _useTypeVariableAsLocal(typeVariable,
+                onlyForRtiChecks: onlyIfNeedsRti);
+          } else {
+            // Class type variable used in a method.
+            _registerNeedsThis(onlyIfNeedsRti: onlyIfNeedsRti);
+          }
+          break;
+        case TypeVariableKind.method:
+        case TypeVariableKind.local:
+          _useTypeVariableAsLocal(typeVariable,
+              onlyForRtiChecks: onlyIfNeedsRti);
+          break;
+        case TypeVariableKind.function:
+        // The type variable is a function type variable, like `T` in
+        //
+        //     List<void Function<T>(T)> list;
+        //
+        // which doesn't correspond to a captured local variable.
+      }
+    }
+  }
+
   /// If [onlyForRtiChecks] is true, the variable will be added to a list
   /// indicating it *may* be used only if runtime type information is checked.
-  void _useTypeVariableAsLocal(ir.TypeParameterType type,
-      {bool onlyForRtiChecks = false}) {
-    _markVariableAsUsed(new TypeParameterTypeWithContext(type, _outermostNode),
-        onlyForRtiChecks: onlyForRtiChecks);
+  void _useTypeVariableAsLocal(TypeVariableTypeWithContext typeVariable,
+      {bool onlyForRtiChecks: false}) {
+    if (typeVariable.kind != TypeVariableKind.cls && !_options.strongMode) {
+      return;
+    }
+    _markVariableAsUsed(typeVariable, onlyForRtiChecks: onlyForRtiChecks);
   }
 }

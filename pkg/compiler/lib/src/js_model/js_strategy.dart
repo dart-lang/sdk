@@ -73,12 +73,8 @@ class JsBackendStrategy implements KernelBackendStrategy {
         _compiler.reporter, _compiler.environment, strategy.elementMap);
     _elementEnvironment = _elementMap.elementEnvironment;
     _commonElements = _elementMap.commonElements;
-    _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer,
-        _elementMap,
-        _globalLocalsMap,
-        _compiler.options.enableTypeAssertions,
-        _compiler.options.disableRtiOptimization);
+    _closureDataLookup = new KernelClosureConversionTask(_compiler.measurer,
+        _elementMap, _globalLocalsMap, _compiler.options.enableTypeAssertions);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap, _closureDataLookup, _compiler.options);
     return closedWorldBuilder._convertClosedWorld(
@@ -278,10 +274,11 @@ class JsClosedWorldBuilder {
     if (_options.disableRtiOptimization) {
       rtiNeed = new TrivialRuntimeTypesNeed();
       callMethods = _closureConversionTask.createClosureEntities(
-          this,
-          map.toBackendMemberMap(closureModels, identity),
-          new Set<ir.Node>(),
-          _classSets.keys.toList());
+          this, map.toBackendMemberMap(closureModels, identity),
+          localFunctionNeedsSignature: (_) => true,
+          classNeedsTypeArguments: (_) => true,
+          methodNeedsTypeArguments: (_) => true,
+          localFunctionNeedsTypeArguments: (_) => true);
     } else {
       RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
       Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
@@ -298,11 +295,17 @@ class JsClosedWorldBuilder {
       Set<ClassEntity> classesNeedingTypeArguments =
           map.toBackendClassSet(kernelRtiNeed.classesNeedingTypeArguments);
 
+      Set<FunctionEntity> methodsNeedingTypeArguments =
+          map.toBackendFunctionSet(kernelRtiNeed.methodsNeedingTypeArguments);
+
       callMethods = _closureConversionTask.createClosureEntities(
-          this,
-          map.toBackendMemberMap(closureModels, identity),
-          localFunctionsNodesNeedingSignature,
-          classesNeedingTypeArguments);
+          this, map.toBackendMemberMap(closureModels, identity),
+          localFunctionNeedsSignature:
+              localFunctionsNodesNeedingSignature.contains,
+          classNeedsTypeArguments: classesNeedingTypeArguments.contains,
+          methodNeedsTypeArguments: methodsNeedingTypeArguments.contains,
+          localFunctionNeedsTypeArguments:
+              localFunctionsNodesNeedingTypeArguments.contains);
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
@@ -321,7 +324,8 @@ class JsClosedWorldBuilder {
           kernelRtiNeed,
           callMethodsNeedingSignature,
           callMethodsNeedingTypeArguments,
-          classesNeedingTypeArguments);
+          classesNeedingTypeArguments,
+          methodsNeedingTypeArguments);
     }
 
     NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
@@ -497,15 +501,14 @@ class JsClosedWorldBuilder {
       RuntimeTypesNeedImpl rtiNeed,
       List<FunctionEntity> callMethodsNeedingSignature,
       List<FunctionEntity> callMethodsNeedingTypeArguments,
-      Set<ClassEntity> classesNeedingTypeArguments) {
+      Set<ClassEntity> classesNeedingTypeArguments,
+      Set<FunctionEntity> methodsNeedingTypeArguments) {
     Set<FunctionEntity> methodsNeedingSignature =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
     methodsNeedingSignature.addAll(callMethodsNeedingSignature);
-    Set<FunctionEntity> methodsNeedingTypeArguments =
-        map.toBackendFunctionSet(rtiNeed.methodsNeedingTypeArguments);
     methodsNeedingTypeArguments.addAll(callMethodsNeedingTypeArguments);
     Set<ClassEntity> classesUsingTypeVariableExpression =
-        map.toBackendClassSet(rtiNeed.classesUsingTypeVariableExpression);
+        map.toBackendClassSet(rtiNeed.classesUsingTypeVariableLiterals);
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,

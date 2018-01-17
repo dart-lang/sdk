@@ -2439,6 +2439,22 @@ class JsKernelToElementMap extends KernelToElementMapBase
       closureEntity = new JLocal('', localsMap.currentMember);
     }
 
+    FunctionEntity callMethod = new JClosureCallMethod(
+        classEntity, _getParameterStructure(node), getAsyncMarker(node));
+    _nestedClosureMap
+        .putIfAbsent(member, () => <FunctionEntity>[])
+        .add(callMethod);
+    // We need create the type variable here - before we try to make local
+    // variables from them (in `JsScopeInfo.from` called through
+    // `KernelClosureClassInfo.fromScopeInfo` below).
+    int index = 0;
+    for (ir.TypeParameter typeParameter in node.typeParameters) {
+      _typeVariableMap[typeParameter] = _typeVariables.register(
+          createTypeVariable(callMethod, typeParameter.name, index),
+          new TypeVariableData(typeParameter));
+      index++;
+    }
+
     KernelClosureClassInfo closureClassInfo =
         new KernelClosureClassInfo.fromScopeInfo(
             classEntity,
@@ -2457,18 +2473,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
           memberThisType, location, typeVariableAccess);
     }
 
-    FunctionEntity callMethod = new JClosureCallMethod(
-        closureClassInfo, _getParameterStructure(node), getAsyncMarker(node));
-    _nestedClosureMap
-        .putIfAbsent(member, () => <FunctionEntity>[])
-        .add(callMethod);
-    int index = 0;
-    for (ir.TypeParameter typeParameter in node.typeParameters) {
-      _typeVariableMap[typeParameter] = _typeVariables.register(
-          createTypeVariable(callMethod, typeParameter.name, index),
-          new TypeVariableData(typeParameter));
-      index++;
-    }
     _members.register<IndexedFunction, FunctionData>(
         callMethod,
         new ClosureFunctionData(
@@ -2548,7 +2552,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
               fieldNumber);
           fieldNumber++;
         }
-      } else if (variable is TypeParameterTypeWithContext) {
+      } else if (variable is TypeVariableTypeWithContext) {
         _constructClosureField(
             localsMap.getLocalTypeVariable(variable.type, this),
             closureClassInfo,

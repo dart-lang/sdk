@@ -95,7 +95,7 @@ abstract class RuntimeTypesNeed {
   // TODO(redemption): Remove this when the old frontend is deleted.
   bool localFunctionNeedsSignature(Local localFunction);
 
-  bool classUsesTypeVariableExpression(ClassEntity cls);
+  bool classUsesTypeVariableLiteral(ClassEntity cls);
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
@@ -105,7 +105,7 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   bool classNeedsTypeArguments(ClassEntity cls) => true;
 
   @override
-  bool classUsesTypeVariableExpression(ClassEntity cls) => true;
+  bool classUsesTypeVariableLiteral(ClassEntity cls) => true;
 
   @override
   bool localFunctionNeedsSignature(Local localFunction) => true;
@@ -125,8 +125,15 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
 
 /// Interface for computing classes and methods that need runtime types.
 abstract class RuntimeTypesNeedBuilder {
-  /// Registers that [cls] contains a type variable literal.
-  void registerClassUsingTypeVariableExpression(ClassEntity cls);
+  /// Registers that [cls] uses one of its type variables as a literal.
+  void registerClassUsingTypeVariableLiteral(ClassEntity cls);
+
+  /// Registers that [method] uses one of its type variables as a literal.
+  void registerMethodUsingTypeVariableLiteral(FunctionEntity method);
+
+  /// Registers that [localFunction] uses one of its type variables as a
+  /// literal.
+  void registerLocalFunctionUsingTypeVariableLiteral(Local localFunction);
 
   /// Registers that if [element] needs type arguments at runtime then so does
   /// [dependency].
@@ -163,7 +170,13 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
   const TrivialRuntimeTypesNeedBuilder();
 
   @override
-  void registerClassUsingTypeVariableExpression(ClassEntity cls) {}
+  void registerClassUsingTypeVariableLiteral(ClassEntity cls) {}
+
+  @override
+  void registerMethodUsingTypeVariableLiteral(FunctionEntity method) {}
+
+  @override
+  void registerLocalFunctionUsingTypeVariableLiteral(Local localFunction) {}
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -526,9 +539,8 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final Set<Local> localFunctionsNeedingSignature;
   final Set<Local> localFunctionsNeedingTypeArguments;
 
-  /// The set of classes that use one of their type variables as expressions
-  /// to get the runtime type.
-  final Set<ClassEntity> classesUsingTypeVariableExpression;
+  /// The set of classes that use one of their type variables as literals.
+  final Set<ClassEntity> classesUsingTypeVariableLiterals;
 
   RuntimeTypesNeedImpl(
       this._elementEnvironment,
@@ -538,7 +550,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.methodsNeedingTypeArguments,
       this.localFunctionsNeedingSignature,
       this.localFunctionsNeedingTypeArguments,
-      this.classesUsingTypeVariableExpression);
+      this.classesUsingTypeVariableLiterals);
 
   bool checkClass(covariant ClassEntity cls) => true;
 
@@ -580,8 +592,8 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   @override
-  bool classUsesTypeVariableExpression(ClassEntity cls) {
-    return classesUsingTypeVariableExpression.contains(cls);
+  bool classUsesTypeVariableLiteral(ClassEntity cls) {
+    return classesUsingTypeVariableLiterals.contains(cls);
   }
 }
 
@@ -589,19 +601,19 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
   _ResolutionRuntimeTypesNeed(
       ElementEnvironment elementEnvironment,
       BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingRti,
-      Set<FunctionEntity> methodsNeedingRti,
-      Set<FunctionEntity> methodsNeedingGenericRti,
-      Set<Local> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingTypeArguments,
+      Set<FunctionEntity> methodsNeedingSignature,
+      Set<FunctionEntity> methodsNeedingTypeArguments,
+      Set<Local> localFunctionsNeedingSignature,
       Set<Local> localFunctionsNeedingTypeArguments,
       Set<ClassEntity> classesUsingTypeVariableExpression)
       : super(
             elementEnvironment,
             backendUsage,
-            classesNeedingRti,
-            methodsNeedingRti,
-            methodsNeedingGenericRti,
-            localFunctionsNeedingRti,
+            classesNeedingTypeArguments,
+            methodsNeedingSignature,
+            methodsNeedingTypeArguments,
+            localFunctionsNeedingSignature,
             localFunctionsNeedingTypeArguments,
             classesUsingTypeVariableExpression);
 
@@ -615,8 +627,13 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   final Map<Entity, Set<Entity>> typeArgumentDependencies =
       <Entity, Set<Entity>>{};
 
-  final Set<ClassEntity> classesUsingTypeVariableExpression =
+  final Set<ClassEntity> classesUsingTypeVariableLiterals =
       new Set<ClassEntity>();
+
+  final Set<FunctionEntity> methodsUsingTypeVariableLiterals =
+      new Set<FunctionEntity>();
+
+  final Set<Local> localFunctionsUsingTypeVariableLiterals = new Set<Local>();
 
   final Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
 
@@ -630,8 +647,18 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   bool checkClass(covariant ClassEntity cls) => true;
 
   @override
-  void registerClassUsingTypeVariableExpression(ClassEntity cls) {
-    classesUsingTypeVariableExpression.add(cls);
+  void registerClassUsingTypeVariableLiteral(ClassEntity cls) {
+    classesUsingTypeVariableLiterals.add(cls);
+  }
+
+  @override
+  void registerMethodUsingTypeVariableLiteral(FunctionEntity method) {
+    methodsUsingTypeVariableLiterals.add(method);
+  }
+
+  @override
+  void registerLocalFunctionUsingTypeVariableLiteral(Local localFunction) {
+    localFunctionsUsingTypeVariableLiterals.add(localFunction);
   }
 
   @override
@@ -771,9 +798,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       checkClosures();
     }
 
-    // Add the classes that need RTI because they use a type variable as
-    // expression.
-    classesUsingTypeVariableExpression.forEach(potentiallyNeedTypeArguments);
+    // Add the classes, methods and local functions that need type arguments
+    // because they use a type variable as a literal.
+    classesUsingTypeVariableLiterals.forEach(potentiallyNeedTypeArguments);
+    methodsUsingTypeVariableLiterals.forEach(potentiallyNeedTypeArguments);
+    localFunctionsUsingTypeVariableLiterals
+        .forEach(potentiallyNeedTypeArguments);
 
     return _createRuntimeTypesNeed(
         _elementEnvironment,
@@ -783,7 +813,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
         localFunctionsNeedingTypeArguments,
-        classesUsingTypeVariableExpression);
+        classesUsingTypeVariableLiterals);
   }
 
   RuntimeTypesNeed _createRuntimeTypesNeed(

@@ -386,7 +386,10 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
+    } else if (name.endsWith('_strong.dart')) {
+      testOptions.add(Flags.strongMode);
     }
+
     print('----------------------------------------------------------------');
     print('Test: $name');
     // Pretend this is a dart2js_native test to allow use of 'native' keyword
@@ -431,7 +434,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForAst.contains(name)) {
+    if (skipForAst.contains(name) || testOptions.contains(Flags.strongMode)) {
       print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');

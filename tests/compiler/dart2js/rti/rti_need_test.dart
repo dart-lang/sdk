@@ -17,6 +17,7 @@ import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/ssa/builder.dart' as ast;
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -114,7 +115,7 @@ abstract class ComputeValueMixin<T> {
     }
     ClassEntity frontendClass = getFrontendClass(backendClass);
     comma = findDependencies(sb, comma, frontendClass);
-    if (rtiNeedBuilder.classesUsingTypeVariableExpression
+    if (rtiNeedBuilder.classesUsingTypeVariableLiterals
         .contains(frontendClass)) {
       sb.write('${comma}exp');
       comma = ',';
@@ -146,16 +147,30 @@ abstract class ComputeValueMixin<T> {
         sb.write('${comma}needsSignature');
         comma = ',';
       }
-      if (frontendClosure != null &&
-          rtiNeed.localFunctionNeedsSignature(frontendClosure)) {
-        sb.write('${comma}needsSignature');
-        comma = ',';
+      if (frontendClosure != null) {
+        if (frontendClosure is LocalFunctionElement &&
+            rtiNeed.localFunctionNeedsSignature(frontendClosure)) {
+          sb.write('${comma}needsSignature');
+          comma = ',';
+        }
+        if (rtiNeedBuilder.localFunctionsUsingTypeVariableLiterals
+            .contains(frontendClosure)) {
+          sb.write('${comma}exp');
+          comma = ',';
+        }
       }
-      comma = findDependencies(sb, comma, frontendMember);
-      comma = findChecks(
-          sb, comma, 'explicit', frontendMember, rtiNeedBuilder.isChecks);
-      comma = findChecks(sb, comma, 'implicit', frontendMember,
-          rtiNeedBuilder.implicitIsChecks);
+      if (frontendMember != null) {
+        if (rtiNeedBuilder.methodsUsingTypeVariableLiterals
+            .contains(frontendMember)) {
+          sb.write('${comma}exp');
+          comma = ',';
+        }
+        comma = findDependencies(sb, comma, frontendMember);
+        comma = findChecks(
+            sb, comma, 'explicit', frontendMember, rtiNeedBuilder.isChecks);
+        comma = findChecks(sb, comma, 'implicit', frontendMember,
+            rtiNeedBuilder.implicitIsChecks);
+      }
     }
     return sb.toString();
   }
@@ -332,7 +347,17 @@ abstract class IrMixin implements ComputeValueMixin<ir.Node> {
   }
 
   @override
-  Local getFrontendClosure(MemberEntity member) => null;
+  Local getFrontendClosure(MemberEntity member) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    ir.Node node = backendStrategy.elementMap.getMemberDefinition(member).node;
+    if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
+      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelToElementMapForImpact frontendElementMap =
+          frontendStrategy.elementMap;
+      return frontendElementMap.getLocalFunction(node);
+    }
+    return null;
+  }
 }
 
 class RtiClassNeedIrComputer extends DataRegistry
