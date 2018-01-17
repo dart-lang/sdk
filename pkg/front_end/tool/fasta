@@ -10,7 +10,7 @@ set -e
 
 REPO_DIR="$(cd ${BASH_SOURCE%/*} && git rev-parse --show-toplevel)"
 
-DART_VM="${REPO_DIR}/sdk/bin/dart"
+DART_VM=${DART_VM-"${REPO_DIR}/sdk/bin/dart"}
 
 TOOL_DIR="${REPO_DIR}/pkg/front_end/tool/_fasta"
 
