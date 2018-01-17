@@ -110,8 +110,6 @@ compile_time_constant_checked5_test/19: MissingCompileTimeError
 compile_time_constant_checked_test/01: Fail
 compile_time_constant_checked_test/02: MissingCompileTimeError
 compile_time_constant_checked_test/03: Fail
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_constructor2_test/13: MissingCompileTimeError
@@ -507,8 +505,6 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
@@ -823,8 +819,6 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
@@ -1147,10 +1141,6 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
-conditional_import_string_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-conditional_import_string_test: RuntimeError
-conditional_import_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-conditional_import_test: RuntimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
