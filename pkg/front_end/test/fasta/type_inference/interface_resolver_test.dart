@@ -8,7 +8,6 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
@@ -22,23 +21,38 @@ main() {
 
 @reflectiveTest
 class InterfaceResolverTest {
-  final testLib =
-      new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib');
+  final Library testLib;
 
-  Program program;
+  final Program program;
 
-  CoreTypes coreTypes;
+  final CoreTypes coreTypes;
 
-  ClassHierarchy classHierarchy;
+  ClassHierarchy cachedClassHierarchy;
 
-  TypeSchemaEnvironment typeEnvironment;
+  TypeSchemaEnvironment cachedTypeEnvironment;
 
-  InterfaceResolver interfaceResolver;
+  InterfaceResolver cachedInterfaceResolver;
 
-  InterfaceResolverTest() {
-    program = createMockSdkProgram();
-    program.libraries.add(testLib..parent = program);
-    resetInterfaceResolver();
+  InterfaceResolverTest()
+      : this._(new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib'),
+            createMockSdkProgram());
+
+  InterfaceResolverTest._(this.testLib, Program program)
+      : program = program..libraries.add(testLib..parent = program),
+        coreTypes = new CoreTypes(program);
+
+  ClassHierarchy get classHierarchy {
+    return cachedClassHierarchy ??= new ClassHierarchy(program);
+  }
+
+  TypeSchemaEnvironment get typeEnvironment {
+    return cachedTypeEnvironment ??=
+        new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
+  }
+
+  InterfaceResolver get interfaceResolver {
+    return cachedInterfaceResolver ??=
+        new InterfaceResolver(null, typeEnvironment, null, true);
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;
@@ -70,8 +84,7 @@ class InterfaceResolverTest {
       expect(interfaceMember, same(member));
     }
 
-    check(new ClosedWorldClassHierarchy(program));
-    check(new IncrementalClassHierarchy());
+    check(new ClassHierarchy(program));
   }
 
   Procedure getCandidate(Class class_, bool setter) {
@@ -125,6 +138,7 @@ class InterfaceResolverTest {
       List<Supertype> implementedTypes,
       List<Procedure> procedures,
       List<Field> fields}) {
+    resetInterfaceResolver();
     var class_ = new ShadowClass(
         name: name ?? 'C',
         supertype: supertype ?? objectClass.asThisSupertype,
@@ -197,12 +211,9 @@ class InterfaceResolverTest {
   }
 
   void resetInterfaceResolver() {
-    classHierarchy = new IncrementalClassHierarchy();
-    coreTypes = new CoreTypes(program);
-    typeEnvironment =
-        new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
-    interfaceResolver =
-        new InterfaceResolver(null, typeEnvironment, null, true);
+    cachedClassHierarchy = null;
+    cachedTypeEnvironment = null;
+    cachedInterfaceResolver = null;
   }
 
   void test_candidate_for_field_getter() {

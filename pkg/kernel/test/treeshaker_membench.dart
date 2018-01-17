@@ -39,7 +39,7 @@ main(List<String> args) {
   bool strongMode = options['strong'];
 
   Program program = loadProgramFromBinary(filename);
-  ClassHierarchy hierarchy = new ClosedWorldClassHierarchy(program);
+  ClassHierarchy hierarchy = new ClassHierarchy(program);
   CoreTypes coreTypes = new CoreTypes(program);
 
   int copyCount = int.parse(options['count']);

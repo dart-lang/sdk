@@ -1,10 +1,10 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_checker.dart';
 import 'dart:io';
 
@@ -21,7 +21,7 @@ main(List<String> args) {
   }
   var program = loadProgramFromBinary(args[0]);
   var coreTypes = new CoreTypes(program);
-  var hierarchy = new IncrementalClassHierarchy();
+  var hierarchy = new ClassHierarchy(program);
   new TestTypeChecker(coreTypes, hierarchy).checkProgram(program);
 }
 

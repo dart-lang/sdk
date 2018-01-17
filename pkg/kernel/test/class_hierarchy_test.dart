@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
@@ -15,14 +14,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClosedWorldClassHierarchyTest);
-    defineReflectiveTests(IncrementalClassHierarchyTest);
   });
 }
 
 @reflectiveTest
 class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
   ClassHierarchy createClassHierarchy(Program program) {
-    return new ClosedWorldClassHierarchy(program);
+    return new ClassHierarchy(program);
   }
 
   void test_applyChanges() {
@@ -93,31 +91,6 @@ abstract class E implements self::C {
     expect(cwch.getSingleTargetForInterfaceInvocation(methodInD), methodInD);
     expect(cwch.getSingleTargetForInterfaceInvocation(methodInE),
         null); // no concrete subtypes
-  }
-}
-
-@reflectiveTest
-class IncrementalClassHierarchyTest extends _ClassHierarchyTest {
-  ClassHierarchy createClassHierarchy(Program program) {
-    return new IncrementalClassHierarchy();
-  }
-
-  void test_applyChanges() {
-    var a = addClass(new Class(name: 'A', supertype: objectSuper));
-    addClass(new Class(name: 'B', supertype: a.asThisSupertype));
-
-    _assertTestLibraryText('''
-class A {}
-class B extends self::A {}
-''');
-
-    // No updated classes, the same hierarchy.
-    expect(hierarchy.applyChanges([]), same(hierarchy));
-
-    // Has updated classes, a new hierarchy.
-    var newHierarchy = hierarchy.applyChanges([a]);
-    expect(newHierarchy, isNot(same(hierarchy)));
-    expect(newHierarchy, new isInstanceOf<IncrementalClassHierarchy>());
   }
 }
 

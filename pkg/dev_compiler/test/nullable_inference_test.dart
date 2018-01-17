@@ -10,7 +10,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/kernel/command.dart';
@@ -488,7 +488,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   visitProgram(Program node) {
     inference ??= new NullableInference(new JSTypeRep(
         new TypeSchemaEnvironment(
-            new CoreTypes(node), new IncrementalClassHierarchy(), true),
+            new CoreTypes(node), new ClassHierarchy(node), true),
         new LibraryIndex.coreLibraries(node)));
 
     if (useAnnotations) {

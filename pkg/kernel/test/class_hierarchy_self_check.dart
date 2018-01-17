@@ -18,8 +18,7 @@ main(List<String> args) {
 
 void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
   BasicClassHierarchy basic = new BasicClassHierarchy(program);
-  ClosedWorldClassHierarchy classHierarchy =
-      new ClosedWorldClassHierarchy(program);
+  ClosedWorldClassHierarchy classHierarchy = new ClassHierarchy(program);
   int total = classHierarchy.classes.length;
   int progress = 0;
   for (var class1 in classHierarchy.classes) {

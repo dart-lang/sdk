@@ -33,7 +33,7 @@ Program transformProgram(Program program, ConstantsBackend backend,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(program);
-  hierarchy ??= new ClosedWorldClassHierarchy(program);
+  hierarchy ??= new ClassHierarchy(program);
 
   final typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);

@@ -9,7 +9,6 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide ConstantVisitor;
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -198,8 +197,8 @@ class ProgramCompiler
       : _extensionTypes = nativeTypes,
         coreTypes = nativeTypes.coreTypes,
         _constants = new ConstantVisitor(nativeTypes.coreTypes),
-        types = new TypeSchemaEnvironment(
-            nativeTypes.coreTypes, new IncrementalClassHierarchy(), true),
+        types = new TypeSchemaEnvironment(nativeTypes.coreTypes,
+            new ClassHierarchy.deprecated_incremental(), true),
         _jsArrayClass =
             nativeTypes.sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =

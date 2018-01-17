@@ -33,7 +33,6 @@ import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:package_config/packages.dart';
@@ -254,7 +253,7 @@ class FrontEndCompiler {
 
         // TODO(scheglov) Can we keep the same instance?
         var types = new TypeEnvironment(
-            new CoreTypes(_program), new IncrementalClassHierarchy());
+            new CoreTypes(_program), new ClassHierarchy(_program));
 
         // Add results for new libraries.
         for (var library in _program.libraries) {

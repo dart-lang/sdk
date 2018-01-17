@@ -72,6 +72,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             " of ${userCode.loader.builders.length} libraries");
       }
 
+      platform.loader.builders.forEach((Uri uri, LibraryBuilder builder) {
+        reusedLibraries.add(builder);
+      });
       userCode = new KernelTarget(
           c.fileSystem, false, platform, platform.uriTranslator,
           uriToSource: c.uriToSource);
@@ -100,13 +103,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   List<LibraryBuilder> computeReusedLibraries(Iterable<Uri> invalidatedUris) {
-    if (userCode == null) return const <LibraryBuilder>[];
+    if (userCode == null) return <LibraryBuilder>[];
 
     // [invalidatedUris] converted to a set.
     Set<Uri> invalidatedFileUris = invalidatedUris.toSet();
 
     // Maps all non-platform LibraryBuilders from their import URI.
-    Map<Uri, SourceLibraryBuilder> builders = <Uri, SourceLibraryBuilder>{};
+    Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
 
     // Invalidated URIs translated back to their import URI (package:, dart:,
     // etc.).

@@ -11,8 +11,13 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/heap.dart';
 import 'package:kernel/type_algebra.dart';
 
-/// Lazy and incremental implementation of [ClassHierarchy].
+/// Use [ClassHierarchy] instead.
+@deprecated
 class IncrementalClassHierarchy implements ClassHierarchy {
+  /// Use [ClassHierarchy] instead.
+  @deprecated
+  IncrementalClassHierarchy.deprecated();
+
   /// The next unique identifier for [_ClassInfo]s.
   int _nextId = 0;
 
@@ -24,7 +29,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyChanges(Iterable<Class> classes) {
     if (classes.isEmpty) return this;
-    return new IncrementalClassHierarchy();
+    return new IncrementalClassHierarchy.deprecated();
   }
 
   @override

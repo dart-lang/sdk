@@ -9,7 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart';
 
@@ -26,7 +26,7 @@ const bool kDumpAllSummaries =
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
-  final hierarchy = new ClosedWorldClassHierarchy(program);
+  final hierarchy = new ClassHierarchy(program);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final libraryIndex = new LibraryIndex.all(program);
 

@@ -121,6 +121,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri get uri;
 
+  @override
   bool get isPart => partOfName != null || partOfUri != null;
 
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
