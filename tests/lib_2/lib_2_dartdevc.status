@@ -19,20 +19,6 @@ convert/chunked_conversion_utf87_test: RuntimeError
 convert/codec1_test: RuntimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
-html/js_typed_interop_anonymous2_exp_test: Crash
-html/js_typed_interop_anonymous2_test: RuntimeError
-html/js_typed_interop_anonymous_exp_test: Crash
-html/js_typed_interop_anonymous_test: RuntimeError
-html/js_typed_interop_anonymous_unreachable_exp_test: Crash
-html/js_typed_interop_dynamic_test: RuntimeError
-html/js_typed_interop_lazy_test/01: RuntimeError
-html/js_typed_interop_lazy_test/none: RuntimeError
-html/js_typed_interop_side_cast_exp_test/01: Crash
-html/js_typed_interop_side_cast_exp_test/none: Crash
-html/js_typed_interop_side_cast_test: RuntimeError
-html/js_typed_interop_test: RuntimeError
-html/js_typed_interop_type2_test/01: RuntimeError
-html/js_typed_interop_type2_test/none: RuntimeError
 js/prototype_access_test: RuntimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]

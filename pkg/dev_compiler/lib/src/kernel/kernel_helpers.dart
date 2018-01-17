@@ -109,12 +109,22 @@ bool isBuiltinAnnotation(
 String getAnnotationName(NamedNode node, bool test(Expression value)) {
   var match = findAnnotation(node, test);
   if (match is ConstructorInvocation && match.arguments.positional.isNotEmpty) {
-    var first = match.arguments.positional[0];
+    var first = _followConstFields(match.arguments.positional[0]);
     if (first is StringLiteral) {
       return first.value;
     }
   }
   return null;
+}
+
+Expression _followConstFields(Expression expr) {
+  if (expr is StaticGet) {
+    var target = expr.target;
+    if (target is Field) {
+      return _followConstFields(target.initializer);
+    }
+  }
+  return expr;
 }
 
 /// Finds constant expressions as defined in Dart language spec 4th ed,

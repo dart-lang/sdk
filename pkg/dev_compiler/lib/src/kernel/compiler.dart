@@ -4317,9 +4317,6 @@ class ProgramCompiler
   visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
     var args = node.arguments;
-    var ctorClass = ctor.enclosingClass;
-    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
-
     JS.Expression emitNew() {
       return new JS.New(_emitConstructorName(node.constructedType, ctor),
           _emitArgumentList(args, types: false));
@@ -4332,6 +4329,10 @@ class ProgramCompiler
     var args = node.arguments;
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
+    if (ctor.isExternal && _isJSNative(ctorClass)) {
+      return _emitJSInteropNew(ctor, args);
+    }
+
     var type = ctorClass.typeParameters.isEmpty
         ? ctorClass.rawType
         : new InterfaceType(ctorClass, args.types);
@@ -4396,12 +4397,18 @@ class ProgramCompiler
     }
 
     JS.Expression emitNew() {
-      // Native factory constructors are JS constructors - use new here.
       return new JS.Call(_emitConstructorName(type, ctor),
           _emitArgumentList(args, types: false));
     }
 
     return node.isConst ? _emitConst(emitNew) : emitNew();
+  }
+
+  JS.Expression _emitJSInteropNew(Member ctor, Arguments args) {
+    var ctorClass = ctor.enclosingClass;
+    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
+    return new JS.New(_emitConstructorName(ctorClass.rawType, ctor),
+        _emitArgumentList(args, types: false));
   }
 
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
@@ -4421,11 +4428,10 @@ class ProgramCompiler
   }
 
   bool _isObjectLiteral(Class c) {
-    return _isJSNative(c) && findAnnotation(c, isJSAnonymousAnnotation) != null;
+    return _isJSNative(c) && c.annotations.any(isJSAnonymousAnnotation);
   }
 
-  bool _isJSNative(NamedNode c) =>
-      findAnnotation(c, isPublicJSAnnotation) != null;
+  bool _isJSNative(Class c) => c.annotations.any(isPublicJSAnnotation);
 
   JS.Expression _emitObjectLiteral(Arguments node) {
     var args = _emitArgumentList(node);
