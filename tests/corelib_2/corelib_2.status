@@ -398,8 +398,11 @@ string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
-[ $compiler == none && $runtime == vm ]
-string_static_test: MissingCompileTimeError
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ $compiler == none && $runtime == vm && !$checked ]
+*: Skip
 
 [ $compiler == none && ($runtime == flutter || $runtime == vm) ]
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
