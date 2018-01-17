@@ -219,7 +219,7 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply3_test: RuntimeError
+apply3_test: CompileTimeError
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -262,7 +262,7 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply3_test: RuntimeError
+apply3_test: CompileTimeError
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError

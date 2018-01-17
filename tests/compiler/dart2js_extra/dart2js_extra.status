@@ -153,83 +153,91 @@ type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-21666_test: RuntimeError
+21666_test: CompileTimeError
+23056_test: CompileTimeError
 closure_capture2_test: RuntimeError
-closure_type_reflection2_test: RuntimeError
-closure_type_reflection_test: RuntimeError
+closure_type_reflection2_test: CompileTimeError
+closure_type_reflection_test: CompileTimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/deferred_mirrors1_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred/reflect_multiple_annotations_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/reflect_multiple_default_arg_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_mirrors1_test: CompileTimeError
+deferred/deferred_mirrors2_test: CompileTimeError
+deferred/reflect_multiple_annotations_test: CompileTimeError
+deferred/reflect_multiple_default_arg_test: CompileTimeError
 deferred_custom_loader_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
-invalid_annotation2_test/none: RuntimeError
+inference_nsm_mirrors_test: CompileTimeError
+invalid_annotation2_test/none: CompileTimeError
 label_test/06: MissingCompileTimeError
-mirror_invalid_field_access2_test: RuntimeError
-mirror_invalid_field_access3_test: RuntimeError
-mirror_invalid_field_access4_test: RuntimeError
-mirror_invalid_field_access_test: RuntimeError
-mirror_invalid_invoke2_test: RuntimeError
-mirror_invalid_invoke3_test: RuntimeError
-mirror_invalid_invoke_test: RuntimeError
-mirror_printer_test/01: RuntimeError
-mirror_printer_test/none: RuntimeError
-mirror_test: RuntimeError
-mirror_type_inference_field2_test: RuntimeError
-mirror_type_inference_field_test: RuntimeError
-mirror_type_inference_function_test: RuntimeError
-mirrors_declarations_filtering_test: RuntimeError
-mirrors_used_metatargets_test: RuntimeError
-mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/minif: RuntimeError
-mirrors_used_warning_test/none: RuntimeError
+mirror_enqueuer_regression_test: CompileTimeError
+mirror_invalid_field_access2_test: CompileTimeError
+mirror_invalid_field_access3_test: CompileTimeError
+mirror_invalid_field_access4_test: CompileTimeError
+mirror_invalid_field_access_test: CompileTimeError
+mirror_invalid_invoke2_test: CompileTimeError
+mirror_invalid_invoke3_test: CompileTimeError
+mirror_invalid_invoke_test: CompileTimeError
+mirror_printer_test/01: CompileTimeError
+mirror_printer_test/none: CompileTimeError
+mirror_test: CompileTimeError
+mirror_type_inference_field2_test: CompileTimeError
+mirror_type_inference_field_test: CompileTimeError
+mirror_type_inference_function_test: CompileTimeError
+mirrors_declarations_filtering_test: CompileTimeError
+mirrors_used_metatargets_test: CompileTimeError
+mirrors_used_native_test: CompileTimeError
+mirrors_used_warning2_test: CompileTimeError
+mirrors_used_warning_test/minif: CompileTimeError
+mirrors_used_warning_test/none: CompileTimeError
+no_such_method_mirrors_test: CompileTimeError
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
 private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
-reflect_native_types_test: RuntimeError
+reflect_native_types_test: CompileTimeError
 regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-21666_test: RuntimeError
-closure_type_reflection2_test: RuntimeError
-closure_type_reflection_test: RuntimeError
+21666_test: CompileTimeError
+23056_test: CompileTimeError
+closure_type_reflection2_test: CompileTimeError
+closure_type_reflection_test: CompileTimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/deferred_mirrors1_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/deferred_mirrors1_test: CompileTimeError
+deferred/deferred_mirrors2_test: CompileTimeError
 deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_custom_loader_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
-invalid_annotation2_test/none: RuntimeError
+inference_nsm_mirrors_test: CompileTimeError
+invalid_annotation2_test/none: CompileTimeError
 label_test/06: MissingCompileTimeError
-mirror_invalid_field_access2_test: RuntimeError
-mirror_invalid_field_access3_test: RuntimeError
-mirror_invalid_field_access4_test: RuntimeError
-mirror_invalid_field_access_test: RuntimeError
-mirror_invalid_invoke2_test: RuntimeError
-mirror_invalid_invoke3_test: RuntimeError
-mirror_invalid_invoke_test: RuntimeError
-mirror_printer_test/01: RuntimeError
-mirror_printer_test/none: RuntimeError
-mirror_test: RuntimeError
-mirror_type_inference_field2_test: RuntimeError
-mirror_type_inference_field_test: RuntimeError
-mirror_type_inference_function_test: RuntimeError
-mirrors_declarations_filtering_test: RuntimeError
-mirrors_used_metatargets_test: RuntimeError
-mirrors_used_native_test: RuntimeError
-mirrors_used_warning2_test: RuntimeError
-mirrors_used_warning_test/none: RuntimeError
+mirror_enqueuer_regression_test: CompileTimeError
+mirror_invalid_field_access2_test: CompileTimeError
+mirror_invalid_field_access3_test: CompileTimeError
+mirror_invalid_field_access4_test: CompileTimeError
+mirror_invalid_field_access_test: CompileTimeError
+mirror_invalid_invoke2_test: CompileTimeError
+mirror_invalid_invoke3_test: CompileTimeError
+mirror_invalid_invoke_test: CompileTimeError
+mirror_printer_test/01: CompileTimeError
+mirror_printer_test/none: CompileTimeError
+mirror_test: CompileTimeError
+mirror_type_inference_field2_test: CompileTimeError
+mirror_type_inference_field_test: CompileTimeError
+mirror_type_inference_function_test: CompileTimeError
+mirrors_declarations_filtering_test: CompileTimeError
+mirrors_used_metatargets_test: CompileTimeError
+mirrors_used_native_test: CompileTimeError
+mirrors_used_warning2_test: CompileTimeError
+mirrors_used_warning_test/none: CompileTimeError
+no_such_method_mirrors_test: CompileTimeError
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
 private_symbol_literal_test/03: MissingCompileTimeError
@@ -237,7 +245,7 @@ private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 recursive_import_test: CompileTimeError
-reflect_native_types_test: RuntimeError
+reflect_native_types_test: CompileTimeError
 regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
