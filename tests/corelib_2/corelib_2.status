@@ -636,10 +636,6 @@ regexp/global_test: Skip # Issue 21709
 regexp/pcre_test: Pass, Slow, Timeout
 
 [ $runtime == dart_precompiled || $runtime == vm ]
-integer_parsed_arith_vm_test/01: RuntimeError # Issue 31346
-integer_parsed_arith_vm_test/02: RuntimeError # Issue 31346
-integer_parsed_div_rem_vm_test/01: RuntimeError # Issue 31346
-integer_to_radix_string_test/01: RuntimeError # Issue 31346
 string_case_test/01: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == ff || $runtime == jsshell ]
