@@ -69,16 +69,13 @@ string_from_environment_test: Fail # Flutter Issue 9111
 string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $runtime == jsshell ]
-string_case_test/01: Fail, OK
+string_case_test/01: Fail, OK # German double S.
 unicode_test: Fail
 
 [ $runtime == safari ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $runtime == vm ]
-string_case_test/01: RuntimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -151,7 +148,7 @@ list_concurrent_modify_test: RuntimeError # dart2js does not fully implement the
 list_test/*: RuntimeError # dart2js doesn't implement strong mode covariance checks
 nan_infinity_test/01: RuntimeError
 regexp/pcre_test: Pass, Slow # Issue 21593
-string_split_test: RuntimeError # does not return List<String>
+string_split_test: RuntimeError # Issue 30548: does not return List<String>
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -347,7 +344,6 @@ list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-string_case_test/01: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
@@ -378,7 +374,6 @@ list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
-string_case_test/01: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
 string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
@@ -573,7 +568,6 @@ int_parse_radix_bad_handler_test: MissingCompileTimeError
 
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
 compare_to2_test: Fail # Issue 4018
-string_case_test/01: Fail # Bug 18061
 symbol_operator_test/03: Fail # Issue 11669
 symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
 symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
@@ -650,7 +644,7 @@ integer_parsed_arith_vm_test/01: RuntimeError # Issue 31346
 integer_parsed_arith_vm_test/02: RuntimeError # Issue 31346
 integer_parsed_div_rem_vm_test/01: RuntimeError # Issue 31346
 integer_to_radix_string_test/01: RuntimeError # Issue 31346
-string_split_test: RuntimeError # does not return List<String>
+string_case_test/01: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == ff || $runtime == jsshell ]
 double_parse_test/02: Fail, OK # Issue 30468

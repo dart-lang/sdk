@@ -21,11 +21,6 @@ testSplit(List<String> expect, String string, Pattern pattern) {
   }
   List actual = string.split(pattern);
 
-  // Check that the list is growable/mutable
-  actual
-    ..add('42')
-    ..removeLast();
-
   // Ensure that the correct type is reified.
   actual = actual as List<String>;
   Expect.throwsTypeError(() => actual.add(42),
