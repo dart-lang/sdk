@@ -254,7 +254,7 @@ usedByTests() {
   closedWorld.getClassHierarchyNode(null);
   closedWorld.getClassSet(null);
   closedWorld.haveAnyCommonSubtypes(null, null);
-  typeGraphInferrer.getCallersOf(null);
+  typeGraphInferrer.getCallersOfForTesting(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(null).copy(null);
 }

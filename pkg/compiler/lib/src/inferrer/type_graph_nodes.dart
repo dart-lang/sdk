@@ -429,13 +429,8 @@ abstract class MemberTypeInformation extends ElementTypeInformation
     }
   }
 
-  Iterable<MemberEntity> get callers {
-    // TODO(sra): This is called only from an unused API and a test. If it
-    // becomes used, [cleanup] will need to copy `_caller.keys`.
-
-    // `simple_inferrer_callers_test.dart` ensures that cleanup has not
-    // happened.
-    return _callers.keys;
+  Iterable<MemberEntity> get callersForTesting {
+    return _callers?.keys;
   }
 
   bool isCalledOnce() {

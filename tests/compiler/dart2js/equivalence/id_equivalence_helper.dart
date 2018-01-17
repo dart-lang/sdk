@@ -542,6 +542,12 @@ Spannable computeSpannable(
   if (id is NodeId) {
     return new SourceSpan(mainUri, id.value, id.value + 1);
   } else if (id is ElementId) {
+    String memberName = id.memberName;
+    bool isSetter = false;
+    if (memberName != '[]=' && memberName.endsWith('=')) {
+      isSetter = true;
+      memberName = memberName.substring(0, memberName.length - 1);
+    }
     LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
     if (id.className != null) {
       ClassEntity cls =
@@ -549,23 +555,22 @@ Spannable computeSpannable(
       if (cls == null) {
         throw new ArgumentError("No class '${id.className}' in $mainUri.");
       }
-      MemberEntity member =
-          elementEnvironment.lookupClassMember(cls, id.memberName);
+      MemberEntity member = elementEnvironment
+          .lookupClassMember(cls, memberName, setter: isSetter);
       if (member == null) {
         ConstructorEntity constructor =
-            elementEnvironment.lookupConstructor(cls, id.memberName);
+            elementEnvironment.lookupConstructor(cls, memberName);
         if (constructor == null) {
-          throw new ArgumentError(
-              "No class member '${id.memberName}' in $cls.");
+          throw new ArgumentError("No class member '${memberName}' in $cls.");
         }
         return constructor;
       }
       return member;
     } else {
-      MemberEntity member =
-          elementEnvironment.lookupLibraryMember(library, id.memberName);
+      MemberEntity member = elementEnvironment
+          .lookupLibraryMember(library, memberName, setter: isSetter);
       if (member == null) {
-        throw new ArgumentError("No member '${id.memberName}' in $mainUri.");
+        throw new ArgumentError("No member '${memberName}' in $mainUri.");
       }
       return member;
     }

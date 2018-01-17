@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// TODO(johnniwinther): Currently this only works with the mock compiler.
+/// TODO(johnniwinther): Move this to the codegen folder. Currently this only
+/// works with the mock compiler.
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";

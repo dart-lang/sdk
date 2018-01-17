@@ -8,37 +8,40 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import '../kernel/test_helpers.dart';
 import 'id_equivalence_helper.dart';
 
-show(List<String> args, ComputeMemberDataFunction computeAstData,
-    ComputeMemberDataFunction computeKernelData) async {
+ArgParser createArgParser() {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
   argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
-  ArgResults argResults = argParser.parse(args);
+  return argParser;
+}
+
+show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
+    ComputeMemberDataFunction computeKernelData) async {
   if (argResults.wasParsed('colors')) {
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
   bool useKernel = argResults['use-kernel'];
 
-  InferrerEngineImpl.useSorterForTesting = true;
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
   List<String> show;
-  if (argResults.rest.length > 1) {
+  if (argResults['all']) {
+    show = null;
+  } else if (argResults.rest.length > 1) {
     show = argResults.rest.skip(1).toList();
   } else {
     show = [entryPoint.pathSegments.last];
   }
 
-  List<String> options = <String>[];
+  List<String> options = <String>[stopAfterTypeInference];
   if (useKernel) {
     options.add(Flags.useKernel);
   }
