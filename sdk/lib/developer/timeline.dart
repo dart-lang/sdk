@@ -78,7 +78,7 @@ class Flow {
 ///
 /// [Timeline]'s methods add synchronous events to the timeline. When
 /// generating a timeline in Chrome's tracing format, using [Timeline] generates
-/// "Complete" events. [Timeline]'s [startSync] and [endSync] can be used
+/// "Complete" events. [Timeline]'s [startSync] and [finishSync] can be used
 /// explicitly, or implicitly by wrapping a closure in [timeSync]. For exmaple:
 ///
 /// ```dart
