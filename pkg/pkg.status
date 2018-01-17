@@ -209,25 +209,21 @@ analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 
 [ $runtime == vm && $use_sdk ]
-compiler/tool/generate_kernel_test*: Skip # Issue 28629
-front_end/test/fasta/*: Skip # Issue 28629
-front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/tool/_fasta/*: Skip # Issue 28629
-front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-kernel/test/metadata_test: Skip # Issue 28629
+compiler/tool/generate_kernel_test*: Skip # Issue 31899
+kernel/test/metadata_test: Skip # Issue 31900
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.
 [ $runtime == vm && ($arch == armv5te || $arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv5te || $arch == simarmv6 || $arch == simdbc64) ]
 *: Skip
 
-[ $arch != x64 || $compiler != none || $mode != release || $runtime != vm || $use_sdk ]
+[ $arch != x64 || $compiler != none || $mode != release || $runtime != vm ]
 front_end/test/whole_program_test: SkipByDesign
 
-[ $mode != release || $runtime != vm || $system == windows ]
+[ $mode != release || $runtime != vm ]
 front_end/test/fasta/*: Skip
 front_end/tool/_fasta/*: Skip
+
+[ $mode != release || $runtime != vm || $system == windows ]
 kernel/test/closures_test: Skip
 
