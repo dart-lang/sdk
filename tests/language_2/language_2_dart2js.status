@@ -2209,7 +2209,8 @@ const_constructor3_test/04: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
-const_evaluation_test/01: RuntimeError
+const_evaluation_test/01: CompileTimeError
+const_evaluation_test/none: CompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -2250,9 +2251,8 @@ covariant_subtyping_unsafe_call3_test: RuntimeError
 crash_6725_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_call_empty_before_load_test: RuntimeError
-deferred_constraints_constants_test/default_argument2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_constraints_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_constraints_constants_test/reference_after_load: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -2290,7 +2290,7 @@ duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/none: RuntimeError
-enum_mirror_test: RuntimeError
+enum_mirror_test: CompileTimeError
 enum_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
@@ -2299,6 +2299,7 @@ external_test/20: MissingRuntimeError
 factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
+field_increment_bailout_test: CompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -2364,14 +2365,16 @@ inferrer_synthesized_constructor_test: RuntimeError
 infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instance_creation_in_function_annotation_test: RuntimeError
+instance_creation_in_function_annotation_test: CompileTimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
 interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2218 pos 14: '!target.enclosingClass.isAbstract': is not true.
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
-invocation_mirror2_test: RuntimeError
+invocation_mirror2_test: CompileTimeError
+invocation_mirror_invoke_on2_test: CompileTimeError
+invocation_mirror_invoke_on_test: CompileTimeError
 is_malformed_type_test/94: MissingCompileTimeError
 is_malformed_type_test/95: MissingCompileTimeError
 is_malformed_type_test/96: MissingCompileTimeError
@@ -2385,7 +2388,7 @@ issue1363_test/01: MissingCompileTimeError
 issue15606_test/01: MissingCompileTimeError
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue21079_test: RuntimeError
+issue21079_test: CompileTimeError
 issue23244_test: RuntimeError
 known_identifier_prefix_error_test/01: MissingCompileTimeError
 known_identifier_prefix_error_test/02: MissingCompileTimeError
@@ -2424,6 +2427,7 @@ list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
+many_overridden_no_such_method_test: CompileTimeError
 map_literal11_test/none: MissingRuntimeError
 map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
@@ -2537,6 +2541,11 @@ named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 no_main_test/01: CompileTimeError
+no_such_method_test: CompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
@@ -2544,10 +2553,8 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
-null_test/mirrors: RuntimeError
-null_test/none: RuntimeError
+null_test/mirrors: CompileTimeError
+null_test/none: CompileTimeError
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError
@@ -2558,6 +2565,7 @@ operator5_test: MissingCompileTimeError
 operator_equals_test: MissingCompileTimeError
 operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 optimized_constant_array_string_access_test: MissingCompileTimeError
+overridden_no_such_method_test: CompileTimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -2581,7 +2589,10 @@ redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-redirecting_factory_reflection_test: RuntimeError
+redirecting_factory_reflection_test: CompileTimeError
+regress_13462_0_test: CompileTimeError
+regress_13462_1_test: CompileTimeError
+regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
@@ -2591,7 +2602,7 @@ regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
-regress_28255_test: RuntimeError
+regress_28255_test: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
@@ -2603,7 +2614,8 @@ stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError # Issue 12698
-super_call4_test: Crash # Assertion failure: Missing scope info for j:method(E.boz).
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
@@ -2964,7 +2976,8 @@ const_constructor3_test/04: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
-const_evaluation_test/01: RuntimeError
+const_evaluation_test/01: CompileTimeError
+const_evaluation_test/none: CompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
@@ -3005,9 +3018,8 @@ covariant_subtyping_unsafe_call3_test: RuntimeError
 crash_6725_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_call_empty_before_load_test: RuntimeError
-deferred_constraints_constants_test/default_argument2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_constraints_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_constraints_constants_test/reference_after_load: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_constants_test/none: CompileTimeError
+deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
@@ -3045,7 +3057,7 @@ duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/none: RuntimeError
-enum_mirror_test: RuntimeError
+enum_mirror_test: CompileTimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -3054,6 +3066,7 @@ f_bounded_quantification4_test: RuntimeError
 factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
+field_increment_bailout_test: CompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -3113,13 +3126,15 @@ inferrer_synthesized_constructor_test: RuntimeError
 infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instance_creation_in_function_annotation_test: RuntimeError
+instance_creation_in_function_annotation_test: CompileTimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
-invocation_mirror2_test: RuntimeError
+invocation_mirror2_test: CompileTimeError
+invocation_mirror_invoke_on2_test: CompileTimeError
+invocation_mirror_invoke_on_test: CompileTimeError
 invocation_mirror_test: RuntimeError
 is_malformed_type_test/94: MissingCompileTimeError
 is_malformed_type_test/95: MissingCompileTimeError
@@ -3134,7 +3149,7 @@ issue1363_test/01: MissingCompileTimeError
 issue15606_test/01: MissingCompileTimeError
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue21079_test: RuntimeError
+issue21079_test: CompileTimeError
 issue23244_test: RuntimeError
 known_identifier_prefix_error_test/01: MissingCompileTimeError
 known_identifier_prefix_error_test/02: MissingCompileTimeError
@@ -3173,6 +3188,7 @@ list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
+many_overridden_no_such_method_test: CompileTimeError
 map_literal11_test/none: MissingRuntimeError
 map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
@@ -3283,6 +3299,11 @@ nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 no_main_test/01: CompileTimeError
 no_such_method_native_test: RuntimeError
+no_such_method_test: CompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
@@ -3290,10 +3311,8 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
-null_test/mirrors: RuntimeError
-null_test/none: RuntimeError
+null_test/mirrors: CompileTimeError
+null_test/none: CompileTimeError
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError
@@ -3303,6 +3322,7 @@ on_catch_malformed_type_test: MissingCompileTimeError
 operator5_test: MissingCompileTimeError
 operator_equals_test: MissingCompileTimeError
 optimized_constant_array_string_access_test: MissingCompileTimeError
+overridden_no_such_method_test: CompileTimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -3325,7 +3345,10 @@ redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-redirecting_factory_reflection_test: RuntimeError
+redirecting_factory_reflection_test: CompileTimeError
+regress_13462_0_test: CompileTimeError
+regress_13462_1_test: CompileTimeError
+regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
 regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
@@ -3336,7 +3359,7 @@ regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
-regress_28255_test: RuntimeError
+regress_28255_test: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
@@ -3349,7 +3372,8 @@ stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
 stacktrace_test: RuntimeError # Issue 12698
-super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
