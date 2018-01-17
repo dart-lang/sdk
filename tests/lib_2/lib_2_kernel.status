@@ -333,7 +333,6 @@ async/future_value_chain4_test: CompileTimeError # Issue 31616
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
-async/stream_from_iterable_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_join_test: RuntimeError
 async/stream_subscription_as_future_test: RuntimeError
 async/timer_cancel2_test: RuntimeError
