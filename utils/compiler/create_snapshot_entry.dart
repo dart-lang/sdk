@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Generates a wrapper around dart2js to ship with the SDK.
+///
+/// The only reason to create this wrapper is to be able to embed the sdk
+/// version information into the compiler.
 import 'dart:io';
 import 'dart:async';
 
@@ -14,27 +18,6 @@ Future<String> getVersion(var rootPath) {
       throw "Could not generate version";
     }
     return result.stdout.trim();
-  });
-}
-
-Future<String> getSnapshotGenerationFile(var args, var rootPath) {
-  var dart2js = rootPath.resolve(args["dart2js_main"]);
-  return getVersion(rootPath).then((version) {
-    var snapshotGenerationText = """
-import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
-import 'dart:io';
-
-void main(List<String> arguments) {
-  if (arguments.length < 1) throw "No tool given as argument";
-  String tool = arguments[0];
-  if (tool == "dart2js") {
-    dart2jsMain.BUILD_ID = "$version";
-    dart2jsMain.main(arguments.skip(1).toList());
-  }
-}
-
-""";
-    return snapshotGenerationText;
   });
 }
 
@@ -51,13 +34,6 @@ void main(List<String> arguments) {
 """;
     return snapshotGenerationText;
   });
-}
-
-void writeSnapshotFile(var path, var content) {
-  File file = new File(path);
-  var writer = file.openSync(mode: FileMode.WRITE);
-  writer.writeStringSync(content);
-  writer.close();
 }
 
 /**
@@ -82,13 +58,9 @@ void main(List<String> arguments) {
   var scriptFile = Uri.base.resolveUri(Platform.script);
   var path = scriptFile.resolve(".");
   var rootPath = path.resolve("../..");
-  getSnapshotGenerationFile(args, rootPath).then((result) {
-    var wrapper = "${args['output_dir']}/utils_wrapper.dart";
-    writeSnapshotFile(wrapper, result);
-  });
 
   getDart2jsSnapshotGenerationFile(args, rootPath).then((result) {
     var wrapper = "${args['output_dir']}/dart2js.dart";
-    writeSnapshotFile(wrapper, result);
+    new File(wrapper).writeAsStringSync(result);
   });
 }
