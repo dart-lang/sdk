@@ -393,12 +393,6 @@ string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ $compiler == none && $runtime == vm && !$checked ]
-*: Skip
-
 [ $compiler == none && ($runtime == flutter || $runtime == vm) ]
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 string_trimlr_test/02: RuntimeError # Issue 29060
@@ -513,9 +507,11 @@ symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
 [ $runtime == vm && !$checked && ($compiler == app_jit || $compiler == none) ]
-iterable_generate_test/01: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
+*: Skip
 
 [ !$checked && !$strong ]
 core_runtime_types_static_test: MissingCompileTimeError
