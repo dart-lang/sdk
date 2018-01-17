@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.hint_code_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -2895,6 +2896,206 @@ main() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.DOWN_CAST_COMPOSITE]);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int get g => 0;
+}
+var b = new A().g;
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
+    expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_call() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int Function() get g => () => 0;
+}
+var a = new A();
+var b = a.g();
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
+    expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_field() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int g;
+}
+var b = new A().g;
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
+    expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_field_call() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int Function() g;
+}
+var a = new A();
+var b = a.g();
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
+    expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_field_prefixedIdentifier() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int g;
+}
+var a = new A();
+var b = a.g;
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
+    expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  get g => 0;
+}
+var b = new A().g;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_call() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  get g => () => 0;
+}
+var a = new A();
+var b = a.g();
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_field() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var g = 0;
+}
+var b = new A().g;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var g = () => 0;
+}
+var a = new A();
+var b = a.g();
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_prefixedIdentifier() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var g = 0;
+}
+var a = new A();
+var b = a.g;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_prefixedIdentifier() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  get g => 0;
+}
+var a = new A();
+var b = a.g;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_prefixedIdentifier() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int get g => 0;
+}
+var a = new A();
+var b = a.g;
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
+    expect(b.variables.variables[0].element.type.toString(), 'int');
     verify([source]);
   }
 

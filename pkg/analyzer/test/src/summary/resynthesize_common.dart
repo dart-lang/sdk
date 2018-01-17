@@ -1152,7 +1152,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareVariableElements(
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, '$desc.type');
+    if ((resynthesized as VariableElementImpl).typeInferenceError == null) {
+      compareTypes(resynthesized.type, original.type, '$desc.type');
+    }
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);

@@ -2859,8 +2859,15 @@ class A {
   final y = x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    if (enableKernelDriver) {
+      assertErrors(source,
+          [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+        StrongModeCode.TOP_LEVEL_INSTANCE_GETTER
+      ]);
+    }
     verify([source]);
   }
 

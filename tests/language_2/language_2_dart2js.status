@@ -1627,6 +1627,8 @@ library_env_test/has_no_mirror_support: Pass
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 
@@ -3732,6 +3734,8 @@ stacktrace_test: Pass, RuntimeError # # Issue 12698
 truncdiv_test: RuntimeError # Issue 15246
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_variable_conflict_test/01: Fail # Issue 13702

@@ -5052,10 +5052,11 @@ class StrongModeCode extends ErrorCode {
       "Try adding an explicit type to either the variable '{0}' or the variable '{1}'.");
 
   static const StrongModeCode TOP_LEVEL_INSTANCE_GETTER = const StrongModeCode(
-      ErrorType.HINT,
+      ErrorType.STATIC_WARNING,
       'TOP_LEVEL_INSTANCE_GETTER',
-      "The type of '{0}' can't be inferred because of the use of the instance getter '{1}'.",
-      "Try removing the use of the instance getter {1}, or add an explicit type for '{0}'.");
+      "The type of '{0}' can't be inferred because it refers to an instance "
+      "getter, '{1}', which has an implicit type.",
+      "Add an explicit type for either '{0}' or '{1}'.");
 
   static const StrongModeCode TOP_LEVEL_TYPE_ARGUMENTS = const StrongModeCode(
       ErrorType.HINT,

@@ -1312,8 +1312,20 @@ class CodeChecker extends RecursiveAstVisitor {
         return;
       }
 
-      if (e is PropertyAccessorElement) {
-        validateHasType(e);
+      Element enclosing = e.enclosingElement;
+      if (enclosing is CompilationUnitElement) {
+        if (e is PropertyAccessorElement) {
+          validateHasType(e);
+        }
+      } else if (enclosing is ClassElement) {
+        if (e is PropertyAccessorElement) {
+          if (e.isStatic) {
+            validateHasType(e);
+          } else if (e.hasImplicitReturnType) {
+            _recordMessage(
+                n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [name, e.name]);
+          }
+        }
       }
     }
 
@@ -1391,6 +1403,7 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (n is FunctionExpressionInvocation) {
       _validateTopLevelInitializer(name, n.function);
     } else if (n is MethodInvocation) {
+      _validateTopLevelInitializer(name, n.methodName);
       _validateTopLevelInitializer(name, n.target);
     } else if (n is CascadeExpression) {
       _validateTopLevelInitializer(name, n.target);
