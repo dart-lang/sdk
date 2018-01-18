@@ -154,7 +154,6 @@ if (current_os == "win") {
   is_android = false
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = false
@@ -165,7 +164,6 @@ if (current_os == "win") {
   is_android = false
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = true
@@ -176,7 +174,6 @@ if (current_os == "win") {
   is_android = true
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = false
   is_mac = false
@@ -187,7 +184,6 @@ if (current_os == "win") {
   is_android = false
   is_chromeos = false
   is_fuchsia = false
-  is_fuchsia_host = false
   is_ios = false
   is_linux = true
   is_mac = false
@@ -252,9 +248,7 @@ if (is_linux) {
 }
 
 if (is_clang) {
-  _native_compiler_configs += [
-    "//build/config/clang:extra_warnings",
-  ]
+  _native_compiler_configs += [ "//build/config/clang:extra_warnings" ]
 }
 
 # Optimizations and debug checking.

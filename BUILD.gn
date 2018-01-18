@@ -4,9 +4,11 @@
 
 import("build/dart_host_sdk_toolchain.gni")
 
+targetting_fuchsia = target_os == "fuchsia"
+
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -16,7 +18,7 @@ group("default") {
 }
 
 group("most") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -32,7 +34,7 @@ group("most") {
 }
 
 group("runtime") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -47,7 +49,7 @@ group("runtime") {
 }
 
 group("runtime_kernel") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
