@@ -324,7 +324,7 @@ type Constructor extends Member {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal);
+  Byte flags (isConst, isExternal, isSynthetic);
   Name name;
   UriReference fileUri;
   List<Expression> annotations;

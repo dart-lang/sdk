@@ -515,7 +515,7 @@ class KernelTarget extends TargetImplementation {
     return new Constructor(
         new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
         name: new Name(""),
-        isSyntheticDefault: true);
+        isSynthetic: true);
   }
 
   void computeCoreTypes() {

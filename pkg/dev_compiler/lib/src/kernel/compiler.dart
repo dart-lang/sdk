@@ -1399,7 +1399,7 @@ class ProgramCompiler
   bool _hasUnnamedConstructor(Class c) {
     if (c == null || c == coreTypes.objectClass) return false;
     var ctor = unnamedConstructor(c);
-    if (ctor != null && !ctor.isSyntheticDefault) return true;
+    if (ctor != null && !ctor.isSynthetic) return true;
     if (c.fields.any((f) => !f.isStatic)) return true;
     return _hasUnnamedSuperConstructor(c);
   }

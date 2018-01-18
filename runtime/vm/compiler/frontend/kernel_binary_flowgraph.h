@@ -329,7 +329,7 @@ class ConstructorHelper {
   enum Flag {
     kConst = 1 << 0,
     kExternal = 1 << 1,
-    kSyntheticDefault = 1 << 2,
+    kSynthetic = 1 << 2,
   };
 
   explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
@@ -348,7 +348,7 @@ class ConstructorHelper {
 
   bool IsExternal() { return (flags_ & kExternal) != 0; }
   bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsSyntheticDefault() { return (flags_ & kSyntheticDefault) != 0; }
+  bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
