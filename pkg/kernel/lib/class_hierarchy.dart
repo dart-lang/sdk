@@ -103,6 +103,24 @@ abstract class ClassHierarchy {
   /// is resolved if the class was not abstract.
   Member getDispatchTarget(Class class_, Name name, {bool setter: false});
 
+  /// Returns the list of potential targets of dynamic dispatch to an instance
+  /// of [class_].
+  ///
+  /// If [setters] is `false`, only potential targets of a getter or call
+  /// dispatch are returned.  If [setters] is `true`, only potential targets
+  /// of a setter dispatch are returned.
+  ///
+  /// See [getDispatchTarget] for more details.
+  ///
+  /// The returned list should not be modified.
+  List<Member> getDispatchTargets(Class class_, {bool setters: false});
+
+  /// Returns the single concrete target for invocation of the given interface
+  /// target, or `null` if it could not be resolved or there are multiple
+  /// possible targets.
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false});
+
   /// Returns the possibly abstract interface member of [class_] with the given
   /// [name].
   ///
@@ -130,6 +148,34 @@ abstract class ClassHierarchy {
   /// Members are sorted by name so that they may be efficiently compared across
   /// classes.
   List<Member> getDeclaredMembers(Class class_, {bool setters: false});
+
+  /// Returns the subclasses of [class_] as an interval list.
+  ClassSet getSubclassesOf(Class class_);
+
+  /// Returns the subtypes of [class_] as an interval list.
+  ClassSet getSubtypesOf(Class class_);
+
+  /// True if [subclass] inherits from [superclass] though zero or more
+  /// `extends` relationships.
+  bool isSubclassOf(Class subclass, Class superclass);
+
+  /// True if [submixture] inherits from [superclass] though zero or more
+  /// `extends` and `with` relationships.
+  bool isSubmixtureOf(Class submixture, Class superclass);
+
+  /// True if [subtype] inherits from [superclass] though zero or more
+  /// `extends`, `with`, and `implements` relationships.
+  bool isSubtypeOf(Class subtype, Class superclass);
+
+  /// True if the given class is used as the right-hand operand to a
+  /// mixin application (i.e. [Class.mixedInType]).
+  bool isUsedAsMixin(Class class_);
+
+  /// True if the given class is the direct super class of another class.
+  bool isUsedAsSuperClass(Class class_);
+
+  /// True if the given class is used in an `implements` clause.
+  bool isUsedAsSuperInterface(Class class_);
 
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
@@ -305,39 +351,35 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return classes.where(unorderedSet.contains);
   }
 
-  /// True if [subclass] inherits from [superclass] though zero or more
-  /// `extends` relationships.
+  @override
   bool isSubclassOf(Class subclass, Class superclass) {
     if (identical(subclass, superclass)) return true;
     return _infoFor[subclass].isSubclassOf(_infoFor[superclass]);
   }
 
-  /// True if [submixture] inherits from [superclass] though zero or more
-  /// `extends` and `with` relationships.
+  @override
   bool isSubmixtureOf(Class submixture, Class superclass) {
     if (identical(submixture, superclass)) return true;
     return _infoFor[submixture].isSubmixtureOf(_infoFor[superclass]);
   }
 
-  /// True if [subtype] inherits from [superclass] though zero or more
-  /// `extends`, `with`, and `implements` relationships.
+  @override
   bool isSubtypeOf(Class subtype, Class superclass) {
     if (identical(subtype, superclass)) return true;
     return _infoFor[subtype].isSubtypeOf(_infoFor[superclass]);
   }
 
-  /// True if the given class is the direct super class of another class.
+  @override
   bool isUsedAsSuperClass(Class class_) {
     return _infoFor[class_].directExtenders.isNotEmpty;
   }
 
-  /// True if the given class is used as the right-hand operand to a
-  /// mixin application (i.e. [Class.mixedInType]).
+  @override
   bool isUsedAsMixin(Class class_) {
     return _infoFor[class_].directMixers.isNotEmpty;
   }
 
-  /// True if the given class is used in an `implements` clause.
+  @override
   bool isUsedAsSuperInterface(Class class_) {
     return _infoFor[class_].directImplementers.isNotEmpty;
   }
@@ -498,24 +540,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return ClassHierarchy.findMemberByName(list, name);
   }
 
-  /// Returns the list of potential targets of dynamic dispatch to an instance
-  /// of [class_].
-  ///
-  /// If [setters] is `false`, only potential targets of a getter or call
-  /// dispatch are returned.  If [setters] is `true`, only potential targets
-  /// of a setter dispatch are returned.
-  ///
-  /// See [getDispatchTarget] for more details.
-  ///
-  /// The returned list should not be modified.
+  @override
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
     _ClassInfo info = _infoFor[class_];
     return setters ? info.implementedSetters : info.implementedGettersAndCalls;
   }
 
-  /// Returns the single concrete target for invocation of the given interface
-  /// target, or `null` if it could not be resolved or there are multiple
-  /// possible targets.
+  @override
   Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
       {bool setter: false}) {
     Name name = interfaceTarget.name;
@@ -623,12 +654,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return !getSubtypesOf(class_).isSingleton;
   }
 
-  /// Returns the subtypes of [class_] as an interval list.
+  @override
   ClassSet getSubtypesOf(Class class_) {
     return new ClassSet(this, _infoFor[class_].subtypeIntervalList);
   }
 
-  /// Returns the subclasses of [class_] as an interval list.
+  @override
   ClassSet getSubclassesOf(Class class_) {
     return new ClassSet(this, _infoFor[class_].subclassIntervalList);
   }
