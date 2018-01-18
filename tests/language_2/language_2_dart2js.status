@@ -2238,7 +2238,6 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 crash_6725_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -3001,7 +3000,6 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 crash_6725_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError

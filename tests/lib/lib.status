@@ -422,7 +422,7 @@ mirrors/library_imports_prefixed_show_hide_test: RuntimeError
 mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
-mirrors/load_library_test: RuntimeError
+mirrors/load_library_test: CompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.

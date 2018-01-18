@@ -7,6 +7,7 @@ Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Metadata/before_type_param_t01: RuntimeError
 LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 
@@ -24,6 +25,7 @@ Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # New
 Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t05: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
