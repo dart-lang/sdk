@@ -30,6 +30,10 @@ Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Pass
 
+[ $fasta ]
+Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
+Language/Types/Interface_Types/subtype_t30: CompileTimeError
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
