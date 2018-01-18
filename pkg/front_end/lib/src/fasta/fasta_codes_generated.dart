@@ -2197,8 +2197,9 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Token token)> codeIntegerLiteralIsOutOfRange =
     const Code<Message Function(Token token)>(
-        "IntegerLiteralIsOutOfRange", templateIntegerLiteralIsOutOfRange,
-        analyzerCode: "INTEGER_LITERAL_OUT_OF_RANGE", dart2jsCode: "*fatal*");
+  "IntegerLiteralIsOutOfRange",
+  templateIntegerLiteralIsOutOfRange,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIntegerLiteralIsOutOfRange(Token token) {

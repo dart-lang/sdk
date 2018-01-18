@@ -1407,13 +1407,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Enums can't be instantiated.",
           "Try using one of the defined constants.");
 
-  static const CompileTimeErrorCode INTEGER_LITERAL_OUT_OF_RANGE =
-      const CompileTimeErrorCode(
-          'INTEGER_LITERAL_OUT_OF_RANGE',
-          "The integer literal {0} can't be represented in 64 bits.",
-          "Try using the BigInt class if you need an integer larger than "
-          "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.");
-
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
    * begin with the character @, followed by a constant expression that must be

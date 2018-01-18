@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library analyzer.src.generated.error_verifier;
+
 import 'dart:collection';
 import "dart:math" as math;
 
@@ -14,7 +16,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -913,12 +914,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       _isInConstInstanceCreation = wasInConstInstanceCreation;
     }
-  }
-
-  @override
-  Object visitIntegerLiteral(IntegerLiteral node) {
-    _checkForOutOfRange(node);
-    return super.visitIntegerLiteral(node);
   }
 
   @override
@@ -5362,17 +5357,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
             formalParameter);
       }
-    }
-  }
-
-  void _checkForOutOfRange(IntegerLiteral node) {
-    String lexeme = node.literal.lexeme;
-    AstNode parent = node.parent;
-    bool isNegated =
-        parent is PrefixExpression && parent.operator.type == TokenType.MINUS;
-    if (!IntegerLiteralImpl.isValidLiteral(lexeme, isNegated)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, node, [lexeme]);
     }
   }
 

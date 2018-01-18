@@ -3204,18 +3204,6 @@ E e(String name) {
     verify([source]);
   }
 
-  test_integerLiteralOutOfRange_negative() async {
-    Source source = addSource('int x = -9223372036854775809;');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
-  }
-
-  test_integerLiteralOutOfRange_positive() async {
-    Source source = addSource('int x = 9223372036854775808;');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
-  }
-
   test_invalidAnnotation_getter() async {
     Source source = addSource(r'''
 get V => 0;

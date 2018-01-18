@@ -147,7 +147,6 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ENUM,
-  CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_CONSTANT,
