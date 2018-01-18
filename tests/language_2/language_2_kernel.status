@@ -15,6 +15,9 @@ generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
+[ $fasta ]
+regress_22976_test/*: CompileTimeError # Issue 31935
+
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 bad_named_parameters_test/01: Crash # Issue(http://dartbug.com/31630)
 bad_named_parameters_test/02: Crash # Issue(http://dartbug.com/31630)
@@ -628,7 +631,6 @@ redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-regress_22976_test/01: CompileTimeError # Issue 31402 (Variable declaration)
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: RuntimeError
@@ -1496,7 +1498,6 @@ regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
 regress_18535_test: SkipByDesign
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-regress_22976_test/01: CompileTimeError # Issue 31402 (Variable declaration)
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: RuntimeError

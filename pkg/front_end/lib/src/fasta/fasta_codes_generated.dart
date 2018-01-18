@@ -96,6 +96,38 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type, DartType _type2)>
+    templateAmbiguousSupertypes = const Template<
+            Message Function(String name, DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""'#name' can't implement both '#type' and '#type2'""",
+        withArguments: _withArgumentsAmbiguousSupertypes);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeAmbiguousSupertypes =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "AmbiguousSupertypes", templateAmbiguousSupertypes,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAmbiguousSupertypes(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeAmbiguousSupertypes,
+      message: """'$name' can't implement both '$type' and '$type2'""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAnnotationOnEnumConstant = messageAnnotationOnEnumConstant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

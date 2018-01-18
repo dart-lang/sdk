@@ -1796,6 +1796,7 @@ UndefinedMethod:
       C c;
       c.foo();
     }
+
 SourceOutlineSummary:
   template: |
     Built outlines for #count compilation units (#count2 bytes) in #string, that is,
@@ -1821,4 +1822,8 @@ CantInferTypeDueToInconsistentOverrides:
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
   tip: "Specify the type explicitly."
+  severity: ERROR
+
+AmbiguousSupertypes:
+  template: "'#name' can't implement both '#type' and '#type2'"
   severity: ERROR

@@ -1419,9 +1419,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: RuntimeError
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
@@ -2012,9 +2009,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
@@ -2590,9 +2584,6 @@ regress_13462_0_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_23408_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -3346,9 +3337,6 @@ regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_23408_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant

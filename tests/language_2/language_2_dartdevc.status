@@ -546,7 +546,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-regress_22976_test/01: CompileTimeError
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError # Issue 31533
 regress_25550_test: CompileTimeError

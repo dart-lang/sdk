@@ -11,16 +11,25 @@ import 'type_algebra.dart';
 
 import 'src/incremental_class_hierarchy.dart' show IncrementalClassHierarchy;
 
+typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
+
 /// Interface for answering various subclassing queries.
 /// TODO(scheglov) Several methods are not used, or used only in tests.
 /// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
-  factory ClassHierarchy(Program program) {
+  factory ClassHierarchy(Program program,
+      {HandleAmbiguousSupertypes onAmbiguousSupertypes}) {
     int numberOfClasses = 0;
     for (var library in program.libraries) {
       numberOfClasses += library.classes.length;
     }
-    return new ClosedWorldClassHierarchy._internal(program, numberOfClasses)
+    onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
+      if (!cls.isSyntheticMixinImplementation) {
+        throw "$cls can't implement both $a and $b";
+      }
+    };
+    return new ClosedWorldClassHierarchy._internal(
+        program, numberOfClasses, onAmbiguousSupertypes)
       .._initialize();
   }
 
@@ -271,6 +280,8 @@ abstract class ClassHierarchy {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
+  final HandleAmbiguousSupertypes _onAmbiguousSupertypes;
+
   /// The [Program] that this class hierarchy represents.
   final Program _program;
 
@@ -281,7 +292,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   final Map<Class, _ClassInfo> _infoFor = <Class, _ClassInfo>{};
 
-  ClosedWorldClassHierarchy._internal(this._program, int numberOfClasses)
+  ClosedWorldClassHierarchy._internal(
+      this._program, int numberOfClasses, this._onAmbiguousSupertypes)
       : classes = new List<Class>(numberOfClasses);
 
   @override
@@ -446,11 +458,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         var superType1 = identical(info1, next)
             ? type1
             : Substitution.fromInterfaceType(type1).substituteType(
-                info1.genericSuperTypes[next.classNode].asInterfaceType);
+                info1.genericSuperTypes[next.classNode].first.asInterfaceType);
         var superType2 = identical(info2, next)
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
-                info2.genericSuperTypes[next.classNode].asInterfaceType);
+                info2.genericSuperTypes[next.classNode].first.asInterfaceType);
         if (superType1 == superType2) {
           candidate = superType1;
           ++numCandidatesAtThisDepth;
@@ -466,7 +478,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _ClassInfo superInfo = _infoFor[superclass];
     if (!info.isSubtypeOf(superInfo)) return null;
     if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
-    return info.genericSuperTypes[superclass];
+    return info.genericSuperTypes[superclass]?.first;
   }
 
   @override
@@ -624,7 +636,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyChanges(Iterable<Class> classes) {
     if (classes.isEmpty) return this;
-    return new ClassHierarchy(_program);
+    return new ClassHierarchy(_program,
+        onAmbiguousSupertypes: _onAmbiguousSupertypes);
   }
 
   void _initialize() {
@@ -900,8 +913,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         superInfo.ownsGenericSuperTypeMap = false;
       } else {
         // Copy over the super type entries.
-        subInfo.genericSuperTypes ??= <Class, Supertype>{};
-        subInfo.genericSuperTypes.addAll(superInfo.genericSuperTypes);
+        subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+        superInfo.genericSuperTypes
+            ?.forEach((Class key, List<Supertype> types) {
+          for (Supertype type in types) {
+            subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
+          }
+        });
       }
     } else {
       // Copy over all transitive generic super types, and substitute the
@@ -909,11 +927,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       Class superclass = supertype.classNode;
       var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
-      subInfo.genericSuperTypes ??= <Class, Supertype>{};
-      superInfo.genericSuperTypes?.forEach((Class key, Supertype type) {
-        subInfo.genericSuperTypes[key] = substitution.substituteSupertype(type);
+      subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
+        for (Supertype type in types) {
+          subInfo.recordGenericSuperType(key,
+              substitution.substituteSupertype(type), _onAmbiguousSupertypes);
+        }
       });
-      subInfo.genericSuperTypes[superclass] = supertype;
+
+      subInfo.recordGenericSuperType(
+          superclass, supertype, _onAmbiguousSupertypes);
     }
   }
 
@@ -1151,7 +1174,7 @@ class _ClassInfo {
   ///
   /// In this case, a single map object `{A: A<String>, Q: Q<int>}` may be
   /// shared by the classes `B` and `C`.
-  Map<Class, Supertype> genericSuperTypes;
+  Map<Class, List<Supertype>> genericSuperTypes;
 
   /// If true, this is the current "owner" of [genericSuperTypes], meaning
   /// we may add additional entries to the map or transfer ownership to another
@@ -1178,6 +1201,17 @@ class _ClassInfo {
   List<Member> interfaceSetters;
 
   _ClassInfo(this.classNode);
+
+  void recordGenericSuperType(Class cls, Supertype type,
+      HandleAmbiguousSupertypes onAmbiguousSupertypes) {
+    List<Supertype> existing = genericSuperTypes[cls];
+    if (existing == null) {
+      genericSuperTypes[cls] = <Supertype>[type];
+    } else if (type != existing.first) {
+      existing.add(type);
+      onAmbiguousSupertypes(classNode, existing.first, type);
+    }
+  }
 }
 
 /// An immutable set of classes, internally represented as an interval list.
