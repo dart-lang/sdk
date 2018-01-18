@@ -2511,7 +2511,8 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
       node->arguments()->names(), arguments, owner()->ic_data_array(),
       owner()->GetNextDeoptId(), ConvertRebindRule(node->rebind_rule()));
   if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
-    call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
+    call->SetResultType(
+        Z, CompileType::FromCid(MethodRecognizer::ResultCid(node->function())));
   }
   ReturnDefinition(call);
 }
@@ -2650,7 +2651,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
         owner()->GetNextDeoptId(), ICData::kStatic);
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
-      call->set_result_cid(result_cid);
+      call->SetResultType(Z, CompileType::FromCid(result_cid));
       call->set_is_known_list_constructor(true);
       // Recognized fixed length array factory must have two arguments:
       // (0) type-arguments, (1) length.
@@ -2658,7 +2659,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
              arguments->length() == 2);
     } else if (node->constructor().recognized_kind() !=
                MethodRecognizer::kUnknown) {
-      call->set_result_cid(MethodRecognizer::ResultCid(node->constructor()));
+      call->SetResultType(Z, CompileType::FromCid(MethodRecognizer::ResultCid(
+                                 node->constructor())));
     }
     ReturnDefinition(call);
     return;

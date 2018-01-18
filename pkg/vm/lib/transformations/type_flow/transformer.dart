@@ -16,9 +16,11 @@ import 'package:kernel/type_environment.dart';
 import 'analysis.dart';
 import 'calls.dart';
 import 'summary_collector.dart';
+import 'types.dart';
 import 'utils.dart';
 import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
+import '../../metadata/inferred_type.dart';
 
 const bool kDumpAllSummaries =
     const bool.fromEnvironment('global.type.flow.dump.all.summaries');
@@ -58,6 +60,9 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
   new DropMethodBodiesVisitor(typeFlowAnalysis).visitProgram(program);
 
   new TFADevirtualization(program, typeFlowAnalysis).visitProgram(program);
+
+  new AnnotateWithInferredTypes(program, typeFlowAnalysis)
+      .visitProgram(program);
 
   transformsStopWatch.stop();
 
@@ -115,5 +120,93 @@ class DropMethodBodiesVisitor extends RecursiveVisitor<Null> {
         debugPrint("Dropped $m");
       }
     }
+  }
+}
+
+/// Annotates kernel AST with types inferred by type flow analysis.
+class AnnotateWithInferredTypes extends RecursiveVisitor<Null> {
+  final TypeFlowAnalysis _typeFlowAnalysis;
+  final InferredTypeMetadataRepository _metadata;
+
+  AnnotateWithInferredTypes(Program program, this._typeFlowAnalysis)
+      : _metadata = new InferredTypeMetadataRepository() {
+    program.addMetadataRepository(_metadata);
+  }
+
+  void _annotateNode(TreeNode node) {
+    final callSite = _typeFlowAnalysis.callSite(node);
+    if ((callSite != null) && callSite.isResultUsed && callSite.isReachable) {
+      final resultType = callSite.resultType;
+      assertx(resultType != null);
+
+      Class concreteClass;
+
+      final nullable = resultType is NullableType;
+      if (nullable) {
+        final baseType = (resultType as NullableType).baseType;
+
+        if (baseType == const EmptyType()) {
+          concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
+        } else {
+          concreteClass =
+              baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+        }
+      } else {
+        concreteClass =
+            resultType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+      }
+
+      if ((concreteClass != null) || !nullable) {
+        _metadata.mapping[node] = new InferredType(concreteClass, nullable);
+      }
+    }
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    _annotateNode(node);
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  visitPropertyGet(PropertyGet node) {
+    _annotateNode(node);
+    super.visitPropertyGet(node);
+  }
+
+  @override
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    _annotateNode(node);
+    super.visitDirectMethodInvocation(node);
+  }
+
+  @override
+  visitDirectPropertyGet(DirectPropertyGet node) {
+    _annotateNode(node);
+    super.visitDirectPropertyGet(node);
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    _annotateNode(node);
+    super.visitSuperMethodInvocation(node);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    _annotateNode(node);
+    super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    _annotateNode(node);
+    super.visitStaticInvocation(node);
+  }
+
+  @override
+  visitStaticGet(StaticGet node) {
+    _annotateNode(node);
+    super.visitStaticGet(node);
   }
 }

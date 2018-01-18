@@ -571,6 +571,25 @@ class DirectCallMetadataHelper : public MetadataHelper {
                     bool* check_receiver_for_null);
 };
 
+struct InferredTypeMetadata {
+  InferredTypeMetadata(intptr_t cid_, bool nullable_)
+      : cid(cid_), nullable(nullable_) {}
+
+  const intptr_t cid;
+  const bool nullable;
+};
+
+// Helper class which provides access to inferred type metadata.
+class InferredTypeMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.inferred-type.metadata"; }
+
+  explicit InferredTypeMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+  InferredTypeMetadata GetInferredType(intptr_t node_offset);
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -874,6 +893,7 @@ class StreamingFlowGraphBuilder {
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -894,6 +914,7 @@ class StreamingFlowGraphBuilder {
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -914,6 +935,7 @@ class StreamingFlowGraphBuilder {
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   ~StreamingFlowGraphBuilder() { delete reader_; }
@@ -1084,6 +1106,7 @@ class StreamingFlowGraphBuilder {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
+                      const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0,
                       intptr_t argument_check_bits = 0,
                       intptr_t type_argument_check_bits = 0);
@@ -1100,6 +1123,7 @@ class StreamingFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
+                        const InferredTypeMetadata* result_type = NULL,
                         intptr_t argument_check_bits = 0,
                         intptr_t type_argument_check_bits = 0);
   Fragment BuildArgumentTypeChecks();
@@ -1298,6 +1322,7 @@ class StreamingFlowGraphBuilder {
   GrowableArray<intptr_t>* record_token_positions_into_;
   GrowableArray<intptr_t>* record_yield_positions_into_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
   bool metadata_scanned_;
 
   friend class ClassHelper;
@@ -1306,6 +1331,7 @@ class StreamingFlowGraphBuilder {
   friend class DirectCallMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
+  friend class InferredTypeMetadataHelper;
   friend class KernelLoader;
   friend class KernelReader;
   friend class LibraryDependencyHelper;

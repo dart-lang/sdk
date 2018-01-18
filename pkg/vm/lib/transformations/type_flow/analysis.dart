@@ -350,6 +350,12 @@ class _ClassHierarchyCache implements TypeHierarchy {
   final Set<Class> allocatedClasses = new Set<Class>();
   final Map<Class, _ClassData> classes = <Class, _ClassData>{};
 
+  /// Class hierarchy is sealed after analysis is finished.
+  /// Once it is sealed, no new allocated classes may be added and no new
+  /// targets of invocations may appear.
+  /// It also means that there is no need to add dependencies on classes.
+  bool _sealed = false;
+
   final Map<Member, _ProcedureInvocationHandler> _procedureHandlers =
       <Member, _ProcedureInvocationHandler>{};
   final Map<Field, _FieldGetterInvocationHandler> _fieldGetterHandlers =
@@ -375,6 +381,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
   void addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
+    assertx(!_sealed);
 
     if (allocatedClasses.add(cl)) {
       final _ClassData classData = getClassData(cl);
@@ -392,10 +399,16 @@ class _ClassHierarchyCache implements TypeHierarchy {
     }
   }
 
+  void seal() {
+    _sealed = true;
+  }
+
   @override
   bool isSubtype(DartType subType, DartType superType) {
-    tracePrint(
-        "isSubtype for sub = $subType (${subType.runtimeType}), sup = $superType (${superType.runtimeType})");
+    if (kPrintTrace) {
+      tracePrint("isSubtype for sub = $subType (${subType
+              .runtimeType}), sup = $superType (${superType.runtimeType})");
+    }
     if (subType == superType) {
       return true;
     }
@@ -459,7 +472,9 @@ class _ClassHierarchyCache implements TypeHierarchy {
     _ClassData classData = getClassData((base as InterfaceType).classNode);
 
     final allocatedSubtypes = classData.allocatedSubtypes;
-    classData.addDependentInvocation(_typeFlowAnalysis.currentInvocation);
+    if (!_sealed) {
+      classData.addDependentInvocation(_typeFlowAnalysis.currentInvocation);
+    }
 
     final int numSubTypes = allocatedSubtypes.length;
 
@@ -515,6 +530,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
   }
 
   void _addDynamicTarget(Class c, _DynamicInvocationHandler handler) {
+    assertx(!_sealed);
     final selector = handler.selector;
     final member = hierarchy.getDispatchTarget(c, selector.name,
         setter: selector.isSetter);
@@ -815,6 +831,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   void process() {
     workList.process();
+    hierarchyCache.seal();
   }
 
   bool isMemberUsed(Member member) => hierarchyCache.isMemberUsed(member);

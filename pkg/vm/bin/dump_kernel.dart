@@ -9,6 +9,8 @@ import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
+import 'package:vm/metadata/inferred_type.dart'
+    show InferredTypeMetadataRepository;
 
 final String _usage = '''
 Usage: dump_kernel input.dill output.txt
@@ -28,6 +30,7 @@ main(List<String> arguments) async {
 
   // Register VM-specific metadata.
   program.addMetadataRepository(new DirectCallMetadataRepository());
+  program.addMetadataRepository(new InferredTypeMetadataRepository());
 
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readProgram(program);

@@ -1048,6 +1048,14 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
 }
 
 CompileType InstanceCallInstr::ComputeType() const {
+  // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
+  // (in optimized mode) and avoid keeping separate result_type.
+  CompileType* inferred_type = result_type();
+  if ((inferred_type != NULL) &&
+      (inferred_type->ToNullableCid() != kDynamicCid)) {
+    return *inferred_type;
+  }
+
   if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
     const Function& target = interface_target();
     if (!target.IsNull()) {
@@ -1063,7 +1071,9 @@ CompileType InstanceCallInstr::ComputeType() const {
       // TODO(dartbug.com/30480): instantiate generic result_type
       if (result_type.IsInstantiated()) {
         TraceStrongModeType(this, result_type);
-        return CompileType::FromAbstractType(result_type);
+        const bool is_nullable =
+            (inferred_type == NULL) || inferred_type->is_nullable();
+        return CompileType::FromAbstractType(result_type, is_nullable);
       }
     }
   }
@@ -1089,8 +1099,12 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
 }
 
 CompileType StaticCallInstr::ComputeType() const {
-  if (result_cid_ != kDynamicCid) {
-    return CompileType::FromCid(result_cid_);
+  // TODO(alexmarkov): calculate type of StaticCallInstr eagerly
+  // (in optimized mode) and avoid keeping separate result_type.
+  CompileType* inferred_type = result_type();
+  if ((inferred_type != NULL) &&
+      (inferred_type->ToNullableCid() != kDynamicCid)) {
+    return *inferred_type;
   }
 
   if (function_.recognized_kind() != MethodRecognizer::kUnknown) {
@@ -1107,7 +1121,9 @@ CompileType StaticCallInstr::ComputeType() const {
     // non-instantiated types properly.
     if (result_type.IsInstantiated()) {
       TraceStrongModeType(this, result_type);
-      return CompileType::FromAbstractType(result_type);
+      const bool is_nullable =
+          (inferred_type == NULL) || inferred_type->is_nullable();
+      return CompileType::FromAbstractType(result_type, is_nullable);
     }
   }
 
