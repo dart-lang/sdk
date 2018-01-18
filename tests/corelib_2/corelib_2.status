@@ -66,7 +66,6 @@ int_from_environment_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
-string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $runtime == jsshell ]
 string_case_test/01: Fail, OK # German double S.
@@ -75,7 +74,7 @@ unicode_test: Fail
 [ $runtime == safari ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -130,10 +129,9 @@ string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == d8 ]
-string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
 uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
@@ -344,7 +342,6 @@ list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 string_from_environment3_test/03: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError
@@ -373,7 +370,6 @@ null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
 string_from_environment3_test/03: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/06: RuntimeError
@@ -393,7 +389,6 @@ string_from_environment_test: Skip
 
 [ $compiler == none && ($runtime == flutter || $runtime == vm) ]
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 iterable_generate_test/01: RuntimeError
@@ -404,7 +399,7 @@ apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 error_stack_trace1_test: Skip # Expects unobfuscated stack trace
 
 [ $runtime == drt && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
 symbol_test/02: MissingCompileTimeError # Issue 11669
@@ -603,7 +598,6 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == dart2js || $compiler == none && $runtime == vm ]
 from_environment_const_type_undefined_test/09: MissingCompileTimeError

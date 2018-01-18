@@ -180,7 +180,6 @@ LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please tria
 LibTest/core/List/getRange_A03_t01: RuntimeError, OK # Tests that fail because they use the legacy try-catch syntax. co19 issue 184.
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to finish.
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # Expected to fail because double.INFINITY is int.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # Expected to fail because double.NEGATIVE_INFINITY is int.
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
@@ -981,7 +980,6 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
@@ -2031,7 +2029,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # DRT is not on Unicode 6.3 yet.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Please triage this failure
@@ -5149,7 +5147,7 @@ LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: Pass, RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # IE11 is not on Unicode 6.3 yet.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
@@ -5648,7 +5646,7 @@ LibTest/async/Zone/createPeriodicTimer_A01_t01: RuntimeError # Issue 7728, timer
 LibTest/async/Zone/createTimer_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/List/sort_A01_t04: Skip # Must be a bug in jsshell, test sometimes times out.
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # co19-roll r706: Please triage this failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # JS Engine may not be on Unicode 6.3 yet.
 LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: RuntimeError # Please triage this failure
@@ -6494,7 +6492,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Safari is not on Unicode 6.3 yet.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200

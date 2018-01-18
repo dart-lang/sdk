@@ -205,7 +205,6 @@ LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Pass,RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # Dart issue 15974
@@ -626,7 +625,7 @@ LibTest/async/Zone/createPeriodicTimer_A01_t01: RuntimeError # Issue 7728, timer
 LibTest/async/Zone/createTimer_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/List/sort_A01_t04: Skip # Must be a bug in jsshell, test sometimes times out.
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # co19-roll r706: Please triage this failure.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # JS engine has not moved to Unicode 6.3 yet.
 LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: RuntimeError # Please triage this failure
@@ -676,7 +675,7 @@ LibTest/core/Uri/Uri_A06_t03: Skip # Issue 18093, timeout.
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Skip # Issue 18093, timeout.
 
 [ $compiler == dart2js && $jscl ]
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # Does not work with old JS engines that are on Unicode 6.2
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8. Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
@@ -1444,7 +1443,6 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Pass,RuntimeError # https://github.com/dart-lang/sdk/issues/29814
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
@@ -2253,7 +2251,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # DRT may not be on Unicode 6.2
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Please triage this failure
@@ -4902,7 +4900,7 @@ LayoutTests/fast/xpath/py-dom-xpath/expressions_t01: RuntimeError # Please triag
 LayoutTests/fast/xpath/py-dom-xpath/paths_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/reverse-axes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Safari may not be on Unicode 6.3
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200
@@ -6630,7 +6628,7 @@ LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: Pass, RuntimeError # Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # IE11 may not be on Unicode 6.3
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError # Issue 22200

@@ -57,7 +57,6 @@ int_from_environment_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
-string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $runtime == jsshell ]
 string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
@@ -66,7 +65,7 @@ unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 [ $runtime == safari ]
 double_round3_test: RuntimeError
 double_round_to_double2_test: Pass, Fail, OK
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $strong ]
 *: SkipByDesign # tests/corelib_2 has the strong mode versions of these tests.
@@ -101,10 +100,10 @@ http_resource_test: Skip, OK # VM specific test, uses dart:io.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == drt ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
@@ -335,9 +334,6 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 
-[ $compiler == none && ($runtime == flutter || $runtime == vm) ]
-string_trimlr_test/02: RuntimeError # Issue 29060
-
 [ $runtime != d8 && $runtime != dart_precompiled && $runtime != vm ]
 regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platforms yet.
 
@@ -369,7 +365,6 @@ data_resource_test: Skip # Resolve URI not supported yet in product mode.
 file_resource_test: Skip # Resolve URI not supported yet in product mode.
 http_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
-string_trimlr_test/02: RuntimeError # Issue 29060
 
 # We skip all the Dart 1.0 tests in dartk and dartkp mode as these
 # modes are intended only for Dart 2.0 with strong mode enabled.
