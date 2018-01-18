@@ -33,6 +33,9 @@ class Exceptions : AllStatic {
                       const Instance& stacktrace);
   static void PropagateError(const Error& error);
 
+  // Propagate an error to the entry frame, skipping over Dart frames.
+  static void PropagateToEntry(const Error& error);
+
   // Helpers to create and throw errors.
   static RawStackTrace* CurrentStackTrace();
   static RawScript* GetCallerScript(DartFrameIterator* iterator);

@@ -23,6 +23,8 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     {DartUtils::kIOLibURL, io_source_paths_, DartUtils::kIOLibPatchURL,
      io_patch_paths_, true},
     {DartUtils::kHttpLibURL, _http_source_paths_, NULL, NULL, false},
+    {DartUtils::kCLILibURL, cli_source_paths_, DartUtils::kCLILibPatchURL,
+     cli_patch_paths_, true},
 
 #if defined(DART_NO_SNAPSHOT)
     // Only include these libraries in the dart_bootstrap case for now.

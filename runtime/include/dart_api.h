@@ -1222,6 +1222,16 @@ DART_EXPORT Dart_Handle Dart_HandleMessage();
 DART_EXPORT Dart_Handle Dart_HandleMessages();
 
 /**
+ * Drains the microtask queue, then blocks the calling thread until the current
+ * isolate recieves a message, then handles all messages.
+ *
+ * \param timeout_millis When non-zero, the call returns after the indicated
+          number of milliseconds even if no message was received.
+ * \return A valid handle if no error occurs, otherwise an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis);
+
+/**
  * Handles any pending messages for the vm service for the current
  * isolate.
  *
@@ -2331,7 +2341,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
  * \return An error handle if the exception was not thrown.
  *   Otherwise the function does not return.
  */
-DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
+DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace);
 
 /*

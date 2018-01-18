@@ -18,6 +18,10 @@
     some breaking API changes. See https://goo.gl/y9mW2x for more information.
   * Renamed `Zone.ROOT` to `Zone.root`.
 
+* `dart:cli`
+  * Added function `waitFor` that suspends a stack to wait for a `Future` to
+    complete.
+
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.

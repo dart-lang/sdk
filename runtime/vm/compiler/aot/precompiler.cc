@@ -580,6 +580,7 @@ void Precompiler::PrecompileConstructors() {
 
 static Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
+    {"dart:async", "::", "_ensureScheduleImmediate"},
     {"dart:core", "::", "_completeDeferredLoads"},
     {"dart:core", "::", "identityHashCode"},
     {"dart:core", "AbstractClassInstantiationError",
@@ -603,6 +604,7 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {"dart:core", "_TypeError", "_TypeError._create"},
     {"dart:collection", "::", "_rehashObjects"},
     {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
+    {"dart:isolate", "::", "_runPendingImmediateCallback"},
     {"dart:isolate", "::", "_startIsolate"},
     {"dart:isolate", "_RawReceivePortImpl", "_handleMessage"},
     {"dart:isolate", "_RawReceivePortImpl", "_lookupHandler"},
@@ -615,7 +617,6 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {"dart:_vmservice", "::", "_registerIsolate"},
     {"dart:developer", "Metrics", "_printMetrics"},
     {"dart:developer", "::", "_runExtension"},
-    {"dart:isolate", "::", "_runPendingImmediateCallback"},
 #endif  // !PRODUCT
     // Fields
     {"dart:core", "Error", "_stackTrace"},

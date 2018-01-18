@@ -54,6 +54,7 @@ MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
       oob_message_handling_allowed_(true),
+      paused_for_messages_(false),
       live_ports_(0),
       paused_(0),
 #if !defined(PRODUCT)
@@ -152,6 +153,9 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
       oob_queue_->Enqueue(message, before_events);
     } else {
       queue_->Enqueue(message, before_events);
+    }
+    if (paused_for_messages_) {
+      ml.Notify();
     }
     message = NULL;  // Do not access message.  May have been deleted.
 
@@ -295,6 +299,36 @@ MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
 #if defined(DEBUG)
   CheckAccess();
 #endif
+  return HandleMessages(&ml, true, true);
+}
+
+MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
+    int64_t timeout_millis) {
+  MonitorLocker ml(&monitor_);
+  ASSERT(task_ != NULL);
+  ASSERT(!delete_me_);
+#if defined(DEBUG)
+  CheckAccess();
+#endif
+  paused_for_messages_ = true;
+  while (queue_->IsEmpty() && oob_queue_->IsEmpty()) {
+    Monitor::WaitResult wr = ml.Wait(timeout_millis);
+    ASSERT(task_ != NULL);
+    ASSERT(!delete_me_);
+    if (wr == Monitor::kTimedOut) {
+      break;
+    }
+    if (queue_->IsEmpty()) {
+      // There are only OOB messages. Handle them and then continue waiting for
+      // normal messages unless there is an error.
+      MessageStatus status = HandleMessages(&ml, false, false);
+      if (status != kOK) {
+        paused_for_messages_ = false;
+        return status;
+      }
+    }
+  }
+  paused_for_messages_ = false;
   return HandleMessages(&ml, true, true);
 }
 

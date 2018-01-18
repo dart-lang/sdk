@@ -282,6 +282,11 @@ class DartLibraryCalls : public AllStatic {
   // Returns null on success, a RawError on failure.
   static RawObject* DrainMicrotaskQueue();
 
+  // Ensures that the isolate's _pendingImmediateCallback is set to
+  // _startMicrotaskLoop from dart:async.
+  // Returns null on success, a RawError on failure.
+  static RawObject* EnsureScheduleImmediate();
+
   // map[key] = value;
   //
   // Returns null on success, a RawError on failure.

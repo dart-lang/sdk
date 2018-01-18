@@ -192,6 +192,7 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
   /// The locations of js patch-files relative to the sdk-descriptors.
   static const _patchLocations = const <String, String>{
     "async": "_internal/js_runtime/lib/async_patch.dart",
+    "cli": "_internal/js_runtime/lib/cli_patch.dart",
     "collection": "_internal/js_runtime/lib/collection_patch.dart",
     "convert": "_internal/js_runtime/lib/convert_patch.dart",
     "core": "_internal/js_runtime/lib/core_patch.dart",

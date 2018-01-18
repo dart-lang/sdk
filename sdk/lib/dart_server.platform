@@ -20,6 +20,7 @@ convert: convert/convert.dart
 core: core/core.dart
 developer: developer/developer.dart
 io: io/io.dart
+cli: cli/cli.dart
 isolate: isolate/isolate.dart
 math: math/math.dart
 mirrors: mirrors/mirrors.dart

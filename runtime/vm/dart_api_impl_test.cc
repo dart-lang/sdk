@@ -6528,6 +6528,7 @@ TEST_CASE(DartAPI_ParsePatchLibrary) {
 
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);

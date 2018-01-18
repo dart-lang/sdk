@@ -221,6 +221,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     // Setup the native resolver as the snapshot does not carry it.
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
+    Builtin::SetNativeResolver(Builtin::kCLILibrary);
   }
   if (isolate_run_app_snapshot) {
     Dart_Handle result = Loader::ReloadNativeExtensions();
@@ -686,6 +687,8 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:_builtin", "::", "_setPackagesMap"},
     {"dart:_builtin", "::", "_setWorkingDirectory"},
     {"dart:async", "::", "_setScheduleImmediateClosure"},
+    {"dart:cli", "::", "_getWaitForEvent"},
+    {"dart:cli", "::", "_waitForEventClosure"},
     {"dart:io", "::", "_getUriBaseClosure"},
     {"dart:io", "::", "_getWatchSignalInternal"},
     {"dart:io", "::", "_makeDatagram"},

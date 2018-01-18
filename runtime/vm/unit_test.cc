@@ -285,6 +285,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
+  bool is_standalone_library = DartUtils::IsDartCLILibURL(library_url_string);
   if (is_dart_scheme_url) {
     ASSERT(tag == Dart_kImportTag);
     // Handle imports of other built-in libraries present in the SDK.
@@ -292,6 +293,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
     } else if (DartUtils::IsDartBuiltinLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    } else if (DartUtils::IsDartCLILibURL(url_chars)) {
+      return Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
     } else {
       return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
@@ -314,6 +317,12 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     ASSERT(tag == Dart_kSourceTag);
     return Dart_LoadSource(library, url, Dart_Null(),
                            Builtin::PartSource(Builtin::kIOLibrary, url_chars),
+                           0, 0);
+  }
+  if (is_standalone_library) {
+    ASSERT(tag == Dart_kSourceTag);
+    return Dart_LoadSource(library, url, Dart_Null(),
+                           Builtin::PartSource(Builtin::kCLILibrary, url_chars),
                            0, 0);
   }
   Dart_Handle resolved_url = url;

@@ -815,6 +815,26 @@ void Exceptions::PropagateError(const Error& error) {
   UNREACHABLE();
 }
 
+void Exceptions::PropagateToEntry(const Error& error) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->top_exit_frame_info() != 0);
+  Instance& stacktrace = Instance::Handle(zone);
+  if (error.IsUnhandledException()) {
+    const UnhandledException& uhe = UnhandledException::Cast(error);
+    stacktrace = uhe.stacktrace();
+  } else {
+    stacktrace = Exceptions::CurrentStackTrace();
+  }
+  uword handler_pc = 0;
+  uword handler_sp = 0;
+  uword handler_fp = 0;
+  FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
+  JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
+                         stacktrace);
+  UNREACHABLE();
+}
+
 void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
   Thread* thread = Thread::Current();
   const Object& result =
