@@ -83,9 +83,7 @@ import 'modifier_context.dart'
         TopLevelMethodModifierContext,
         isModifier,
         parseModifiersOpt,
-        skipToLastModifier,
-        typeContinuationAfterVar,
-        typeContinuationFromMemberKind;
+        typeContinuationAfterVar;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -4225,6 +4223,8 @@ class Parser {
       throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
+    } else if (isModifier(token.next)) {
+      return parseVariablesDeclaration(token);
     } else if (token.next.isIdentifier) {
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, '@')) {
@@ -5399,22 +5399,43 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     token = parseMetadataStar(token);
+    Token next = token.next;
 
     MemberKind memberKind = MemberKind.Local;
     TypeContinuation typeContinuation;
-    if (isModifier(token.next)) {
-      ModifierContext modifierContext = parseModifiersOpt(
-          this, token, skipToLastModifier(token), memberKind, null, true, null);
-      token = modifierContext.lastModifier;
-      typeContinuation = modifierContext.typeContinuation;
-      memberKind = modifierContext.memberKind;
-      modifierContext = null;
+    Token varFinalOrConst;
+    if (isModifier(next)) {
+      if (optional('var', next)) {
+        typeContinuation = TypeContinuation.OptionalAfterVar;
+        varFinalOrConst = token = parseModifier(token);
+        next = token.next;
+      } else if (optional('final', next) || optional('const', next)) {
+        typeContinuation = TypeContinuation.Optional;
+        varFinalOrConst = token = parseModifier(token);
+        next = token.next;
+      }
+
+      if (isModifier(next)) {
+        // Recovery
+        ModifierRecoveryContext modifierContext = new ModifierRecoveryContext(
+            this, memberKind, null, true, typeContinuation);
+        token = modifierContext.parseRecovery(token,
+            varFinalOrConst: varFinalOrConst);
+
+        memberKind = modifierContext.memberKind;
+        typeContinuation = modifierContext.typeContinuation;
+        varFinalOrConst = modifierContext.varFinalOrConst;
+        listener.handleModifiers(modifierContext.modifierCount);
+        modifierContext = null;
+      } else {
+        listener.handleModifiers(1);
+      }
     } else {
       listener.handleModifiers(0);
-      typeContinuation = typeContinuationFromMemberKind(true, memberKind);
     }
 
-    token = parseType(token, typeContinuation, null, memberKind);
+    token = parseType(
+        token, typeContinuation ?? TypeContinuation.Required, null, memberKind);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
 

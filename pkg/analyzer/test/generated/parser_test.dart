@@ -2686,6 +2686,15 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     ]);
   }
 
+  void test_covariantAndType_local() {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
+    // this would be a better error message.
+    parseStatement("covariant int x;");
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 9)]
+        : [expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 9)]);
+  }
+
   void test_covariantMember_getter_noReturnType() {
     createParser('static covariant get x => 0;');
     ClassMember member = parser.parseClassMember('C');
@@ -3498,24 +3507,20 @@ class Foo {
   }
 
   void test_functionTypedParameter_incomplete1() {
-    // This caused an exception at one point.
-    if (fe.Scanner.useFasta) {
-      parseCompilationUnit("void f(int Function(", errors: [
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 0),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 0),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 20, 0),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 0),
-      ]);
-    } else {
-      parseCompilationUnit("void f(int Function(", codes: [
-        ParserErrorCode.MISSING_FUNCTION_BODY,
-        ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
-        ParserErrorCode.EXPECTED_EXECUTABLE,
-        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.EXPECTED_TOKEN
-      ]);
-    }
+    parseCompilationUnit("void f(int Function(",
+        errors: usingFastaParser
+            ? [
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 6, 1),
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 19, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 8),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 20, 0),
+              ]
+            : [
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 0),
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 20, 0),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 20, 0),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 0),
+              ]);
   }
 
   void test_functionTypedParameter_var() {
@@ -5246,22 +5251,24 @@ void main() {
         errors: [expectedError(ParserErrorCode.VAR_AND_TYPE, 14, 3)]);
   }
 
-  @failingTest
   void test_varAndType_local() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
     parseStatement("var int x;");
-    listener.assertErrors([expectedError(ParserErrorCode.VAR_AND_TYPE, 4, 3)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.VAR_AND_TYPE, 4, 3)]
+        : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 8, 1)]);
   }
 
-  @failingTest
   void test_varAndType_parameter() {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
     // this would be a better error message.
     createParser('(var int x)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors([expectedError(ParserErrorCode.VAR_AND_TYPE, 5, 3)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.VAR_AND_TYPE, 5, 3)]
+        : [expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
   void test_varAndType_topLevelVariable() {
@@ -9117,14 +9124,10 @@ abstract class FormalParameterParserTestMixin
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('const a');
+    NormalFormalParameter parameter = parseNormalFormalParameter('const a',
+        errorCodes:
+            usingFastaParser ? [ParserErrorCode.EXTRANEOUS_MODIFIER] : []);
     expect(parameter, isNotNull);
-    if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
-    } else {
-      assertNoErrors();
-    }
     expect(parameter, new isInstanceOf<SimpleFormalParameter>());
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.keyword, isNotNull);
@@ -9133,14 +9136,10 @@ abstract class FormalParameterParserTestMixin
   }
 
   void test_parseNormalFormalParameter_simple_const_type() {
-    NormalFormalParameter parameter = parseNormalFormalParameter('const A a');
+    NormalFormalParameter parameter = parseNormalFormalParameter('const A a',
+        errorCodes:
+            usingFastaParser ? [ParserErrorCode.EXTRANEOUS_MODIFIER] : []);
     expect(parameter, isNotNull);
-    if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
-    } else {
-      assertNoErrors();
-    }
     expect(parameter, new isInstanceOf<SimpleFormalParameter>());
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.keyword, isNotNull);

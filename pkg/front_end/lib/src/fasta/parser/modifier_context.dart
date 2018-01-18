@@ -75,7 +75,7 @@ Token skipToLastModifier(Token token) {
 }
 
 TypeContinuation typeContinuationAfterVar(TypeContinuation typeContinuation) {
-  switch (typeContinuation ?? TypeContinuation.Required) {
+  switch (typeContinuation) {
     case TypeContinuation.NormalFormalParameter:
       return TypeContinuation.NormalFormalParameterAfterVar;
 
@@ -190,6 +190,7 @@ class ModifierContext {
       return token;
     }
     switch (memberKind) {
+      case MemberKind.Local:
       case MemberKind.StaticField:
       case MemberKind.StaticMethod:
       case MemberKind.TopLevelField:
