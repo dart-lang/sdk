@@ -780,12 +780,6 @@ class ProgramCompiler
       body.add(_addConstructorToClass(className, name, jsCtor));
     }
 
-    if (c.isEnum) {
-      assert(!isCallable, 'enums should not be callable');
-      addConstructor('', js.call('function(x) { this.index = x; }'));
-      return body;
-    }
-
     var fields = c.fields;
     for (var ctor in c.constructors) {
       if (ctor.isExternal) continue;
@@ -1036,9 +1030,24 @@ class ProgramCompiler
   /// Emits static fields for a class, and initialize them eagerly if possible,
   /// otherwise define them as lazy properties.
   void _emitStaticFields(Class c, List<JS.Statement> body) {
-    var lazyStatics = c.fields.where((f) => f.isStatic).toList();
-    if (lazyStatics.isNotEmpty) {
-      body.add(_emitLazyFields(c, lazyStatics));
+    var fields = c.fields.where((f) => f.isStatic).toList();
+    if (c.isEnum) {
+      // We know enum fields can be safely emitted as const fields, as long
+      // as the `values` field is emitted last.
+      var classRef = _emitTopLevelName(c);
+      var valueField = fields.firstWhere((f) => f.name.name == 'values');
+      fields.remove(valueField);
+      fields.add(valueField);
+      for (var f in fields) {
+        assert(f.isConst);
+        body.add(_defineValueOnClass(
+                classRef,
+                _emitStaticMemberName(f.name.name),
+                _visitInitializer(f.initializer, f.annotations))
+            .toStatement());
+      }
+    } else if (fields.isNotEmpty) {
+      body.add(_emitLazyFields(c, fields));
     }
   }
 
@@ -1510,14 +1519,18 @@ class ProgramCompiler
 
   JS.Statement _addConstructorToClass(
       JS.Expression className, String name, JS.Expression jsCtor) {
-    var ctorName = _constructorName(name);
-    if (JS.invalidStaticFieldName(name)) {
-      jsCtor =
-          _callHelper('defineValue(#, #, #)', [className, ctorName, jsCtor]);
-    } else {
-      jsCtor = js.call('#.# = #', [className, ctorName, jsCtor]);
-    }
+    jsCtor = _defineValueOnClass(className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
+  }
+
+  JS.Expression _defineValueOnClass(
+      JS.Expression className, JS.Expression name, JS.Expression value) {
+    var args = [className, name, value];
+    if (name is JS.LiteralString &&
+        JS.invalidStaticFieldName(name.valueWithoutQuotes)) {
+      return _callHelper('defineValue(#, #, #)', args);
+    }
+    return js.call('#.# = #', args);
   }
 
   List<JS.Method> _emitClassMethods(Class c) {
@@ -2345,21 +2358,22 @@ class ProgramCompiler
   }
 
   void _emitLibraryProcedures(Library library) {
-    var procedures =
-        library.procedures.where((p) => !p.isExternal && !p.isAbstract);
+    var procedures = library.procedures
+        .where((p) => !p.isExternal && !p.isAbstract)
+        .toList();
     _moduleItems.addAll(procedures
         .where((p) => !p.isAccessor)
         .map(_emitLibraryFunction)
         .toList());
-    _moduleItems
-        .add(_emitLibraryAccessors(procedures.where((p) => p.isAccessor)));
+    _emitLibraryAccessors(procedures.where((p) => p.isAccessor).toList());
   }
 
-  JS.Statement _emitLibraryAccessors(Iterable<Procedure> accessors) {
-    return _callHelperStatement('copyProperties(#, { # });', [
+  void _emitLibraryAccessors(Iterable<Procedure> accessors) {
+    if (accessors.isEmpty) return;
+    _moduleItems.add(_callHelperStatement('copyProperties(#, { # });', [
       emitLibraryName(_currentLibrary),
       accessors.map(_emitLibraryAccessor).toList()
-    ]);
+    ]));
   }
 
   JS.Method _emitLibraryAccessor(Procedure node) {

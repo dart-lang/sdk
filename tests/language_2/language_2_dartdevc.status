@@ -677,13 +677,6 @@ conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
 cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
-enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_mirror_test: RuntimeError # Expect.equals(expected: <Foo.BAR>, actual: <null>) fails.
-enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
 forwarding_stub_tearoff_test: RuntimeError
