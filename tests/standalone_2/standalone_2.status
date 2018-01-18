@@ -51,6 +51,10 @@ verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
 [ $runtime == dart_precompiled ]
 http_launch_test: Skip
 io/addlatexhash_test: Skip
+io/wait_for_event_isolate_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_waits_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
