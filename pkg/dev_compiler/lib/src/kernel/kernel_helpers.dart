@@ -17,13 +17,12 @@ Library getLibrary(NamedNode n) {
   return n;
 }
 
-final Pattern genericTypeEncodingCharacters = new RegExp('[&^#]');
+final Pattern _syntheticTypeCharacters = new RegExp('[&^#.]');
 
-// TODO(karlklose): add a namer for all identifiers?
 String _escapeIdentifier(String identifier) {
   // Remove the special characters used to encode mixin application class names
   // which are legal in Kernel, but not in JavaScript.
-  return identifier?.replaceAll(genericTypeEncodingCharacters, r'$');
+  return identifier?.replaceAll(_syntheticTypeCharacters, r'$');
 }
 
 /// Returns the escaped name for class [node].

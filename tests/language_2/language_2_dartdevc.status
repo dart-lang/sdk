@@ -180,7 +180,6 @@ compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-compile_time_constant_p_test/01: Crash
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
@@ -195,29 +194,19 @@ const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_constructor_syntax_test/05: Crash
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/01: Crash
-const_error_multiply_initialized_test/02: Crash
-const_error_multiply_initialized_test/03: Crash
-const_error_multiply_initialized_test/04: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_optional_args_test/01: MissingCompileTimeError
-const_qq_test: Crash
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/09: Crash
 const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_duplicate_final_test/01: Crash
-constructor_duplicate_final_test/02: Crash
-constructor_duplicate_final_test/03: Crash
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect2_test/01: MissingCompileTimeError
@@ -276,9 +265,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash
-final_attempt_reinitialization_test/02: Crash
-final_syntax_test/09: Crash
 function_propagation_test: CompileTimeError
 function_type/function_type10_test: RuntimeError # Issue 31766
 function_type/function_type11_test: RuntimeError # Issue 31766
@@ -465,8 +451,7 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_lib_extends_field_test: Crash
-mixin_lib_extends_method_test: Crash
+mixin_lib_extends_field_test: RuntimeError
 mixin_of_mixin_test/01: MissingCompileTimeError
 mixin_of_mixin_test/02: MissingCompileTimeError
 mixin_of_mixin_test/03: MissingCompileTimeError
@@ -488,7 +473,6 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mixin_with_named_import_test: Crash
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
@@ -546,7 +530,7 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-regress_23089_test: Crash
+regress_23089_test: Crash # Crashes in KernelClassBuilder.buildTypeArguments
 regress_23408_test: CompileTimeError # Issue 31533
 regress_25550_test: CompileTimeError
 regress_29025_test: CompileTimeError
@@ -566,13 +550,7 @@ string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test: CompileTimeError
-super_from_constructor_test: Crash
 super_getter_setter_test: CompileTimeError
-super_in_async3_test: Crash
-super_in_async4_test: Crash
-super_in_async6_test: Crash
-super_in_constructor_test: RuntimeError
-super_in_finally_test: Crash
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError

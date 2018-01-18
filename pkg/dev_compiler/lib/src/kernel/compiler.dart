@@ -1055,11 +1055,13 @@ class ProgramCompiler
       List<JS.Statement> body) {
     // Metadata
     if (emitMetadata && metadata.isNotEmpty) {
-      body.add(js.statement('#[#.metadata] = () => #;', [
+      body.add(js.statement('#[#.metadata] = #;', [
         className,
         _runtimeModule,
-        new JS.ArrayInitializer(
-            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
+        new JS.ArrowFun(
+            [],
+            _withLetScopeArrowFunction(() => new JS.ArrayInitializer(
+                new List.from(metadata.map(_instantiateAnnotation)))))
       ]));
     }
   }
@@ -1291,20 +1293,11 @@ class ProgramCompiler
         () => _superDisallowed(
             () => _emitConstructorBody(node, fields, className)));
 
-    return _finishConstructorFunction(params, body, isCallable);
+    var block = new JS.Block(body)..sourceInformation = node;
+    return _finishConstructorFunction(params, block, isCallable);
   }
 
-  void addStatementToList(JS.Statement statement, List<JS.Statement> list) {
-    // If the statement is a nested block, flatten it into the list when
-    // possible.  If the statement is empty, discard it.
-    if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
-      list.addAll(statement.statements);
-    } else if (statement is! JS.EmptyStatement) {
-      list.add(statement);
-    }
-  }
-
-  JS.Block _emitConstructorBody(
+  List<JS.Statement> _emitConstructorBody(
       Constructor node, List<Field> fields, JS.Expression className) {
     var cls = node.enclosingClass;
 
@@ -1323,15 +1316,14 @@ class ProgramCompiler
 
     if (redirectCall != null) {
       body.add(_emitRedirectingConstructor(redirectCall, className));
-      _initTempVars(body);
-      return new JS.Block(body);
+      return body;
     }
 
     // Generate field initializers.
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    addStatementToList(_initializeFields(fields, node), body);
+    _addStatementToList(_initializeFields(fields, node), body);
 
     var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
         orElse: () => null) as SuperInitializer;
@@ -1341,13 +1333,12 @@ class ProgramCompiler
     // enclosing class is class Object.
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
     if (jsSuper != null) {
-      addStatementToList(jsSuper..sourceInformation = superCall, body);
+      _addStatementToList(jsSuper..sourceInformation = superCall, body);
     }
 
     var jsBody = _visitStatement(node.function.body);
-    if (jsBody != null) addStatementToList(jsBody, body);
-    _initTempVars(body);
-    return new JS.Block(body)..sourceInformation = node;
+    if (jsBody != null) _addStatementToList(jsBody, body);
+    return body;
   }
 
   JS.Expression _constructorName(String name) {
@@ -2091,17 +2082,35 @@ class ProgramCompiler
   }
 
   JS.Fun _emitStaticFieldInitializer(Field field) {
+    return new JS.Fun(
+        [],
+        new JS.Block(_withLetScope(() => [
+              new JS.Return(
+                  _visitInitializer(field.initializer, field.annotations))
+            ])));
+  }
+
+  List<JS.Statement> _withLetScope(List<JS.Statement> visitBody()) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
-    var body = [
-      new JS.Return(_visitInitializer(field.initializer, field.annotations))
-    ];
-    _initTempVars(body);
+    var body = visitBody();
+    var letVars = _initLetVariables();
+    if (letVars != null) body.insert(0, letVars);
 
     _letVariables = savedLetVariables;
+    return body;
+  }
 
-    return new JS.Fun([], new JS.Block(body));
+  JS.Node _withLetScopeArrowFunction(JS.Expression visitBody()) {
+    var savedLetVariables = _letVariables;
+    _letVariables = [];
+
+    var expr = visitBody();
+    var letVars = _initLetVariables();
+
+    _letVariables = savedLetVariables;
+    return letVars == null ? expr : new JS.Block([letVars, expr.toReturn()]);
   }
 
   JS.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix: ''}) {
@@ -2698,7 +2707,7 @@ class ProgramCompiler
   List<JS.Parameter> _emitTypeFormals(List<TypeParameter> typeFormals) {
     return typeFormals
         .map((t) => new JS.Identifier(getTypeParameterName(t)))
-        .toList(growable: false);
+        .toList();
   }
 
   JS.Expression _emitGeneratorFunction(FunctionNode function, String name) {
@@ -2810,12 +2819,11 @@ class ProgramCompiler
   }
 
   JS.Block _emitFunctionBody(FunctionNode f) {
-    List<JS.Statement> block;
-    _withCurrentFunction(f, () {
-      block = _emitArgumentInitializers(f);
+    var block = _withCurrentFunction(f, () {
+      var block = _emitArgumentInitializers(f);
       var jsBody = _visitStatement(f.body);
-      if (jsBody != null) addStatementToList(jsBody, block);
-      _initTempVars(block);
+      if (jsBody != null) _addStatementToList(jsBody, block);
+      return block;
     });
 
     if (f.asyncMarker == AsyncMarker.Sync) {
@@ -2836,18 +2844,16 @@ class ProgramCompiler
     return new JS.Block(block);
   }
 
-  T _withCurrentFunction<T>(FunctionNode fn, T action()) {
+  List<JS.Statement> _withCurrentFunction(
+      FunctionNode fn, List<JS.Statement> action()) {
     var savedFunction = _currentFunction;
     _currentFunction = fn;
-    var savedLetVariables = _letVariables;
-    _letVariables = [];
     _nullableInference.enterFunction(fn);
 
-    var result = action();
+    var result = _withLetScope(action);
 
     _nullableInference.exitFunction(fn);
     _currentFunction = savedFunction;
-    _letVariables = savedLetVariables;
     return result;
   }
 
@@ -3554,17 +3560,16 @@ class ProgramCompiler
     return new JS.Identifier(name);
   }
 
-  void _initTempVars(List<JS.Statement> block) {
-    if (_letVariables.isEmpty) return;
-    block.insert(
-        0,
-        new JS.VariableDeclarationList(
-                'let',
-                _letVariables
-                    .map((v) => new JS.VariableInitialization(v, null))
-                    .toList())
-            .toStatement());
+  JS.Statement _initLetVariables() {
+    if (_letVariables.isEmpty) return null;
+    var result = new JS.VariableDeclarationList(
+            'let',
+            _letVariables
+                .map((v) => new JS.VariableInitialization(v, null))
+                .toList())
+        .toStatement();
     _letVariables.clear();
+    return result;
   }
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
@@ -3653,7 +3658,7 @@ class ProgramCompiler
   @override
   visitSuperPropertySet(SuperPropertySet node) {
     var target = node.interfaceTarget;
-    var jsTarget = _emitSuperTarget(target);
+    var jsTarget = _emitSuperTarget(target, setter: true);
     return _visitExpression(node.value).toAssignExpression(jsTarget);
   }
 
@@ -4091,8 +4096,8 @@ class ProgramCompiler
       var isAccessor = member is Procedure ? member.isAccessor : true;
       if (isAccessor) {
         assert(member is Procedure
-            ? setter == member.isSetter
-            : (member as Field).isFinal != setter);
+            ? member.isSetter == setter
+            : !setter || !(member as Field).isFinal);
         var fn = js.call(
             setter
                 ? 'function(x) { super[#] = x; }'
@@ -4767,8 +4772,17 @@ class ProgramCompiler
     var body = _visitExpression(node.body);
     var temp = _tempVariables.remove(v);
     if (temp != null) {
-      init = new JS.Assignment(temp, init);
-      _letVariables.add(temp);
+      if (_letVariables != null) {
+        init = new JS.Assignment(temp, init);
+        _letVariables.add(temp);
+      } else {
+        // TODO(jmesserly): make sure this doesn't happen on any performance
+        // critical call path.
+        //
+        // Annotations on a top-level, non-lazy function type should be the only
+        // remaining use.
+        return new JS.Call(new JS.ArrowFun([temp], body), [init]);
+      }
     }
     return new JS.Binary(',', init, body);
   }
@@ -4923,3 +4937,13 @@ bool isObjectMember(String name) {
 
 bool _isObjectMethod(String name) =>
     name == 'toString' || name == 'noSuchMethod';
+
+void _addStatementToList(JS.Statement statement, List<JS.Statement> list) {
+  // If the statement is a nested block, flatten it into the list when
+  // possible.  If the statement is empty, discard it.
+  if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
+    list.addAll(statement.statements);
+  } else if (statement is! JS.EmptyStatement) {
+    list.add(statement);
+  }
+}
