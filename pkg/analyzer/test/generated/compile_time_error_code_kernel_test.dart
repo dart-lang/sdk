@@ -1350,6 +1350,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_integerLiteralOutOfRange_negative() async {
+    // Expected 1 errors of type CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, found 0
+    await super.test_integerLiteralOutOfRange_negative();
+  }
+
+  @override
+  @failingTest
+  test_integerLiteralOutOfRange_positive() async {
+    // Expected 1 errors of type CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, found 0
+    await super.test_integerLiteralOutOfRange_positive();
+  }
+
+  @override
+  @failingTest
   test_invalidAnnotation_getter() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_ANNOTATION, found 0
     await super.test_invalidAnnotation_getter();

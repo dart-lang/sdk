@@ -1675,6 +1675,8 @@ InterpolationInUri:
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."
   tip: "Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
+  analyzerCode: INTEGER_LITERAL_OUT_OF_RANGE
+  dart2jsCode: "*fatal*"
 
 ColonInPlaceOfIn:
   template: "For-in loops use 'in' rather than a colon."

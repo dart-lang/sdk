@@ -3105,6 +3105,36 @@ class A {
     verify([source]);
   }
 
+  test_integerLiteralOutOfRange_negative_leadingZeros() async {
+    Source source = addSource('int x = -000923372036854775809;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_negative_valid() async {
+    Source source = addSource('int x = -9223372036854775808;');
+    await computeAnalysisResult(source);
+    assertErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_positive_leadingZeros() async {
+    Source source = addSource('int x = 000923372036854775808;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_positive_valid() async {
+    Source source = addSource('int x = 9223372036854775807;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_positive_zero() async {
+    Source source = addSource('int x = 0;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_invalidAnnotation_constantVariable_field() async {
     Source source = addSource(r'''
 @A.C
