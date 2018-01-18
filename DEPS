@@ -113,7 +113,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.3.4",
   "protobuf_tag": "@0.7.0",
-  "pub_rev": "@ca0d52f5d4058e7b9ef7b5091e407ff3ac05198d",
+  "pub_rev": "@64c5f40adf6828da1b63320dd39bcedbef1354c6",
   "pub_semver_tag": "@1.3.2",
   "quiver_tag": "@0.27.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
