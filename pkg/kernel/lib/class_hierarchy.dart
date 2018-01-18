@@ -517,7 +517,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   Supertype getClassAsInstanceOf(Class class_, Class superclass) {
     if (identical(class_, superclass)) return class_.asThisSupertype;
     _ClassInfo info = _infoFor[class_];
+    if (info == null) {
+      throw "${class_.fileUri}: No class info for ${class_.name}";
+    }
     _ClassInfo superInfo = _infoFor[superclass];
+    if (info == null) {
+      throw "${superclass.fileUri}: No class info for ${superclass.name}";
+    }
     if (!info.isSubtypeOf(superInfo)) return null;
     if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
     return info.genericSuperTypes[superclass]?.first;
@@ -715,7 +721,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         throw "No info for ${cls.name} from ${cls.fileUri}.";
       }
       if (info.topologicalIndex != i) {
-        throw "Unexpected topologicalIndex (${info.topologicalIndex} != $i) for ${cls.name} from ${cls.fileUri}.";
+        throw "Unexpected topologicalIndex (${info.topologicalIndex} != $i) "
+            "for ${cls.name} from ${cls.fileUri}.";
+      }
+      if (info.subtypeIntervalList == null) {
+        throw "No subtypeIntervalList for ${cls.name} from ${cls.fileUri}.";
       }
     }
   }
