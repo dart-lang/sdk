@@ -11,7 +11,8 @@ import 'dart:typed_data' show Uint8List;
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart'
     show InterfaceResolver;
 
-import 'package:kernel/ast.dart' show Arguments, Expression, Library, Program;
+import 'package:kernel/ast.dart'
+    show Arguments, Expression, Library, LibraryDependency, Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -541,17 +542,28 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   Program computeFullProgram() {
-    List<Library> libraries = <Library>[];
+    Set<Library> libraries = new Set<Library>();
+    List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (!library.isPart && !library.isPatch) {
-        libraries.add(library.target);
+        if (libraries.add(library.target)) {
+          workList.add(library.target);
+        }
       }
     });
+    while (workList.isNotEmpty) {
+      Library library = workList.removeLast();
+      for (LibraryDependency dependency in library.dependencies) {
+        if (libraries.add(dependency.targetLibrary)) {
+          workList.add(dependency.targetLibrary);
+        }
+      }
+    }
     return new Program()..libraries.addAll(libraries);
   }
 
   void computeHierarchy() {
-    hierarchy = new ClassHierarchy.deprecated_incremental(computeFullProgram());
+    hierarchy = new ClassHierarchy(computeFullProgram());
     ticker.logMs("Computed class hierarchy");
   }
 
@@ -634,8 +646,8 @@ class SourceLoader<L> extends Loader<L> {
     // target those forwarding stubs.
     // TODO(paulberry): could we make this unnecessary by not clearing class
     // inference info?
-    typeInferenceEngine.classHierarchy = hierarchy =
-        new ClassHierarchy.deprecated_incremental(computeFullProgram());
+    typeInferenceEngine.classHierarchy =
+        hierarchy = new ClassHierarchy(computeFullProgram());
     ticker.logMs("Performed top level inference");
   }
 

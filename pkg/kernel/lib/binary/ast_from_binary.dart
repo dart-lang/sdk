@@ -656,10 +656,6 @@ class BinaryBuilder {
 
   void _readLibraryDependencies(Library library) {
     int length = readUInt();
-    if (library.isExternal) {
-      assert(length == 0);
-      return;
-    }
     library.dependencies.length = length;
     for (int i = 0; i < length; ++i) {
       library.dependencies[i] = readLibraryDependency(library);
