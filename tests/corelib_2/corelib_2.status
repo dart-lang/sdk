@@ -341,18 +341,18 @@ list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-string_from_environment3_test/03: MissingCompileTimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
+string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/02: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
@@ -369,18 +369,18 @@ list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
-string_from_environment3_test/03: MissingCompileTimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
+string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/02: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
 
 [ $compiler == none && $runtime == drt ]
 string_from_environment2_test: Skip
