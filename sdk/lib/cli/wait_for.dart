@@ -5,7 +5,7 @@
 part of dart.cli;
 
 /**
- * Shronously blocks the calling isolate to wait for asynchronous events to
+ * Synchronously blocks the calling isolate to wait for asynchronous events to
  * complete.
  *
  * If the [timeout] parameter is supplied, [waitForEvent] will return after
