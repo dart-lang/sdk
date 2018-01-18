@@ -157,7 +157,7 @@ class LibraryData {
   Iterable<ConstantValue> _metadata;
   Map<ir.LibraryDependency, ImportEntity> imports;
 
-  LibraryData(this.library);
+  LibraryData(this.library, [this.imports]);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(library.annotations);
@@ -184,7 +184,7 @@ class LibraryData {
   }
 
   LibraryData copy() {
-    return new LibraryData(library);
+    return new LibraryData(library, imports);
   }
 }
 

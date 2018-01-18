@@ -10,6 +10,11 @@ annotation_top: Crash
 argument_mismatch: Crash
 bad_setter_abstract: Crash
 cascade: Crash
+check_deferred_read: Crash
+check_deferred_before_write: Crash
+check_deferred_before_call: Crash
+check_deferred_before_args: Crash
+check_deferred_before_args2: Crash
 classes: Crash
 duplicated_named_args_3: Crash
 dynamic_and_void: Fail
@@ -109,6 +114,7 @@ rasta/issue_000070: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: Crash
 rasta/parser_error: Crash
+rasta/previsit_deferred: Crash
 rasta/static: Crash
 rasta/super_initializer: Crash
 rasta/supports_reflection: VerificationError

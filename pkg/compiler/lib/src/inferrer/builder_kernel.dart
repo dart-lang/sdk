@@ -1680,6 +1680,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded node) {
+    return _types.nonNullEmpty();
+  }
+
+  @override
   TypeInformation visitInvalidExpression(ir.InvalidExpression node) {
     // TODO(johnniwinther): Maybe this should be [empty] instead?
     return _types.dynamicType;

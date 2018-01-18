@@ -143,7 +143,6 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -840,7 +839,6 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: RuntimeError
@@ -1167,7 +1165,6 @@ cyclic_type_test/01: RuntimeError
 cyclic_type_test/02: RuntimeError
 cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.

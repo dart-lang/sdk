@@ -1197,7 +1197,6 @@ covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSub
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1749,7 +1748,6 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary

@@ -32,6 +32,7 @@ import 'frontend_accessors.dart' as kernel
         LoadLibraryAccessor,
         PropertyAccessor,
         ReadOnlyAccessor,
+        DeferredAccessor,
         DelayedErrorAccessor,
         StaticAccessor,
         SuperIndexAccessor,
@@ -137,6 +138,8 @@ abstract class BuilderHelper {
 
   StaticGet makeStaticGet(Member readTarget, Token token,
       {String prefixName, int targetOffset: -1, Class targetClass});
+
+  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix);
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
@@ -822,6 +825,24 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset);
+  }
+}
+
+class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
+  DeferredAccessor(BuilderHelper helper, Token token, PrefixBuilder builder,
+      StaticAccessor expression)
+      : super(helper, token, builder, expression);
+
+  String get plainNameForRead {
+    return unsupported(
+        "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
+  }
+
+  StaticAccessor get staticAccessor => super.staticAccessor;
+
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.makeDeferredCheck(
+        staticAccessor.doInvocation(offset, arguments), builder);
   }
 }
 

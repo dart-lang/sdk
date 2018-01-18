@@ -15,7 +15,7 @@ import '../problems.dart' show unhandled;
 
 import 'fasta_accessors.dart' show BuilderHelper;
 
-import 'kernel_builder.dart' show LoadLibraryBuilder;
+import 'kernel_builder.dart' show LoadLibraryBuilder, PrefixBuilder;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -733,6 +733,27 @@ abstract class LoadLibraryAccessor extends Accessor {
     Expression write = makeInvalidWrite(value);
     write.fileOffset = offsetForToken(token);
     return write;
+  }
+}
+
+abstract class DeferredAccessor extends Accessor {
+  final PrefixBuilder builder;
+  final StaticAccessor staticAccessor;
+
+  DeferredAccessor(
+      BuilderHelper helper, Token token, this.builder, this.staticAccessor)
+      : super(helper, token);
+
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return helper.makeDeferredCheck(
+        staticAccessor._makeRead(complexAssignment), builder);
+  }
+
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return helper.makeDeferredCheck(
+        staticAccessor._makeWrite(value, voidContext, complexAssignment),
+        builder);
   }
 }
 

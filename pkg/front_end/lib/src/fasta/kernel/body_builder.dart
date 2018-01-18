@@ -1292,8 +1292,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new ThisPropertyAccessor(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      return new StaticAccessor(this, token, builder.target, null,
+      StaticAccessor accessor = new StaticAccessor(
+          this, token, builder.target, null,
           prefixName: prefix?.name);
+      return (prefix?.deferred == true)
+          ? new DeferredAccessor(this, token, prefix, accessor)
+          : accessor;
     } else if (builder is PrefixBuilder) {
       if (constantExpressionRequired && builder.deferred) {
         deprecated_addCompileTimeError(
@@ -1329,7 +1333,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               charOffset, "Not a constant expression.");
         }
       }
-      return accessor;
+      return (prefix?.deferred == true)
+          ? new DeferredAccessor(this, token, prefix, accessor)
+          : accessor;
     }
   }
 
@@ -3631,6 +3637,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new ShadowStaticGet(
         prefixName, targetOffset, targetClass, readTarget)
       ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix) {
+    return new Let(
+        new VariableDeclaration.forValue(
+            new CheckLibraryIsLoaded(prefix.dependency)),
+        expression);
   }
 }
 

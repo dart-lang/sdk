@@ -116,6 +116,9 @@ abstract class KernelToElementMap {
   // used in impact builder for symbol constants.
   ConstantValue getConstantValue(ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
+
+  /// Return the [ImportEntity] corresponding to [node].
+  ImportEntity getImport(ir.LibraryDependency node);
 }
 
 /// Interface that translates between Kernel IR nodes and entities used for
@@ -182,9 +185,6 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
 
   /// Returns the definition information for [cls].
   ClassDefinition getClassDefinition(covariant ClassEntity cls);
-
-  /// Return the [ImportEntity] corresponding to [node].
-  ImportEntity getImport(ir.LibraryDependency node);
 }
 
 /// Interface that translates between Kernel IR nodes and entities used for
@@ -228,11 +228,6 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
 
   /// Returns the constructor body entity corresponding to [constructor].
   FunctionEntity getConstructorBody(ir.Constructor node);
-
-  /// Returns the uri for the deferred import [node].
-  // TODO(johnniwinther): Avoid this method by deriving the uri directly from
-  // the node.
-  String getDeferredUri(ir.LibraryDependency node);
 
   /// Make a record to ensure variables that are are declared in one scope and
   /// modified in another get their values updated correctly.
