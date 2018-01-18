@@ -1247,7 +1247,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
       last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()),
-      idle_gc_threshold_in_words_(grow_heap_ / 2 * kPageSizeInWords) {}
+      idle_gc_threshold_in_words_(0) {}
 
 PageSpaceController::~PageSpaceController() {}
 
@@ -1267,22 +1267,11 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
       Utils::RoundUp(capacity_increase_in_words, kPageSizeInWords);
   intptr_t capacity_increase_in_pages =
       capacity_increase_in_words / kPageSizeInWords;
-  double multiplier = 1.0;
-  // To avoid waste, the first GC should be triggered before too long. After
-  // kInitialTimeoutSeconds, gradually lower the capacity limit.
-  static const double kInitialTimeoutSeconds = 1.00;
-  if (history_.IsEmpty()) {
-    double seconds_since_init =
-        MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
-    if (seconds_since_init > kInitialTimeoutSeconds) {
-      multiplier *= (seconds_since_init / kInitialTimeoutSeconds);
-    }
-  }
-  bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
+  bool needs_gc = capacity_increase_in_pages > grow_heap_;
   if (FLAG_log_growth) {
-    OS::PrintErr("%s: %" Pd " * %f %s %" Pd "\n",
-                 needs_gc ? "NEEDS GC" : "grow", capacity_increase_in_pages,
-                 multiplier, needs_gc ? ">" : "<=", grow_heap_);
+    OS::PrintErr("%s: allocate %s %" Pd " %s %" Pd "\n",
+                 heap_->isolate()->name(), needs_gc ? "collect" : "grow",
+                 capacity_increase_in_pages, needs_gc ? ">" : "<=", grow_heap_);
   }
   return needs_gc;
 }
@@ -1294,19 +1283,12 @@ bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  double multiplier = 1.0;
-  // To avoid waste, the first GC should be triggered before too long. After
-  // kInitialTimeoutSeconds, gradually lower the capacity limit.
-  static const double kInitialTimeoutSeconds = 1.00;
-  if (history_.IsEmpty()) {
-    double seconds_since_init =
-        MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
-    if (seconds_since_init > kInitialTimeoutSeconds) {
-      multiplier *= (seconds_since_init / kInitialTimeoutSeconds);
-    }
+  bool needs_gc = current.used_in_words > idle_gc_threshold_in_words_;
+  if (FLAG_log_growth) {
+    OS::PrintErr("%s: idle %s %" Pd " %s %" Pd "\n", heap_->isolate()->name(),
+                 needs_gc ? "collect" : "grow", current.used_in_words,
+                 needs_gc ? ">" : "<=", idle_gc_threshold_in_words_);
   }
-  bool needs_gc =
-      current.used_in_words * multiplier > idle_gc_threshold_in_words_;
   return needs_gc;
 }
 
