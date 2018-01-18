@@ -179,6 +179,7 @@ _full_sdk_snapshots = [
 _platform_sdk_libraries = [
   "_internal",
   "async",
+  "cli",
   "collection",
   "convert",
   "core",
@@ -198,6 +199,7 @@ _full_sdk_libraries = [
   "_chrome",
   "_internal",
   "async",
+  "cli",
   "collection",
   "convert",
   "core",
