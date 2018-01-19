@@ -22,6 +22,32 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $strong ]
+implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError
+implicit_creation/implicit_const_context_list_test: CompileTimeError
+implicit_creation/implicit_const_context_map_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_test: CompileTimeError
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
+implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
+implicit_creation/implicit_new_or_const_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
+
+[ !$strong ]
+implicit_creation/*: CompileTimeError # No support for implicit creation.
+
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
