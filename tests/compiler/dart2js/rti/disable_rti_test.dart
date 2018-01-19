@@ -11,6 +11,7 @@ import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
+import '../helpers/program_lookup.dart';
 import '../memory_compiler.dart';
 
 const String code = '''
@@ -51,8 +52,7 @@ main() {
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
-    ProgramLookup programLookup =
-        new ProgramLookup(compiler.backend.emitter.emitter.programForTesting);
+    ProgramLookup programLookup = new ProgramLookup(compiler);
 
     void processMember(MemberEntity element) {
       if (element is FunctionEntity) {
@@ -89,39 +89,4 @@ main() {
     print('--test from kernel------------------------------------------------');
     await runTest(useKernel: true);
   });
-}
-
-class ProgramLookup {
-  final Program program;
-
-  ProgramLookup(this.program);
-
-  Map<LibraryEntity, Library> libraryMap;
-  Map<ClassEntity, Class> classMap = <ClassEntity, Class>{};
-
-  Library getLibrary(LibraryEntity element) {
-    if (libraryMap == null) {
-      libraryMap = <LibraryEntity, Library>{};
-      for (Fragment fragment in program.fragments) {
-        for (Library library in fragment.libraries) {
-          assert(!libraryMap.containsKey(library.element));
-          libraryMap[library.element] = library;
-        }
-      }
-    }
-    return libraryMap[element];
-  }
-
-  Class getClass(ClassEntity element) {
-    Class cls = classMap[element];
-    if (cls == null) {
-      Library library = getLibrary(element.library);
-      for (Class cls in library.classes) {
-        assert(!classMap.containsKey(cls.element));
-        classMap[cls.element] = cls;
-      }
-      cls = classMap[element];
-    }
-    return cls;
-  }
 }

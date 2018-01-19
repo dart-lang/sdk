@@ -38,7 +38,8 @@ import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse;
+import '../universe/use.dart'
+    show ConstantUse, ConstrainedDynamicUse, StaticUse;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
@@ -3940,7 +3941,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // arguments), in case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
       // TODO(johnniwinther): Register this more precisely.
-      registry?.registerDynamicUse(new DynamicUse(selector, null));
+      registry?.registerDynamicUse(new ConstrainedDynamicUse(selector, null));
     }
 
     ConstantValue nameConstant = constantSystem.createString(publicName);
@@ -4777,7 +4778,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
     }
-    if (rtiNeed.methodNeedsTypeArguments(function) && options.strongMode) {
+    if (rtiNeed.methodNeedsTypeArguments(function)) {
       for (TypeVariableType typeVariable in _elementMap.elementEnvironment
           .getFunctionTypeVariables(function)) {
         HInstruction argument = compiledArguments[argumentIndex++];
@@ -4786,7 +4787,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     }
     assert(
-        argumentIndex == compiledArguments.length,
+        argumentIndex == compiledArguments.length ||
+            !rtiNeed.methodNeedsTypeArguments(function) &&
+                compiledArguments.length - argumentIndex ==
+                    function.parameterStructure.typeParameters,
         failedAt(
             function,
             "Only ${argumentIndex} of ${compiledArguments.length} "

@@ -359,6 +359,7 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.FIELD_SET:
       case StaticUseKind.DIRECT_USE:
       case StaticUseKind.CLOSURE:
+      case StaticUseKind.CLOSURE_CALL:
       case StaticUseKind.CALL_METHOD:
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -395,6 +396,7 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.FIELD_SET:
       case StaticUseKind.CLOSURE:
+      case StaticUseKind.CLOSURE_CALL:
       case StaticUseKind.CALL_METHOD:
         // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
         // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.

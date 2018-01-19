@@ -17,6 +17,7 @@ import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
+import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 import 'backend_usage.dart';
@@ -50,7 +51,7 @@ abstract class RuntimeTypesNeed {
 
   /// Returns `true` if [method] needs type arguments at runtime type.
   ///
-  /// This is for instance the case for generic methods that uses type tests:
+  /// This is for instance the case for generic methods that use type tests:
   ///
   ///   method<T>(T t) => t is T;
   ///   main() {
@@ -155,6 +156,12 @@ abstract class RuntimeTypesNeedBuilder {
   ///
   void registerTypeArgumentDependency(Entity element, Entity dependency);
 
+  void registerStaticTypeArgumentDependency(
+      Entity element, List<DartType> typeArguments);
+
+  void registerDynamicTypeArgumentDependency(
+      Selector selector, List<DartType> typeArguments);
+
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
@@ -182,6 +189,14 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 
   @override
   void registerTypeArgumentDependency(Entity element, Entity dependency) {}
+
+  @override
+  void registerStaticTypeArgumentDependency(
+      Entity element, List<DartType> typeArguments) {}
+
+  @override
+  void registerDynamicTypeArgumentDependency(
+      Selector selector, List<DartType> typeArguments) {}
 }
 
 /// Interface for the needed runtime type checks.
@@ -260,8 +275,8 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         .subtypes()
         .toSet();
     rtiChecksBuilderClosed = true;
-    TypeChecks typeChecks = _substitutions._requiredChecks = _substitutions
-        ._computeChecks(/*collector.*/ classes, /*collector.*/ classes);
+    TypeChecks typeChecks = _substitutions._requiredChecks =
+        _substitutions._computeChecks(classes, classes);
     return new TrivialTypesChecks(typeChecks);
   }
 }
@@ -561,13 +576,9 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
         methodsNeedingSignature.contains(function);
   }
 
-  // TODO(johnniwinther): Optimize to only include generic methods that really
-  // need the RTI.
   bool methodNeedsTypeArguments(FunctionEntity function) {
     if (function.parameterStructure.typeParameters == 0) return false;
     if (_backendUsage.isRuntimeTypeUsed) return true;
-    // TODO(johnniwinther): Include instance members in analysis.
-    if (function.isInstanceMember) return true;
     return methodsNeedingTypeArguments.contains(function);
   }
 
@@ -616,6 +627,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   final Map<Entity, Set<Entity>> typeArgumentDependencies =
       <Entity, Set<Entity>>{};
 
+  final Map<Entity, Set<DartType>> methodTypeArgumentDependencies =
+      <Entity, Set<DartType>>{};
+
+  final Map<Selector, Set<DartType>> selectorTypeArgumentDependencies =
+      <Selector, Set<DartType>>{};
+
   final Set<ClassEntity> classesUsingTypeVariableLiterals =
       new Set<ClassEntity>();
 
@@ -625,6 +642,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   final Set<Local> localFunctionsUsingTypeVariableLiterals = new Set<Local>();
 
   final Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
+
+  final Set<Entity> methodsUsingVariableTests = new Set<Entity>();
 
   Set<DartType> isChecks;
 
@@ -656,6 +675,22 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     Set<Entity> classes =
         typeArgumentDependencies.putIfAbsent(element, () => new Set<Entity>());
     classes.add(dependency);
+  }
+
+  @override
+  void registerStaticTypeArgumentDependency(
+      Entity element, List<DartType> typeArguments) {
+    methodTypeArgumentDependencies.putIfAbsent(
+        element, () => new Set<DartType>())
+      ..addAll(typeArguments);
+  }
+
+  @override
+  void registerDynamicTypeArgumentDependency(
+      Selector selector, List<DartType> typeArguments) {
+    selectorTypeArgumentDependencies.putIfAbsent(
+        selector, () => new Set<DartType>())
+      ..addAll(typeArguments);
   }
 
   @override
@@ -709,12 +744,66 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         // be updated: It simply ignores method type arguments.
         if (variable.typeDeclaration is ClassEntity) {
           classesUsingTypeVariableTests.add(variable.typeDeclaration);
+        } else {
+          methodsUsingVariableTests.add(variable.typeDeclaration);
         }
       }
     });
     // Add is-checks that result from classes using type variables in checks.
     registerImplicitChecks(resolutionWorldBuilder.instantiatedTypes,
         classesUsingTypeVariableTests, implicitIsChecks);
+
+    Set<Selector> unhandledSelectors =
+        selectorTypeArgumentDependencies.keys.toSet();
+    for (Entity element in methodsUsingVariableTests) {
+      Set<DartType> typeArguments = methodTypeArgumentDependencies[element];
+      if (typeArguments != null) {
+        implicitIsChecks.addAll(typeArguments);
+      }
+      if (element is FunctionEntity) {
+        if (resolutionWorldBuilder.closurizedMembers.contains(element) ||
+            resolutionWorldBuilder.closurizedStatics.contains(element)) {
+          List<Selector> handledSelectors = <Selector>[];
+          unhandledSelectors.forEach((Selector selector) {
+            if (selector.isClosureCall &&
+                selector.callStructure
+                    .signatureApplies(element.parameterStructure)) {
+              implicitIsChecks
+                  .addAll(selectorTypeArgumentDependencies[selector]);
+              handledSelectors.add(selector);
+            }
+          });
+          unhandledSelectors.removeAll(handledSelectors);
+        }
+        if (element.isInstanceMember) {
+          List<Selector> handledSelectors = <Selector>[];
+          unhandledSelectors.forEach((Selector selector) {
+            if (selector.applies(element)) {
+              implicitIsChecks
+                  .addAll(selectorTypeArgumentDependencies[selector]);
+              handledSelectors.add(selector);
+            }
+          });
+          unhandledSelectors.removeAll(handledSelectors);
+        }
+      } else if (element is Local) {
+        FunctionType type = _elementEnvironment.getLocalFunctionType(element);
+        ParameterStructure parameterStructure = new ParameterStructure(
+            type.parameterTypes.length,
+            type.parameterTypes.length + type.optionalParameterTypes.length,
+            type.namedParameters,
+            type.typeVariables.length);
+        List<Selector> handledSelectors = <Selector>[];
+        unhandledSelectors.forEach((Selector selector) {
+          if (selector.isClosureCall &&
+              selector.callStructure.signatureApplies(parameterStructure)) {
+            implicitIsChecks.addAll(selectorTypeArgumentDependencies[selector]);
+            handledSelectors.add(selector);
+          }
+        });
+        unhandledSelectors.removeAll(handledSelectors);
+      }
+    }
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to

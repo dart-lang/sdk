@@ -158,8 +158,9 @@ abstract class ComputeValueMixin<T> {
           sb.write('${comma}exp');
           comma = ',';
         }
-      }
-      if (frontendMember != null) {
+        comma = findChecks(
+            sb, comma, 'explicit', frontendClosure, rtiNeedBuilder.isChecks);
+      } else if (frontendMember != null) {
         if (rtiNeedBuilder.methodsUsingTypeVariableLiterals
             .contains(frontendMember)) {
           sb.write('${comma}exp');

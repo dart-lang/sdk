@@ -41,7 +41,8 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse;
+import '../universe/use.dart'
+    show ConstantUse, ConstrainedDynamicUse, StaticUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -3152,7 +3153,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
       // TODO(johnniwinther): Register this more precisely.
-      registry?.registerDynamicUse(new DynamicUse(selector, null));
+      registry?.registerDynamicUse(new ConstrainedDynamicUse(selector, null));
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';

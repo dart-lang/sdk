@@ -66,7 +66,7 @@ class BackendImpact {
     }
     for (Selector selector in dynamicUses) {
       assert(selector != null);
-      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector, null));
+      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector));
     }
     for (InterfaceType instantiatedType in instantiatedTypes) {
       worldImpactBuilder

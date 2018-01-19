@@ -43,8 +43,10 @@ class Hashing {
   }
 
   /// Mix the bits of `.hashCode` all non-null objects.
-  static int objectsHash(Object obj1, [Object obj2, Object obj3, Object obj4]) {
+  static int objectsHash(Object obj1,
+      [Object obj2, Object obj3, Object obj4, Object obj5]) {
     int hash = 0;
+    if (obj5 != null) hash = objectHash(obj5, hash);
     if (obj4 != null) hash = objectHash(obj4, hash);
     if (obj3 != null) hash = objectHash(obj3, hash);
     if (obj2 != null) hash = objectHash(obj2, hash);
@@ -54,9 +56,11 @@ class Hashing {
   /// Mix the bits of the element hash codes of [list] with [existing].
   static int listHash(List list, [int existing = 0]) {
     int h = existing;
-    int length = list.length;
-    for (int i = 0; i < length; i++) {
-      h = mixHashCodeBits(h, list[i].hashCode);
+    if (list != null) {
+      int length = list.length;
+      for (int i = 0; i < length; i++) {
+        h = mixHashCodeBits(h, list[i].hashCode);
+      }
     }
     return h;
   }
@@ -82,7 +86,9 @@ class Hashing {
   }
 }
 
-bool equalElements(List a, List b) {
+bool equalElements<E>(List<E> a, List<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
   if (a.length != b.length) return false;
   for (int index = 0; index < a.length; index++) {
     if (a[index] != b[index]) {

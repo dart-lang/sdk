@@ -28,7 +28,8 @@ import '../options.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
+import '../universe/use.dart'
+    show ConstantUse, ConstrainedDynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
@@ -1828,7 +1829,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      _registry.registerDynamicUse(new DynamicUse(call, null));
+      _registry.registerDynamicUse(new ConstrainedDynamicUse(call, null));
     }
     if (target != null) {
       // This is a dynamic invocation which we have found to have a single
@@ -1841,7 +1842,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new StaticUse.directInvoke(target, selector.callStructure));
     } else {
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-      _registry.registerDynamicUse(new DynamicUse(selector, mask));
+      _registry.registerDynamicUse(new ConstrainedDynamicUse(selector, mask));
     }
   }
 
@@ -1855,7 +1856,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Selector selector = node.selector;
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-      _registry.registerDynamicUse(new DynamicUse(selector, mask));
+      _registry.registerDynamicUse(new ConstrainedDynamicUse(selector, mask));
     }
   }
 
@@ -1871,7 +1872,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Selector selector = node.selector;
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-      _registry.registerDynamicUse(new DynamicUse(selector, mask));
+      _registry.registerDynamicUse(new ConstrainedDynamicUse(selector, mask));
     }
   }
 
@@ -1900,7 +1901,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .propertyCall(
             pop(), _namer.invocationName(call), visitArguments(node.inputs))
         .withSourceInformation(node.sourceInformation));
-    _registry.registerDynamicUse(new DynamicUse(call, null));
+    // TODO(kasperl): If we have a typed selector for the call, we
+    // may know something about the types of closures that need
+    // the specific closure call method.
+    _registry.registerDynamicUse(new ConstrainedDynamicUse(call, null));
   }
 
   visitInvokeStatic(HInvokeStatic node) {

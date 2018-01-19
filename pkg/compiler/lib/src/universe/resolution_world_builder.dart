@@ -20,6 +20,9 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// Set of methods in instantiated classes that are potentially closurized.
   Iterable<FunctionEntity> get closurizedMembers;
 
+  /// Set of static or top level methods that are closurized.
+  Iterable<FunctionEntity> get closurizedStatics;
+
   /// Set of live closurized members whose signatures reference type variables.
   ///
   /// A closurized method is considered live if the enclosing class has been
@@ -351,6 +354,8 @@ abstract class ResolutionWorldBuilderBase
   /// Set of methods in instantiated classes that are potentially closurized.
   final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
 
+  final Set<FunctionEntity> closurizedStatics = new Set<FunctionEntity>();
+
   /// Set of live closurized members whose signatures reference type variables.
   ///
   /// A closurized method is considered live if the enclosing class has been
@@ -627,6 +632,8 @@ abstract class ResolutionWorldBuilderBase
       }
       localFunctions.add(staticUse.element);
       return;
+    } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
+      return;
     }
 
     MemberEntity element = staticUse.element;
@@ -651,6 +658,7 @@ abstract class ResolutionWorldBuilderBase
         fieldSetters.add(staticUse.element);
         break;
       case StaticUseKind.CLOSURE:
+      case StaticUseKind.CLOSURE_CALL:
         // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
@@ -662,7 +670,10 @@ abstract class ResolutionWorldBuilderBase
         useSet.addAll(usage.write());
         break;
       case StaticUseKind.GET:
+        useSet.addAll(usage.read());
+        break;
       case StaticUseKind.STATIC_TEAR_OFF:
+        closurizedStatics.add(element);
         useSet.addAll(usage.read());
         break;
       case StaticUseKind.SET:
@@ -676,6 +687,8 @@ abstract class ResolutionWorldBuilderBase
         useSet.addAll(usage.init());
         break;
       case StaticUseKind.INVOKE:
+        useSet.addAll(usage.invoke());
+        break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:
