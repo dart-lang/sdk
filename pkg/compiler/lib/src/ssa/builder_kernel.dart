@@ -1146,10 +1146,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
-    HInstruction prefixConstant =
-        graph.addConstantString(checkLoad.import.name, closedWorld);
-    String uri = _elementMap.getDeferredUri(checkLoad.import);
-    HInstruction uriConstant = graph.addConstantString(uri, closedWorld);
+    ImportEntity import = _elementMap.getImport(checkLoad.import);
+    String loadId = deferredLoadTask.getImportDeferName(
+        _elementMap.getSpannable(targetElement, checkLoad), import);
+    HInstruction prefixConstant = graph.addConstantString(loadId, closedWorld);
+    HInstruction uriConstant =
+        graph.addConstantString('${import.uri}', closedWorld);
     _pushStaticInvocation(
         _commonElements.checkDeferredIsLoaded,
         [prefixConstant, uriConstant],
@@ -1159,11 +1161,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
+    String loadId = deferredLoadTask.getImportDeferName(
+        _elementMap.getSpannable(targetElement, loadLibrary),
+        _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!
-    push(new HInvokeStatic(
-        commonElements.loadDeferredLibrary,
-        [graph.addConstantString(loadLibrary.import.name, closedWorld)],
-        commonMasks.nonNullType,
+    push(new HInvokeStatic(commonElements.loadDeferredLibrary,
+        [graph.addConstantString(loadId, closedWorld)], commonMasks.nonNullType,
         targetCanThrow: false));
   }
 

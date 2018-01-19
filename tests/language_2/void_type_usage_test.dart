@@ -224,6 +224,8 @@ class C implements A<void> {
   void get x => null;
   set x(void y) {}
 
+  void foo() {}
+
   void forInTest() {
     for (x in <void>[]) {}  //# instance3_for_in2: compile-time error
     for (x in [1, 2]) {}  //# instance3_for_in3: ok
@@ -344,7 +346,7 @@ testParenthesized() {
 
 void testReturnToVoid(void x, void f()) {
   void y;
-  final void z;
+  final void z = null;
   A<void> a = new A<void>();
   B b = new B();
   C c = new C();

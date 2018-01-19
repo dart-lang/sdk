@@ -278,6 +278,16 @@ MissingConstFinalVarOrType:
   script:
     - "class C { static f; }"
 
+FunctionTypedParameterVar:
+  template: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
+  tip: "Try replacing the keyword with a return type."
+  analyzerCode: FUNCTION_TYPED_PARAMETER_VAR
+  dart2jsCode: "*fatal*"
+  script:
+    - "void f(const x()) {}"
+    - "void f(final x()) {}"
+    - "void f(var x()) {}"
+
 AbstractClassMember:
   template: "Members of classes can't be declared to be 'abstract'."
   tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
@@ -1786,6 +1796,7 @@ UndefinedMethod:
       C c;
       c.foo();
     }
+
 SourceOutlineSummary:
   template: |
     Built outlines for #count compilation units (#count2 bytes) in #string, that is,
@@ -1811,4 +1822,8 @@ CantInferTypeDueToInconsistentOverrides:
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
   tip: "Specify the type explicitly."
+  severity: ERROR
+
+AmbiguousSupertypes:
+  template: "'#name' can't implement both '#type' and '#type2'"
   severity: ERROR

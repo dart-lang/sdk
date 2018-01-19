@@ -796,6 +796,13 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     assert(checkFamily(cls));
     return _classes.getData(cls).definition;
   }
+
+  @override
+  ImportEntity getImport(ir.LibraryDependency node) {
+    ir.Library library = node.parent;
+    LibraryData data = _libraries.getData(_getLibrary(library));
+    return data.imports[node];
+  }
 }
 
 /// Mixin that implements the abstract methods in [KernelToElementMapBase].
@@ -1282,13 +1289,6 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     }
     _ensureCallType(cls, data);
     return data.callType is FunctionType;
-  }
-
-  @override
-  ImportEntity getImport(ir.LibraryDependency node) {
-    ir.Library library = node.parent;
-    LibraryData data = _libraries.getData(_getLibrary(library));
-    return data.imports[node];
   }
 
   @override
@@ -2720,10 +2720,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
   /// These names are not used in generated code, just as element name.
   String _getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
-  }
-
-  String getDeferredUri(ir.LibraryDependency node) {
-    throw new UnimplementedError('JsKernelToElementMap.getDeferredUri');
   }
 }
 

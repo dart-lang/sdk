@@ -18,7 +18,6 @@ assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 black_listed_test/none: Fail # Issue 14228
-bug31436_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
@@ -125,16 +124,6 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc03: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc05: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc06: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc07: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc08: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc09: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc10: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc11: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
@@ -143,8 +132,7 @@ async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
-async_return_types_test/wrongReturnType: Crash # Maltyped input from Fasta, issue 31414
-await_test: Crash # Issue 31541
+async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -156,7 +144,6 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bug31436_test: RuntimeError
 built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
@@ -193,7 +180,6 @@ compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-compile_time_constant_p_test/01: Crash
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
@@ -208,29 +194,19 @@ const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_constructor_syntax_test/05: Crash
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/01: Crash
-const_error_multiply_initialized_test/02: Crash
-const_error_multiply_initialized_test/03: Crash
-const_error_multiply_initialized_test/04: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_optional_args_test/01: MissingCompileTimeError
-const_qq_test: Crash
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/09: Crash
 const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_duplicate_final_test/01: Crash
-constructor_duplicate_final_test/02: Crash
-constructor_duplicate_final_test/03: Crash
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect2_test/01: MissingCompileTimeError
@@ -289,9 +265,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/01: Crash
-final_attempt_reinitialization_test/02: Crash
-final_syntax_test/09: Crash
 function_propagation_test: CompileTimeError
 function_type/function_type10_test: RuntimeError # Issue 31766
 function_type/function_type11_test: RuntimeError # Issue 31766
@@ -478,57 +451,28 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_lib_extends_field_test: Crash
-mixin_lib_extends_method_test: Crash
-mixin_of_mixin_test/01: Crash
-mixin_of_mixin_test/02: Crash
-mixin_of_mixin_test/03: Crash
-mixin_of_mixin_test/04: Crash
-mixin_of_mixin_test/05: Crash
-mixin_of_mixin_test/06: Crash
-mixin_of_mixin_test/none: Crash
-mixin_super_2_test/01: Crash
-mixin_super_2_test/02: Crash
-mixin_super_2_test/03: Crash
-mixin_super_2_test/04: Crash
-mixin_super_2_test/none: Crash
+mixin_lib_extends_field_test: RuntimeError
+mixin_of_mixin_test/01: MissingCompileTimeError
+mixin_of_mixin_test/02: MissingCompileTimeError
+mixin_of_mixin_test/03: MissingCompileTimeError
+mixin_of_mixin_test/04: MissingCompileTimeError
+mixin_of_mixin_test/05: MissingCompileTimeError
+mixin_of_mixin_test/06: MissingCompileTimeError
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_bound_test/01: MissingCompileTimeError
 mixin_super_bound_test/02: MissingCompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_test: Crash
-mixin_super_use_test: Crash
-mixin_superclass_test: Crash
-mixin_supertype_subclass2_test/01: Crash
-mixin_supertype_subclass2_test/02: Crash
-mixin_supertype_subclass2_test/03: Crash
-mixin_supertype_subclass2_test/04: Crash
-mixin_supertype_subclass2_test/05: Crash
-mixin_supertype_subclass2_test/none: Crash
-mixin_supertype_subclass3_test/01: Crash
-mixin_supertype_subclass3_test/02: Crash
-mixin_supertype_subclass3_test/03: Crash
-mixin_supertype_subclass3_test/04: Crash
-mixin_supertype_subclass3_test/05: Crash
-mixin_supertype_subclass3_test/none: Crash
-mixin_supertype_subclass4_test/01: Crash
-mixin_supertype_subclass4_test/02: Crash
-mixin_supertype_subclass4_test/03: Crash
-mixin_supertype_subclass4_test/04: Crash
-mixin_supertype_subclass4_test/05: Crash
-mixin_supertype_subclass4_test/none: Crash
-mixin_supertype_subclass_test/01: Crash
-mixin_supertype_subclass_test/02: Crash
-mixin_supertype_subclass_test/03: Crash
-mixin_supertype_subclass_test/04: Crash
-mixin_supertype_subclass_test/05: Crash
-mixin_supertype_subclass_test/none: Crash
+mixin_super_test: RuntimeError
+mixin_super_use_test: RuntimeError
+mixin_supertype_subclass_test/02: MissingCompileTimeError
+mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
 mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mixin_with_named_import_test: Crash
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
@@ -586,8 +530,7 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-regress_22976_test/01: CompileTimeError
-regress_23089_test: Crash
+regress_23089_test: Crash # Crashes in KernelClassBuilder.buildTypeArguments
 regress_23408_test: CompileTimeError # Issue 31533
 regress_25550_test: CompileTimeError
 regress_29025_test: CompileTimeError
@@ -607,13 +550,7 @@ string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test: CompileTimeError
-super_from_constructor_test: Crash
 super_getter_setter_test: CompileTimeError
-super_in_async3_test: Crash
-super_in_async4_test: Crash
-super_in_async6_test: Crash
-super_in_constructor_test: RuntimeError
-super_in_finally_test: Crash
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -718,13 +655,6 @@ conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
 cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
-enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_mirror_test: RuntimeError # Expect.equals(expected: <Foo.BAR>, actual: <null>) fails.
-enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
 forwarding_stub_tearoff_test: RuntimeError
@@ -785,6 +715,13 @@ runtime_type_function_test: RuntimeError # Expect.fail('Type print string does n
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 instantiate_tearoff_test: RuntimeError
+
+[ $compiler == dartdevk && $checked ]
+assertion_initializer_const_error2_test/*: MissingCompileTimeError
+assertion_initializer_const_error2_test/none: Pass
+
+[ $compiler == dartdevk && !$checked ]
+assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.
 
 # Compiler tests for dartdevc and dartdevk.  These contain common expectations
 # for all runtimes including $runtime == none.  They are organized by: shared
@@ -999,3 +936,4 @@ void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 [ $compiler == dartdevk || $compiler == dartdevc && $runtime == none ]
 instantiate_type_variable_test/01: CompileTimeError
 setter_no_getter_call_test/01: CompileTimeError
+

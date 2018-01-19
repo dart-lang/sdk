@@ -501,6 +501,11 @@
       "action": "create-instance"
     },
     {
+      "library": "dart:async",
+      "name": "_ensureScheduleImmediate",
+      "action": "call"
+    },
+    {
       "library": "dart:core",
       "name": "_completeDeferredLoads",
       "action": "call"
@@ -631,6 +636,11 @@
     },
     {
       "library": "dart:isolate",
+      "name": "_runPendingImmediateCallback",
+      "action": "call"
+    },
+    {
+      "library": "dart:isolate",
       "name": "_startIsolate",
       "action": "call"
     },
@@ -689,11 +699,6 @@
     {
       "library": "dart:developer",
       "name": "_runExtension",
-      "action": "call"
-    },
-    {
-      "library": "dart:isolate",
-      "name": "_runPendingImmediateCallback",
       "action": "call"
     },
     {
@@ -764,6 +769,21 @@
       "library": "dart:async",
       "name": "_setScheduleImmediateClosure",
       "action": "call"
+    },
+    {
+      "library": "dart:cli",
+      "name": "_getWaitForEvent",
+      "action": "call"
+    },
+    {
+      "library": "dart:cli",
+      "name": "_waitForEventClosure",
+      "action": "get"
+    },
+    {
+      "library": "dart:cli",
+      "name": "_waitForEventClosure",
+      "action": "set"
     },
     {
       "library": "dart:io",

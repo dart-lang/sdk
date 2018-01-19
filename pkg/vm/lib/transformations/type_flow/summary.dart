@@ -155,13 +155,14 @@ class Call extends Statement {
       }
       argTypes[i] = type;
     }
+    setReachable();
     if (selector is! DirectSelector) {
       _observeReceiverType(argTypes[0]);
     }
     final Type result = callHandler.applyCall(this, selector,
         new Args<Type>(argTypes, names: args.names), isResultUsed);
     if (isResultUsed) {
-      _observeResultType(result);
+      _observeResultType(result, typeHierarchy);
     }
     return result;
   }
@@ -169,12 +170,13 @@ class Call extends Statement {
   // --- Inferred call site information. ---
 
   int _flags = 0;
+  Type _resultType = const EmptyType();
 
   static const int kMonomorphic = (1 << 0);
   static const int kPolymorphic = (1 << 1);
   static const int kNullableReceiver = (1 << 2);
   static const int kResultUsed = (1 << 3);
-  static const int kNullableResult = (1 << 4);
+  static const int kReachable = (1 << 4);
 
   Member _monomorphicTarget;
 
@@ -188,10 +190,16 @@ class Call extends Statement {
 
   bool get isResultUsed => (_flags & kResultUsed) != 0;
 
-  bool get isNullableResult => (_flags & kNullableResult) != 0;
+  bool get isReachable => (_flags & kReachable) != 0;
+
+  Type get resultType => _resultType;
 
   void setResultUsed() {
     _flags |= kResultUsed;
+  }
+
+  void setReachable() {
+    _flags |= kReachable;
   }
 
   void setPolymorphic() {
@@ -218,11 +226,8 @@ class Call extends Statement {
     }
   }
 
-  void _observeResultType(Type result) {
-    if (result is NullableType) {
-      _flags |= kNullableResult;
-    }
-    // TODO(alexmarkov): Record result types.
+  void _observeResultType(Type result, TypeHierarchy typeHierarchy) {
+    _resultType = _resultType.union(result, typeHierarchy);
   }
 }
 

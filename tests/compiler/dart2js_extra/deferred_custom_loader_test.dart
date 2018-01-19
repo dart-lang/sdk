@@ -4,24 +4,29 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'dart:_foreign_helper' show JS;
 
 import 'deferred_custom_loader_lib.dart' deferred as def;
 
-void setup() native """
-// In d8 we don't have any way to load the content of the file, so just use
-// the preamble's loader.
-if (!self.dartDeferredLibraryLoader) {
-  self.dartDeferredLibraryLoader = function(uri, success, error) {
-    var req = new XMLHttpRequest();
-    req.addEventListener("load", function() {
-      eval(this.responseText);
-      success();
-    });
-    req.open("GET", uri);
-    req.send();
-  };
+void setup() {
+  JS('', r"""
+(function(){
+  // In d8 we don't have any way to load the content of the file, so just use
+  // the preamble's loader.
+  if (!self.dartDeferredLibraryLoader) {
+    self.dartDeferredLibraryLoader = function(uri, success, error) {
+      var req = new XMLHttpRequest();
+      req.addEventListener("load", function() {
+        eval(this.responseText);
+        success();
+      });
+      req.open("GET", uri);
+      req.send();
+    };
+ }
+})()
+""");
 }
-""";
 
 runTest() async {
   setup();

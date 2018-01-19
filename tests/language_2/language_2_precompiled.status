@@ -393,9 +393,7 @@ generic_method_types_test/02: RuntimeError, OK # No support for covariant tear-o
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
-generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
-generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
@@ -886,6 +884,8 @@ try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
@@ -1058,6 +1058,8 @@ forwarding_stub_tearoff_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
+generic_methods_dynamic_test/02: MissingRuntimeError
+generic_methods_dynamic_test/04: MissingRuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError

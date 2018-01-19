@@ -30,6 +30,7 @@ class Builtin {
     kBuiltinLibrary = 0,
     kIOLibrary,
     kHttpLibrary,
+    kCLILibrary,
   };
 
   // Get source corresponding to built in library specified in 'id'.
@@ -79,6 +80,8 @@ class Builtin {
   static const char* web_gl_source_paths_[];
   static const char* metadata_source_paths_[];
   static const char* web_sql_source_paths_[];
+  static const char* cli_source_paths_[];
+  static const char* cli_patch_paths_[];
   static const char* svg_source_paths_[];
   static const char* web_audio_source_paths_[];
 

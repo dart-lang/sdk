@@ -985,7 +985,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                      true,   // is_method
                                      false,  // is_closure
                                      &function_node_helper);
-    if (constructor_helper.IsSyntheticDefault()) {
+    if (constructor_helper.IsSynthetic()) {
       function.set_is_debuggable(false);
     }
 

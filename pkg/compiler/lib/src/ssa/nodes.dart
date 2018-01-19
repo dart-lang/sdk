@@ -959,8 +959,8 @@ abstract class HInstruction implements Spannable {
   }
 
   /// An instruction is an 'allocation' is it is the sole alias for an object.
-  /// This applies to to instructions that allocate new objects and can be
-  /// extended to methods that return other allocations without escaping them.
+  /// This applies to instructions that allocate new objects and can be extended
+  /// to methods that return other allocations without escaping them.
   bool get isAllocation => false;
 
   /// Overridden by [HCheck] to return the actual non-[HCheck]
@@ -1658,11 +1658,7 @@ class HCreateBox extends HInstruction {
 }
 
 abstract class HInvoke extends HInstruction {
-  /**
-    * The first argument must be the target: either an [HStatic] node, or
-    * the receiver of a method-call. The remaining inputs are the arguments
-    * to the invocation.
-    */
+  bool isAllocation = false;
   HInvoke(List<HInstruction> inputs, type) : super(inputs, type) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();

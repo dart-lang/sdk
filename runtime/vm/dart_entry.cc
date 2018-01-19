@@ -660,6 +660,20 @@ RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
   return result.raw();
 }
 
+RawObject* DartLibraryCalls::EnsureScheduleImmediate() {
+  Zone* zone = Thread::Current()->zone();
+  const Library& async_lib = Library::Handle(zone, Library::AsyncLibrary());
+  ASSERT(!async_lib.IsNull());
+  const Function& function =
+      Function::Handle(zone, async_lib.LookupFunctionAllowPrivate(
+                                 Symbols::_ensureScheduleImmediate()));
+  ASSERT(!function.IsNull());
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeFunction(function, Object::empty_array()));
+  ASSERT(result.IsNull() || result.IsError());
+  return result.raw();
+}
+
 RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {

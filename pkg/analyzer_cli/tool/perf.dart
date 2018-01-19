@@ -149,6 +149,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
   var libs = [
     "dart:async",
+    "dart:cli",
     "dart:collection",
     "dart:convert",
     "dart:core",
@@ -158,7 +159,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
     "dart:math",
     "dart:mirrors",
     "dart:typed_data",
-    "dart:io"
+    "dart:io",
   ];
 
   for (var lib in libs) {

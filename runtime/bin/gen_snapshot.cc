@@ -462,6 +462,9 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   if (DartUtils::IsDartHttpLibURL(url)) {
     return Builtin::kHttpLibrary;
   }
+  if (DartUtils::IsDartCLILibURL(url)) {
+    return Builtin::kCLILibrary;
+  }
   return Builtin::kInvalidLibrary;
 }
 
@@ -1302,6 +1305,9 @@ static void SetupForGenericSnapshotCreation() {
 
   Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   CHECK_RESULT(library);
+  Dart_Handle standalone_library =
+      LoadGenericSnapshotCreationScript(Builtin::kCLILibrary);
+  CHECK_RESULT(standalone_library);
   Dart_Handle result = Dart_FinalizeLoading(false);
   if (Dart_IsError(result)) {
     const char* err_msg = Dart_GetError(library);
@@ -1344,6 +1350,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   // Setup the native resolver.
   Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   // Load embedder specific bits and return. Will not start http server.

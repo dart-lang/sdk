@@ -136,12 +136,10 @@ int y = 0;
  */
 @reflectiveTest
 class BracketsTest extends AbstractRecoveryTest {
-  @failingTest
   void test_indexOperator() {
-    // Parser crashes
     testRecovery('''
 f(x) => l[x
-''', [ScannerErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f(x) => l[x];
 ''');
   }
@@ -166,12 +164,10 @@ var x = [[0], [1], [2]];
 ''');
   }
 
-  @failingTest
   void test_listLiteral_outer_last() {
-    // Parser crashes
     testRecovery('''
 var x = [0, 1
-''', [ScannerErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 var x = [0, 1];
 ''');
   }
@@ -224,12 +220,11 @@ class C {}
 ''');
   }
 
-  @failingTest
   void test_parameterList_eof() {
-    // Parser crashes
     testRecovery('''
 f(x
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_FUNCTION_BODY],
+        '''
 f(x) {}
 ''');
   }

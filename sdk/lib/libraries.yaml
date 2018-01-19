@@ -128,10 +128,15 @@ vm:
     profiler:
       uri: "profiler/profiler.dart"
 
+    cli:
+      uri: "cli/cli.dart"
+      patches:
+        - "../../runtime/bin/cli_patch.dart"
+
     typed_data:
       uri: "typed_data/typed_data.dart"
       patches: "../../runtime/lib/typed_data_patch.dart"
-      
+
     _vmservice:
       uri: "vmservice/vmservice.dart"
 

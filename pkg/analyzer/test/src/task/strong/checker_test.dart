@@ -489,7 +489,7 @@ void main() {
   f1("hello");
   dynamic f2 = foo;
   (/*info:DYNAMIC_INVOKE*/f2("hello"));
-  DynFun f3 = /*info:USES_DYNAMIC_AS_BOTTOM*/foo;
+  DynFun f3 = /*warning:USES_DYNAMIC_AS_BOTTOM*/foo;
   (/*info:DYNAMIC_INVOKE*/f3("hello"));
   (/*info:DYNAMIC_INVOKE*/f3(42));
   StrFun f4 = foo;
@@ -673,7 +673,7 @@ void main() {
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
-    A f = /*info:USES_DYNAMIC_AS_BOTTOM*/new B();
+    A f = /*warning:USES_DYNAMIC_AS_BOTTOM*/new B();
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
@@ -686,7 +686,7 @@ void main() {
     /*info:DYNAMIC_INVOKE*/g.col(42.0);
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
     /*info:DYNAMIC_INVOKE*/g.x;
-    A f = /*info:USES_DYNAMIC_AS_BOTTOM*/new B();
+    A f = /*warning:USES_DYNAMIC_AS_BOTTOM*/new B();
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(42.0);
     /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
@@ -3091,7 +3091,7 @@ void main() {
   TakesA<int> f;
   TakesA<dynamic> g;
   TakesA<String> h;
-  g = /*info:USES_DYNAMIC_AS_BOTTOM*/h;
+  g = /*warning:USES_DYNAMIC_AS_BOTTOM*/h;
   f = /*info:DOWN_CAST_COMPOSITE*/f ?? g;
 }
 ''');

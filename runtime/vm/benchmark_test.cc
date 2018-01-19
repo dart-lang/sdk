@@ -111,6 +111,7 @@ Dart_Isolate Benchmark::CreateIsolate(const uint8_t* snapshot_data,
 BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   TransitionNativeToVM transition(thread);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
@@ -129,6 +130,7 @@ BENCHMARK(CorelibCompileAll) {
 BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   TransitionNativeToVM transition(thread);
   CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
   ASSERT(stats != NULL);
@@ -148,6 +150,7 @@ BENCHMARK(CorelibCompilerStats) {
 BENCHMARK(Dart2JSCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   SetupDart2JSPackagePath();
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
@@ -349,6 +352,7 @@ BENCHMARK(DartStringAccess) {
 BENCHMARK(Dart2JSCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   SetupDart2JSPackagePath();
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
@@ -530,6 +534,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
       "import 'dart:typed_data';\n"
       "import 'dart:_builtin';\n"
       "import 'dart:io';\n"
+      "import 'dart:cli';\n"
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.

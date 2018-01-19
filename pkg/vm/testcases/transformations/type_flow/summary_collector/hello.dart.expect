@@ -1,0 +1,4 @@
+------------ #lib::main ------------
+%args = _Parameter #0 [dart.core::List<dart.core::String>]
+t1 = _Call direct [dart.core::print] (_T (dart.core::String)+)
+RESULT: _T {}?

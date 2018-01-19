@@ -366,11 +366,16 @@ class ForwardingNode extends Procedure {
     }
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
+      // This procedure exists abstractly in the source code; we need to make it
+      // concrete and give it a body that is a forwarding stub.  This situation
+      // is called a "forwarding semi-stub".
+      procedure.isForwardingStub = true;
+      procedure.isForwardingSemiStub = true;
       _interfaceResolver._instrumentation?.record(
           procedure.fileUri,
           procedure.fileOffset,
           'forwardingStub',
-          new InstrumentationValueLiteral('implementation'));
+          new InstrumentationValueLiteral('semi-stub'));
     }
     var positionalArguments = function.positionalParameters
         .map<Expression>((parameter) => new VariableGet(parameter))
@@ -799,6 +804,7 @@ class InterfaceResolver {
       }
       if (resolution is Procedure &&
           resolution.isForwardingStub &&
+          !resolution.isForwardingSemiStub &&
           identical(resolution.enclosingClass, class_)) {
         if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
@@ -971,7 +977,9 @@ class InterfaceResolver {
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
-      if (procedure.isForwardingStub) continue;
+      if (procedure.isForwardingStub && !procedure.isForwardingSemiStub) {
+        continue;
+      }
       void recordFormalAnnotations(VariableDeclaration formal) {
         recordCovariance(formal.fileOffset, formal.isCovariant,
             formal.isGenericCovariantInterface, formal.isGenericCovariantImpl);

@@ -80,7 +80,6 @@ Future<CompilerResult> generateKernelInternal(
     dillTarget.loader.libraries.forEach((lib) {
       // TODO(ahe): Don't do this, and remove [external_state_snapshot.dart].
       lib.isExternal = true;
-      lib.dependencies.clear();
     });
 
     // Linked dependencies are meant to be part of the program so they are not

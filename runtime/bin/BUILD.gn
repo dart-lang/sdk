@@ -5,6 +5,7 @@
 import("../../build/compiled_action.gni")
 import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
+import("../../sdk/lib/cli/cli_sources.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/vm_sources.gni")
@@ -12,6 +13,8 @@ import("builtin_impl_sources.gni")
 import("builtin_sources.gni")
 import("io_impl_sources.gni")
 import("io_sources.gni")
+import("cli_impl_sources.gni")
+import("cli_sources.gni")
 import("vmservice/vmservice_sources.gni")
 
 # Generate a resources.cc file for the service isolate without Observatory.
@@ -107,6 +110,22 @@ gen_library_src_path("generate_http_cc_file") {
   kind = "source"
   sources = [ "../../sdk/lib/_http/http.dart" ] + rebased_http_sdk_sources
   output = "$target_gen_dir/http_gen.cc"
+}
+
+rebased_cli_sdk_sources = rebase_path(cli_sdk_sources, ".", "../../sdk/lib/cli")
+
+gen_library_src_path("generate_cli_cc_file") {
+  name = "cli"
+  kind = "source"
+  sources = [ "../../sdk/lib/cli/cli.dart" ] + rebased_cli_sdk_sources
+  output = "$target_gen_dir/cli_gen.cc"
+}
+
+gen_library_src_path("generate_cli_patch_cc_file") {
+  name = "cli"
+  kind = "patch"
+  sources = cli_runtime_sources
+  output = "$target_gen_dir/cli_patch_gen.cc"
 }
 
 gen_library_src_path("generate_html_cc_file") {
@@ -235,6 +254,8 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = [
       ":generate_builtin_cc_file",
+      ":generate_cli_cc_file",
+      ":generate_cli_patch_cc_file",
       ":generate_html_cc_file",
       ":generate_html_common_cc_file",
       ":generate_http_cc_file",
@@ -297,11 +318,15 @@ template("build_gen_snapshot") {
              ":generate_http_cc_file",
              ":generate_io_cc_file",
              ":generate_io_patch_cc_file",
+             ":generate_cli_cc_file",
+             ":generate_cli_patch_cc_file",
            ] + extra_deps
 
     sources = [
       # Include generated source files.
       "$target_gen_dir/builtin_gen.cc",
+      "$target_gen_dir/cli_gen.cc",
+      "$target_gen_dir/cli_patch_gen.cc",
       "$target_gen_dir/http_gen.cc",
       "$target_gen_dir/io_gen.cc",
       "$target_gen_dir/io_patch_gen.cc",
@@ -417,7 +442,7 @@ template("build_gen_snapshot_dart_io") {
 
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
-    sources = io_impl_sources + builtin_impl_sources
+    sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
     sources += [
       "io_natives.cc",
       "io_natives.h",
@@ -494,7 +519,7 @@ template("dart_io") {
       libs = [ "launchpad" ]
     }
 
-    sources = io_impl_sources + builtin_impl_sources
+    sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
     sources += [
                  "builtin_natives.cc",
                  "io_natives.cc",
@@ -712,7 +737,7 @@ template("dart_executable") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
-    if (is_fuchsia_host) {
+    if (target_os != current_os && target_os == "fuchsia") {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
       # host.
@@ -840,6 +865,8 @@ dart_executable("dart_bootstrap") {
     ":generate_js_util_cc_file",
     ":generate_metadata_cc_file",
     ":generate_svg_cc_file",
+    ":generate_cli_cc_file",
+    ":generate_cli_patch_cc_file",
     ":generate_web_audio_cc_file",
     ":generate_web_gl_cc_file",
     ":generate_web_sql_cc_file",
@@ -871,6 +898,8 @@ dart_executable("dart_bootstrap") {
     "$target_gen_dir/metadata_gen.cc",
     "$target_gen_dir/resources_gen.cc",
     "$target_gen_dir/svg_gen.cc",
+    "$target_gen_dir/cli_gen.cc",
+    "$target_gen_dir/cli_patch_gen.cc",
     "$target_gen_dir/web_audio_gen.cc",
     "$target_gen_dir/web_gl_gen.cc",
     "$target_gen_dir/web_sql_gen.cc",
@@ -1005,7 +1034,7 @@ action("generate_snapshot_test_dat_file") {
 }
 
 executable("run_vm_tests") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (target_os == "fuchsia") {
     testonly = true
   }
 

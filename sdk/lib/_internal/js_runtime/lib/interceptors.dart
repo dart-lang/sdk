@@ -36,6 +36,7 @@ import 'dart:_js_helper'
         stringReplaceFirstUnchecked,
         stringReplaceFirstMappedUnchecked,
         stringReplaceRangeUnchecked,
+        stringSplitUnchecked,
         throwConcurrentModificationError,
         lookupAndCacheInterceptor,
         StringMatch,

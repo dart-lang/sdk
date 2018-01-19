@@ -179,6 +179,7 @@ _full_sdk_snapshots = [
 _platform_sdk_libraries = [
   "_internal",
   "async",
+  "cli",
   "collection",
   "convert",
   "core",
@@ -198,6 +199,7 @@ _full_sdk_libraries = [
   "_chrome",
   "_internal",
   "async",
+  "cli",
   "collection",
   "convert",
   "core",
@@ -314,7 +316,7 @@ copy_trees("copy_trees") {
 }
 
 # Copies the Dart VM binary into bin/
-if (is_fuchsia_host) {
+if (target_os != current_os && target_os == "fuchsia") {
   # In the Fuchsia build, this has to use a symlink for two reasons.
   # First, it makes the lookup of shared libraries relative to $ORIGIN
   # (Linux) or @loader_path (macOS) find the libraries where they are,

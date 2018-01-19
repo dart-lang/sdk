@@ -113,6 +113,7 @@ class DartUtils {
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
+  static bool IsDartCLILibURL(const char* url_name);
   static bool IsDartHttpLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
@@ -235,6 +236,8 @@ class DartUtils {
   static const char* const kHttpLibURL;
   static const char* const kIOLibURL;
   static const char* const kIOLibPatchURL;
+  static const char* const kCLILibURL;
+  static const char* const kCLILibPatchURL;
   static const char* const kUriLibURL;
   static const char* const kHttpScheme;
   static const char* const kVMServiceLibURL;
@@ -254,6 +257,7 @@ class DartUtils {
                                          Dart_Handle isolate_lib);
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
+  static Dart_Handle PrepareCLILibrary(Dart_Handle cli_lib);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartUtils);

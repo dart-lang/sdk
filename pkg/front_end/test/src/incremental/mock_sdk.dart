@@ -302,6 +302,7 @@ TargetLibrariesSpecification createSdkFiles(MemoryFileSystem fileSystem) {
   addSdkLibrary('convert', 'library dart.convert;');
   addSdkLibrary('developer', 'library dart.developer;');
   addSdkLibrary('io', 'library dart.io;');
+  addSdkLibrary('cli', 'library dart.cli;');
   addSdkLibrary('isolate', 'library dart.isolate;');
   addSdkLibrary('math', '''
 library dart.math;

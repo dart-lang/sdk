@@ -6070,15 +6070,16 @@ class CodeGenerator extends Object
         return type;
       }
     }
-    if (type.isDynamic) {
-      return type;
-    } else if (type is InterfaceType && type.element == expectedType.element) {
+    if (type.isDynamic) return type;
+    if (type is InterfaceType &&
+        (type.element == expectedType.element ||
+            expectedType == types.futureType &&
+                type.element == types.futureOrType.element)) {
       return type.typeArguments[0];
-    } else {
-      // TODO(leafp): The above only handles the case where the return type
-      // is exactly Future/Stream/Iterable.  Handle the subtype case.
-      return DynamicTypeImpl.instance;
     }
+    // TODO(leafp): The above only handles the case where the return type
+    // is exactly Future/Stream/Iterable.  Handle the subtype case.
+    return DynamicTypeImpl.instance;
   }
 
   JS.Expression _callHelper(String code, [args]) {

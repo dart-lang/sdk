@@ -1444,7 +1444,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   CHECK_ISOLATE(T->isolate());
   API_TIMELINE_BEGIN_END;
   TransitionNativeToVM transition(T);
-  T->isolate()->heap()->NotifyIdle(deadline);
+  T->isolate()->NotifyIdle(deadline);
 }
 
 DART_EXPORT void Dart_NotifyLowMemory() {
@@ -1668,6 +1668,57 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
     T->clear_sticky_error();
     return error;
+  }
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
+  CHECK_API_SCOPE(T);
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_BEGIN_END_BASIC;
+  TransitionNativeToVM transition(T);
+  if (I->message_notify_callback() != NULL) {
+    return Api::NewError("waitForEventSync is not supported by this embedder");
+  }
+  Object& result =
+      Object::Handle(Z, DartLibraryCalls::EnsureScheduleImmediate());
+  if (result.IsError()) {
+    return Api::NewHandle(T, result.raw());
+  }
+
+  // Drain the microtask queue. Propagate any errors to the entry frame.
+  result = DartLibraryCalls::DrainMicrotaskQueue();
+  if (result.IsError()) {
+    // Persist the error across unwiding scopes before propagating.
+    const Error* error;
+    {
+      NoSafepointScope no_safepoint;
+      RawError* raw_error = Error::Cast(result).raw();
+      T->UnwindScopes(T->top_exit_frame_info());
+      error = &Error::Handle(T->zone(), raw_error);
+    }
+    Exceptions::PropagateToEntry(*error);
+    UNREACHABLE();
+    return Api::NewError("Unreachable");
+  }
+
+  // Block to wait for messages and then handle them. Propagate any errors to
+  // the entry frame.
+  if (I->message_handler()->PauseAndHandleAllMessages(timeout_millis) !=
+      MessageHandler::kOK) {
+    // Persist the error across unwiding scopes before propagating.
+    const Error* error;
+    {
+      NoSafepointScope no_safepoint;
+      RawError* raw_error = T->get_and_clear_sticky_error();
+      T->UnwindScopes(T->top_exit_frame_info());
+      error = &Error::Handle(T->zone(), raw_error);
+    }
+    Exceptions::PropagateToEntry(*error);
+    UNREACHABLE();
+    return Api::NewError("Unreachable");
   }
   return Api::Success();
 }

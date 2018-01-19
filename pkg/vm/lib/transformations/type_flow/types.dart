@@ -65,7 +65,7 @@ abstract class Type extends TypeExpr {
   /// instances of all Dart types which extend, mix-in or implement [dartType].
   factory Type.cone(DartType dartType) {
     dartType = _normalizeDartType(dartType);
-    if (dartType == const DynamicType()) {
+    if ((dartType == const DynamicType()) || (dartType == const VoidType())) {
       return const AnyType();
     } else {
       return new ConeType(dartType);
@@ -88,7 +88,7 @@ abstract class Type extends TypeExpr {
   /// Dart type annotation [dartType].
   factory Type.fromStatic(DartType dartType) {
     dartType = _normalizeDartType(dartType);
-    if (dartType == const DynamicType()) {
+    if ((dartType == const DynamicType()) || (dartType == const VoidType())) {
       return new Type.nullable(const AnyType());
     } else if (dartType == const BottomType()) {
       return new Type.nullable(new Type.empty());
@@ -98,6 +98,8 @@ abstract class Type extends TypeExpr {
 
   @override
   DartType get staticType;
+
+  Class getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
   @override
   Type getComputedType(List<Type> types) => this;
@@ -338,6 +340,11 @@ class ConeType extends Type {
   DartType get staticType => dartType;
 
   @override
+  Class getConcreteClass(TypeHierarchy typeHierarchy) => typeHierarchy
+      .specializeTypeCone(dartType)
+      .getConcreteClass(typeHierarchy);
+
+  @override
   int get hashCode => (dartType.hashCode + 37) & kHashMask;
 
   @override
@@ -364,6 +371,10 @@ class ConeType extends Type {
       }
       if (typeHierarchy.isSubtype(this.dartType, other.dartType)) {
         return other;
+      }
+    } else if (other is ConcreteType) {
+      if (typeHierarchy.isSubtype(other.dartType, this.dartType)) {
+        return this;
       }
     }
     return typeHierarchy
@@ -412,6 +423,12 @@ class ConcreteType extends Type {
 
   @override
   DartType get staticType => dartType;
+
+  @override
+  Class getConcreteClass(TypeHierarchy typeHierarchy) =>
+      (dartType is InterfaceType)
+          ? (dartType as InterfaceType).classNode
+          : null;
 
   @override
   int get hashCode => (dartType.hashCode ^ 0x1234) & kHashMask;

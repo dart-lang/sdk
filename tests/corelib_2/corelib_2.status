@@ -66,7 +66,6 @@ int_from_environment_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
-string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $runtime == jsshell ]
 string_case_test/01: Fail, OK # German double S.
@@ -75,7 +74,7 @@ unicode_test: Fail
 [ $runtime == safari ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -130,10 +129,9 @@ string_static_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == d8 ]
-string_trimlr_test/02: RuntimeError, Pass # Uses Unicode 6.2.0 or earlier, issue 30279.
 uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
@@ -148,11 +146,11 @@ list_concurrent_modify_test: RuntimeError # dart2js does not fully implement the
 list_test/*: RuntimeError # dart2js doesn't implement strong mode covariance checks
 nan_infinity_test/01: RuntimeError
 regexp/pcre_test: Pass, Slow # Issue 21593
-string_split_test: RuntimeError # Issue 30548: does not return List<String>
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 splay_tree_from_iterable_test: RuntimeError
+string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 
 [ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
 list_concurrent_modify_test: Crash # Issue 30559
@@ -333,7 +331,6 @@ bigint_test: Pass, Timeout # Please triage.
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
 compare_to2_test: RuntimeError
-iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -344,25 +341,23 @@ list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-string_from_environment3_test/03: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
+string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/02: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
 compare_to2_test: RuntimeError
-iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -374,19 +369,18 @@ list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
-string_from_environment3_test/03: MissingCompileTimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
+string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/02: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
 
 [ $compiler == none && $runtime == drt ]
 string_from_environment2_test: Skip
@@ -395,7 +389,6 @@ string_from_environment_test: Skip
 
 [ $compiler == none && ($runtime == flutter || $runtime == vm) ]
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 iterable_generate_test/01: RuntimeError
@@ -406,7 +399,7 @@ apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 error_stack_trace1_test: Skip # Expects unobfuscated stack trace
 
 [ $runtime == drt && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
 symbol_test/02: MissingCompileTimeError # Issue 11669
@@ -507,12 +500,6 @@ symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
 
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ $runtime == vm && !$checked && ($compiler == app_jit || $compiler == none) ]
-*: Skip
-
 [ !$checked && !$strong ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
@@ -520,6 +507,12 @@ splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
+
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
+*: Skip
 
 [ !$checked && ($compiler == dart2js || $compiler == none && $runtime == vm) ]
 from_environment_const_type_test/02: MissingCompileTimeError
@@ -605,7 +598,6 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_trimlr_test/02: RuntimeError # Issue 29060
 
 [ $compiler == dart2js || $compiler == none && $runtime == vm ]
 from_environment_const_type_undefined_test/09: MissingCompileTimeError
@@ -636,10 +628,6 @@ regexp/global_test: Skip # Issue 21709
 regexp/pcre_test: Pass, Slow, Timeout
 
 [ $runtime == dart_precompiled || $runtime == vm ]
-integer_parsed_arith_vm_test/01: RuntimeError # Issue 31346
-integer_parsed_arith_vm_test/02: RuntimeError # Issue 31346
-integer_parsed_div_rem_vm_test/01: RuntimeError # Issue 31346
-integer_to_radix_string_test/01: RuntimeError # Issue 31346
 string_case_test/01: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == ff || $runtime == jsshell ]

@@ -374,17 +374,20 @@ class KernelTarget extends TargetImplementation {
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
         library.forEach((String name, Builder builder) {
-          if (builder is SourceClassBuilder) {
-            Class cls = builder.target;
-            if (cls != objectClass) {
-              cls.supertype ??= objectClass.asRawSupertype;
-              builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
-                ..bind(objectClassBuilder);
+          while (builder != null) {
+            if (builder is SourceClassBuilder) {
+              Class cls = builder.target;
+              if (cls != objectClass) {
+                cls.supertype ??= objectClass.asRawSupertype;
+                builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
+                  ..bind(objectClassBuilder);
+              }
+              if (builder.isMixinApplication) {
+                cls.mixedInType = builder.mixedInType.buildSupertype(
+                    library, builder.charOffset, builder.fileUri);
+              }
             }
-            if (builder.isMixinApplication) {
-              cls.mixedInType = builder.mixedInType
-                  .buildSupertype(library, builder.charOffset, builder.fileUri);
-            }
+            builder = builder.next;
           }
         });
       }
@@ -515,7 +518,7 @@ class KernelTarget extends TargetImplementation {
     return new Constructor(
         new FunctionNode(new EmptyStatement(), returnType: const VoidType()),
         name: new Name(""),
-        isSyntheticDefault: true);
+        isSynthetic: true);
   }
 
   void computeCoreTypes() {

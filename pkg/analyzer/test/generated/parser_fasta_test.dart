@@ -389,42 +389,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_functionTypedParameter_final() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, found 0
-    super.test_functionTypedParameter_final();
-  }
-
-  @override
-  @failingTest
-  void test_functionTypedParameter_incomplete1() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FormalParameterListImpl' is not a subtype of type 'TypeParameterList' of 'typeParameters' where
-    //   FormalParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeParameterList is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1122:40                AstBuilder.endTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1741:14             Parser.parseTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1646:11             Parser.parseTopLevelMember
-    //   package:front_end/src/fasta/parser/parser.dart 298:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 2543:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_functionTypedParameter_incomplete1();
-  }
-
-  @override
-  @failingTest
-  void test_functionTypedParameter_var() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, found 0
-    super.test_functionTypedParameter_var();
-  }
-
-  @override
-  @failingTest
   void test_getterInFunction_block_noReturnType() {
     // TODO(brianwilkerson) Does not recover.
     //   type 'ExpressionStatementImpl' is not a subtype of type 'FunctionDeclarationStatement' of 'statement' where
@@ -1464,18 +1428,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  void test_varAndType_local() {
-    // The inherited test is marked as failing.
-    super.test_varAndType_local();
-  }
-
-  @override
-  void test_varAndType_parameter() {
-    // The inherited test is marked as failing.
-    super.test_varAndType_parameter();
-  }
-
-  @override
 //  @failingTest
   void test_voidVariable_parseClassMember_initializer() {
     // TODO(brianwilkerson) Passes, but ought to fail.
@@ -2130,36 +2082,6 @@ class FastaParserTestCase extends Object
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
   @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_noType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
-    super.test_parseNormalFormalParameter_field_const_noType();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_noType2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_noType();
-    assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
-    super.test_parseNormalFormalParameter_field_const_type();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_field_const_type();
-    assertNoErrors();
-  }
-
-  @override
   void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
     // Ignored: Fasta does not support the generic comment syntax.
   }
@@ -2172,36 +2094,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   void test_parseNormalFormalParameter_function_void_typeParameterComments() {
     // Ignored: Fasta does not support the generic comment syntax.
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_noType() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
-    super.test_parseNormalFormalParameter_simple_const_noType();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_noType2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_simple_const_noType();
-    assertNoErrors();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_type() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (1)
-    super.test_parseNormalFormalParameter_simple_const_type();
-  }
-
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_type2() {
-    // TODO(danrubel): should not be generating an error
-    super.test_parseNormalFormalParameter_simple_const_type();
-    assertNoErrors();
   }
 }
 

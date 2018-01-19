@@ -161,7 +161,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   ASSERT(!function.IsNull());
   const Function& target = Function::ZoneHandle(Z, function.raw());
   StaticCallInstr* static_call = StaticCallInstr::FromCall(Z, call, target);
-  static_call->set_result_cid(kTypeCid);
+  static_call->SetResultType(Z, CompileType::FromCid(kTypeCid));
   call->ReplaceWith(static_call, current_iterator());
   return true;
 }
@@ -208,7 +208,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
         Object::null_array(),  // argument_names
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
-    static_call->set_result_cid(kBoolCid);
+    static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
     ReplaceCall(call, static_call);
     return true;
   }

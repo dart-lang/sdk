@@ -1235,6 +1235,7 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const Array& argument_names,
                                         intptr_t checked_argument_count,
                                         const Function& interface_target,
+                                        const InferredTypeMetadata* result_type,
                                         intptr_t argument_bits,
                                         intptr_t type_argument_bits) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
@@ -1243,6 +1244,10 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
       position, name, kind, arguments, type_args_len, argument_names,
       checked_argument_count, ic_data_array_, GetNextDeoptId(),
       interface_target, argument_bits, type_argument_bits);
+  if (result_type != NULL) {
+    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
+                                                       result_type->cid));
+  }
   Push(call);
   return Fragment(call);
 }
@@ -1506,6 +1511,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t argument_count,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
+                                      const InferredTypeMetadata* result_type,
                                       intptr_t type_args_count,
                                       intptr_t argument_bits,
                                       intptr_t type_argument_check_bits) {
@@ -1518,10 +1524,18 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
-    call->set_result_cid(list_cid);
+    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+           (result_type->cid == list_cid));
+    call->SetResultType(Z, CompileType::FromCid(list_cid));
     call->set_is_known_list_constructor(true);
   } else if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-    call->set_result_cid(MethodRecognizer::ResultCid(target));
+    intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
+    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+           (result_type->cid == recognized_cid));
+    call->SetResultType(Z, CompileType::FromCid(recognized_cid));
+  } else if (result_type != NULL) {
+    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
+                                                       result_type->cid));
   }
   Push(call);
   return Fragment(call);

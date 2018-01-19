@@ -19,7 +19,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as JS;
 import 'compiler.dart';
-import 'native_types.dart';
 import 'source_map_printer.dart';
 
 const _binaryName = 'dartdevk';
@@ -121,7 +120,12 @@ Future<CompilerResult> _compile(List<String> args,
         allowMultiple: true)
     ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
     ..addOption('summary-input-dir', allowMultiple: true)
-    ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app');
+    ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app')
+    // Ignore dart2js options that we don't support in DDC.
+    ..addFlag('enable-enum', hide: true)
+    ..addFlag('experimental-trust-js-interop-type-annotations', hide: true)
+    ..addFlag('trust-type-annotations', hide: true)
+    ..addFlag('supermixin', hide: true);
 
   addModuleFormatOptions(argParser, singleOutFile: false);
 
@@ -216,8 +220,7 @@ Future<CompilerResult> _compile(List<String> args,
 
 JS.Program compileToJSModule(Program p, List<Program> summaries,
     List<Uri> summaryUris, Map<String, String> declaredVariables) {
-  var compiler = new ProgramCompiler(new NativeTypeSet(p),
-      declaredVariables: declaredVariables);
+  var compiler = new ProgramCompiler(p, declaredVariables: declaredVariables);
   return compiler.emitProgram(p, summaries, summaryUris);
 }
 

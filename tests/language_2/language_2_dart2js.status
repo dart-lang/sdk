@@ -1197,7 +1197,6 @@ covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSub
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1419,9 +1418,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: RuntimeError
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
@@ -1627,6 +1623,8 @@ library_env_test/has_no_mirror_support: Pass
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 
@@ -1750,7 +1748,6 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -2010,9 +2007,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
@@ -2244,7 +2238,6 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 crash_6725_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -2588,9 +2581,6 @@ regress_13462_0_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_23408_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -3010,7 +3000,6 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 crash_6725_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_call_empty_before_load_test: RuntimeError
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -3344,9 +3333,6 @@ regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
-regress_22976_test/01: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/02: Pass # Incorrectly pass, we are ignoring an error due to #31118
-regress_22976_test/none: Pass # Incorrectly pass, we are ignoring an error due to #31118
 regress_23408_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -3732,6 +3718,8 @@ stacktrace_test: Pass, RuntimeError # # Issue 12698
 truncdiv_test: RuntimeError # Issue 15246
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_variable_conflict_test/01: Fail # Issue 13702

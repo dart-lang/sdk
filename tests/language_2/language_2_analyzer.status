@@ -1120,6 +1120,7 @@ string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_setter_test: StaticWarning # Issue 28823
 switch_case_test/none: CompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_promotion_functions_test/01: Pass
 type_promotion_functions_test/05: Pass
@@ -1570,6 +1571,8 @@ transitive_private_library_access_test: MissingCompileTimeError
 try_catch_on_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_promotion_functions_test/01: MissingCompileTimeError
 type_promotion_functions_test/05: MissingCompileTimeError

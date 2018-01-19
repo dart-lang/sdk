@@ -79,11 +79,11 @@ import 'modifier_context.dart'
         ClassMethodModifierContext,
         FactoryModifierContext,
         ModifierContext,
+        ModifierRecoveryContext,
         TopLevelMethodModifierContext,
         isModifier,
         parseModifiersOpt,
-        skipToLastModifier,
-        typeContinuationFromMemberKind;
+        typeContinuationAfterVar;
 
 import 'recovery_listeners.dart'
     show ClassHeaderRecoveryListener, ImportRecoveryListener;
@@ -1152,31 +1152,59 @@ class Parser {
   /// ```
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
+    assert(parameterKind != null);
     token = parseMetadataStar(token);
     Token next = token.next;
     listener.beginFormalParameter(next, memberKind);
 
     TypeContinuation typeContinuation =
         typeContinuationFromFormalParameterKind(parameterKind);
+    Token varFinalOrConst;
     if (isModifier(next)) {
-      ModifierContext modifierContext = parseModifiersOpt(
-          this,
-          token,
-          skipToLastModifier(token),
-          memberKind,
-          parameterKind,
-          false,
-          typeContinuation);
-      typeContinuation = modifierContext.typeContinuation;
-      memberKind = modifierContext.memberKind;
-      token = modifierContext.lastModifier;
-      modifierContext = null;
+      int modifierCount = 0;
+      Token covariantToken;
+      if (optional('covariant', next)) {
+        if (memberKind != MemberKind.StaticMethod &&
+            memberKind != MemberKind.TopLevelMethod) {
+          covariantToken = token = parseModifier(token);
+          ++modifierCount;
+          next = token.next;
+        }
+      }
+
+      if (isModifier(next)) {
+        if (optional('var', next)) {
+          typeContinuation = typeContinuationAfterVar(typeContinuation);
+          varFinalOrConst = token = parseModifier(token);
+          ++modifierCount;
+          next = token.next;
+        } else if (optional('final', next)) {
+          varFinalOrConst = token = parseModifier(token);
+          ++modifierCount;
+          next = token.next;
+        }
+
+        if (isModifier(next)) {
+          // Recovery
+          ModifierRecoveryContext modifierContext = new ModifierRecoveryContext(
+              this, memberKind, parameterKind, false, typeContinuation);
+          token = modifierContext.parseRecovery(token,
+              covariantToken: covariantToken, varFinalOrConst: varFinalOrConst);
+
+          memberKind = modifierContext.memberKind;
+          typeContinuation = modifierContext.typeContinuation;
+          varFinalOrConst = modifierContext.varFinalOrConst;
+          modifierCount = modifierContext.modifierCount;
+          modifierContext = null;
+        }
+      }
+      listener.handleModifiers(modifierCount);
     } else {
       listener.handleModifiers(0);
-      typeContinuation ??= typeContinuationFromMemberKind(false, memberKind);
     }
 
-    return parseType(token, typeContinuation, null, memberKind);
+    return parseType(
+        token, typeContinuation, null, memberKind, varFinalOrConst);
   }
 
   /// ```
@@ -2061,7 +2089,8 @@ class Parser {
   Token parseType(Token token,
       [TypeContinuation continuation = TypeContinuation.Required,
       IdentifierContext continuationContext,
-      MemberKind memberKind]) {
+      MemberKind memberKind,
+      Token varFinalOrConst]) {
     /// True if we've seen the `var` keyword.
     bool hasVar = false;
 
@@ -2580,12 +2609,20 @@ class Parser {
           Token closer = closeBraceTokenFor(token);
           if (closer != null) {
             if (optional("(", closer.next)) {
+              if (varFinalOrConst != null) {
+                reportRecoverableError(
+                    varFinalOrConst, fasta.messageFunctionTypedParameterVar);
+              }
               inlineFunctionTypeStart = beforeToken;
               beforeToken = token;
               token = token.next;
             }
           }
         } else if (optional("(", token)) {
+          if (varFinalOrConst != null) {
+            reportRecoverableError(
+                varFinalOrConst, fasta.messageFunctionTypedParameterVar);
+          }
           inlineFunctionTypeStart = beforeToken;
           beforeToken = closeBraceTokenFor(token);
           token = beforeToken.next;
@@ -4186,6 +4223,8 @@ class Parser {
       throw "Internal error: Unknown asyncState: '$asyncState'.";
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
+    } else if (isModifier(token.next)) {
+      return parseVariablesDeclaration(token);
     } else if (token.next.isIdentifier) {
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, '@')) {
@@ -5360,22 +5399,43 @@ class Parser {
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
     token = parseMetadataStar(token);
+    Token next = token.next;
 
     MemberKind memberKind = MemberKind.Local;
     TypeContinuation typeContinuation;
-    if (isModifier(token.next)) {
-      ModifierContext modifierContext = parseModifiersOpt(
-          this, token, skipToLastModifier(token), memberKind, null, true, null);
-      token = modifierContext.lastModifier;
-      typeContinuation = modifierContext.typeContinuation;
-      memberKind = modifierContext.memberKind;
-      modifierContext = null;
+    Token varFinalOrConst;
+    if (isModifier(next)) {
+      if (optional('var', next)) {
+        typeContinuation = TypeContinuation.OptionalAfterVar;
+        varFinalOrConst = token = parseModifier(token);
+        next = token.next;
+      } else if (optional('final', next) || optional('const', next)) {
+        typeContinuation = TypeContinuation.Optional;
+        varFinalOrConst = token = parseModifier(token);
+        next = token.next;
+      }
+
+      if (isModifier(next)) {
+        // Recovery
+        ModifierRecoveryContext modifierContext = new ModifierRecoveryContext(
+            this, memberKind, null, true, typeContinuation);
+        token = modifierContext.parseRecovery(token,
+            varFinalOrConst: varFinalOrConst);
+
+        memberKind = modifierContext.memberKind;
+        typeContinuation = modifierContext.typeContinuation;
+        varFinalOrConst = modifierContext.varFinalOrConst;
+        listener.handleModifiers(modifierContext.modifierCount);
+        modifierContext = null;
+      } else {
+        listener.handleModifiers(1);
+      }
     } else {
       listener.handleModifiers(0);
-      typeContinuation = typeContinuationFromMemberKind(true, memberKind);
     }
 
-    token = parseType(token, typeContinuation, null, memberKind);
+    token = parseType(
+        token, typeContinuation ?? TypeContinuation.Required, null, memberKind);
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
 

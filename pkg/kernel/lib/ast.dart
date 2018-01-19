@@ -1234,7 +1234,7 @@ class Constructor extends Member implements FileUriNode {
       {Name name,
       bool isConst: false,
       bool isExternal: false,
-      bool isSyntheticDefault: false,
+      bool isSynthetic: false,
       List<Initializer> initializers,
       int transformerFlags: 0,
       this.fileUri,
@@ -1245,20 +1245,20 @@ class Constructor extends Member implements FileUriNode {
     setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
-    this.isSyntheticDefault = isSyntheticDefault;
+    this.isSynthetic = isSynthetic;
     this.transformerFlags = transformerFlags;
   }
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
-  static const int FlagSyntheticDefault = 1 << 2;
+  static const int FlagSynthetic = 1 << 2;
 
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
 
-  /// True if this is a synthetic default constructor inserted in a class that
+  /// True if this is a synthetic constructor inserted in a class that
   /// does not otherwise declare any constructors.
-  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
+  bool get isSynthetic => flags & FlagSynthetic != 0;
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
@@ -1268,10 +1268,8 @@ class Constructor extends Member implements FileUriNode {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
 
-  void set isSyntheticDefault(bool value) {
-    flags = value
-        ? (flags | FlagSyntheticDefault)
-        : (flags & ~FlagSyntheticDefault);
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | FlagSynthetic) : (flags & ~FlagSynthetic);
   }
 
   bool get isInstanceMember => false;
@@ -1363,7 +1361,6 @@ class RedirectingFactoryConstructor extends Member implements FileUriNode {
       {Name name,
       bool isConst: false,
       bool isExternal: false,
-      bool isSyntheticDefault: false,
       int transformerFlags: 0,
       List<DartType> typeArguments,
       List<TypeParameter> typeParameters,
@@ -1390,7 +1387,6 @@ class RedirectingFactoryConstructor extends Member implements FileUriNode {
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
-  static const int FlagSyntheticDefault = 1 << 2;
 
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;

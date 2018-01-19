@@ -2250,7 +2250,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorElementImpl.forKernel(ClassElementImpl enclosingClass,
       this._kernelConstructor, this._kernelFactory)
       : super.forKernel(enclosingClass, _kernelConstructor ?? _kernelFactory) {
-    isSynthetic = _kernelConstructor?.isSyntheticDefault ?? false;
+    isSynthetic = _kernelConstructor?.isSynthetic ?? false;
   }
 
   /**

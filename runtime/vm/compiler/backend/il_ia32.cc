@@ -1819,7 +1819,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (ShouldEmitStoreBarrier()) {
       // Value input is a writable register and should be manually preserved
-      // across allocation slow-path.
+      // across allocation slow-path.  Add it to live_registers set which
+      // determines which registers to preserve.
       locs()->live_registers()->Add(locs()->in(1), kTagged);
     }
 
@@ -3448,54 +3449,70 @@ LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps,
-                      ValueFitsSmi() ? LocationSummary::kNoCall
-                                     : LocationSummary::kCallOnSlowPath);
-  const bool needs_writable_input =
-      ValueFitsSmi() || (from_representation() == kUnboxedUint32);
-  summary->set_in(0, needs_writable_input ? Location::RequiresRegister()
-                                          : Location::WritableRegister());
-  if (!ValueFitsSmi()) {
+  if (ValueFitsSmi()) {
+    LocationSummary* summary = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Same regs, can overwrite input.
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
+    return summary;
+  } else {
+    LocationSummary* summary = new (zone) LocationSummary(
+        zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+    // Guaranteed different regs.  In the signed case we are going to use the
+    // input for sign extension of any Mint.
+    const bool needs_writable_input = (from_representation() == kUnboxedInt32);
+    summary->set_in(0, needs_writable_input ? Location::WritableRegister()
+                                            : Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
+    summary->set_out(0, Location::RequiresRegister());
+    return summary;
   }
-  summary->set_out(0, ValueFitsSmi() ? Location::SameAsFirstInput()
-                                     : Location::RequiresRegister());
-  return summary;
 }
 
 void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
 
-  __ MoveRegister(out, value);
-  __ shll(out, Immediate(kSmiTagSize));
-  if (!ValueFitsSmi()) {
-    Label done;
-    ASSERT(value != out);
-    if (from_representation() == kUnboxedInt32) {
-      __ j(NO_OVERFLOW, &done);
-    } else {
-      __ testl(value, Immediate(0xC0000000));
-      __ j(ZERO, &done);
-    }
-
-    // Allocate a mint.
-    // Value input is writable register and has to be manually preserved
-    // on the slow path.
-    locs()->live_registers()->Add(locs()->in(0), kUnboxedInt32);
-    BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
-                                    locs()->temp(0).reg());
-    __ movl(FieldAddress(out, Mint::value_offset()), value);
-    if (from_representation() == kUnboxedInt32) {
-      __ sarl(value, Immediate(31));  // Sign extend.
-      __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), value);
-    } else {
-      __ movl(FieldAddress(out, Mint::value_offset() + kWordSize),
-              Immediate(0));
-    }
-    __ Bind(&done);
+  if (ValueFitsSmi()) {
+    ASSERT(value == out);
+    ASSERT(kSmiTag == 0);
+    __ shll(out, Immediate(kSmiTagSize));
+    return;
   }
+
+  __ movl(out, value);
+  __ shll(out, Immediate(kSmiTagSize));
+  Label done;
+  if (from_representation() == kUnboxedInt32) {
+    __ j(NO_OVERFLOW, &done);
+  } else {
+    ASSERT(value != out);  // Value was not overwritten.
+    __ testl(value, Immediate(0xC0000000));
+    __ j(ZERO, &done);
+  }
+
+  // Allocate a Mint.
+  if (from_representation() == kUnboxedInt32) {
+    // Value input is a writable register and should be manually preserved
+    // across allocation slow-path.  Add it to live_registers set which
+    // determines which registers to preserve.
+    locs()->live_registers()->Add(locs()->in(0), kUnboxedInt32);
+  }
+  ASSERT(value != out);  // We need the value after the allocation.
+  BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
+                                  locs()->temp(0).reg());
+  __ movl(FieldAddress(out, Mint::value_offset()), value);
+  if (from_representation() == kUnboxedInt32) {
+    // In the signed may-overflow case we asked for the input (value) to be
+    // writable so we can use it as a temp to put the sign extension bits in.
+    __ sarl(value, Immediate(31));  // Sign extend the Mint.
+    __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), value);
+  } else {
+    __ movl(FieldAddress(out, Mint::value_offset() + kWordSize),
+            Immediate(0));  // Zero extend the Mint.
+  }
+  __ Bind(&done);
 }
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
@@ -3755,6 +3772,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Register temp = locs()->temp(0).reg();
       Register temp2 = locs()->temp(1).reg();
       // Temp register needs to be manually preserved on allocation slow-path.
+      // Add it to live_registers set which determines which registers to
+      // preserve.
       locs()->live_registers()->Add(locs()->temp(0), kUnboxedInt32);
 
       ASSERT(temp != result);

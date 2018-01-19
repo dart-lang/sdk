@@ -20,6 +20,11 @@ stringContainsStringUnchecked(receiver, other, startIndex) {
   return stringIndexOfStringUnchecked(receiver, other, startIndex) >= 0;
 }
 
+List<String> stringSplitUnchecked(String receiver, pattern) {
+  return new JSArray<String>.markGrowable(JS(
+      'returns:JSExtendableArray;new:true', '#.split(#)', receiver, pattern));
+}
+
 class StringMatch implements Match {
   const StringMatch(int this.start, String this.input, String this.pattern);
 

@@ -585,6 +585,57 @@ class IncrementalClassHierarchy implements ClassHierarchy {
       }
     }
   }
+
+  @override
+  List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isUsedAsSuperInterface(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isUsedAsSuperClass(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isUsedAsMixin(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isSubtypeOf(Class subtype, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isSubmixtureOf(Class submixture, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isSubclassOf(Class subclass, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  ClassSet getSubtypesOf(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  ClassSet getSubclassesOf(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false}) {
+    throw new UnimplementedError();
+  }
 }
 
 /// Information about a [Class].

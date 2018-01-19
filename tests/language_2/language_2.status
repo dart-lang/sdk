@@ -43,12 +43,6 @@ built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error_test/01: Fail
 
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ $compiler == none && $runtime == vm && !$checked ]
-*: Skip
-
 [ $compiler != spec_parser && !$checked && !$strong ]
 closure_type_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
@@ -175,6 +169,12 @@ map_literal7_test: RuntimeError # Requires strong mode
 
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
+
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
+*: Skip
 
 [ !$dart2js_with_kernel && $minified ]
 regress_21795_test: RuntimeError # Issue 12605

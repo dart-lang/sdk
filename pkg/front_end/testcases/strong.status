@@ -67,6 +67,7 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
 warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
+check_deferred_read: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
@@ -174,7 +175,6 @@ rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
-rasta/previsit_deferred: Fail
 rasta/static: Fail
 rasta/super: TypeCheckError
 rasta/super_initializer: Fail
@@ -217,3 +217,5 @@ rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError # Expected, this file has no main method.
 
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+
+co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well

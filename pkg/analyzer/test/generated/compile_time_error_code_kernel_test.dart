@@ -3087,6 +3087,18 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
   }
+
+  @override
+  @failingTest
+  test_implementsDisallowedClass_class_String_num() async {
+    await super.test_implementsDisallowedClass_class_String_num();
+  }
+
+  @override
+  @failingTest
+  test_implementsDisallowedClass_classTypeAlias_String_num() async {
+    await super.test_implementsDisallowedClass_classTypeAlias_String_num();
+  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

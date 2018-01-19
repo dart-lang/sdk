@@ -221,6 +221,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     // Setup the native resolver as the snapshot does not carry it.
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
+    Builtin::SetNativeResolver(Builtin::kCLILibrary);
   }
   if (isolate_run_app_snapshot) {
     Dart_Handle result = Loader::ReloadNativeExtensions();
@@ -686,6 +687,8 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:_builtin", "::", "_setPackagesMap"},
     {"dart:_builtin", "::", "_setWorkingDirectory"},
     {"dart:async", "::", "_setScheduleImmediateClosure"},
+    {"dart:cli", "::", "_getWaitForEvent"},
+    {"dart:cli", "::", "_waitForEventClosure"},
     {"dart:io", "::", "_getUriBaseClosure"},
     {"dart:io", "::", "_getWatchSignalInternal"},
     {"dart:io", "::", "_makeDatagram"},
@@ -1091,7 +1094,16 @@ void main(int argc, char** argv) {
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  init_params.start_kernel_isolate = dfe.UseDartFrontend();
+  // Start the kernel isolate only if
+  // 1. --dart_preview_2 and/or --dfe is used
+  //
+  // or
+  //
+  // 2. If we have kernel service dill file linked in and a dill file
+  // was specified as the main dart program.
+  init_params.start_kernel_isolate =
+      dfe.UseDartFrontend() ||
+      (dfe.kernel_file_specified() && DFE::KernelServiceDillAvailable());
 #else
   init_params.start_kernel_isolate = false;
 #endif

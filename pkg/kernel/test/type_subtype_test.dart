@@ -18,6 +18,7 @@ var classEnvironment = <String, List<String>>{
   'List<T>': ['Iterable<T>'],
   'Future<T>': ['Object'],
   'FutureOr<T>': ['Object'],
+  'Null': ['Object'],
 };
 
 List<TestCase> testCases = <TestCase>[

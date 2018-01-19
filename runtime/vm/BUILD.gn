@@ -19,6 +19,7 @@ import("../../sdk/lib/vmservice/vmservice_sources.gni")
 import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../bin/io_sources.gni")
+import("../bin/cli_sources.gni")
 import("../lib/async_sources.gni")
 import("../lib/collection_sources.gni")
 import("../lib/convert_sources.gni")
@@ -72,13 +73,14 @@ template("build_libdart_vm") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
       deps = [
+        # TODO(US-399): Remove time_service specific code when it is no longer
+        # necessary.
+        "//garnet/public/lib/app/cpp",
+        "//garnet/public/lib/time_service/fidl",
+
         # TODO(zra): When the platform-specific timeline code is moved out to
         # the embedder, this can go away.
         "//zircon/system/ulib/fbl",
-        # TODO(US-399): Remove time_service specific code when it is no longer
-        # necessary.
-        "//garnet/public/lib/time_service/fidl",
-        "//garnet/public/lib/app/cpp",
       ]
     }
     public_configs = [ ":libdart_vm_config" ]
@@ -570,6 +572,11 @@ generate_vm_patched_sdk("patched_sdk") {
     [
       "io",
       io_runtime_sources,
+      "../bin",
+    ],
+    [
+      "cli",
+      cli_runtime_sources,
       "../bin",
     ],
   ]

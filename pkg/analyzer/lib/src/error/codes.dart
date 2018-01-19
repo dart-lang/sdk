@@ -5052,10 +5052,11 @@ class StrongModeCode extends ErrorCode {
       "Try adding an explicit type to either the variable '{0}' or the variable '{1}'.");
 
   static const StrongModeCode TOP_LEVEL_INSTANCE_GETTER = const StrongModeCode(
-      ErrorType.HINT,
+      ErrorType.STATIC_WARNING,
       'TOP_LEVEL_INSTANCE_GETTER',
-      "The type of '{0}' can't be inferred because of the use of the instance getter '{1}'.",
-      "Try removing the use of the instance getter {1}, or add an explicit type for '{0}'.");
+      "The type of '{0}' can't be inferred because it refers to an instance "
+      "getter, '{1}', which has an implicit type.",
+      "Add an explicit type for either '{0}' or '{1}'.");
 
   static const StrongModeCode TOP_LEVEL_TYPE_ARGUMENTS = const StrongModeCode(
       ErrorType.HINT,
@@ -5068,6 +5069,19 @@ class StrongModeCode extends ErrorCode {
       'TOP_LEVEL_UNSUPPORTED',
       "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
       "Try adding an explicit type for '{0}'.");
+
+  /**
+   * This warning is generated when a function type is assigned to a function
+   * typed location, and the assignment will be invalid after fuzzy arrows
+   * (the treatment of dynamic as bottom in certain locations) is removed.
+   *
+   */
+  static const StrongModeCode USES_DYNAMIC_AS_BOTTOM = const StrongModeCode(
+      ErrorType.STATIC_TYPE_WARNING,
+      'USES_DYNAMIC_AS_BOTTOM',
+      "A function of type '{0}' can't be assigned to a location of type '{1}'.",
+      "Try changing the parameter types of the function or of the "
+      " receiving location.");
 
   @override
   final ErrorType type;
