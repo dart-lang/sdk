@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $fasta ]
+regress_22976_test/*: CompileTimeError # Issue 31935
+
 # We skip all the Dart 1.0 tests in dartk and dartkp mode as these
 # modes are intended only for Dart 2.0 with strong mode enabled.
 [ $compiler == dartk || $compiler == dartkp ]
