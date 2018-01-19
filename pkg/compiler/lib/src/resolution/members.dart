@@ -462,7 +462,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       parameterNodes = parameterNodes.tail;
     });
     addDeferredAction(enclosingElement, () {
-      functionSignature.forEachOptionalParameter((_parameter) {
+      // Use function.functionSignature instead of functionSignature because
+      // the signature may have changed.
+      // TODO(het): Fix this so we can use just 'functionSignature' here.
+      function.functionSignature.forEachOptionalParameter((_parameter) {
         ParameterElementX parameter = _parameter;
         parameter.constant =
             resolver.constantCompiler.compileConstant(parameter);
