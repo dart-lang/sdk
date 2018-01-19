@@ -14,13 +14,13 @@ foo(x) {}
 
 main() {
   // Verify that dereferencing a class literal is a compile-time error.
-  Class(); //# 01: compile-time error
+  Class();
   Class[0]; //# 02: compile-time error
-  var x = Class(); //# 03: compile-time error
+  var x = Class();
   var y = Class[0]; //# 04: compile-time error
   var z = Class[0].field; //# 05: compile-time error
   var w = Class[0].method(); //# 06: compile-time error
-  foo(Class()); //# 07: compile-time error
+  foo(Class());
   foo(Class[0]); //# 08: compile-time error
   foo(Class[0].field); //# 09: compile-time error
   foo(Class[0].method()); //# 10: compile-time error
