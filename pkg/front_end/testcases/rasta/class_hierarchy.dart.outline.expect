@@ -11,7 +11,7 @@ class B extends core::Object {
     ;
 }
 class C extends core::Object {
-  constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

@@ -27,12 +27,12 @@ class D extends self::_Super&Mixin {
     ;
 }
 class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super self::Super::•()
     ;
 }
 class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super self::Super::•()
     ;
 }

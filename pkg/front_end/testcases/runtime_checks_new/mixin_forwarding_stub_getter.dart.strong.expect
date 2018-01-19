@@ -33,7 +33,7 @@ abstract class M<T extends core::Object> extends core::Object {
   abstract method f() → self::M::T;
 }
 abstract class C<T extends core::Object> = self::B with self::M<(self::C::T) → void> implements self::I<self::C::T> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
   abstract forwarding-stub generic-contravariant method f() → (self::C::T) → void;

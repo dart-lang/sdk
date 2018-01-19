@@ -21,7 +21,7 @@ class M extends core::Object {
   method f(core::int x) → void {}
 }
 class C = self::B with self::M implements self::I<core::int> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
   forwarding-stub method f(generic-covariant-impl core::int x) → void

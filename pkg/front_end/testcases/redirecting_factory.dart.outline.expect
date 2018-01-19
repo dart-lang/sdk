@@ -47,7 +47,7 @@ class Mixin<M extends core::Object> extends core::Object {
     ;
 }
 class Mix<M extends core::Object> = self::Base<self::Mix::M> with self::Mixin<self::Mix::M> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
 }
