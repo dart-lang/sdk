@@ -120,7 +120,6 @@ class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
-class_literal_test/none: RuntimeError
 constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 constructor_call_as_function_test: RuntimeError
@@ -3553,6 +3552,7 @@ built_in_identifier_type_annotation_test/67: Crash # Issue 28815
 built_in_identifier_type_annotation_test/68: Crash # Issue 28815
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
+class_literal_test/none: RuntimeError
 closure_param_null_to_object_test: RuntimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
