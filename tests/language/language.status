@@ -461,6 +461,9 @@ vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/causal_async_exception_stack2_test: SkipByDesign # Causal async stacks are not supported in product mode
 vm/causal_async_exception_stack_test: SkipByDesign # Causal async stacks are not supported in product mode
 
+[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+cyclic_type_test/03: Pass, Fail, Crash # Issue 31944
+
 [ $runtime == dart_precompiled || $runtime == vm ]
 arithmetic_test: CompileTimeError # Large integer literal
 bit_operations_test: CompileTimeError # Large integer literal
