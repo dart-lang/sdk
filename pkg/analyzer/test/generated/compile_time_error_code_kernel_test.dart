@@ -835,11 +835,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_extendsDisallowedClass_class_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0;
-    //          1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
     await super.test_extendsDisallowedClass_class_Null();
   }
 
@@ -1078,18 +1074,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_implementsDisallowedClass_class_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
     await super.test_implementsDisallowedClass_class_Null();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_implementsDisallowedClass_classTypeAlias_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
     await super.test_implementsDisallowedClass_classTypeAlias_Null();
   }
 
@@ -1734,18 +1724,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_mixinOfDisallowedClass_class_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
     await super.test_mixinOfDisallowedClass_class_Null();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_mixinOfDisallowedClass_classTypeAlias_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
     await super.test_mixinOfDisallowedClass_classTypeAlias_Null();
   }
 

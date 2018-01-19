@@ -1292,7 +1292,6 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -1392,8 +1391,6 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
 null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
@@ -1879,7 +1876,6 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -1980,8 +1976,6 @@ not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/05: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
 null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
@@ -2435,7 +2429,6 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -3191,7 +3184,6 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError

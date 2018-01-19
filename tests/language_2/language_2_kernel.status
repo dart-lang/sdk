@@ -773,9 +773,6 @@ duplicate_implements_test/01: MissingCompileTimeError # Please triage.
 duplicate_implements_test/02: MissingCompileTimeError # Please triage.
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Please triage.
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
-mixin_black_listed_test/02: MissingCompileTimeError # Please triage.
-null_test/02: MissingCompileTimeError # Please triage.
-null_test/03: MissingCompileTimeError # Please triage.
 
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
@@ -1352,7 +1349,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override7_test/03: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
-mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -1417,8 +1413,6 @@ nosuchmethod_forwarding/nosuchmethod_forwarding_test/04: RuntimeError # Issue #3
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
 null_no_such_method_test: CompileTimeError # Issue 31533
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 optional_named_parameters_test/02: MissingCompileTimeError

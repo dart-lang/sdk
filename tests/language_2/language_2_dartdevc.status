@@ -389,7 +389,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
-mixin_black_listed_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -483,8 +482,6 @@ named_parameters_test/06: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError # Issue 31533
-null_test/02: MissingCompileTimeError
-null_test/03: MissingCompileTimeError
 optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/04: MissingCompileTimeError
 optional_named_parameters_test/06: MissingCompileTimeError

@@ -490,6 +490,7 @@ class SourceLoader<L> extends Loader<L> {
       coreLibrary["num"],
       coreLibrary["double"],
       coreLibrary["String"],
+      coreLibrary["Null"],
     ]);
     for (ClassBuilder cls in classes) {
       if (cls.library.loader != this) continue;
