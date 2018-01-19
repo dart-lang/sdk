@@ -384,9 +384,11 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
     List<String> testOptions = options.toList();
+    bool strongModeOnlyTest = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
     } else if (name.endsWith('_strong.dart')) {
+      strongModeOnlyTest = true;
       testOptions.add(Flags.strongMode);
     }
 
@@ -434,7 +436,7 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForAst.contains(name) || testOptions.contains(Flags.strongMode)) {
+    if (skipForAst.contains(name) || strongModeOnlyTest) {
       print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');
