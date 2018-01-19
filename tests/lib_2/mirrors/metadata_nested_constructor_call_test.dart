@@ -36,10 +36,10 @@ class D {}
 @Box(const MutableBox(const Box())) // //# 02: compile-time error
 class E {}
 
-@Box(Box()) // //# 03: compile-time error
+@Box(Box())
 class F {}
 
-@Box(Box(const Box())) // //# 04: compile-time error
+@Box(Box(const Box()))
 class G {}
 
 @Box(Box(const MutableBox())) // //# 05: compile-time error
