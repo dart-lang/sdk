@@ -42,11 +42,11 @@ deferred_split_test: Pass, Slow # Issue 25940
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 
-[ $compiler == dart2js && $runtime == d8 && !$host_checked ]
+[ $compiler == dart2js && !$host_checked ]
 dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
 
-[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+[ $compiler == dart2js && $host_checked ]
 dummy_compiler_test: Skip # Issue 30773
 recursive_import_test: Skip # Issue 30773
 
