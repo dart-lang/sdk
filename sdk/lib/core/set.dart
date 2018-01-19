@@ -98,7 +98,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * of [S],
    * then the returned set can be used as a `Set<T>`.
    */
-  static Set<T> castTo<S, T>(Set<S> source, {Set<R> Function<R>() newSet}) =>
+  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>() newSet}) =>
       new CastSet<S, T>(source, newSet);
 
   /**

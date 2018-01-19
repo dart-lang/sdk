@@ -49,14 +49,11 @@ class PartOfDirectivesTest extends PartialCodeTest {
               'part of lib._s_;',
               failing: allExceptEof),
           new TestDescriptor('nameDotName', 'part of lib.a',
-              [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;',
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;'),
           new TestDescriptor('emptyUri', "part of ''",
-              [ParserErrorCode.EXPECTED_TOKEN], "part of '';",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "part of '';"),
           new TestDescriptor('uri', "part of 'a.dart'",
-              [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';",
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';"),
         ],
         PartialCodeTest.declarationSuffixes);
   }

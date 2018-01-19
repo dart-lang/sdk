@@ -23,6 +23,7 @@ html_common: html/html_common/html_common_dart2js.dart
 _http: _http/http.dart
 indexed_db: indexed_db/dart2js/indexed_db_dart2js.dart
 io: io/io.dart
+cli: cli/cli.dart
 isolate: isolate/isolate.dart
 js: js/dart2js/js_dart2js.dart
 js_util: js_util/dart2js/js_util_dart2js.dart

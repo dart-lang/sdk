@@ -18,7 +18,7 @@ void testIterable() {
   // Down-cast
   {
     // An iterable that (likely) can do direct access.
-    var dIterable = Iterable.castTo<C, D>(iterable);
+    var dIterable = Iterable.castFrom<C, D>(iterable);
 
     Expect.throws(() => dIterable.first, null, "1.first");
     Expect.equals(d, dIterable.elementAt(1));
@@ -31,7 +31,7 @@ void testIterable() {
 
   {
     // An iterable that cannot do direct access.
-    var dIterable2 = Iterable.castTo<C, D>(iterable.where((_) => true));
+    var dIterable2 = Iterable.castFrom<C, D>(iterable.where((_) => true));
 
     Expect.throws(() => dIterable2.first, null, "2.first");
     Expect.equals(d, dIterable2.elementAt(1));
@@ -46,7 +46,7 @@ void testIterable() {
     // Iterable that definitely won't survive accessing element 2.
     var iterable3 = new Iterable<C>.generate(
         elements.length, (n) => n == 3 ? throw "untouchable" : elements[n]);
-    var dIterable3 = Iterable.castTo<C, D>(iterable3);
+    var dIterable3 = Iterable.castFrom<C, D>(iterable3);
 
     Expect.throws(() => dIterable3.first, null, "3.first");
     Expect.equals(d, dIterable3.elementAt(1));
@@ -60,7 +60,7 @@ void testIterable() {
 
   // Up-cast.
   {
-    var oIterable4 = Iterable.castTo<C, Object>(iterable);
+    var oIterable4 = Iterable.castFrom<C, Object>(iterable);
     Expect.listEquals(elements, oIterable4.toList());
   }
 }
@@ -68,7 +68,7 @@ void testIterable() {
 void testList() {
   // Down-cast.
   var list = new List<C>.from(elements);
-  var dList = List.castTo<C, D>(list);
+  var dList = List.castFrom<C, D>(list);
 
   Expect.throws(() => dList.first); // C is not D.
   Expect.equals(d, dList[1]);
@@ -83,7 +83,7 @@ void testList() {
 
   // Up-cast.
   var list2 = new List<C>.from(elements);
-  var dList2 = List.castTo<C, Object>(list2);
+  var dList2 = List.castFrom<C, Object>(list2);
   Expect.listEquals(elements, dList2);
   Expect.throws(() => dList2[2] = new Object()); // Cannot set non-C.
   Expect.listEquals(elements, dList2);
@@ -93,7 +93,7 @@ void testSet() {
   var set = new Set<C>.from(elements); // Linked HashSet.
   Expect.listEquals(elements, set.toList()); // Preserves order.
 
-  var dSet = Set.castTo<C, D>(set);
+  var dSet = Set.castFrom<C, D>(set);
 
   // Preserves order.
   Expect.throws(() => dSet.first); // C is not D.
@@ -116,7 +116,7 @@ void testSet() {
 
   // Up-cast
   var set2 = new Set<C>.from(elements);
-  var dSet2 = Set.castTo<C, Object>(set2);
+  var dSet2 = Set.castFrom<C, Object>(set2);
 
   var newObject = new Object();
   Expect.throws(() => dSet2.add(newObject));
@@ -129,7 +129,7 @@ void testSet() {
   // Custom emptySet.
 
   var set3 = new Set<C>.from(elements);
-  var dSet3 = Set.castTo<C, Object>(set3, newSet: <T>() => new HashSet<T>());
+  var dSet3 = Set.castFrom<C, Object>(set3, newSet: <T>() => new HashSet<T>());
 
   var toSet3 = dSet3.toSet();
   Expect.isTrue(toSet3 is HashSet<Object>);
@@ -140,7 +140,7 @@ void testSet() {
 void testMap() {
   var map = new Map.fromIterables(elements, elements);
 
-  var dMap = Map.castTo<C, C, D, D>(map);
+  var dMap = Map.castFrom<C, C, D, D>(map);
 
   Expect.isTrue(dMap is Map<D, D>);
 

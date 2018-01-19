@@ -36,6 +36,7 @@ import '../kernel/kernel_backend_strategy.dart';
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
+import '../options.dart';
 import '../ssa/ssa.dart';
 import '../types/types.dart';
 import '../universe/class_set.dart';
@@ -74,8 +75,8 @@ class JsBackendStrategy implements KernelBackendStrategy {
     _commonElements = _elementMap.commonElements;
     _closureDataLookup = new KernelClosureConversionTask(_compiler.measurer,
         _elementMap, _globalLocalsMap, _compiler.options.enableTypeAssertions);
-    JsClosedWorldBuilder closedWorldBuilder =
-        new JsClosedWorldBuilder(_elementMap, _closureDataLookup);
+    JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
+        _elementMap, _closureDataLookup, _compiler.options);
     return closedWorldBuilder._convertClosedWorld(
         closedWorld, strategy.closureModels);
   }
@@ -186,8 +187,10 @@ class JsClosedWorldBuilder {
       <ClassEntity, ClassHierarchyNode>{};
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
   final KernelClosureConversionTask _closureConversionTask;
+  final CompilerOptions _options;
 
-  JsClosedWorldBuilder(this._elementMap, this._closureConversionTask);
+  JsClosedWorldBuilder(
+      this._elementMap, this._closureConversionTask, this._options);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
@@ -264,45 +267,66 @@ class JsClosedWorldBuilder {
     Iterable<MemberEntity> processedMembers =
         map.toBackendMemberSet(closedWorld.processedMembers);
 
-    RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
-    Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
-    for (KLocalFunction localFunction
-        in kernelRtiNeed.localFunctionsNeedingSignature) {
-      localFunctionsNodesNeedingSignature.add(localFunction.node);
-    }
-    Set<ir.Node> localFunctionsNodesNeedingTypeArguments = new Set<ir.Node>();
-    for (KLocalFunction localFunction
-        in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
-      localFunctionsNodesNeedingTypeArguments.add(localFunction.node);
-    }
+    RuntimeTypesNeed rtiNeed;
+    // ignore: unused_local_variable
+    Iterable<FunctionEntity> callMethods;
 
-    Set<ClassEntity> classesNeedingTypeArguments =
-        map.toBackendClassSet(kernelRtiNeed.classesNeedingTypeArguments);
-    Iterable<FunctionEntity> callMethods =
-        _closureConversionTask.createClosureEntities(
-            this,
-            map.toBackendMemberMap(closureModels, identity),
-            localFunctionsNodesNeedingSignature,
-            classesNeedingTypeArguments);
+    if (_options.disableRtiOptimization) {
+      rtiNeed = new TrivialRuntimeTypesNeed();
+      callMethods = _closureConversionTask.createClosureEntities(
+          this, map.toBackendMemberMap(closureModels, identity),
+          localFunctionNeedsSignature: (_) => true,
+          classNeedsTypeArguments: (_) => true,
+          methodNeedsTypeArguments: (_) => true,
+          localFunctionNeedsTypeArguments: (_) => true);
+    } else {
+      RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
+      Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
+      for (KLocalFunction localFunction
+          in kernelRtiNeed.localFunctionsNeedingSignature) {
+        localFunctionsNodesNeedingSignature.add(localFunction.node);
+      }
+      Set<ir.Node> localFunctionsNodesNeedingTypeArguments = new Set<ir.Node>();
+      for (KLocalFunction localFunction
+          in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
+        localFunctionsNodesNeedingTypeArguments.add(localFunction.node);
+      }
 
-    List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
-    for (ir.Node node in localFunctionsNodesNeedingSignature) {
-      callMethodsNeedingSignature
-          .add(_closureConversionTask.getClosureInfo(node).callMethod);
-    }
-    List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
-    for (ir.Node node in localFunctionsNodesNeedingTypeArguments) {
-      callMethodsNeedingTypeArguments
-          .add(_closureConversionTask.getClosureInfo(node).callMethod);
-    }
+      Set<ClassEntity> classesNeedingTypeArguments =
+          map.toBackendClassSet(kernelRtiNeed.classesNeedingTypeArguments);
 
-    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(
-        map,
-        backendUsage,
-        kernelRtiNeed,
-        callMethodsNeedingSignature,
-        callMethodsNeedingTypeArguments,
-        classesNeedingTypeArguments);
+      Set<FunctionEntity> methodsNeedingTypeArguments =
+          map.toBackendFunctionSet(kernelRtiNeed.methodsNeedingTypeArguments);
+
+      callMethods = _closureConversionTask.createClosureEntities(
+          this, map.toBackendMemberMap(closureModels, identity),
+          localFunctionNeedsSignature:
+              localFunctionsNodesNeedingSignature.contains,
+          classNeedsTypeArguments: classesNeedingTypeArguments.contains,
+          methodNeedsTypeArguments: methodsNeedingTypeArguments.contains,
+          localFunctionNeedsTypeArguments:
+              localFunctionsNodesNeedingTypeArguments.contains);
+
+      List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
+      for (ir.Node node in localFunctionsNodesNeedingSignature) {
+        callMethodsNeedingSignature
+            .add(_closureConversionTask.getClosureInfo(node).callMethod);
+      }
+      List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
+      for (ir.Node node in localFunctionsNodesNeedingTypeArguments) {
+        callMethodsNeedingTypeArguments
+            .add(_closureConversionTask.getClosureInfo(node).callMethod);
+      }
+
+      rtiNeed = _convertRuntimeTypesNeed(
+          map,
+          backendUsage,
+          kernelRtiNeed,
+          callMethodsNeedingSignature,
+          callMethodsNeedingTypeArguments,
+          classesNeedingTypeArguments,
+          methodsNeedingTypeArguments);
+    }
 
     NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
     NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
@@ -324,7 +348,10 @@ class JsClosedWorldBuilder {
         classSets: _classSets,
         implementedClasses: implementedClasses,
         liveNativeClasses: liveNativeClasses,
-        liveInstanceMembers: liveInstanceMembers..addAll(callMethods),
+        // TODO(johnniwinther): Include the call method when we can also
+        // represent the synthesized call methods for static and instance method
+        // closurizations.
+        liveInstanceMembers: liveInstanceMembers /*..addAll(callMethods)*/,
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
@@ -474,15 +501,14 @@ class JsClosedWorldBuilder {
       RuntimeTypesNeedImpl rtiNeed,
       List<FunctionEntity> callMethodsNeedingSignature,
       List<FunctionEntity> callMethodsNeedingTypeArguments,
-      Set<ClassEntity> classesNeedingTypeArguments) {
+      Set<ClassEntity> classesNeedingTypeArguments,
+      Set<FunctionEntity> methodsNeedingTypeArguments) {
     Set<FunctionEntity> methodsNeedingSignature =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
     methodsNeedingSignature.addAll(callMethodsNeedingSignature);
-    Set<FunctionEntity> methodsNeedingTypeArguments =
-        map.toBackendFunctionSet(rtiNeed.methodsNeedingTypeArguments);
     methodsNeedingTypeArguments.addAll(callMethodsNeedingTypeArguments);
     Set<ClassEntity> classesUsingTypeVariableExpression =
-        map.toBackendClassSet(rtiNeed.classesUsingTypeVariableExpression);
+        map.toBackendClassSet(rtiNeed.classesUsingTypeVariableLiterals);
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         backendUsage,

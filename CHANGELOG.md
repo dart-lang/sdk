@@ -18,6 +18,10 @@
     some breaking API changes. See https://goo.gl/y9mW2x for more information.
   * Renamed `Zone.ROOT` to `Zone.root`.
 
+* `dart:cli`
+  * Added function `waitFor` that suspends a stack to wait for a `Future` to
+    complete.
+
 * `dart:core`
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
@@ -172,8 +176,12 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
 * Emit exit code 66 when a path dependency doesn't exist ([issue 1747][pub#1747]).
 
+* `pub publish` throws a more explicit error if the `publish_to` field isn't an
+  absolute URL ([issue 1769][pub#1769]).
+
 [pub#1556]: https://github.com/dart-lang/pub/issues/1556
 [pub#1747]: https://github.com/dart-lang/pub/issues/1747
+[pub#1769]: https://github.com/dart-lang/pub/issues/1769
 
 ##### Bug Fixes
 

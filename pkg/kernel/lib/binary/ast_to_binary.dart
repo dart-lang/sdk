@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast_to_binary;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import '../ast.dart';
 import 'tag.dart';
 import 'dart:convert';
@@ -223,6 +226,15 @@ class BinaryPrinter extends Visitor implements BinarySink {
     } else {
       writeByte(Tag.Something);
       writeNode(node);
+    }
+  }
+
+  void writeOptionalReference(Reference ref) {
+    if (ref == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeReference(ref);
     }
   }
 
@@ -753,8 +765,13 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeName(node.name ?? '');
     writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
+    writeOptionalReference(node.forwardingStubSuperTarget);
+    writeOptionalReference(node.forwardingStubInterfaceTarget);
     writeOptionalNode(node.function);
     _variableIndexer = null;
+
+    assert((node.forwardingStubSuperTarget != null) ||
+        !(node.isForwardingStub && node.function.body != null));
   }
 
   visitField(Field node) {

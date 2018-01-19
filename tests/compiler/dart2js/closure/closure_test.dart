@@ -5,7 +5,6 @@
 import 'dart:io' hide Link;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -28,13 +27,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
-        skipForKernel: skipForKernel,
-        options: [
-          Flags.disableTypeInference,
-          // TODO(redemption): Enable inlining.
-          Flags.disableInlining
-        ],
-        args: args);
+        skipForKernel: skipForKernel, args: args);
   });
 }
 

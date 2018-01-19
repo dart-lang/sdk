@@ -10,6 +10,11 @@ annotation_top: Crash
 argument_mismatch: Crash
 bad_setter_abstract: Crash
 cascade: Crash
+check_deferred_read: Crash
+check_deferred_before_write: Crash
+check_deferred_before_call: Crash
+check_deferred_before_args: Crash
+check_deferred_before_args2: Crash
 classes: Crash
 duplicated_named_args_3: Crash
 dynamic_and_void: Fail
@@ -63,7 +68,6 @@ inference/instantiate_tearoff_of_call: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/super_initializer: Crash
 inference/super_initializer_substitution: Crash
-inference/switch_continue: Crash
 inference/top_level_return_and_yield: Fail
 inference/try_catch: Crash
 inference/try_catch_finally: Crash
@@ -89,11 +93,9 @@ override_check_two_substitutions: Fail
 override_check_with_covariant_modifier: Fail
 qualified: Crash
 rasta/abstract_constructor: Crash
-rasta/bad_continue: Crash
 rasta/bad_default_constructor: Crash
 rasta/bad_interpolation: Crash
 rasta/bad_redirection: Crash
-rasta/breaking_bad: Crash
 rasta/class_hierarchy: Crash
 rasta/deferred_load: Crash
 rasta/generic_factory: Crash
@@ -112,10 +114,10 @@ rasta/issue_000070: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: Crash
 rasta/parser_error: Crash
+rasta/previsit_deferred: Crash
 rasta/static: Crash
 rasta/super_initializer: Crash
 rasta/supports_reflection: VerificationError
-rasta/try_label: Crash
 rasta/type_literals: Crash
 rasta/typedef: Crash
 rasta/unresolved: Crash
@@ -149,3 +151,4 @@ super_call: Crash
 type_variable_as_super: Crash
 uninitialized_fields: Crash
 warn_unresolved_sends: Fail
+minimum_int: Crash

@@ -11,9 +11,8 @@ namespace dart {
 static uword Allocate(FreeList* free_list, intptr_t size, bool is_protected) {
   uword result = free_list->TryAllocate(size, is_protected);
   if (result && is_protected) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(result), size,
-                                         VirtualMemory::kReadExecute);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(result), size,
+                           VirtualMemory::kReadExecute);
   }
   return result;
 }
@@ -23,15 +22,13 @@ static void Free(FreeList* free_list,
                  intptr_t size,
                  bool is_protected) {
   if (is_protected) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                                         VirtualMemory::kReadWrite);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
+                           VirtualMemory::kReadWrite);
   }
   free_list->Free(address, size);
   if (is_protected) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                                         VirtualMemory::kReadExecute);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
+                           VirtualMemory::kReadExecute);
   }
 }
 

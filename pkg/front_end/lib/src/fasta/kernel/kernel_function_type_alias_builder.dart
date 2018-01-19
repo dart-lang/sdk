@@ -26,6 +26,7 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         MetadataBuilder,
         TypeVariableBuilder,
+        TypeBuilder,
         computeDefaultTypeArguments;
 
 class KernelFunctionTypeAliasBuilder
@@ -33,6 +34,9 @@ class KernelFunctionTypeAliasBuilder
   final Typedef target;
 
   DartType thisType;
+
+  @override
+  List<TypeBuilder> calculatedBounds;
 
   KernelFunctionTypeAliasBuilder(
       List<MetadataBuilder> metadata,
@@ -96,6 +100,7 @@ class KernelFunctionTypeAliasBuilder
   @override
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    arguments ??= calculatedBounds;
     var thisType = buildThisType(library);
     if (thisType is DynamicType) return thisType;
     FunctionType result = thisType;

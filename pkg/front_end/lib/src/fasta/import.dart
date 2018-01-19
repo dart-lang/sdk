@@ -12,6 +12,8 @@ import 'kernel/kernel_builder.dart' show toKernelCombinators;
 
 import 'combinator.dart' show Combinator;
 
+import 'configuration.dart' show Configuration;
+
 typedef void AddToScope(String name, Builder member);
 
 class Import {
@@ -29,12 +31,21 @@ class Import {
 
   final List<Combinator> combinators;
 
+  final List<Configuration> configurations;
+
   final int charOffset;
 
   final int prefixCharOffset;
 
-  Import(this.importer, this.imported, this.deferred, this.prefix,
-      this.combinators, this.charOffset, this.prefixCharOffset)
+  Import(
+      this.importer,
+      this.imported,
+      this.deferred,
+      this.prefix,
+      this.combinators,
+      this.configurations,
+      this.charOffset,
+      this.prefixCharOffset)
       : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
             combinators, deferred, charOffset, prefixCharOffset);
 

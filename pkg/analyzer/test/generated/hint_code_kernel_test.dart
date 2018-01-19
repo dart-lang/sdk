@@ -470,4 +470,10 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     // Expected 1 errors of type HintCode.UNUSED_SHOWN_NAME, found 0
     return super.test_unusedShownName_topLevelVariable();
   }
+
+  @failingTest
+  @override
+  test_importDeferredLibraryWithLoadFunction() async {
+    await super.test_importDeferredLibraryWithLoadFunction();
+  }
 }

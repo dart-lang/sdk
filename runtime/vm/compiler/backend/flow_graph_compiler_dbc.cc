@@ -433,10 +433,6 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
   UNREACHABLE();
 }
 
-void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  UNREACHABLE();
-}
-
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {

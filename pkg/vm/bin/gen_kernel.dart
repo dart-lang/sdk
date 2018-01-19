@@ -24,7 +24,10 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
-  ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true);
+  ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
+  ..addFlag('embed-sources',
+      help: 'Embed source files in the generated kernel program',
+      defaultsTo: true);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -68,7 +71,8 @@ Future<int> compile(List<String> arguments) async {
     ..linkedDependencies = <Uri>[Uri.base.resolve(platformKernel)]
     ..packagesFileUri = packages != null ? Uri.base.resolve(packages) : null
     ..reportMessages = true
-    ..onError = errorDetector;
+    ..onError = errorDetector
+    ..embedSourceText = options['embed-sources'];
 
   Program program = await compileToKernel(
       Uri.base.resolve(filename), compilerOptions,

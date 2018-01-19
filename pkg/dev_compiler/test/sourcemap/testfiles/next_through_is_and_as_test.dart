@@ -21,7 +21,7 @@ main() {
     /*bc:10*/ print("hex is int");
     // ignore: unnecessary_cast
     int x = hex /*bc:11*/ as int;
-    if (x. /*bc:12*/ isEven) {
+    /*bc:12*/ if (x.isEven) {
       /*bc:13*/ print("it's even even!");
     } else {
       print("but it's not even even!");

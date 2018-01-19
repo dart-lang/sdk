@@ -67,7 +67,7 @@ main(List<String> args) {
 
   Program program = loadProgramFromBinary(filename);
   CoreTypes coreTypes = new CoreTypes(program);
-  ClassHierarchy hierarchy = new ClosedWorldClassHierarchy(program);
+  ClassHierarchy hierarchy = new ClassHierarchy(program);
   TreeShaker shaker =
       new TreeShaker(coreTypes, hierarchy, program, strongMode: strong);
   int totalClasses = 0;

@@ -12,33 +12,7 @@ num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 
 [ $compiler == dart2js ]
-bit_twiddling_bigint_test: Crash # Issue 31762
-bit_twiddling_test: Crash # Issue 31762
-double_ceil_test: Crash # Issue 31762
-double_floor_test: Crash # Issue 31762
-double_round_test: Crash # Issue 31762
-double_truncate_test: Crash # Issue 31762
-int_ceil_test: Crash # Issue 31762
-int_ceil_to_double_test: Crash # Issue 31762
-int_floor_test: Crash # Issue 31762
-int_floor_to_double_test: Crash # Issue 31762
-int_from_environment_test: Crash # Issue 31762
-int_modulo_arith_test/bignum: Crash # Issue 31762
-int_modulo_arith_test/modPow: Crash # Issue 31762
-int_modulo_arith_test/none: Crash # Issue 31762
-int_parse_radix_test/02: Crash # Issue 31762
-int_round_test: Crash # Issue 31762
-int_round_to_double_test: Crash # Issue 31762
-int_to_int_test: Crash # Issue 31762
-int_truncate_test: Crash # Issue 31762
-int_truncate_to_double_test: Crash # Issue 31762
-integer_to_radix_string_test: Crash # Issue 31762
-integer_to_string_test/01: Crash # Issue 31762
-num_parse_test/01: Crash # Issue 31762
-num_parse_test/none: Crash # Issue 31762
-num_sign_test: Crash # Issue 31762
 regexp/pcre_test: Pass, Slow # Issue 21593
-regress_r21715_test: Crash # Issue 31762
 
 [ $compiler == precompiler ]
 apply3_test: SkipByDesign # Imports dart:mirrors
@@ -83,11 +57,15 @@ int_from_environment_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
 string_from_environment_test: Fail # Flutter Issue 9111
-string_trimlr_test/02: RuntimeError # Flutter Issue 9111
 
 [ $runtime == jsshell ]
 string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
+
+[ $runtime == safari ]
+double_round3_test: RuntimeError
+double_round_to_double2_test: Pass, Fail, OK
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $strong ]
 *: SkipByDesign # tests/corelib_2 has the strong mode versions of these tests.
@@ -122,22 +100,16 @@ http_resource_test: Skip, OK # VM specific test, uses dart:io.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == drt ]
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
+string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime == drt && $csp && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
-string_split_test: RuntimeError # Issue 21431
-string_trimlr_test/01: Fail
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
@@ -245,7 +217,7 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-apply3_test: RuntimeError
+apply3_test: CompileTimeError
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -288,7 +260,7 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-apply3_test: RuntimeError
+apply3_test: CompileTimeError
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -362,9 +334,6 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 
-[ $compiler == none && ($runtime == flutter || $runtime == vm) ]
-string_trimlr_test/02: RuntimeError # Issue 29060
-
 [ $runtime != d8 && $runtime != dart_precompiled && $runtime != vm ]
 regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platforms yet.
 
@@ -396,7 +365,6 @@ data_resource_test: Skip # Resolve URI not supported yet in product mode.
 file_resource_test: Skip # Resolve URI not supported yet in product mode.
 http_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
-string_trimlr_test/02: RuntimeError # Issue 29060
 
 # We skip all the Dart 1.0 tests in dartk and dartkp mode as these
 # modes are intended only for Dart 2.0 with strong mode enabled.
@@ -404,15 +372,10 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 *: Skip
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+big_integer_arith_vm_test: CompileTimeError # Large integer literal
 big_integer_parsed_arith_vm_test: RuntimeError # Large integers
 big_integer_parsed_div_rem_vm_test: RuntimeError # Large integers
 big_integer_parsed_mul_div_vm_test: RuntimeError # Large integers
-regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
-regexp/global_test: Skip # Timeout. Issue 21709 and 21708
-regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
-
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || ($compiler == dart2js && $dart2js_with_kernel) ]
-big_integer_arith_vm_test: CompileTimeError # Large integer literal
 bit_twiddling_bigint_test: CompileTimeError # Large integer literal
 bit_twiddling_test: CompileTimeError # Large integer literal
 double_ceil_test: CompileTimeError # Large integer literal
@@ -436,6 +399,9 @@ integer_to_string_test/01: CompileTimeError # Large integer literal
 num_parse_test/01: CompileTimeError # Large integer literal
 num_parse_test/none: CompileTimeError # Large integer literal
 num_sign_test: CompileTimeError # Large integer literal
+regexp/capture-3: Pass, Slow, Timeout # Issues 21593 and 22008
+regexp/global_test: Skip # Timeout. Issue 21709 and 21708
+regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 regress_r21715_test: CompileTimeError # Large integer literal
 
 # Firefox takes advantage of the ECMAScript number parsing cop-out clause
@@ -445,11 +411,6 @@ regress_r21715_test: CompileTimeError # Large integer literal
 # IEEE-754 rounding algorithm.
 [ $runtime == ff || $runtime == jsshell ]
 double_parse_test/02: Fail, OK
-
-[ $runtime == safari || $runtime == safarimobilesim ]
-double_round3_test: RuntimeError
-double_round_to_double2_test: Pass, Fail, OK
-string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $hot_reload || $hot_reload_rollback ]
 big_integer_huge_mul_vm_test: Pass, Slow # Slow

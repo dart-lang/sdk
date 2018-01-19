@@ -925,16 +925,27 @@ class _KernelLibraryResynthesizerContextImpl
     unitElement.librarySource = librarySource;
 
     if (fileUri != null) {
-      // Compute the URI relative to the library directory.
-      // E.g. when the library directory URI is `sdk/lib/core`, and the unit
-      // URI is `sdk/lib/core/bool.dart`, the result is `bool.dart`.
-      var relativeUri = pathos.url.relative(fileUri, from: libraryDirectoryUri);
-      // Compute the absolute URI.
-      // When the absolute library URI is `dart:core`, and the relative
-      // URI is `bool.dart`, the result is `dart:core/bool.dart`.
-      Uri absoluteUri =
-          resolveRelativeUri(librarySource.uri, Uri.parse(relativeUri));
-      String absoluteUriStr = absoluteUri.toString();
+      String absoluteUriStr;
+      if (fileUri.startsWith('file://')) {
+        // Compute the URI relative to the library directory.
+        // E.g. when the library directory URI is `sdk/lib/core`, and the unit
+        // URI is `sdk/lib/core/bool.dart`, the result is `bool.dart`.
+        var relativeUri =
+            pathos.url.relative(fileUri, from: libraryDirectoryUri);
+        // Compute the absolute URI.
+        // When the absolute library URI is `dart:core`, and the relative
+        // URI is `bool.dart`, the result is `dart:core/bool.dart`.
+        Uri absoluteUri =
+            resolveRelativeUri(librarySource.uri, Uri.parse(relativeUri));
+        absoluteUriStr = absoluteUri.toString();
+      } else {
+        // File URIs must have the "file" scheme.
+        // But for invalid URIs, which cannot be even parsed, FrontEnd returns
+        // URIs with the "org-dartlang-malformed-uri" scheme, and does not
+        // resolve them to file URIs.
+        // We don't have anything better than to use these URIs as is.
+        absoluteUriStr = fileUri;
+      }
       unitElement.source = resynthesizer._getSource(absoluteUriStr);
     } else {
       unitElement.source = librarySource;

@@ -50,6 +50,10 @@ class MessageHandler {
            EndCallback end_callback,
            CallbackData data);
 
+  // Starts a task for the message handler if it runs on the thread pool and a
+  // task is not already running.
+  void EnsureTaskForIdleCheck();
+
   // Handles the next message for this message handler.  Should only
   // be used when not running the handler on the thread pool (via Run
   // or RunBlocking).
@@ -69,6 +73,10 @@ class MessageHandler {
   //
   // Returns true on success.
   MessageStatus HandleOOBMessages();
+
+  // Blocks the thread on a condition variable until a message arrives, and then
+  // handles all messages.
+  MessageStatus PauseAndHandleAllMessages(int64_t timeout_millis);
 
   // Returns true if there are pending OOB messages for this message
   // handler.
@@ -210,6 +218,10 @@ class MessageHandler {
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
 
+  // Returns true if the monitor was exited and there may be new OOB messages
+  // to process.
+  bool CheckAndRunIdleLocked(MonitorLocker* ml);
+
   // NOTE: These two functions release and reacquire the monitor, you may
   // need to call HandleMessages to ensure all pending messages are handled.
   void PausedOnStartLocked(MonitorLocker* ml, bool paused);
@@ -232,6 +244,7 @@ class MessageHandler {
   // This flag is not thread safe and can only reliably be accessed on a single
   // thread.
   bool oob_message_handling_allowed_;
+  bool paused_for_messages_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
 #if !defined(PRODUCT)
@@ -244,11 +257,34 @@ class MessageHandler {
   bool delete_me_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;
+  int64_t idle_start_time_;
   StartCallback start_callback_;
   EndCallback end_callback_;
   CallbackData callback_data_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageHandler);
+};
+
+class IdleNotifier : public AllStatic {
+ public:
+  static void InitOnce();
+  static void Stop();
+  static void Cleanup();
+  static void Update(MessageHandler* handler, int64_t expirary);
+  static void Remove(MessageHandler* handler) { Update(handler, 0); }
+
+ private:
+  class Task;
+
+  struct Timer {
+    MessageHandler* handler;
+    int64_t expirary;
+    Timer* next;
+  };
+
+  static Monitor* monitor_;
+  static bool task_running_;
+  static Timer* queue_;
 };
 
 }  // namespace dart

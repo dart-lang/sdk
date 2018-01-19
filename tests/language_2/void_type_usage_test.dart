@@ -6,7 +6,7 @@
 
 void use(dynamic x) { }
 
-void testVoidParam(void x) {
+testVoidParam(void x) {
   x;  //# param_stmt: ok
   true ? x : x;  //# param_conditional: compile-time error
   for (x; false; x) {}   //# param_for: ok
@@ -34,7 +34,7 @@ void testVoidParam(void x) {
   x..toString();  //# param_cascade: compile-time error
 }
 
-void testVoidCall(void f()) {
+testVoidCall(void f()) {
   f();  //# call_stmt: ok
   true ? f() : f();  //# call_conditional: compile-time error
   for (f(); false; f()) {}   //# call_for: ok
@@ -60,7 +60,7 @@ void testVoidCall(void f()) {
   f()..toString();  //# call_cascade: compile-time error
 }
 
-void testVoidLocal() {
+testVoidLocal() {
   void x;
   x = 42;   //# local_assign: ok
   x;  //# local_stmt: ok
@@ -90,7 +90,7 @@ void testVoidLocal() {
   x..toString();  //# local_cascade: compile-time error
 }
 
-void testVoidFinalLocal() {
+testVoidFinalLocal() {
   final void x = null;
   x = 42;   //# final_local_assign: compile-time error
   x;  //# final_local_stmt: ok
@@ -121,7 +121,7 @@ void testVoidFinalLocal() {
 }
 
 void global;
-void testVoidGlobal() {
+testVoidGlobal() {
   global;  //# global_stmt: ok
   true ? global : global;  //# global_conditional: compile-time error
   for (global; false; global) {}   //# global_for: ok
@@ -149,7 +149,7 @@ void testVoidGlobal() {
   global..toString();  //# global_cascade: compile-time error
 }
 
-void testVoidConditional() {
+testVoidConditional() {
   void x;
   (true ? x : x);   //# conditional_parens: compile-time error
   true ? x : x;  //# conditional_stmt: compile-time error
@@ -203,7 +203,6 @@ void testVoidConditional() {
   for (var v in true ? x : 499) {}   //# conditional_for_in: compile-time error
 }
 
-
 class A<T> {
   T x;
 
@@ -225,14 +224,15 @@ class C implements A<void> {
   void get x => null;
   set x(void y) {}
 
+  void foo() {}
+
   void forInTest() {
     for (x in <void>[]) {}  //# instance3_for_in2: compile-time error
     for (x in [1, 2]) {}  //# instance3_for_in3: ok
   }
 }
 
-
-void testInstanceField() {
+testInstanceField() {
   A<void> a = new A<void>();
   a.x = 499;  //# field_assign: ok
   a.x;  //# instance_stmt: ok
@@ -317,7 +317,7 @@ void testInstanceField() {
   c.x..toString();  //# instance3_cascade: compile-time error
 }
 
-void testParenthesized() {
+testParenthesized() {
   void x;
   (x);  //# paren_stmt: ok
   true ? (x) : (x);  //# paren_conditional: compile-time error
@@ -344,6 +344,26 @@ void testParenthesized() {
   (x)..toString();  //# paren_cascade: compile-time error
 }
 
+void testReturnToVoid(void x, void f()) {
+  void y;
+  final void z = null;
+  A<void> a = new A<void>();
+  B b = new B();
+  C c = new C();
+  return x;   //# param_return_to_void: ok
+  return f();   //# call_return_to_void: ok
+  return y;   //# local_return_to_void: ok
+  return z;   //# final_local_return_to_void: ok
+  return global;   //# global_return_to_void: ok
+  return true ? x : x;   //# conditional_return_to_void: compile-time error
+  return true ? 499 : x;   //# conditional2_return_to_void: compile-time error
+  return true ? x : 499;   //# conditional3_return_to_void: compile-time error
+  return a.x;   //# instance_return_to_void: ok
+  return b.x;   //# instance2_return_to_void: ok
+  return c.x;   //# instance3_return_to_void: ok
+  return (x);   //# paren_return_to_void: ok
+}
+
 main() {
   try {
     testVoidParam(499);
@@ -353,8 +373,9 @@ main() {
     testVoidConditional();
     testInstanceField();
     testParenthesized();
+    testReturnToVoid(499, () {});
   } catch (e) {
     // Silently eat all dynamic errors.
-    // This test is only testing static warnings.
+    // This test is only testing static analysis.
   }
 }

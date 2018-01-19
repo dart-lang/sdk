@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.clone;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import 'ast.dart';
 import 'type_algebra.dart';
 
@@ -400,7 +403,9 @@ class CloneVisitor extends TreeVisitor {
         isForwardingStub: node.isForwardingStub,
         isForwardingSemiStub: node.isForwardingSemiStub,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri)
+        fileUri: node.fileUri,
+        forwardingStubSuperTarget: node.forwardingStubSuperTarget,
+        forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
       ..fileEndOffset = node.fileEndOffset
       ..isGenericContravariant = node.isGenericContravariant;
   }

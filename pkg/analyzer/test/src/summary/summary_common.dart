@@ -548,6 +548,7 @@ abstract class SummaryTest {
       List<_PrefixExpectation> prefixExpectations,
       int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+      EntityRefKind entityKind: null,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
@@ -558,6 +559,12 @@ abstract class SummaryTest {
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
     expect(typeRef.typeArguments, hasLength(numTypeArguments));
+
+    if (entityKind == EntityRefKind.genericFunctionType) {
+      // [GenericFunctionType]s don't have references to check.
+      return;
+    }
+
     UnlinkedReference reference = checkReferenceIndex(
         index, absoluteUri, expectedName,
         expectedKind: expectedKind,
@@ -1505,9 +1512,9 @@ class E {}
       closure = executable.localFunctions[0];
     }
     if (strongMode) {
-      // Strong mode infers a type for the closure of `() => dynamic`, so the
-      // inferred return type slot should be empty.
-      expect(getTypeRefForSlot(closure.inferredReturnTypeSlot), isNull);
+      // Strong mode infers a type for the closure of `() => Null`.
+      checkInferredTypeSlot(
+          closure.inferredReturnTypeSlot, 'dart:core', 'Null');
     } else {
       // Spec mode infers a type for the closure of `() => Bottom`.
       checkInferredTypeSlot(closure.inferredReturnTypeSlot, null, '*bottom*',
@@ -2633,6 +2640,70 @@ const int v = p.a.length;
       3
     ], referenceValidators: [
       (EntityRef r) => checkDynamicTypeRef(r)
+    ]);
+  }
+
+  test_constExpr_makeTypedList_functionType() {
+    UnlinkedVariable variable =
+        serializeVariableText('final v = <void Function(int)>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0 // Size of the list
+    ], referenceValidators: [
+      (EntityRef reference) {
+        expect(reference, new isInstanceOf<EntityRef>());
+        expect(reference.entityKind, EntityRefKind.genericFunctionType);
+        expect(reference.syntheticParams, hasLength(1));
+        {
+          final param = reference.syntheticParams[0];
+          expect(param.name, ''); // no name for generic type parameters
+          checkTypeRef(param.type, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum);
+        }
+        expect(reference.paramReference, 0);
+        expect(reference.typeParameters, hasLength(0));
+        // TODO(mfairhurst) check this references void
+        expect(reference.syntheticReturnType, isNotNull);
+      }
+    ]);
+  }
+
+  test_constExpr_makeTypedList_functionType_withTypeParameters() {
+    UnlinkedVariable variable = serializeVariableText(
+        'final v = <void Function<T>(Function<Q>(T, Q))>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0 // Size of the list
+    ], referenceValidators: [
+      (EntityRef reference) {
+        expect(reference, new isInstanceOf<EntityRef>());
+        expect(reference.entityKind, EntityRefKind.genericFunctionType);
+        expect(reference.syntheticParams, hasLength(1));
+        {
+          final param = reference.syntheticParams[0];
+          expect(param.type, new isInstanceOf<EntityRef>());
+          expect(param.type.entityKind, EntityRefKind.genericFunctionType);
+          expect(param.type.syntheticParams, hasLength(2));
+          {
+            final subparam = param.type.syntheticParams[0];
+            expect(subparam.name, ''); // no name for generic type parameters
+            expect(subparam.type, new isInstanceOf<EntityRef>());
+            expect(subparam.type.paramReference, 2);
+          }
+          {
+            final subparam = param.type.syntheticParams[1];
+            expect(subparam.name, ''); // no name for generic type parameters
+            expect(subparam.type, new isInstanceOf<EntityRef>());
+            expect(subparam.type.paramReference, 1);
+          }
+        }
+        expect(reference.paramReference, 0);
+        expect(reference.typeParameters, hasLength(1));
+        // TODO(mfairhurst) check this references void
+        expect(reference.syntheticReturnType, isNotNull);
+      }
     ]);
   }
 
@@ -7923,10 +7994,6 @@ import "${'a'}.dart";
     if (!strongMode || skipFullyLinkedData) {
       return;
     }
-    // The type that is inferred for C.f's parameter g is "() -> void".
-    // Since the associated element for that function type is B.f's parameter g,
-    // and B has a type parameter, the inferred type will record a type
-    // parameter.
     UnlinkedClass c = serializeClassText('''
 abstract class B<T> {
   void f(void g());
@@ -7941,9 +8008,14 @@ class C<T> extends B<T> {
     UnlinkedParam g = f.parameters[0];
     expect(g.name, 'g');
     EntityRef typeRef = getTypeRefForSlot(g.inferredTypeSlot);
-    checkLinkedTypeRef(typeRef, null, 'f',
-        expectedKind: ReferenceKind.method, numTypeArguments: 1);
-    checkParamTypeRef(typeRef.typeArguments[0], 1);
+
+    // The type that is inferred for C.f's parameter g is "() -> void".
+    // Therefore it has no type arguments. However, the associated element for
+    // that function type is B.f's parameter g, and B has a type parameter, so
+    // the inferred type *may* safely record that T as a type parameter, in
+    // which case this assertion can be altered accordingly.
+    checkTypeRef(typeRef, null, 'f',
+        numTypeArguments: 0, entityKind: EntityRefKind.genericFunctionType);
   }
 
   test_inferred_type_keeps_leading_dynamic() {
@@ -8005,7 +8077,7 @@ var v = h((y) {});
     expect(y.name, 'y');
     EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'F', expectedKind: ReferenceKind.typedef);
-    expect(typeRef.implicitFunctionTypeIndices, [0]);
+    expect(typeRef.implicitFunctionTypeIndices, isEmpty);
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
@@ -8020,24 +8092,15 @@ var v = h((y) {});
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
     // Check that parameter g's inferred type is the type implied by D.f's 1st
     // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.implicitFunctionTypeIndices, isEmpty);
     expect(type.paramReference, 0);
-    expect(type.typeArguments, hasLength(2));
-    checkParamTypeRef(type.typeArguments[0], 1);
-    checkTypeRef(type.typeArguments[1], 'dart:core', 'int');
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-    LinkedReference linkedReference =
-        linked.units[0].references[type.reference];
-    expect(linkedReference.dependency, 0);
-    expect(linkedReference.kind, ReferenceKind.method);
-    expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 0);
-    expect(linkedReference.unit, 0);
-    expect(linkedReference.containingReference, isNot(0));
-    expect(linkedReference.containingReference, lessThan(type.reference));
-    checkReferenceIndex(linkedReference.containingReference, null, 'D',
-        numTypeParameters: 2);
+    // Note: this *may* legally have two type arguments (V, W), but for the
+    // moment does not in practice, so we assert isEmpty.
+    expect(type.typeArguments, isEmpty);
+    expect(type.entityKind, EntityRefKind.syntheticFunction);
+    expect(type.syntheticParams, hasLength(1));
+    checkParamTypeRef(type.syntheticParams[0].type, 1);
+    checkLinkedTypeRef(type.syntheticReturnType, 'dart:core', 'int');
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
@@ -8051,24 +8114,15 @@ var v = h((y) {});
         'import "a.dart"; class C extends D { void f(int x, g) {} }');
     EntityRef type =
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
-    // Check that parameter g's inferred type is the type implied by D.f's 1st
-    // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.implicitFunctionTypeIndices, isEmpty);
     expect(type.paramReference, 0);
+    // Note: this *may* legally have two type arguments (V, W), but for the
+    // moment does not in practice, so we assert isEmpty.
     expect(type.typeArguments, isEmpty);
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-    LinkedReference linkedReference =
-        linked.units[0].references[type.reference];
-    expect(linkedReference.dependency, 0);
-    expect(linkedReference.kind, ReferenceKind.method);
-    expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 0);
-    expect(linkedReference.unit, 0);
-    expect(linkedReference.containingReference, isNot(0));
-    expect(linkedReference.containingReference, lessThan(type.reference));
-    checkReferenceIndex(
-        linkedReference.containingReference, absUri('/b.dart'), 'E');
+    expect(type.entityKind, EntityRefKind.syntheticFunction);
+    expect(type.syntheticParams, hasLength(1));
+    checkLinkedTypeRef(type.syntheticReturnType, 'dart:core', 'int');
+    checkLinkedTypeRef(type.syntheticParams[0].type, 'dart:core', 'String');
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
@@ -8081,23 +8135,16 @@ var v = h((y) {});
         className: 'C');
     EntityRef type =
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
-    // Check that parameter g's inferred type is the type implied by D.f's 1st
-    // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, [1]);
+
+    expect(type.implicitFunctionTypeIndices, isEmpty);
     expect(type.paramReference, 0);
+    // Note: this *may* legally have two type arguments (V, W), but for the
+    // moment does not in practice, so we assert isEmpty.
     expect(type.typeArguments, isEmpty);
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-    LinkedReference linkedReference =
-        linked.units[0].references[type.reference];
-    expect(linkedReference.dependency, 0);
-    expect(linkedReference.kind, ReferenceKind.method);
-    expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 0);
-    expect(linkedReference.unit, 0);
-    expect(linkedReference.containingReference, isNot(0));
-    expect(linkedReference.containingReference, lessThan(type.reference));
-    checkReferenceIndex(linkedReference.containingReference, null, 'D');
+    expect(type.entityKind, EntityRefKind.syntheticFunction);
+    expect(type.syntheticParams, hasLength(1));
+    checkLinkedTypeRef(type.syntheticReturnType, 'dart:core', 'int');
+    checkLinkedTypeRef(type.syntheticParams[0].type, 'dart:core', 'String');
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() {

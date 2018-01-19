@@ -390,6 +390,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler(Flags.disableInlining, implyCompilation),
     new OptionHandler(Flags.disableTypeInference, implyCompilation),
+    new OptionHandler(Flags.disableRtiOptimization, implyCompilation),
     new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', implyCompilation),
     new OptionHandler(Flags.dumpInfo, implyCompilation),
@@ -400,6 +401,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
     new OptionHandler(Flags.strongMode, passThrough),
+    new OptionHandler(Flags.addMethodSignatures, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly

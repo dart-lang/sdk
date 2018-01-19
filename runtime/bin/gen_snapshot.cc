@@ -462,6 +462,9 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   if (DartUtils::IsDartHttpLibURL(url)) {
     return Builtin::kHttpLibrary;
   }
+  if (DartUtils::IsDartCLILibURL(url)) {
+    return Builtin::kCLILibrary;
+  }
   return Builtin::kInvalidLibrary;
 }
 
@@ -1226,7 +1229,7 @@ static void CreateAndWritePrecompiledSnapshot(
   Dart_Handle result;
 
   // Precompile with specified embedder entry points
-  result = Dart_Precompile(standalone_entry_points, NULL, 0);
+  result = Dart_Precompile(standalone_entry_points);
   CHECK_RESULT(result);
 
   // Create a precompiled snapshot.
@@ -1302,6 +1305,9 @@ static void SetupForGenericSnapshotCreation() {
 
   Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   CHECK_RESULT(library);
+  Dart_Handle standalone_library =
+      LoadGenericSnapshotCreationScript(Builtin::kCLILibrary);
+  CHECK_RESULT(standalone_library);
   Dart_Handle result = Dart_FinalizeLoading(false);
   if (Dart_IsError(result)) {
     const char* err_msg = Dart_GetError(library);
@@ -1344,6 +1350,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   // Setup the native resolver.
   Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   // Load embedder specific bits and return. Will not start http server.
@@ -1392,8 +1399,13 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
+  Dart_IsolateFlags isolate_flags;
+  Dart_IsolateFlagsInitialize(&isolate_flags);
+  // We need to capture the vmservice library in the core snapshot, so load it
+  // in the main isolate as well.
+  isolate_flags.load_vmservice_library = true;
   Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
-      NULL, NULL, kernel_program, NULL, isolate_data, &error);
+      NULL, NULL, kernel_program, &isolate_flags, isolate_data, &error);
   if (isolate == NULL) {
     delete isolate_data;
     Log::PrintErr("%s\n", error);

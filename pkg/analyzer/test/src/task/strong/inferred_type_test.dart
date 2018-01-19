@@ -4349,12 +4349,6 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   @override
   bool get hasExtraTaskModelPass => false;
 
-  @failingTest
-  @override
-  test_bottom_inClosure() async {
-    await super.test_bottom_inClosure();
-  }
-
   @override
   test_circularReference_viaClosures() async {
     await super.test_circularReference_viaClosures();

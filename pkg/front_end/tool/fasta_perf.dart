@@ -79,7 +79,9 @@ Uri _computeRoot() {
   if (new Directory('runtime/lib/').existsSync()) {
     return Uri.base.resolve("sdk/");
   }
-  return Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
+  return Uri.base
+      .resolveUri(new Uri.file(Platform.resolvedExecutable))
+      .resolve('patched_sdk/');
 }
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.

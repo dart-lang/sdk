@@ -820,7 +820,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * If this class is the result of a mixin application of the form S with M,
    * returns a class mirror on M. Otherwise returns a class mirror on
-   * [reflectee].
+   * the reflectee.
    */
   ClassMirror get mixin;
 

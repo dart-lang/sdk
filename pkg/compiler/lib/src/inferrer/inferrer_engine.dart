@@ -115,7 +115,7 @@ abstract class InferrerEngine<T> {
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember});
 
-  Iterable<MemberEntity> getCallersOf(MemberEntity element);
+  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element);
 
   // TODO(johnniwinther): Make this private again.
   GlobalTypeInferenceElementData<T> dataOfMember(MemberEntity element);
@@ -250,6 +250,8 @@ abstract class InferrerEngine<T> {
 }
 
 abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
+  static bool retainDataForTesting = false;
+
   final Map<Local, TypeInformation> defaultTypeOfParameter =
       new Map<Local, TypeInformation>();
   final WorkQueue workQueue = new WorkQueue();
@@ -1094,7 +1096,11 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   void clear() {
-    void cleanup(TypeInformation info) => info.cleanup();
+    void cleanup(TypeInformation info) {
+      if (!retainDataForTesting) {
+        info.cleanup();
+      }
+    }
 
     types.allocatedCalls.forEach(cleanup);
     types.allocatedCalls.clear();
@@ -1119,9 +1125,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     types.allocatedLists.values.forEach(cleanup);
   }
 
-  Iterable<MemberEntity> getCallersOf(MemberEntity element) {
+  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
     MemberTypeInformation info = types.getInferredTypeOfMember(element);
-    return info.callers;
+    return info.callersForTesting;
   }
 
   TypeInformation typeOfMemberWithSelector(

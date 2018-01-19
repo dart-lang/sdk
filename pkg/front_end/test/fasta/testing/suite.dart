@@ -10,8 +10,8 @@ import 'dart:io' show File, Platform;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart'
-    show PhysicalFileSystem;
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/base/libraries_specification.dart'
     show TargetLibrariesSpecification;
@@ -189,7 +189,7 @@ class FastaContext extends ChainContext {
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
     Uri sdk = Uri.base.resolve("sdk/");
-    Uri vm = Uri.base.resolve(Platform.resolvedExecutable);
+    Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
     var options = new ProcessedOptions(new CompilerOptions()
       ..sdkRoot = sdk
@@ -294,7 +294,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
       KernelTarget sourceTarget = astKind == AstKind.Analyzer
           ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
           : new KernelTarget(
-              PhysicalFileSystem.instance, false, dillTarget, uriTranslator);
+              StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       Program p;
       try {

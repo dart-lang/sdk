@@ -21,7 +21,6 @@ import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
-import 'package:path/path.dart' as pathos;
 import 'package:test/src/frontend/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -53,7 +52,7 @@ class FastaProblem {
 class ResynthesizeKernelStrongTest extends ResynthesizeTest {
   static const DEBUG = false;
 
-  final resourceProvider = new MemoryResourceProvider(context: pathos.posix);
+  final resourceProvider = new MemoryResourceProvider();
 
   @override
   bool get isSharedFrontEnd => true;
@@ -80,7 +79,8 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
       {bool allowErrors: false, bool dumpSummaries: false}) async {
     new MockSdk(resourceProvider: resourceProvider);
 
-    File testFile = resourceProvider.newFile('/test.dart', text);
+    String testPath = resourceProvider.convertPath('/test.dart');
+    File testFile = resourceProvider.newFile(testPath, text);
     Uri testUri = testFile.toUri();
     String testUriStr = testUri.toString();
 

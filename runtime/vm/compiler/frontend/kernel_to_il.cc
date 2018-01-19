@@ -1235,6 +1235,7 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const Array& argument_names,
                                         intptr_t checked_argument_count,
                                         const Function& interface_target,
+                                        const InferredTypeMetadata* result_type,
                                         intptr_t argument_bits,
                                         intptr_t type_argument_bits) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
@@ -1243,6 +1244,10 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
       position, name, kind, arguments, type_args_len, argument_names,
       checked_argument_count, ic_data_array_, GetNextDeoptId(),
       interface_target, argument_bits, type_argument_bits);
+  if (result_type != NULL) {
+    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
+                                                       result_type->cid));
+  }
   Push(call);
   return Fragment(call);
 }
@@ -1397,7 +1402,12 @@ Fragment BaseFlowGraphBuilder::NullConstant() {
 Fragment FlowGraphBuilder::NativeCall(const String* name,
                                       const Function* function) {
   InlineBailout("kernel::FlowGraphBuilder::NativeCall");
-  ArgumentArray arguments = GetArguments(function->NumParameters());
+  const intptr_t num_args =
+      function->NumParameters() +
+      ((function->IsGeneric() && Isolate::Current()->reify_generic_functions())
+           ? 1
+           : 0);
+  ArgumentArray arguments = GetArguments(num_args);
   NativeCallInstr* call =
       new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
                               TokenPosition::kNoSource, arguments);
@@ -1501,6 +1511,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t argument_count,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
+                                      const InferredTypeMetadata* result_type,
                                       intptr_t type_args_count,
                                       intptr_t argument_bits,
                                       intptr_t type_argument_check_bits) {
@@ -1513,10 +1524,18 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
-    call->set_result_cid(list_cid);
+    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+           (result_type->cid == list_cid));
+    call->SetResultType(Z, CompileType::FromCid(list_cid));
     call->set_is_known_list_constructor(true);
   } else if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-    call->set_result_cid(MethodRecognizer::ResultCid(target));
+    intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
+    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+           (result_type->cid == recognized_cid));
+    call->SetResultType(Z, CompileType::FromCid(recognized_cid));
+  } else if (result_type != NULL) {
+    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
+                                                       result_type->cid));
   }
   Push(call);
   return Fragment(call);
@@ -2015,6 +2034,11 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());
+      if (function.IsGeneric() &&
+          Isolate::Current()->reify_generic_functions()) {
+        body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
+        body += PushArgument();
+      }
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         body += LoadLocal(parsed_function_->RawParameterVariable(i));
         body += PushArgument();
@@ -2542,6 +2566,18 @@ Fragment BaseFlowGraphBuilder::StoreFpRelativeSlot(intptr_t offset) {
       new (Z) StoreIndexedUnsafeInstr(index, value, offset);
   Push(instr);
   return Fragment(instr);
+}
+
+JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
+  JoinEntryInstr* nsm = BuildJoinEntry();
+
+  Fragment failing(nsm);
+  const Code& nsm_handler =
+      Code::ZoneHandle(StubCode::CallClosureNoSuchMethod_entry()->code());
+  failing += LoadArgDescriptor();
+  failing += TailCall(nsm_handler);
+
+  return nsm;
 }
 
 RawObject* EvaluateMetadata(const Field& metadata_field) {

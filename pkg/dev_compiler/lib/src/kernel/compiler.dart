@@ -9,7 +9,6 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide ConstantVisitor;
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -22,6 +21,7 @@ import 'js_interop.dart';
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
 import 'native_types.dart';
+import 'nullable_inference.dart';
 import 'property_model.dart';
 import 'type_table.dart';
 
@@ -115,7 +115,7 @@ class ProgramCompiler
   /// unit.
   final virtualFields = new VirtualFieldModel();
 
-  JSTypeRep _typeRep;
+  final JSTypeRep _typeRep;
 
   bool _superAllowed = true;
 
@@ -188,32 +188,45 @@ class ProgramCompiler
 
   final ConstantVisitor _constants;
 
-  ProgramCompiler(NativeTypeSet nativeTypes,
-      {this.emitMetadata: true,
-      this.replCompile: false,
-      this.declaredVariables: const {}})
+  final NullableInference _nullableInference;
+
+  factory ProgramCompiler(Program program,
+      {bool emitMetadata: true,
+      bool replCompile: false,
+      Map<String, String> declaredVariables: const {}}) {
+    var nativeTypes = new NativeTypeSet(program);
+    var types = new TypeSchemaEnvironment(
+        nativeTypes.coreTypes, new ClassHierarchy(program), true);
+    return new ProgramCompiler._(
+        nativeTypes, new JSTypeRep(types, nativeTypes.sdk),
+        emitMetadata: emitMetadata,
+        replCompile: replCompile,
+        declaredVariables: declaredVariables);
+  }
+
+  ProgramCompiler._(NativeTypeSet nativeTypes, this._typeRep,
+      {this.emitMetadata, this.replCompile, this.declaredVariables})
       : _extensionTypes = nativeTypes,
+        types = _typeRep.types,
         coreTypes = nativeTypes.coreTypes,
         _constants = new ConstantVisitor(nativeTypes.coreTypes),
-        types = new TypeSchemaEnvironment(
-            nativeTypes.coreTypes, new IncrementalClassHierarchy(), true),
-        _jsArrayClass = nativeTypes.getClass('dart:_interceptors', 'JSArray'),
+        _jsArrayClass =
+            nativeTypes.sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =
-            nativeTypes.getClass('dart:async', 'StreamIterator'),
+            nativeTypes.sdk.getClass('dart:async', 'StreamIterator'),
         privateSymbolClass =
-            nativeTypes.getClass('dart:_js_helper', 'PrivateSymbol'),
+            nativeTypes.sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
         linkedHashMapImplClass =
-            nativeTypes.getClass('dart:_js_helper', 'LinkedMap'),
+            nativeTypes.sdk.getClass('dart:_js_helper', 'LinkedMap'),
         identityHashMapImplClass =
-            nativeTypes.getClass('dart:_js_helper', 'IdentityMap'),
+            nativeTypes.sdk.getClass('dart:_js_helper', 'IdentityMap'),
         linkedHashSetImplClass =
-            nativeTypes.getClass('dart:collection', '_HashSet'),
+            nativeTypes.sdk.getClass('dart:collection', '_HashSet'),
         identityHashSetImplClass =
-            nativeTypes.getClass('dart:collection', '_IdentityHashSet'),
+            nativeTypes.sdk.getClass('dart:collection', '_IdentityHashSet'),
         syncIterableClass =
-            nativeTypes.getClass('dart:_js_helper', 'SyncIterable') {
-    _typeRep = new JSTypeRep(types, coreTypes);
-  }
+            nativeTypes.sdk.getClass('dart:_js_helper', 'SyncIterable'),
+        _nullableInference = new NullableInference(_typeRep);
 
   ClassHierarchy get hierarchy => types.hierarchy;
 
@@ -240,6 +253,7 @@ class ProgramCompiler
       // There is JS code in dart:* that depends on their names.
       _runtimeModule = new JS.Identifier('dart');
       _extensionSymbolsModule = new JS.Identifier('dartx');
+      _nullableInference.allowNotNullDeclarations = true;
     } else {
       // Otherwise allow these to be renamed so users can write them.
       _runtimeModule = new JS.TemporaryId('dart');
@@ -652,7 +666,7 @@ class ProgramCompiler
         var jsParams = _emitFormalParameters(ctor.function);
         var ctorBody = <JS.Statement>[];
         if (mixinCtor != null) ctorBody.add(mixinCtor);
-        if (ctor.name != '' || hasUnnamedSuper) {
+        if (ctor.name.name != '' || hasUnnamedSuper) {
           ctorBody.add(
               _emitSuperConstructorCall(className, ctor.name.name, jsParams));
         }
@@ -764,12 +778,6 @@ class ProgramCompiler
 
     addConstructor(String name, JS.Expression jsCtor) {
       body.add(_addConstructorToClass(className, name, jsCtor));
-    }
-
-    if (c.isEnum) {
-      assert(!isCallable, 'enums should not be callable');
-      addConstructor('', js.call('function(x) { this.index = x; }'));
-      return body;
     }
 
     var fields = c.fields;
@@ -1022,9 +1030,24 @@ class ProgramCompiler
   /// Emits static fields for a class, and initialize them eagerly if possible,
   /// otherwise define them as lazy properties.
   void _emitStaticFields(Class c, List<JS.Statement> body) {
-    var lazyStatics = c.fields.where((f) => f.isStatic).toList();
-    if (lazyStatics.isNotEmpty) {
-      body.add(_emitLazyFields(c, lazyStatics));
+    var fields = c.fields.where((f) => f.isStatic).toList();
+    if (c.isEnum) {
+      // We know enum fields can be safely emitted as const fields, as long
+      // as the `values` field is emitted last.
+      var classRef = _emitTopLevelName(c);
+      var valueField = fields.firstWhere((f) => f.name.name == 'values');
+      fields.remove(valueField);
+      fields.add(valueField);
+      for (var f in fields) {
+        assert(f.isConst);
+        body.add(_defineValueOnClass(
+                classRef,
+                _emitStaticMemberName(f.name.name),
+                _visitInitializer(f.initializer, f.annotations))
+            .toStatement());
+      }
+    } else if (fields.isNotEmpty) {
+      body.add(_emitLazyFields(c, fields));
     }
   }
 
@@ -1032,11 +1055,13 @@ class ProgramCompiler
       List<JS.Statement> body) {
     // Metadata
     if (emitMetadata && metadata.isNotEmpty) {
-      body.add(js.statement('#[#.metadata] = () => #;', [
+      body.add(js.statement('#[#.metadata] = #;', [
         className,
         _runtimeModule,
-        new JS.ArrayInitializer(
-            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
+        new JS.ArrowFun(
+            [],
+            _withLetScopeArrowFunction(() => new JS.ArrayInitializer(
+                new List.from(metadata.map(_instantiateAnnotation)))))
       ]));
     }
   }
@@ -1263,33 +1288,16 @@ class ProgramCompiler
   JS.Expression _emitConstructor(Constructor node, List<Field> fields,
       bool isCallable, JS.Expression className) {
     var params = _emitFormalParameters(node.function);
+    var body = _withCurrentFunction(
+        node.function,
+        () => _superDisallowed(
+            () => _emitConstructorBody(node, fields, className)));
 
-    var savedFunction = _currentFunction;
-    var savedLetVariables = _letVariables;
-    _currentFunction = node.function;
-    _letVariables = [];
-    var savedSuperAllowed = _superAllowed;
-    _superAllowed = false;
-    var body = _emitConstructorBody(node, fields, className);
-
-    _letVariables = savedLetVariables;
-    _superAllowed = savedSuperAllowed;
-    _currentFunction = savedFunction;
-
-    return _finishConstructorFunction(params, body, isCallable);
+    var block = new JS.Block(body)..sourceInformation = node;
+    return _finishConstructorFunction(params, block, isCallable);
   }
 
-  void addStatementToList(JS.Statement statement, List<JS.Statement> list) {
-    // If the statement is a nested block, flatten it into the list when
-    // possible.  If the statement is empty, discard it.
-    if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
-      list.addAll(statement.statements);
-    } else if (statement is! JS.EmptyStatement) {
-      list.add(statement);
-    }
-  }
-
-  JS.Block _emitConstructorBody(
+  List<JS.Statement> _emitConstructorBody(
       Constructor node, List<Field> fields, JS.Expression className) {
     var cls = node.enclosingClass;
 
@@ -1308,15 +1316,14 @@ class ProgramCompiler
 
     if (redirectCall != null) {
       body.add(_emitRedirectingConstructor(redirectCall, className));
-      _initTempVars(body);
-      return new JS.Block(body);
+      return body;
     }
 
     // Generate field initializers.
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    addStatementToList(_initializeFields(fields, node), body);
+    _addStatementToList(_initializeFields(fields, node), body);
 
     var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
         orElse: () => null) as SuperInitializer;
@@ -1326,13 +1333,12 @@ class ProgramCompiler
     // enclosing class is class Object.
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
     if (jsSuper != null) {
-      addStatementToList(jsSuper..sourceInformation = superCall, body);
+      _addStatementToList(jsSuper..sourceInformation = superCall, body);
     }
 
     var jsBody = _visitStatement(node.function.body);
-    if (jsBody != null) addStatementToList(jsBody, body);
-    _initTempVars(body);
-    return new JS.Block(body)..sourceInformation = node;
+    if (jsBody != null) _addStatementToList(jsBody, body);
+    return body;
   }
 
   JS.Expression _constructorName(String name) {
@@ -1393,7 +1399,7 @@ class ProgramCompiler
   bool _hasUnnamedConstructor(Class c) {
     if (c == null || c == coreTypes.objectClass) return false;
     var ctor = unnamedConstructor(c);
-    if (ctor != null && !ctor.isSyntheticDefault) return true;
+    if (ctor != null && !ctor.isSynthetic) return true;
     if (c.fields.any((f) => !f.isStatic)) return true;
     return _hasUnnamedSuperConstructor(c);
   }
@@ -1504,14 +1510,18 @@ class ProgramCompiler
 
   JS.Statement _addConstructorToClass(
       JS.Expression className, String name, JS.Expression jsCtor) {
-    var ctorName = _constructorName(name);
-    if (JS.invalidStaticFieldName(name)) {
-      jsCtor =
-          _callHelper('defineValue(#, #, #)', [className, ctorName, jsCtor]);
-    } else {
-      jsCtor = js.call('#.# = #', [className, ctorName, jsCtor]);
-    }
+    jsCtor = _defineValueOnClass(className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
+  }
+
+  JS.Expression _defineValueOnClass(
+      JS.Expression className, JS.Expression name, JS.Expression value) {
+    var args = [className, name, value];
+    if (name is JS.LiteralString &&
+        JS.invalidStaticFieldName(name.valueWithoutQuotes)) {
+      return _callHelper('defineValue(#, #, #)', args);
+    }
+    return js.call('#.# = #', args);
   }
 
   List<JS.Method> _emitClassMethods(Class c) {
@@ -1732,8 +1742,7 @@ class ProgramCompiler
   ///
   /// Same technique is applied if interface I has fields, and C doesn't declare
   /// neither the fields nor the corresponding getters and setters.
-  Iterable<JS.Method> _addMockMembers(
-      Member member, Class c, List<JS.Method> jsMethods) {
+  void _addMockMembers(Member member, Class c, List<JS.Method> jsMethods) {
     JS.Method implementMockMember(
         List<TypeParameter> typeParameters,
         List<VariableDeclaration> namedParameters,
@@ -2032,12 +2041,12 @@ class ProgramCompiler
     var lazyFields = <Field>[];
     for (var field in fields) {
       // Skip our magic undefined constant.
-      if (field.name == 'undefined') continue;
+      if (field.name.name == 'undefined') continue;
 
       var init = field.initializer;
       if (init == null ||
           init is BasicLiteral ||
-          _isJSInvocation(init) ||
+          _isInlineJSCall(init) ||
           init is ConstructorInvocation &&
               isSdkInternalRuntime(init.target.enclosingLibrary)) {
         _moduleItems.add(js.statement('# = #;', [
@@ -2050,9 +2059,6 @@ class ProgramCompiler
     }
     return _emitLazyFields(_currentLibrary, lazyFields);
   }
-
-  bool _isJSInvocation(Expression expr) =>
-      expr is StaticInvocation && isInlineJS(expr.target);
 
   JS.Statement _emitLazyFields(NamedNode target, Iterable<Field> fields) {
     var accessors = <JS.Method>[];
@@ -2076,17 +2082,35 @@ class ProgramCompiler
   }
 
   JS.Fun _emitStaticFieldInitializer(Field field) {
+    return new JS.Fun(
+        [],
+        new JS.Block(_withLetScope(() => [
+              new JS.Return(
+                  _visitInitializer(field.initializer, field.annotations))
+            ])));
+  }
+
+  List<JS.Statement> _withLetScope(List<JS.Statement> visitBody()) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
-    var body = [
-      new JS.Return(_visitInitializer(field.initializer, field.annotations))
-    ];
-    _initTempVars(body);
+    var body = visitBody();
+    var letVars = _initLetVariables();
+    if (letVars != null) body.insert(0, letVars);
 
     _letVariables = savedLetVariables;
+    return body;
+  }
 
-    return new JS.Fun([], new JS.Block(body));
+  JS.Node _withLetScopeArrowFunction(JS.Expression visitBody()) {
+    var savedLetVariables = _letVariables;
+    _letVariables = [];
+
+    var expr = visitBody();
+    var letVars = _initLetVariables();
+
+    _letVariables = savedLetVariables;
+    return letVars == null ? expr : new JS.Block([letVars, expr.toReturn()]);
   }
 
   JS.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix: ''}) {
@@ -2343,21 +2367,22 @@ class ProgramCompiler
   }
 
   void _emitLibraryProcedures(Library library) {
-    var procedures =
-        library.procedures.where((p) => !p.isExternal && !p.isAbstract);
+    var procedures = library.procedures
+        .where((p) => !p.isExternal && !p.isAbstract)
+        .toList();
     _moduleItems.addAll(procedures
         .where((p) => !p.isAccessor)
         .map(_emitLibraryFunction)
         .toList());
-    _moduleItems
-        .add(_emitLibraryAccessors(procedures.where((p) => p.isAccessor)));
+    _emitLibraryAccessors(procedures.where((p) => p.isAccessor).toList());
   }
 
-  JS.Statement _emitLibraryAccessors(Iterable<Procedure> accessors) {
-    return _callHelperStatement('copyProperties(#, { # });', [
+  void _emitLibraryAccessors(Iterable<Procedure> accessors) {
+    if (accessors.isEmpty) return;
+    _moduleItems.add(_callHelperStatement('copyProperties(#, { # });', [
       emitLibraryName(_currentLibrary),
       accessors.map(_emitLibraryAccessor).toList()
-    ]);
+    ]));
   }
 
   JS.Method _emitLibraryAccessor(Procedure node) {
@@ -2682,7 +2707,7 @@ class ProgramCompiler
   List<JS.Parameter> _emitTypeFormals(List<TypeParameter> typeFormals) {
     return typeFormals
         .map((t) => new JS.Identifier(getTypeParameterName(t)))
-        .toList(growable: false);
+        .toList();
   }
 
   JS.Expression _emitGeneratorFunction(FunctionNode function, String name) {
@@ -2690,30 +2715,28 @@ class ProgramCompiler
     // using ES6 generators.
 
     emitGeneratorFn(Iterable<JS.Expression> getParameters(JS.Block jsBody)) {
-      var savedSuperAllowed = _superAllowed;
       var savedController = _asyncStarController;
-      _superAllowed = false;
-
       _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
           ? new JS.TemporaryId('stream')
           : null;
 
-      // Visit the body with our async* controller set.
-      //
-      // TODO(jmesserly): this will emit argument initializers (for default
-      // values) inside the generator function body. Is that the best place?
-      var jsBody = _emitFunctionBody(function)..sourceInformation = function;
-      JS.Expression gen =
-          new JS.Fun(getParameters(jsBody), jsBody, isGenerator: true);
+      JS.Expression gen;
+      _superDisallowed(() {
+        // Visit the body with our async* controller set.
+        //
+        // TODO(jmesserly): this will emit argument initializers (for default
+        // values) inside the generator function body. Is that the best place?
+        var jsBody = _emitFunctionBody(function)..sourceInformation = function;
+        gen = new JS.Fun(getParameters(jsBody), jsBody, isGenerator: true);
 
-      // Name the function if possible, to get better stack traces.
-      if (name != null) {
-        name = JS.friendlyNameForDartOperator[name] ?? name;
-        gen = new JS.NamedFunction(new JS.TemporaryId(name), gen);
-      }
-      if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
+        // Name the function if possible, to get better stack traces.
+        if (name != null) {
+          name = JS.friendlyNameForDartOperator[name] ?? name;
+          gen = new JS.NamedFunction(new JS.TemporaryId(name), gen);
+        }
+        if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
+      });
 
-      _superAllowed = savedSuperAllowed;
       _asyncStarController = savedController;
       return gen;
     }
@@ -2777,36 +2800,31 @@ class ProgramCompiler
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
-    var returnType = _getExpectedReturnType(function, coreTypes.futureClass);
+    // Return type of an async body is `Future<flatten(T)>`, where T is the
+    // declared return type.
+    var returnType = types.unfutureType(function.functionType.returnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(coreTypes.asyncLibrary), _emitType(returnType), gen])
       ..sourceInformation = function;
   }
 
-  // TODO(leafp): Various analyzer pieces computed similar things.
-  // Share this logic somewhere?
+  /// Gets the expected return type of a `sync*` or `async*` body.
   DartType _getExpectedReturnType(FunctionNode f, Class expected) {
     var type = f.functionType.returnType;
     if (type is InterfaceType) {
       var match = hierarchy.getTypeAsInstanceOf(type, expected);
-      return match.typeArguments[0];
+      if (match != null) return match.typeArguments[0];
     }
     return const DynamicType();
   }
 
   JS.Block _emitFunctionBody(FunctionNode f) {
-    var savedFunction = _currentFunction;
-    _currentFunction = f;
-    var savedLetVariables = _letVariables;
-    _letVariables = [];
-
-    var block = _emitArgumentInitializers(f);
-    var jsBody = _visitStatement(f.body);
-    if (jsBody != null) addStatementToList(jsBody, block);
-
-    _initTempVars(block);
-    _currentFunction = savedFunction;
-    _letVariables = savedLetVariables;
+    var block = _withCurrentFunction(f, () {
+      var block = _emitArgumentInitializers(f);
+      var jsBody = _visitStatement(f.body);
+      if (jsBody != null) _addStatementToList(jsBody, block);
+      return block;
+    });
 
     if (f.asyncMarker == AsyncMarker.Sync) {
       // It is a JS syntax error to use let or const to bind two variables with
@@ -2824,6 +2842,27 @@ class ProgramCompiler
     }
 
     return new JS.Block(block);
+  }
+
+  List<JS.Statement> _withCurrentFunction(
+      FunctionNode fn, List<JS.Statement> action()) {
+    var savedFunction = _currentFunction;
+    _currentFunction = fn;
+    _nullableInference.enterFunction(fn);
+
+    var result = _withLetScope(action);
+
+    _nullableInference.exitFunction(fn);
+    _currentFunction = savedFunction;
+    return result;
+  }
+
+  T _superDisallowed<T>(T action()) {
+    var savedSuperAllowed = _superAllowed;
+    _superAllowed = false;
+    var result = action();
+    _superAllowed = savedSuperAllowed;
+    return result;
   }
 
   /// Emits argument initializers, which handles optional/named args, as well
@@ -2889,7 +2928,7 @@ class ProgramCompiler
   }
 
   bool _annotatedNullCheck(List<Expression> annotations) =>
-      annotations.any(isNullCheckAnnotation);
+      annotations.any(_nullableInference.isNullCheckAnnotation);
 
   JS.Statement _nullParameterCheck(JS.Expression param) {
     var call = _callHelper('argumentError((#))', [param]);
@@ -3019,8 +3058,14 @@ class ProgramCompiler
   defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
 
   @override
-  visitExpressionStatement(ExpressionStatement node) =>
-      _visitAndMarkExpression(node.expression).toStatement();
+  visitExpressionStatement(ExpressionStatement node) {
+    var expr = node.expression;
+    if (_isInlineJSCall(expr)) {
+      var inlineJS = _emitInlineJSCode(expr);
+      return inlineJS is JS.Expression ? inlineJS.toStatement() : inlineJS;
+    }
+    return _visitAndMarkExpression(expr).toStatement();
+  }
 
   @override
   visitBlock(Block node) =>
@@ -3122,7 +3167,7 @@ class ProgramCompiler
     // target.
     var current = node.target;
     while (current is LabeledStatement) {
-      current = (current as LabeledStatement).body;
+      current = current.body;
     }
     if (identical(current, target)) {
       return new JS.Break(name);
@@ -3419,12 +3464,10 @@ class ProgramCompiler
   @override
   visitTryFinally(TryFinally node) {
     var body = _visitStatement(node.body);
-    var savedSuperAllowed = _superAllowed;
-    _superAllowed = false;
-    var finallyBlock = _visitStatement(node.finalizer).toBlock();
-    _superAllowed = savedSuperAllowed;
+    var finallyBlock =
+        _superDisallowed(() => _visitStatement(node.finalizer).toBlock());
 
-    if (body is JS.Try && (body as JS.Try).finallyPart == null) {
+    if (body is JS.Try && body.finallyPart == null) {
       // Kernel represents Dart try/catch/finally as try/catch nested inside of
       // try/finally.  Flatten that pattern in the output into JS try/catch/
       // finally.
@@ -3517,17 +3560,16 @@ class ProgramCompiler
     return new JS.Identifier(name);
   }
 
-  void _initTempVars(List<JS.Statement> block) {
-    if (_letVariables.isEmpty) return;
-    block.insert(
-        0,
-        new JS.VariableDeclarationList(
-                'let',
-                _letVariables
-                    .map((v) => new JS.VariableInitialization(v, null))
-                    .toList())
-            .toStatement());
+  JS.Statement _initLetVariables() {
+    if (_letVariables.isEmpty) return null;
+    var result = new JS.VariableDeclarationList(
+            'let',
+            _letVariables
+                .map((v) => new JS.VariableInitialization(v, null))
+                .toList())
+        .toStatement();
     _letVariables.clear();
+    return result;
   }
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
@@ -3616,7 +3658,7 @@ class ProgramCompiler
   @override
   visitSuperPropertySet(SuperPropertySet node) {
     var target = node.interfaceTarget;
-    var jsTarget = _emitSuperTarget(target);
+    var jsTarget = _emitSuperTarget(target, setter: true);
     return _visitExpression(node.value).toAssignExpression(jsTarget);
   }
 
@@ -4054,8 +4096,8 @@ class ProgramCompiler
       var isAccessor = member is Procedure ? member.isAccessor : true;
       if (isAccessor) {
         assert(member is Procedure
-            ? setter == member.isSetter
-            : (member as Field).isFinal != setter);
+            ? member.isSetter == setter
+            : !setter || !(member as Field).isFinal);
         var fn = js.call(
             setter
                 ? 'function(x) { super[#] = x; }'
@@ -4085,13 +4127,11 @@ class ProgramCompiler
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    var result = _emitForeignJS(node);
-    if (result != null) return result;
-    if (node.target.isFactory) {
-      return _emitFactoryInvocation(node);
-    }
     var target = node.target;
-    if (target?.name == 'extensionSymbol' &&
+    if (isInlineJS(target)) return _emitInlineJSCode(node);
+    if (target.isFactory) return _emitFactoryInvocation(node);
+
+    if (target.name.name == 'extensionSymbol' &&
         isSdkInternalRuntime(target.enclosingLibrary)) {
       var args = node.arguments;
       var firstArg = args.positional.length == 1 ? args.positional[0] : null;
@@ -4147,27 +4187,32 @@ class ProgramCompiler
   }
 
   /// Emits code for the `JS(...)` macro.
-  JS.Expression _emitForeignJS(StaticInvocation node) {
-    if (!isInlineJS(node.target)) return null;
+  JS.Node _emitInlineJSCode(StaticInvocation node) {
     var args = node.arguments.positional;
     // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
     var code = args[1];
     List<Expression> templateArgs;
     String source;
     if (code is StringConcatenation) {
-      if (args.length > 2) {
-        throw new ArgumentError(
-            "Can't mix template args and string interpolation in JS calls.");
-      }
-      templateArgs = <Expression>[];
-      source = code.expressions.map((expression) {
-        if (expression is StringLiteral) {
-          return expression.value;
-        } else {
-          templateArgs.add(expression);
-          return '#';
+      if (code.expressions.every((e) => e is StringLiteral)) {
+        templateArgs = args.skip(2).toList();
+        source = code.expressions.map((e) => (e as StringLiteral).value).join();
+      } else {
+        if (args.length > 2) {
+          throw new ArgumentError(
+              "Can't mix template args and string interpolation in JS calls: "
+              "`$node`");
         }
-      }).join();
+        templateArgs = <Expression>[];
+        source = code.expressions.map((expression) {
+          if (expression is StringLiteral) {
+            return expression.value;
+          } else {
+            templateArgs.add(expression);
+            return '#';
+          }
+        }).join();
+      }
     } else {
       templateArgs = args.skip(2).toList();
       source = (code as StringLiteral).value;
@@ -4198,7 +4243,7 @@ class ProgramCompiler
       if (arg is StaticInvocation) {
         var target = arg.target;
         var positional = arg.arguments.positional;
-        if (target.name == 'getGenericClass' &&
+        if (target.name.name == 'getGenericClass' &&
             isSdkInternalRuntime(target.enclosingLibrary) &&
             positional.length == 1) {
           var typeArg = positional[0];
@@ -4256,45 +4301,7 @@ class ProgramCompiler
   ///
   /// If [localIsNullable] is not supplied, this will use the known list of
   /// [_notNullLocals].
-  bool isNullable(Expression expr) {
-    // TODO(jmesserly): we do recursive calls in a few places. This could
-    // leads to O(depth) cost for calling this function. We could store the
-    // resulting value if that becomes an issue, so we maintain the invariant
-    // that each node is visited once.
-    if (expr is PropertyGet) {
-      var target = expr.interfaceTarget;
-      // tear-offs are not null, other accessors are nullable.
-      return target is Procedure && target.isAccessor;
-    }
-    if (expr is StaticGet) {
-      var target = expr.target;
-      // tear-offs are not null, other accessors are nullable.
-      return target is Field || (target is Procedure && target.isGetter);
-    }
-
-    if (expr is TypeLiteral) return false;
-    if (expr is BasicLiteral) return expr.value == null;
-    if (expr is IsExpression) return false;
-    if (expr is FunctionExpression) return false;
-    if (expr is ThisExpression) return false;
-    if (expr is ConditionalExpression) {
-      return isNullable(expr.then) || isNullable(expr.otherwise);
-    }
-    if (expr is ConstructorInvocation) return false;
-    if (expr is LogicalExpression) return false;
-    if (expr is Not) return false;
-    if (expr is StaticInvocation) {
-      return expr.target != coreTypes.identicalProcedure;
-    }
-    if (expr is DirectMethodInvocation) {
-      // TODO(jmesserly): this is to capture that our primitive classes
-      // (int, double, num, bool, String) do not return null from their
-      // operator methods.
-      return !isPrimitiveType(expr.target.enclosingClass.rawType);
-    }
-    // TODO(jmesserly): handle other cases.
-    return true;
-  }
+  bool isNullable(Expression expr) => _nullableInference.isNullable(expr);
 
   bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
 
@@ -4338,9 +4345,6 @@ class ProgramCompiler
   visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
     var args = node.arguments;
-    var ctorClass = ctor.enclosingClass;
-    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
-
     JS.Expression emitNew() {
       return new JS.New(_emitConstructorName(node.constructedType, ctor),
           _emitArgumentList(args, types: false));
@@ -4353,6 +4357,10 @@ class ProgramCompiler
     var args = node.arguments;
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
+    if (ctor.isExternal && _isJSNative(ctorClass)) {
+      return _emitJSInteropNew(ctor, args);
+    }
+
     var type = ctorClass.typeParameters.isEmpty
         ? ctorClass.rawType
         : new InterfaceType(ctorClass, args.types);
@@ -4391,9 +4399,9 @@ class ProgramCompiler
         case 'Map':
         case 'HashMap':
         case 'LinkedHashMap':
-          if (ctor.name == '') {
+          if (ctor.name.name == '') {
             return js.call('new #.new()', _emitMapImplType(type));
-          } else if (ctor.name == 'identity') {
+          } else if (ctor.name.name == 'identity') {
             return js.call(
                 'new #.new()', _emitMapImplType(type, identity: true));
           }
@@ -4401,15 +4409,15 @@ class ProgramCompiler
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
-          if (ctor.name == '') {
+          if (ctor.name.name == '') {
             return js.call('new #.new()', _emitSetImplType(type));
-          } else if (ctor.name == 'identity') {
+          } else if (ctor.name.name == 'identity') {
             return js.call(
                 'new #.new()', _emitSetImplType(type, identity: true));
           }
           break;
         case 'List':
-          if (ctor.name == '' && type is InterfaceType) {
+          if (ctor.name.name == '' && type is InterfaceType) {
             return _emitList(type.typeArguments[0], []);
           }
           break;
@@ -4417,12 +4425,18 @@ class ProgramCompiler
     }
 
     JS.Expression emitNew() {
-      // Native factory constructors are JS constructors - use new here.
       return new JS.Call(_emitConstructorName(type, ctor),
           _emitArgumentList(args, types: false));
     }
 
     return node.isConst ? _emitConst(emitNew) : emitNew();
+  }
+
+  JS.Expression _emitJSInteropNew(Member ctor, Arguments args) {
+    var ctorClass = ctor.enclosingClass;
+    if (_isObjectLiteral(ctorClass)) return _emitObjectLiteral(args);
+    return new JS.New(_emitConstructorName(ctorClass.rawType, ctor),
+        _emitArgumentList(args, types: false));
   }
 
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
@@ -4442,11 +4456,10 @@ class ProgramCompiler
   }
 
   bool _isObjectLiteral(Class c) {
-    return _isJSNative(c) && findAnnotation(c, isJSAnonymousAnnotation) != null;
+    return _isJSNative(c) && c.annotations.any(isJSAnonymousAnnotation);
   }
 
-  bool _isJSNative(NamedNode c) =>
-      findAnnotation(c, isPublicJSAnnotation) != null;
+  bool _isJSNative(Class c) => c.annotations.any(isPublicJSAnnotation);
 
   JS.Expression _emitObjectLiteral(Arguments node) {
     var args = _emitArgumentList(node);
@@ -4542,9 +4555,9 @@ class ProgramCompiler
   @override
   visitAsExpression(AsExpression node) {
     Expression fromExpr = node.operand;
-    var from = fromExpr.getStaticType(types);
     var to = node.type;
     var jsFrom = _visitAndMarkExpression(fromExpr);
+    var from = fromExpr.getStaticType(types);
 
     // If the check was put here by static analysis to ensure soundness, we
     // can't skip it. For example, one could implement covariant generic caller
@@ -4563,14 +4576,8 @@ class ProgramCompiler
     //        c.add('hi);
     //      }
     //
-    // NOTE: due to implementation details, we do not currently reify the the
-    // `C<T>.add` check in CoercionReifier, so it does not reach this point;
-    // rather we check for it explicitly when emitting methods and fields.
-    // However we do reify the `c.f` check, so we must not eliminate it.
     var isTypeError = node.isTypeError;
     if (!isTypeError && types.isSubtypeOf(from, to)) return jsFrom;
-
-    // TODO(jmesserly): implicit function type instantiation for kernel?
 
     // All Dart number types map to a JS double.
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
@@ -4765,15 +4772,27 @@ class ProgramCompiler
     var body = _visitExpression(node.body);
     var temp = _tempVariables.remove(v);
     if (temp != null) {
-      init = new JS.Assignment(temp, init);
-      _letVariables.add(temp);
+      if (_letVariables != null) {
+        init = new JS.Assignment(temp, init);
+        _letVariables.add(temp);
+      } else {
+        // TODO(jmesserly): make sure this doesn't happen on any performance
+        // critical call path.
+        //
+        // Annotations on a top-level, non-lazy function type should be the only
+        // remaining use.
+        return new JS.Call(new JS.ArrowFun([temp], body), [init]);
+      }
     }
     return new JS.Binary(',', init, body);
   }
 
   @override
   visitInstantiation(Instantiation node) {
-    return defaultExpression(node);
+    return _callHelper('gbind(#, #)', [
+      _visitExpression(node.expression),
+      node.typeArguments.map(_emitType).toList()
+    ]);
   }
 
   @override
@@ -4891,12 +4910,11 @@ bool _isInlineJSFunction(Statement body) {
     if (statements.length != 1) return false;
     body = statements[0];
   }
-  if (body is ReturnStatement) {
-    var e = body.expression;
-    return e is MethodInvocation && isInlineJS(e.interfaceTarget);
-  }
-  return false;
+  return body is ReturnStatement && _isInlineJSCall(body.expression);
 }
+
+bool _isInlineJSCall(Expression expr) =>
+    expr is StaticInvocation && isInlineJS(expr.target);
 
 /// Return true if this is one of the methods/properties on all Dart Objects
 /// (toString, hashCode, noSuchMethod, runtimeType).
@@ -4919,3 +4937,13 @@ bool isObjectMember(String name) {
 
 bool _isObjectMethod(String name) =>
     name == 'toString' || name == 'noSuchMethod';
+
+void _addStatementToList(JS.Statement statement, List<JS.Statement> list) {
+  // If the statement is a nested block, flatten it into the list when
+  // possible.  If the statement is empty, discard it.
+  if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
+    list.addAll(statement.statements);
+  } else if (statement is! JS.EmptyStatement) {
+    list.add(statement);
+  }
+}

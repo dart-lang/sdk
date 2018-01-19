@@ -84,28 +84,6 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     constraint.upper = getGreatestLowerBound(constraint.upper, upper);
   }
 
-  /// Implements the function "flatten" defined in the spec, where T is [type]:
-  ///
-  ///     If T = Future<S> then flatten(T) = flatten(S).
-  ///
-  ///     Otherwise if T <: Future then let S be a type such that T << Future<S>
-  ///     and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
-  ///
-  ///     In any other circumstance, flatten(T) = T.
-  DartType flattenFutures(DartType type) {
-    if (type is InterfaceType) {
-      if (identical(type.classNode, coreTypes.futureClass)) {
-        return flattenFutures(type.typeArguments[0]);
-      }
-      InterfaceType futureBase =
-          hierarchy.getTypeAsInstanceOf(type, coreTypes.futureClass);
-      if (futureBase != null) {
-        return futureBase.typeArguments[0];
-      }
-    }
-    return type;
-  }
-
   /// Computes the greatest lower bound of [type1] and [type2].
   DartType getGreatestLowerBound(DartType type1, DartType type2) {
     // The greatest lower bound relation is reflexive.  Note that we don't test

@@ -84,6 +84,7 @@ convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/element_classes_test: RuntimeError # Issue 30291
 html/element_types_keygen_test: RuntimeError # Issue 29055
+html/file_sample_test: Pass, RuntimeError
 html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
@@ -165,12 +166,10 @@ html/custom/document_register_basic_test: Skip # Times out, or unittest times ou
 html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_classes_test: RuntimeError # Issue 27535
-html/element_types_content_test: RuntimeError # Issue 29922
-html/element_types_content_test: Pass, RuntimeError # Issue 28983
+html/element_types_content_test: Pass, RuntimeError # Issues 28983, 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: Fail
-html/element_types_shadow_test: RuntimeError # Issue 29922
-html/element_types_shadow_test: Pass, RuntimeError # Issue 28983
+html/element_types_shadow_test: Pass, RuntimeError # Issues 28983, 29922
 html/file_sample_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
@@ -271,9 +270,6 @@ html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
-
-[ $compiler == dart2js && $runtime == safarimobilesim ]
-isolate/compile_time_error_test/none: Pass, Slow
 
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
@@ -397,8 +393,8 @@ html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': 
 html/js_array_test: CompileTimeError
 html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dart_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dispatch_property_test: CompileTimeError
+html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_test: CompileTimeError
 html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_trust_types_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
@@ -781,7 +777,7 @@ html/fileapi_file_entry_test: Fail, Pass # TODO(dart2js-team): Please triage thi
 html/fileapi_file_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $runtime == safarimobilesim || $ie) ]
+[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.

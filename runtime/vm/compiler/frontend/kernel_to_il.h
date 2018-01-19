@@ -18,6 +18,7 @@ namespace dart {
 namespace kernel {
 
 class StreamingFlowGraphBuilder;
+struct InferredTypeMetadata;
 
 class KernelConstMapKeyEqualsTraits {
  public:
@@ -598,6 +599,13 @@ class BaseFlowGraphBuilder {
 
   intptr_t AllocateTryIndex() { return next_used_try_index_++; }
 
+  Fragment LoadArgDescriptor() {
+    ASSERT(parsed_function_->has_arg_desc_var());
+    return LoadLocal(parsed_function_->arg_desc_var());
+  }
+
+  JoinEntryInstr* BuildThrowNoSuchMethod();
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   intptr_t CurrentTryIndex();
@@ -692,6 +700,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
+                        const InferredTypeMetadata* result_type = NULL,
                         intptr_t argument_bits = 0,
                         intptr_t type_argument_bits = 0);
   Fragment ClosureCall(intptr_t type_args_len,
@@ -721,6 +730,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
+                      const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0,
                       intptr_t argument_bits = 0,
                       intptr_t type_argument_check_bits = 0);

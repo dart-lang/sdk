@@ -207,6 +207,7 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           this,
           closedWorld,
+          backend.sourceInformationStrategy,
           compiler.backendStrategy.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction,

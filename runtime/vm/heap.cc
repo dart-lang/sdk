@@ -359,7 +359,10 @@ void Heap::NotifyIdle(int64_t deadline) {
   // Because we use a deadline instead of a timeout, we automatically take any
   // time used up by a scavenge into account when deciding if we can complete
   // a mark-sweep on time.
-  if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
+  if (old_space_.ShouldPerformIdleMarkCompact(deadline)) {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectOldSpaceGarbage(thread, kCompaction);
+  } else if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kIdle);
   }
@@ -628,7 +631,7 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
     case kOldSpace:
       return "old space";
     case kCompaction:
-      return "compaction";
+      return "compact";
     case kFull:
       return "full";
     case kIdle:
@@ -780,7 +783,7 @@ void Heap::PrintStats() {
   // clang-format off
   const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
   OS::PrintErr(
-    "[ GC %9" Pd64 " : %10s(%9s), "  // GC(isolate), space(reason)
+    "[ %-13.13s, %10s(%9s), "  // GC(isolate), space(reason)
     "%4" Pd ", "  // count
     "%6.2f, "  // start time
     "%5.1f, "  // total time
@@ -793,7 +796,7 @@ void Heap::PrintStats() {
     "%6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
-    isolate()->main_port(), space_str, GCReasonToString(stats_.reason_),
+    isolate()->name(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
     MicrosecondsToSeconds(isolate()->UptimeMicros()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -

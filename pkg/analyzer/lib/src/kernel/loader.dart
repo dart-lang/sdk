@@ -527,7 +527,7 @@ class DartLoader implements ReferenceLevelLoader {
             name: _nameOfMember(element),
             isConst: constructor.isConst,
             isExternal: constructor.isExternal,
-            isSyntheticDefault: constructor.isSynthetic)
+            isSynthetic: constructor.isSynthetic)
           ..fileOffset = element.nameOffset;
 
       case ElementKind.FIELD:

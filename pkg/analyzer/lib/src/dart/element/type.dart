@@ -418,14 +418,17 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Initialize a newly created function type that is semantically the same as
    * [original], but which has been syntactically renamed with fresh type
    * parameters at its outer binding site (if any).
+   *
+   * If type formals is empty, this returns the original unless [force] is set
+   * to [true].
    */
-  factory FunctionTypeImpl.fresh(FunctionType original) {
+  factory FunctionTypeImpl.fresh(FunctionType original, {bool force = false}) {
     // We build up a substitution for the type parameters,
     // {variablesFresh/variables} then apply it.
 
     var originalFormals = original.typeFormals;
     var formalCount = originalFormals.length;
-    if (formalCount == 0) return original;
+    if (formalCount == 0 && !force) return original;
 
     // Allocate fresh type variables
     var typeVars = <DartType>[];

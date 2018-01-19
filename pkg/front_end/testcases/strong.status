@@ -24,7 +24,6 @@ cycles: Fail
 default_values: Fail
 dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
 escape: Fail
-expressions: Fail
 external: Fail
 fallthrough: Fail
 fibonacci: Fail
@@ -68,6 +67,7 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
 warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
+check_deferred_read: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
@@ -85,23 +85,14 @@ inference/downwards_inference_annotations_type_variable_local: Fail # Issue #284
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
 inference/downwards_inference_yield_yield_star: TypeCheckError
-inference/future_then_2: TypeCheckError
-inference/future_then_4: TypeCheckError
-inference/future_then_5: TypeCheckError
-inference/future_then_conditional_2: TypeCheckError
-inference/future_then_conditional_4: TypeCheckError
-inference/future_then_conditional_5: TypeCheckError
 inference/future_then_explicit_future: Fail # Issue #30040
 inference/future_then_upwards: RuntimeError
 inference/future_then_upwards_2: RuntimeError
-inference/future_union_downwards_2: TypeCheckError
-inference/future_union_downwards_4: TypeCheckError
 inference/generic_functions_return_typedef: Fail # Issue #29798
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
-inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue #31304
 inference/infer_field_override_multiple: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
@@ -120,9 +111,8 @@ inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
-instantiate_to_bound/typedef_literal_map: Fail
-instantiate_to_bound/typedef_literal_list: Fail
 instantiate_to_bound/typedef_super_bounded_type: Fail
+instantiate_to_bound/body_typedef_super_bounded_type: Fail
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -185,7 +175,6 @@ rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
-rasta/previsit_deferred: Fail
 rasta/static: Fail
 rasta/super: TypeCheckError
 rasta/super_initializer: Fail
@@ -228,3 +217,5 @@ rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/foo: RuntimeError # Expected, this file has no main method.
 
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+
+co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well

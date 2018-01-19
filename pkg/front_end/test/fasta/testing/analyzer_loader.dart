@@ -4,13 +4,10 @@
 
 library fasta.analyzer_loader;
 
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
-import 'package:kernel/ast.dart' show Program;
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/fasta/builder/builder.dart' show LibraryBuilder;
-
-import 'package:front_end/src/fasta/target_implementation.dart'
-    show TargetImplementation;
 
 import 'package:front_end/src/fasta/source/source_class_builder.dart'
     show SourceClassBuilder;
@@ -18,23 +15,14 @@ import 'package:front_end/src/fasta/source/source_class_builder.dart'
 import 'package:front_end/src/fasta/source/source_loader.dart'
     show SourceLoader;
 
-import 'analyzer_diet_listener.dart' show AnalyzerDietListener;
+import 'package:front_end/src/fasta/target_implementation.dart'
+    show TargetImplementation;
 
-import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/src/incremental_class_hierarchy.dart';
+import 'analyzer_diet_listener.dart' show AnalyzerDietListener;
 
 class AnalyzerLoader<L> extends SourceLoader<L> {
   AnalyzerLoader(TargetImplementation target)
-      : super(PhysicalFileSystem.instance, false, target);
-
-  @override
-  void computeHierarchy(Program program) {
-    ticker.logMs("Built analyzer element model.");
-    hierarchy = new IncrementalClassHierarchy();
-    ticker.logMs("Computed class hierarchy");
-    coreTypes = new CoreTypes(program);
-    ticker.logMs("Computed core types");
-  }
+      : super(StandardFileSystem.instance, false, target);
 
   @override
   AnalyzerDietListener createDietListener(LibraryBuilder library) {

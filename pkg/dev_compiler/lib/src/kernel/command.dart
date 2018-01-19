@@ -8,10 +8,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
@@ -20,7 +19,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as JS;
 import 'compiler.dart';
-import 'native_types.dart';
 import 'source_map_printer.dart';
 
 const _binaryName = 'dartdevk';
@@ -122,7 +120,12 @@ Future<CompilerResult> _compile(List<String> args,
         allowMultiple: true)
     ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
     ..addOption('summary-input-dir', allowMultiple: true)
-    ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app');
+    ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app')
+    // Ignore dart2js options that we don't support in DDC.
+    ..addFlag('enable-enum', hide: true)
+    ..addFlag('experimental-trust-js-interop-type-annotations', hide: true)
+    ..addFlag('trust-type-annotations', hide: true)
+    ..addFlag('supermixin', hide: true);
 
   addModuleFormatOptions(argParser, singleOutFile: false);
 
@@ -152,9 +155,7 @@ Future<CompilerResult> _compile(List<String> args,
       .map((s) => stringToCustomUri(s, multiRoots, customScheme))
       .toList();
 
-  var sdkSummaryPath = argResults['dart-sdk-summary'] ??
-      path.join(path.dirname(path.dirname(Platform.resolvedExecutable)), 'lib',
-          '_internal', 'ddc_sdk.dill');
+  var sdkSummaryPath = argResults['dart-sdk-summary'] ?? defaultSdkSummaryPath;
 
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
@@ -176,7 +177,7 @@ Future<CompilerResult> _compile(List<String> args,
   // the correct location and keeps the real file location hidden from the
   // front end.
   var fileSystem = new MultiRootFileSystem(
-      customScheme, multiRoots, PhysicalFileSystem.instance);
+      customScheme, multiRoots, StandardFileSystem.instance);
 
   compilerState = await fe.initializeCompiler(
       compilerState,
@@ -219,8 +220,7 @@ Future<CompilerResult> _compile(List<String> args,
 
 JS.Program compileToJSModule(Program p, List<Program> summaries,
     List<Uri> summaryUris, Map<String, String> declaredVariables) {
-  var compiler = new ProgramCompiler(new NativeTypeSet(p, new CoreTypes(p)),
-      declaredVariables: declaredVariables);
+  var compiler = new ProgramCompiler(p, declaredVariables: declaredVariables);
   return compiler.emitProgram(p, summaries, summaryUris);
 }
 
@@ -375,3 +375,10 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 
   return declaredVariables;
 }
+
+/// The default path of the kernel summary for the Dart SDK.
+final defaultSdkSummaryPath = path.join(
+    path.dirname(path.dirname(Platform.resolvedExecutable)),
+    'lib',
+    '_internal',
+    'ddc_sdk.dill');

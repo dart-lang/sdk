@@ -288,6 +288,12 @@ abstract class _IntegerImplementation implements int {
     if (radix == 10) return this.toString();
     final bool isNegative = this < 0;
     int value = isNegative ? -this : this;
+    if (value < 0) {
+      // With integers limited to 64 bits, the value
+      // MIN_INT64 = -0x8000000000000000 overflows at negation:
+      // -MIN_INT64 == MIN_INT64, so it requires special handling.
+      return _minInt64ToRadixString(radix);
+    }
     List temp = new List();
     do {
       int digit = value % radix;
@@ -313,6 +319,12 @@ abstract class _IntegerImplementation implements int {
     if (negative) {
       value = -value;
       length = 1;
+      if (value < 0) {
+        // With integers limited to 64 bits, the value
+        // MIN_INT64 = -0x8000000000000000 overflows at negation:
+        // -MIN_INT64 == MIN_INT64, so it requires special handling.
+        return _minInt64ToRadixString(radix);
+      }
     }
     // Integer division, rounding up, to find number of _digits.
     length += (value.bitLength + bitsPerDigit - 1) ~/ bitsPerDigit;
@@ -323,6 +335,27 @@ abstract class _IntegerImplementation implements int {
       string._setAt(--length, _digits.codeUnitAt(value & mask));
       value >>= bitsPerDigit;
     } while (value > 0);
+    return string;
+  }
+
+  /// Converts negative value to radix string.
+  /// This method is only used to handle corner case of
+  /// MIN_INT64 = -0x8000000000000000.
+  String _minInt64ToRadixString(int radix) {
+    List temp = new List();
+    int value = this;
+    assert(value < 0);
+    do {
+      int digit = -value.remainder(radix);
+      value ~/= radix;
+      temp.add(_digits.codeUnitAt(digit));
+    } while (value != 0);
+    temp.add(0x2d); // '-'.
+
+    _OneByteString string = _OneByteString._allocate(temp.length);
+    for (int i = 0, j = temp.length; j > 0; i++) {
+      string._setAt(i, temp[--j]);
+    }
     return string;
   }
 

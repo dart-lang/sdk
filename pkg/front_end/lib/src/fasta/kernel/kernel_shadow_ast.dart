@@ -17,6 +17,10 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
+
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
@@ -170,7 +174,7 @@ class ShadowAwaitExpression extends AwaitExpression
     }
     var inferredType =
         inferrer.inferExpression(operand, typeContext, typeNeeded);
-    inferredType = inferrer.typeSchemaEnvironment.flattenFutures(inferredType);
+    inferredType = inferrer.typeSchemaEnvironment.unfutureType(inferredType);
     inferrer.listener.awaitExpressionExit(this, inferredType);
     return inferredType;
   }

@@ -18,6 +18,7 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     {DartUtils::kBuiltinLibURL, NULL, NULL, NULL, true},
     {DartUtils::kIOLibURL, NULL, NULL, NULL, true},
     {DartUtils::kHttpLibURL, NULL, NULL, NULL, false},
+    {DartUtils::kCLILibURL, NULL, NULL, NULL, true},
     // End marker.
     {NULL, NULL, NULL, NULL, false}};
 

@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// TODO(johnniwinther): Port this test to use the equivalence framework.
-/// Currently it only works with the mock compiler.
-
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
-import '../compiler_helper.dart';
+import '../memory_compiler.dart';
 
 String generateTest(String listAllocation) {
   return """
@@ -189,58 +187,76 @@ main() {
 }
 
 void main() {
-  doTest('[]', nullify: false); // Test literal list.
-  doTest('new List()', nullify: false); // Test growable list.
-  doTest('new List(1)', nullify: true); // Test fixed list.
-  doTest('new List.filled(1, 0)', nullify: false); // Test List.filled.
-  doTest('new List.filled(1, null)', nullify: true); // Test List.filled.
+  runTest({bool useKernel}) async {
+    // Test literal list.
+    await doTest('[]', nullify: false, useKernel: useKernel);
+    // Test growable list.
+    await doTest('new List()', nullify: false, useKernel: useKernel);
+    // Test fixed list.
+    await doTest('new List(1)', nullify: true, useKernel: useKernel);
+    // Test List.filled.
+    await doTest('new List.filled(1, 0)', nullify: false, useKernel: useKernel);
+    // Test List.filled.
+    await doTest('new List.filled(1, null)',
+        nullify: true, useKernel: useKernel);
+  }
+
+  asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
+    await runTest(useKernel: false);
+    print('--test from kernel------------------------------------------------');
+    await runTest(useKernel: true);
+  });
 }
 
-void doTest(String allocation, {bool nullify}) {
-  Uri uri = new Uri(scheme: 'source');
-  var compiler = mockCompilerFor(generateTest(allocation), uri,
-      expectedErrors: 0, expectedWarnings: 1);
-  asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var closedWorld = typesInferrer.closedWorld;
-        var commonMasks = closedWorld.commonMasks;
+doTest(String allocation, {bool nullify, bool useKernel}) async {
+  String source = generateTest(allocation);
+  var result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+      options: useKernel ? [Flags.useKernel] : []);
+  Expect.isTrue(result.isSuccess);
+  var compiler = result.compiler;
+  var typesInferrer = compiler.globalInference.typesInferrerInternal;
+  var closedWorld = typesInferrer.closedWorld;
+  var commonMasks = closedWorld.commonMasks;
 
-        checkType(String name, type) {
-          MemberElement element = findElement(compiler, name);
-          ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
-          if (nullify) type = type.nullable();
-          Expect.equals(type, simplify(mask.elementType, closedWorld), name);
-        }
+  checkType(String name, type) {
+    var element = findMember(closedWorld, name);
+    ContainerTypeMask mask = typesInferrer.getTypeOfMember(element);
+    if (nullify) type = type.nullable();
+    Expect.equals(type, simplify(mask.elementType, closedWorld), name);
+  }
 
-        checkType('listInField', commonMasks.numType);
-        checkType('listPassedToMethod', commonMasks.numType);
-        checkType('listReturnedFromMethod', commonMasks.numType);
-        checkType('listUsedWithCascade', commonMasks.numType);
-        checkType('listUsedInClosure', commonMasks.numType);
-        checkType('listPassedToSelector', commonMasks.numType);
-        checkType('listReturnedFromSelector', commonMasks.numType);
-        checkType('listUsedWithAddAndInsert', commonMasks.numType);
-        checkType('listUsedWithConstraint', commonMasks.positiveIntType);
-        checkType('listEscapingFromSetter', commonMasks.numType);
-        checkType('listUsedInLocal', commonMasks.numType);
-        checkType('listEscapingInSetterValue', commonMasks.numType);
-        checkType('listEscapingInIndex', commonMasks.numType);
-        checkType('listEscapingInIndexSet', commonMasks.uint31Type);
-        checkType('listEscapingTwiceInIndexSet', commonMasks.numType);
-        checkType('listSetInNonFinalField', commonMasks.numType);
-        checkType('listWithChangedLength', commonMasks.uint31Type.nullable());
+  checkType('listInField', commonMasks.numType);
+  checkType('listPassedToMethod', commonMasks.numType);
+  checkType('listReturnedFromMethod', commonMasks.numType);
+  checkType('listUsedWithCascade', commonMasks.numType);
+  checkType('listUsedInClosure', commonMasks.numType);
+  checkType('listPassedToSelector', commonMasks.numType);
+  checkType('listReturnedFromSelector', commonMasks.numType);
+  checkType('listUsedWithAddAndInsert', commonMasks.numType);
+  checkType('listUsedWithConstraint', commonMasks.positiveIntType);
+  checkType('listEscapingFromSetter', commonMasks.numType);
+  checkType('listUsedInLocal', commonMasks.numType);
+  checkType('listEscapingInSetterValue', commonMasks.numType);
+  checkType('listEscapingInIndex', commonMasks.numType);
+  checkType('listEscapingInIndexSet', commonMasks.uint31Type);
+  // TODO(johnniwinther): Since Iterable.iterableToString is part of the closed
+  // world we find the `dynamicType` instead of `numType`.
+  checkType('listEscapingTwiceInIndexSet', commonMasks.dynamicType);
+  checkType('listSetInNonFinalField', commonMasks.numType);
+  checkType('listWithChangedLength', commonMasks.uint31Type.nullable());
 
-        checkType('listPassedToClosure', commonMasks.dynamicType);
-        checkType('listReturnedFromClosure', commonMasks.dynamicType);
-        checkType('listUsedWithNonOkSelector', commonMasks.dynamicType);
-        checkType('listPassedAsOptionalParameter', commonMasks.numType);
-        checkType('listPassedAsNamedParameter', commonMasks.numType);
-        checkType('listStoredInList', commonMasks.uint31Type);
-        checkType('listStoredInListButEscapes', commonMasks.dynamicType);
+  checkType('listPassedToClosure', commonMasks.dynamicType);
+  checkType('listReturnedFromClosure', commonMasks.dynamicType);
+  checkType('listUsedWithNonOkSelector', commonMasks.dynamicType);
+  checkType('listPassedAsOptionalParameter', commonMasks.numType);
+  checkType('listPassedAsNamedParameter', commonMasks.numType);
+  checkType('listStoredInList', commonMasks.uint31Type);
+  checkType('listStoredInListButEscapes', commonMasks.dynamicType);
 
-        if (!allocation.contains('filled')) {
-          checkType('listUnset', new TypeMask.nonNullEmpty());
-          checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
-        }
-      }));
+  if (!allocation.contains('filled')) {
+    checkType('listUnset', new TypeMask.nonNullEmpty());
+    checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+  }
 }

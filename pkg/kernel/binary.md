@@ -324,7 +324,7 @@ type Constructor extends Member {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal);
+  Byte flags (isConst, isExternal, isSynthetic);
   Name name;
   UriReference fileUri;
   List<Expression> annotations;
@@ -354,6 +354,9 @@ type Procedure extends Member {
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
   List<Expression> annotations;
+  // Only present if the 'isForwardingStub' flag is set.
+  Option<MemberReference> forwardingStubSuperTarget;
+  Option<MemberReference> forwardingStubInterfaceTarget;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }
@@ -367,8 +370,8 @@ type RedirectingFactoryConstructor extends Member {
   Name name;
   UriReference fileUri;
   List<Expression> annotations;
-  List<DartType> typeArguments;
   MemberReference targetReference;
+  List<DartType> typeArguments;
   List<TypeParameter> typeParameters;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -16,6 +18,31 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
+import '../equivalence/id_equivalence_helper.dart';
+
+const List<String> skipForKernel = const <String>[
+  // TODO(johnniwinther): Remove this when issue 31767 is fixed.
+  'mixin_constructor_default_parameter_values.dart',
+];
+
+main(List<String> args) {
+  runTests(args);
+}
+
+runTests(List<String> args, [int shardIndex]) {
+  asyncTest(() async {
+    Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    await checkTests(
+        dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
+        libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
+        forUserLibrariesOnly: true,
+        args: args,
+        options: [stopAfterTypeInference],
+        skipForKernel: skipForKernel,
+        shardIndex: shardIndex ?? 0,
+        shards: shardIndex != null ? 2 : 1);
+  });
+}
 
 /// Compute type inference data for [_member] as a [MemberElement].
 ///

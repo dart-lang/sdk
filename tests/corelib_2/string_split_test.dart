@@ -21,15 +21,13 @@ testSplit(List<String> expect, String string, Pattern pattern) {
   }
   List actual = string.split(pattern);
 
-  // Check that the list is growable/mutable
-  actual
-    ..add('42')
-    ..removeLast();
-
   // Ensure that the correct type is reified.
   actual = actual as List<String>;
-  Expect.throwsTypeError(() => actual.add(42),
-      'List<String>.add should not accept an int');
+
+  // Check that store of the wrong type throws. Some platforms don't do this,
+  // so it's protected by multitest syntax.
+  Expect.throwsTypeError(() => actual.add(42), //      //# checkedstore: ok
+      'List<String>.add should not accept an int'); // //# checkedstore: ok
 
   Expect.listEquals(expect, actual, '"$string".split($patternString)');
 }

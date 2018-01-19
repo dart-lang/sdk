@@ -2369,6 +2369,33 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* replacement = UnboxIntegerInstr::Canonicalize(flow_graph);
+  if (replacement != this) {
+    return replacement;
+  }
+
+// Currently we perform this only on 64-bit architectures and not on simdbc64
+// (on simdbc64 the [UnboxedConstantInstr] handling is only implemented for
+//  doubles and causes a bailout for everthing else)
+#if !defined(TARGET_ARCH_DBC)
+  if (kBitsPerWord == 64) {
+    ConstantInstr* c = value()->definition()->AsConstant();
+    if (c != NULL && (c->value().IsSmi() || c->value().IsMint())) {
+      UnboxedConstantInstr* uc =
+          new UnboxedConstantInstr(c->value(), kUnboxedInt64);
+      if (c->range() != NULL) {
+        uc->set_range(*c->range());
+      }
+      flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
+      return uc;
+    }
+  }
+#endif  // !defined(TARGET_ARCH_DBC)
+
+  return this;
+}
+
 Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
 

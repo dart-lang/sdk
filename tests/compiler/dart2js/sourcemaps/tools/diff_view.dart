@@ -598,8 +598,9 @@ Source mapped Dart code</span><br/>
 </html>
 ''');
 
-  new File(out).writeAsStringSync(sb.toString());
-  print('Diff generated in $out');
+  File file = new File(out);
+  file.writeAsStringSync(sb.toString());
+  print('Diff generated in ${file.absolute.uri}');
 }
 
 class CodeLinesResult {
@@ -729,9 +730,11 @@ Future<CodeLinesResult> computeCodeLines(
       locations = [];
     }
     List<CodeLocation> codeLocations = locations
+        .where((l) => l.sourceUri != null)
         .map((l) => new CodeLocation(l.sourceUri, l.sourceName, l.offset))
         .toList();
     List<CodeSource> codeSourceList = locations
+        .where((l) => l.sourceUri != null)
         .map(codeSources.sourceLocationToCodeSource)
         .where((c) => c != null)
         .toList();

@@ -242,7 +242,7 @@ Future testExitCode(
 
     List<String> args = new List<String>.from(options)
       ..add("--library-root=${Uri.base.resolve('sdk/')}")
-      ..add("tests/compiler/dart2js/data/exit_code_helper.dart");
+      ..add("tests/compiler/dart2js/end_to_end/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {
       // Capture crashes.

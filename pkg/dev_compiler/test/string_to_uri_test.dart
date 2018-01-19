@@ -15,9 +15,13 @@ main(List<String> args) {
   expect(stringToUri("C:/full/windows/path.foo", windows: true).toString(),
       "file:///C:/full/windows/path.foo");
 
+  // Get current dir, making sure we use "/" and start with "/".
+  String currentDir = Directory.current.path.replaceAll(r'\', r'/');
+  if (!currentDir.startsWith(r'/')) currentDir = "/$currentDir";
+
   // Relative Windows path
   expect(stringToUri("partial\\windows\\path.foo", windows: true).toString(),
-      "file://${Directory.current.path}/partial/windows/path.foo");
+      "file://$currentDir/partial/windows/path.foo");
 
   // Full Unix path
   expect(stringToUri("/full/path/to/foo.bar", windows: false).toString(),
@@ -25,5 +29,5 @@ main(List<String> args) {
 
   // Relative Unix path
   expect(stringToUri("partial/path/to/foo.bar", windows: false).toString(),
-      "file://${Directory.current.path}/partial/path/to/foo.bar");
+      "file://$currentDir/partial/path/to/foo.bar");
 }

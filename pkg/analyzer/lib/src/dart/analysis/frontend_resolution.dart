@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart' as front_end;
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -33,7 +33,6 @@ import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:package_config/packages.dart';
@@ -105,7 +104,7 @@ class FrontEndCompiler {
   final PerformanceLog _logger;
 
   /// The [FileSystem] to access file during compilation.
-  final FileSystem _fileSystem;
+  final front_end.FileSystem _fileSystem;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs.
   final UriTranslator uriTranslator;
@@ -254,7 +253,7 @@ class FrontEndCompiler {
 
         // TODO(scheglov) Can we keep the same instance?
         var types = new TypeEnvironment(
-            new CoreTypes(_program), new IncrementalClassHierarchy());
+            new CoreTypes(_program), new ClassHierarchy(_program));
 
         // Add results for new libraries.
         for (var library in _program.libraries) {
@@ -419,7 +418,7 @@ class _AnalyzerDietListener extends DietListener {
 class _AnalyzerKernelTarget extends KernelTarget {
   final Map<Uri, Map<Uri, List<CollectedResolution>>> resolutions = {};
 
-  _AnalyzerKernelTarget(FileSystem fileSystem, DillTarget dillTarget,
+  _AnalyzerKernelTarget(front_end.FileSystem fileSystem, DillTarget dillTarget,
       UriTranslator uriTranslator, MetadataCollector metadataCollector)
       : super(fileSystem, true, dillTarget, uriTranslator,
             metadataCollector: metadataCollector);
@@ -434,8 +433,8 @@ class _AnalyzerKernelTarget extends KernelTarget {
 class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
   final Map<Uri, Map<Uri, List<CollectedResolution>>> _resolutions;
 
-  _AnalyzerSourceLoader(
-      FileSystem fileSystem, TargetImplementation target, this._resolutions)
+  _AnalyzerSourceLoader(front_end.FileSystem fileSystem,
+      TargetImplementation target, this._resolutions)
       : super(fileSystem, true, target);
 
   @override
@@ -470,28 +469,28 @@ class _ErrorListener {
   }
 }
 
-/// Adapter of [FileSystemState] to [FileSystem].
-class _FileSystemAdaptor implements FileSystem {
+/// Adapter of [FileSystemState] to [front_end.FileSystem].
+class _FileSystemAdaptor implements front_end.FileSystem {
   final FileSystemState fsState;
   final pathos.Context pathContext;
 
   _FileSystemAdaptor(this.fsState, this.pathContext);
 
   @override
-  FileSystemEntity entityForUri(Uri uri) {
+  front_end.FileSystemEntity entityForUri(Uri uri) {
     if (uri.isScheme('file')) {
       var path = pathContext.fromUri(uri);
       var file = fsState.getFileForPath(path);
       return new _FileSystemEntityAdaptor(uri, file);
     } else {
-      throw new ArgumentError(
-          'Only file:// URIs are supported, but $uri is given.');
+      throw new front_end.FileSystemException(
+          uri, 'Only file:// URIs are supported, but $uri is given.');
     }
   }
 }
 
-/// Adapter of [FileState] to [FileSystemEntity].
-class _FileSystemEntityAdaptor implements FileSystemEntity {
+/// Adapter of [FileState] to [front_end.FileSystemEntity].
+class _FileSystemEntityAdaptor implements front_end.FileSystemEntity {
   final Uri uri;
   final FileState file;
 

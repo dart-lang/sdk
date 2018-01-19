@@ -73,7 +73,7 @@ class ServiceExtensionResponse {
 
   static String _errorCodeMessage(int errorCode) {
     _validateErrorCode(errorCode);
-    if (errorCode == kInvalidParams) {
+    if (errorCode == invalidParams) {
       return "Invalid params";
     }
     return "Server error";
@@ -92,8 +92,10 @@ class ServiceExtensionResponse {
     throw new ArgumentError.value(errorCode, "errorCode", "Out of range");
   }
 
+  // ignore: unused_element, called from runtime/lib/developer.dart
   bool _isError() => (_errorCode != null) && (_errorDetail != null);
 
+  // ignore: unused_element, called from runtime/lib/developer.dart
   String _toString() {
     if (_result != null) {
       return _result;
@@ -111,12 +113,11 @@ class ServiceExtensionResponse {
 
 /// A service protocol extension handler. Registered with [registerExtension].
 ///
-/// Must complete to a [ServiceExtensionResponse].
+/// Must complete to a [ServiceExtensionResponse]. [method] is the method name
+/// of the service protocol request, and [parameters] is a map holding the
+/// parameters to the service protocol request.
 ///
-/// [method] - the method name of the service protocol request.
-/// [parameters] - A map holding the parameters to the service protocol request.
-///
-/// *NOTE*: All parameter names and values are **encoded as strings**.
+/// *NOTE*: all parameter names and values are encoded as strings.
 typedef Future<ServiceExtensionResponse> ServiceExtensionHandler(
     String method, Map<String, String> parameters);
 

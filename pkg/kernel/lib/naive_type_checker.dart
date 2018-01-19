@@ -19,8 +19,8 @@ class StrongModeTypeChecker extends type_checker.TypeChecker {
 
   StrongModeTypeChecker(FailureListener failures, Program program,
       {bool ignoreSdk: false})
-      : this._(failures, new CoreTypes(program),
-            new ClosedWorldClassHierarchy(program), ignoreSdk);
+      : this._(failures, new CoreTypes(program), new ClassHierarchy(program),
+            ignoreSdk);
 
   StrongModeTypeChecker._(this.failures, CoreTypes coreTypes,
       ClassHierarchy hierarchy, bool ignoreSdk)

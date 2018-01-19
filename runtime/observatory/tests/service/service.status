@@ -23,6 +23,7 @@ get_source_report_test: RuntimeError # Issue 27806
 next_through_closure_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 next_through_create_list_and_map_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 next_through_for_each_loop_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
+next_through_implicit_call_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout, Crash # Issue 29178
 set_name_rpc_test: RuntimeError # Issue 27806
 step_through_constructor_calls_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
@@ -36,9 +37,6 @@ unused_changes_in_last_reload_test: RuntimeError # Issue 27806
 developer_extension_test: SkipByDesign
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 get_isolate_after_language_error_test: SkipByDesign
-
-[ $compiler == dartk ]
-next_through_simple_async_test: Pass, Fail # Issue 29145
 
 # Kernel version of tests
 [ $compiler != dartk ]
@@ -78,13 +76,12 @@ eval_test: Pass, Slow
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+bad_reload_test: RuntimeError # Please triage.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
 dev_fs_spawn_test: RuntimeError # Please triage.
-developer_service_get_isolate_id_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
 get_source_report_test: RuntimeError # Please triage.
-issue_30555_test: RuntimeError # Please triage.
 library_dependency_test: RuntimeError # Please triage.
 reload_sources_test: Timeout, Skip # Please triage.
 set_name_rpc_test: RuntimeError # Please triage.

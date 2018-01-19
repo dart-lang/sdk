@@ -28,8 +28,8 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
-    var field = lib.variables.where((v) => v.name == 'e').single;
+    Library lib = await isolate.rootLibrary.load();
+    Field field = lib.variables.where((v) => v.name == 'e').single;
     await field.load();
     Instance e = field.staticValue;
     ServiceMap response = await isolate.getInboundReferences(e, 100);

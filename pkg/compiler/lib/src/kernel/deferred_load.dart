@@ -145,16 +145,16 @@ class ConstantCollector extends ir.RecursiveVisitor {
       constants.add(elementMap.getConstantValue(node));
 
   @override
-  void visitIntLiteral(ir.IntLiteral literal) => add(literal);
+  void visitIntLiteral(ir.IntLiteral literal) {}
 
   @override
-  void visitDoubleLiteral(ir.DoubleLiteral literal) => add(literal);
+  void visitDoubleLiteral(ir.DoubleLiteral literal) {}
 
   @override
-  void visitBoolLiteral(ir.BoolLiteral literal) => add(literal);
+  void visitBoolLiteral(ir.BoolLiteral literal) {}
 
   @override
-  void visitStringLiteral(ir.StringLiteral literal) => add(literal);
+  void visitStringLiteral(ir.StringLiteral literal) {}
 
   @override
   void visitSymbolLiteral(ir.SymbolLiteral literal) => add(literal);

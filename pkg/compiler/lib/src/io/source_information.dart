@@ -16,6 +16,7 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import '../script.dart';
+import '../universe/call_structure.dart';
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
@@ -67,8 +68,13 @@ class SourceInformationBuilder<T> {
   /// Create a [SourceInformationBuilder] for [member].
   SourceInformationBuilder forContext(covariant MemberEntity member) => this;
 
-  /// Generate [SourceInformation] the declaration of the [member].
+  /// Generate [SourceInformation] for the declaration of the [member].
   SourceInformation buildDeclaration(covariant MemberEntity member) => null;
+
+  /// Generate [SourceInformation] for the stub of [callStructure] for [member].
+  SourceInformation buildStub(
+          covariant FunctionEntity function, CallStructure callStructure) =>
+      null;
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated
@@ -271,35 +277,41 @@ class OffsetSourceLocation extends AbstractSourceLocation {
   String toString() => '${super.toString()}:$sourceName';
 }
 
-/// Compute the source map name for [element].
-String computeElementNameForSourceMaps(Entity element) {
+/// Compute the source map name for [element]. If [callStructure] is non-null
+/// it is used to name the parameter stub for [element].
+String computeElementNameForSourceMaps(Entity element,
+    [CallStructure callStructure]) {
   if (element is AstElement) {
-    return _computeAstElementNameForSourceMaps(element);
+    return _computeAstElementNameForSourceMaps(element, callStructure);
   } else if (element is ClassEntity) {
     return element.name;
   } else if (element is MemberEntity) {
+    String suffix = computeStubSuffix(callStructure);
     if (element is ConstructorEntity || element is ConstructorBodyEntity) {
       String className = element.enclosingClass.name;
       if (element.name == '') {
         return className;
       }
-      return '$className.${element.name}';
+      return '$className.${element.name}$suffix';
     } else if (element.enclosingClass != null) {
       if (element.enclosingClass.isClosure) {
-        return computeElementNameForSourceMaps(element.enclosingClass);
+        return computeElementNameForSourceMaps(
+            element.enclosingClass, callStructure);
       }
-      return '${element.enclosingClass.name}.${element.name}';
+      return '${element.enclosingClass.name}.${element.name}$suffix';
     } else {
-      return element.name;
+      return '${element.name}$suffix';
     }
   }
   // TODO(redemption): Create element names from kernel locals and closures.
   return element.name;
 }
 
-String _computeAstElementNameForSourceMaps(AstElement element) {
+String _computeAstElementNameForSourceMaps(
+    AstElement element, CallStructure callStructure) {
   if (element.isClosure) {
-    return computeElementNameForSourceMaps(element.enclosingElement);
+    return computeElementNameForSourceMaps(
+        element.enclosingElement, callStructure);
   } else if (element.isClass) {
     return element.name;
   } else if (element.isConstructor || element.isGenerativeConstructorBody) {
@@ -314,15 +326,34 @@ String _computeAstElementNameForSourceMaps(AstElement element) {
     if (name == '') {
       name = '<anonymous function>';
     }
-    return '${computeElementNameForSourceMaps(local.executableContext)}.$name';
+    String enclosingName =
+        computeElementNameForSourceMaps(local.executableContext, callStructure);
+    return '$enclosingName.$name';
   } else if (element.enclosingClass != null) {
+    String suffix = computeStubSuffix(callStructure);
     if (element.enclosingClass.isClosure) {
-      return computeElementNameForSourceMaps(element.enclosingClass);
+      return computeElementNameForSourceMaps(
+          element.enclosingClass, callStructure);
     }
-    return '${element.enclosingClass.name}.${element.name}';
+    return '${element.enclosingClass.name}.${element.name}$suffix';
   } else {
-    return element.name;
+    String suffix = computeStubSuffix(callStructure);
+    return '${element.name}$suffix';
   }
+}
+
+/// Compute the suffix used for a parameter stub for [callStructure].
+String computeStubSuffix(CallStructure callStructure) {
+  if (callStructure == null) return '';
+  StringBuffer sb = new StringBuffer();
+  sb.write(r'[function-entry$');
+  sb.write(callStructure.positionalArgumentCount);
+  if (callStructure.namedArguments.isNotEmpty) {
+    sb.write(r'$');
+    sb.write(callStructure.getOrderedNamedArguments().join(r'$'));
+  }
+  sb.write(']');
+  return sb.toString();
 }
 
 /// Computes the [SourceFile] for the source code of [resolvedAst].

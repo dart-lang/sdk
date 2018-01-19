@@ -19,6 +19,7 @@ import '../../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
+import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
@@ -89,6 +90,7 @@ class ProgramBuilder {
   final Namer _namer;
   final CodeEmitterTask _task;
   final ClosedWorld _closedWorld;
+  final SourceInformationStrategy _sourceInformationStrategy;
 
   /// The [Sorter] used for ordering elements in the generated JavaScript.
   final Sorter _sorter;
@@ -136,6 +138,7 @@ class ProgramBuilder {
       this._namer,
       this._task,
       this._closedWorld,
+      this._sourceInformationStrategy,
       this._sorter,
       Set<ClassEntity> rtiNeededClasses,
       this._mainFunction,
@@ -844,7 +847,8 @@ class ProgramBuilder {
   }
 
   bool _methodNeedsStubs(FunctionEntity method) {
-    return method.parameterStructure.optionalParameters != 0;
+    return method.parameterStructure.optionalParameters != 0 ||
+        method.parameterStructure.typeParameters != 0;
   }
 
   bool _methodCanBeReflected(FunctionEntity method) {
@@ -975,8 +979,14 @@ class ProgramBuilder {
       FunctionEntity element, bool canTearOff) {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
-    ParameterStubGenerator generator = new ParameterStubGenerator(_task, _namer,
-        _nativeData, _interceptorData, _worldBuilder, _closedWorld);
+    ParameterStubGenerator generator = new ParameterStubGenerator(
+        _task,
+        _namer,
+        _nativeData,
+        _interceptorData,
+        _worldBuilder,
+        _closedWorld,
+        _sourceInformationStrategy);
     return generator.generateParameterStubs(element, canTearOff: canTearOff);
   }
 

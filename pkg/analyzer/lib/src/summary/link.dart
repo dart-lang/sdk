@@ -229,7 +229,9 @@ EntityRefBuilder _createLinkedType(
       // TODO(paulberry): do I need to store type arguments?
       return result;
     }
-    if (element is GenericFunctionTypeElement) {
+    if (element is GenericFunctionTypeElementForLink) {
+      // Function types are their own type parameter context
+      typeParameterContext = element;
       result.entityKind = EntityRefKind.genericFunctionType;
       result.syntheticReturnType = _createLinkedType(
           type.returnType, compilationUnit, typeParameterContext);
@@ -237,6 +239,8 @@ EntityRefBuilder _createLinkedType(
           .map((ParameterElement param) => _serializeSyntheticParam(
               param, compilationUnit, typeParameterContext))
           .toList();
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
     // TODO(paulberry): implement other cases.
@@ -244,6 +248,13 @@ EntityRefBuilder _createLinkedType(
   }
   // TODO(paulberry): implement other cases.
   throw new UnimplementedError('${type.runtimeType}');
+}
+
+DartType _dynamicIfBottom(DartType type) {
+  if (type == null || type.isBottom) {
+    return DynamicTypeImpl.instance;
+  }
+  return type;
 }
 
 DartType _dynamicIfNull(DartType type) {
@@ -3262,7 +3273,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   void _setInferredType(DartType type) {
     // TODO(paulberry): store the inferred return type in the summary.
     assert(!_hasTypeBeenInferred);
-    _inferredReturnType = _dynamicIfNull(type);
+    _inferredReturnType = _dynamicIfBottom(type);
   }
 }
 
@@ -4364,6 +4375,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   @override
   bool get hasImplicitType =>
       !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
+
+  @override
+  String get identifier => name;
 
   @override
   bool get inheritsCovariant => _inheritsCovariant;

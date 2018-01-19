@@ -245,6 +245,8 @@ class ProcedureHelper {
     kName,
     kSourceUriIndex,
     kAnnotations,
+    kForwardingStubSuperTarget,
+    kForwardingStubInterfaceTarget,
     kFunction,
     kEnd,
   };
@@ -262,6 +264,7 @@ class ProcedureHelper {
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
+    kForwardingStub = 1 << 4,
   };
 
   explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
@@ -282,6 +285,7 @@ class ProcedureHelper {
   bool IsAbstract() { return (flags_ & kAbstract) != 0; }
   bool IsExternal() { return (flags_ & kExternal) != 0; }
   bool IsConst() { return (flags_ & kConst) != 0; }
+  bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -290,6 +294,9 @@ class ProcedureHelper {
   uint8_t flags_;
   intptr_t source_uri_index_;
   intptr_t annotation_count_;
+
+  // Only valid if the 'isForwardingStub' flag is set.
+  NameIndex forwarding_stub_super_target_;
 
  private:
   StreamingFlowGraphBuilder* builder_;
@@ -322,7 +329,7 @@ class ConstructorHelper {
   enum Flag {
     kConst = 1 << 0,
     kExternal = 1 << 1,
-    kSyntheticDefault = 1 << 2,
+    kSynthetic = 1 << 2,
   };
 
   explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
@@ -341,7 +348,7 @@ class ConstructorHelper {
 
   bool IsExternal() { return (flags_ & kExternal) != 0; }
   bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsSyntheticDefault() { return (flags_ & kSyntheticDefault) != 0; }
+  bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -562,6 +569,25 @@ class DirectCallMetadataHelper : public MetadataHelper {
   bool ReadMetadata(intptr_t node_offset,
                     NameIndex* target_name,
                     bool* check_receiver_for_null);
+};
+
+struct InferredTypeMetadata {
+  InferredTypeMetadata(intptr_t cid_, bool nullable_)
+      : cid(cid_), nullable(nullable_) {}
+
+  const intptr_t cid;
+  const bool nullable;
+};
+
+// Helper class which provides access to inferred type metadata.
+class InferredTypeMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.inferred-type.metadata"; }
+
+  explicit InferredTypeMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+  InferredTypeMetadata GetInferredType(intptr_t node_offset);
 };
 
 class StreamingDartTypeTranslator {
@@ -867,6 +893,7 @@ class StreamingFlowGraphBuilder {
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -887,6 +914,7 @@ class StreamingFlowGraphBuilder {
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -907,6 +935,7 @@ class StreamingFlowGraphBuilder {
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
+        inferred_type_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   ~StreamingFlowGraphBuilder() { delete reader_; }
@@ -927,7 +956,11 @@ class StreamingFlowGraphBuilder {
   String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
-  void ReadUntilFunctionNode();
+
+  // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
+  // will attach the forwarding stub target reference to the parsed function if
+  // it crosses a procedure node for a concrete forwarding stub.
+  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
   intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
@@ -954,6 +987,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
+  FlowGraph* BuildGraphOfForwardingStub(const Function& function);
 
   intptr_t GetOffsetForSourceInfo(intptr_t index);
 
@@ -1072,6 +1106,7 @@ class StreamingFlowGraphBuilder {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
+                      const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0,
                       intptr_t argument_check_bits = 0,
                       intptr_t type_argument_check_bits = 0);
@@ -1088,8 +1123,10 @@ class StreamingFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
+                        const InferredTypeMetadata* result_type = NULL,
                         intptr_t argument_check_bits = 0,
                         intptr_t type_argument_check_bits = 0);
+  Fragment BuildArgumentTypeChecks();
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
@@ -1142,7 +1179,7 @@ class StreamingFlowGraphBuilder {
   Fragment CheckBooleanInCheckedMode();
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
-  Fragment CheckArgumentType(intptr_t variable_kernel_position);
+  Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
   Fragment CheckTypeArgumentBound(const AbstractType& parameter,
                                   const AbstractType& bound,
                                   const String& dst_name);
@@ -1217,6 +1254,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildVectorCopy(TokenPosition* position);
   Fragment BuildClosureCreation(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position);
+  Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();
@@ -1284,6 +1322,7 @@ class StreamingFlowGraphBuilder {
   GrowableArray<intptr_t>* record_token_positions_into_;
   GrowableArray<intptr_t>* record_yield_positions_into_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
   bool metadata_scanned_;
 
   friend class ClassHelper;
@@ -1292,6 +1331,7 @@ class StreamingFlowGraphBuilder {
   friend class DirectCallMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
+  friend class InferredTypeMetadataHelper;
   friend class KernelLoader;
   friend class KernelReader;
   friend class LibraryDependencyHelper;

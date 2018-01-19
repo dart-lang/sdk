@@ -163,7 +163,6 @@ KernelLoader::KernelLoader(Program* program)
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
-      is_service_isolate_(ServiceIsolate::NameEquals(I->name())),
       patch_classes_(Array::ZoneHandle(zone_)),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
       correction_offset_(-1),      // Set to the correct value in LoadLibrary
@@ -582,7 +581,7 @@ void KernelLoader::LoadLibrary(intptr_t index) {
 
   LibraryHelper library_helper(&builder_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-  if (!is_service_isolate_ && !FLAG_precompiled_mode) {
+  if (!FLAG_precompiled_mode && !I->should_load_vmservice()) {
     StringIndex lib_name_index =
         H.CanonicalNameString(library_helper.canonical_name_);
     if (H.StringEquals(lib_name_index, kVMServiceIOLibraryUri)) {
@@ -986,7 +985,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                                      true,   // is_method
                                      false,  // is_closure
                                      &function_node_helper);
-    if (constructor_helper.IsSyntheticDefault()) {
+    if (constructor_helper.IsSynthetic()) {
       function.set_is_debuggable(false);
     }
 

@@ -2474,7 +2474,7 @@ void Assembler::LoadDecodableImmediate(Register rd,
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
     if (constant_pool_allowed()) {
-      const int32_t offset = Array::element_offset(FindImmediate(value));
+      const int32_t offset = ObjectPool::element_offset(FindImmediate(value));
       LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
     } else {
       LoadPatchableImmediate(rd, value, cond);

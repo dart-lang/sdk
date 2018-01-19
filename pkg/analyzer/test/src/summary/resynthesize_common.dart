@@ -1152,7 +1152,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareVariableElements(
       VariableElement resynthesized, VariableElement original, String desc) {
     compareElements(resynthesized, original, desc);
-    compareTypes(resynthesized.type, original.type, '$desc.type');
+    if ((resynthesized as VariableElementImpl).typeInferenceError == null) {
+      compareTypes(resynthesized.type, original.type, '$desc.type');
+    }
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
@@ -3746,6 +3748,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 class C {
 }
@@ -3775,6 +3778,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 class C {
 }
@@ -4407,6 +4411,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 final E vValue;
 final List<E> vValues;
@@ -4420,6 +4425,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 final dynamic vValue;
 final dynamic vValues;
@@ -4439,6 +4445,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E a;
+  String toString() {}
 }
 final String vToString;
 ''');
@@ -4448,6 +4455,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E a;
+  String toString() {}
 }
 final dynamic vToString;
 ''');
@@ -5377,6 +5385,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 ''');
   }
@@ -5401,6 +5410,7 @@ enum E {
   static const E a;
   /// bbb
   static const E b;
+  String toString() {}
 }
 ''');
   }
@@ -5413,6 +5423,7 @@ enum E {
   synthetic static const List<E> values;
   static const E v1;
   static const E v2;
+  String toString() {}
 }
 ''');
   }
@@ -5424,11 +5435,13 @@ enum E1 {
   synthetic final int index;
   synthetic static const List<E1> values;
   static const E1 v1;
+  String toString() {}
 }
 enum E2 {
   synthetic final int index;
   synthetic static const List<E2> values;
   static const E2 v2;
+  String toString() {}
 }
 ''');
   }
@@ -5460,6 +5473,7 @@ enum E {
   static const E a;
   static const E b;
   static const E c;
+  String toString() {}
 }
 class M {
 }
@@ -7045,10 +7059,18 @@ import 'dart:async';
 var v = (Future<Future<Future<int>>> f) async => await f;
 ''');
     if (isStrongMode) {
-      checkElementText(library, r'''
+      if (isSharedFrontEnd) {
+        checkElementText(library, r'''
+import 'dart:async';
+(Future<Future<Future<int>>>) → Future<Future<int>> v;
+''');
+      } else {
+        // The analyzer type system over-flattens - see dartbug.com/31887
+        checkElementText(library, r'''
 import 'dart:async';
 (Future<Future<Future<int>>>) → Future<int> v;
 ''');
+      }
     } else {
       checkElementText(library, r'''
 import 'dart:async';
@@ -7873,6 +7895,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 const dynamic a = null;
 ''');
@@ -9116,6 +9139,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9143,6 +9167,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9161,6 +9186,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9190,6 +9216,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9217,6 +9244,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 class C {
 }
@@ -9260,6 +9288,7 @@ enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
+  String toString() {}
 }
 E e;
 ''');

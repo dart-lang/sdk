@@ -84,9 +84,6 @@ abstract class Browser {
       case Runtime.safari:
         browser = new Safari();
         break;
-      case Runtime.safariMobileSim:
-        browser = new SafariMobileSimulator();
-        break;
       case Runtime.ie9:
       case Runtime.ie10:
       case Runtime.ie11:
@@ -515,69 +512,6 @@ class Chrome extends Browser {
   }
 
   String toString() => "Chrome";
-}
-
-class SafariMobileSimulator extends Safari {
-  /**
-   * Directories where safari simulator stores state. We delete these if the
-   * resetBrowserConfiguration is set
-   */
-  static const List<String> CACHE_DIRECTORIES = const [
-    "Library/Application Support/iPhone Simulator/7.1/Applications"
-  ];
-
-  // Helper function to delete many directories recursively.
-  Future<bool> deleteIfExists(Iterable<String> paths) async {
-    for (var path in paths) {
-      Directory directory = new Directory(path);
-      if (await directory.exists()) {
-        _logEvent("Deleting $path");
-        try {
-          await directory.delete(recursive: true);
-        } catch (error) {
-          _logEvent("Failure trying to delete $path: $error");
-          return false;
-        }
-      } else {
-        _logEvent("$path is not present");
-      }
-    }
-    return true;
-  }
-
-  // Clears the cache if the static resetBrowserConfiguration flag is set.
-  // Returns false if the command to actually clear the cache did not complete.
-  Future<bool> resetConfiguration() {
-    if (!Browser.resetBrowserConfiguration) return new Future.value(true);
-    var home = Platform.environment['HOME'];
-    var paths = CACHE_DIRECTORIES.map((s) => "$home/$s");
-    return deleteIfExists(paths);
-  }
-
-  Future<bool> start(String url) {
-    _logEvent("Starting safari mobile simulator browser on: $url");
-    return resetConfiguration().then((success) {
-      if (!success) {
-        _logEvent("Could not clear cache, exiting");
-        return false;
-      }
-      var args = [
-        "-SimulateApplication",
-        "/Applications/Xcode.app/Contents/Developer/Platforms/"
-            "iPhoneSimulator.platform/Developer/SDKs/"
-            "iPhoneSimulator7.1.sdk/Applications/MobileSafari.app/"
-            "MobileSafari",
-        "-u",
-        url
-      ];
-      return startBrowserProcess(_binary, args).catchError((e) {
-        _logEvent("Running $_binary --version failed with $e");
-        return false;
-      });
-    });
-  }
-
-  String toString() => "SafariMobileSimulator";
 }
 
 class IE extends Browser {

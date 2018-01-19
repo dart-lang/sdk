@@ -51,6 +51,16 @@ verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
 [ $runtime == dart_precompiled ]
 http_launch_test: Skip
 io/addlatexhash_test: Skip
+io/wait_for_event_isolate_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_timer_microtask_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_timer_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_nested_waits_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_timer_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
+io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
+io/wait_for_test: SkipByDesign # Uses mirrors.
 
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
@@ -99,7 +109,6 @@ io/http_auth_test: RuntimeError
 io/http_cookie_date_test: CompileTimeError
 io/http_headers_test: CompileTimeError
 io/http_parser_test: CompileTimeError
-io/http_proxy_advanced_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError

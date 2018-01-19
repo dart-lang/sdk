@@ -6528,6 +6528,7 @@ TEST_CASE(DartAPI_ParsePatchLibrary) {
 
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
@@ -9079,17 +9080,18 @@ TEST_CASE(DartAPI_LoadLibraryPatch_Error3) {
   EXPECT(Dart_IsError(result));
 }
 
-void NotifyIdleNative(Dart_NativeArguments args) {
+void NotifyIdleShortNative(Dart_NativeArguments args) {
   Dart_NotifyIdle(Dart_TimelineGetMicros() + 10 * kMicrosecondsPerMillisecond);
 }
 
-static Dart_NativeFunction NotifyIdle_native_lookup(Dart_Handle name,
-                                                    int argument_count,
-                                                    bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleNative);
+static Dart_NativeFunction NotifyIdleShort_native_lookup(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleShortNative);
 }
 
-TEST_CASE(DartAPI_NotifyIdle) {
+TEST_CASE(DartAPI_NotifyIdleShort) {
   const char* kScriptChars =
       "void notifyIdle() native 'Test_nativeFunc';\n"
       "void main() {\n"
@@ -9104,7 +9106,38 @@ TEST_CASE(DartAPI_NotifyIdle) {
       "  }\n"
       "}\n";
   Dart_Handle lib =
-      TestCase::LoadTestScript(kScriptChars, &NotifyIdle_native_lookup);
+      TestCase::LoadTestScript(kScriptChars, &NotifyIdleShort_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+void NotifyIdleLongNative(Dart_NativeArguments args) {
+  Dart_NotifyIdle(Dart_TimelineGetMicros() + 100 * kMicrosecondsPerMillisecond);
+}
+
+static Dart_NativeFunction NotifyIdleLong_native_lookup(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleLongNative);
+}
+
+TEST_CASE(DartAPI_NotifyIdleLong) {
+  const char* kScriptChars =
+      "void notifyIdle() native 'Test_nativeFunc';\n"
+      "void main() {\n"
+      "  var v;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "    var t = new List();\n"
+      "    for (var j = 0; j < 10000; j++) {\n"
+      "      t.add(new List(100));\n"
+      "    }\n"
+      "    v = t;\n"
+      "    notifyIdle();\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &NotifyIdleLong_native_lookup);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }

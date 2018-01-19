@@ -34,6 +34,7 @@ enum NullValue {
   Combinators,
   Comments,
   ConditionalUris,
+  ConditionallySelectedImport,
   ConstructorInitializerSeparator,
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,

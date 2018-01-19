@@ -31,7 +31,8 @@ void main([args, port]) {
   // Ignore returned Future.
   Isolate.spawn(echo, port.sendPort);
 
-  port.first.then((SendPort snd) {
+  port.first.then((_snd) {
+    SendPort snd = _snd;
     final methodMirror = reflectClass(Class).declarations[#method];
     try {
       snd.send(methodMirror);

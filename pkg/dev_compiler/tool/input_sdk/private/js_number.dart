@@ -202,7 +202,7 @@ class JSNumber extends Interceptor implements int, double {
     int exponent = JS("int", "+#", match[3]);
     if (match[2] != null) {
       result = JS('String', '# + #', result, match[2]);
-      exponent -= JS('int', '#.length', match[2]);
+      exponent -= JS<int>('!', '#.length', match[2]);
     }
     return result + "0" * exponent;
   }
@@ -554,5 +554,6 @@ class JSNumber extends Interceptor implements int, double {
     return i;
   }
 
+  @notNull
   int operator ~() => JS('int', r'(~#) >>> 0', this);
 }

@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Name,
         FunctionNode,
-        ExpressionStatement,
+        ReturnStatement,
         LibraryDependency;
 
 import 'builder.dart' show Builder, LibraryBuilder;
@@ -39,10 +39,8 @@ class LoadLibraryBuilder extends Builder {
     if (tearoff != null) return tearoff;
     LoadLibrary expression = createLoadLibrary(charOffset);
     String prefix = expression.import.name;
-    tearoff = new Procedure(
-        new Name('__loadLibrary_$prefix', parent.target),
-        ProcedureKind.Method,
-        new FunctionNode(new ExpressionStatement(expression)),
+    tearoff = new Procedure(new Name('__loadLibrary_$prefix', parent.target),
+        ProcedureKind.Method, new FunctionNode(new ReturnStatement(expression)),
         fileUri: parent.target.fileUri)
       ..fileOffset = charOffset;
     return tearoff;

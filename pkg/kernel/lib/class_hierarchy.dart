@@ -9,10 +9,36 @@ import 'dart:typed_data';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
+import 'src/incremental_class_hierarchy.dart' show IncrementalClassHierarchy;
+
+typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
+
 /// Interface for answering various subclassing queries.
 /// TODO(scheglov) Several methods are not used, or used only in tests.
 /// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
+  factory ClassHierarchy(Program program,
+      {HandleAmbiguousSupertypes onAmbiguousSupertypes}) {
+    int numberOfClasses = 0;
+    for (var library in program.libraries) {
+      numberOfClasses += library.classes.length;
+    }
+    onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
+      if (!cls.isSyntheticMixinImplementation) {
+        throw "$cls can't implement both $a and $b";
+      }
+    };
+    return new ClosedWorldClassHierarchy._internal(
+        program, numberOfClasses, onAmbiguousSupertypes)
+      .._initialize();
+  }
+
+  /// Use [ClassHierarchy] factory instead.
+  @deprecated
+  factory ClassHierarchy.deprecated_incremental([Program program]) {
+    return new IncrementalClassHierarchy.deprecated();
+  }
+
   /// Given the [unordered] classes, return them in such order that classes
   /// occur after their superclasses.  If some superclasses are not in
   /// [unordered], they are not included.
@@ -77,6 +103,24 @@ abstract class ClassHierarchy {
   /// is resolved if the class was not abstract.
   Member getDispatchTarget(Class class_, Name name, {bool setter: false});
 
+  /// Returns the list of potential targets of dynamic dispatch to an instance
+  /// of [class_].
+  ///
+  /// If [setters] is `false`, only potential targets of a getter or call
+  /// dispatch are returned.  If [setters] is `true`, only potential targets
+  /// of a setter dispatch are returned.
+  ///
+  /// See [getDispatchTarget] for more details.
+  ///
+  /// The returned list should not be modified.
+  List<Member> getDispatchTargets(Class class_, {bool setters: false});
+
+  /// Returns the single concrete target for invocation of the given interface
+  /// target, or `null` if it could not be resolved or there are multiple
+  /// possible targets.
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false});
+
   /// Returns the possibly abstract interface member of [class_] with the given
   /// [name].
   ///
@@ -104,6 +148,34 @@ abstract class ClassHierarchy {
   /// Members are sorted by name so that they may be efficiently compared across
   /// classes.
   List<Member> getDeclaredMembers(Class class_, {bool setters: false});
+
+  /// Returns the subclasses of [class_] as an interval list.
+  ClassSet getSubclassesOf(Class class_);
+
+  /// Returns the subtypes of [class_] as an interval list.
+  ClassSet getSubtypesOf(Class class_);
+
+  /// True if [subclass] inherits from [superclass] though zero or more
+  /// `extends` relationships.
+  bool isSubclassOf(Class subclass, Class superclass);
+
+  /// True if [submixture] inherits from [superclass] though zero or more
+  /// `extends` and `with` relationships.
+  bool isSubmixtureOf(Class submixture, Class superclass);
+
+  /// True if [subtype] inherits from [superclass] though zero or more
+  /// `extends`, `with`, and `implements` relationships.
+  bool isSubtypeOf(Class subtype, Class superclass);
+
+  /// True if the given class is used as the right-hand operand to a
+  /// mixin application (i.e. [Class.mixedInType]).
+  bool isUsedAsMixin(Class class_);
+
+  /// True if the given class is the direct super class of another class.
+  bool isUsedAsSuperClass(Class class_);
+
+  /// True if the given class is used in an `implements` clause.
+  bool isUsedAsSuperInterface(Class class_);
 
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
@@ -254,6 +326,8 @@ abstract class ClassHierarchy {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
+  final HandleAmbiguousSupertypes _onAmbiguousSupertypes;
+
   /// The [Program] that this class hierarchy represents.
   final Program _program;
 
@@ -264,8 +338,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   final Map<Class, _ClassInfo> _infoFor = <Class, _ClassInfo>{};
 
-  ClosedWorldClassHierarchy(Program program)
-      : this._internal(program, _countClasses(program));
+  ClosedWorldClassHierarchy._internal(
+      this._program, int numberOfClasses, this._onAmbiguousSupertypes)
+      : classes = new List<Class>(numberOfClasses);
 
   @override
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
@@ -276,39 +351,35 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return classes.where(unorderedSet.contains);
   }
 
-  /// True if [subclass] inherits from [superclass] though zero or more
-  /// `extends` relationships.
+  @override
   bool isSubclassOf(Class subclass, Class superclass) {
     if (identical(subclass, superclass)) return true;
     return _infoFor[subclass].isSubclassOf(_infoFor[superclass]);
   }
 
-  /// True if [submixture] inherits from [superclass] though zero or more
-  /// `extends` and `with` relationships.
+  @override
   bool isSubmixtureOf(Class submixture, Class superclass) {
     if (identical(submixture, superclass)) return true;
     return _infoFor[submixture].isSubmixtureOf(_infoFor[superclass]);
   }
 
-  /// True if [subtype] inherits from [superclass] though zero or more
-  /// `extends`, `with`, and `implements` relationships.
+  @override
   bool isSubtypeOf(Class subtype, Class superclass) {
     if (identical(subtype, superclass)) return true;
     return _infoFor[subtype].isSubtypeOf(_infoFor[superclass]);
   }
 
-  /// True if the given class is the direct super class of another class.
+  @override
   bool isUsedAsSuperClass(Class class_) {
     return _infoFor[class_].directExtenders.isNotEmpty;
   }
 
-  /// True if the given class is used as the right-hand operand to a
-  /// mixin application (i.e. [Class.mixedInType]).
+  @override
   bool isUsedAsMixin(Class class_) {
     return _infoFor[class_].directMixers.isNotEmpty;
   }
 
-  /// True if the given class is used in an `implements` clause.
+  @override
   bool isUsedAsSuperInterface(Class class_) {
     return _infoFor[class_].directImplementers.isNotEmpty;
   }
@@ -429,11 +500,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         var superType1 = identical(info1, next)
             ? type1
             : Substitution.fromInterfaceType(type1).substituteType(
-                info1.genericSuperTypes[next.classNode].asInterfaceType);
+                info1.genericSuperTypes[next.classNode].first.asInterfaceType);
         var superType2 = identical(info2, next)
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
-                info2.genericSuperTypes[next.classNode].asInterfaceType);
+                info2.genericSuperTypes[next.classNode].first.asInterfaceType);
         if (superType1 == superType2) {
           candidate = superType1;
           ++numCandidatesAtThisDepth;
@@ -446,10 +517,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   Supertype getClassAsInstanceOf(Class class_, Class superclass) {
     if (identical(class_, superclass)) return class_.asThisSupertype;
     _ClassInfo info = _infoFor[class_];
+    if (info == null) {
+      throw "${class_.fileUri}: No class info for ${class_.name}";
+    }
     _ClassInfo superInfo = _infoFor[superclass];
+    if (info == null) {
+      throw "${superclass.fileUri}: No class info for ${superclass.name}";
+    }
     if (!info.isSubtypeOf(superInfo)) return null;
     if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
-    return info.genericSuperTypes[superclass];
+    return info.genericSuperTypes[superclass]?.first;
   }
 
   @override
@@ -469,24 +546,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return ClassHierarchy.findMemberByName(list, name);
   }
 
-  /// Returns the list of potential targets of dynamic dispatch to an instance
-  /// of [class_].
-  ///
-  /// If [setters] is `false`, only potential targets of a getter or call
-  /// dispatch are returned.  If [setters] is `true`, only potential targets
-  /// of a setter dispatch are returned.
-  ///
-  /// See [getDispatchTarget] for more details.
-  ///
-  /// The returned list should not be modified.
+  @override
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
     _ClassInfo info = _infoFor[class_];
     return setters ? info.implementedSetters : info.implementedGettersAndCalls;
   }
 
-  /// Returns the single concrete target for invocation of the given interface
-  /// target, or `null` if it could not be resolved or there are multiple
-  /// possible targets.
+  @override
   Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
       {bool setter: false}) {
     Name name = interfaceTarget.name;
@@ -594,12 +660,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return !getSubtypesOf(class_).isSingleton;
   }
 
-  /// Returns the subtypes of [class_] as an interval list.
+  @override
   ClassSet getSubtypesOf(Class class_) {
     return new ClassSet(this, _infoFor[class_].subtypeIntervalList);
   }
 
-  /// Returns the subclasses of [class_] as an interval list.
+  @override
   ClassSet getSubclassesOf(Class class_) {
     return new ClassSet(this, _infoFor[class_].subclassIntervalList);
   }
@@ -607,11 +673,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyChanges(Iterable<Class> classes) {
     if (classes.isEmpty) return this;
-    return new ClosedWorldClassHierarchy(_program);
+    return new ClassHierarchy(_program,
+        onAmbiguousSupertypes: _onAmbiguousSupertypes);
   }
 
-  ClosedWorldClassHierarchy._internal(this._program, int numberOfClasses)
-      : classes = new List<Class>(numberOfClasses) {
+  void _initialize() {
     // Build the class ordering based on a topological sort.
     for (var library in _program.libraries) {
       for (var classNode in library.classes) {
@@ -643,6 +709,24 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var class_ = classes[i];
       _buildInterfaceMembers(class_, _infoFor[class_], setters: true);
       _buildInterfaceMembers(class_, _infoFor[class_], setters: false);
+    }
+
+    for (int i = 0; i < classes.length; ++i) {
+      Class cls = classes[i];
+      if (cls == null) {
+        throw "No class at index $i.";
+      }
+      _ClassInfo info = _infoFor[cls];
+      if (info == null) {
+        throw "No info for ${cls.name} from ${cls.fileUri}.";
+      }
+      if (info.topologicalIndex != i) {
+        throw "Unexpected topologicalIndex (${info.topologicalIndex} != $i) "
+            "for ${cls.name} from ${cls.fileUri}.";
+      }
+      if (info.subtypeIntervalList == null) {
+        throw "No subtypeIntervalList for ${cls.name} from ${cls.fileUri}.";
+      }
     }
   }
 
@@ -736,6 +820,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
       {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
     List<Member> members =
         setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
     if (members != null) return members;
@@ -867,8 +954,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         superInfo.ownsGenericSuperTypeMap = false;
       } else {
         // Copy over the super type entries.
-        subInfo.genericSuperTypes ??= <Class, Supertype>{};
-        subInfo.genericSuperTypes.addAll(superInfo.genericSuperTypes);
+        subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+        superInfo.genericSuperTypes
+            ?.forEach((Class key, List<Supertype> types) {
+          for (Supertype type in types) {
+            subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
+          }
+        });
       }
     } else {
       // Copy over all transitive generic super types, and substitute the
@@ -876,11 +968,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       Class superclass = supertype.classNode;
       var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
-      subInfo.genericSuperTypes ??= <Class, Supertype>{};
-      superInfo.genericSuperTypes?.forEach((Class key, Supertype type) {
-        subInfo.genericSuperTypes[key] = substitution.substituteSupertype(type);
+      subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
+        for (Supertype type in types) {
+          subInfo.recordGenericSuperType(key,
+              substitution.substituteSupertype(type), _onAmbiguousSupertypes);
+        }
       });
-      subInfo.genericSuperTypes[superclass] = supertype;
+
+      subInfo.recordGenericSuperType(
+          superclass, supertype, _onAmbiguousSupertypes);
     }
   }
 
@@ -916,14 +1013,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         ? submixtureSetBuilder.buildIntervalList()
         : info.subclassIntervalList;
     info.subtypeIntervalList = subtypeSetBuilder.buildIntervalList();
-  }
-
-  static int _countClasses(Program program) {
-    int count = 0;
-    for (var library in program.libraries) {
-      count += library.classes.length;
-    }
-    return count;
   }
 
   /// Creates a histogram such that index `N` contains the number of classes
@@ -1126,7 +1215,7 @@ class _ClassInfo {
   ///
   /// In this case, a single map object `{A: A<String>, Q: Q<int>}` may be
   /// shared by the classes `B` and `C`.
-  Map<Class, Supertype> genericSuperTypes;
+  Map<Class, List<Supertype>> genericSuperTypes;
 
   /// If true, this is the current "owner" of [genericSuperTypes], meaning
   /// we may add additional entries to the map or transfer ownership to another
@@ -1153,6 +1242,17 @@ class _ClassInfo {
   List<Member> interfaceSetters;
 
   _ClassInfo(this.classNode);
+
+  void recordGenericSuperType(Class cls, Supertype type,
+      HandleAmbiguousSupertypes onAmbiguousSupertypes) {
+    List<Supertype> existing = genericSuperTypes[cls];
+    if (existing == null) {
+      genericSuperTypes[cls] = <Supertype>[type];
+    } else if (type != existing.first) {
+      existing.add(type);
+      onAmbiguousSupertypes(classNode, existing.first, type);
+    }
+  }
 }
 
 /// An immutable set of classes, internally represented as an interval list.

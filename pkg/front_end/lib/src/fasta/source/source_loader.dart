@@ -11,14 +11,21 @@ import 'dart:typed_data' show Uint8List;
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart'
     show InterfaceResolver;
 
-import 'package:kernel/ast.dart' show Arguments, Expression, Program;
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        Class,
+        Expression,
+        Library,
+        LibraryDependency,
+        Program,
+        Supertype;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/src/incremental_class_hierarchy.dart'
-    show IncrementalClassHierarchy;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../api_prototype/file_system.dart';
 
@@ -48,6 +55,7 @@ import '../fasta_codes.dart'
         Message,
         SummaryTemplate,
         Template,
+        templateAmbiguousSupertypes,
         templateCyclicClassHierarchy,
         templateExtendingEnum,
         templateExtendingRestricted,
@@ -543,10 +551,58 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Built program");
   }
 
-  void computeHierarchy(Program program) {
-    hierarchy = new IncrementalClassHierarchy();
+  Program computeFullProgram() {
+    Set<Library> libraries = new Set<Library>();
+    List<Library> workList = <Library>[];
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (!library.isPart && !library.isPatch) {
+        if (libraries.add(library.target)) {
+          workList.add(library.target);
+        }
+      }
+    });
+    while (workList.isNotEmpty) {
+      Library library = workList.removeLast();
+      for (LibraryDependency dependency in library.dependencies) {
+        if (libraries.add(dependency.targetLibrary)) {
+          workList.add(dependency.targetLibrary);
+        }
+      }
+    }
+    return new Program()..libraries.addAll(libraries);
+  }
+
+  void computeHierarchy() {
+    List<List> ambiguousTypesRecords = [];
+    hierarchy = new ClassHierarchy(computeFullProgram(),
+        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+      if (ambiguousTypesRecords != null) {
+        ambiguousTypesRecords.add([cls, a, b]);
+      }
+    });
+    for (List record in ambiguousTypesRecords) {
+      handleAmbiguousSupertypes(record[0], record[1], record[2]);
+    }
+    ambiguousTypesRecords = null;
     ticker.logMs("Computed class hierarchy");
   }
+
+  void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
+    String name = cls.name;
+    TypeEnvironment env = new TypeEnvironment(coreTypes, hierarchy,
+        strongMode: target.strongMode);
+
+    if (cls.isSyntheticMixinImplementation) return;
+
+    if (env.isSubtypeOf(a.asInterfaceType, b.asInterfaceType)) return;
+    addProblem(
+        templateAmbiguousSupertypes.withArguments(
+            name, a.asInterfaceType, b.asInterfaceType),
+        cls.fileOffset,
+        cls.fileUri);
+  }
+
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   void computeCoreTypes(Program program) {
     coreTypes = new CoreTypes(program);
@@ -627,8 +683,9 @@ class SourceLoader<L> extends Loader<L> {
     // target those forwarding stubs.
     // TODO(paulberry): could we make this unnecessary by not clearing class
     // inference info?
-    typeInferenceEngine.classHierarchy =
-        hierarchy = new IncrementalClassHierarchy();
+    typeInferenceEngine.classHierarchy = hierarchy = new ClassHierarchy(
+        computeFullProgram(),
+        onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
     ticker.logMs("Performed top level inference");
   }
 

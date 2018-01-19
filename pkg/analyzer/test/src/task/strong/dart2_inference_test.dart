@@ -575,7 +575,44 @@ main() {
     _assertTypeAnnotations(code, unit);
   }
 
-  test_forIn() async {
+  test_forIn_identifier() async {
+    var code = r'''
+T f<T>() => null;
+
+class A {}
+
+A aTopLevel;
+void set aTopLevelSetter(A value) {}
+
+class C {
+  A aField;
+  void set aSetter(A value) {}
+  void test() {
+    A aLocal;
+    for (aLocal in f()) {} // local
+    for (aField in f()) {} // field
+    for (aSetter in f()) {} // setter
+    for (aTopLevel in f()) {} // top variable
+    for (aTopLevelSetter in f()) {} // top setter
+  }
+}''';
+    var source = addSource(code);
+    var analysisResult = await computeAnalysisResult(source);
+    var unit = analysisResult.unit;
+
+    void assertType(String prefix) {
+      var invocation = _findMethodInvocation(unit, code, prefix);
+      expect(invocation.staticType.toString(), 'Iterable<A>');
+    }
+
+    assertType('f()) {} // local');
+    assertType('f()) {} // field');
+    assertType('f()) {} // setter');
+    assertType('f()) {} // top variable');
+    assertType('f()) {} // top setter');
+  }
+
+  test_forIn_variable() async {
     var code = r'''
 T f<T>() => null;
 
@@ -618,41 +655,39 @@ void test(Iterable<num> iter) {
     }
   }
 
-  test_forIn_identifier() async {
+  test_forIn_variable_implicitlyTyped() async {
     var code = r'''
-T f<T>() => null;
-
 class A {}
+class B extends A {}
 
-A aTopLevel;
-void set aTopLevelSetter(A value) {}
+List<T> f<T extends A>(List<T> items) => items;
 
-class C {
-  A aField;
-  void set aSetter(A value) {}
-  void test() {
-    A aLocal;
-    for (aLocal in f()) {} // local
-    for (aField in f()) {} // field
-    for (aSetter in f()) {} // setter
-    for (aTopLevel in f()) {} // top variable
-    for (aTopLevelSetter in f()) {} // top setter
-  }
-}''';
+void test(List<A> listA, List<B> listB) {
+  for (var a1 in f(listA)) {} // 1
+  for (A a2 in f(listA)) {} // 2
+  for (var b1 in f(listB)) {} // 3
+  for (A b2 in f(listB)) {} // 4
+  for (B b3 in f(listB)) {} // 5
+}
+''';
     var source = addSource(code);
     var analysisResult = await computeAnalysisResult(source);
     var unit = analysisResult.unit;
 
-    void assertType(String prefix) {
-      var invocation = _findMethodInvocation(unit, code, prefix);
-      expect(invocation.staticType.toString(), 'Iterable<A>');
+    void assertTypes(
+        String vSearch, String vType, String fSearch, String fType) {
+      var node = EngineTestCase.findSimpleIdentifier(unit, code, vSearch);
+      expect(node.staticType.toString(), vType);
+
+      var invocation = _findMethodInvocation(unit, code, fSearch);
+      expect(invocation.staticType.toString(), fType);
     }
 
-    assertType('f()) {} // local');
-    assertType('f()) {} // field');
-    assertType('f()) {} // setter');
-    assertType('f()) {} // top variable');
-    assertType('f()) {} // top setter');
+    assertTypes('a1 in', 'A', 'f(listA)) {} // 1', 'List<A>');
+    assertTypes('a2 in', 'A', 'f(listA)) {} // 2', 'List<A>');
+    assertTypes('b1 in', 'B', 'f(listB)) {} // 3', 'List<B>');
+    assertTypes('b2 in', 'A', 'f(listB)) {} // 4', 'List<A>');
+    assertTypes('b3 in', 'B', 'f(listB)) {} // 5', 'List<B>');
   }
 
   test_implicitVoidReturnType_default() async {

@@ -602,7 +602,8 @@ class ResolverTask extends CompilerTask {
             currentlyResolvedTypeDeclaration;
         currentlyResolvedTypeDeclaration = element;
         var result = resolveTypeDeclaration();
-        if (previousResolvedTypeDeclaration == null) {
+        currentlyResolvedTypeDeclaration = previousResolvedTypeDeclaration;
+        if (currentlyResolvedTypeDeclaration == null) {
           do {
             while (!pendingClassesToBeResolved.isEmpty) {
               pendingClassesToBeResolved
@@ -617,7 +618,6 @@ class ResolverTask extends CompilerTask {
           assert(pendingClassesToBeResolved.isEmpty);
           assert(pendingClassesToBePostProcessed.isEmpty);
         }
-        currentlyResolvedTypeDeclaration = previousResolvedTypeDeclaration;
         return result;
       });
     });

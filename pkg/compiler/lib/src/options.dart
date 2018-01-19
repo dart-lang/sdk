@@ -128,6 +128,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to disable global type inference.
   final bool disableTypeInference;
 
+  /// Whether to disable optimization for need runtime type information.
+  final bool disableRtiOptimization;
+
   /// Whether to emit a .json file with a summary of the information used by the
   /// compiler during optimization. This includes resolution details,
   /// dependencies between elements, results of type inference, and the output
@@ -256,6 +259,12 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   final String experimentalAllocationsPath;
 
+  /// Add signatures to closures that return the type of the original closure
+  /// call. Currently hidden behind a flag because this interacts with generic
+  /// function types and strong mode, hitting some edge cases that have not yet
+  /// been implemented.
+  final bool addMethodSignatures;
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
@@ -303,6 +312,8 @@ class CompilerOptions implements DiagnosticOptions {
             _extractOptionalCsvOption(options, Flags.showPackageWarnings),
         disableInlining: _hasOption(options, Flags.disableInlining),
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
+        disableRtiOptimization:
+            _hasOption(options, Flags.disableRtiOptimization),
         dumpInfo: _hasOption(options, Flags.dumpInfo),
         enableExperimentalMirrors:
             _hasOption(options, Flags.enableExperimentalMirrors),
@@ -331,6 +342,7 @@ class CompilerOptions implements DiagnosticOptions {
         sourceMapUri: _extractUriOption(options, '--source-map='),
         strips: _extractCsvOption(options, '--force-strip='),
         strongMode: _hasOption(options, Flags.strongMode),
+        addMethodSignatures: _hasOption(options, Flags.addMethodSignatures),
         testMode: _hasOption(options, Flags.testMode),
         trustJSInteropTypeAnnotations:
             _hasOption(options, Flags.trustJSInteropTypeAnnotations),
@@ -374,6 +386,7 @@ class CompilerOptions implements DiagnosticOptions {
       List<String> shownPackageWarnings: null,
       bool disableInlining: false,
       bool disableTypeInference: false,
+      bool disableRtiOptimization: false,
       bool dumpInfo: false,
       bool enableAssertMessage: true,
       bool enableExperimentalMirrors: false,
@@ -397,6 +410,7 @@ class CompilerOptions implements DiagnosticOptions {
       Uri sourceMapUri: null,
       List<String> strips: const [],
       bool strongMode: false,
+      bool addMethodSignatures: false,
       bool testMode: false,
       bool trustJSInteropTypeAnnotations: false,
       bool trustPrimitives: false,
@@ -454,6 +468,7 @@ class CompilerOptions implements DiagnosticOptions {
         shownPackageWarnings: shownPackageWarnings,
         disableInlining: disableInlining,
         disableTypeInference: disableTypeInference,
+        disableRtiOptimization: disableRtiOptimization,
         dumpInfo: dumpInfo,
         enableAssertMessage: enableAssertMessage,
         enableExperimentalMirrors: enableExperimentalMirrors,
@@ -478,6 +493,7 @@ class CompilerOptions implements DiagnosticOptions {
         sourceMapUri: sourceMapUri,
         strips: strips,
         strongMode: strongMode,
+        addMethodSignatures: addMethodSignatures,
         testMode: testMode,
         trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
         trustPrimitives: trustPrimitives,
@@ -508,6 +524,7 @@ class CompilerOptions implements DiagnosticOptions {
       List<String> shownPackageWarnings: null,
       this.disableInlining: false,
       this.disableTypeInference: false,
+      this.disableRtiOptimization: false,
       this.dumpInfo: false,
       this.enableAssertMessage: true,
       this.enableExperimentalMirrors: false,
@@ -531,6 +548,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.sourceMapUri: null,
       this.strips: const [],
       this.strongMode: false,
+      this.addMethodSignatures: false,
       this.testMode: false,
       this.trustJSInteropTypeAnnotations: false,
       this.trustPrimitives: false,
@@ -568,6 +586,7 @@ class CompilerOptions implements DiagnosticOptions {
       List<String> shownPackageWarnings,
       disableInlining,
       disableTypeInference,
+      disableRtiOptimization,
       dumpInfo,
       enableAssertMessage,
       enableExperimentalMirrors,
@@ -592,6 +611,7 @@ class CompilerOptions implements DiagnosticOptions {
       sourceMapUri,
       strips,
       strongMode,
+      addMethodSignatures,
       testMode,
       trustJSInteropTypeAnnotations,
       trustPrimitives,
@@ -630,6 +650,8 @@ class CompilerOptions implements DiagnosticOptions {
         disableInlining: disableInlining ?? options.disableInlining,
         disableTypeInference:
             disableTypeInference ?? options.disableTypeInference,
+        disableRtiOptimization:
+            disableRtiOptimization ?? options.disableRtiOptimization,
         dumpInfo: dumpInfo ?? options.dumpInfo,
         enableAssertMessage: enableAssertMessage ?? options.enableAssertMessage,
         enableExperimentalMirrors:
@@ -660,6 +682,7 @@ class CompilerOptions implements DiagnosticOptions {
         sourceMapUri: sourceMapUri ?? options.sourceMapUri,
         strips: strips ?? options.strips,
         strongMode: strongMode ?? options.strongMode,
+        addMethodSignatures: addMethodSignatures ?? options.addMethodSignatures,
         testMode: testMode ?? options.testMode,
         trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations ??
             options.trustJSInteropTypeAnnotations,

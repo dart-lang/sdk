@@ -4,6 +4,9 @@
 
 library fasta.body_builder;
 
+// ignore: UNDEFINED_HIDDEN_NAME
+import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
 
 import 'package:kernel/type_algebra.dart' show instantiateToBounds;
@@ -1289,8 +1292,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new ThisPropertyAccessor(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      return new StaticAccessor(this, token, builder.target, null,
+      StaticAccessor accessor = new StaticAccessor(
+          this, token, builder.target, null,
           prefixName: prefix?.name);
+      return (prefix?.deferred == true)
+          ? new DeferredAccessor(this, token, prefix, accessor)
+          : accessor;
     } else if (builder is PrefixBuilder) {
       if (constantExpressionRequired && builder.deferred) {
         deprecated_addCompileTimeError(
@@ -1326,7 +1333,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               charOffset, "Not a constant expression.");
         }
       }
-      return accessor;
+      return (prefix?.deferred == true)
+          ? new DeferredAccessor(this, token, prefix, accessor)
+          : accessor;
     }
   }
 
@@ -1849,7 +1858,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     if (name is TypeDeclarationAccessor) {
-      push(name.buildType(arguments));
+      push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is FastaAccessor) {
       addProblem(fasta.templateNotAType.withArguments(beginToken.lexeme),
           beginToken.charOffset);
@@ -2219,16 +2228,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (optional("-", token)) {
         operator = "unary-";
 
-        var new_receiver = null;
         if (receiver is LargeIntAccessor) {
           int value =
               int.parse("-" + receiver.token.lexeme, onError: (_) => null);
           if (value != null) {
-            new_receiver = new ShadowIntLiteral(value)
-              ..fileOffset = offsetForToken(token);
+            push(new ShadowIntLiteral(value)
+              ..fileOffset = offsetForToken(token));
+            return;
           }
         }
-        if (new_receiver != null) receiver = new_receiver;
       }
       bool isSuper = false;
       Expression receiverValue;
@@ -3629,6 +3637,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new ShadowStaticGet(
         prefixName, targetOffset, targetClass, readTarget)
       ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix) {
+    return new Let(
+        new VariableDeclaration.forValue(
+            new CheckLibraryIsLoaded(prefix.dependency)),
+        expression);
   }
 }
 

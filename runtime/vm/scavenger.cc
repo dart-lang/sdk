@@ -321,9 +321,8 @@ void SemiSpace::Delete() {
 
 void SemiSpace::WriteProtect(bool read_only) {
   if (reserved_ != NULL) {
-    bool success = reserved_->Protect(read_only ? VirtualMemory::kReadOnly
-                                                : VirtualMemory::kReadWrite);
-    ASSERT(success);
+    reserved_->Protect(read_only ? VirtualMemory::kReadOnly
+                                 : VirtualMemory::kReadWrite);
   }
 }
 
@@ -514,7 +513,7 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
 }
 
 bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
-  // To make a consistent decision, we should not yeild for a safepoint in the
+  // To make a consistent decision, we should not yield for a safepoint in the
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
 

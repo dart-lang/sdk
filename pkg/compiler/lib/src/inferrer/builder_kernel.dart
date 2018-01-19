@@ -381,6 +381,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitInstantiation(ir.Instantiation node) {
+    // TODO(sra): Add a TypeInformation for Instantiations.  Instantiated
+    // generic methods will need to be traced separately, and have the
+    // information gathered in tracing reflected back to the generic method. For
+    // now, pass along the uninstantiated method.
+    return visit(node.expression);
+  }
+
+  @override
   TypeInformation defaultExpression(ir.Expression node) {
     throw new UnimplementedError(
         'Unhandled expression: ${node} (${node.runtimeType})');
@@ -1668,6 +1677,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitYieldStatement(ir.YieldStatement node) {
     TypeInformation operandType = visit(node.expression);
     return _inferrer.registerYield(node, operandType);
+  }
+
+  @override
+  TypeInformation visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded node) {
+    return _types.nonNullEmpty();
   }
 
   @override

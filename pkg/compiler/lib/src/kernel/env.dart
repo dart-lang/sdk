@@ -157,7 +157,7 @@ class LibraryData {
   Iterable<ConstantValue> _metadata;
   Map<ir.LibraryDependency, ImportEntity> imports;
 
-  LibraryData(this.library);
+  LibraryData(this.library, [this.imports]);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(library.annotations);
@@ -184,7 +184,7 @@ class LibraryData {
   }
 
   LibraryData copy() {
-    return new LibraryData(library);
+    return new LibraryData(library, imports);
   }
 }
 
@@ -641,6 +641,43 @@ class FunctionDataImpl extends MemberDataImpl
   ClassTypeVariableAccess get classTypeVariableAccess {
     if (node.isInstanceMember) return ClassTypeVariableAccess.property;
     return ClassTypeVariableAccess.none;
+  }
+}
+
+class SignatureFunctionData implements FunctionData {
+  final FunctionType functionType;
+  final MemberDefinition definition;
+  final InterfaceType memberThisType;
+  final ClassTypeVariableAccess classTypeVariableAccess;
+  final List<ir.TypeParameter> typeParameters;
+
+  SignatureFunctionData(this.definition, this.memberThisType, this.functionType,
+      this.typeParameters, this.classTypeVariableAccess);
+
+  FunctionType getFunctionType(covariant KernelToElementMapBase elementMap) {
+    return functionType;
+  }
+
+  List<TypeVariableType> getFunctionTypeVariables(
+      KernelToElementMap elementMap) {
+    return typeParameters
+        .map<TypeVariableType>((ir.TypeParameter typeParameter) {
+      return elementMap.getDartType(new ir.TypeParameterType(typeParameter));
+    }).toList();
+  }
+
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    throw new UnimplementedError('SignatureData.forEachParameter');
+  }
+
+  @override
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return const <ConstantValue>[];
+  }
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return memberThisType;
   }
 }
 

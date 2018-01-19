@@ -2717,6 +2717,21 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
+  bool IsUnboxedSignedIntegerConstant() const {
+    return representation() == kUnboxedInt32 ||
+           representation() == kUnboxedInt64;
+  }
+
+  int64_t GetUnboxedSignedIntegerConstantValue() const {
+    ASSERT(IsUnboxedSignedIntegerConstant());
+    return value_.IsSmi() ? Smi::Cast(value_).Value()
+                          : Mint::Cast(value_).value();
+  }
+
+  void EmitMoveToLocation(FlowGraphCompiler* compiler,
+                          const Location& destination,
+                          Register tmp = kNoRegister);
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -3087,6 +3102,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
         token_kind_(token_kind),
         checked_argument_count_(checked_argument_count),
         interface_target_(interface_target),
+        result_type_(NULL),
         has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
@@ -3126,6 +3142,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
         token_kind_(token_kind),
         checked_argument_count_(checked_argument_count),
         interface_target_(interface_target),
+        result_type_(NULL),
         has_unique_selector_(false) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(interface_target_.IsNotTemporaryScopedHandle());
@@ -3174,6 +3191,16 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
+  void SetResultType(Zone* zone, CompileType new_type) {
+    result_type_ = new (zone) CompileType(new_type);
+  }
+
+  CompileType* result_type() const { return result_type_; }
+
+  intptr_t result_cid() const {
+    return (result_type_ != NULL) ? result_type_->ToCid() : kDynamicCid;
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
   bool MatchesCoreName(const String& name);
@@ -3190,6 +3217,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   const intptr_t checked_argument_count_;
   const Function& interface_target_;
+  CompileType* result_type_;  // Inferred result type.
   bool has_unique_selector_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
@@ -3257,6 +3285,9 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   virtual Definition* Canonicalize(FlowGraph* graph);
 
   static RawType* ComputeRuntimeType(const CallTargets& targets);
+
+  CompileType* result_type() const { return instance_call()->result_type(); }
+  intptr_t result_cid() const { return instance_call()->result_cid(); }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -3580,7 +3611,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         call_count_(0),
         function_(function),
         rebind_rule_(rebind_rule),
-        result_cid_(kDynamicCid),
+        result_type_(NULL),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
@@ -3607,7 +3638,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         call_count_(call_count),
         function_(function),
         rebind_rule_(rebind_rule),
-        result_cid_(kDynamicCid),
+        result_type_(NULL),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
@@ -3625,10 +3656,14 @@ class StaticCallInstr : public TemplateDartCall<0> {
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
       args->Add(call->PushArgumentAt(i));
     }
-    return new (zone)
+    StaticCallInstr* new_call = new (zone)
         StaticCallInstr(call->token_pos(), target, call->type_args_len(),
                         call->argument_names(), args, call->deopt_id(),
                         call->CallCount(), ICData::kNoRebind);
+    if (call->result_type() != NULL) {
+      new_call->result_type_ = call->result_type();
+    }
+    return new_call;
   }
 
   // ICData for static calls carries call count.
@@ -3658,7 +3693,15 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
-  void set_result_cid(intptr_t value) { result_cid_ = value; }
+  void SetResultType(Zone* zone, CompileType new_type) {
+    result_type_ = new (zone) CompileType(new_type);
+  }
+
+  CompileType* result_type() const { return result_type_; }
+
+  intptr_t result_cid() const {
+    return (result_type_ != NULL) ? result_type_->ToCid() : kDynamicCid;
+  }
 
   bool is_known_list_constructor() const { return is_known_list_constructor_; }
   void set_is_known_list_constructor(bool value) {
@@ -3677,7 +3720,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const intptr_t call_count_;
   const Function& function_;
   const ICData::RebindRule rebind_rule_;
-  intptr_t result_cid_;  // For some library functions we know the result.
+  CompileType* result_type_;  // Known or inferred result type.
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
@@ -5350,6 +5393,8 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
                           speculative_mode) {}
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
 

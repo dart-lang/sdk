@@ -100,7 +100,8 @@ _ImmediateCallback _pendingImmediateCallback;
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
 void _isolateScheduleImmediate(void callback()) {
-  assert(_pendingImmediateCallback == null);
+  assert((_pendingImmediateCallback == null) ||
+      (_pendingImmediateCallback == callback));
   _pendingImmediateCallback = callback;
 }
 

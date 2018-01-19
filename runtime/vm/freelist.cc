@@ -77,9 +77,8 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
   if ((index != kNumLists) && free_map_.Test(index)) {
     FreeListElement* element = DequeueElement(index);
     if (is_protected) {
-      bool status = VirtualMemory::Protect(reinterpret_cast<void*>(element),
-                                           size, VirtualMemory::kReadWrite);
-      ASSERT(status);
+      VirtualMemory::Protect(reinterpret_cast<void*>(element), size,
+                             VirtualMemory::kReadWrite);
     }
     return reinterpret_cast<uword>(element);
   }
@@ -99,10 +98,8 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         intptr_t remainder_size = element->Size() - size;
         intptr_t region_size =
             size + FreeListElement::HeaderSizeFor(remainder_size);
-        bool status =
-            VirtualMemory::Protect(reinterpret_cast<void*>(element),
-                                   region_size, VirtualMemory::kReadWrite);
-        ASSERT(status);
+        VirtualMemory::Protect(reinterpret_cast<void*>(element), region_size,
+                               VirtualMemory::kReadWrite);
       }
       SplitElementAfterAndEnqueue(element, size, is_protected);
       return reinterpret_cast<uword>(element);
@@ -132,10 +129,8 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         // Make the allocated block and the header of the remainder element
         // writable.  The remainder will be non-writable if necessary after
         // the call to SplitElementAfterAndEnqueue.
-        bool status =
-            VirtualMemory::Protect(reinterpret_cast<void*>(current),
-                                   region_size, VirtualMemory::kReadWrite);
-        ASSERT(status);
+        VirtualMemory::Protect(reinterpret_cast<void*>(current), region_size,
+                               VirtualMemory::kReadWrite);
       }
 
       if (previous == NULL) {
@@ -155,17 +150,13 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
               !VirtualMemory::InSamePage(target_address, writable_end);
         }
         if (target_is_protected) {
-          bool status =
-              VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
-                                     kWordSize, VirtualMemory::kReadWrite);
-          ASSERT(status);
+          VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
+                                 kWordSize, VirtualMemory::kReadWrite);
         }
         previous->set_next(current->next());
         if (target_is_protected) {
-          bool status =
-              VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
-                                     kWordSize, VirtualMemory::kReadExecute);
-          ASSERT(status);
+          VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
+                                 kWordSize, VirtualMemory::kReadExecute);
         }
       }
       SplitElementAfterAndEnqueue(current, size, is_protected);
@@ -366,10 +357,8 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
   // remainder element will be protected when the allocated one is).
   if (is_protected &&
       !VirtualMemory::InSamePage(remainder_address - 1, remainder_address)) {
-    bool status =
-        VirtualMemory::Protect(reinterpret_cast<void*>(remainder_address),
-                               remainder_size, VirtualMemory::kReadExecute);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(remainder_address),
+                           remainder_size, VirtualMemory::kReadExecute);
   }
 }
 

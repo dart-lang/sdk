@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
@@ -180,6 +181,65 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
+                                       const Location& destination,
+                                       Register tmp) {
+  if (destination.IsRegister()) {
+    if (value_.IsSmi() && Smi::Cast(value_).Value() == 0) {
+      __ xorl(destination.reg(), destination.reg());
+    } else if (value_.IsSmi() && (representation() == kUnboxedInt32)) {
+      __ movl(destination.reg(), Immediate(Smi::Cast(value_).Value()));
+    } else {
+      ASSERT(representation() == kTagged);
+      __ LoadObjectSafely(destination.reg(), value_);
+    }
+  } else if (destination.IsFpuRegister()) {
+    const double value_as_double = Double::Cast(value_).value();
+    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    if (addr == 0) {
+      __ pushl(EAX);
+      __ LoadObject(EAX, value_);
+      __ movsd(destination.fpu_reg(),
+               FieldAddress(EAX, Double::value_offset()));
+      __ popl(EAX);
+    } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
+      __ xorps(destination.fpu_reg(), destination.fpu_reg());
+    } else {
+      __ movsd(destination.fpu_reg(), Address::Absolute(addr));
+    }
+  } else if (destination.IsDoubleStackSlot()) {
+    const double value_as_double = Double::Cast(value_).value();
+    uword addr = FlowGraphBuilder::FindDoubleConstant(value_as_double);
+    if (addr == 0) {
+      __ pushl(EAX);
+      __ LoadObject(EAX, value_);
+      __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+      __ popl(EAX);
+    } else if (Utils::DoublesBitEqual(value_as_double, 0.0)) {
+      __ xorps(XMM0, XMM0);
+    } else {
+      __ movsd(XMM0, Address::Absolute(addr));
+    }
+    __ movsd(destination.ToStackSlotAddress(), XMM0);
+  } else {
+    ASSERT(destination.IsStackSlot());
+    if (value_.IsSmi() && representation() == kUnboxedInt32) {
+      __ movl(destination.ToStackSlotAddress(),
+              Immediate(Smi::Cast(value_).Value()));
+    } else {
+      if (Assembler::IsSafeSmi(value_) || value_.IsNull()) {
+        __ movl(destination.ToStackSlotAddress(),
+                Immediate(reinterpret_cast<int32_t>(value_.raw())));
+      } else {
+        __ pushl(EAX);
+        __ LoadObjectSafely(EAX, value_);
+        __ movl(destination.ToStackSlotAddress(), EAX);
+        __ popl(EAX);
+      }
+    }
+  }
+}
+
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -202,26 +262,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    switch (representation()) {
-      case kUnboxedDouble: {
-        XmmRegister result = locs()->out(0).fpu_reg();
-        if (constant_address() == 0) {
-          Register boxed = locs()->temp(0).reg();
-          __ LoadObjectSafely(boxed, value());
-          __ movsd(result, FieldAddress(boxed, Double::value_offset()));
-        } else if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
-          __ xorps(result, result);
-        } else {
-          __ movsd(result, Address::Absolute(constant_address()));
-        }
-        break;
-      }
-      case kUnboxedInt32:
-        __ movl(locs()->out(0).reg(), Immediate(Smi::Cast(value()).Value()));
-        break;
-      default:
-        UNREACHABLE();
-    }
+    EmitMoveToLocation(compiler, locs()->out(0));
   }
 }
 
@@ -777,7 +818,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
   // All arguments are already @ESP due to preceding PushArgument()s.
-  ASSERT(ArgumentCount() == function().NumParameters());
+  ASSERT(ArgumentCount() == function().NumParameters() +
+                                (function().IsGeneric() &&
+                                 Isolate::Current()->reify_generic_functions())
+             ? 1
+             : 0);
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
@@ -1774,7 +1819,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (ShouldEmitStoreBarrier()) {
       // Value input is a writable register and should be manually preserved
-      // across allocation slow-path.
+      // across allocation slow-path.  Add it to live_registers set which
+      // determines which registers to preserve.
       locs()->live_registers()->Add(locs()->in(1), kTagged);
     }
 
@@ -3403,54 +3449,70 @@ LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps,
-                      ValueFitsSmi() ? LocationSummary::kNoCall
-                                     : LocationSummary::kCallOnSlowPath);
-  const bool needs_writable_input =
-      ValueFitsSmi() || (from_representation() == kUnboxedUint32);
-  summary->set_in(0, needs_writable_input ? Location::RequiresRegister()
-                                          : Location::WritableRegister());
-  if (!ValueFitsSmi()) {
+  if (ValueFitsSmi()) {
+    LocationSummary* summary = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Same regs, can overwrite input.
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
+    return summary;
+  } else {
+    LocationSummary* summary = new (zone) LocationSummary(
+        zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+    // Guaranteed different regs.  In the signed case we are going to use the
+    // input for sign extension of any Mint.
+    const bool needs_writable_input = (from_representation() == kUnboxedInt32);
+    summary->set_in(0, needs_writable_input ? Location::WritableRegister()
+                                            : Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
+    summary->set_out(0, Location::RequiresRegister());
+    return summary;
   }
-  summary->set_out(0, ValueFitsSmi() ? Location::SameAsFirstInput()
-                                     : Location::RequiresRegister());
-  return summary;
 }
 
 void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
 
-  __ MoveRegister(out, value);
-  __ shll(out, Immediate(kSmiTagSize));
-  if (!ValueFitsSmi()) {
-    Label done;
-    ASSERT(value != out);
-    if (from_representation() == kUnboxedInt32) {
-      __ j(NO_OVERFLOW, &done);
-    } else {
-      __ testl(value, Immediate(0xC0000000));
-      __ j(ZERO, &done);
-    }
-
-    // Allocate a mint.
-    // Value input is writable register and has to be manually preserved
-    // on the slow path.
-    locs()->live_registers()->Add(locs()->in(0), kUnboxedInt32);
-    BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
-                                    locs()->temp(0).reg());
-    __ movl(FieldAddress(out, Mint::value_offset()), value);
-    if (from_representation() == kUnboxedInt32) {
-      __ sarl(value, Immediate(31));  // Sign extend.
-      __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), value);
-    } else {
-      __ movl(FieldAddress(out, Mint::value_offset() + kWordSize),
-              Immediate(0));
-    }
-    __ Bind(&done);
+  if (ValueFitsSmi()) {
+    ASSERT(value == out);
+    ASSERT(kSmiTag == 0);
+    __ shll(out, Immediate(kSmiTagSize));
+    return;
   }
+
+  __ movl(out, value);
+  __ shll(out, Immediate(kSmiTagSize));
+  Label done;
+  if (from_representation() == kUnboxedInt32) {
+    __ j(NO_OVERFLOW, &done);
+  } else {
+    ASSERT(value != out);  // Value was not overwritten.
+    __ testl(value, Immediate(0xC0000000));
+    __ j(ZERO, &done);
+  }
+
+  // Allocate a Mint.
+  if (from_representation() == kUnboxedInt32) {
+    // Value input is a writable register and should be manually preserved
+    // across allocation slow-path.  Add it to live_registers set which
+    // determines which registers to preserve.
+    locs()->live_registers()->Add(locs()->in(0), kUnboxedInt32);
+  }
+  ASSERT(value != out);  // We need the value after the allocation.
+  BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
+                                  locs()->temp(0).reg());
+  __ movl(FieldAddress(out, Mint::value_offset()), value);
+  if (from_representation() == kUnboxedInt32) {
+    // In the signed may-overflow case we asked for the input (value) to be
+    // writable so we can use it as a temp to put the sign extension bits in.
+    __ sarl(value, Immediate(31));  // Sign extend the Mint.
+    __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), value);
+  } else {
+    __ movl(FieldAddress(out, Mint::value_offset() + kWordSize),
+            Immediate(0));  // Zero extend the Mint.
+  }
+  __ Bind(&done);
 }
 
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
@@ -3710,6 +3772,8 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Register temp = locs()->temp(0).reg();
       Register temp2 = locs()->temp(1).reg();
       // Temp register needs to be manually preserved on allocation slow-path.
+      // Add it to live_registers set which determines which registers to
+      // preserve.
       locs()->live_registers()->Add(locs()->temp(0), kUnboxedInt32);
 
       ASSERT(temp != result);

@@ -429,6 +429,11 @@ abstract class Compiler {
           });
         }
       }
+    } else {
+      if (loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
+        reporter.reportErrorMessage(NO_LOCATION_SPANNABLE,
+            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_KERNEL);
+      }
     }
     backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
     return loadedLibraries;

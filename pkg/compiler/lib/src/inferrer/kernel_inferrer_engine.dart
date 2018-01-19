@@ -213,6 +213,8 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
         break;
       case MemberKind.closureField:
         break;
+      case MemberKind.signature:
+        break;
     }
     failedAt(member, 'Unexpected member definition: $definition.');
     return null;

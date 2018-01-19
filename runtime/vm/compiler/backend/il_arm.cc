@@ -323,6 +323,49 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
+                                       const Location& destination,
+                                       Register tmp) {
+  if (destination.IsRegister()) {
+    if (representation() == kUnboxedInt32) {
+      __ LoadImmediate(destination.reg(), Smi::Cast(value_).Value());
+    } else {
+      ASSERT(representation() == kTagged);
+      __ LoadObject(destination.reg(), value_);
+    }
+  } else if (destination.IsFpuRegister()) {
+    const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0) &&
+        TargetCPUFeatures::neon_supported()) {
+      QRegister qdst = destination.fpu_reg();
+      __ veorq(qdst, qdst, qdst);
+    } else {
+      ASSERT(tmp != kNoRegister);
+      __ LoadDImmediate(dst, Double::Cast(value_).value(), tmp);
+    }
+  } else if (destination.IsDoubleStackSlot()) {
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0) &&
+        TargetCPUFeatures::neon_supported()) {
+      __ veorq(QTMP, QTMP, QTMP);
+    } else {
+      ASSERT(tmp != kNoRegister);
+      __ LoadDImmediate(DTMP, Double::Cast(value_).value(), tmp);
+    }
+    const intptr_t dest_offset = destination.ToStackSlotOffset();
+    __ StoreDToOffset(DTMP, destination.base_reg(), dest_offset);
+  } else {
+    ASSERT(destination.IsStackSlot());
+    ASSERT(tmp != kNoRegister);
+    const intptr_t dest_offset = destination.ToStackSlotOffset();
+    if (representation() == kUnboxedInt32) {
+      __ LoadImmediate(tmp, Smi::Cast(value_).Value());
+    } else {
+      __ LoadObject(tmp, value_);
+    }
+    __ StoreToOffset(kWord, tmp, destination.base_reg(), dest_offset);
+  }
+}
+
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
@@ -344,25 +387,9 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    switch (representation_) {
-      case kUnboxedDouble:
-        if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0) &&
-            TargetCPUFeatures::neon_supported()) {
-          const QRegister dst = locs()->out(0).fpu_reg();
-          __ veorq(dst, dst, dst);
-        } else {
-          const DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
-          const Register temp = locs()->temp(0).reg();
-          __ LoadDImmediate(dst, Double::Cast(value()).value(), temp);
-        }
-        break;
-      case kUnboxedInt32:
-        __ LoadImmediate(locs()->out(0).reg(), Smi::Cast(value()).Value());
-        break;
-      default:
-        UNREACHABLE();
-        break;
-    }
+    const Register scratch =
+        locs()->temp_count() == 0 ? kNoRegister : locs()->temp(0).reg();
+    EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
 
@@ -853,7 +880,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
 
   // All arguments are already @SP due to preceding PushArgument()s.
-  ASSERT(ArgumentCount() == function().NumParameters());
+  ASSERT(ArgumentCount() == function().NumParameters() +
+                                (function().IsGeneric() &&
+                                 Isolate::Current()->reify_generic_functions())
+             ? 1
+             : 0);
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());

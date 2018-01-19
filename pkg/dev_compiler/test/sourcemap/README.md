@@ -7,7 +7,7 @@ For both there are 2 suits: One for (legacy) DDC and one for DDC with kernel (DD
 
 Running the tests likely requires the compilation of the correct targets. DDK currently also
 requires `ddc_sdk.dill` inside
-`{sdkroot}/{out,xcodebuild}/ReleaseX64/gen/utils/dartdevc/ddc_sdk.dill`.
+`{sdkroot}/{out,xcodebuild}/ReleaseX64/gen/utils/dartdevc/kernel/ddc_sdk.dill`.
 
 Except for that, running them should simply be a matter of executing the `*_suite.dart` files.
 

@@ -19,6 +19,7 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
+  V(CLI_WaitForEvent, 1)                                                       \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(Directory_Create, 2)                                                       \
   V(Directory_CreateTemp, 2)                                                   \

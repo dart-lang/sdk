@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions= --no_limit_ints_to_64_bits
 import 'package:expect/expect.dart';
 import 'package:compiler/src/js/js.dart' as jsAst;
 import 'package:compiler/src/js/js.dart' show js;

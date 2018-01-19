@@ -532,9 +532,11 @@ void IsolateReloadContext::Reload(bool force_reload,
   const String& root_lib_url =
       (root_script_url == NULL) ? old_root_lib_url
                                 : String::Handle(String::New(root_script_url));
+  bool root_lib_modified = false;
 
   // Check to see if the base url of the loaded libraries has moved.
   if (!old_root_lib_url.Equals(root_lib_url)) {
+    root_lib_modified = true;
     const char* old_root_library_url_c = old_root_lib_url.ToCString();
     const char* root_library_url_c = root_lib_url.ToCString();
     const intptr_t common_suffix_length =
@@ -595,7 +597,7 @@ void IsolateReloadContext::Reload(bool force_reload,
     TIR_Print("---- EXITED TAG HANDLER\n");
   } else {
     // Check to see which libraries have been modified.
-    modified_libs_ = FindModifiedLibraries(force_reload);
+    modified_libs_ = FindModifiedLibraries(force_reload, root_lib_modified);
   }
   if (!modified_libs_->Contains(old_root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
@@ -928,7 +930,8 @@ static void PropagateLibraryModified(
   }
 }
 
-BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
+BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload,
+                                                       bool root_lib_modified) {
   Thread* thread = Thread::Current();
   int64_t last_reload = I->last_reload_timestamp();
 
@@ -1000,6 +1003,13 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload) {
   }
 
   BitVector* modified_libs = new (Z) BitVector(Z, num_libs);
+
+  if (root_lib_modified) {
+    // The root library was either moved or replaced. Mark it as modified to
+    // force a reload of the potential root library replacement.
+    lib ^= object_store()->root_library();
+    modified_libs->Add(lib.index());
+  }
 
   for (intptr_t lib_idx = 0; lib_idx < num_libs; lib_idx++) {
     lib ^= libs.At(lib_idx);

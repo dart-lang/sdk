@@ -34,7 +34,7 @@ part of dart.async;
 /// means that `FutureOr<Object>` is equivalent to `Object`.
 ///
 /// As a corollary, `FutureOr<Object>` is equivalent to
-/// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>> is equivalent to
+/// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>>` is equivalent to
 /// `Future<Object>`.
 abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable, or

@@ -421,10 +421,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         }
       } else if (input.isStringOrNull(_closedWorld)) {
         if (applies(commonElements.jsStringSplit)) {
-          HInstruction argument = node.inputs[2];
-          if (argument.isString(_closedWorld)) {
-            target = commonElements.jsStringSplit;
-          }
+          return handleStringSplit(node);
         } else if (applies(commonElements.jsStringOperatorAdd)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
@@ -466,6 +463,63 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
+  HInstruction handleStringSplit(HInvokeDynamic node) {
+    HInstruction argument = node.inputs[2];
+    if (!argument.isString(_closedWorld)) return node;
+
+    // Replace `s.split$1(pattern)` with
+    //
+    //     t1 = s.split(pattern);
+    //     t2 = String;
+    //     t3 = JSArray<t2>;
+    //     t4 = setRuntimeTypeInfo(t1, t3);
+    //
+
+    TypeMask resultMask = _closedWorld.commonMasks.growableListType;
+
+    HInvokeDynamicMethod splitInstruction = new HInvokeDynamicMethod(
+        node.selector,
+        node.mask,
+        node.inputs.sublist(1),
+        resultMask,
+        node.sourceInformation)
+      ..element = commonElements.jsStringSplit
+      ..isAllocation = true;
+
+    if (!_closedWorld.rtiNeed
+        .classNeedsTypeArguments(commonElements.jsArrayClass)) {
+      return splitInstruction;
+    }
+
+    node.block.addBefore(node, splitInstruction);
+
+    HInstruction stringTypeInfo = new HTypeInfoExpression(
+        TypeInfoExpressionKind.COMPLETE,
+        _closedWorld.elementEnvironment.getThisType(commonElements.stringClass),
+        <HInstruction>[],
+        _closedWorld.commonMasks.dynamicType);
+    node.block.addBefore(node, stringTypeInfo);
+
+    HInstruction typeInfo = new HTypeInfoExpression(
+        TypeInfoExpressionKind.INSTANCE,
+        _closedWorld.elementEnvironment
+            .getThisType(commonElements.jsArrayClass),
+        <HInstruction>[stringTypeInfo],
+        _closedWorld.commonMasks.dynamicType);
+    node.block.addBefore(node, typeInfo);
+
+    HInvokeStatic tagInstruction = new HInvokeStatic(
+        commonElements.setRuntimeTypeInfo,
+        <HInstruction>[splitInstruction, typeInfo],
+        resultMask);
+    // 'Linear typing' trick: [tagInstruction] is the only use of the
+    // [splitInstruction], so it becomes the sole alias.
+    // TODO(sra): Build this knowledge into alias analysis.
+    tagInstruction.isAllocation = true;
+
+    return tagInstruction;
+  }
+
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     propagateConstantValueToUses(node);
     if (node.isInterceptedCall) {
@@ -492,9 +546,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
         ParameterStructure parameters = method.parameterStructure;
-        if (parameters.optionalParameters == 0 ||
-            parameters.requiredParameters + parameters.optionalParameters ==
-                node.selector.argumentCount) {
+        if (parameters.totalParameters == node.selector.argumentCount &&
+            parameters.typeParameters ==
+                node.selector.callStructure.typeArgumentCount) {
           node.element = method;
         }
       }

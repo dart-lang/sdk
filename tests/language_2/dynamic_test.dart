@@ -47,7 +47,7 @@ main() {
   Expect.isTrue(m3 is Iface<String, num>);
   Expect.isTrue(m3 is! Iface<num, String>);
 
-  F1<int> f1 = (String s, int i) => s[i];
+  F1<int> f1 = (dynamic s, int i) => s[i];
   Expect.isTrue(f1 is F1<int>);
 
   HasFieldDynamic has_field = new HasFieldDynamic();

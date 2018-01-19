@@ -33,7 +33,7 @@ class Configuration {
       this.hotReload,
       this.hotReloadRollback,
       this.isChecked,
-      this.isStrong,
+      bool isStrong,
       this.isHostChecked,
       this.isCsp,
       this.isMinified,
@@ -81,7 +81,11 @@ class Configuration {
       this.fastTestsOnly,
       this.printPassingStdout})
       : _packages = packages,
-        _timeout = timeout;
+        _timeout = timeout,
+        isStrong = isStrong ||
+            // DDC always runs in strong mode.
+            compiler == Compiler.dartdevc ||
+            compiler == Compiler.dartdevk;
 
   final Architecture architecture;
   final Compiler compiler;
@@ -173,6 +177,18 @@ class Configuration {
       throw new StateError("Servers have not been started yet.");
     }
     return _servers;
+  }
+
+  /// Returns true if this configuration uses the new front end (fasta)
+  /// as the first stage of compilation.
+  bool get usesFasta {
+    var fastaCompilers = const [
+      Compiler.dartk,
+      Compiler.dartkp,
+      Compiler.dartdevk
+    ];
+    return fastaCompilers.contains(compiler) ||
+        compiler == Compiler.dart2js && useDart2JSWithKernel;
   }
 
   /// Returns true if this configuration is considered Dart 2.0 configuration
@@ -302,11 +318,6 @@ class Configuration {
       Runtime.safari: const {
         System.macos: '/Applications/Safari.app/Contents/MacOS/Safari'
       },
-      Runtime.safariMobileSim: const {
-        System.macos: '/Applications/Xcode.app/Contents/Developer/Platforms/'
-            'iPhoneSimulator.platform/Developer/Applications/'
-            'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
-      },
       Runtime.ie9: const {
         System.windows: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       },
@@ -373,11 +384,6 @@ class Configuration {
     if (runtime == Runtime.flutter && architecture != Architecture.x64) {
       isValid = false;
       print("-rflutter is applicable only for --arch=x64");
-    }
-
-    if (compiler == Compiler.dartdevc && !isStrong) {
-      isValid = false;
-      print("--compiler dartdevc requires --strong");
     }
 
     return isValid;
@@ -458,6 +464,7 @@ class Configuration {
         'csp': isCsp,
         'system': system.name,
         'vm_options': vmOptions,
+        'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
         'fast_startup': useFastStartup,
@@ -581,7 +588,6 @@ class Compiler {
           Runtime.ie11,
           Runtime.opera,
           Runtime.chromeOnAndroid,
-          Runtime.safariMobileSim
         ];
 
       case Compiler.dartdevc:
@@ -717,7 +723,6 @@ class Runtime {
   static const ie11 = const Runtime._('ie11');
   static const opera = const Runtime._('opera');
   static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
-  static const safariMobileSim = const Runtime._('safarimobilesim');
   static const contentShellOnAndroid = const Runtime._('ContentShellOnAndroid');
   static const selfCheck = const Runtime._('self_check');
   static const none = const Runtime._('none');
@@ -739,7 +744,6 @@ class Runtime {
     ie11,
     opera,
     chromeOnAndroid,
-    safariMobileSim,
     contentShellOnAndroid,
     selfCheck,
     none
@@ -769,7 +773,6 @@ class Runtime {
         chrome,
         firefox,
         chromeOnAndroid,
-        safariMobileSim,
         contentShellOnAndroid
       ].contains(this);
 
@@ -804,7 +807,6 @@ class Runtime {
       case ie11:
       case opera:
       case chromeOnAndroid:
-      case safariMobileSim:
       case contentShellOnAndroid:
         return Compiler.dart2js;
 

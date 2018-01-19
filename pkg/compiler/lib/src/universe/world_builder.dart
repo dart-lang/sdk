@@ -25,6 +25,7 @@ import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_model/locals.dart';
+import '../js_model/elements.dart' show JSignatureMethod;
 import '../kernel/element_map_impl.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
@@ -186,8 +187,4 @@ abstract class WorldBuilder {
   /// instantiated classes.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes;
-
-  /// Registers that [type] is checked in this world builder. The unaliased type
-  /// is returned.
-  void registerIsCheck(DartType type);
 }

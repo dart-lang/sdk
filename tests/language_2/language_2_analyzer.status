@@ -45,6 +45,7 @@ generics_test: StaticWarning
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
+index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail # Issue 11585
@@ -69,8 +70,8 @@ list_literal2_negative_test: CompileTimeError
 list_literal_negative_test: CompileTimeError
 map_literal_negative_test: CompileTimeError
 method_override7_test/03: Fail # Issue 11497
-method_override_test: StaticWarning
 method_override_test: CompileTimeError
+method_override_test: StaticWarning
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
@@ -1050,6 +1051,7 @@ instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
 int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interceptor6_test: CompileTimeError
+issue31596_test: CompileTimeError
 malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
@@ -1118,6 +1120,7 @@ string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_setter_test: StaticWarning # Issue 28823
 switch_case_test/none: CompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_promotion_functions_test/01: Pass
 type_promotion_functions_test/05: Pass
@@ -1132,39 +1135,48 @@ void_type_function_types_test/none: CompileTimeError # Issue 30177
 void_type_override_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/call_as: CompileTimeError # Issue 30177
 void_type_usage_test/call_for: CompileTimeError # Issue 30177
+void_type_usage_test/call_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/call_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/field_assign: CompileTimeError # Issue 30177
 void_type_usage_test/field_assign2: CompileTimeError # Issue 30177
 void_type_usage_test/final_local_as: CompileTimeError # Issue 30177
 void_type_usage_test/final_local_for: CompileTimeError # Issue 30177
+void_type_usage_test/final_local_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/global_as: CompileTimeError # Issue 30177
 void_type_usage_test/global_for: CompileTimeError # Issue 30177
 void_type_usage_test/global_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/global_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/global_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_as: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_for: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30177
+void_type_usage_test/instance2_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_as: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_for: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30177
+void_type_usage_test/instance3_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/instance_as: CompileTimeError # Issue 30177
 void_type_usage_test/instance_for: CompileTimeError # Issue 30177
+void_type_usage_test/instance_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/instance_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/local_as: CompileTimeError # Issue 30177
 void_type_usage_test/local_assign: CompileTimeError # Issue 30177
 void_type_usage_test/local_for: CompileTimeError # Issue 30177
 void_type_usage_test/local_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/local_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/local_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/param_as: CompileTimeError # Issue 30177
 void_type_usage_test/param_for: CompileTimeError # Issue 30177
 void_type_usage_test/param_for_in2: CompileTimeError # Issue 30177
+void_type_usage_test/param_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/param_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/paren_as: CompileTimeError # Issue 30177
 void_type_usage_test/paren_for: CompileTimeError # Issue 30177
+void_type_usage_test/paren_return_to_void: CompileTimeError # Issue 30177
 void_type_usage_test/paren_stmt: CompileTimeError # Issue 30177
 void_type_usage_test/setter_assign: CompileTimeError # Issue 30177
 
@@ -1362,6 +1374,7 @@ invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
 invocation_mirror_test: StaticWarning
+issue13179_test: StaticWarning
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 known_identifier_prefix_error_test/none: Pass
 least_upper_bound_expansive_test/01: MissingCompileTimeError
@@ -1487,6 +1500,7 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError # Strong mode error
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
@@ -1557,6 +1571,8 @@ transitive_private_library_access_test: MissingCompileTimeError
 try_catch_on_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
+type_inference_accessor_ref_test/03: MissingCompileTimeError
+type_inference_accessor_ref_test/06: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_promotion_functions_test/01: MissingCompileTimeError
 type_promotion_functions_test/05: MissingCompileTimeError

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 int count = 0;
 
-void f([void f([x]) = f]) {
+void f([void f([Null x]) = f]) {
   count++;
   if (f != null) {
     f(null);

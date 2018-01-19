@@ -173,7 +173,7 @@ abstract class TestSuite {
         throw 'Can not use --dart when testing Dart 2.0 configuration';
       }
 
-      dartExecutable = 'pkg/vm/tool/dart2';
+      dartExecutable = 'pkg/vm/tool/dart2$executableScriptSuffix';
     }
 
     if (dartExecutable == null) {
@@ -251,6 +251,7 @@ abstract class TestSuite {
   }
 
   String get executableBinarySuffix => Platform.isWindows ? '.exe' : '';
+  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 
   /**
    * Call the callback function onTest with a [TestCase] argument for each
@@ -585,13 +586,10 @@ class StandardTestSuite extends TestSuite {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
-      var snapshotPath = new Path(buildDir)
-          .join(new Path('dart-sdk/bin/snapshots/'
-              'utils_wrapper.dart.snapshot'))
-          .absolute
-          .toString();
       _dart2JsBootstrapDependencies = [
-        new Uri(scheme: 'file', path: snapshotPath)
+        Uri.base
+            .resolveUri(new Uri.directory(buildDir))
+            .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
     }
   }

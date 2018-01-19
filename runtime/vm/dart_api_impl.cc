@@ -1444,7 +1444,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   CHECK_ISOLATE(T->isolate());
   API_TIMELINE_BEGIN_END;
   TransitionNativeToVM transition(T);
-  T->isolate()->heap()->NotifyIdle(deadline);
+  T->isolate()->NotifyIdle(deadline);
 }
 
 DART_EXPORT void Dart_NotifyLowMemory() {
@@ -1668,6 +1668,57 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
     T->clear_sticky_error();
     return error;
+  }
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
+  CHECK_API_SCOPE(T);
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_BEGIN_END_BASIC;
+  TransitionNativeToVM transition(T);
+  if (I->message_notify_callback() != NULL) {
+    return Api::NewError("waitForEventSync is not supported by this embedder");
+  }
+  Object& result =
+      Object::Handle(Z, DartLibraryCalls::EnsureScheduleImmediate());
+  if (result.IsError()) {
+    return Api::NewHandle(T, result.raw());
+  }
+
+  // Drain the microtask queue. Propagate any errors to the entry frame.
+  result = DartLibraryCalls::DrainMicrotaskQueue();
+  if (result.IsError()) {
+    // Persist the error across unwiding scopes before propagating.
+    const Error* error;
+    {
+      NoSafepointScope no_safepoint;
+      RawError* raw_error = Error::Cast(result).raw();
+      T->UnwindScopes(T->top_exit_frame_info());
+      error = &Error::Handle(T->zone(), raw_error);
+    }
+    Exceptions::PropagateToEntry(*error);
+    UNREACHABLE();
+    return Api::NewError("Unreachable");
+  }
+
+  // Block to wait for messages and then handle them. Propagate any errors to
+  // the entry frame.
+  if (I->message_handler()->PauseAndHandleAllMessages(timeout_millis) !=
+      MessageHandler::kOK) {
+    // Persist the error across unwiding scopes before propagating.
+    const Error* error;
+    {
+      NoSafepointScope no_safepoint;
+      RawError* raw_error = T->get_and_clear_sticky_error();
+      T->UnwindScopes(T->top_exit_frame_info());
+      error = &Error::Handle(T->zone(), raw_error);
+    }
+    Exceptions::PropagateToEntry(*error);
+    UNREACHABLE();
+    return Api::NewError("Unreachable");
   }
   return Api::Success();
 }
@@ -6339,162 +6390,6 @@ Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-DART_EXPORT
-Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("No JIT feedback to save on an AOT runtime.");
-#elif defined(PRODUCT)
-  // TOOD(rmacnak): We'd need to include the JSON printing code again.
-  return Api::NewError("Dart_SaveJITFeedback not supported in PRODUCT mode.");
-#else
-  Thread* thread = Thread::Current();
-  DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-
-  if (buffer == NULL) {
-    RETURN_NULL_ERROR(buffer);
-  }
-  if (buffer_length == NULL) {
-    RETURN_NULL_ERROR(buffer_length);
-  }
-
-  JSONStream js_stream;
-  {
-    JSONObject js_profile(&js_stream);
-    js_profile.AddProperty("vmVersion", Version::CommitString());
-    js_profile.AddProperty("asserts", FLAG_enable_asserts);
-    js_profile.AddProperty("typeChecks", FLAG_enable_type_checks);
-
-    {
-      JSONArray js_scripts(&js_profile, "scripts");
-
-      const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-          zone, isolate->object_store()->libraries());
-      Library& library = Library::Handle(zone);
-      Array& scripts = Array::Handle(zone);
-      Script& script = Script::Handle(zone);
-      String& uri = String::Handle(zone);
-      for (intptr_t i = 0; i < libraries.Length(); i++) {
-        library ^= libraries.At(i);
-        scripts = library.LoadedScripts();
-        for (intptr_t j = 0; j < scripts.Length(); j++) {
-          script ^= scripts.At(j);
-          JSONObject js_script(&js_scripts);
-          uri = script.url();
-          js_script.AddProperty("uri", uri.ToCString());
-          int64_t fp = script.SourceFingerprint();
-          js_script.AddProperty64("checksum", fp);
-        }
-      }
-    }
-
-    {
-      JSONArray js_classes(&js_profile, "classes");
-
-      ClassTable* classes = isolate->class_table();
-      Class& cls = Class::Handle(zone);
-      Library& library = Library::Handle(zone);
-      String& uri = String::Handle(zone);
-      String& name = String::Handle(zone);
-      for (intptr_t cid = kNumPredefinedCids; cid < classes->NumCids(); cid++) {
-        if (!classes->HasValidClassAt(cid)) continue;
-        cls ^= classes->At(cid);
-        library = cls.library();
-        JSONObject js_class(&js_classes);
-        js_class.AddProperty("cid", cid);
-        uri = library.url();
-        js_class.AddProperty("uri", uri.ToCString());
-        name = cls.Name();
-        name = String::RemovePrivateKey(name);
-        js_class.AddProperty("name", name.ToCString());
-      }
-    }
-
-    {
-      JSONArray js_functions(&js_profile, "functions");
-
-      class JITFeedbackFunctionVisitor : public FunctionVisitor {
-       public:
-        JITFeedbackFunctionVisitor(JSONArray* js_functions, Zone* zone)
-            : js_functions_(js_functions),
-              function_(Function::Handle(zone)),
-              owner_(Class::Handle(zone)),
-              name_(String::Handle(zone)),
-              ic_datas_(Array::Handle(zone)),
-              ic_data_(ICData::Handle(zone)),
-              entry_(Object::Handle(zone)) {}
-
-        void Visit(const Function& function) {
-          if (function.usage_counter() == 0) return;
-
-          JSONObject js_function(js_functions_);
-          name_ = function.name();
-          name_ = String::RemovePrivateKey(name_);
-          js_function.AddProperty("name", name_.ToCString());
-          owner_ ^= function.Owner();
-          js_function.AddProperty("class", owner_.id());
-          js_function.AddProperty("tokenPos", function.token_pos().value());
-          js_function.AddProperty("kind",
-                                  static_cast<intptr_t>(function.kind()));
-          intptr_t usage = function.usage_counter();
-          if (usage < 0) {
-            // Function was in the background compiler's queue.
-            usage = FLAG_optimization_counter_threshold;
-          }
-          js_function.AddProperty("usageCounter", usage);
-
-          ic_datas_ = function.ic_data_array();
-          JSONArray js_icdatas(&js_function, "ics");
-          if (ic_datas_.IsNull()) return;
-
-          for (intptr_t j = 0; j < ic_datas_.Length(); j++) {
-            entry_ = ic_datas_.At(j);
-            if (!entry_.IsICData()) continue;  // Skip edge counters.
-            ic_data_ ^= entry_.raw();
-
-            JSONObject js_icdata(&js_icdatas);
-            js_icdata.AddProperty("deoptId", ic_data_.deopt_id());
-            name_ = ic_data_.target_name();
-            name_ = String::RemovePrivateKey(name_);
-            js_icdata.AddProperty("selector", name_.ToCString());
-            js_icdata.AddProperty("isStaticCall", ic_data_.is_static_call());
-            intptr_t num_args_checked = ic_data_.NumArgsTested();
-            js_icdata.AddProperty("argsTested", num_args_checked);
-            JSONArray js_entries(&js_icdata, "entries");
-            const intptr_t number_of_checks = ic_data_.NumberOfChecks();
-            for (intptr_t check = 0; check < number_of_checks; check++) {
-              GrowableArray<intptr_t> class_ids(num_args_checked);
-              ic_data_.GetClassIdsAt(check, &class_ids);
-              for (intptr_t k = 0; k < num_args_checked; k++) {
-                ASSERT(class_ids[k] != kIllegalCid);
-                js_entries.AddValue(class_ids[k]);
-              }
-              js_entries.AddValue(ic_data_.GetCountAt(check));
-            }
-          }
-        }
-
-       private:
-        JSONArray* js_functions_;
-        Function& function_;
-        Class& owner_;
-        String& name_;
-        Array& ic_datas_;
-        ICData& ic_data_;
-        Object& entry_;
-      };
-
-      JITFeedbackFunctionVisitor visitor(&js_functions, zone);
-      ProgramVisitor::VisitFunctions(&visitor);
-    }
-  }
-
-  js_stream.Steal(reinterpret_cast<char**>(buffer), buffer_length);
-  return Api::Success();
-#endif
-}
-
 DART_EXPORT Dart_Handle Dart_SortClasses() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
@@ -6512,9 +6407,7 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
 }
 
 DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                uint8_t* jit_feedback,
-                intptr_t jit_feedback_length) {
+Dart_Precompile(Dart_QualifiedFunctionName entry_points[]) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6533,8 +6426,7 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  const Error& error = Error::Handle(
-      Precompiler::CompileAll(entry_points, jit_feedback, jit_feedback_length));
+  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.raw());
   }

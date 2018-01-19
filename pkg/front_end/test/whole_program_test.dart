@@ -8,6 +8,9 @@ import 'dart:io' show Directory, File, Platform;
 import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
 import 'package:testing/testing.dart' show StdioProcess;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 final Uri compiler = Uri.base.resolve('pkg/front_end/tool/_fasta/compile.dart');
 
 final Uri transform = Uri.base.resolve('pkg/kernel/bin/transform.dart');
@@ -15,7 +18,8 @@ final Uri dump = Uri.base.resolve('pkg/kernel/bin/dump.dart');
 
 final Uri packagesFile = Uri.base.resolve('.packages');
 
-final Uri dartVm = Uri.base.resolve(Platform.resolvedExecutable);
+final Uri dartVm =
+    Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
 
 Future main() async {
   asyncStart();
@@ -47,14 +51,14 @@ Future main() async {
 }
 
 Future runCompiler(Uri input, Uri output) async {
-  final buildDir = Uri.base.resolve(Platform.resolvedExecutable).resolve(".");
-  final platformDill = buildDir.resolve("vm_platform.dill").toFilePath();
+  final Uri platformDill =
+      computePlatformBinariesLocation().resolve("vm_platform.dill");
 
   final List<String> arguments = <String>[
     '--packages=${packagesFile.toFilePath()}',
     '-c',
     compiler.toFilePath(),
-    '--platform=$platformDill',
+    '--platform=${platformDill.toFilePath()}',
     '--output=${output.toFilePath()}',
     '--packages=${packagesFile.toFilePath()}',
     '--verify',

@@ -23,6 +23,7 @@ class SelectorKind {
   static const SelectorKind CALL = const SelectorKind('call', 2);
   static const SelectorKind OPERATOR = const SelectorKind('operator', 3);
   static const SelectorKind INDEX = const SelectorKind('index', 4);
+  static const SelectorKind SPECIAL = const SelectorKind('special', 5);
 
   int get index => hashCode;
 
@@ -33,7 +34,8 @@ class SelectorKind {
     SETTER,
     CALL,
     OPERATOR,
-    INDEX
+    INDEX,
+    SPECIAL
   ];
 }
 
@@ -47,6 +49,7 @@ class Selector {
   int get argumentCount => callStructure.argumentCount;
   int get namedArgumentCount => callStructure.namedArgumentCount;
   int get positionalArgumentCount => callStructure.positionalArgumentCount;
+  int get typeArgumentCount => callStructure.typeArgumentCount;
   List<String> get namedArguments => callStructure.namedArguments;
 
   String get name => memberName.text;
@@ -181,6 +184,11 @@ class Selector {
 
   factory Selector.callDefaultConstructor() => new Selector(
       SelectorKind.CALL, const PublicName(''), CallStructure.NO_ARGS);
+
+  factory Selector.genericInstantiation(int typeArguments) => new Selector(
+      SelectorKind.SPECIAL,
+      Names.genericInstantiation,
+      new CallStructure(0, null, typeArguments));
 
   bool get isGetter => kind == SelectorKind.GETTER;
   bool get isSetter => kind == SelectorKind.SETTER;

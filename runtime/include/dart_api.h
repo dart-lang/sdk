@@ -562,6 +562,7 @@ typedef struct {
   Dart_QualifiedFunctionName* entry_points;
   bool reify_generic_functions;
   bool strong;
+  bool load_vmservice_library;
 } Dart_IsolateFlags;
 
 /**
@@ -1219,6 +1220,16 @@ DART_EXPORT Dart_Handle Dart_HandleMessage();
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_HandleMessages();
+
+/**
+ * Drains the microtask queue, then blocks the calling thread until the current
+ * isolate recieves a message, then handles all messages.
+ *
+ * \param timeout_millis When non-zero, the call returns after the indicated
+          number of milliseconds even if no message was received.
+ * \return A valid handle if no error occurs, otherwise an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis);
 
 /**
  * Handles any pending messages for the vm service for the current
@@ -2330,7 +2341,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
  * \return An error handle if the exception was not thrown.
  *   Otherwise the function does not return.
  */
-DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
+DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace);
 
 /*
@@ -3186,44 +3197,17 @@ DART_EXPORT Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer,
  */
 
 /**
- * Saves a serialized version of the information collected for use by the
- * optimizing compiler, such as type feedback and usage counters. When this
- * information is passed to Dart_Precompile, the AOT compiler may use it to
- * produce faster and smaller code. The feedback is only used if the JIT that
- * created it and the AOT compiler consuming it
- *   - are running the same Dart program
- *   - are built from the same version of the VM
- *   - agree on whether type checks and assertions are enabled
- *
- * \return Returns an error handler if the VM was built in a mode that does not
- * support saving JIT feedback.
- */
-DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
-                                             intptr_t* buffer_length);
-
-/**
  * Compiles all functions reachable from the provided entry points and marks
  * the isolate to disallow future compilation.
  *
  * \param entry_points A list of functions that may be invoked through the
  * embedding API, e.g. Dart_Invoke/GetField/SetField/New/InvokeClosure.
  *
- * \param reset_fields Controls whether static fields are reset. Fields without
- * an initializer will be set to null, and fields with an initializer will have
- * their initializer run the next time they are accessed.
- *
- * reset_fields is true when we are about to create a precompilated snapshot.
- * Some fields are already been initialized as part of the loading logic, and
- * we want them to be reinitialized in the new process that will load the
- * snapshot.
- *
  * \return An error handle if a compilation error or runtime error running const
  * constructors was encountered.
  */
 DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
-                uint8_t* jit_feedback,
-                intptr_t jit_feedback_length);
+Dart_Precompile(Dart_QualifiedFunctionName entry_points[]);
 
 /**
  *  Creates a precompiled snapshot.

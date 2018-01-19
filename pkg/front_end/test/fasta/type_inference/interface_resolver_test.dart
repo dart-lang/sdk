@@ -8,7 +8,6 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_program.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
@@ -22,23 +21,38 @@ main() {
 
 @reflectiveTest
 class InterfaceResolverTest {
-  final testLib =
-      new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib');
+  final Library testLib;
 
-  Program program;
+  final Program program;
 
-  CoreTypes coreTypes;
+  final CoreTypes coreTypes;
 
-  ClassHierarchy classHierarchy;
+  ClassHierarchy cachedClassHierarchy;
 
-  TypeSchemaEnvironment typeEnvironment;
+  TypeSchemaEnvironment cachedTypeEnvironment;
 
-  InterfaceResolver interfaceResolver;
+  InterfaceResolver cachedInterfaceResolver;
 
-  InterfaceResolverTest() {
-    program = createMockSdkProgram();
-    program.libraries.add(testLib..parent = program);
-    resetInterfaceResolver();
+  InterfaceResolverTest()
+      : this._(new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib'),
+            createMockSdkProgram());
+
+  InterfaceResolverTest._(this.testLib, Program program)
+      : program = program..libraries.add(testLib..parent = program),
+        coreTypes = new CoreTypes(program);
+
+  ClassHierarchy get classHierarchy {
+    return cachedClassHierarchy ??= new ClassHierarchy(program);
+  }
+
+  TypeSchemaEnvironment get typeEnvironment {
+    return cachedTypeEnvironment ??=
+        new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
+  }
+
+  InterfaceResolver get interfaceResolver {
+    return cachedInterfaceResolver ??=
+        new InterfaceResolver(null, typeEnvironment, null, true);
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;
@@ -70,8 +84,7 @@ class InterfaceResolverTest {
       expect(interfaceMember, same(member));
     }
 
-    check(new ClosedWorldClassHierarchy(program));
-    check(new IncrementalClassHierarchy());
+    check(new ClassHierarchy(program));
   }
 
   Procedure getCandidate(Class class_, bool setter) {
@@ -125,6 +138,7 @@ class InterfaceResolverTest {
       List<Supertype> implementedTypes,
       List<Procedure> procedures,
       List<Field> fields}) {
+    resetInterfaceResolver();
     var class_ = new ShadowClass(
         name: name ?? 'C',
         supertype: supertype ?? objectClass.asThisSupertype,
@@ -197,12 +211,9 @@ class InterfaceResolverTest {
   }
 
   void resetInterfaceResolver() {
-    classHierarchy = new IncrementalClassHierarchy();
-    coreTypes = new CoreTypes(program);
-    typeEnvironment =
-        new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
-    interfaceResolver =
-        new InterfaceResolver(null, typeEnvironment, null, true);
+    cachedClassHierarchy = null;
+    cachedTypeEnvironment = null;
+    cachedInterfaceResolver = null;
   }
 
   void test_candidate_for_field_getter() {
@@ -729,7 +740,7 @@ class InterfaceResolverTest {
     expect(y.isGenericCovariantImpl, isFalse);
     expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isTrue);
-    expect(ForwardingStub.getInterfaceTarget(stub), same(methodA));
+    expect(stub.forwardingStubInterfaceTarget.node, same(methodA));
     expect(getStubTarget(stub), same(methodA));
   }
 
@@ -777,7 +788,7 @@ class InterfaceResolverTest {
     expect(y.isGenericCovariantImpl, isTrue);
     expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isFalse);
-    expect(ForwardingStub.getInterfaceTarget(stub), same(methodA));
+    expect(stub.forwardingStubInterfaceTarget.node, same(methodA));
     expect(getStubTarget(stub), same(methodA));
   }
 
@@ -822,7 +833,7 @@ class InterfaceResolverTest {
     ]);
     var nodeE = getForwardingNode(e, false);
     var stub = nodeE.finalize();
-    expect(ForwardingStub.getInterfaceTarget(stub), same(methodC));
+    expect(stub.forwardingStubInterfaceTarget.node, same(methodC));
     expect(getStubTarget(stub), same(methodC));
   }
 
@@ -855,7 +866,7 @@ class InterfaceResolverTest {
         implementedTypes: [i2.asThisSupertype]);
     var nodeE = getForwardingNode(e, true);
     var stub = nodeE.finalize();
-    expect(ForwardingStub.getInterfaceTarget(stub), same(setterC));
+    expect(stub.forwardingStubInterfaceTarget.node, same(setterC));
     expect(getStubTarget(stub), same(setterC));
   }
 
@@ -870,7 +881,7 @@ class InterfaceResolverTest {
         implementedTypes: [b.asThisSupertype]);
     var node = getForwardingNode(c, false);
     var stub = node.finalize();
-    expect(ForwardingStub.getInterfaceTarget(stub), same(fieldB));
+    expect(stub.forwardingStubInterfaceTarget.node, same(fieldB));
   }
 
   void test_merge_candidates_including_mixin() {
@@ -965,7 +976,7 @@ class InterfaceResolverTest {
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
     var stub = node.finalize();
-    expect(ForwardingStub.getInterfaceTarget(stub), same(methodB));
+    expect(stub.forwardingStubInterfaceTarget.node, same(methodB));
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }
@@ -984,7 +995,7 @@ class InterfaceResolverTest {
     ]);
     var node = getForwardingNode(d, true);
     var stub = node.finalize();
-    expect(ForwardingStub.getInterfaceTarget(stub), same(setterB));
+    expect(stub.forwardingStubInterfaceTarget.node, same(setterB));
     expect(getStubTarget(stub), isNull);
     expect(stub.function.positionalParameters[0].type, objectType);
   }
@@ -1017,11 +1028,11 @@ class InterfaceResolverTest {
     var resolvedMethod = node.finalize();
     expect(resolvedMethod, same(methodC));
     expect(methodC.function.body, isNotNull);
-    expect(methodC, isNot(new isInstanceOf<ForwardingStub>()));
+    expect(methodC.forwardingStubInterfaceTarget, isNull);
     expect(getStubTarget(methodC), same(methodA));
   }
 
-  void test_resolve_with_subsitutions() {
+  void test_resolve_with_substitutions() {
     var typeParamA = new TypeParameter('T', objectType);
     var typeParamB = new TypeParameter('T', objectType);
     var typeParamC = new TypeParameter('T', objectType);
@@ -1046,7 +1057,7 @@ class InterfaceResolverTest {
         ]);
     var node = getForwardingNode(d, false);
     var stub = node.finalize();
-    expect(ForwardingStub.getInterfaceTarget(stub), same(methodB));
+    expect(stub.forwardingStubInterfaceTarget.node, same(methodB));
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }

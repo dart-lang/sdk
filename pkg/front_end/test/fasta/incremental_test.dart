@@ -35,15 +35,7 @@ import 'package:front_end/src/external_state_snapshot.dart'
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'package:front_end/src/incremental_kernel_generator_impl.dart'
-    show IncrementalKernelGeneratorImpl;
-
-import 'package:front_end/src/minimal_incremental_kernel_generator.dart'
-    show MinimalIncrementalKernelGenerator;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -59,42 +51,19 @@ final Uri base = Uri.parse("org-dartlang-test:///");
 
 final Uri entryPoint = base.resolve("main.dart");
 
-enum Generator {
-  original,
-  minimal,
-  fasta,
-}
-
-Generator generatorFromString(String string) {
-  if (string == null) return Generator.fasta;
-  switch (string) {
-    case "original":
-      return Generator.original;
-    case "minimal":
-      return Generator.minimal;
-    case "fasta":
-      return Generator.fasta;
-    default:
-      throw "Unknown generator: '$string'";
-  }
-}
-
 class Context extends ChainContext {
   final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
   final List<CompilationMessage> errors;
-  final Generator requestedGenerator;
 
   final List<Step> steps = const <Step>[
     const ReadTest(),
-    const PrepareIncrementalKernelGenerator(),
     const RunCompilations(),
   ];
 
-  IncrementalKernelGenerator compiler;
+  final IncrementalKernelGenerator compiler;
 
-  Context(
-      this.compilerContext, this.snapshot, this.errors, this.requestedGenerator)
+  Context(this.compilerContext, this.snapshot, this.errors)
       : compiler = new IncrementalCompiler(compilerContext);
 
   ProcessedOptions get options => compilerContext.options;
@@ -150,32 +119,6 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
   }
 }
 
-class PrepareIncrementalKernelGenerator
-    extends Step<TestCase, TestCase, Context> {
-  String get name => "prepare IKG";
-
-  const PrepareIncrementalKernelGenerator();
-
-  Future<Result<TestCase>> run(TestCase test, Context context) async {
-    if (Generator.fasta != context.requestedGenerator) {
-      context.compiler = await context
-          .runInContext<Future<IncrementalKernelGenerator>>(
-              (CompilerContext c) async {
-        UriTranslator uriTranslator = await c.options.getUriTranslator();
-        List<int> sdkOutlineBytes = await c.options.loadSdkSummaryBytes();
-        if (Generator.minimal == context.requestedGenerator) {
-          return new MinimalIncrementalKernelGenerator(c.options, uriTranslator,
-              sdkOutlineBytes, context.options.inputs.first);
-        } else {
-          return new IncrementalKernelGeneratorImpl(c.options, uriTranslator,
-              sdkOutlineBytes, context.options.inputs.first);
-        }
-      });
-    }
-    return pass(test);
-  }
-}
-
 class RunCompilations extends Step<TestCase, TestCase, Context> {
   const RunCompilations();
 
@@ -203,16 +146,18 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
         return edits == 0 ? fail(test, "No sources found") : pass(test);
       }
       var compiler = context.compiler;
-      var delta = compiler is IncrementalCompiler
-          ? (await compiler.computeDelta(entryPoint: entryPoint))
-          : (await compiler.computeDelta());
-      // ignore: UNUSED_LOCAL_VARIABLE
-      Program program = delta.newProgram;
+      Program program = await compiler.computeDelta(entryPoint: entryPoint);
       List<CompilationMessage> errors = context.takeErrors();
-      if (errors.isNotEmpty && !test.expectations[edits].hasCompileTimeError) {
-        return fail(test, errors.join("\n"));
+      if (test.expectations[edits].hasCompileTimeError) {
+        if (errors.isEmpty) {
+          return fail(test, "Compile-time error expected, but none reported");
+        }
+      } else if (errors.isNotEmpty) {
+        return fail(
+            test, "Unexpected compile-time errors:\n  ${errors.join('\n  ')}");
+      } else if (program.libraries.length < 1) {
+        return fail(test, "The compiler detected no changes");
       }
-      context.compiler.acceptLastDelta();
     }
   }
 }
@@ -287,11 +232,7 @@ Future<Context> createContext(
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
 
-  final Generator requestedGenerator =
-      generatorFromString(environment["generator"]);
-
-  return new Context(
-      new CompilerContext(options), snapshot, errors, requestedGenerator);
+  return new Context(new CompilerContext(options), snapshot, errors);
 }
 
 main([List<String> arguments = const []]) =>

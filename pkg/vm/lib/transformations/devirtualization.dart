@@ -14,8 +14,7 @@ import '../metadata/direct_call.dart';
 /// Devirtualization of method invocations based on the class hierarchy
 /// analysis. Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
-  new CHADevirtualization(
-          coreTypes, program, new ClosedWorldClassHierarchy(program))
+  new CHADevirtualization(coreTypes, program, new ClassHierarchy(program))
       .visitProgram(program);
   return program;
 }
@@ -65,6 +64,10 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
     return true;
   }
 
+  bool hasExtraTargetForNull(DirectCallMetadata directCall) =>
+      directCall.checkReceiverForNull &&
+      _objectMemberNames.contains(directCall.target.name);
+
   DirectCallMetadata getDirectCall(TreeNode node, Member target,
       {bool setter = false});
 
@@ -90,15 +93,14 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
     super.visitMethodInvocation(node);
 
     Member target = node.interfaceTarget;
-    if ((target != null) &&
-        isMethod(target) &&
-        !_objectMemberNames.contains(target.name)) {
+    if ((target != null) && isMethod(target)) {
       DirectCallMetadata directCall = getDirectCall(node, target);
       // TODO(dartbug.com/30480): Convert _isLegalTargetForMethodInvocation()
       // check into an assertion once front-end implements override checks.
       if ((directCall != null) &&
           isMethod(directCall.target) &&
-          isLegalTargetForMethodInvocation(directCall.target, node.arguments)) {
+          isLegalTargetForMethodInvocation(directCall.target, node.arguments) &&
+          !hasExtraTargetForNull(directCall)) {
         makeDirectCall(node, target, directCall);
       }
     }
@@ -109,11 +111,11 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
     super.visitPropertyGet(node);
 
     Member target = node.interfaceTarget;
-    if ((target != null) &&
-        isFieldOrGetter(target) &&
-        !_objectMemberNames.contains(target.name)) {
+    if ((target != null) && isFieldOrGetter(target)) {
       DirectCallMetadata directCall = getDirectCall(node, target);
-      if ((directCall != null) && isFieldOrGetter(directCall.target)) {
+      if ((directCall != null) &&
+          isFieldOrGetter(directCall.target) &&
+          !hasExtraTargetForNull(directCall)) {
         makeDirectCall(node, target, directCall);
       }
     }

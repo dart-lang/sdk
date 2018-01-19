@@ -10,19 +10,23 @@ import 'kernel_helpers.dart';
 bool _isJSLibrary(Library library) {
   if (library == null) return false;
   var uri = library.importUri;
-  if (uri.scheme == 'package' && uri.path.startsWith('js/')) return true;
-  if (uri.scheme == 'dart') {
-    return uri.path == '_js_helper' || uri.path == '_foreign_helper';
-  }
-  return false;
+  var scheme = uri.scheme;
+  return scheme == 'package' && uri.pathSegments[0] == 'js' ||
+      scheme == 'dart' &&
+          (uri.path == '_js_helper' || uri.path == '_foreign_helper');
 }
 
 bool _annotationIsFromJSLibrary(String expectedName, Expression value) {
+  Class c;
   if (value is ConstructorInvocation) {
-    var c = value.target.enclosingClass;
-    return c.name == expectedName && _isJSLibrary(getLibrary(c));
+    c = value.target.enclosingClass;
+  } else if (value is StaticGet) {
+    var type = value.target.getterType;
+    if (type is InterfaceType) c = type.classNode;
   }
-  return false;
+  return c != null &&
+      c.name == expectedName &&
+      _isJSLibrary(c.enclosingLibrary);
 }
 
 /// Whether [value] is a `@rest` annotation (to be used on function parameters
@@ -74,12 +78,6 @@ bool isJsPeerInterface(Expression value) =>
 
 bool isNativeAnnotation(Expression value) =>
     _isBuiltinAnnotation(value, '_js_helper', 'Native');
-
-bool isNotNullAnnotation(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'NotNull');
-
-bool isNullCheckAnnotation(Expression value) =>
-    _isBuiltinAnnotation(value, '_js_helper', 'NullCheck');
 
 bool isJSAnonymousType(Class namedClass) {
   return _isJSNative(namedClass) &&

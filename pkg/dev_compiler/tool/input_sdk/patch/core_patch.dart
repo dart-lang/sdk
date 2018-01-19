@@ -691,3 +691,13 @@ class _ConstantExpressionError {
   @patch
   _throw(error) => throw error;
 }
+
+// TODO(jmesserly): this class is supposed to be obsolete in Strong Mode, but
+// the front-end crashes without it
+class _DuplicatedFieldInitializerError {
+  final String _name;
+
+  _DuplicatedFieldInitializerError(this._name);
+
+  toString() => "Error: field '$_name' is already initialized.";
+}

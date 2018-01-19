@@ -49,8 +49,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'm(B b, [_s_]){}',
-              failing: ['fieldConst']),
+              'm(B b, [_s_]){}'),
           new TestDescriptor(
               'noType_emptyNamed',
               'm(B b, {})',
@@ -58,8 +57,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'm(B b, {_s_}){}',
-              failing: ['fieldConst']),
+              'm(B b, {_s_}){}'),
           //
           // Instance method, with simple return type.
           //
@@ -94,8 +92,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'A m(B b, [_s_]){}',
-              failing: ['fieldConst']),
+              'A m(B b, [_s_]){}'),
           new TestDescriptor(
               'type_emptyNamed',
               'A m(B b, {})',
@@ -103,8 +100,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'A m(B b, {_s_}){}',
-              failing: ['fieldConst']),
+              'A m(B b, {_s_}){}'),
           //
           // Static method, no return type.
           //
@@ -139,8 +135,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'static m(B b, [_s_]){}',
-              failing: ['fieldConst']),
+              'static m(B b, [_s_]){}'),
           new TestDescriptor(
               'static_noType_emptyNamed',
               'static m(B b, {})',
@@ -148,8 +143,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'static m(B b, {_s_}){}',
-              failing: ['fieldConst']),
+              'static m(B b, {_s_}){}'),
           //
           // Static method, with simple return type.
           //
@@ -184,8 +178,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'static A m(B b, [_s_]){}',
-              failing: ['fieldConst']),
+              'static A m(B b, [_s_]){}'),
           new TestDescriptor(
               'static_type_emptyNamed',
               'static A m(B b, {})',
@@ -193,8 +186,7 @@ class MethodTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.MISSING_FUNCTION_BODY
               ],
-              'static A m(B b, {_s_}){}',
-              failing: ['fieldConst']),
+              'static A m(B b, {_s_}){}'),
         ],
         PartialCodeTest.classMemberSuffixes,
         head: 'class C { ',

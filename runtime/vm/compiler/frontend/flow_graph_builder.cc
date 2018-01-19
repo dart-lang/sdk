@@ -2511,7 +2511,8 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
       node->arguments()->names(), arguments, owner()->ic_data_array(),
       owner()->GetNextDeoptId(), ConvertRebindRule(node->rebind_rule()));
   if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
-    call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
+    call->SetResultType(
+        Z, CompileType::FromCid(MethodRecognizer::ResultCid(node->function())));
   }
   ReturnDefinition(call);
 }
@@ -2650,7 +2651,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
         owner()->GetNextDeoptId(), ICData::kStatic);
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
-      call->set_result_cid(result_cid);
+      call->SetResultType(Z, CompileType::FromCid(result_cid));
       call->set_is_known_list_constructor(true);
       // Recognized fixed length array factory must have two arguments:
       // (0) type-arguments, (1) length.
@@ -2658,7 +2659,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
              arguments->length() == 2);
     } else if (node->constructor().recognized_kind() !=
                MethodRecognizer::kUnknown) {
-      call->set_result_cid(MethodRecognizer::ResultCid(node->constructor()));
+      call->SetResultType(Z, CompileType::FromCid(MethodRecognizer::ResultCid(
+                                 node->constructor())));
     }
     ReturnDefinition(call);
     return;
@@ -3318,15 +3320,24 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
 
   const ParsedFunction& pf = owner_->parsed_function();
   const String& name = String::ZoneHandle(Z, function.native_name());
-  ZoneGrowableArray<PushArgumentInstr*>& args =
-      *new (Z) ZoneGrowableArray<PushArgumentInstr*>(function.NumParameters());
+  const intptr_t num_params = function.NumParameters();
+  ZoneGrowableArray<PushArgumentInstr*>* args = NULL;
+  if (function.IsGeneric() && owner()->isolate()->reify_generic_functions()) {
+    args = new (Z) ZoneGrowableArray<PushArgumentInstr*>(1 + num_params);
+    LocalVariable* type_args = pf.RawTypeArgumentsVariable();
+    ASSERT(type_args != NULL);
+    Value* value = Bind(new (Z) LoadLocalInstr(*type_args, node->token_pos()));
+    args->Add(PushArgument(value));
+  } else {
+    args = new (Z) ZoneGrowableArray<PushArgumentInstr*>(num_params);
+  }
   for (intptr_t i = 0; i < function.NumParameters(); ++i) {
     LocalVariable* parameter = pf.RawParameterVariable(i);
     Value* value = Bind(new (Z) LoadLocalInstr(*parameter, node->token_pos()));
-    args.Add(PushArgument(value));
+    args->Add(PushArgument(value));
   }
   NativeCallInstr* native_call = new (Z) NativeCallInstr(
-      &name, &function, FLAG_link_natives_lazily, node->token_pos(), &args);
+      &name, &function, FLAG_link_natives_lazily, node->token_pos(), args);
   ReturnDefinition(native_call);
 }
 

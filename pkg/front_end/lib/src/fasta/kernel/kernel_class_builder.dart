@@ -66,6 +66,7 @@ import 'kernel_builder.dart'
         ProcedureBuilder,
         Scope,
         TypeVariableBuilder,
+        TypeBuilder,
         computeDefaultTypeArguments;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
@@ -73,6 +74,9 @@ import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 abstract class KernelClassBuilder
     extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
   KernelClassBuilder actualOrigin;
+
+  @override
+  List<TypeBuilder> calculatedBounds;
 
   KernelClassBuilder(
       List<MetadataBuilder> metadata,
@@ -120,6 +124,7 @@ abstract class KernelClassBuilder
 
   InterfaceType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    arguments ??= calculatedBounds;
     List<DartType> typeArguments;
     if (arguments != null) {
       typeArguments = buildTypeArguments(library, arguments);

@@ -16,7 +16,8 @@ void logMessages(SendPort replyTo) {
   print("Starting log server.");
   ReceivePort port = new ReceivePort();
   replyTo.send(port.sendPort);
-  port.first.then((List<int> message) {
+  port.first.then((_message) {
+    List<int> message = _message;
     print("Log $message");
     Expect.equals(5, message.length);
     Expect.equals(0, message[0]);

@@ -147,6 +147,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(
       TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::InitOnce"));
   Isolate::InitOnce();
+  IdleNotifier::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
   ForwardingCorpse::InitOnce();
@@ -415,6 +416,7 @@ const char* Dart::Cleanup() {
   }
   WaitForIsolateShutdown();
 
+  IdleNotifier::Stop();
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
@@ -446,6 +448,7 @@ const char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
+  IdleNotifier::Cleanup();
 
   TargetCPUFeatures::Cleanup();
   StoreBuffer::ShutDown();

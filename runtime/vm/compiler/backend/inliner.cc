@@ -832,15 +832,6 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    if ((inliner_->precompiler_ != NULL) &&
-        inliner_->precompiler_->HasFeedback() &&
-        (function.usage_counter() <= 0) && !inliner_->AlwaysInline(function)) {
-      TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
-      PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
-                          call_data->call);
-      return false;
-    }
-
     // Type feedback may have been cleared for this function (ClearICDataArray),
     // but we need it for inlining.
     if (!FLAG_precompiled_mode && (function.ic_data_array() == Array::null())) {
@@ -980,10 +971,6 @@ class CallSiteInliner : public ValueObject {
         if (FLAG_precompiled_mode) {
           Precompiler::PopulateWithICData(parsed_function->function(),
                                           callee_graph);
-          if (inliner_->precompiler_ != NULL) {
-            inliner_->precompiler_->TryApplyFeedback(
-                parsed_function->function(), callee_graph);
-          }
         }
 #endif
 
@@ -1082,6 +1069,8 @@ class CallSiteInliner : public ValueObject {
             // before 'SelectRepresentations' which inserts conversion nodes.
             callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            callee_graph->Canonicalize();
 #else
             UNREACHABLE();
 #endif  // DART_PRECOMPILER
@@ -2216,10 +2205,6 @@ int FlowGraphInliner::Inline() {
   }
 
   intptr_t inlining_depth_threshold = FLAG_inlining_depth_threshold;
-  if ((precompiler_ != NULL) && precompiler_->HasFeedback() &&
-      (top.usage_counter() <= 0)) {
-    inlining_depth_threshold = 1;
-  }
 
   CallSiteInliner inliner(this, inlining_depth_threshold);
   inliner.InlineCalls();

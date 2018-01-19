@@ -43,7 +43,7 @@ main(List<String> args) {
   ClassHierarchy buildHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(program)
-        : new ClosedWorldClassHierarchy(program);
+        : new ClassHierarchy(program);
   }
 
   List<ClosedWorldClassHierarchy> keepAlive = <ClosedWorldClassHierarchy>[];

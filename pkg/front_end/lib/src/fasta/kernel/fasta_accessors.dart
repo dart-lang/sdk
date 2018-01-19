@@ -32,6 +32,7 @@ import 'frontend_accessors.dart' as kernel
         LoadLibraryAccessor,
         PropertyAccessor,
         ReadOnlyAccessor,
+        DeferredAccessor,
         DelayedErrorAccessor,
         StaticAccessor,
         SuperIndexAccessor,
@@ -47,11 +48,15 @@ import 'kernel_builder.dart'
         Builder,
         FunctionTypeAliasBuilder,
         KernelClassBuilder,
+        KernelFunctionTypeAliasBuilder,
         KernelInvalidTypeBuilder,
+        KernelLibraryBuilder,
+        KernelTypeVariableBuilder,
         LibraryBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        KernelTypeBuilder;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -65,9 +70,9 @@ import 'kernel_shadow_ast.dart'
         ShadowTypeLiteral,
         ShadowVariableAssignment;
 
-import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
-
 import 'utils.dart' show offsetForToken;
+
+import 'type_algorithms.dart' show calculateBoundsForDeclaration;
 
 abstract class BuilderHelper {
   LibraryBuilder get library;
@@ -133,6 +138,8 @@ abstract class BuilderHelper {
 
   StaticGet makeStaticGet(Member readTarget, Token token,
       {String prefixName, int targetOffset: -1, Class targetClass});
+
+  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix);
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
@@ -672,7 +679,7 @@ class IndexAccessor extends kernel.IndexAccessor with FastaAccessor {
 
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
+        buildSimpleRead(), callName, arguments, arguments.fileOffset,
         isImplicitCall: true);
   }
 
@@ -818,6 +825,24 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset);
+  }
+}
+
+class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
+  DeferredAccessor(BuilderHelper helper, Token token, PrefixBuilder builder,
+      StaticAccessor expression)
+      : super(helper, token, builder, expression);
+
+  String get plainNameForRead {
+    return unsupported(
+        "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
+  }
+
+  StaticAccessor get staticAccessor => super.staticAccessor;
+
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.makeDeferredCheck(
+        staticAccessor.doInvocation(offset, arguments), builder);
   }
 }
 
@@ -1050,8 +1075,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
               ..fileOffset = offsetForToken(token))
           ..fileOffset = offset;
       } else {
-        super.expression = new ShadowTypeLiteral(
-            prefix?.name, buildType(null, nonInstanceAccessIsError: true))
+        super.expression = new ShadowTypeLiteral(prefix?.name,
+            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true))
           ..fileOffset = offsetForToken(token);
       }
     }
@@ -1111,7 +1136,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
     }
   }
 
-  DartType buildType(List<DartType> arguments,
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false}) {
     if (arguments != null) {
       int expected = 0;
@@ -1138,8 +1163,68 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         arguments = null;
       }
     }
-    DartType type =
-        declaration.buildTypesWithBuiltArguments(helper.library, arguments);
+
+    DartType type;
+    LibraryBuilder helperLibrary = helper.library;
+    if (arguments == null &&
+        helperLibrary is KernelLibraryBuilder &&
+        helperLibrary.loader.target.strongMode) {
+      TypeDeclarationBuilder typeDeclaration = declaration;
+      if (typeDeclaration is KernelClassBuilder) {
+        typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
+            typeDeclaration,
+            helperLibrary.loader.target.dynamicType,
+            helperLibrary.loader.coreLibrary["Object"]);
+        type = typeDeclaration.buildType(
+            helper.library, typeDeclaration.calculatedBounds);
+      } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
+        typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
+            typeDeclaration,
+            helperLibrary.loader.target.dynamicType,
+            helperLibrary.loader.coreLibrary["Object"]);
+        type = typeDeclaration.buildType(
+            helper.library, typeDeclaration.calculatedBounds);
+      }
+    }
+    if (type == null) {
+      type =
+          declaration.buildTypesWithBuiltArguments(helper.library, arguments);
+    }
+    if (type is TypeParameterType) {
+      return helper.validatedTypeVariableUse(
+          type, offsetForToken(token), nonInstanceAccessIsError);
+    }
+    return type;
+  }
+
+  DartType buildType(List<KernelTypeBuilder> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    if (arguments != null) {
+      int expected = 0;
+      if (declaration is KernelClassBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is KernelTypeVariableBuilder) {
+        // Type arguments on a type variable - error reported elsewhere.
+      } else {
+        return unhandled(
+            "${declaration.runtimeType}",
+            "TypeDeclarationAccessor.buildType",
+            offsetForToken(token),
+            helper.uri);
+      }
+      if (arguments.length != expected) {
+        helper.warnTypeArgumentsMismatch(
+            declaration.name, expected, offsetForToken(token));
+        // We ignore the provided arguments, which will in turn return the
+        // raw type below.
+        // TODO(sigmund): change to use an InvalidType and include the raw type
+        // as a recovery node once the IR can represent it (Issue #29840).
+        arguments = null;
+      }
+    }
+    DartType type = declaration.buildType(helper.library, arguments);
     if (type is TypeParameterType) {
       return helper.validatedTypeVariableUse(
           type, offsetForToken(token), nonInstanceAccessIsError);

@@ -8359,9 +8359,6 @@ bool Parser::TryParseTypeArguments() {
       nesting_level -= 2;
     } else if (ct == Token::kVOID) {
       ConsumeToken();
-      if (!IsFunctionTypeSymbol()) {
-        return false;
-      }
       continue;
     } else if (ct == Token::kIDENT) {
       if (IsFunctionTypeSymbol()) {

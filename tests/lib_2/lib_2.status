@@ -74,7 +74,14 @@ html/worker_test/functional: Pass, Fail # Issues 20659.
 html/xhr_test/json: Fail # IE10 returns string, not JSON object
 
 [ $runtime == safari ]
+convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 html/audiobuffersourcenode_test/functional: RuntimeError
+html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
+html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+html/element_animate_test: Fail # Element.animate not supported on these browsers.
+html/element_test: Pass, Fail # Issue 21434
+html/fileapi_supported_test: Fail
+html/gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 html/indexeddb_1_test/functional: Skip # Times out. Issue 21433
 html/indexeddb_2_test: RuntimeError # Issue 21433
 html/indexeddb_3_test: Skip # Times out 1 out of 10.
@@ -85,17 +92,17 @@ html/input_element_datetime_test: Fail
 html/input_element_month_test: RuntimeError
 html/input_element_time_test: RuntimeError
 html/input_element_week_test: RuntimeError
+html/media_stream_test: Pass, Fail
+html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
+html/rtc_test: Fail
+html/shadow_dom_test: Fail
+html/speechrecognition_test: Fail
 html/touchevent_test: Fail # Safari does not support TouchEvents
-
-[ $runtime == safarimobilesim ]
-html/element_offset_test/offset: RuntimeError # Issue 18573
-html/event_test: RuntimeError # Safarimobilesim does not support WheelEvent
-html/indexeddb_1_test/supported: Fail
-html/notification_test: RuntimeError # Issue 22869
-html/performance_api_test/supported: Fail
-html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
-html/xhr_test/json: Fail # Safari doesn't support JSON response type
+html/webgl_1_test: Pass, Fail # Issue 8219
+html/worker_api_test: Skip # Issue 13221
+typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
+typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 
 [ $csp ]
 isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
@@ -117,6 +124,11 @@ mirrors/top_level_accessors_test/01: MissingCompileTimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
+
+[ $builder_tag == mac10_7 && $runtime == safari ]
+typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 
 [ $compiler != dart2analyzer && $runtime != none && $checked && !$strong ]
 mirrors/redirecting_factory_different_type_test/02: RuntimeError
@@ -214,29 +226,6 @@ isolate/unresolved_ports_test: Skip # Isolate.spawnUri
 isolate/browser/*: SkipByDesign # Browser specific tests
 isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
 isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
-
-[ $runtime == safari || $runtime == safarimobilesim ]
-convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
-html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
-html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
-html/element_animate_test: Fail # Element.animate not supported on these browsers.
-html/element_test: Pass, Fail # Issue 21434
-html/fileapi_supported_test: Fail
-html/gamepad_test: Fail # Safari does not support Navigator.getGamepads()
-html/media_stream_test: Pass, Fail
-html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
-html/rtc_test: Fail
-html/shadow_dom_test: Fail
-html/speechrecognition_test: Fail
-html/webgl_1_test: Pass, Fail # Issue 8219
-html/worker_api_test: Skip # Issue 13221
-typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
-typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
-
-[ $runtime == safarimobilesim || $builder_tag == mac10_7 && $runtime == safari ]
-typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 
 [ $system == windows || $runtime == drt && $system == macos ]
 html/xhr_test/xhr: Skip # Times out.  Issue 21527

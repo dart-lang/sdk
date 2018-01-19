@@ -126,4 +126,11 @@ void g(bool c) {
   test_unusedImport_metadata() async {
     await super.test_unusedImport_metadata();
   }
+
+  @failingTest
+  @override
+  @potentialAnalyzerProblem
+  test_importDeferredLibraryWithLoadFunction() async {
+    await super.test_importDeferredLibraryWithLoadFunction();
+  }
 }

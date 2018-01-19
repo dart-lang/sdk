@@ -95,6 +95,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
 
+  /// Whether mirrors have been used in the program.
+  bool _isMirrorsUsed = false;
+
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
 
   /// A mapping from the name of a defer import to all the output units it
@@ -217,7 +220,9 @@ abstract class DeferredLoadTask extends CompilerTask {
       collectConstantsInBody(analyzableElement, constants);
     }
 
-    collectConstantsFromMetadata(element, constants);
+    if (_isMirrorsUsed) {
+      collectConstantsFromMetadata(element, constants);
+    }
 
     if (element is FunctionEntity) {
       _collectTypeDependencies(
@@ -630,6 +635,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     work() {
       var queue = new WorkQueue(this.importSets);
+      _isMirrorsUsed = closedWorld.backendUsage.isMirrorsUsed;
 
       // Add `main` and their recursive dependencies to the main output unit.
       // We do this upfront to avoid wasting time visiting these elements when
@@ -650,7 +656,7 @@ abstract class DeferredLoadTask extends CompilerTask {
         element = element is ClassElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
       }
-      if (closedWorld.backendUsage.isMirrorsUsed) {
+      if (_isMirrorsUsed) {
         addMirrorElementsForLibrary(queue, main.library, importSets.mainSet);
       }
 
@@ -781,14 +787,37 @@ abstract class DeferredLoadTask extends CompilerTask {
     return "${outName}_$name$extension";
   }
 
+  bool ignoreEntityInDump(Entity element) => false;
+
   /// Creates a textual representation of the output unit content.
   String dump() {
     Map<OutputUnit, List<String>> elementMap = <OutputUnit, List<String>>{};
     Map<OutputUnit, List<String>> constantMap = <OutputUnit, List<String>>{};
     _elementToSet.forEach((Entity element, ImportSet importSet) {
-      elementMap.putIfAbsent(importSet.unit, () => <String>[]).add('$element');
+      if (ignoreEntityInDump(element)) return;
+      var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
+      var id = element.name ?? '$element';
+      if (element is MemberEntity) {
+        var cls = element.enclosingClass?.name;
+        if (cls != null) id = '$cls.$id';
+        if (element.isSetter) id = '$id=';
+        id = '$id member';
+      } else if (element is ClassEntity) {
+        id = '$id cls';
+      } else if (element is TypedefEntity) {
+        id = '$id typedef';
+      } else if (element is Local) {
+        var context = (element as dynamic).memberContext.name;
+        id = element.name == null || element.name == '' ? '<anonymous>' : id;
+        id = '$context.$id';
+        id = '$id local';
+      }
+      elements.add(id);
     });
     _constantToSet.forEach((ConstantValue value, ImportSet importSet) {
+      // Skip primitive values: they are not stored in the constant tables and
+      // if they are shared, they end up duplicated anyways across output units.
+      if (value.isPrimitive) return;
       constantMap
           .putIfAbsent(importSet.unit, () => <String>[])
           .add(value.toStructuredText());
@@ -801,9 +830,10 @@ abstract class DeferredLoadTask extends CompilerTask {
         unitText.write(' <MAIN UNIT>');
       } else {
         unitText.write(' imports:');
-        var imports = outputUnit._imports.map((i) => '${i.uri}').toList()
-          ..sort();
-        for (var i in imports) {
+        var imports = outputUnit._imports
+            .map((i) => '${i.enclosingLibrary.canonicalUri.resolveUri(i.uri)}')
+            .toList();
+        for (var i in imports..sort()) {
           unitText.write('\n   $i:');
         }
       }

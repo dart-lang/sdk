@@ -11,8 +11,13 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/heap.dart';
 import 'package:kernel/type_algebra.dart';
 
-/// Lazy and incremental implementation of [ClassHierarchy].
+/// Use [ClassHierarchy] instead.
+@deprecated
 class IncrementalClassHierarchy implements ClassHierarchy {
+  /// Use [ClassHierarchy] instead.
+  @deprecated
+  IncrementalClassHierarchy.deprecated();
+
   /// The next unique identifier for [_ClassInfo]s.
   int _nextId = 0;
 
@@ -24,7 +29,7 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyChanges(Iterable<Class> classes) {
     if (classes.isEmpty) return this;
-    return new IncrementalClassHierarchy();
+    return new IncrementalClassHierarchy.deprecated();
   }
 
   @override
@@ -579,6 +584,57 @@ class IncrementalClassHierarchy implements ClassHierarchy {
         ++j;
       }
     }
+  }
+
+  @override
+  List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isUsedAsSuperInterface(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isUsedAsSuperClass(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isUsedAsMixin(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isSubtypeOf(Class subtype, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isSubmixtureOf(Class submixture, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool isSubclassOf(Class subclass, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  ClassSet getSubtypesOf(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  ClassSet getSubclassesOf(Class class_) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false}) {
+    throw new UnimplementedError();
   }
 }
 

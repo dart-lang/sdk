@@ -4312,4 +4312,26 @@ int x = 3;
     assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
     assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
+
+  test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
+    Source source = addSource(r'''
+typedef bool F<E>(E argument);
+
+abstract class Base {
+  f<E extends int>(F<int> x);
+}
+
+abstract class BaseCopy extends Base {
+}
+
+abstract class Override implements Base, BaseCopy {
+  f<E>(x) => null;
+}
+
+class C extends Override implements Base {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
 }

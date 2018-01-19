@@ -275,9 +275,9 @@ class BytesCollector implements Sink<List<int>> {
 }
 
 Future<String> runDiff(Uri expected, String actual) async {
-  // TODO(ahe): Implement this for Windows.
-  StdioProcess process = await StdioProcess
-      .run("diff", <String>["-u", expected.toFilePath(), "-"], input: actual);
+  StdioProcess process = await StdioProcess.run(
+      "git", <String>["diff", "--no-index", "-u", expected.toFilePath(), "-"],
+      input: actual, runInShell: true);
   return process.output;
 }
 

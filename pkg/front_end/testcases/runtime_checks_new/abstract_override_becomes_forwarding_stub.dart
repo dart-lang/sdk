@@ -14,7 +14,7 @@ abstract class I<T> {
 }
 
 class C extends B implements I<num> {
-  void /*@forwardingStub=implementation*/ f(num /*@covariance=genericImpl*/ x);
+  void /*@forwardingStub=semi-stub*/ f(num /*@covariance=genericImpl*/ x);
 }
 
 main() {}

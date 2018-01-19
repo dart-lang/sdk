@@ -135,7 +135,7 @@ _enforceTrailingSlash(uri) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with the current working directory.
-void _setWorkingDirectory(cwd) {
+void _setWorkingDirectory(String cwd) {
   if (!_setupCompleted) {
     _setupHooks();
   }

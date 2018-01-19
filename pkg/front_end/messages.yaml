@@ -278,6 +278,16 @@ MissingConstFinalVarOrType:
   script:
     - "class C { static f; }"
 
+FunctionTypedParameterVar:
+  template: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
+  tip: "Try replacing the keyword with a return type."
+  analyzerCode: FUNCTION_TYPED_PARAMETER_VAR
+  dart2jsCode: "*fatal*"
+  script:
+    - "void f(const x()) {}"
+    - "void f(final x()) {}"
+    - "void f(var x()) {}"
+
 AbstractClassMember:
   template: "Members of classes can't be declared to be 'abstract'."
   tip: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
@@ -746,6 +756,7 @@ BuiltInIdentifierAsType:
 
 BuiltInIdentifierInDeclaration:
   template: "Can't use '#lexeme' as a name here."
+  analyzerCode: BUILT_IN_IDENTIFIER_IN_DECLARATION
   dart2jsCode: GENERIC
 
 AwaitForNotAsync:
@@ -1155,6 +1166,8 @@ PrefixAfterCombinator:
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
   severity: NIT
+  analyzerCode: AMBIGUOUS_EXPORT
+  dart2jsCode: "*ignored*"
 
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
@@ -1176,6 +1189,8 @@ ExtendingEnum:
 
 ExtendingRestricted:
   template: "'#name' is restricted and can't be extended or implemented."
+  analyzerCode: EXTENDS_DISALLOWED_CLASS
+  dart2jsCode: "*ignored*"
 
 NoUnnamedConstructorInObject:
   template: "'Object' has no unnamed constructor."
@@ -1598,6 +1613,8 @@ SuperclassHasNoMethod:
 
 SuperclassHasNoDefaultConstructor:
   template: "The superclass, '#name', has no unnamed constructor that takes no arguments."
+  analyzerCode: NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+  dart2jsCode: "*ignored*"
 
 ConstConstructorNonFinalField:
   template: "Constructor is marked 'const' so all fields must be final."
@@ -1779,6 +1796,7 @@ UndefinedMethod:
       C c;
       c.foo();
     }
+
 SourceOutlineSummary:
   template: |
     Built outlines for #count compilation units (#count2 bytes) in #string, that is,
@@ -1804,4 +1822,8 @@ CantInferTypeDueToInconsistentOverrides:
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
   tip: "Specify the type explicitly."
+  severity: ERROR
+
+AmbiguousSupertypes:
+  template: "'#name' can't implement both '#type' and '#type2'"
   severity: ERROR

@@ -6,7 +6,6 @@
 unsorted/invocation_errors_test: Pass
 unsorted/loop_test: Skip
 unsorted/nsm_dispatcher_test: Skip # The test uses Symbol without MirrorsUsed
-unsorted/simple_literal_test: Crash # Issue 31762
 unsorted/super_initializer_test: Skip
 unsorted/super_mixin_test: CompileTimeError
 

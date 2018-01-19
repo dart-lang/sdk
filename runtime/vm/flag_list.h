@@ -97,6 +97,10 @@
     "Artificially create type feedback for arithmetic etc. operations")        \
   P(huge_method_cutoff_in_tokens, int, 20000,                                  \
     "Huge method cutoff in tokens: Disables optimizations for huge methods.")  \
+  P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
+    "Consider thread pool isolates for idle tasks after this long.")           \
+  P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
+    "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \

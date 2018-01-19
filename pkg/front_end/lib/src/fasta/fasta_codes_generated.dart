@@ -96,6 +96,38 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type, DartType _type2)>
+    templateAmbiguousSupertypes = const Template<
+            Message Function(String name, DartType _type, DartType _type2)>(
+        messageTemplate:
+            r"""'#name' can't implement both '#type' and '#type2'""",
+        withArguments: _withArgumentsAmbiguousSupertypes);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeAmbiguousSupertypes =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "AmbiguousSupertypes", templateAmbiguousSupertypes,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAmbiguousSupertypes(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeAmbiguousSupertypes,
+      message: """'$name' can't implement both '$type' and '$type2'""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAnnotationOnEnumConstant = messageAnnotationOnEnumConstant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -228,6 +260,7 @@ const Template<Message Function(Token token)>
 const Code<Message Function(Token token)> codeBuiltInIdentifierInDeclaration =
     const Code<Message Function(Token token)>("BuiltInIdentifierInDeclaration",
         templateBuiltInIdentifierInDeclaration,
+        analyzerCode: "BUILT_IN_IDENTIFIER_IN_DECLARATION",
         dart2jsCode: "GENERIC");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -970,6 +1003,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedExport", templateDuplicatedExport,
+        analyzerCode: "AMBIGUOUS_EXPORT",
+        dart2jsCode: "*ignored*",
         severity: Severity.nit);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1563,9 +1598,8 @@ const Template<Message Function(String name)> templateExtendingRestricted =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeExtendingRestricted =
     const Code<Message Function(String name)>(
-  "ExtendingRestricted",
-  templateExtendingRestricted,
-);
+        "ExtendingRestricted", templateExtendingRestricted,
+        analyzerCode: "EXTENDS_DISALLOWED_CLASS", dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingRestricted(String name) {
@@ -1931,6 +1965,19 @@ const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
     analyzerCode: "DEFAULT_VALUE_IN_FUNCTION_TYPE",
     dart2jsCode: "*ignored*",
     message: r"""Can't have a default value in a function type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFunctionTypedParameterVar =
+    messageFunctionTypedParameterVar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFunctionTypedParameterVar = const MessageCode(
+    "FunctionTypedParameterVar",
+    analyzerCode: "FUNCTION_TYPED_PARAMETER_VAR",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
+    tip: r"""Try replacing the keyword with a return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
@@ -4391,9 +4438,10 @@ const Template<
 const Code<Message Function(String name)>
     codeSuperclassHasNoDefaultConstructor =
     const Code<Message Function(String name)>(
-  "SuperclassHasNoDefaultConstructor",
-  templateSuperclassHasNoDefaultConstructor,
-);
+        "SuperclassHasNoDefaultConstructor",
+        templateSuperclassHasNoDefaultConstructor,
+        analyzerCode: "NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT",
+        dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoDefaultConstructor(String name) {

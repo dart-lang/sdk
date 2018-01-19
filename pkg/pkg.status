@@ -1,21 +1,18 @@
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 # Don't run any test-like files that show up in packages directories. It
 # shouldn't be necessary to run "pub install" in these packages, but if you do
 # it shouldn't break the tests.
-*/packages/*/*: Skip
-*/*/packages/*/*: Skip
-*/*/*/packages/*/*: Skip
-*/*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
-
-analysis_server/tool/spec/check_all_test: Skip  # Issue 29133
-analyzer_plugin/tool/spec/check_all_test: Skip  # Issue 29133
-
+*/*/*/*/packages/*/*: Skip
+*/*/*/packages/*/*: Skip
+*/*/packages/*/*: Skip
+*/packages/*/*: Skip
+analysis_server/tool/spec/check_all_test: Skip # Issue 29133
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
+analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 analyzer/test/generated/hint_code_kernel_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_kernel_test: Slow, Pass
@@ -23,121 +20,41 @@ analyzer/test/generated/static_type_warning_code_kernel_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_kernel_test: Slow, Pass
 analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
-analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
+analyzer2dart/test/*: Skip # Analyzer2dart is not maintained anymore.
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
-
-# Analyzer2dart is not maintained anymore.
-analyzer2dart/test/*: Skip
-
-dart_messages/test/dart_messages_test: Skip  # Requires a package root.
-
-# Skip dev_compiler codegen tests
-dev_compiler/test/codegen/*: Skip
-dev_compiler/gen/*: SkipByDesign
-
-# Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
-front_end/test/fasta/rasta/*: SkipByDesign
-
-# sdk_test would take too long to complete, and should be run in a different
-# way.
-front_end/test/fasta/sdk_test: SkipByDesign
-
+analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
+dart_messages/test/dart_messages_test: Skip # Requires a package root.
+dev_compiler/gen/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/codegen/*: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/codegen_test: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/options/*: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/sourcemap/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/worker/*: Skip # Skip dev_compiler codegen tests
+front_end/test/fasta/analyze_test: Pass, Slow
+front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/compile_test: Pass, Slow
-front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
-front_end/test/fasta/ast_builder_test: Pass, Slow
+front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
+front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
+front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
-front_end/tool/incremental_perf_test: Slow, Pass
-
-# These are not tests but input for tests.
-kernel/testcases/*: Skip
-front_end/testcases/*: Skip
-
-front_end/test/fasta/analyze_test: Pass, Slow
-
-kernel/test/closures_test: Slow, Pass
-
+front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/_fasta/compile_platform_test: Fail
-
-[ $use_sdk || $mode != release || $compiler != none || $runtime != vm || $arch != x64 ]
-front_end/test/whole_program_test: SkipByDesign
-
-[ $compiler != dart2analyzer ]
-analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
-
-[ $runtime != vm || $mode != release || $system == windows ]
-front_end/test/fasta/*: Skip
-front_end/tool/_fasta/*: Skip
-kernel/test/closures_test: Skip
-
-# Don't analyze tests in strong mode yet
-[ $compiler == dart2analyzer && $builder_tag == strong ]
-*: Skip # Issue 28649
-
-# Analyze dev_compiler but don't run its tests
-[ $compiler != dart2analyzer ]
-dev_compiler/test/*: Skip
+front_end/tool/incremental_perf_test: Slow, Pass
+kernel/test/closures_test: Slow, Pass
+kernel/testcases/*: Skip # These are not tests but input for tests.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
 
-[ $compiler == none && $runtime == drt ]
-mutation_observer: Skip # Issue 21149
-unittest/*: Skip # Issue 21949
-front_end/*: SkipByDesign
-
-[ $runtime == vm ]
-analysis_server/test/completion_test: Pass, Slow
-analysis_server/test/integration/completion: Pass, Slow
-analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
-analysis_server/test/integration/edit/format_test: Pass, Slow
-analysis_server/test/integration/analysis/error_test: Pass, Slow
-analysis_server/test/integration/analysis/lint_test: Pass, Slow
-analysis_server/test/integration/edit/import_elements_test: Pass, Slow
-analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
-
-[ $runtime == vm && $checked ]
-analysis_server/test/completion_test: Pass, Slow
-analysis_server/test/integration/edit/sort_members_test: Pass, Slow
-analysis_server/test/services/correction/fix_test: Pass, Slow
-analysis_server/test/socket_server_test: Skip # Pass, Slow
-analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
-analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
-analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
-
-[ $runtime == vm && $checked && $system == windows ]
-front_end/tool/perf_test: Slow, Pass
-
-[ $runtime == vm && $builder_tag == swarming ]
-front_end/test/src/incremental/hot_reload_e2e_test: Pass, RuntimeError # Please triage this failure
-
-[ $runtime == vm && $use_sdk ]
-front_end/test/fasta/*: Skip # Issue 28629
-front_end/tool/_fasta/*: Skip # Issue 28629
-compiler/tool/generate_kernel_test*: Skip # Issue 28629
-front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 28629
-kernel/test/metadata_test: Skip # Issue 28629
-
-[ $runtime == vm && ! $use_sdk ]
-front_end/tool/perf_test: Skip # Issue 28698
-
-[ $runtime == vm && $use_sdk ]
-front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/test/kernel_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/test/summary_generator_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-front_end/test/mixin_export_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
-
-[ $runtime == vm && $system == windows]
-analysis_server/*: Skip # Issue 27557
-analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
-analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
-analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
-analyzer/tool/task_dependency_graph/check_test: Slow, Pass
+[ $compiler != dart2analyzer ]
+analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
 
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
@@ -151,112 +68,164 @@ collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 compiler/tool/*: SkipByDesign # Only meant to run on vm
-front_end/tool/*: SkipByDesign # Only meant to run on vm
-telemetry/test/*: SkipByDesign # Only meant to run on vm
-typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
-front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
-front_end/test/physical_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/file_repository_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/libraries_reader_test: SkipByDesign # Uses dart:io
 front_end/test/src/base/processed_options_test: SkipByDesign # Uses dart:io
+front_end/test/standard_file_system_test: SkipByDesign # Uses dart:io
 front_end/test/subpackage_relationships_test: SkipByDesign # Uses dart:io
+front_end/tool/*: SkipByDesign # Only meant to run on vm
+telemetry/test/*: SkipByDesign # Only meant to run on vm
+typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
-[ $compiler == dart2js && $runtime != d8 ]
-front_end/test/mixin_export_test: RuntimeError # Issue 30576
+[ $compiler == none ]
+kernel/test/closures_test: Fail
 
-[ $compiler == dart2js && $fast_startup ]
-front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
+[ $runtime == dart_precompiled ]
+*: SkipByDesign # The pkg test framework imports dart:mirrors.
 
-[ $compiler == dart2js && $builder_tag != dart2js_analyzer ]
-analyzer/test/*: Skip # Issue 26813
-analyzer/tool/*: Skip # Issue 26813
-analysis_server/test/*: Skip # Issue 26813
-
-[ $compiler == dart2js && $checked ]
-crypto/test/base64_test: Slow, Pass
+[ $runtime == flutter ]
+status_file/*: SkipByDesign # Only meant to run on the standalone VM.
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.
 front_end/test/*: RuntimeError, OK, Pass # Issue 26103. Timers are not supported.
 kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 
-[ $compiler == dart2js && $runtime == d8 ]
-front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to file system
+[ $runtime == vm ]
+analysis_server/test/completion_test: Pass, Slow
+analysis_server/test/integration/analysis/error_test: Pass, Slow
+analysis_server/test/integration/analysis/lint_test: Pass, Slow
+analysis_server/test/integration/completion: Pass, Slow
+analysis_server/test/integration/edit/format_test: Pass, Slow
+analysis_server/test/integration/edit/import_elements_test: Pass, Slow
+analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
+analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
+analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
+analyzer_cli/test/driver_test: Pass, Slow, Timeout
+mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
+[ $runtime != vm ]
+dev_compiler/test/options/*: SkipByDesign
+front_end/test/src/incremental/hot_reload_e2e_test: Skip
 
-[ $compiler == dart2js && $runtime == drt ]
-async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
-
-[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
-collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
-async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
-
-[ $runtime == safarimobilesim ]
-# Unexplained errors only occurring on Safari 6.1 and earlier.
-typed_data/test/typed_buffers_test: RuntimeError
-
-[ $compiler == dart2js && $csp ]
-# This test cannot run under CSP because it is injecting a JavaScript polyfill
-mutation_observer: Skip
-
-[ $compiler == dart2js && $browser ]
-crypto/test/sha256_test: Slow, Pass
-crypto/test/sha1_test: Slow, Pass
+[ $system == windows ]
+front_end/test/fasta/bootstrap_test: Skip # Issue 31902
+front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
+front_end/test/whole_program_test: Skip # Issue 31902
 
 [ $browser ]
-analyzer_cli/*: SkipByDesign # Uses dart:io.
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
 analysis_server/test/*: SkipByDesign # Uses dart:io.
 analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
 analyzer/test/*: SkipByDesign # Uses dart:io.
-analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
 analyzer/tool/summary/check_test: SkipByDesign # Uses dart:io.
+analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
 analyzer2dart/*: SkipByDesign # Uses dart:io.
+analyzer_cli/*: SkipByDesign # Uses dart:io.
 compiler/tool/*: SkipByDesign # Only meant to run on vm
+dart_messages/test/dart_messages_test: Skip # Uses dart:io.
 front_end/tool/*: SkipByDesign # Only meant to run on vm
 http_server/test/*: Fail, OK # Uses dart:io.
+kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
-observe/test/unique_message_test: SkipByDesign  # Uses dart:io.
-dart_messages/test/dart_messages_test: Skip  # Uses dart:io.
+observe/test/unique_message_test: SkipByDesign # Uses dart:io.
+status_file/*: SkipByDesign # Only meant to run on the standalone VM.
+testing/test/analyze_test: SkipByDesign
 
-[ $browser || $jscl ]
+[ $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
-[ $runtime == vm && ($arch == simarm64 || $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == armv6 || $arch == armv5te || $arch == simdbc64) ]
-# Timeout. These are not unit tests. They do not run efficiently on our
-# simulator or low-end devices.
-*: Skip
-
-[ $runtime == vm ]
-analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+[ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
-# Skip tests on the VM if the package depends on dart:html
-mutation_observer: Skip
+
+[ $builder_tag != dart2js_analyzer && $compiler == dart2js ]
+analysis_server/test/*: Skip # Issue 26813
+analyzer/test/*: Skip # Issue 26813
+analyzer/tool/*: Skip # Issue 26813
+
+# Don't analyze tests in strong mode yet
+[ $builder_tag == strong && $compiler == dart2analyzer ]
+*: Skip # Issue 28649
+
+# Analyze dev_compiler but only run its tests on the vm
+[ $compiler != dart2analyzer && $runtime != vm ]
+dev_compiler/test/*: Skip
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
-[ $arch == x64 && $runtime == vm && $system == windows && $checked ]
-# See: https://build.chromium.org/p/client.dart/builders/analyzer-win7-release-be/builds/3113/steps/analyzer%20unit%20tests/logs/stdio
-analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
+[ $compiler == dart2js && $runtime == d8 ]
+front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to file system
 
-[ $runtime == dart_precompiled ]
-*: SkipByDesign # The pkg test framework imports dart:mirrors.
+[ $compiler == dart2js && $runtime != d8 ]
+front_end/test/mixin_export_test: RuntimeError # Issue 30576
 
-[ $compiler == none ]
-kernel/test/closures_test: Fail
+[ $compiler == dart2js && $runtime == drt ]
+async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
-[ $runtime == vm ]
-analyzer_cli/test/driver_test: Pass, Slow, Timeout
+[ $compiler == dart2js && $browser ]
+crypto/test/sha1_test: Slow, Pass
+crypto/test/sha256_test: Slow, Pass
+
+[ $compiler == dart2js && $checked ]
+crypto/test/base64_test: Slow, Pass
+
+[ $compiler == dart2js && $csp ]
+mutation_observer: Skip # This test cannot run under CSP because it is injecting a JavaScript polyfill
+
+[ $compiler == dart2js && $fast_startup ]
+front_end/test/*: SkipByDesign # Tests written with dart:mirrors.
+
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
+async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
+collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
+
+[ $compiler == none && $runtime == drt ]
+front_end/*: SkipByDesign
+mutation_observer: Skip # Issue 21149
+unittest/*: Skip # Issue 21949
 
 [ $runtime == vm && $system == windows ]
+analysis_server/*: Skip # Issue 27557
+analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
+analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
+analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
 analyzer/test/src/task/strong/checker_test: Pass, Slow
+analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
-[ $browser ]
-testing/test/analyze_test: SkipByDesign
+[ $runtime == vm && $system == windows && $checked ]
+front_end/tool/perf_test: Slow, Pass
 
-[ $browser || $runtime == flutter ]
-status_file/*: SkipByDesign # Only meant to run on the standalone VM.
+[ $runtime == vm && $checked ]
+analysis_server/test/completion_test: Pass, Slow
+analysis_server/test/integration/edit/sort_members_test: Pass, Slow
+analysis_server/test/services/correction/fix_test: Pass, Slow
+analysis_server/test/socket_server_test: Skip # Pass, Slow
+analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
+analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
+analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
+
+[ $runtime == vm && $use_sdk ]
+compiler/tool/generate_kernel_test*: Skip # Issue 31899
+kernel/test/metadata_test: Skip # Issue 31900
+
+# Timeout. These tests do not run efficiently on our simulator or low-end
+# devices.
+[ $runtime == vm && ($arch == armv5te || $arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv5te || $arch == simarmv6 || $arch == simdbc64) ]
+*: Skip
+
+[ $arch != x64 || $compiler != none || $mode != release || $runtime != vm ]
+front_end/test/whole_program_test: SkipByDesign
+
+[ $mode != release || $runtime != vm ]
+front_end/test/fasta/*: Skip
+front_end/tool/_fasta/*: Skip
+
+[ $mode != release || $runtime != vm || $system == windows ]
+kernel/test/closures_test: Skip
+

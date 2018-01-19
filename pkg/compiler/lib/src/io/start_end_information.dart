@@ -12,10 +12,11 @@ import 'package:front_end/src/fasta/scanner.dart' show Token;
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../elements/elements.dart'
-    show MemberElement, ResolvedAst, ResolvedAstKind;
+    show MemberElement, MethodElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tree/tree.dart' show Node, Send;
+import '../universe/call_structure.dart';
 import 'source_file.dart';
 import 'source_information.dart';
 
@@ -62,8 +63,10 @@ class StartEndSourceInformation extends SourceInformation {
   // TODO(johnniwinther): Inline this in
   // [StartEndSourceInformationBuilder.buildDeclaration].
   static StartEndSourceInformation _computeSourceInformation(
-      ResolvedAst resolvedAst) {
-    String name = computeElementNameForSourceMaps(resolvedAst.element);
+      ResolvedAst resolvedAst,
+      [CallStructure callStructure]) {
+    String name =
+        computeElementNameForSourceMaps(resolvedAst.element, callStructure);
     SourceFile sourceFile = computeSourceFile(resolvedAst);
     int begin;
     int end;
@@ -113,8 +116,9 @@ class StartEndSourceInformationStrategy
   const StartEndSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder<Node> createBuilderForContext(MemberElement member) {
-    return new StartEndSourceInformationBuilder(member);
+  SourceInformationBuilder<Node> createBuilderForContext(MemberElement member,
+      [CallStructure callStructure]) {
+    return new StartEndSourceInformationBuilder(member, callStructure);
   }
 
   @override
@@ -193,13 +197,21 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder<Node> {
   final SourceFile sourceFile;
   final String name;
 
-  StartEndSourceInformationBuilder(MemberElement member)
+  StartEndSourceInformationBuilder(MemberElement member,
+      [CallStructure callStructure])
       : sourceFile = computeSourceFile(member.resolvedAst),
-        name = computeElementNameForSourceMaps(member.resolvedAst.element);
+        name = computeElementNameForSourceMaps(
+            member.resolvedAst.element, callStructure);
 
   SourceInformation buildDeclaration(MemberElement member) {
     return StartEndSourceInformation
         ._computeSourceInformation(member.resolvedAst);
+  }
+
+  SourceInformation buildStub(
+      MethodElement member, CallStructure callStructure) {
+    return StartEndSourceInformation._computeSourceInformation(
+        member.resolvedAst, callStructure);
   }
 
   SourceLocation sourceFileLocationForToken(Token token) {

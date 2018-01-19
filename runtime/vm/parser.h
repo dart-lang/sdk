@@ -190,6 +190,15 @@ class ParsedFunction : public ZoneAllocated {
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
+  bool is_forwarding_stub() const {
+    return forwarding_stub_super_target_ != -1;
+  }
+  kernel::NameIndex forwarding_stub_super_target() const {
+    return forwarding_stub_super_target_;
+  }
+  void MarkForwardingStub(kernel::NameIndex target) {
+    forwarding_stub_super_target_ = target;
+  }
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
@@ -235,6 +244,7 @@ class ParsedFunction : public ZoneAllocated {
   int num_stack_locals_;
   bool have_seen_await_expr_;
 
+  kernel::NameIndex forwarding_stub_super_target_;
   kernel::ScopeBuildingResult* kernel_scopes_;
 
   friend class Parser;

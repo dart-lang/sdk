@@ -144,10 +144,17 @@ Error: No Dart file specified.
 
   for (String subtool in testedSubtools) {
     print("Testing $subtool");
-    ProcessResult result =
-        Process.runSync("/bin/bash", <String>[toolPath, subtool]);
+    ProcessResult result = Process.runSync(
+        "/bin/bash", <String>[toolPath, subtool],
+        environment: <String, String>{"DART_VM": Platform.resolvedExecutable});
     Map expectation = expectations.remove(subtool);
-    Expect.equals(expectation["exitCode"], result.exitCode);
+    String combinedOutput = """
+stdout:
+${result.stdout}
+stderr:
+${result.stderr}
+""";
+    Expect.equals(expectation["exitCode"], result.exitCode, combinedOutput);
 
     switch (subtool) {
       case "scanner":

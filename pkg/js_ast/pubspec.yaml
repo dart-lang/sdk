@@ -3,6 +3,6 @@ author: Dart Team <misc@dartlang.org>
 description: Library creating and printing JavaScript ASTs.
 homepage: http://www.dartlang.org
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
+  test: '^0.12.29'
 environment:
   sdk: ">=0.8.10+6 <2.0.0"

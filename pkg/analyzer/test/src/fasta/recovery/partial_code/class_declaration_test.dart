@@ -39,14 +39,11 @@ class ClassDeclarationTest extends PartialCodeTest {
                 'typedef',
                 'functionVoid',
                 'functionNonVoid',
-                'const',
-                'final',
                 'getter',
                 'setter'
               ]),
           new TestDescriptor('named', 'class A',
-              [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}',
-              failing: onlyConstAndFinal),
+              [ParserErrorCode.MISSING_CLASS_BODY], 'class A {}'),
           new TestDescriptor(
               'extends',
               'class A extends',

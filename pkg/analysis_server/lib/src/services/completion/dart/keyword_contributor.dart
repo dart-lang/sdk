@@ -247,20 +247,25 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitFieldDeclaration(FieldDeclaration node) {
     VariableDeclarationList fields = node.fields;
-    NodeList<VariableDeclaration> variables = fields.variables;
-    if (variables.length != 1 ||
-        !variables[0].name.isSynthetic ||
-        fields.type == null) {
-      return;
-    }
     if (entity != fields) {
       return;
     }
-    List<Keyword> keywords = <Keyword>[Keyword.CONST, Keyword.FINAL];
-    if (!node.isStatic) {
-      keywords.add(Keyword.STATIC);
+    NodeList<VariableDeclaration> variables = fields.variables;
+    if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
+      return;
     }
-    _addSuggestions(keywords);
+    if (node.covariantKeyword == null) {
+      _addSuggestion(Keyword.COVARIANT);
+    }
+    if (!node.isStatic) {
+      _addSuggestion(Keyword.STATIC);
+    }
+    if (!variables.first.isConst) {
+      _addSuggestion(Keyword.CONST);
+    }
+    if (!variables.first.isFinal) {
+      _addSuggestion(Keyword.FINAL);
+    }
   }
 
   @override
@@ -525,6 +530,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   void _addClassBodyKeywords() {
     _addSuggestions([
       Keyword.CONST,
+      Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.FACTORY,
       Keyword.FINAL,
@@ -555,6 +561,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.ABSTRACT,
       Keyword.CLASS,
       Keyword.CONST,
+      Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.TYPEDEF,

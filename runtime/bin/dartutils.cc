@@ -46,6 +46,8 @@ const char* const DartUtils::kIsolateLibURL = "dart:isolate";
 const char* const DartUtils::kHttpLibURL = "dart:_http";
 const char* const DartUtils::kIOLibURL = "dart:io";
 const char* const DartUtils::kIOLibPatchURL = "dart:io-patch";
+const char* const DartUtils::kCLILibURL = "dart:cli";
+const char* const DartUtils::kCLILibPatchURL = "dart:cli-patch";
 const char* const DartUtils::kUriLibURL = "dart:uri";
 const char* const DartUtils::kHttpScheme = "http:";
 const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
@@ -167,6 +169,10 @@ bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
 
 bool DartUtils::IsDartIOLibURL(const char* url_name) {
   return (strcmp(url_name, kIOLibURL) == 0);
+}
+
+bool DartUtils::IsDartCLILibURL(const char* url_name) {
+  return (strcmp(url_name, kCLILibURL) == 0);
 }
 
 bool DartUtils::IsDartHttpLibURL(const char* url_name) {
@@ -477,6 +483,14 @@ Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
   return Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, NULL);
 }
 
+Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
+  Dart_Handle wait_for_event_handle =
+      Dart_Invoke(cli_lib, NewString("_getWaitForEvent"), 0, NULL);
+  RETURN_IF_ERROR(wait_for_event_handle);
+  return Dart_SetField(cli_lib, NewString("_waitForEventClosure"),
+                       wait_for_event_handle);
+}
+
 Dart_Handle DartUtils::SetupServiceLoadPort() {
   // Wait for the service isolate to initialize the load port.
   Dart_Port load_port = Dart_ServiceWaitForLoadPort();
@@ -539,6 +553,9 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
   RETURN_IF_ERROR(io_lib);
   Builtin::SetNativeResolver(Builtin::kIOLibrary);
+  Dart_Handle cli_lib = Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
+  RETURN_IF_ERROR(cli_lib);
+  Builtin::SetNativeResolver(Builtin::kCLILibrary);
 
   // Setup the builtin library in a persistent handle attached the isolate
   // specific data as we seem to lookup and use builtin lib a lot.
@@ -560,6 +577,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   RETURN_IF_ERROR(PrepareCoreLibrary(core_lib, io_lib, is_service_isolate));
   RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
   RETURN_IF_ERROR(PrepareIOLibrary(io_lib));
+  RETURN_IF_ERROR(PrepareCLILibrary(cli_lib));
   return result;
 }
 

@@ -161,7 +161,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   ASSERT(!function.IsNull());
   const Function& target = Function::ZoneHandle(Z, function.raw());
   StaticCallInstr* static_call = StaticCallInstr::FromCall(Z, call, target);
-  static_call->set_result_cid(kTypeCid);
+  static_call->SetResultType(Z, CompileType::FromCid(kTypeCid));
   call->ReplaceWith(static_call, current_iterator());
   return true;
 }
@@ -208,7 +208,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
         Object::null_array(),  // argument_names
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
-    static_call->set_result_cid(kBoolCid);
+    static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
     ReplaceCall(call, static_call);
     return true;
   }
@@ -245,6 +245,20 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
       ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
   if (!unary_checks.NumberOfChecksIs(0) && (op_kind == Token::kSET) &&
       TryInlineInstanceSetter(call, unary_checks)) {
+    return true;
+  }
+
+  return false;
+}
+
+bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
+  if (call->function().IsImplicitGetterFunction()) {
+    Field& field =
+        Field::ZoneHandle(call->function().LookupImplicitGetterSetterField());
+    if (should_clone_fields_) {
+      field = field.CloneFromOriginal();
+    }
+    InlineImplicitInstanceGetter(call, field);
     return true;
   }
 
@@ -403,7 +417,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
           } else {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new BinaryInt64OpInstr(
+            replacement = new (Z) BinaryInt64OpInstr(
                 op_kind, left_value, right_value, Thread::kNoDeoptId,
                 Instruction::kNotSpeculative);
           }
@@ -437,7 +451,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       break;
   }
 
-  if (replacement != NULL) {
+  if (replacement != NULL && !replacement->ComputeCanDeoptimize()) {
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
                 instr->ToCString(), replacement->ToCString());
@@ -823,6 +837,13 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     instr->ReplaceWith(call, current_iterator());
     return;
   }
+}
+
+void AotCallSpecializer::VisitStaticCall(StaticCallInstr* instr) {
+  if (TryInlineFieldAccess(instr)) {
+    return;
+  }
+  CallSpecializer::VisitStaticCall(instr);
 }
 
 bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,

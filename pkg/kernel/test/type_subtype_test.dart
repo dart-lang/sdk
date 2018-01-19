@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:test/test.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -19,6 +18,7 @@ var classEnvironment = <String, List<String>>{
   'List<T>': ['Iterable<T>'],
   'Future<T>': ['Object'],
   'FutureOr<T>': ['Object'],
+  'Null': ['Object'],
 };
 
 List<TestCase> testCases = <TestCase>[
@@ -223,7 +223,8 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
       }
     }
   }
-  var hierarchy = new IncrementalClassHierarchy();
+  var program = new Program(libraries: [environment.dummyLibrary]);
+  var hierarchy = new ClassHierarchy(program);
   return new MockSubtypeTester(
       hierarchy,
       objectClass.rawType,

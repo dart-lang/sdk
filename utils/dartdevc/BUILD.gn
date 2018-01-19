@@ -8,7 +8,7 @@ import("../create_timestamp.gni")
 
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
-sdk_dill = "$target_gen_dir/ddc_sdk.dill"
+sdk_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -42,7 +42,7 @@ application_snapshot("dartdevc") {
 application_snapshot("dartdevk") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
 
-  # TODO: Train this on real input.
+  # TODO(vsm): Train this on real input.
   training_args = [
     "--dart-sdk-summary",
     rebase_path(sdk_dill),
@@ -303,7 +303,7 @@ compiled_action("dartdevc_test_pkg") {
   ]
 
   inputs = [
-    "$target_gen_dir/ddc_sdk.dill",
+    sdk_dill,
     sdk_summary,
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
@@ -347,7 +347,7 @@ compiled_action("dartdevc_test_pkg") {
     "--analyzer-sdk",
     rebase_path(sdk_summary),
     "--kernel-sdk",
-    rebase_path("$target_gen_dir/ddc_sdk.dill"),
+    rebase_path(sdk_dill),
     "--output",
     rebase_path("$target_gen_dir"),
   ]
@@ -366,13 +366,19 @@ compiled_action("dartdevc_sdk_kernel_summary") {
   ]
 
   outputs = [
-    "$target_gen_dir/ddc_sdk.dill",
-    "$target_gen_dir/dart_sdk.kernel.js"
+    sdk_dill,
+    "$target_gen_dir/kernel/amd/dart_sdk.js",
+    "$target_gen_dir/kernel/amd/dart_sdk.js.map",
+    "$target_gen_dir/kernel/common/dart_sdk.js",
+    "$target_gen_dir/kernel/common/dart_sdk.js.map",
+    "$target_gen_dir/kernel/es6/dart_sdk.js",
+    "$target_gen_dir/kernel/es6/dart_sdk.js.map",
+    "$target_gen_dir/kernel/legacy/dart_sdk.js",
+    "$target_gen_dir/kernel/legacy/dart_sdk.js.map",
   ]
 
   args = [
     rebase_path("../../pkg/dev_compiler/tool/kernel_sdk.dart"),
-    "--generate-javascript",
-    rebase_path("$target_gen_dir/ddc_sdk.dill"),
+    rebase_path(sdk_dill),
   ]
 }

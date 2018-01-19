@@ -292,6 +292,7 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
+Language/Types/Type_Void/syntax_t01: MissingCompileTimeError # Issue co19/30264
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Large integers
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Large integers
@@ -301,11 +302,9 @@ LibTest/core/Duration/inMilliseconds_A01_t01: RuntimeError # Large integers
 LibTest/core/Duration/inMinutes_A01_t01: RuntimeError # Large integers
 LibTest/core/Duration/inSeconds_A01_t01: RuntimeError # Large integers
 LibTest/core/List/List_class_A01_t01: RuntimeError # Large integers
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Issue 1296
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError, Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError, Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 1296
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 LibTest/core/double/ceil_A01_t04: RuntimeError # Large integers

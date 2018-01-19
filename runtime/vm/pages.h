@@ -301,6 +301,7 @@ class PageSpace {
   void WriteProtectCode(bool read_only);
 
   bool ShouldPerformIdleMarkSweep(int64_t deadline);
+  bool ShouldPerformIdleMarkCompact(int64_t deadline);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
@@ -442,7 +443,7 @@ class PageSpace {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
-  intptr_t mark_sweep_words_per_micro_;
+  intptr_t mark_words_per_micro_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;

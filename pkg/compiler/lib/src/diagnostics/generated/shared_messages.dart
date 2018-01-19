@@ -50,8 +50,6 @@ const Map<MessageKind, MessageTemplate> TEMPLATES =
         "var abstract foo; main(){}",
         "var static foo; main(){}",
         "var external foo; main(){}",
-        "get var foo; main(){}",
-        "set var foo; main(){}",
         "final var foo; main(){}",
         "var var foo; main(){}",
         "const var foo; main(){}",

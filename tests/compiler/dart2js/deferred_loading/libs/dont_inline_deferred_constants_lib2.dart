@@ -6,7 +6,7 @@ import "dont_inline_deferred_constants_main.dart" show C;
 import "dont_inline_deferred_constants_main.dart" as main;
 
 /*element: C4:OutputUnit(3, {lib2})*/
-const C4 = /*OutputUnit(main, {})*/ "string4";
+const C4 = "string4";
 
 /*element: C5:OutputUnit(3, {lib2})*/
 const C5 = /*OutputUnit(main, {})*/ const C(1);

@@ -30,7 +30,6 @@ import '../builder/builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder,
-        Unhandled,
         UnresolvedType;
 
 import '../combinator.dart' show Combinator;
@@ -57,6 +56,8 @@ import '../fasta_codes.dart'
         templatePartTwice;
 
 import '../import.dart' show Import;
+
+import '../configuration.dart' show Configuration;
 
 import '../problems.dart' show unhandled;
 
@@ -120,6 +121,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri get uri;
 
+  @override
   bool get isPart => partOfName != null || partOfUri != null;
 
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
@@ -191,7 +193,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void addExport(
       List<MetadataBuilder> metadata,
       String uri,
-      Unhandled conditionalUris,
+      List<Configuration> conditionalUris,
       List<Combinator> combinators,
       int charOffset,
       int uriOffset) {
@@ -201,16 +203,37 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
 
+  String _lookupImportCondition(String dottedName) {
+    const String prefix = "dart.library.";
+    if (!dottedName.startsWith(prefix)) return "";
+    dottedName = dottedName.substring(prefix.length);
+
+    LibraryBuilder coreLibrary =
+        loader.read(resolve(this.uri, "dart:core", -1), -1);
+    LibraryBuilder imported = coreLibrary
+        .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
+    return imported != null ? "true" : "";
+  }
+
   void addImport(
       List<MetadataBuilder> metadata,
       String uri,
-      Unhandled conditionalUris,
+      List<Configuration> configurations,
       String prefix,
       List<Combinator> combinators,
       bool deferred,
       int charOffset,
       int prefixCharOffset,
       int uriOffset) {
+    if (configurations != null) {
+      for (Configuration config in configurations) {
+        if (_lookupImportCondition(config.dottedName) == config.condition) {
+          uri = config.importUri;
+          break;
+        }
+      }
+    }
+
     imports.add(new Import(
         this,
         loader.read(resolve(this.uri, uri, uriOffset), charOffset,
@@ -218,6 +241,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         deferred,
         prefix,
         combinators,
+        configurations,
         charOffset,
         prefixCharOffset));
   }
@@ -582,13 +606,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  /// Resolves all unresolved types in [types]. The list of types is retained
-  /// and is used in [KernelLibraryBuilder.instantiateToBound] later.
+  /// Resolves all unresolved types in [types]. The list of types is cleared
+  /// when done.
   int resolveTypes() {
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
     }
+    types.clear();
     return typeCount;
   }
 

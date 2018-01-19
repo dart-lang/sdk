@@ -26,8 +26,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   static final List<TestSuffix> classMemberSuffixes = <TestSuffix>[
     new TestSuffix('field', 'var f;'),
-    new TestSuffix('fieldConst', 'const f;'),
-    new TestSuffix('fieldFinal', 'final f;'),
+    new TestSuffix('fieldConst', 'const f = 0;'),
+    new TestSuffix('fieldFinal', 'final f = 0;'),
     new TestSuffix('methodNonVoid', 'int a(b) => 0;'),
     new TestSuffix('methodVoid', 'void a(b) {}'),
     new TestSuffix('getter', 'int get a => 0;'),
@@ -44,8 +44,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     new TestSuffix('functionVoid', 'void f() {}'),
     new TestSuffix('functionNonVoid', 'int f() {}'),
     new TestSuffix('var', 'var a;'),
-    new TestSuffix('const', 'const a;'),
-    new TestSuffix('final', 'final a;'),
+    new TestSuffix('const', 'const a = 0;'),
+    new TestSuffix('final', 'final a = 0;'),
     new TestSuffix('getter', 'int get a => 0;'),
     new TestSuffix('setter', 'set a(b) {}')
   ];

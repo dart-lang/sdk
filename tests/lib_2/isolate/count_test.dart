@@ -12,7 +12,8 @@ void countMessages(replyTo) {
   int count = 0;
   var port = new ReceivePort();
   replyTo.send(["init", port.sendPort]);
-  port.listen((int message) {
+  port.listen((_message) {
+    int message = _message;
     if (message == -1) {
       expect(count, 10);
       replyTo.send(["done"]);

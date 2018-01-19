@@ -6,6 +6,12 @@
       "_builtin": {
         "uri": "../../runtime/bin/builtin.dart"
       },
+      "cli": {
+        "patches": [
+          "../../runtime/bin/cli_patch.dart"
+        ],
+        "uri": "cli/cli.dart"
+      },
       "core": {
         "patches": [
           "../../runtime/lib/core_patch.dart",

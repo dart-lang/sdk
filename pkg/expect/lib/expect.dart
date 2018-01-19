@@ -178,6 +178,55 @@ class Expect {
         "fails.");
   }
 
+  /**
+   * Checks whether the expected and actual values are *not* identical
+   * (using `identical`).
+   */
+  static void notIdentical(var unexpected, var actual, [String reason = null]) {
+    if (!_identical(unexpected, actual)) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.notIdentical(expected and actual: <$actual>$msg) fails.");
+  }
+
+  /**
+   * Checks that no two [objects] are `identical`.
+   */
+  static void allDistinct(List<Object> objects, [String reason = null]) {
+    String msg = _getMessage(reason);
+    var equivalences = new List<List<int>>(objects.length);
+    bool hasEquivalence = false;
+    for (int i = 0; i < objects.length; i++) {
+      if (equivalences[i] != null) continue;
+      var o = objects[i];
+      for (int j = i + 1; j < objects.length; j++) {
+        if (equivalences[j] != null) continue;
+        if (_identical(o, objects[j])) {
+          equivalences[j] = (equivalences[i] ??= <int>[i])..add(j);
+          hasEquivalence = true;
+        }
+      }
+    }
+    if (!hasEquivalence) return;
+    var buffer = new StringBuffer("Expect.allDistinct([");
+    var separator = "";
+    for (int i = 0; i < objects.length; i++) {
+      buffer.write(separator);
+      separator = ",";
+      var equivalence = equivalences[i];
+      if (equivalence == null) {
+        buffer.write('_');
+      } else {
+        int first = equivalence[0];
+        buffer..write('#')..write(first);
+        if (first == i) {
+          buffer..write('=')..write(objects[i]);
+        }
+      }
+    }
+    buffer..write("]")..write(msg)..write(")");
+    _fail(buffer.toString());
+  }
+
   // Unconditional failure.
   static void fail(String msg) {
     _fail("Expect.fail('$msg')");
@@ -514,15 +563,16 @@ class Expect {
   }
 }
 
+/// Used in [Expect] because [Expect.identical] shadows the real [identical].
 bool _identical(a, b) => identical(a, b);
 
 typedef bool _CheckExceptionFn(exception);
 typedef _Nullary(); // Expect.throws argument must be this type.
 
 class ExpectException implements Exception {
+  final String message;
   ExpectException(this.message);
   String toString() => message;
-  String message;
 }
 
 /// Annotation class for testing of dart2js. Use this as metadata on method

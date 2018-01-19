@@ -739,9 +739,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
   __ movl(EDX, Address(EDX, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // No need to check for type args, disallowed by DartEntry::InvokeFunction.
-  // Load number of arguments into EBX.
+  // Load number of arguments into EBX and adjust count for type arguments.
   __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
+  __ cmpl(FieldAddress(EDX, ArgumentsDescriptor::type_args_len_offset()),
+          Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addl(EBX, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+  // Save number of arguments as Smi on stack, replacing ArgumentsDesc.
+  __ movl(Address(EBP, kArgumentsDescOffset), EBX);
   __ SmiUntag(EBX);
 
   // Set up arguments for the dart call.
@@ -769,11 +776,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EAX, Address(EAX, VMHandles::kOffsetOfRawPtrInHandle));
   __ call(FieldAddress(EAX, Code::entry_point_offset()));
 
-  // Reread the arguments descriptor array to obtain the number of passed
-  // arguments.
+  // Read the saved number of passed arguments as Smi.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-  __ movl(EDX, Address(EDX, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movl(EDX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 

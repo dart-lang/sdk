@@ -5,6 +5,8 @@
 import("../../build/dart_host_sdk_toolchain.gni")
 import("../application_snapshot.gni")
 
+# TODO: Switch this to use kernel based app-jit snapshot
+# when we are ready to switch to the kernel based core snapshots.
 application_snapshot("kernel-service") {
   main_dart = "../../pkg/vm/bin/kernel_service.dart"
   deps = [
@@ -13,5 +15,49 @@ application_snapshot("kernel-service") {
   training_args = [
     "--train",
     "file://" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
+  ]
+}
+
+copy("copy_kernel_service_snapshot") {
+  deps = [
+    ":kernel-service",
+  ]
+  sources = [
+    rebase_path("$root_gen_dir/kernel-service.dart.snapshot"),
+  ]
+  outputs = [
+    "$root_out_dir/kernel-service.dart.snapshot",
+  ]
+}
+
+compiled_action("kernel_service_dill") {
+  deps = [
+    "../../runtime/vm:vm_legacy_platform",
+  ]
+  tool = "../../runtime/bin:dart_bootstrap"
+  kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+  gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
+
+  inputs = [
+    gen_kernel_script,
+    kernel_service_script,
+    "$root_out_dir/vm_platform.dill",
+  ]
+  outputs = [
+    "$root_gen_dir/kernel_service.dill",
+  ]
+
+  # TODO: Switch over to vm_platform_strong.dill and remove the
+  # flags --no-strong-mode once https://github.com/dart-lang/sdk/issues/31623
+  # is fixed.
+  args = [
+    rebase_path(gen_kernel_script),
+    "--packages=file:///" + rebase_path("../../.packages"),
+    "--platform=file:///" + rebase_path("$root_out_dir/vm_platform.dill"),
+    "--no-aot",
+    "--no-strong-mode",
+    "--no-embed-sources",
+    "--output=" + rebase_path("$root_gen_dir/kernel_service.dill"),
+    "file:///" + rebase_path(kernel_service_script),
   ]
 }

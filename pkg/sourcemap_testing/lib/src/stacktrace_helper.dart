@@ -104,7 +104,8 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     List<LineException> afterExceptions: const <LineException>[],
     bool useJsMethodNamesOnAbsence: false,
     String Function(String name) jsNameConverter: identityConverter,
-    Directory forcedTmpDir: null}) async {
+    Directory forcedTmpDir: null,
+    int stackTraceLimit: 10}) async {
   Expect.isTrue(test.expectationMap.keys.contains(config),
       "No expectations found for '$config' in ${test.expectationMap.keys}");
 
@@ -132,6 +133,8 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   }
   print("Running d8 $output");
   List<String> d8Arguments = <String>[];
+  d8Arguments.add('--stack-trace-limit');
+  d8Arguments.add('$stackTraceLimit');
   d8Arguments.addAll(jsPreambles(input, output));
   d8Arguments.add(output);
   ProcessResult runResult = Process.runSync(d8executable, d8Arguments);

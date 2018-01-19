@@ -140,12 +140,12 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
     return result;
   }
 
-  Iterable<MemberEntity> getCallersOf(MemberEntity element) {
+  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
     if (_disableTypeInference) {
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");
     }
-    return inferrer.getCallersOf(element);
+    return inferrer.getCallersOfForTesting(element);
   }
 
   bool isMemberCalledOnce(MemberEntity element) {

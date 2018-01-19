@@ -45,7 +45,7 @@ Future main() async {
 }
 
 Future runCompiler(Uri compiler, Uri input, Uri output) async {
-  Uri dartVm = Uri.base.resolve(Platform.resolvedExecutable);
+  Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   StdioProcess result = await StdioProcess.run(dartVm.toFilePath(), <String>[
     "-c",
     compiler.toFilePath(),

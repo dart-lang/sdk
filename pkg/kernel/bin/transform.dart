@@ -82,7 +82,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var program = loadProgramFromBinary(input);
 
   final coreTypes = new CoreTypes(program);
-  final hierarchy = new ClosedWorldClassHierarchy(program);
+  final hierarchy = new ClassHierarchy(program);
   switch (options['transformation']) {
     case 'continuation':
       program = cont.transformProgram(coreTypes, program);

@@ -235,6 +235,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
         return;
+      case "FUNCTION_TYPED_PARAMETER_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, offset, length);
+        return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);

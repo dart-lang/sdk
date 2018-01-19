@@ -53,7 +53,7 @@ import 'package:front_end/src/api_prototype/file_system.dart'
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/api_prototype/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
@@ -132,17 +132,14 @@ Future benchmark(
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   collector.start("Initial compilation");
-  var generator = await IncrementalKernelGenerator.newInstance(
-      compilerOptions, entryUri,
-      useMinimalGenerator: useMinimalGenerator);
+  var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
 
-  var delta = await generator.computeDelta();
-  generator.acceptLastDelta();
+  var program = await generator.computeDelta();
   collector.stop("Initial compilation");
   if (verbose) {
-    print("Libraries changed: ${delta.newProgram.libraries.length}");
+    print("Libraries changed: ${program.libraries.length}");
   }
-  if (delta.newProgram.libraries.length < 1) {
+  if (program.libraries.length < 1) {
     throw "No libraries were changed";
   }
 
@@ -151,14 +148,13 @@ Future benchmark(
     await applyEdits(
         changeSet.edits, overlayFs, generator, uriTranslator, verbose);
     collector.start(name);
-    delta = await generator.computeDelta();
-    generator.acceptLastDelta();
+    program = await generator.computeDelta();
     collector.stop(name);
     if (verbose) {
       print("Change '${changeSet.name}' - "
-          "Libraries changed: ${delta.newProgram.libraries.length}");
+          "Libraries changed: ${program.libraries.length}");
     }
-    if (delta.newProgram.libraries.length < 1) {
+    if (program.libraries.length < 1) {
       throw "No libraries were changed";
     }
   }
@@ -218,7 +214,7 @@ List<ChangeSet> parse(List json) {
 class OverlayFileSystem implements FileSystem {
   final MemoryFileSystem memory =
       new MemoryFileSystem(Uri.parse('org-dartlang-overlay:///'));
-  final PhysicalFileSystem physical = PhysicalFileSystem.instance;
+  final StandardFileSystem physical = StandardFileSystem.instance;
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
