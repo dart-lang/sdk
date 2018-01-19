@@ -2263,7 +2263,7 @@ static bool ShouldInlineInt64ArrayOps() {
 static bool CanUnboxInt32() {
   // Int32/Uint32 can be unboxed if it fits into a smi or the platform
   // supports unboxed mints.
-  return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedMints();
+  return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 // Quick access to the current one.

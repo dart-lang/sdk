@@ -1778,7 +1778,7 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
     op_cid = kSmiCid;
   } else if (Isolate::Current()->strong() && FLAG_use_strong_mode_types &&
              FLAG_limit_ints_to_64_bits &&
-             FlowGraphCompiler::SupportsUnboxedMints() &&
+             FlowGraphCompiler::SupportsUnboxedInt64() &&
              // TODO(dartbug.com/30480): handle nullable types here
              left_type->IsNullableInt() && !left_type->is_nullable() &&
              right_type->IsNullableInt() && !right_type->is_nullable()) {

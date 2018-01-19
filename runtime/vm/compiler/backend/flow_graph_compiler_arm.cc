@@ -40,7 +40,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return TargetCPUFeatures::vfp_supported() && FLAG_unbox_doubles;
 }
 
-bool FlowGraphCompiler::SupportsUnboxedMints() {
+bool FlowGraphCompiler::SupportsUnboxedInt64() {
   return FLAG_unbox_mints;
 }
 
@@ -52,7 +52,7 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
   return TargetCPUFeatures::can_divide();
 }
 
-bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   // ARM does not have a short instruction sequence for converting int64 to
   // double.
   return false;

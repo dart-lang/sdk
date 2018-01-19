@@ -4456,14 +4456,8 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtsi2sdq(result, value);
 }
 
-LocationSummary* MintToDoubleInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+DEFINE_BACKEND(Int64ToDouble, (FpuRegister result, Register value)) {
+  __ cvtsi2sdq(result, value);
 }
 
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,

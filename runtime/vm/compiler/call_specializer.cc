@@ -23,8 +23,8 @@ static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
 
-static bool CanConvertUnboxedMintToDouble() {
-  return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
+static bool CanConvertInt64ToDouble() {
+  return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
 
 static bool IsNumberCid(intptr_t cid) {
@@ -512,7 +512,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (HasTwoMintOrSmi(ic_data) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
+             FlowGraphCompiler::SupportsUnboxedInt64()) {
     cid = kMintCid;
   } else if (HasTwoDoubleOrSmi(ic_data) && CanUnboxDouble()) {
     // Use double comparison.
@@ -593,7 +593,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (HasTwoMintOrSmi(ic_data) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
+             FlowGraphCompiler::SupportsUnboxedInt64()) {
     cid = kMintCid;
   } else if (HasTwoDoubleOrSmi(ic_data) && CanUnboxDouble()) {
     // Use double comparison.
@@ -640,7 +640,7 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                             ? kMintCid
                             : kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data) &&
-                 FlowGraphCompiler::SupportsUnboxedMints()) {
+                 FlowGraphCompiler::SupportsUnboxedInt64()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
         if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) return false;
@@ -750,7 +750,7 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                             call->deopt_id(), call->token_pos());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
-    if (!FlowGraphCompiler::SupportsUnboxedMints()) return false;
+    if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
       ShiftInt64OpInstr* shift_op = new (Z) ShiftInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
@@ -826,7 +826,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
         UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
              HasOnlySmiOrMint(*call->ic_data()) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
+             FlowGraphCompiler::SupportsUnboxedInt64()) {
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
@@ -1068,11 +1068,11 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
                   new (Z) SmiToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
                                            call->token_pos()));
       return true;
-    } else if ((class_ids[0] == kMintCid) && CanConvertUnboxedMintToDouble()) {
+    } else if ((class_ids[0] == kMintCid) && CanConvertInt64ToDouble()) {
       AddReceiverCheck(call);
       ReplaceCall(call,
-                  new (Z) MintToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
-                                            call->deopt_id()));
+                  new (Z) Int64ToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
+                                             call->deopt_id()));
       return true;
     }
   }
@@ -1535,10 +1535,10 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
                                                          call->token_pos()));
               return;
             } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
-                       CanConvertUnboxedMintToDouble()) {
+                       CanConvertInt64ToDouble()) {
               Definition* arg = call->ArgumentAt(1);
-              ReplaceCall(call, new (Z) MintToDoubleInstr(new (Z) Value(arg),
-                                                          call->deopt_id()));
+              ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
+                                                           call->deopt_id()));
               return;
             }
           }

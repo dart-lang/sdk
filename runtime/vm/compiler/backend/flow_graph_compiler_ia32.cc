@@ -43,7 +43,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
 }
 
-bool FlowGraphCompiler::SupportsUnboxedMints() {
+bool FlowGraphCompiler::SupportsUnboxedInt64() {
   return FLAG_unbox_mints;
 }
 
@@ -55,7 +55,7 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
   return true;
 }
 
-bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return true;
 }
 

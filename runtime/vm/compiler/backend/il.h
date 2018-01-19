@@ -428,7 +428,7 @@ class EmbeddedArray<T, 0> {
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
   M(Int32ToDouble)                                                             \
-  M(MintToDouble)                                                              \
+  M(Int64ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
@@ -6312,16 +6312,18 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
 };
 
-class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  MintToDoubleInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+  Int64ToDoubleInstr(Value* value,
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id), speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
 
-  DECLARE_INSTRUCTION(MintToDouble)
+  DECLARE_INSTRUCTION(Int64ToDouble)
   virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
@@ -6338,10 +6340,17 @@ class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return speculative_mode() == other->AsInt64ToDouble()->speculative_mode();
+  }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(MintToDoubleInstr);
+  const SpeculativeMode speculative_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(Int64ToDoubleInstr);
 };
 
 class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {

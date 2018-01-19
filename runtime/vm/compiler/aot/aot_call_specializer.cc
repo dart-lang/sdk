@@ -265,6 +265,23 @@ bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
   return false;
 }
 
+bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
+    CompileType* operand_type) {
+  if (operand_type->IsNullableInt()) {
+    if (operand_type->ToNullableCid() == kSmiCid) {
+      return true;
+    }
+
+    if (FLAG_limit_ints_to_64_bits &&
+        FlowGraphCompiler::SupportsUnboxedInt64() &&
+        FlowGraphCompiler::CanConvertInt64ToDouble()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
@@ -276,8 +293,19 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
   input = input->CopyWithType(Z);
 
-  if ((cid == kDoubleCid) && (input->Type()->ToNullableCid() == kSmiCid)) {
-    Definition* conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
+  if ((cid == kDoubleCid) && input->Type()->IsNullableInt()) {
+    Definition* conversion = NULL;
+
+    if (input->Type()->ToNullableCid() == kSmiCid) {
+      conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
+    } else if (FLAG_limit_ints_to_64_bits &&
+               FlowGraphCompiler::SupportsUnboxedInt64() &&
+               FlowGraphCompiler::CanConvertInt64ToDouble()) {
+      conversion = new (Z) Int64ToDoubleInstr(input, Thread::kNoDeoptId,
+                                              Instruction::kNotSpeculative);
+    } else {
+      UNREACHABLE();
+    }
 
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] Inserted %s\n", conversion->ToCString());
@@ -332,7 +360,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       CompileType* right_type = right_value->Type();
       if (left_type->IsNullableInt() && right_type->IsNullableInt()) {
         if (FLAG_limit_ints_to_64_bits &&
-            FlowGraphCompiler::SupportsUnboxedMints()) {
+            FlowGraphCompiler::SupportsUnboxedInt64()) {
           if (Token::IsRelationalOperator(op_kind)) {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
@@ -367,11 +395,9 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
         }
       } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
                  (left_type->IsNullableDouble() ||
-                  (left_type->ToNullableCid() == kSmiCid)) &&
+                  IsSupportedIntOperandForStaticDoubleOp(left_type)) &&
                  (right_type->IsNullableDouble() ||
-                  (right_type->ToNullableCid() == kSmiCid))) {
-        // TODO(dartbug.com/30480): Extend double/int mixed cases from Smi to
-        // AbstractInt (it requires corresponding conversions).
+                  IsSupportedIntOperandForStaticDoubleOp(right_type))) {
         ASSERT(left_type->IsNullableDouble() || right_type->IsNullableDouble());
         // TODO(dartbug.com/30480): Support == and != for doubles.
         if ((op_kind == Token::kLT) || (op_kind == Token::kLTE) ||
@@ -405,7 +431,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       if (left_type->IsNullableInt() && right_type->IsNullableInt() &&
           (op_kind != Token::kDIV)) {
         if (FLAG_limit_ints_to_64_bits &&
-            FlowGraphCompiler::SupportsUnboxedMints()) {
+            FlowGraphCompiler::SupportsUnboxedInt64()) {
           if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
             // TODO(dartbug.com/30480): Enable 64-bit integer shifts.
             // replacement = new ShiftInt64OpInstr(
@@ -428,11 +454,9 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
         }
       } else if (FlowGraphCompiler::SupportsUnboxedDoubles() &&
                  (left_type->IsNullableDouble() ||
-                  (left_type->ToNullableCid() == kSmiCid)) &&
+                  IsSupportedIntOperandForStaticDoubleOp(left_type)) &&
                  (right_type->IsNullableDouble() ||
-                  (right_type->ToNullableCid() == kSmiCid))) {
-        // TODO(dartbug.com/30480): Extend double/int mixed cases from Smi to
-        // AbstractInt (it requires corresponding conversions).
+                  IsSupportedIntOperandForStaticDoubleOp(right_type))) {
         if ((op_kind == Token::kADD) || (op_kind == Token::kSUB) ||
             (op_kind == Token::kMUL) || (op_kind == Token::kDIV)) {
           ASSERT(left_type->IsNullableDouble() ||
@@ -482,7 +506,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         Value* left_value = call->PushArgumentAt(0)->value();
         Value* right_value = call->PushArgumentAt(1)->value();
         if (right_value->Type()->IsNullableDouble() ||
-            (right_value->Type()->ToNullableCid() == kSmiCid)) {
+            IsSupportedIntOperandForStaticDoubleOp(right_value->Type())) {
           left_value =
               PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, call);
@@ -496,7 +520,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         Value* left_value = call->PushArgumentAt(0)->value();
         Value* right_value = call->PushArgumentAt(1)->value();
         if (right_value->Type()->IsNullableDouble() ||
-            (right_value->Type()->ToNullableCid() == kSmiCid)) {
+            IsSupportedIntOperandForStaticDoubleOp(right_value->Type())) {
           left_value =
               PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, call);

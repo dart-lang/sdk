@@ -4290,13 +4290,13 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ scvtfdx(result, TMP);
 }
 
-LocationSummary* MintToDoubleInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* Int64ToDoubleInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNIMPLEMENTED();
   return NULL;
 }
 
-void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int64ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

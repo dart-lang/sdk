@@ -38,7 +38,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
 }
 
-bool FlowGraphCompiler::SupportsUnboxedMints() {
+bool FlowGraphCompiler::SupportsUnboxedInt64() {
   return false;
 }
 
@@ -46,9 +46,8 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
-bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
-  // ARM does not have a short instruction sequence for converting int64 to
-  // double.
+bool FlowGraphCompiler::CanConvertInt64ToDouble() {
+  // Unboxed int64 are not supported on ARM64.
   return false;
 }
 

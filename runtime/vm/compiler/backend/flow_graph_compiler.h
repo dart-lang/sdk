@@ -276,10 +276,10 @@ class FlowGraphCompiler : public ValueObject {
   ~FlowGraphCompiler();
 
   static bool SupportsUnboxedDoubles();
-  static bool SupportsUnboxedMints();
+  static bool SupportsUnboxedInt64();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
-  static bool CanConvertUnboxedMintToDouble();
+  static bool CanConvertInt64ToDouble();
 
   static bool IsUnboxedField(const Field& field);
   static bool IsPotentialUnboxedField(const Field& field);
