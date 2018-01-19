@@ -16,6 +16,7 @@ enum CallKind {
   Method, // x.foo(..) or foo()
   PropertyGet, // ... x.foo ...
   PropertySet, // x.foo = ...
+  FieldInitializer,
 }
 
 /// [Selector] encapsulates the way of calling (at the call site).
@@ -52,6 +53,7 @@ abstract class Selector {
       case CallKind.PropertyGet:
         return member.getterType;
       case CallKind.PropertySet:
+      case CallKind.FieldInitializer:
         return const BottomType();
     }
     return null;
@@ -68,6 +70,8 @@ abstract class Selector {
         return (member is Field) || ((member is Procedure) && member.isGetter);
       case CallKind.PropertySet:
         return (member is Field) || ((member is Procedure) && member.isSetter);
+      case CallKind.FieldInitializer:
+        return (member is Field);
     }
     return false;
   }
@@ -80,6 +84,8 @@ abstract class Selector {
         return 'get ';
       case CallKind.PropertySet:
         return 'set ';
+      case CallKind.FieldInitializer:
+        return 'init ';
     }
     return '';
   }
@@ -91,7 +97,9 @@ class DirectSelector extends Selector {
 
   DirectSelector(this.member, {CallKind callKind = CallKind.Method})
       : super(callKind) {
-    assertx(memberAgreesToCallKind(member), details: member);
+    assertx((callKind == CallKind.Method) ||
+        (callKind == CallKind.PropertyGet) ||
+        memberAgreesToCallKind(member));
   }
 
   @override
@@ -156,6 +164,12 @@ class Args<T extends TypeExpr> {
   int _hashCode;
 
   Args(this.values, {this.names = const <String>[]});
+
+  Args.withReceiver(Args<T> args, T receiver)
+      : values = new List.from(args.values),
+        names = args.names {
+    values[0] = receiver;
+  }
 
   int get positionalCount => values.length - names.length;
 

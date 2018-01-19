@@ -55,6 +55,7 @@ abstract class TypeExpr {
 /// Base class for types inferred by the type flow analysis.
 /// [Type] describes a specific set of values (Dart instances) and does not
 /// directly correspond to a Dart type.
+/// TODO(alexmarkov): consider detaching Type hierarchy from TypeExpr/Statement.
 abstract class Type extends TypeExpr {
   const Type();
 

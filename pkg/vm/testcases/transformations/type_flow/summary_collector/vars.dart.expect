@@ -45,6 +45,3 @@ RESULT: x
 ------------ #lib::main ------------
 
 RESULT: _T {}?
------------- #lib::someStatic ------------
-
-RESULT: _T {}?

@@ -8,6 +8,7 @@ library vm.transformations.type_flow.summary_collector;
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'calls.dart';
@@ -70,7 +71,10 @@ class _SummaryNormalizer extends StatementVisitor {
         }
 
         if (st is Join) {
-          if (st.values.length == 1) {
+          final n = st.values.length;
+          if (n == 0) {
+            return const EmptyType();
+          } else if (n == 1) {
             return st.values.single;
           }
         }
@@ -130,6 +134,90 @@ class _SummaryNormalizer extends StatementVisitor {
   }
 }
 
+/// Detects whether the control flow can pass through the function body and
+/// reach its end. Returns 'false' if it can prove that control never reaches
+/// the end. Otherwise, conservatively returns 'true'.
+class _FallthroughDetector extends ast.StatementVisitor<bool> {
+  // This fallthrough detector does not build control flow graph nor detect if
+  // a function has unreachable code. For simplicity, it assumes that all
+  // statements are reachable, so it just inspects the last statements of a
+  // function and checks if control can fall through them or not.
+
+  bool controlCanFallThrough(FunctionNode function) {
+    return function.body.accept(this);
+  }
+
+  @override
+  bool defaultStatement(ast.Statement node) =>
+      throw "Unexpected statement of type ${node.runtimeType}";
+
+  @override
+  bool visitExpressionStatement(ExpressionStatement node) =>
+      (node.expression is! Throw) && (node.expression is! Rethrow);
+
+  @override
+  bool visitBlock(Block node) =>
+      node.statements.isEmpty || node.statements.last.accept(this);
+
+  @override
+  bool visitEmptyStatement(EmptyStatement node) => true;
+
+  @override
+  bool visitAssertStatement(AssertStatement node) => true;
+
+  @override
+  bool visitLabeledStatement(LabeledStatement node) => true;
+
+  @override
+  bool visitBreakStatement(BreakStatement node) => false;
+
+  @override
+  bool visitWhileStatement(WhileStatement node) => true;
+
+  @override
+  bool visitDoStatement(DoStatement node) => true;
+
+  @override
+  bool visitForStatement(ForStatement node) => true;
+
+  @override
+  bool visitForInStatement(ForInStatement node) => true;
+
+  @override
+  bool visitSwitchStatement(SwitchStatement node) => true;
+
+  @override
+  bool visitContinueSwitchStatement(ContinueSwitchStatement node) => false;
+
+  @override
+  bool visitIfStatement(IfStatement node) =>
+      node.then == null ||
+      node.otherwise == null ||
+      node.then.accept(this) ||
+      node.otherwise.accept(this);
+
+  @override
+  bool visitReturnStatement(ReturnStatement node) => false;
+
+  @override
+  bool visitTryCatch(TryCatch node) =>
+      node.body.accept(this) ||
+      node.catches.any((Catch catch_) => catch_.body.accept(this));
+
+  @override
+  bool visitTryFinally(TryFinally node) =>
+      node.body.accept(this) && node.finalizer.accept(this);
+
+  @override
+  bool visitYieldStatement(YieldStatement node) => true;
+
+  @override
+  bool visitVariableDeclaration(VariableDeclaration node) => true;
+
+  @override
+  bool visitFunctionDeclaration(FunctionDeclaration node) => true;
+}
+
 /// Create a type flow summary for a member from the kernel AST.
 class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final TypeEnvironment _environment;
@@ -137,6 +225,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final NativeCodeOracle _nativeCodeOracle;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
+  final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
 
   Summary _summary;
   Map<VariableDeclaration, Join> _variables;
@@ -157,15 +246,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     if (member is Field) {
       _summary = new Summary();
 
-      if (member.initializer != null) {
-        _summary.result = _visit(member.initializer);
-      } else {
-        if (_isDefaultValueOfFieldObservable(member)) {
-          _summary.result = new Type.nullable(new Type.empty());
-        } else {
-          _summary.result = new Type.empty();
-        }
-      }
+      assertx(member.initializer != null);
+      _summary.result = _visit(member.initializer);
     } else {
       FunctionNode function = member.function;
 
@@ -205,11 +287,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (member is Constructor) {
         // Make sure instance field initializers are visited.
         for (var f in member.enclosingClass.members) {
-          if ((f is Field) && (!f.isStatic) && (f.initializer != null)) {
-            // Implicitly evaluates and includes field initializer.
-            // TODO(alexmarkov): Consider including field initializer code into constructors.
+          if ((f is Field) && !f.isStatic && (f.initializer != null)) {
             _entryPointsListener.addRawCall(
-                new DirectSelector(f, callKind: CallKind.PropertyGet));
+                new DirectSelector(f, callKind: CallKind.FieldInitializer));
           }
         }
         member.initializers.forEach(_visit);
@@ -218,16 +298,15 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (function.body == null) {
         Type type = _nativeCodeOracle.handleNativeProcedure(
             member, _entryPointsListener);
-        if (_returnValue != null) {
-          _returnValue.values.add(type);
-        }
+        _returnValue.values.add(type);
       } else {
         _visit(function.body);
+
+        if (_fallthroughDetector.controlCanFallThrough(function)) {
+          _returnValue.values.add(_nullType);
+        }
       }
 
-      if (_returnValue.values.isEmpty) {
-        _returnValue.values.add(_nullType);
-      }
       _summary.result = _returnValue;
       _environment.thisType = null;
     }
@@ -253,7 +332,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     List<Type> args = <Type>[];
 
-    if (hasReceiverArg(member)) {
+    if (hasReceiverArg(member) &&
+        (selector.callKind != CallKind.FieldInitializer)) {
       assertx(member.enclosingClass != null);
       Type receiver = new Type.cone(member.enclosingClass.rawType);
       args.add(receiver);
@@ -279,31 +359,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       case CallKind.PropertySet:
         args.add(new Type.fromStatic(member.setterType));
         break;
+
+      case CallKind.FieldInitializer:
+        break;
     }
 
     return new Args<Type>(args);
-  }
-
-  bool _isDefaultValueOfFieldObservable(Field field) {
-    if (field.isStatic) {
-      return true;
-    }
-
-    final enclosingClass = field.enclosingClass;
-    assertx(enclosingClass != null);
-
-    // Default value is not ebservable if every generative constructor
-    // is redirecting or initializes the field.
-    return !enclosingClass.constructors.every((Constructor constr) {
-      for (var initializer in constr.initializers) {
-        if ((initializer is RedirectingInitializer) ||
-            ((initializer is FieldInitializer) &&
-                (initializer.field == field))) {
-          return true;
-        }
-      }
-      return false;
-    });
   }
 
   TypeExpr _visit(TreeNode node) => node.accept(this);
@@ -349,6 +410,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return v;
   }
 
+  // TODO(alexmarkov): Avoid declaring variables with static types.
   void _declareVariableWithStaticType(VariableDeclaration decl) {
     Join v = _declareVariable(decl);
     v.values.add(new Type.fromStatic(v.staticType));
@@ -486,6 +548,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           new DirectSelector(target, callKind: CallKind.PropertyGet), args);
     } else {
       // Tear-off.
+      // TODO(alexmarkov): Consider cleaning up this code as it duplicates
+      // processing in DirectInvocation.
       // TODO(alexmarkov): capture receiver type
       _entryPointsListener.addRawCall(new DirectSelector(target));
       return _staticType(node);
@@ -648,6 +712,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     } else {
       if ((target is Field) || ((target is Procedure) && target.isGetter)) {
         // Call via field.
+        // TODO(alexmarkov): Consider cleaning up this code as it duplicates
+        // processing in DirectInvocation.
         _makeCall(
             node,
             new DirectSelector(target, callKind: CallKind.PropertyGet),
@@ -675,6 +741,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
             new DirectSelector(target, callKind: CallKind.PropertyGet), args);
       } else {
         // Tear-off.
+        // TODO(alexmarkov): Consider cleaning up this code as it duplicates
+        // processing in DirectInvocation.
         // TODO(alexmarkov): capture receiver type
         _entryPointsListener.addRawCall(new DirectSelector(target));
         return _staticType(node);
@@ -1046,7 +1114,7 @@ class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
 
   @override
   defaultMember(Member m) {
-    if (!m.isAbstract) {
+    if (!m.isAbstract && !(m is Field && m.initializer == null)) {
       _summaryColector.createSummary(m);
     }
   }
