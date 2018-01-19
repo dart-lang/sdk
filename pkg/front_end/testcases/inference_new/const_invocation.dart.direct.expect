@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<U extends core::Object, V extends core::Object> = (U) → V;
 class Foo<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get v1() → self::Bar<self::Foo::T>

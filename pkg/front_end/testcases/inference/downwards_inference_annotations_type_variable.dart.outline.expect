@@ -8,11 +8,11 @@ class Foo extends core::Object {
     ;
 }
 class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class D extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method m<T extends core::Object>() → void
     ;

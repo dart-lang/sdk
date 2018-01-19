@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract method f1(self::I::T x) → void;
   abstract method f2(self::I::T x) → void;
 }
 class C<U extends core::Object> extends core::Object implements self::I<core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method f1(core::int x) → void
     ;
@@ -17,7 +17,7 @@ class C<U extends core::Object> extends core::Object implements self::I<core::in
     ;
 }
 class D<U extends core::Object> extends self::C<self::D::U> {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method f1(core::int x) → void
     ;

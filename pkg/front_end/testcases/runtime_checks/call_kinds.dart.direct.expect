@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F = () → void;
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method f() → void {}

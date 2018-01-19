@@ -4,12 +4,12 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
 }

@@ -3,35 +3,35 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
 }
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method f(self::A x) → void {}
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
   method f(dynamic x) → void {}
 }
 class E extends self::D {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::D::•()
     ;
   method f(self::A x) → void {}
 }
 class F extends self::D {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::D::•()
     ;
   method f(self::B x) → void {}

@@ -10,7 +10,7 @@ import "lib/sources.dart" as sou;
 class C extends core::Object {
   field sou::A1 f1;
   field dynamic f2;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
   method m1(sou::A4 a, [sou::A5 b]) → sou::A3;
   method m2(sou::A4 a, {sou::A6 b}) → sou::A3;

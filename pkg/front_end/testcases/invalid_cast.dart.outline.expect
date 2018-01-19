@@ -18,7 +18,7 @@ class C extends core::Object {
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static method topLevelFunction(core::int i) → void

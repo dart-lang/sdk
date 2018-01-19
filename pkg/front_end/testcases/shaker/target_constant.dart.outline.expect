@@ -13,19 +13,19 @@ class RefStaticConstFields extends core::Object {
   static final field core::int staticConstField_from_staticFinal;
   final field core::int staticConstField_from_final;
   field core::int staticConstField_from_regular;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 class RefNotConstStaticFields extends core::Object {
   static field core::int ref_staticFinalField;
   static field core::int ref_staticField;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 class RefNotConstInstanceFields extends core::Object {
   static field core::int ref_instanceFinalField;
   static field core::int ref_instanceField;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 static const field dynamic b = const tar::B::•();

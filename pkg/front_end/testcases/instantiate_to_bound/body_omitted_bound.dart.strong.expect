@@ -4,12 +4,12 @@ import "dart:core" as core;
 import "dart:collection" as col;
 
 class A<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method fun() → dynamic {

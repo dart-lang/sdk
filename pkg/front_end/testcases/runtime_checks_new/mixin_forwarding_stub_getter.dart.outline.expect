@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = (T) → void;
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   get x() → (core::int) → void
     ;
@@ -12,13 +12,13 @@ class B extends core::Object {
     ;
 }
 abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get x() → (self::I::T) → void;
   abstract set x(core::Object value) → void;
 }
 abstract class M<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   get x() → self::M::T
     ;
@@ -32,7 +32,7 @@ abstract class C<T extends core::Object> = self::B with self::M<(self::C::T) →
     ;
 }
 class D extends self::C<core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method f() → (core::int) → void
     ;

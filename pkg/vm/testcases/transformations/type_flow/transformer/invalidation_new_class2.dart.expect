@@ -3,35 +3,35 @@ import self as self;
 import "dart:core" as core;
 
 class T1 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class T2 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract method foo() → dynamic;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
   method foo() → dynamic
     return new self::T1::•();
 }
 abstract class C extends core::Object implements self::B {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::C::";
 }
 class D extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
@@ -41,14 +41,14 @@ abstract class _D&C extends self::D implements self::C {
     ;
 }
 class E extends self::_D&C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::D::•()
     ;
   method foo() → dynamic
     return new self::T2::•();
 }
 class Intermediate extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method bar(self::A aa) → dynamic

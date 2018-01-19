@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
 }
 class Foo<T extends self::A> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

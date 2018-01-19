@@ -4,13 +4,13 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 class B<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator []=(generic-covariant-impl generic-covariant-interface core::Map<core::int, self::B::T> x, generic-covariant-impl generic-covariant-interface core::List<self::B::T> y) → void {}
 }
 class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
   operator []=(generic-covariant-impl core::Object x, generic-covariant-impl core::Object y) → void {}

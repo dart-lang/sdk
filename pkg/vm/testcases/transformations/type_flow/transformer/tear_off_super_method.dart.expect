@@ -3,27 +3,27 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract method foo() → core::int;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
   method foo() → core::int
     return 1.{core::num::+}([@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
 }
 class C extends core::Object implements self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::C::";
   method foo() → core::int
     throw "TFA Error: #lib::C::foo";
 }
 class Base extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo() → core::int
@@ -32,7 +32,7 @@ class Base extends core::Object {
     return x.call() as{TypeError} core::int;
 }
 class TearOffSuperMethod extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method foo() → core::int

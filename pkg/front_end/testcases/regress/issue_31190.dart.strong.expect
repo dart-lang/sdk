@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Typed<T extends core::Object> extends core::Object {
   generic-covariant-impl generic-covariant-interface field self::Typed::T v = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

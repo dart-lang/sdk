@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 abstract class MyFuture extends core::Object implements asy::Future<core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract forwarding-stub method timeout(core::Duration timeLimit, {generic-covariant-impl () → asy::FutureOr<core::int> onTimeout}) → asy::Future<core::int>;

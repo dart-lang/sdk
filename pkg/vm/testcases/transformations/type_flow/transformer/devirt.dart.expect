@@ -3,32 +3,32 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract method foo() → core::int;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
   method foo() → core::int
     return 1;
 }
 class C extends core::Object implements self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo() → core::int
     return 2;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
 }
 class E extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method toString() → core::String

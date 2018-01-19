@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field dynamic x = self::y;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

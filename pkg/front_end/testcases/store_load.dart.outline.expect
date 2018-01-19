@@ -4,20 +4,20 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic _field;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class FooValue extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class Bar extends core::Object {
   field dynamic _field;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class BarValue extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static method main() → dynamic

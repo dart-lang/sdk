@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Foo extends core::Object {
   static const field dynamic staticConstant;
   static field dynamic staticField;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   static method staticFunction() → dynamic
     ;

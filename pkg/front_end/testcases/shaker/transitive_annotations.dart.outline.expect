@@ -8,7 +8,7 @@ import "./transitive_annotations_lib.dart" as tra;
 import "dart:core" as core;
 
 class X1 extends tra::C1 {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super tra::C1::•();
   @tra::forMethod2
   method publicMethodX1() → void;
@@ -37,7 +37,7 @@ class B2 extends core::Object {
 class C1 extends core::Object {
   @self::forClassField
   field core::int publicField;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
   @self::forMethod1
   method publicMethod1() → void;

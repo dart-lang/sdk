@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → dynamic
@@ -12,7 +12,7 @@ class A extends core::Object {
     let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:11:8: Error: A setter should have exactly one formal parameter.\n  set d(x, y);\n       ^";
 }
 abstract class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → dynamic

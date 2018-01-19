@@ -3,15 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   set x1(covariant self::A value) → void
     ;
@@ -27,7 +27,7 @@ class C extends core::Object {
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   set x1(self::B value) → void
     ;

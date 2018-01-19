@@ -3,22 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Base extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class Foo extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
 }
 class Bar extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
 }
 class Baz extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
 }

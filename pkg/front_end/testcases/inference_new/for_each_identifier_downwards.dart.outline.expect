@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class C extends core::Object {
   field self::A aField;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   set aSetter(self::A value) → void
     ;

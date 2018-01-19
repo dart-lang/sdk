@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = (T) → void;
 class B<T extends core::Object, U extends (self::B::T) → void> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   generic-contravariant operator +(dynamic other) → self::B<self::B::T, (self::B::T) → void>
@@ -13,7 +13,7 @@ class B<T extends core::Object, U extends (self::B::T) → void> extends core::O
 class C extends core::Object {
   field self::B<core::num, (core::num) → void> x = null;
   static field self::B<core::num, (core::num) → void> y = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator [](core::int i) → self::B<core::num, (core::num) → void>

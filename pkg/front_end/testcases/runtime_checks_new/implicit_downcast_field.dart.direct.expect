@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   static field core::bool staticValue = self::o;
   field core::bool instanceValue = self::o;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

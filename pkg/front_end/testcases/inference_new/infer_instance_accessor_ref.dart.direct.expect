@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field self::B b = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get c() → self::C
@@ -17,12 +17,12 @@ class B extends core::Object {
   set c(self::C value) → void {}
 }
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
 }

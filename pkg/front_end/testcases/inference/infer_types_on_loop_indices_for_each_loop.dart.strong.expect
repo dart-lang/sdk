@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field core::int bar = 42;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class Bar<T extends core::Iterable<core::String>> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo(generic-covariant-impl generic-covariant-interface self::Bar::T t) → void {
@@ -19,7 +19,7 @@ class Bar<T extends core::Iterable<core::String>> extends core::Object {
   }
 }
 class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S extends self::Baz::E> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo(generic-covariant-impl generic-covariant-interface self::Baz::S t) → void {

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method f1(self::C::T x) → void
     ;
@@ -11,7 +11,7 @@ class C<T extends core::Object> extends core::Object {
     ;
 }
 class D extends self::C<core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method f1(covariant core::int x) → void
     ;

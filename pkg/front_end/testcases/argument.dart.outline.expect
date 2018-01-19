@@ -3,19 +3,19 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Base extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class Foo extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class Bar extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class Baz extends self::Base {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static method foo(dynamic x) → void

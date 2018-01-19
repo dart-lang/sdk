@@ -8,7 +8,7 @@ class C extends core::Object implements self::B {
     ;
 }
 abstract class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get x() → core::int;
 }

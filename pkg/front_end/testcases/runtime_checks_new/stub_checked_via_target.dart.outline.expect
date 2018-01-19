@@ -3,18 +3,18 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method f(core::int x) → core::int
     ;
 }
 abstract class I extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract method f(covariant core::Object x) → core::int;
 }
 class C extends self::B implements self::I {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static method expectTypeError(() → void callback) → void
