@@ -1736,13 +1736,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     }
-    bool isConst = constKeyword != null;
-    if (constantExpressionRequired && !isConst) {
-      deprecated_addCompileTimeError(
-          offsetForToken(beginToken), "Not a constant expression.");
-    }
     push(new ShadowListLiteral(expressions,
-        typeArgument: typeArgument, isConst: isConst)
+        typeArgument: typeArgument,
+        isConst: constKeyword != null || constantExpressionRequired)
       ..fileOffset = offsetForToken(constKeyword ?? beginToken));
   }
 
@@ -1788,14 +1784,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
 
-    bool isConst = constKeyword != null;
-
-    if (constantExpressionRequired && !isConst) {
-      deprecated_addCompileTimeError(
-          offsetForToken(beginToken), "Not a constant expression.");
-    }
     push(new ShadowMapLiteral(entries,
-        keyType: keyType, valueType: valueType, isConst: isConst)
+        keyType: keyType,
+        valueType: valueType,
+        isConst: constKeyword != null || constantExpressionRequired)
       ..fileOffset = constKeyword?.charOffset ?? offsetForToken(beginToken));
   }
 
