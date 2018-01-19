@@ -497,8 +497,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     } else {
       // Create the runtime type information, if needed.
-      bool hasRtiInput = closedWorld.rtiNeed.classNeedsRtiField(cls);
-      if (hasRtiInput) {
+      bool needsTypeArguments =
+          closedWorld.rtiNeed.classNeedsTypeArguments(cls);
+      if (needsTypeArguments) {
         // Read the values of the type arguments and create a
         // HTypeInfoExpression to set on the newly created object.
         List<HInstruction> typeArguments = <HInstruction>[];
@@ -521,7 +522,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       newObject = new HCreate(cls, constructorArguments,
           new TypeMask.nonNullExact(cls, closedWorld), sourceInformation,
-          instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
+          instantiatedTypes: instantiatedTypes,
+          hasRtiInput: needsTypeArguments);
 
       add(newObject);
     }
@@ -633,36 +635,38 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
   }
 
+  void _ensureTypeVariablesForInitializers(
+      ConstructorData constructorData, ClassEntity enclosingClass) {
+    if (!constructorData.includedClasses.add(enclosingClass)) return;
+    if (rtiNeed.classNeedsTypeArguments(enclosingClass)) {
+      // If [enclosingClass] needs RTI, we have to give a value to its type
+      // parameters. For a super constructor call, the type is the supertype
+      // of current class. For a redirecting constructor, the type is the
+      // current type. [LocalsHandler.substInContext] takes care of both.
+      InterfaceType thisType =
+          _elementMap.elementEnvironment.getThisType(enclosingClass);
+      InterfaceType type = localsHandler.substInContext(thisType);
+      List<DartType> arguments = type.typeArguments;
+      List<DartType> typeVariables = thisType.typeArguments;
+      assert(arguments.length == typeVariables.length);
+      Iterator<DartType> variables = typeVariables.iterator;
+      type.typeArguments.forEach((DartType argument) {
+        variables.moveNext();
+        TypeVariableType typeVariable = variables.current;
+        localsHandler.updateLocal(
+            localsHandler.getTypeVariableAsLocal(typeVariable),
+            typeBuilder.analyzeTypeArgument(argument, sourceElement));
+      });
+    }
+  }
+
   /// Collects the values for field initializers for the direct fields of
   /// [clazz].
   void _collectFieldValues(ir.Class clazz, ConstructorData constructorData) {
-    void ensureTypeVariablesForInitializers(ClassEntity enclosingClass) {
-      if (!constructorData.includedClasses.add(enclosingClass)) return;
-      if (rtiNeed.classNeedsTypeArguments(enclosingClass)) {
-        // If [enclosingClass] needs RTI, we have to give a value to its type
-        // parameters. For a super constructor call, the type is the supertype
-        // of current class. For a redirecting constructor, the type is the
-        // current type. [LocalsHandler.substInContext] takes care of both.
-        InterfaceType thisType =
-            _elementMap.elementEnvironment.getThisType(enclosingClass);
-        InterfaceType type = localsHandler.substInContext(thisType);
-        List<DartType> arguments = type.typeArguments;
-        List<DartType> typeVariables = thisType.typeArguments;
-        assert(arguments.length == typeVariables.length);
-        Iterator<DartType> variables = typeVariables.iterator;
-        type.typeArguments.forEach((DartType argument) {
-          variables.moveNext();
-          TypeVariableType typeVariable = variables.current;
-          localsHandler.updateLocal(
-              localsHandler.getTypeVariableAsLocal(typeVariable),
-              typeBuilder.analyzeTypeArgument(argument, sourceElement));
-        });
-      }
-    }
-
     ClassEntity cls = _elementMap.getClass(clazz);
     _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field) {
-      ensureTypeVariablesForInitializers(field.enclosingClass);
+      _ensureTypeVariablesForInitializers(
+          constructorData, field.enclosingClass);
 
       MemberDefinition definition = _elementMap.getMemberDefinition(field);
       ir.Field node;
@@ -861,6 +865,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ConstructorEntity element = _elementMap.getConstructor(constructor);
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
+
     inlinedFrom(element, () {
       void handleParameter(ir.VariableDeclaration node) {
         Local parameter = localsMap.getLocalVariable(node);
@@ -876,6 +881,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       constructor.function.namedParameters.toList()
         ..sort(namedOrdering)
         ..forEach(handleParameter);
+
+      _ensureTypeVariablesForInitializers(
+          constructorData, element.enclosingClass);
 
       // Set the locals handler state as if we were inlining the constructor.
       ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);

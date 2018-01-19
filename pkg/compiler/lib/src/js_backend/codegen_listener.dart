@@ -197,7 +197,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       DartType type, WorldImpactBuilder impactBuilder) {
     if (type is InterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
-      if (_rtiNeed.classNeedsRtiField(type.element)) {
+      if (_rtiNeed.classNeedsTypeArguments(type.element)) {
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
             _commonElements.setRuntimeTypeInfo,

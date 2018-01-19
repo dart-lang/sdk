@@ -1316,7 +1316,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (!isNativeUpgradeFactory) {
       // Create the runtime type information, if needed.
       bool hasRtiInput = false;
-      if (rtiNeed.classNeedsRtiField(classElement.declaration)) {
+      if (rtiNeed.classNeedsTypeArguments(classElement.declaration)) {
         // Read the values of the type arguments and create a
         // HTypeInfoExpression to set on the newly create object.
         hasRtiInput = true;

@@ -60,8 +60,6 @@ abstract class RuntimeTypesNeed {
   ///
   bool methodNeedsTypeArguments(FunctionEntity method);
 
-  bool classNeedsRtiField(ClassEntity cls);
-
   /// Returns `true` if a signature is needed for [method].
   ///
   /// A signature is a runtime method type descriptor function that creates
@@ -112,9 +110,6 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
 
   @override
   bool methodNeedsSignature(FunctionEntity method) => true;
-
-  @override
-  bool classNeedsRtiField(ClassEntity cls) => true;
 
   @override
   bool methodNeedsTypeArguments(FunctionEntity method) =>
@@ -555,12 +550,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   bool checkClass(covariant ClassEntity cls) => true;
 
   bool classNeedsTypeArguments(ClassEntity cls) {
-    assert(checkClass(cls));
-    if (_backendUsage.isRuntimeTypeUsed) return true;
-    return classesNeedingTypeArguments.contains(cls);
-  }
-
-  bool classNeedsRtiField(ClassEntity cls) {
     assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     if (_backendUsage.isRuntimeTypeUsed) return true;
