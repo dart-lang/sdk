@@ -176,6 +176,13 @@ LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail # Issue 28269, These tests are
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
 
+[ $fasta ]
+Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
+Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
+Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
+Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
+Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
+
 [ $arch == arm64 && ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673

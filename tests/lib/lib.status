@@ -160,6 +160,10 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeo
 [ !$checked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
+[ $fasta ]
+mirrors/metadata_nested_constructor_call_test/03: MissingCompileTimeError
+mirrors/metadata_nested_constructor_call_test/04: MissingCompileTimeError
+
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
