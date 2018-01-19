@@ -24,6 +24,7 @@ mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/generics_test/01: MissingCompileTimeError
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
+mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError

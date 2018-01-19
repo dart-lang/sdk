@@ -16,6 +16,20 @@ mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
 [ $fasta ]
+implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError
+implicit_creation/implicit_const_context_list_test: CompileTimeError
+implicit_creation/implicit_const_context_map_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
 regress_22976_test/*: CompileTimeError # Issue 31935
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
@@ -1647,4 +1661,8 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
+
+[ $runtime == vm && $fasta ]
+implicit_creation/implicit_new_or_const_composite_test: RuntimeError
+implicit_creation/implicit_new_or_const_test: RuntimeError
 

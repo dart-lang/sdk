@@ -14,10 +14,14 @@ black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/85: Crash # Issue 28813
+call_type_literal_test: CompileTimeError
 cascade_test/none: Fail # Issue 11577
+class_literal_static_test/none: CompileTimeError
+class_literal_test/none: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
+constructor_call_as_function_test: CompileTimeError
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
@@ -144,6 +148,7 @@ test_negative_test: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
+type_literal_prefix_call_test: CompileTimeError
 type_variable_scope_test/none: Fail # Issue 11578
 type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip

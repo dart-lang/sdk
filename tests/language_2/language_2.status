@@ -22,32 +22,6 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $strong ]
-implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError
-implicit_creation/implicit_const_context_list_test: CompileTimeError
-implicit_creation/implicit_const_context_map_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
-
-[ !$strong ]
-implicit_creation/*: CompileTimeError # No support for implicit creation.
-
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
@@ -59,6 +33,12 @@ compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
 issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+
+[ $compiler != dart2js && !$fasta && !$strong ]
+implicit_creation/implicit_new_constructor_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_constructor_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_prefix_constructor_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_prefix_constructor_test: Fail # No support for implicit creation.
 
 [ $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
@@ -205,6 +185,48 @@ type_parameter_test/05: Pass
 [ !$dart2js_with_kernel && $minified ]
 regress_21795_test: RuntimeError # Issue 12605
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
+
+[ !$fasta && $strong ]
+implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_constructor_test: CompileTimeError
+implicit_creation/implicit_const_context_list_test: CompileTimeError
+implicit_creation/implicit_const_context_map_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_constructor_test: CompileTimeError
+implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
+implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
+implicit_creation/implicit_new_or_const_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
+implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
+
+[ !$fasta && !$strong ]
+implicit_creation/implicit_const_context_constructor_generic_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_constructor_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_constructor_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_constructor_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_list_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_map_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_prefix_constructor_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_prefix_constructor_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_const_context_prefix_constructor_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_constructor_generic_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_constructor_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_or_const_composite_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_or_const_generic_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_or_const_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
+implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support for implicit creation.
 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK

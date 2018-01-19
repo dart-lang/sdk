@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   operator +(dynamic other) → dynamic
     ;
@@ -15,7 +15,7 @@ class Bar extends core::Object {
     ;
 }
 class IndexTester extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   operator [](dynamic _) → dynamic
     ;
