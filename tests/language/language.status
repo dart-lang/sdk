@@ -314,6 +314,9 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
+[ $compiler == app_jit && $runtime == vm && $debug ]
+cyclic_type_test/03: Pass, Crash # Issue 31945
+
 [ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
