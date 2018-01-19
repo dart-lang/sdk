@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Comparable<self::B::T>> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field self::B<core::Comparable<dynamic>> y = new self::B::•<core::Comparable<dynamic>>();
+static method main() → dynamic {}
