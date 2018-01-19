@@ -46,4 +46,6 @@ public class AnalysisService {
 
   public static final String OVERRIDES = "OVERRIDES";
 
+  public static final String FLUTTER_OUTLINE = "FLUTTER_OUTLINE";
+
 }

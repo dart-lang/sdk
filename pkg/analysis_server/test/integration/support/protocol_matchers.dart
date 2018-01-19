@@ -137,6 +137,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(
  *   OCCURRENCES
  *   OUTLINE
  *   OVERRIDES
+ *   FLUTTER_OUTLINE
  * }
  */
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
@@ -148,7 +149,8 @@ final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "NAVIGATION",
   "OCCURRENCES",
   "OUTLINE",
-  "OVERRIDES"
+  "OVERRIDES",
+  "FLUTTER_OUTLINE"
 ]);
 
 /**
@@ -434,6 +436,79 @@ final Matcher isFileKind = new MatchesEnum("FileKind", ["LIBRARY", "PART"]);
  * String
  */
 final Matcher isFilePath = isString;
+
+/**
+ * FlutterOutline
+ *
+ * {
+ *   "kind": FlutterOutlineKind
+ *   "offset": int
+ *   "length": int
+ *   "label": optional String
+ *   "dartElement": optional Element
+ *   "attributes": optional List<FlutterOutlineAttribute>
+ *   "className": optional String
+ *   "parentAssociationLabel": optional String
+ *   "variableName": optional String
+ *   "children": optional List<FlutterOutline>
+ * }
+ */
+final Matcher isFlutterOutline =
+    new LazyMatcher(() => new MatchesJsonObject("FlutterOutline", {
+          "kind": isFlutterOutlineKind,
+          "offset": isInt,
+          "length": isInt
+        }, optionalFields: {
+          "label": isString,
+          "dartElement": isElement,
+          "attributes": isListOf(isFlutterOutlineAttribute),
+          "className": isString,
+          "parentAssociationLabel": isString,
+          "variableName": isString,
+          "children": isListOf(isFlutterOutline)
+        }));
+
+/**
+ * FlutterOutlineAttribute
+ *
+ * {
+ *   "name": String
+ *   "label": String
+ *   "literalValueBoolean": optional bool
+ *   "literalValueInteger": optional int
+ *   "literalValueString": optional String
+ * }
+ */
+final Matcher isFlutterOutlineAttribute =
+    new LazyMatcher(() => new MatchesJsonObject("FlutterOutlineAttribute", {
+          "name": isString,
+          "label": isString
+        }, optionalFields: {
+          "literalValueBoolean": isBool,
+          "literalValueInteger": isInt,
+          "literalValueString": isString
+        }));
+
+/**
+ * FlutterOutlineKind
+ *
+ * enum {
+ *   DART_ELEMENT
+ *   GENERIC
+ *   NEW_INSTANCE
+ *   INVOCATION
+ *   VARIABLE
+ *   PLACEHOLDER
+ * }
+ */
+final Matcher isFlutterOutlineKind = new MatchesEnum("FlutterOutlineKind", [
+  "DART_ELEMENT",
+  "GENERIC",
+  "NEW_INSTANCE",
+  "INVOCATION",
+  "VARIABLE",
+  "PLACEHOLDER"
+]);
 
 /**
  * FoldingKind
@@ -1307,6 +1382,18 @@ final Matcher isAnalysisErrorsParams = new LazyMatcher(() =>
 final Matcher isAnalysisFlushResultsParams = new LazyMatcher(() =>
     new MatchesJsonObject(
         "analysis.flushResults params", {"files": isListOf(isFilePath)}));
+
+/**
+ * analysis.flutterOutline params
+ *
+ * {
+ *   "file": FilePath
+ *   "outline": FlutterOutline
+ * }
+ */
+final Matcher isAnalysisFlutterOutlineParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.flutterOutline params",
+        {"file": isFilePath, "outline": isFlutterOutline}));
 
 /**
  * analysis.folding params

@@ -959,6 +959,30 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
+   * Reports the Flutter outline associated with a single file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "FLUTTER_OUTLINE" in the list of services passed in
+   * an analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file with which the outline is associated.
+   *
+   * outline: FlutterOutline
+   *
+   *   The outline associated with the file.
+   */
+  Stream<AnalysisFlutterOutlineParams> onAnalysisFlutterOutline;
+
+  /**
+   * Stream controller for [onAnalysisFlutterOutline].
+   */
+  StreamController<AnalysisFlutterOutlineParams> _onAnalysisFlutterOutline;
+
+  /**
    * Reports the overriding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
@@ -2122,6 +2146,10 @@ abstract class IntegrationTestMixin {
     _onAnalysisOutline =
         new StreamController<AnalysisOutlineParams>(sync: true);
     onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
+    _onAnalysisFlutterOutline =
+        new StreamController<AnalysisFlutterOutlineParams>(sync: true);
+    onAnalysisFlutterOutline =
+        _onAnalysisFlutterOutline.stream.asBroadcastStream();
     _onAnalysisOverrides =
         new StreamController<AnalysisOverridesParams>(sync: true);
     onAnalysisOverrides = _onAnalysisOverrides.stream.asBroadcastStream();
@@ -2211,6 +2239,11 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isAnalysisOutlineParams);
         _onAnalysisOutline
             .add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
+        break;
+      case "analysis.flutterOutline":
+        outOfTestExpect(params, isAnalysisFlutterOutlineParams);
+        _onAnalysisFlutterOutline.add(new AnalysisFlutterOutlineParams.fromJson(
+            decoder, 'params', params));
         break;
       case "analysis.overrides":
         outOfTestExpect(params, isAnalysisOverridesParams);

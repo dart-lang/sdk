@@ -1300,6 +1300,31 @@
       </field>
     </params>
   </notification>
+  <notification event="flutterOutline" experimental="true">
+    <p>
+      Reports the Flutter outline associated with a single file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"FLUTTER_OUTLINE"</tt> in
+      the list of services passed in an analysis.setSubscriptions
+      request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file with which the outline is associated.
+        </p>
+      </field>
+      <field name="outline">
+        <ref>FlutterOutline</ref>
+        <p>
+          The outline associated with the file.
+        </p>
+      </field>
+    </params>
+  </notification>
   <notification event="overrides">
     <p>
       Reports the overriding members in a file.
@@ -2701,6 +2726,7 @@
       <value><code>OCCURRENCES</code></value>
       <value><code>OUTLINE</code></value>
       <value><code>OVERRIDES</code></value>
+      <value><code>FLUTTER_OUTLINE</code></value>
     </enum>
   </type>
   <type name="AnalysisStatus">
@@ -2849,6 +2875,162 @@
     <enum>
       <value><code>LIBRARY</code></value>
       <value><code>PART</code></value>
+    </enum>
+  </type>
+  <type name="FlutterOutline" experimental="true">
+    <p>
+      An node in the Flutter specific outline structure of a file.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>FlutterOutlineKind</ref>
+        <p>The kind of the node.</p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element. This is different
+          than the offset in the Element, which is the offset of the name of the
+          element. It can be used, for example, to map locations in the file
+          back to an outline.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the element.
+        </p>
+      </field>
+      <field name="label" optional="true">
+        <ref>String</ref>
+        <p>
+          The text label of the node children of the node.
+          It is provided for any FlutterOutlineKind.GENERIC node,
+          where better information is not available.
+        </p>
+      </field>
+      <field name="dartElement" optional="true">
+        <ref>Element</ref>
+        <p>
+          If this node is a Dart element, the description of it; omitted
+          otherwise.
+        </p>
+      </field>
+      <field name="attributes" optional="true">
+        <list>
+          <ref>FlutterOutlineAttribute</ref>
+        </list>
+        <p>
+          Additional attributes for this node, which might be interesting
+          to display on the client. These attributes are usually arguments
+          for the instance creation or the invocation that created the widget.
+        </p>
+      </field>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node creates a new class instance, or a reference to an
+          instance, this field has the name of the class.
+        </p>
+      </field>
+      <field name="parentAssociationLabel" optional="true">
+        <ref>String</ref>
+        <p>
+          A short text description how this node is associated with the parent
+          node. For example "appBar" or "body" in Scaffold.
+        </p>
+      </field>
+      <field name="variableName" optional="true">
+        <ref>String</ref>
+        <p>
+          If FlutterOutlineKind.VARIABLE, the name of the variable.
+        </p>
+      </field>
+      <field name="children" optional="true">
+        <list>
+          <ref>FlutterOutline</ref>
+        </list>
+        <p>
+          The children of the node. The field will be omitted if the node has no
+          children.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterOutlineAttribute" experimental="true">
+    <p>
+      An attribute for a FlutterOutline.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the attribute.
+        </p>
+      </field>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label of the attribute value, usually the Dart code.
+          It might be quite long, the client should abbreviate as needed.
+        </p>
+      </field>
+      <field name="literalValueBoolean" optional="true">
+        <ref>bool</ref>
+        <p>
+          The boolean literal value of the attribute.
+          This field is absent if the value is not a boolean literal.
+        </p>
+      </field>
+      <field name="literalValueInteger" optional="true">
+        <ref>int</ref>
+        <p>
+          The integer literal value of the attribute.
+          This field is absent if the value is not an integer literal.
+        </p>
+      </field>
+      <field name="literalValueString" optional="true">
+        <ref>String</ref>
+        <p>
+          The string literal value of the attribute.
+          This field is absent if the value is not a string literal.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterOutlineKind" experimental="true">
+    <p>
+      An enumeration of the kinds of FlutterOutline elements. The list of kinds
+      might be expanded with time, clients must be able to handle new kinds
+      in some general way.
+    </p>
+    <enum>
+      <value>
+        <code>DART_ELEMENT</code>
+        <p>A dart element declaration.</p>
+      </value>
+      <value>
+        <code>GENERIC</code>
+        <p>A generic Flutter element, without additional information.</p>
+      </value>
+      <value>
+        <code>NEW_INSTANCE</code>
+        <p>A new instance creation.</p>
+      </value>
+      <value>
+        <code>INVOCATION</code>
+        <p>An invocation of a method, a top-level function, a function
+          expression, etc.</p>
+      </value>
+      <value>
+        <code>VARIABLE</code>
+        <p>A reference to a local variable, or a field.</p>
+      </value>
+      <value>
+        <code>PLACEHOLDER</code>
+        <p>The parent node has a required Widget. The node works as a
+          placeholder child to drop a new Widget to.</p>
+      </value>
     </enum>
   </type>
   <type name="GeneralAnalysisService">

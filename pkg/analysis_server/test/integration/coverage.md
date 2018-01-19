@@ -19,6 +19,7 @@ server calls. This file is validated by `coverage_test.dart`.
 - [ ] analysis.closingLabels
 - [ ] analysis.errors
 - [ ] analysis.flushResults
+- [ ] analysis.flutterOutline
 - [ ] analysis.folding
 - [x] analysis.highlights
 - [ ] analysis.implemented
