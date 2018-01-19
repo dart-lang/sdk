@@ -343,7 +343,7 @@ cyclic_typedef_test/10: Crash
 cyclic_typedef_test/11: Crash
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
-deferred_call_empty_before_load_test: CompileTimeError # VM doen't support deserializing load-library checks (issue XXX)
+deferred_call_empty_before_load_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_closurize_load_library_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constant_list_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_constants_test/default_argument2: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
@@ -783,6 +783,7 @@ cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading k
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 class_cycle_test/02: MissingCompileTimeError # Please triage.
 class_cycle_test/03: MissingCompileTimeError # Please triage.
+deferred_constraints_constants_test/default_argument2: MissingCompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 duplicate_implements_test/01: MissingCompileTimeError # Please triage.
 duplicate_implements_test/02: MissingCompileTimeError # Please triage.
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Please triage.
