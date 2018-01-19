@@ -171,6 +171,11 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
   configure the number of dartdevc/analyzer workers that are used when compiling
   with `--web-compiler=dartdevc`.
 
+* The Flutter `sdk` source will now look for packages in
+  `flutter/bin/cache/pkg/` as well as `flutter/packages/`. In particular, this
+  means that packages can depend on the `sky_engine` package from the `sdk`
+  source ([issue 1775][pub#1775]).
+
 * Pub will now automatically retry HTTP requests that fail with a 502, 503, of
   504 error code ([issue 1556][pub#1556]).
 
@@ -182,6 +187,7 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 [pub#1556]: https://github.com/dart-lang/pub/issues/1556
 [pub#1747]: https://github.com/dart-lang/pub/issues/1747
 [pub#1769]: https://github.com/dart-lang/pub/issues/1769
+[pub#1775]: https://github.com/dart-lang/pub/issues/1775
 
 ##### Bug Fixes
 
