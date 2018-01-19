@@ -4497,9 +4497,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return false;
       }
 
-      // TODO(redemption): Do we still need this?
-      //if (function.isSynthesized) return true;
-
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
       bool hasOnlyNonDeferredImportPaths = backend.outputUnitData
@@ -4964,7 +4961,6 @@ class InlineWeeder extends ir.Visitor {
   static String cannotBeInlinedReason(KernelToElementMapForBuilding elementMap,
       FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
-    // TODO(redemption): Implement inlining heuristic.
     InlineWeeder visitor = new InlineWeeder(maxInliningNodes, allowLoops);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
     node.accept(visitor);
@@ -5306,8 +5302,6 @@ class TryCatchFinallyBuilder {
             exception, exception.sourceInformation,
             isRethrow: true));
       } else {
-        // TODO(efortuna): Make SsaBranchBuilder handle kernel elements, and
-        // pass tryCatch in here as the "diagnosticNode".
         ir.Catch nextCatch = tryCatch.catches[catchesIndex];
         kernelBuilder.handleIf(
             visitCondition: () {
@@ -5321,8 +5315,6 @@ class TryCatchFinallyBuilder {
     }
 
     ir.Catch firstBlock = tryCatch.catches[catchesIndex];
-    // TODO(efortuna): Make SsaBranchBuilder handle kernel elements, and then
-    // pass tryCatch in here as the "diagnosticNode".
     kernelBuilder.handleIf(
         visitCondition: () {
           pushCondition(firstBlock);

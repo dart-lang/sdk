@@ -232,21 +232,18 @@ int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
 /// Environment for fast lookup of class members.
 class ClassEnvImpl implements ClassEnv {
   final ir.Class cls;
-  final bool isUnnamedMixinApplication;
 
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
-  List<ir.Member> _members; // in declarartion order.
+  List<ir.Member> _members; // in declaration order.
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
 
-  ClassEnvImpl(this.cls)
-      // TODO(johnniwinther): Change this to use a property on [cls] when such
-      // is added to kernel.
-      : isUnnamedMixinApplication =
-            cls.name.contains('+') || cls.name.contains('&');
+  ClassEnvImpl(this.cls);
+
+  bool get isUnnamedMixinApplication => cls.isSyntheticMixinImplementation;
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
