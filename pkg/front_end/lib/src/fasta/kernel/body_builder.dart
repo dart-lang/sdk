@@ -2341,8 +2341,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         identifier = null;
       } else if (prefix is TypeDeclarationAccessor) {
         type = prefix;
+      } else if (prefix is FastaAccessor) {
+        String name = suffix == null
+            ? "${prefix.plainNameForRead}.${identifier.name}"
+            : "${prefix.plainNameForRead}.${identifier.name}.$suffix";
+        type = new UnresolvedAccessor(
+            this, new Name(name, library.library), prefix.token);
       } else {
-        type = new Identifier(start);
+        unhandled("${prefix.runtimeType}", "pushQualifiedReference",
+            start.charOffset, uri);
       }
     }
     String name;
@@ -2493,96 +2500,111 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
 
     bool savedConstantExpressionRequired = pop();
-    () {
-      if (arguments == null) {
-        push(deprecated_buildCompileTimeError(
-            "No arguments.", nameToken.charOffset));
-        return;
-      }
-
-      if (typeArguments != null) {
-        assert(arguments.types.isEmpty);
-        ShadowArguments.setExplicitArgumentTypes(arguments, typeArguments);
-      }
-
-      String errorName;
-      if (type is ClassBuilder) {
-        if (type is EnumBuilder) {
-          push(deprecated_buildCompileTimeError(
-              "An enum class can't be instantiated.", nameToken.charOffset));
-          return;
-        }
-        Builder b =
-            type.findConstructorOrFactory(name, token.charOffset, uri, library);
-        Member target;
-        Member initialTarget;
-        if (b == null) {
-          // Not found. Reported below.
-        } else if (b.isConstructor) {
-          initialTarget = b.target;
-          if (type.isAbstract) {
-            push(new ShadowSyntheticExpression(evaluateArgumentsBefore(
-                arguments,
-                buildAbstractClassInstantiationError(
-                    fasta.templateAbstractClassInstantiation
-                        .withArguments(type.name),
-                    type.name,
-                    nameToken.charOffset))));
-            return;
-          } else {
-            target = initialTarget;
-          }
-        } else if (b.isFactory) {
-          initialTarget = b.target;
-          target = getRedirectionTarget(initialTarget);
-          if (target == null) {
-            push(deprecated_buildCompileTimeError(
-                "Cyclic definition of factory '${name}'.",
-                nameToken.charOffset));
-            return;
-          }
-          if (target is Constructor && target.enclosingClass.isAbstract) {
-            push(new ShadowSyntheticExpression(evaluateArgumentsBefore(
-                arguments,
-                buildAbstractClassInstantiationError(
-                    fasta.templateAbstractRedirectedClassInstantiation
-                        .withArguments(target.enclosingClass.name),
-                    target.enclosingClass.name,
-                    nameToken.charOffset))));
-            return;
-          }
-          RedirectingFactoryBody body = getRedirectingFactoryBody(target);
-          if (body != null) {
-            // If the redirection target is itself a redirecting factory, it
-            // means that it is unresolved. So we set target to null so we
-            // can generate a no-such-method error below.
-            assert(body.isUnresolved);
-            target = null;
-            errorName = body.unresolvedName;
-          }
-        }
-        if (target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)) {
-          push(buildStaticInvocation(target, arguments,
-              isConst: optional("const", token) || optional("@", token),
-              charOffset: nameToken.charOffset,
-              prefixName: prefixName,
-              initialTarget: initialTarget));
-          return;
-        } else {
-          errorName ??= debugName(type.name, name);
-        }
-      } else {
-        errorName = debugName(getNodeName(type), name);
-      }
-      errorName ??= name;
+    if (type is TypeDeclarationBuilder) {
+      push(buildConstructorInvocation(
+          type, token, nameToken, arguments, name, typeArguments,
+          prefixName: prefixName));
+    } else if (type is UnresolvedAccessor) {
+      push(type.buildError(arguments));
+    } else {
       push(throwNoSuchMethodError(
           new NullLiteral()..fileOffset = token.charOffset,
-          errorName,
+          debugName(getNodeName(type), name),
           arguments,
           nameToken.charOffset));
-    }();
+    }
     constantExpressionRequired = savedConstantExpressionRequired;
+  }
+
+  @override
+  Expression buildConstructorInvocation(
+      TypeDeclarationBuilder type,
+      Token token,
+      Token nameToken,
+      Arguments arguments,
+      String name,
+      List<DartType> typeArguments,
+      {String prefixName}) {
+    if (arguments == null) {
+      return deprecated_buildCompileTimeError(
+          "No arguments.", nameToken.charOffset);
+    }
+
+    if (typeArguments != null) {
+      assert(arguments.types.isEmpty);
+      ShadowArguments.setExplicitArgumentTypes(arguments, typeArguments);
+    }
+
+    String errorName;
+    if (type is ClassBuilder) {
+      if (type is EnumBuilder) {
+        return deprecated_buildCompileTimeError(
+            "An enum class can't be instantiated.", nameToken.charOffset);
+      }
+      Builder b =
+          type.findConstructorOrFactory(name, token.charOffset, uri, library);
+      Member target;
+      Member initialTarget;
+      if (b == null) {
+        // Not found. Reported below.
+      } else if (b.isConstructor) {
+        initialTarget = b.target;
+        if (type.isAbstract) {
+          return new ShadowSyntheticExpression(evaluateArgumentsBefore(
+              arguments,
+              buildAbstractClassInstantiationError(
+                  fasta.templateAbstractClassInstantiation
+                      .withArguments(type.name),
+                  type.name,
+                  nameToken.charOffset)));
+        } else {
+          target = initialTarget;
+        }
+      } else if (b.isFactory) {
+        initialTarget = b.target;
+        target = getRedirectionTarget(initialTarget);
+        if (target == null) {
+          return deprecated_buildCompileTimeError(
+              "Cyclic definition of factory '${name}'.", nameToken.charOffset);
+        }
+        if (target is Constructor && target.enclosingClass.isAbstract) {
+          return new ShadowSyntheticExpression(evaluateArgumentsBefore(
+              arguments,
+              buildAbstractClassInstantiationError(
+                  fasta.templateAbstractRedirectedClassInstantiation
+                      .withArguments(target.enclosingClass.name),
+                  target.enclosingClass.name,
+                  nameToken.charOffset)));
+        }
+        RedirectingFactoryBody body = getRedirectingFactoryBody(target);
+        if (body != null) {
+          // If the redirection target is itself a redirecting factory, it
+          // means that it is unresolved. So we set target to null so we
+          // can generate a no-such-method error below.
+          assert(body.isUnresolved);
+          target = null;
+          errorName = body.unresolvedName;
+        }
+      }
+      if (target is Constructor ||
+          (target is Procedure && target.kind == ProcedureKind.Factory)) {
+        return buildStaticInvocation(target, arguments,
+            isConst: optional("const", token) || optional("@", token),
+            charOffset: nameToken.charOffset,
+            prefixName: prefixName,
+            initialTarget: initialTarget);
+      } else {
+        errorName ??= debugName(type.name, name);
+      }
+    } else {
+      errorName = debugName(getNodeName(type), name);
+    }
+    errorName ??= name;
+    return throwNoSuchMethodError(
+        new NullLiteral()..fileOffset = token.charOffset,
+        errorName,
+        arguments,
+        nameToken.charOffset);
   }
 
   @override

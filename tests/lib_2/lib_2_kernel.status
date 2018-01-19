@@ -272,6 +272,7 @@ mirrors/invocation_fuzz_test/smi: Crash, Pass # Crashes on opt counter builder (
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
 mirrors/metadata_const_map_test: Crash
+mirrors/metadata_nested_constructor_call_test/06: MissingCompileTimeError # TODO(ahe): This will be fixed in the next CL.
 mirrors/mixin_members_test: RuntimeError
 mirrors/null_test: RuntimeError
 mirrors/operator_test: RuntimeError

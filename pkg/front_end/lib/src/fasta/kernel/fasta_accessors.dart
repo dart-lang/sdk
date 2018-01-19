@@ -153,6 +153,14 @@ abstract class BuilderHelper {
       bool isSuper,
       Member interfaceTarget});
 
+  Expression buildConstructorInvocation(
+      TypeDeclarationBuilder type,
+      Token token,
+      Token nameToken,
+      Arguments arguments,
+      String name,
+      List<DartType> typeArguments);
+
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
@@ -1107,9 +1115,13 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
       FastaAccessor accessor;
       if (builder == null) {
-        // If we find a setter, [builder] is an
-        // [AccessErrorBuilder], not null.
-        accessor = new UnresolvedAccessor(helper, name, send.token);
+        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+        if (send is IncompletePropertyAccessor) {
+          accessor = new UnresolvedAccessor(helper, name, send.token);
+        } else {
+          return helper.buildConstructorInvocation(
+              declaration, token, send.token, arguments, name.name, null);
+        }
       } else {
         Builder setter;
         if (builder.isSetter) {
@@ -1230,6 +1242,12 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
           type, offsetForToken(token), nonInstanceAccessIsError);
     }
     return type;
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildConstructorInvocation(
+        declaration, token, token, arguments, "", null);
   }
 }
 
