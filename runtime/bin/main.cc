@@ -1094,16 +1094,7 @@ void main(int argc, char** argv) {
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  // Start the kernel isolate only if
-  // 1. --dart_preview_2 and/or --dfe is used
-  //
-  // or
-  //
-  // 2. If we have kernel service dill file linked in and a dill file
-  // was specified as the main dart program.
-  init_params.start_kernel_isolate =
-      dfe.UseDartFrontend() ||
-      (dfe.kernel_file_specified() && DFE::KernelServiceDillAvailable());
+  init_params.start_kernel_isolate = dfe.UseDartFrontend();
 #else
   init_params.start_kernel_isolate = false;
 #endif

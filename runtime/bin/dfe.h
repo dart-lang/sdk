@@ -72,7 +72,6 @@ class DFE {
   void* ReadScript(const char* script_uri) const;
 
   static void* KernelServiceProgram();
-  static bool KernelServiceDillAvailable();
 
  private:
   // Tries to read [script_uri] as a Kernel IR file.
