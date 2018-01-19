@@ -72,10 +72,6 @@ DEFINE_FLAG(
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, use_exp_cache, true, "Use library exported name cache");
-DEFINE_FLAG(bool,
-            ignore_patch_signature_mismatch,
-            false,
-            "Ignore patch file member signature mismatch.");
 
 DEFINE_FLAG(bool,
             remove_script_timestamps_for_test,
@@ -3010,8 +3006,6 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   Array& patch_list = Array::Handle(patch.functions());
   intptr_t patch_len = patch_list.Length();
 
-  // TODO(iposva): Verify that only patching existing methods and adding only
-  // new private methods.
   Function& func = Function::Handle();
   Function& orig_func = Function::Handle();
   // Lookup the original implicit constructor, if any.
@@ -3038,8 +3032,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
         new_functions.Add(orig_func);
       }
     } else if (func.UserVisibleSignature() !=
-                   orig_func.UserVisibleSignature() &&
-               !FLAG_ignore_patch_signature_mismatch) {
+               orig_func.UserVisibleSignature()) {
       // Compare user visible signatures to ignore different implicit parameters
       // when patching a constructor with a factory.
       *error = LanguageError::NewFormatted(

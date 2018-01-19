@@ -60,7 +60,6 @@ DEFINE_FLAG(
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
-DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -4895,37 +4894,35 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                   "class '%s' must be patched with identical type parameters",
                   class_name.ToCString());
     }
-    if (!FLAG_ignore_patch_signature_mismatch) {
-      TypeParameter& new_type_param = TypeParameter::Handle(Z);
-      TypeParameter& orig_type_param = TypeParameter::Handle(Z);
-      String& new_name = String::Handle(Z);
-      String& orig_name = String::Handle(Z);
-      AbstractType& new_bound = AbstractType::Handle(Z);
-      AbstractType& orig_bound = AbstractType::Handle(Z);
-      for (int i = 0; i < new_type_params_count; i++) {
-        new_type_param ^= new_type_parameters.TypeAt(i);
-        orig_type_param ^= orig_type_parameters.TypeAt(i);
-        new_name = new_type_param.name();
-        orig_name = orig_type_param.name();
-        if (!new_name.Equals(orig_name)) {
-          ReportError(new_type_param.token_pos(),
-                      "type parameter '%s' of patch class '%s' does not match "
-                      "original type parameter '%s'",
-                      new_name.ToCString(), class_name.ToCString(),
-                      orig_name.ToCString());
-        }
-        new_bound = new_type_param.bound();
-        orig_bound = orig_type_param.bound();
-        if (!new_bound.Equals(orig_bound)) {
-          ReportError(new_type_param.token_pos(),
-                      "bound '%s' of type parameter '%s' of patch class '%s' "
-                      "does not match original type parameter bound '%s'",
-                      String::Handle(new_bound.UserVisibleName()).ToCString(),
-                      new_name.ToCString(), class_name.ToCString(),
-                      String::Handle(orig_bound.UserVisibleName()).ToCString());
-        }
+    TypeParameter& new_type_param = TypeParameter::Handle(Z);
+    TypeParameter& orig_type_param = TypeParameter::Handle(Z);
+    String& new_name = String::Handle(Z);
+    String& orig_name = String::Handle(Z);
+    AbstractType& new_bound = AbstractType::Handle(Z);
+    AbstractType& orig_bound = AbstractType::Handle(Z);
+    for (int i = 0; i < new_type_params_count; i++) {
+      new_type_param ^= new_type_parameters.TypeAt(i);
+      orig_type_param ^= orig_type_parameters.TypeAt(i);
+      new_name = new_type_param.name();
+      orig_name = orig_type_param.name();
+      if (!new_name.Equals(orig_name)) {
+        ReportError(new_type_param.token_pos(),
+                    "type parameter '%s' of patch class '%s' does not match "
+                    "original type parameter '%s'",
+                    new_name.ToCString(), class_name.ToCString(),
+                    orig_name.ToCString());
       }
-    }
+      new_bound = new_type_param.bound();
+      orig_bound = orig_type_param.bound();
+      if (!new_bound.Equals(orig_bound)) {
+        ReportError(new_type_param.token_pos(),
+                    "bound '%s' of type parameter '%s' of patch class '%s' "
+                    "does not match original type parameter bound '%s'",
+                    String::Handle(new_bound.UserVisibleName()).ToCString(),
+                    new_name.ToCString(), class_name.ToCString(),
+                    String::Handle(orig_bound.UserVisibleName()).ToCString());
+      }
+      }
     cls.set_type_parameters(orig_type_parameters);
   }
 
