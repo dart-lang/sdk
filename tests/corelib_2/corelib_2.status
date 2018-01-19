@@ -512,7 +512,7 @@ string_static_test: MissingCompileTimeError
 # common front end, but for now we get better coverage by still running them in
 # checked mode, which is mostly Dart2-compatible.
 [ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-*: Skip
+*: SkipByDesign
 
 [ !$checked && ($compiler == dart2js || $compiler == none && $runtime == vm) ]
 from_environment_const_type_test/02: MissingCompileTimeError
