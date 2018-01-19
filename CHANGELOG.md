@@ -111,7 +111,13 @@
     `little`, `big` and `host`.
 
 ### Dart VM
+
 * Support for MIPS has been removed.
+
+* Dart `int` is now restricted to 64 bits. On overflow, arithmetic operations wrap
+  around, and integer literals larger than 64 bits are not allowed.
+  See https://github.com/dart-lang/sdk/blob/master/docs/language/informal/int64.md
+  for details.
 
 ### Tool Changes
 
