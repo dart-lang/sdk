@@ -27,7 +27,12 @@ const bool kDumpAllSummaries =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program) {
+Program transformProgram(CoreTypes coreTypes, Program program,
+    // TODO(alexmarkov): Pass entry points descriptors from command line.
+    {List<String> entryPointsJSONFiles: const [
+      'pkg/vm/lib/transformations/type_flow/entry_points.json',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+    ]}) {
   final hierarchy = new ClassHierarchy(program);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final libraryIndex = new LibraryIndex.all(program);
@@ -42,11 +47,7 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
   final analysisStopWatch = new Stopwatch()..start();
 
   final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
-      // TODO(alexmarkov): Pass entry points descriptors from command line.
-      entryPointsJSONFiles: [
-        'pkg/vm/lib/transformations/type_flow/entry_points.json',
-        'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-      ]);
+      entryPointsJSONFiles: entryPointsJSONFiles);
 
   Procedure main = program.mainMethod;
   final Selector mainSelector = new DirectSelector(main);

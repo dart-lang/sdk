@@ -24,7 +24,6 @@ import 'utils.dart';
 // organized in several categories:
 //
 // === Correctness ===
-// * Add unit tests!!!
 // * Support dynamic calls via getters & dynamic tear-offs.
 // * Re-evaluate field initializer if its dependency changes (avoid
 //   re-using cached value).

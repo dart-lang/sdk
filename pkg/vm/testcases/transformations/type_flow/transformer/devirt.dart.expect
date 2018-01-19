@@ -1,0 +1,66 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → core::int;
+}
+class B extends self::A {
+  default constructor •() → void
+    : super self::A::•()
+    ;
+  method foo() → core::int
+    return 1;
+}
+class C extends core::Object implements self::A {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → core::int
+    return 2;
+}
+class D extends self::C {
+  default constructor •() → void
+    : super self::C::•()
+    ;
+}
+class E extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method toString() → core::String
+    return "D";
+}
+static field self::A dd;
+static field self::E ee = new self::E::•();
+static method callerA1(self::A aa) → void {
+  aa.{self::A::foo}();
+}
+static method callerA2(self::A aa) → void {
+  [@vm.direct-call.metadata=#lib::B::foo] aa.{self::A::foo}();
+}
+static method callerA3(self::A aa) → void {
+  [@vm.direct-call.metadata=#lib::C::foo] aa.{self::A::foo}();
+}
+static method callerA4(self::A aa) → void {
+  [@vm.direct-call.metadata=#lib::C::foo??] aa.{self::A::foo}();
+}
+static method callerE1(dynamic x) → void {
+  [@vm.direct-call.metadata=dart.core::_StringBase::toString] x.{core::Object::toString}();
+}
+static method callerE2(dynamic x) → void {
+  [@vm.direct-call.metadata=#lib::E::toString] x.{core::Object::toString}();
+}
+static method main(core::List<core::String> args) → dynamic {
+  self::callerA1(new self::B::•());
+  self::callerA1(new self::C::•());
+  self::callerA2(new self::B::•());
+  self::callerA3(new self::C::•());
+  self::callerA4([@vm.inferred-type.metadata=#lib::D?] self::dd);
+  self::dd = new self::D::•();
+  self::callerE1("abc");
+  self::callerE2([@vm.inferred-type.metadata=#lib::E] self::ee);
+}
