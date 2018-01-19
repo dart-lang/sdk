@@ -153,6 +153,7 @@ unconditional_dartio_import_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: CompileTimeError
 23056_test: CompileTimeError
+23264_test: RuntimeError
 closure_capture2_test: RuntimeError
 closure_type_reflection2_test: CompileTimeError
 closure_type_reflection_test: CompileTimeError
@@ -201,6 +202,7 @@ unconditional_dartio_import_test: RuntimeError # Issue 30902
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 21666_test: CompileTimeError
 23056_test: CompileTimeError
+23264_test: RuntimeError
 closure_type_reflection2_test: CompileTimeError
 closure_type_reflection_test: CompileTimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
