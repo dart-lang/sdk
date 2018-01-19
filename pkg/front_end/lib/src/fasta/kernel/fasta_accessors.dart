@@ -155,11 +155,12 @@ abstract class BuilderHelper {
 
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder type,
-      Token token,
       Token nameToken,
       Arguments arguments,
       String name,
-      List<DartType> typeArguments);
+      List<DartType> typeArguments,
+      int charOffset,
+      bool isConst);
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
@@ -1120,7 +1121,13 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
           accessor = new UnresolvedAccessor(helper, name, send.token);
         } else {
           return helper.buildConstructorInvocation(
-              declaration, token, send.token, arguments, name.name, null);
+              declaration,
+              send.token,
+              arguments,
+              name.name,
+              null,
+              token.charOffset,
+              helper.constantExpressionRequired);
         }
       } else {
         Builder setter;
@@ -1246,8 +1253,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildConstructorInvocation(
-        declaration, token, token, arguments, "", null);
+    return helper.buildConstructorInvocation(declaration, token, arguments, "",
+        null, token.charOffset, helper.constantExpressionRequired);
   }
 }
 

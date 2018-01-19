@@ -2502,7 +2502,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     bool savedConstantExpressionRequired = pop();
     if (type is TypeDeclarationBuilder) {
       push(buildConstructorInvocation(
-          type, token, nameToken, arguments, name, typeArguments,
+          type,
+          nameToken,
+          arguments,
+          name,
+          typeArguments,
+          token.charOffset,
+          optional("const", token) || optional("@", token),
           prefixName: prefixName));
     } else if (type is UnresolvedAccessor) {
       push(type.buildError(arguments));
@@ -2519,11 +2525,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder type,
-      Token token,
       Token nameToken,
       Arguments arguments,
       String name,
       List<DartType> typeArguments,
+      int charOffset,
+      bool isConst,
       {String prefixName}) {
     if (arguments == null) {
       return deprecated_buildCompileTimeError(
@@ -2541,8 +2548,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return deprecated_buildCompileTimeError(
             "An enum class can't be instantiated.", nameToken.charOffset);
       }
-      Builder b =
-          type.findConstructorOrFactory(name, token.charOffset, uri, library);
+      Builder b = type.findConstructorOrFactory(name, charOffset, uri, library);
       Member target;
       Member initialTarget;
       if (b == null) {
@@ -2589,7 +2595,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         return buildStaticInvocation(target, arguments,
-            isConst: optional("const", token) || optional("@", token),
+            isConst: isConst,
             charOffset: nameToken.charOffset,
             prefixName: prefixName,
             initialTarget: initialTarget);
@@ -2600,11 +2606,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       errorName = debugName(getNodeName(type), name);
     }
     errorName ??= name;
-    return throwNoSuchMethodError(
-        new NullLiteral()..fileOffset = token.charOffset,
-        errorName,
-        arguments,
-        nameToken.charOffset);
+    return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
+        errorName, arguments, nameToken.charOffset);
   }
 
   @override
