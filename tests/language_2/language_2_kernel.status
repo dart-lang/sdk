@@ -466,6 +466,13 @@ initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue18628_2_test/01: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
 issue_25671b_test/01: DartkCrash
@@ -1317,6 +1324,13 @@ invocation_mirror_invoke_on_test: SkipByDesign
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: SkipByDesign
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
 issue_25671b_test/01: Crash

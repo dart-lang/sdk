@@ -61,6 +61,17 @@ instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
+issue31596_implement_covariant_test: CompileTimeError
+issue31596_override_test/01: CompileTimeError
+issue31596_override_test/02: CompileTimeError
+issue31596_override_test/03: CompileTimeError
+issue31596_override_test/04: CompileTimeError
+issue31596_override_test/none: CompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/05: CompileTimeError
+issue31596_super_test/none: CompileTimeError
+issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 method_override_test: CompileTimeError # Negative test
 mixin_super_2_test/01: MissingCompileTimeError
@@ -363,6 +374,14 @@ instance_call_wrong_argument_count_negative_test: Fail
 instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue18628_2_test/01: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
+issue31596_tearoff_test: RuntimeError
 issue31596_test: RuntimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.

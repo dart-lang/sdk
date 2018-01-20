@@ -1056,6 +1056,17 @@ instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
 int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interceptor6_test: CompileTimeError
+issue31596_implement_covariant_test: CompileTimeError
+issue31596_override_test/01: CompileTimeError
+issue31596_override_test/02: CompileTimeError
+issue31596_override_test/03: CompileTimeError
+issue31596_override_test/04: CompileTimeError
+issue31596_override_test/none: CompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/05: CompileTimeError
+issue31596_super_test/none: CompileTimeError
+issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 mixin_super_2_test/01: MissingCompileTimeError
@@ -1384,6 +1395,12 @@ invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
 invocation_mirror_test: StaticWarning
 issue13179_test: StaticWarning
+issue31596_override_test/05: MissingCompileTimeError
+issue31596_override_test/06: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
 known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 known_identifier_prefix_error_test/none: Pass
 least_upper_bound_expansive_test/01: MissingCompileTimeError

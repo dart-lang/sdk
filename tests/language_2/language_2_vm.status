@@ -478,6 +478,14 @@ invalid_cast_test/08: MissingCompileTimeError
 invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
+issue31596_override_test/05: MissingCompileTimeError
+issue31596_override_test/06: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
+issue31596_tearoff_test: RuntimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
 least_upper_bound_test/04: MissingCompileTimeError
@@ -1137,6 +1145,7 @@ implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
+issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError

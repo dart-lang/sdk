@@ -486,6 +486,14 @@ invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 issue21079_test: SkipByDesign
+issue31596_override_test/05: MissingCompileTimeError
+issue31596_override_test/06: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
+issue31596_tearoff_test: RuntimeError
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
@@ -1094,6 +1102,7 @@ implicit_downcast_during_super_initializer_test: RuntimeError
 implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
+issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
 tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError

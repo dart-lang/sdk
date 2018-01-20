@@ -1033,6 +1033,7 @@ invalid_cast_test/08: MissingCompileTimeError
 invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
@@ -1542,6 +1543,15 @@ implicit_downcast_during_static_method_invocation_test: RuntimeError
 implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
+issue31596_implement_covariant_test: RuntimeError
+issue31596_override_test/05: MissingCompileTimeError
+issue31596_override_test/06: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
+issue31596_tearoff_test: RuntimeError
 issue31596_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
@@ -1564,6 +1574,7 @@ forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_test: RuntimeError, OK
+issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 
@@ -3667,6 +3678,13 @@ instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
+issue31596_override_test/05: MissingCompileTimeError
+issue31596_override_test/06: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError
+issue31596_override_test/08: MissingCompileTimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_tearoff_test: RuntimeError
 left_shift_test: RuntimeError # Issue 1533
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
