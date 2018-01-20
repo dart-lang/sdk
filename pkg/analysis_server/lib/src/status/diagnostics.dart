@@ -969,7 +969,7 @@ class OverlaysPage extends DiagnosticPageWithNav {
 
       if (overlays[overlayPath] != null) {
         buf.write('<pre><code>');
-        buf.write(overlays[overlayPath]);
+        buf.write(escape(overlays[overlayPath]));
         buf.writeln('</code></pre>');
       } else {
         p('<code>${escape(overlayPath)}</code> not found.', raw: true);
