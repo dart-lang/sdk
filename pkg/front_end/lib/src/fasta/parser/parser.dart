@@ -2227,7 +2227,7 @@ class Parser {
         // generate the full type.
         listener.handleNoType(begin);
         token = beforeBegin;
-      } else if (functionTypes > 0 && voidToken != null) {
+      } else if (voidToken != null) {
         listener.handleVoidKeyword(voidToken);
         token = voidToken;
       } else {

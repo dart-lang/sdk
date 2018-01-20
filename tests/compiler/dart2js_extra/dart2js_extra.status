@@ -13,7 +13,7 @@ mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
 no_such_method_test: Fail # Wrong Invocation.memberName.
 statements_test: Fail
-typed_locals_test: Fail
+typed_locals_test: Pass, Fail
 
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.

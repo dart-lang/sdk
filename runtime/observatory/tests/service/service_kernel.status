@@ -76,6 +76,5 @@ external_service_notification_invocation_test: CompileTimeError # Issue 31696
 external_service_registration_test: CompileTimeError # Issue 31696
 external_service_registration_via_notification_test: CompileTimeError # Issue 31696
 external_service_synchronous_invocation_test: CompileTimeError # Issue 31696
-get_object_rpc_test: RuntimeError
 step_through_arithmetic_test: RuntimeError
 

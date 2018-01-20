@@ -9,6 +9,11 @@ Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Metadata/before_type_param_t01: RuntimeError
+Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t05: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # tests need fixing
 LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 
 [ $compiler == dartkp ]

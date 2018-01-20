@@ -592,7 +592,6 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
-regress_30516_test: CompileTimeError # Issue 30515.
 regress_31057_test: RuntimeError
 regress_31591_test: RuntimeError, OK # strong mode only
 return_type_test: MissingCompileTimeError
@@ -647,6 +646,9 @@ super_operator_index_test/07: MissingCompileTimeError
 super_test: RuntimeError
 switch_fallthru_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
+syntax_test/60: MissingCompileTimeError
+syntax_test/61: MissingCompileTimeError
+syntax_test/62: MissingCompileTimeError, Crash
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
 transitive_private_library_access_test: MissingCompileTimeError
@@ -2733,7 +2735,6 @@ void_type_function_types_test/none: CompileTimeError
 void_type_override_test/none: CompileTimeError
 void_type_usage_test/call_as: CompileTimeError
 void_type_usage_test/call_for: CompileTimeError
-void_type_usage_test/call_return_to_void: CompileTimeError
 void_type_usage_test/call_stmt: CompileTimeError
 void_type_usage_test/conditional2_argument: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2773,46 +2774,38 @@ void_type_usage_test/field_assign: CompileTimeError
 void_type_usage_test/field_assign2: CompileTimeError
 void_type_usage_test/final_local_as: CompileTimeError
 void_type_usage_test/final_local_for: CompileTimeError
-void_type_usage_test/final_local_return_to_void: CompileTimeError
 void_type_usage_test/final_local_stmt: CompileTimeError
 void_type_usage_test/global_as: CompileTimeError
 void_type_usage_test/global_for: CompileTimeError
 void_type_usage_test/global_for_in2: CompileTimeError
 void_type_usage_test/global_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/global_return_to_void: CompileTimeError
 void_type_usage_test/global_stmt: CompileTimeError
 void_type_usage_test/instance2_as: CompileTimeError
 void_type_usage_test/instance2_for: CompileTimeError
 void_type_usage_test/instance2_for_in3: CompileTimeError
-void_type_usage_test/instance2_return_to_void: CompileTimeError
 void_type_usage_test/instance2_stmt: CompileTimeError
 void_type_usage_test/instance3_as: CompileTimeError
 void_type_usage_test/instance3_for: CompileTimeError
 void_type_usage_test/instance3_for_in3: CompileTimeError
-void_type_usage_test/instance3_return_to_void: CompileTimeError
 void_type_usage_test/instance3_stmt: CompileTimeError
 void_type_usage_test/instance_as: CompileTimeError
 void_type_usage_test/instance_for: CompileTimeError
-void_type_usage_test/instance_return_to_void: CompileTimeError
 void_type_usage_test/instance_stmt: CompileTimeError
 void_type_usage_test/local_as: CompileTimeError
 void_type_usage_test/local_assign: CompileTimeError
 void_type_usage_test/local_for: CompileTimeError
 void_type_usage_test/local_for_in2: CompileTimeError
 void_type_usage_test/local_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/local_return_to_void: CompileTimeError
 void_type_usage_test/local_stmt: CompileTimeError
 void_type_usage_test/none: CompileTimeError
 void_type_usage_test/param_as: CompileTimeError
 void_type_usage_test/param_for: CompileTimeError
 void_type_usage_test/param_for_in2: CompileTimeError
 void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/param_return_to_void: CompileTimeError
 void_type_usage_test/param_stmt: CompileTimeError
 void_type_usage_test/paren_as: CompileTimeError
 void_type_usage_test/paren_for: CompileTimeError
 void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/paren_return_to_void: CompileTimeError
 void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
@@ -3487,48 +3480,39 @@ void_type_function_types_test/none: CompileTimeError
 void_type_override_test/none: CompileTimeError
 void_type_usage_test/call_as: CompileTimeError
 void_type_usage_test/call_for: CompileTimeError
-void_type_usage_test/call_return_to_void: CompileTimeError
 void_type_usage_test/call_stmt: CompileTimeError
 void_type_usage_test/field_assign: CompileTimeError
 void_type_usage_test/field_assign2: CompileTimeError
 void_type_usage_test/final_local_as: CompileTimeError
 void_type_usage_test/final_local_for: CompileTimeError
-void_type_usage_test/final_local_return_to_void: CompileTimeError
 void_type_usage_test/final_local_stmt: CompileTimeError
 void_type_usage_test/global_as: CompileTimeError
 void_type_usage_test/global_for: CompileTimeError
 void_type_usage_test/global_for_in2: CompileTimeError
-void_type_usage_test/global_return_to_void: CompileTimeError
 void_type_usage_test/global_stmt: CompileTimeError
 void_type_usage_test/instance2_as: CompileTimeError
 void_type_usage_test/instance2_for: CompileTimeError
 void_type_usage_test/instance2_for_in3: CompileTimeError
-void_type_usage_test/instance2_return_to_void: CompileTimeError
 void_type_usage_test/instance2_stmt: CompileTimeError
 void_type_usage_test/instance3_as: CompileTimeError
 void_type_usage_test/instance3_for: CompileTimeError
 void_type_usage_test/instance3_for_in3: CompileTimeError
-void_type_usage_test/instance3_return_to_void: CompileTimeError
 void_type_usage_test/instance3_stmt: CompileTimeError
 void_type_usage_test/instance_as: CompileTimeError
 void_type_usage_test/instance_for: CompileTimeError
-void_type_usage_test/instance_return_to_void: CompileTimeError
 void_type_usage_test/instance_stmt: CompileTimeError
 void_type_usage_test/local_as: CompileTimeError
 void_type_usage_test/local_assign: CompileTimeError
 void_type_usage_test/local_for: CompileTimeError
 void_type_usage_test/local_for_in2: CompileTimeError
-void_type_usage_test/local_return_to_void: CompileTimeError
 void_type_usage_test/local_stmt: CompileTimeError
 void_type_usage_test/none: CompileTimeError
 void_type_usage_test/param_as: CompileTimeError
 void_type_usage_test/param_for: CompileTimeError
 void_type_usage_test/param_for_in2: CompileTimeError
-void_type_usage_test/param_return_to_void: CompileTimeError
 void_type_usage_test/param_stmt: CompileTimeError
 void_type_usage_test/paren_as: CompileTimeError
 void_type_usage_test/paren_for: CompileTimeError
-void_type_usage_test/paren_return_to_void: CompileTimeError
 void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
@@ -3800,6 +3784,12 @@ symbol_conflict_test: RuntimeError # Issue 23857
 
 [ $compiler == dart2js && !$dart2js_with_kernel && !$minified ]
 vm/async_await_catch_stacktrace_test: RuntimeError
+
+[ $compiler == dart2js && $fasta ]
+syntax_test/62: Crash
+
+[ $compiler == dart2js && !$fasta ]
+syntax_test/59: MissingCompileTimeError
 
 [ $compiler == dart2js && $minified ]
 cyclic_type2_test: RuntimeError # Issue 31054
