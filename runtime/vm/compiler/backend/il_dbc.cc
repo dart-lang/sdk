@@ -1172,69 +1172,18 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
+  __ SetFrame(compiler->StackSize());
 
-  Register context_reg = kNoRegister;
-
-  // Auxiliary variables introduced by the try catch can be captured if we are
-  // inside a function with yield/resume points. In this case we first need
-  // to restore the context to match the context at entry into the closure.
-  if (should_restore_closure_context()) {
-    const ParsedFunction& parsed_function = compiler->parsed_function();
-
-    ASSERT(parsed_function.function().IsClosureFunction());
-    LocalScope* scope = parsed_function.node_sequence()->scope();
-
-    LocalVariable* closure_parameter = scope->VariableAt(0);
-    ASSERT(!closure_parameter->is_captured());
-
-    const LocalVariable& current_context_var =
-        *parsed_function.current_context_var();
-
-    context_reg = compiler->is_optimizing()
-                      ? compiler->CatchEntryRegForVariable(current_context_var)
-                      : LocalVarIndex(0, current_context_var.index());
-
-    Register closure_reg;
-    if (closure_parameter->index() > 0) {
-      __ Move(context_reg, LocalVarIndex(0, closure_parameter->index()));
-      closure_reg = context_reg;
-    } else {
-      closure_reg = LocalVarIndex(0, closure_parameter->index());
-    }
-
-    __ LoadField(context_reg, closure_reg,
-                 Closure::context_offset() / kWordSize);
-  }
-
-  if (exception_var().is_captured()) {
-    ASSERT(stacktrace_var().is_captured());
-    ASSERT(context_reg != kNoRegister);
-    // This will be SP[1] register so we are free to use it as a temporary.
-    const Register temp = compiler->StackSize();
-    __ MoveSpecial(temp, Simulator::kExceptionSpecialIndex);
-    __ StoreField(context_reg,
-                  Context::variable_offset(exception_var().index()) / kWordSize,
-                  temp);
-    __ MoveSpecial(temp, Simulator::kStackTraceSpecialIndex);
-    __ StoreField(
-        context_reg,
-        Context::variable_offset(stacktrace_var().index()) / kWordSize, temp);
-  } else {
-    if (compiler->is_optimizing()) {
-      const intptr_t exception_reg =
-          compiler->CatchEntryRegForVariable(exception_var());
-      const intptr_t stacktrace_reg =
-          compiler->CatchEntryRegForVariable(stacktrace_var());
-      __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
-      __ MoveSpecial(stacktrace_reg, Simulator::kStackTraceSpecialIndex);
-    } else {
-      __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
+  if (!compiler->is_optimizing()) {
+    if (raw_exception_var_ != NULL) {
+      __ MoveSpecial(LocalVarIndex(0, raw_exception_var_->index()),
                      Simulator::kExceptionSpecialIndex);
-      __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
+    }
+    if (raw_stacktrace_var_ != NULL) {
+      __ MoveSpecial(LocalVarIndex(0, raw_stacktrace_var_->index()),
                      Simulator::kStackTraceSpecialIndex);
     }
   }
-  __ SetFrame(compiler->StackSize());
 }
 
 EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {

@@ -639,11 +639,42 @@ void FlowGraphAllocator::SplitInitialDefinitionAt(LiveRange* range,
 void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
                                                   LiveRange* range,
                                                   BlockEntryInstr* block) {
-#if defined(TARGET_ARCH_DBC)
+  // Save the range end because it may change below.
+  const intptr_t range_end = range->End();
+
+  // TODO(31956): Clean up this code and factor common functionality out.
+  // Consider also making a separate [ProcessInitialDefinition] for
+  // [CatchBlockEntry]'s.
   if (block->IsCatchBlockEntry()) {
-    if (defn->IsParameter()) {
+    if (SpecialParameterInstr* param = defn->AsSpecialParameter()) {
+      Location loc;
+      switch (param->kind()) {
+        case SpecialParameterInstr::kException:
+          loc = Location::ExceptionLocation();
+          break;
+        case SpecialParameterInstr::kStackTrace:
+          loc = Location::StackTraceLocation();
+          break;
+        default:
+          UNREACHABLE();
+      }
+      range->set_assigned_location(loc);
+      AssignSafepoints(defn, range);
+      range->finger()->Initialize(range);
+      SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
+      ConvertAllUses(range);
+
+      // On non-DBC we'll have exception/stacktrace in a register and need to
+      // ensure this register is not available for register allocation during
+      // the [CatchBlockEntry] to ensure it's not overwritten.
+      if (loc.IsRegister()) {
+        BlockLocation(loc, block->lifetime_position(),
+                      block->lifetime_position() + 2);
+      }
+      return;
+#if defined(TARGET_ARCH_DBC)
+    } else if (ParameterInstr* param = defn->AsParameter()) {
       // This must be in sync with FlowGraphCompiler::CatchEntryRegForVariable.
-      ParameterInstr* param = defn->AsParameter();
       intptr_t slot_index = param->index();
       AssignSafepoints(defn, range);
       range->finger()->Initialize(range);
@@ -652,8 +683,8 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
       ConvertAllUses(range);
       BlockLocation(Location::RegisterLocation(slot_index), 0, kMaxPosition);
-    } else {
-      ConstantInstr* constant = defn->AsConstant();
+      return;
+    } else if (ConstantInstr* constant = defn->AsConstant()) {
       ASSERT(constant != NULL);
       range->set_assigned_location(Location::Constant(constant));
       range->set_spill_slot(Location::Constant(constant));
@@ -668,13 +699,11 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
         CompleteRange(tail, Location::kRegister);
       }
       ConvertAllUses(range);
+      return;
+#endif  // defined(TARGET_ARCH_DBC)
     }
-    return;
   }
-#endif
 
-  // Save the range end because it may change below.
-  intptr_t range_end = range->End();
   if (defn->IsParameter()) {
     ParameterInstr* param = defn->AsParameter();
     intptr_t slot_index = param->index();
@@ -705,16 +734,14 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     Location loc;
 #if defined(TARGET_ARCH_DBC)
     loc = Location::ArgumentsDescriptorLocation();
-    range->set_assigned_location(loc);
 #else
     loc = Location::RegisterLocation(ARGS_DESC_REG);
-    range->set_assigned_location(loc);
 #endif  // defined(TARGET_ARCH_DBC)
+    range->set_assigned_location(loc);
     if (loc.IsRegister()) {
       AssignSafepoints(defn, range);
       if (range->End() > kNormalEntryPos) {
-        LiveRange* tail = range->SplitAt(kNormalEntryPos);
-        CompleteRange(tail, Location::kRegister);
+        SplitInitialDefinitionAt(range, kNormalEntryPos);
       }
       ConvertAllUses(range);
       return;
@@ -1963,7 +1990,15 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
     }
   }
 
+  while (idx > spill_slots_.length()) {
+    spill_slots_.Add(kMaxPosition);
+    quad_spill_slots_.Add(false);
+    untagged_spill_slots_.Add(false);
+  }
+
   if (idx == spill_slots_.length()) {
+    idx = spill_slots_.length();
+
     // No free spill slot found. Allocate a new one.
     spill_slots_.Add(0);
     quad_spill_slots_.Add(need_quad);

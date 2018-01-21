@@ -1561,7 +1561,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        const LocalVariable& stacktrace_var,
                        bool needs_stacktrace,
                        intptr_t deopt_id,
-                       bool should_restore_closure_context = false)
+                       const LocalVariable* raw_exception_var,
+                       const LocalVariable* raw_stacktrace_var)
       : BlockEntryInstr(block_id, try_index, deopt_id),
         graph_entry_(graph_entry),
         predecessor_(NULL),
@@ -1569,8 +1570,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
+        raw_exception_var_(raw_exception_var),
+        raw_stacktrace_var_(raw_stacktrace_var),
         needs_stacktrace_(needs_stacktrace),
-        should_restore_closure_context_(should_restore_closure_context),
         handler_token_pos_(handler_token_pos),
         is_generated_(is_generated) {}
 
@@ -1588,6 +1590,11 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+
+  const LocalVariable* raw_exception_var() const { return raw_exception_var_; }
+  const LocalVariable* raw_stacktrace_var() const {
+    return raw_stacktrace_var_;
+  }
 
   bool needs_stacktrace() const { return needs_stacktrace_; }
 
@@ -1612,12 +1619,6 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
-  bool should_restore_closure_context() const {
-    ASSERT(exception_var_.is_captured() == stacktrace_var_.is_captured());
-    ASSERT(!exception_var_.is_captured() || should_restore_closure_context_);
-    return should_restore_closure_context_;
-  }
-
   GraphEntryInstr* graph_entry_;
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
@@ -1625,8 +1626,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   GrowableArray<Definition*> initial_definitions_;
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
+  const LocalVariable* raw_exception_var_;
+  const LocalVariable* raw_stacktrace_var_;
   const bool needs_stacktrace_;
-  const bool should_restore_closure_context_;
   TokenPosition handler_token_pos_;
   bool is_generated_;
 
@@ -2909,7 +2911,13 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 // the type arguments of a generic function or an arguments descriptor.
 class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  enum SpecialParameterKind { kContext, kTypeArgs, kArgDescriptor };
+  enum SpecialParameterKind {
+    kContext,
+    kTypeArgs,
+    kArgDescriptor,
+    kException,
+    kStackTrace
+  };
 
   SpecialParameterInstr(SpecialParameterKind kind, intptr_t deopt_id)
       : TemplateDefinition(deopt_id), kind_(kind) {}
@@ -2938,6 +2946,10 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
         return "kTypeArgs";
       case kArgDescriptor:
         return "kArgDescriptor";
+      case kException:
+        return "kException";
+      case kStackTrace:
+        return "kStackTrace";
     }
     UNREACHABLE();
     return NULL;

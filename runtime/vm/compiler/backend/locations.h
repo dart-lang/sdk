@@ -62,6 +62,14 @@ class Location : public ValueObject {
   static const uword kLocationTagMask = 0x3;
 
  public:
+#if defined(TARGET_ARCH_DBC)
+  enum SpecialDbcRegister{
+      kArgsDescriptorReg,
+      kExceptionReg,
+      kStackTraceReg,
+  };
+#endif
+
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstantTag or kPairLocationTag.
@@ -99,9 +107,9 @@ class Location : public ValueObject {
     kFpuRegister = 12,
 
 #ifdef TARGET_ARCH_DBC
-    // We use this to signify a special `Location` where the arguments
-    // descriptor can be found on DBC.
-    kArgsDescRegister = 15,
+    // We use this to signify a special `Location` where the different
+    // [SpecialDbcRegister]s can be found on DBC.
+    kSpecialDbcRegister = 15,
 #endif
   };
 
@@ -130,8 +138,9 @@ class Location : public ValueObject {
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kPairLocationTag);
 
 #ifdef TARGET_ARCH_DBC
-    COMPILE_ASSERT((kArgsDescRegister & kLocationTagMask) != kConstantTag);
-    COMPILE_ASSERT((kArgsDescRegister & kLocationTagMask) != kPairLocationTag);
+    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) !=
+                   kPairLocationTag);
 #endif
 
     // Verify tags and tagmask.
@@ -247,12 +256,44 @@ class Location : public ValueObject {
 
   bool IsFpuRegister() const { return kind() == kFpuRegister; }
 
-#ifdef TARGET_ARCH_DBC
   static Location ArgumentsDescriptorLocation() {
-    return Location(kArgsDescRegister, 0);
+#ifdef TARGET_ARCH_DBC
+    return Location(kSpecialDbcRegister, kArgsDescriptorReg);
+#else
+    return Location::RegisterLocation(ARGS_DESC_REG);
+#endif
   }
 
-  bool IsArgsDescRegister() const { return kind() == kArgsDescRegister; }
+  static Location ExceptionLocation() {
+#ifdef TARGET_ARCH_DBC
+    return Location(kSpecialDbcRegister, kExceptionReg);
+#else
+    return Location::RegisterLocation(kExceptionObjectReg);
+#endif
+  }
+
+  static Location StackTraceLocation() {
+#ifdef TARGET_ARCH_DBC
+    return Location(kSpecialDbcRegister, kStackTraceReg);
+#else
+    return Location::RegisterLocation(kStackTraceObjectReg);
+#endif
+  }
+
+#ifdef TARGET_ARCH_DBC
+  bool IsArgsDescRegister() const {
+    return IsSpecialDbcRegister(kArgsDescriptorReg);
+  }
+  bool IsExceptionRegister() const {
+    return IsSpecialDbcRegister(kExceptionReg);
+  }
+  bool IsStackTraceRegister() const {
+    return IsSpecialDbcRegister(kStackTraceReg);
+  }
+
+  bool IsSpecialDbcRegister(SpecialDbcRegister reg) const {
+    return kind() == kSpecialDbcRegister && payload() == reg;
+  }
 #endif
 
   FpuRegister fpu_reg() const {
