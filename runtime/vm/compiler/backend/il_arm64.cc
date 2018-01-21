@@ -2574,15 +2574,40 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
-  if (!compiler->is_optimizing()) {
-    if (raw_exception_var_ != NULL) {
-      __ str(kExceptionObjectReg,
-             Address(FP, raw_exception_var_->index() * kWordSize));
-    }
-    if (raw_stacktrace_var_ != NULL) {
-      __ str(kStackTraceObjectReg,
-             Address(FP, raw_stacktrace_var_->index() * kWordSize));
-    }
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    __ LoadFromOffset(CTX, FP, closure_parameter->index() * kWordSize);
+    __ LoadFieldFromOffset(CTX, CTX, Closure::context_offset());
+
+    const intptr_t context_index =
+        parsed_function.current_context_var()->index();
+    __ StoreToOffset(CTX, FP, context_index * kWordSize);
+  }
+
+  // Initialize exception and stack trace variables.
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    __ StoreIntoObjectOffset(CTX,
+                             Context::variable_offset(exception_var().index()),
+                             kExceptionObjectReg);
+    __ StoreIntoObjectOffset(CTX,
+                             Context::variable_offset(stacktrace_var().index()),
+                             kStackTraceObjectReg);
+  } else {
+    // Restore stack and initialize the two exception variables:
+    // exception and stack trace variables.
+    __ StoreToOffset(kExceptionObjectReg, FP,
+                     exception_var().index() * kWordSize);
+    __ StoreToOffset(kStackTraceObjectReg, FP,
+                     stacktrace_var().index() * kWordSize);
   }
 }
 
