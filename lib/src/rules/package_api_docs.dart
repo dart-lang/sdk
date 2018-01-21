@@ -54,7 +54,7 @@ class Bar {
 ```
 
 Advice for writing good doc comments can be found in the
-[Doc Writing Guidelines](https://www.dartlang.org/articles/doc-comment-guidelines).
+[Doc Writing Guidelines](https://www.dartlang.org/guides/language/effective-dart/documentation).
 
 ''';
 
