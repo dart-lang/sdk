@@ -229,19 +229,31 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
 }
 
 /**
- * Return `true` if the given [element] has the Flutter class `Widget` as
- * a superclass.
+ * Return `true` if the given [type] is the Flutter class `Widget`, or its
+ * subtype.
+ */
+bool isListOfWidgetsType(DartType type) {
+  return type is InterfaceType &&
+      type.element.library.isDartCore &&
+      type.element.name == 'List' &&
+      type.typeArguments.length == 1 &&
+      isWidgetType(type.typeArguments[0]);
+}
+
+/**
+ * Return `true` if the given [element] is the Flutter class `Widget`, or its
+ * subtype.
  */
 bool isWidget(ClassElement element) {
   if (element == null) {
     return false;
   }
+  if (_isExactWidget(element, _WIDGET_NAME, _WIDGET_URI)) {
+    return true;
+  }
   for (InterfaceType type in element.allSupertypes) {
-    if (type.name == _WIDGET_NAME) {
-      Uri uri = type.element.source.uri;
-      if (uri.toString() == _WIDGET_URI) {
-        return true;
-      }
+    if (_isExactWidget(type.element, _WIDGET_NAME, _WIDGET_URI)) {
+      return true;
     }
   }
   return false;
@@ -254,6 +266,14 @@ bool isWidget(ClassElement element) {
 bool isWidgetCreation(InstanceCreationExpression expr) {
   ClassElement element = expr.staticElement?.enclosingElement;
   return isWidget(element);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `Widget`, or its
+ * subtype.
+ */
+bool isWidgetType(DartType type) {
+  return type is InterfaceType && isWidget(type.element);
 }
 
 /**

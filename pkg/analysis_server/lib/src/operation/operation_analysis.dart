@@ -11,6 +11,7 @@ import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
+import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -90,6 +91,17 @@ void sendAnalysisNotificationFlushResults(
   });
 }
 
+void sendAnalysisNotificationFlutterOutline(AnalysisServer server, String file,
+    LineInfo lineInfo, SourceKind sourceKind, CompilationUnit dartUnit) {
+  _sendNotification(server, () {
+    var computer = new FlutterOutlineComputer(file, lineInfo, dartUnit);
+    protocol.FlutterOutline outline = computer.compute();
+    // send notification
+    var params = new protocol.AnalysisFlutterOutlineParams(file, outline);
+    server.sendNotification(params.toNotification());
+  });
+}
+
 void sendAnalysisNotificationHighlights(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
@@ -117,7 +129,8 @@ void sendAnalysisNotificationOutline(AnalysisServer server, String file,
     // compute library name
     String libraryName = _computeLibraryName(dartUnit);
     // compute Outline
-    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
+    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit,
+        withBasicFlutter: true);
     protocol.Outline outline = computer.compute();
     // send notification
     var params = new protocol.AnalysisOutlineParams(file, fileKind, outline,
