@@ -8,7 +8,6 @@ switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 # VM specific tests that should not be run by dart2js.
 [ $compiler == dart2js ]
 assertion_initializer_test: Crash
-generalized_void_syntax_test: CompileTimeError
 local_function_test: RuntimeError # Issue 31879
 vm/*: Skip # Issue 12699
 
@@ -1483,6 +1482,7 @@ final_attempt_reinitialization_test.dart: Skip # Issue 29659
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
+generalized_void_syntax_test: CompileTimeError
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 generic_function_typedef2_test/00: Crash # Issue 28214
