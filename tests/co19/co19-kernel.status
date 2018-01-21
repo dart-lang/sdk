@@ -32,6 +32,11 @@ Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Pass
+Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t05: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # tests need fixing
 
 [ $fasta ]
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
