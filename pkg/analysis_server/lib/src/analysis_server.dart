@@ -1255,6 +1255,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.FLUTTER_OUTLINE, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationFlutterOutline(
+                analysisServer, path, result.lineInfo, unit);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OVERRIDES, path)) {
           _runDelayed(() {
             sendAnalysisNotificationOverrides(analysisServer, path, unit);

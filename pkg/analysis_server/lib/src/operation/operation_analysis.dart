@@ -92,7 +92,7 @@ void sendAnalysisNotificationFlushResults(
 }
 
 void sendAnalysisNotificationFlutterOutline(AnalysisServer server, String file,
-    LineInfo lineInfo, SourceKind sourceKind, CompilationUnit dartUnit) {
+    LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
     var computer = new FlutterOutlineComputer(file, lineInfo, dartUnit);
     protocol.FlutterOutline outline = computer.compute();
