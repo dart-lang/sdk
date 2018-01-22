@@ -57,7 +57,7 @@ namespace dart {
 
 static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
   // time in nanoseconds.
-  zx_time_t now = zx_time_get(ZX_CLOCK_MONOTONIC);
+  zx_time_t now = zx_clock_get(ZX_CLOCK_MONOTONIC);
   zx_time_t target = now + (micros * kNanosecondsPerMicrosecond);
   int64_t secs = target / kNanosecondsPerSecond;
   int64_t nanos = target - (secs * kNanosecondsPerSecond);
