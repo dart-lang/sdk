@@ -634,7 +634,17 @@ class HintCode extends ErrorCode {
       'UNUSED_IMPORT', "Unused import.", "Try removing the import directive.");
 
   /**
-   * Unused local variables are local variables which are never read.
+   * Unused labels are labels that are never referenced in either a 'break' or
+   * 'continue' statement.
+   */
+  static const HintCode UNUSED_LABEL = const HintCode(
+      'UNUSED_LABEL',
+      "The label '{0}' isn't used.",
+      "Try removing the label, or "
+      "using it in either a 'break' or 'continue' statement.");
+
+  /**
+   * Unused local variables are local variables that are never read.
    */
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',

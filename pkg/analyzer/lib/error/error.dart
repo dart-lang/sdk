@@ -297,6 +297,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNUSED_ELEMENT,
   HintCode.UNUSED_FIELD,
   HintCode.UNUSED_IMPORT,
+  HintCode.UNUSED_LABEL,
   HintCode.UNUSED_LOCAL_VARIABLE,
   HintCode.UNUSED_SHOWN_NAME,
   HintCode.USE_OF_VOID_RESULT,

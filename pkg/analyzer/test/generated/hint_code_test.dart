@@ -2014,6 +2014,22 @@ class C {
     verify([source, source2, source3]);
   }
 
+  test_invalidUseOfVisibleForTestingMember_OK_export() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+export 'lib1.dart' show fn0;
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
   test_invalidUseOfVisibleForTestingMember_propertyAccess() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -2059,22 +2075,6 @@ void main() {
     await computeAnalysisResult(source);
     await computeAnalysisResult(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
-    verify([source, source2]);
-  }
-
-  test_invalidUseOfVisibleForTestingMember_OK_export() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-@visibleForTesting
-int fn0() => 1;
-''');
-    Source source2 = addNamedSource('/lib2.dart', r'''
-export 'lib1.dart' show fn0;
-''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -4454,6 +4454,33 @@ class B {}''');
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
+  }
+
+  test_unusedLabel_inSwitch() async {
+    Source source = addSource(r'''
+f(x) {
+  switch (x) {
+    label: case 0:
+      break;
+    default:
+      break;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LABEL]);
+    verify([source]);
+  }
+
+  test_unusedLabel_onWhile() async {
+    Source source = addSource(r'''
+f(condition()) {
+  label: while (condition()) {
+    break;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LABEL]);
+    verify([source]);
   }
 
   test_unusedLocalVariable_inCatch_exception() async {

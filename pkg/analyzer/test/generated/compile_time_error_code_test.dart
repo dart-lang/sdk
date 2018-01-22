@@ -400,7 +400,10 @@ f() async {
 g() {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -441,7 +444,10 @@ f() async {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -3707,7 +3713,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
@@ -3719,7 +3726,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
