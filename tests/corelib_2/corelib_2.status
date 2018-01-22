@@ -330,7 +330,6 @@ bigint_test: Pass, Timeout # Please triage.
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
-compare_to2_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -357,7 +356,6 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
-compare_to2_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -556,7 +554,6 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
-compare_to2_test: Fail # Issue 4018
 symbol_operator_test/03: Fail # Issue 11669
 symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
 symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
