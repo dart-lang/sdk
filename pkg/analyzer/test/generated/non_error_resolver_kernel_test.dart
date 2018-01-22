@@ -311,6 +311,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_sharedDeferredPrefix() async {
+    return super.test_sharedDeferredPrefix();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_staticAccessToInstanceMember_annotation() async {
     return super.test_staticAccessToInstanceMember_annotation();
   }
