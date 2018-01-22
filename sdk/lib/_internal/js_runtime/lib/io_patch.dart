@@ -533,7 +533,7 @@ class _SecureFilter {
 @patch
 class _StdIOUtils {
   @patch
-  static Stdin _getStdioInputStream() {
+  static Stdin _getStdioInputStream(int fd) {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
 

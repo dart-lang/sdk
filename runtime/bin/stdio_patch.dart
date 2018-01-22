@@ -7,23 +7,22 @@
 @patch
 class _StdIOUtils {
   @patch
-  static Stdin _getStdioInputStream() {
-    switch (_getStdioHandleType(0)) {
+  static Stdin _getStdioInputStream(int fd) {
+    switch (_getStdioHandleType(fd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        return new Stdin._(new _Socket._readPipe(0));
+        return new Stdin._(new _Socket._readPipe(fd), fd);
       case _STDIO_HANDLE_TYPE_FILE:
-        return new Stdin._(new _FileStream.forStdin());
+        return new Stdin._(new _FileStream.forStdin(), fd);
       default:
         throw new FileSystemException(
-            "Couldn't determine file type of stdin (fd 0)");
+            "Couldn't determine file type of stdin (fd $fd)");
     }
   }
 
   @patch
   static _getStdioOutputStream(int fd) {
-    assert(fd == 1 || fd == 2);
     switch (_getStdioHandleType(fd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
@@ -58,7 +57,7 @@ class _StdIOUtils {
 class Stdin {
   @patch
   int readByteSync() {
-    var result = _readByte();
+    var result = _readByte(_fd);
     if (result is OSError) {
       throw new StdinException("Error reading byte from stdin", result);
     }
@@ -67,7 +66,7 @@ class Stdin {
 
   @patch
   bool get echoMode {
-    var result = _echoMode();
+    var result = _echoMode(_fd);
     if (result is OSError) {
       throw new StdinException("Error getting terminal echo mode", result);
     }
@@ -80,7 +79,7 @@ class Stdin {
       throw new UnsupportedError(
           "This embedder disallows setting Stdin.echoMode");
     }
-    var result = _setEchoMode(enabled);
+    var result = _setEchoMode(_fd, enabled);
     if (result is OSError) {
       throw new StdinException("Error setting terminal echo mode", result);
     }
@@ -88,7 +87,7 @@ class Stdin {
 
   @patch
   bool get lineMode {
-    var result = _lineMode();
+    var result = _lineMode(_fd);
     if (result is OSError) {
       throw new StdinException("Error getting terminal line mode", result);
     }
@@ -101,7 +100,7 @@ class Stdin {
       throw new UnsupportedError(
           "This embedder disallows setting Stdin.lineMode");
     }
-    var result = _setLineMode(enabled);
+    var result = _setLineMode(_fd, enabled);
     if (result is OSError) {
       throw new StdinException("Error setting terminal line mode", result);
     }
@@ -109,19 +108,19 @@ class Stdin {
 
   @patch
   bool get supportsAnsiEscapes {
-    var result = _supportsAnsiEscapes();
+    var result = _supportsAnsiEscapes(_fd);
     if (result is OSError) {
       throw new StdinException("Error determining ANSI support", result);
     }
     return result;
   }
 
-  static _echoMode() native "Stdin_GetEchoMode";
-  static _setEchoMode(bool enabled) native "Stdin_SetEchoMode";
-  static _lineMode() native "Stdin_GetLineMode";
-  static _setLineMode(bool enabled) native "Stdin_SetLineMode";
-  static _readByte() native "Stdin_ReadByte";
-  static _supportsAnsiEscapes() native "Stdin_AnsiSupported";
+  static _echoMode(int fd) native "Stdin_GetEchoMode";
+  static _setEchoMode(int fd, bool enabled) native "Stdin_SetEchoMode";
+  static _lineMode(int fd) native "Stdin_GetLineMode";
+  static _setLineMode(int fd, bool enabled) native "Stdin_SetLineMode";
+  static _readByte(int fd) native "Stdin_ReadByte";
+  static _supportsAnsiEscapes(int fd) native "Stdin_AnsiSupported";
 }
 
 @patch
