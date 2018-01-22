@@ -58,24 +58,21 @@ class CommandOutput extends UniqueObject {
     // In either case an exit code of 253 is considered a crash.
     if (exitCode == 253) return true;
     if (exitCode == parseFailExitCode) return false;
-    if (hasTimedOut) return false;
-    if (io.Platform.isWindows) {
+    if (io.Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
-      if (exitCode == 3 || exitCode == browserCrashExitCode) return true;
-
+      if (exitCode == 3 || exitCode == browserCrashExitCode) {
+        return !hasTimedOut;
+      }
       // If a program receives an uncaught system exception, the program
-      // terminates with the exception code as exit code. From
-      // https://blogs.msdn.microsoft.com/joshpoley/2011/06/13/common-process-
-      // termination-values/ we have that  "The 0xC… values are NTSTATUS codes".
-      // That must mean a crash. Note: Once can lookup specific codes at
-      // https://msdn.microsoft.com/en-us/library/cc704588.aspx.
-
-      // From the list above there are (currently) as many error codes starting
-      // with 0xC0 as 0xC. Check that the exit code starts with 0xC0.
-      return (exitCode < 0) && ((exitCode & 0xF0000000) == 0xC0000000);
+      // terminates with the exception code as exit code.
+      // The 0x3FFFFF00 mask here tries to determine if an exception indicates
+      // a crash of the program.
+      // System exception codes can be found in 'winnt.h', for example
+      // "#define STATUS_ACCESS_VIOLATION  ((DWORD) 0xC0000005)"
+      return (!hasTimedOut && (exitCode < 0) && ((0x3FFFFF00 & exitCode) == 0));
     }
-    return exitCode < 0;
+    return !hasTimedOut && ((exitCode < 0));
   }
 
   bool get hasSyntaxError => exitCode == parseFailExitCode;
