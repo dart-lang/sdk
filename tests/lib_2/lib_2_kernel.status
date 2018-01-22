@@ -64,7 +64,6 @@ isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel iss
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate1_test: RuntimeError # Issue 31402 (List literal)
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/message3_test/int32x4: Crash # 31916
 isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Pass, Timeout
@@ -358,7 +357,6 @@ isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issu
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_22778_test: Crash
 isolate/kill_self_synchronously_test: RuntimeError
-isolate/message3_test/int32x4: Crash # 31916
 isolate/ping_pause_test: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout

@@ -27,12 +27,6 @@ spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 
-[ $compiler == dartk ]
-message3_test/int32x4: Crash
-
-[ $compiler == dartkp ]
-message3_test/int32x4: Crash
-
 [ $mode == product ]
 issue_24243_parent_isolate_test: Skip # Requires checked mode
 
@@ -112,9 +106,6 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
-[ $compiler == dartk && $system == windows && !$strong ]
-message3_test/int32x4: Fail
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -164,7 +155,6 @@ static_function_test: Skip # Times out. Issue 31855
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
 compile_time_error_test/01: Skip # Issue 12587
 kill3_test: Pass, Fail # Bad test: expects total message order
-message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 ping_pause_test: Skip # Resolve test issues
 ping_test: Skip # Resolve test issues
 

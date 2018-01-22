@@ -13,7 +13,6 @@ async/future_or_strong_test: RuntimeError
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 async/timer_regress22626_test: Pass, RuntimeError # Issue 28254
 isolate/compile_time_error_test/01: Skip # Issue 12587
-isolate/message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 isolate/ping_pause_test: Skip # Resolve test issues
 isolate/ping_test: Skip # Resolve test issues
 mirrors/symbol_validation_test: RuntimeError # Issue 13596

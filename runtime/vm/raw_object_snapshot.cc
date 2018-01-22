@@ -2544,7 +2544,7 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
   writer->Write<double>(ptr()->value_[1]);
 }
 
-#define TYPED_DATA_READ(setter, type)                                          \
+#define TYPED_DATA_READ(setter, type, element_size)                            \
   for (intptr_t i = 0; i < length_in_bytes; i += element_size) {               \
     result.Set##setter(i, reader->Read<type>());                               \
   }
@@ -2575,28 +2575,37 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
       break;
     }
     case kTypedDataInt16ArrayCid:
-      TYPED_DATA_READ(Int16, int16_t);
+      TYPED_DATA_READ(Int16, int16_t, element_size);
       break;
     case kTypedDataUint16ArrayCid:
-      TYPED_DATA_READ(Uint16, uint16_t);
+      TYPED_DATA_READ(Uint16, uint16_t, element_size);
       break;
     case kTypedDataInt32ArrayCid:
-      TYPED_DATA_READ(Int32, int32_t);
+      TYPED_DATA_READ(Int32, int32_t, element_size);
       break;
     case kTypedDataUint32ArrayCid:
-      TYPED_DATA_READ(Uint32, uint32_t);
+      TYPED_DATA_READ(Uint32, uint32_t, element_size);
       break;
     case kTypedDataInt64ArrayCid:
-      TYPED_DATA_READ(Int64, int64_t);
+      TYPED_DATA_READ(Int64, int64_t, element_size);
       break;
     case kTypedDataUint64ArrayCid:
-      TYPED_DATA_READ(Uint64, uint64_t);
+      TYPED_DATA_READ(Uint64, uint64_t, element_size);
       break;
     case kTypedDataFloat32ArrayCid:
-      TYPED_DATA_READ(Float32, float);
+      TYPED_DATA_READ(Float32, float, element_size);
       break;
     case kTypedDataFloat64ArrayCid:
-      TYPED_DATA_READ(Float64, double);
+      TYPED_DATA_READ(Float64, double, element_size);
+      break;
+    case kTypedDataInt32x4ArrayCid:
+      TYPED_DATA_READ(Int32, int32_t, sizeof(int32_t));
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      TYPED_DATA_READ(Float32, float, sizeof(float));
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+      TYPED_DATA_READ(Float64, double, sizeof(double));
       break;
     default:
       UNREACHABLE();
@@ -2636,10 +2645,10 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   return obj.raw();
 }
 
-#define TYPED_DATA_WRITE(type)                                                 \
+#define TYPED_DATA_WRITE(type, len)                                            \
   {                                                                            \
     type* data = reinterpret_cast<type*>(ptr()->data());                       \
-    for (intptr_t i = 0; i < len; i++) {                                       \
+    for (intptr_t i = 0; i < (len); i++) {                                     \
       writer->Write(data[i]);                                                  \
     }                                                                          \
   }
@@ -2672,47 +2681,56 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
       break;
     }
     case kTypedDataInt16ArrayCid:
-      TYPED_DATA_WRITE(int16_t);
+      TYPED_DATA_WRITE(int16_t, len);
       break;
     case kTypedDataUint16ArrayCid:
-      TYPED_DATA_WRITE(uint16_t);
+      TYPED_DATA_WRITE(uint16_t, len);
       break;
     case kTypedDataInt32ArrayCid:
-      TYPED_DATA_WRITE(int32_t);
+      TYPED_DATA_WRITE(int32_t, len);
       break;
     case kTypedDataUint32ArrayCid:
-      TYPED_DATA_WRITE(uint32_t);
+      TYPED_DATA_WRITE(uint32_t, len);
       break;
     case kTypedDataInt64ArrayCid:
-      TYPED_DATA_WRITE(int64_t);
+      TYPED_DATA_WRITE(int64_t, len);
       break;
     case kTypedDataUint64ArrayCid:
-      TYPED_DATA_WRITE(uint64_t);
+      TYPED_DATA_WRITE(uint64_t, len);
       break;
     case kTypedDataFloat32ArrayCid:
-      TYPED_DATA_WRITE(float);  // NOLINT.
+      TYPED_DATA_WRITE(float, len);  // NOLINT.
       break;
     case kTypedDataFloat64ArrayCid:
-      TYPED_DATA_WRITE(double);  // NOLINT.
+      TYPED_DATA_WRITE(double, len);  // NOLINT.
+      break;
+    case kTypedDataInt32x4ArrayCid:
+      TYPED_DATA_WRITE(int32_t, len * 4);  // NOLINT.
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      TYPED_DATA_WRITE(float, len * 4);  // NOLINT.
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+      TYPED_DATA_WRITE(double, len * 2);  // NOLINT.
       break;
     default:
       UNREACHABLE();
   }
 }
 
-#define TYPED_EXT_DATA_WRITE(type)                                             \
+#define TYPED_EXT_DATA_WRITE(type, len)                                        \
   {                                                                            \
     type* data = reinterpret_cast<type*>(ptr()->data_);                        \
-    for (intptr_t i = 0; i < len; i++) {                                       \
+    for (intptr_t i = 0; i < (len); i++) {                                     \
       writer->Write(data[i]);                                                  \
     }                                                                          \
   }
 
-#define EXT_TYPED_DATA_WRITE(cid, type)                                        \
+#define EXT_TYPED_DATA_WRITE(cid, type, len)                                   \
   writer->WriteIndexedObject(cid);                                             \
   writer->WriteTags(writer->GetObjectTags(this));                              \
   writer->Write<RawObject*>(ptr()->length_);                                   \
-  TYPED_EXT_DATA_WRITE(type)
+  TYPED_EXT_DATA_WRITE(type, len)
 
 void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
@@ -2727,37 +2745,46 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
 
   switch (cid) {
     case kExternalTypedDataInt8ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt8ArrayCid, int8_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt8ArrayCid, int8_t, len);
       break;
     case kExternalTypedDataUint8ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint8ArrayCid, uint8_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint8ArrayCid, uint8_t, len);
       break;
     case kExternalTypedDataUint8ClampedArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint8ClampedArrayCid, uint8_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint8ClampedArrayCid, uint8_t, len);
       break;
     case kExternalTypedDataInt16ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt16ArrayCid, int16_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt16ArrayCid, int16_t, len);
       break;
     case kExternalTypedDataUint16ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint16ArrayCid, uint16_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint16ArrayCid, uint16_t, len);
       break;
     case kExternalTypedDataInt32ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt32ArrayCid, int32_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt32ArrayCid, int32_t, len);
       break;
     case kExternalTypedDataUint32ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint32ArrayCid, uint32_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint32ArrayCid, uint32_t, len);
       break;
     case kExternalTypedDataInt64ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataInt64ArrayCid, int64_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt64ArrayCid, int64_t, len);
       break;
     case kExternalTypedDataUint64ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataUint64ArrayCid, uint64_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint64ArrayCid, uint64_t, len);
       break;
     case kExternalTypedDataFloat32ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataFloat32ArrayCid, float);  // NOLINT.
+      EXT_TYPED_DATA_WRITE(kTypedDataFloat32ArrayCid, float, len);  // NOLINT.
       break;
     case kExternalTypedDataFloat64ArrayCid:
-      EXT_TYPED_DATA_WRITE(kTypedDataFloat64ArrayCid, double);  // NOLINT.
+      EXT_TYPED_DATA_WRITE(kTypedDataFloat64ArrayCid, double, len);  // NOLINT.
+      break;
+    case kExternalTypedDataInt32x4ArrayCid:
+      EXT_TYPED_DATA_WRITE(kTypedDataInt32x4ArrayCid, int32_t, len * 4);
+      break;
+    case kExternalTypedDataFloat32x4ArrayCid:
+      EXT_TYPED_DATA_WRITE(kTypedDataFloat32x4ArrayCid, float, len * 4);
+      break;
+    case kExternalTypedDataFloat64x2ArrayCid:
+      EXT_TYPED_DATA_WRITE(kTypedDataFloat64x2ArrayCid, double, len * 2);
       break;
     default:
       UNREACHABLE();
