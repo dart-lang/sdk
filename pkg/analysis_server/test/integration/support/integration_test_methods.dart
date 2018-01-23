@@ -959,30 +959,6 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
-   * Reports the Flutter outline associated with a single file.
-   *
-   * This notification is not subscribed to by default. Clients can subscribe
-   * by including the value "FLUTTER_OUTLINE" in the list of services passed in
-   * an analysis.setSubscriptions request.
-   *
-   * Parameters
-   *
-   * file: FilePath
-   *
-   *   The file with which the outline is associated.
-   *
-   * outline: FlutterOutline
-   *
-   *   The outline associated with the file.
-   */
-  Stream<AnalysisFlutterOutlineParams> onAnalysisFlutterOutline;
-
-  /**
-   * Stream controller for [onAnalysisFlutterOutline].
-   */
-  StreamController<AnalysisFlutterOutlineParams> _onAnalysisFlutterOutline;
-
-  /**
    * Reports the overriding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
@@ -2101,6 +2077,70 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Subscribe for services that are specific to individual files. All previous
+   * subscriptions are replaced by the current set of subscriptions. If a given
+   * service is not included as a key in the map then no files will be
+   * subscribed to the service, exactly as if the service had been included in
+   * the map with an explicit empty list of files.
+   *
+   * Note that this request determines the set of requested subscriptions. The
+   * actual set of subscriptions at any given time is the intersection of this
+   * set with the set of files currently subject to analysis. The files
+   * currently subject to analysis are the set of files contained within an
+   * actual analysis root but not excluded, plus all of the files transitively
+   * reachable from those files via import, export and part directives. (See
+   * analysis.setAnalysisRoots for an explanation of how the actual analysis
+   * roots are determined.) When the actual analysis roots change, the actual
+   * set of subscriptions is automatically updated, but the set of requested
+   * subscriptions is unchanged.
+   *
+   * If a requested subscription is a directory it is ignored, but remains in
+   * the set of requested subscriptions so that if it later becomes a file it
+   * can be included in the set of actual subscriptions.
+   *
+   * It is an error if any of the keys in the map are not valid services. If
+   * there is an error, then the existing subscriptions will remain unchanged.
+   *
+   * Parameters
+   *
+   * subscriptions: Map<FlutterService, List<FilePath>>
+   *
+   *   A table mapping services to a list of the files being subscribed to the
+   *   service.
+   */
+  Future sendFlutterSetSubscriptions(
+      Map<FlutterService, List<String>> subscriptions) async {
+    var params = new FlutterSetSubscriptionsParams(subscriptions).toJson();
+    var result = await server.send("flutter.setSubscriptions", params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /**
+   * Reports the Flutter outline associated with a single file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "OUTLINE" in the list of services passed in an
+   * flutter.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file with which the outline is associated.
+   *
+   * outline: FlutterOutline
+   *
+   *   The outline associated with the file.
+   */
+  Stream<FlutterOutlineParams> onFlutterOutline;
+
+  /**
+   * Stream controller for [onFlutterOutline].
+   */
+  StreamController<FlutterOutlineParams> _onFlutterOutline;
+
+  /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */
@@ -2146,10 +2186,6 @@ abstract class IntegrationTestMixin {
     _onAnalysisOutline =
         new StreamController<AnalysisOutlineParams>(sync: true);
     onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
-    _onAnalysisFlutterOutline =
-        new StreamController<AnalysisFlutterOutlineParams>(sync: true);
-    onAnalysisFlutterOutline =
-        _onAnalysisFlutterOutline.stream.asBroadcastStream();
     _onAnalysisOverrides =
         new StreamController<AnalysisOverridesParams>(sync: true);
     onAnalysisOverrides = _onAnalysisOverrides.stream.asBroadcastStream();
@@ -2161,6 +2197,8 @@ abstract class IntegrationTestMixin {
     _onExecutionLaunchData =
         new StreamController<ExecutionLaunchDataParams>(sync: true);
     onExecutionLaunchData = _onExecutionLaunchData.stream.asBroadcastStream();
+    _onFlutterOutline = new StreamController<FlutterOutlineParams>(sync: true);
+    onFlutterOutline = _onFlutterOutline.stream.asBroadcastStream();
   }
 
   /**
@@ -2240,11 +2278,6 @@ abstract class IntegrationTestMixin {
         _onAnalysisOutline
             .add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.flutterOutline":
-        outOfTestExpect(params, isAnalysisFlutterOutlineParams);
-        _onAnalysisFlutterOutline.add(new AnalysisFlutterOutlineParams.fromJson(
-            decoder, 'params', params));
-        break;
       case "analysis.overrides":
         outOfTestExpect(params, isAnalysisOverridesParams);
         _onAnalysisOverrides.add(
@@ -2264,6 +2297,11 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isExecutionLaunchDataParams);
         _onExecutionLaunchData.add(
             new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
+        break;
+      case "flutter.outline":
+        outOfTestExpect(params, isFlutterOutlineParams);
+        _onFlutterOutline
+            .add(new FlutterOutlineParams.fromJson(decoder, 'params', params));
         break;
       default:
         fail('Unexpected notification: $event');

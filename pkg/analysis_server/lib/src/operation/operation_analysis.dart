@@ -11,7 +11,6 @@ import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
-import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -88,17 +87,6 @@ void sendAnalysisNotificationFlushResults(
       var params = new protocol.AnalysisFlushResultsParams(files);
       server.sendNotification(params.toNotification());
     }
-  });
-}
-
-void sendAnalysisNotificationFlutterOutline(AnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
-  _sendNotification(server, () {
-    var computer = new FlutterOutlineComputer(file, lineInfo, dartUnit);
-    protocol.FlutterOutline outline = computer.compute();
-    // send notification
-    var params = new protocol.AnalysisFlutterOutlineParams(file, outline);
-    server.sendNotification(params.toNotification());
   });
 }
 

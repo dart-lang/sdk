@@ -137,7 +137,6 @@ final Matcher isAnalysisOptions = new LazyMatcher(
  *   OCCURRENCES
  *   OUTLINE
  *   OVERRIDES
- *   FLUTTER_OUTLINE
  * }
  */
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
@@ -149,8 +148,7 @@ final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "NAVIGATION",
   "OCCURRENCES",
   "OUTLINE",
-  "OVERRIDES",
-  "FLUTTER_OUTLINE"
+  "OVERRIDES"
 ]);
 
 /**
@@ -509,6 +507,15 @@ final Matcher isFlutterOutlineKind = new MatchesEnum("FlutterOutlineKind", [
   "VARIABLE",
   "PLACEHOLDER"
 ]);
+
+/**
+ * FlutterService
+ *
+ * enum {
+ *   OUTLINE
+ * }
+ */
+final Matcher isFlutterService = new MatchesEnum("FlutterService", ["OUTLINE"]);
 
 /**
  * FoldingKind
@@ -1382,18 +1389,6 @@ final Matcher isAnalysisErrorsParams = new LazyMatcher(() =>
 final Matcher isAnalysisFlushResultsParams = new LazyMatcher(() =>
     new MatchesJsonObject(
         "analysis.flushResults params", {"files": isListOf(isFilePath)}));
-
-/**
- * analysis.flutterOutline params
- *
- * {
- *   "file": FilePath
- *   "outline": FlutterOutline
- * }
- */
-final Matcher isAnalysisFlutterOutlineParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.flutterOutline params",
-        {"file": isFilePath, "outline": isFlutterOutline}));
 
 /**
  * analysis.folding params
@@ -2408,6 +2403,34 @@ final Matcher isExtractMethodOptions =
           "parameters": isListOf(isRefactoringMethodParameter),
           "extractAll": isBool
         }));
+
+/**
+ * flutter.outline params
+ *
+ * {
+ *   "file": FilePath
+ *   "outline": FlutterOutline
+ * }
+ */
+final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
+    new MatchesJsonObject("flutter.outline params",
+        {"file": isFilePath, "outline": isFlutterOutline}));
+
+/**
+ * flutter.setSubscriptions params
+ *
+ * {
+ *   "subscriptions": Map<FlutterService, List<FilePath>>
+ * }
+ */
+final Matcher isFlutterSetSubscriptionsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("flutter.setSubscriptions params",
+        {"subscriptions": isMapOf(isFlutterService, isListOf(isFilePath))}));
+
+/**
+ * flutter.setSubscriptions result
+ */
+final Matcher isFlutterSetSubscriptionsResult = isNull;
 
 /**
  * inlineLocalVariable feedback

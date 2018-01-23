@@ -1300,31 +1300,6 @@
       </field>
     </params>
   </notification>
-  <notification event="flutterOutline" experimental="true">
-    <p>
-      Reports the Flutter outline associated with a single file.
-    </p>
-    <p>
-      This notification is not subscribed to by default. Clients
-      can subscribe by including the value <tt>"FLUTTER_OUTLINE"</tt> in
-      the list of services passed in an analysis.setSubscriptions
-      request.
-    </p>
-    <params>
-      <field name="file">
-        <ref>FilePath</ref>
-        <p>
-          The file with which the outline is associated.
-        </p>
-      </field>
-      <field name="outline">
-        <ref>FlutterOutline</ref>
-        <p>
-          The outline associated with the file.
-        </p>
-      </field>
-    </params>
-  </notification>
   <notification event="overrides">
     <p>
       Reports the overriding members in a file.
@@ -2605,6 +2580,89 @@
     </result>
   </request>
 </domain>
+<domain name="flutter" experimental="true">
+  <p>
+    The analysis domain contains API’s related to Flutter support.
+  </p>
+  <request method="setSubscriptions">
+    <p>
+      Subscribe for services that are specific to individual files.
+      All previous subscriptions are replaced by the current set of
+      subscriptions. If a given service is not included as a key in the map
+      then no files will be subscribed to the service, exactly as if the
+      service had been included in the map with an explicit empty list of
+      files.
+    </p>
+    <p>
+      Note that this request determines the set of requested
+      subscriptions. The actual set of subscriptions at any given
+      time is the intersection of this set with the set of files
+      currently subject to analysis. The files currently subject
+      to analysis are the set of files contained within an actual
+      analysis root but not excluded, plus all of the files
+      transitively reachable from those files via import, export
+      and part directives. (See analysis.setAnalysisRoots for an
+      explanation of how the actual analysis roots are
+      determined.) When the actual analysis roots change, the
+      actual set of subscriptions is automatically updated, but
+      the set of requested subscriptions is unchanged.
+    </p>
+    <p>
+      If a requested subscription is a directory it is ignored,
+      but remains in the set of requested subscriptions so that if
+      it later becomes a file it can be included in the set of
+      actual subscriptions.
+    </p>
+    <p>
+      It is an error if any of the keys in the map are not valid
+      services. If there is an error, then the existing
+      subscriptions will remain unchanged.
+    </p>
+    <params>
+      <field name="subscriptions">
+        <map>
+          <key>
+            <ref>FlutterService</ref>
+          </key>
+          <value>
+            <list>
+              <ref>FilePath</ref>
+            </list>
+          </value>
+        </map>
+        <p>
+          A table mapping services to a list of the files being
+          subscribed to the service.
+        </p>
+      </field>
+    </params>
+  </request>
+  <notification event="outline" experimental="true">
+    <p>
+      Reports the Flutter outline associated with a single file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"OUTLINE"</tt> in
+      the list of services passed in an flutter.setSubscriptions
+      request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file with which the outline is associated.
+        </p>
+      </field>
+      <field name="outline">
+        <ref>FlutterOutline</ref>
+        <p>
+          The outline associated with the file.
+        </p>
+      </field>
+    </params>
+  </notification>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
@@ -2726,7 +2784,6 @@
       <value><code>OCCURRENCES</code></value>
       <value><code>OUTLINE</code></value>
       <value><code>OVERRIDES</code></value>
-      <value><code>FLUTTER_OUTLINE</code></value>
     </enum>
   </type>
   <type name="AnalysisStatus">
@@ -2875,6 +2932,15 @@
     <enum>
       <value><code>LIBRARY</code></value>
       <value><code>PART</code></value>
+    </enum>
+  </type>
+  <type name="FlutterService" experimental="true">
+    <p>
+      An enumeration of the services provided by the flutter domain that
+      are related to a specific list of files.
+    </p>
+    <enum>
+      <value><code>OUTLINE</code></value>
     </enum>
   </type>
   <type name="FlutterOutline" experimental="true">

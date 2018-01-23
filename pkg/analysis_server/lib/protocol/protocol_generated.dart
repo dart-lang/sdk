@@ -537,116 +537,6 @@ class AnalysisFlushResultsParams implements HasToJson {
 }
 
 /**
- * analysis.flutterOutline params
- *
- * {
- *   "file": FilePath
- *   "outline": FlutterOutline
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class AnalysisFlutterOutlineParams implements HasToJson {
-  String _file;
-
-  FlutterOutline _outline;
-
-  /**
-   * The file with which the outline is associated.
-   */
-  String get file => _file;
-
-  /**
-   * The file with which the outline is associated.
-   */
-  void set file(String value) {
-    assert(value != null);
-    this._file = value;
-  }
-
-  /**
-   * The outline associated with the file.
-   */
-  FlutterOutline get outline => _outline;
-
-  /**
-   * The outline associated with the file.
-   */
-  void set outline(FlutterOutline value) {
-    assert(value != null);
-    this._outline = value;
-  }
-
-  AnalysisFlutterOutlineParams(String file, FlutterOutline outline) {
-    this.file = file;
-    this.outline = outline;
-  }
-
-  factory AnalysisFlutterOutlineParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
-      }
-      FlutterOutline outline;
-      if (json.containsKey("outline")) {
-        outline = new FlutterOutline.fromJson(
-            jsonDecoder, jsonPath + ".outline", json["outline"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "outline");
-      }
-      return new AnalysisFlutterOutlineParams(file, outline);
-    } else {
-      throw jsonDecoder.mismatch(
-          jsonPath, "analysis.flutterOutline params", json);
-    }
-  }
-
-  factory AnalysisFlutterOutlineParams.fromNotification(
-      Notification notification) {
-    return new AnalysisFlutterOutlineParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["outline"] = outline.toJson();
-    return result;
-  }
-
-  Notification toNotification() {
-    return new Notification("analysis.flutterOutline", toJson());
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is AnalysisFlutterOutlineParams) {
-      return file == other.file && outline == other.outline;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
  * analysis.folding params
  *
  * {
@@ -3462,7 +3352,6 @@ class AnalysisReanalyzeResult implements ResponseResult {
  *   OCCURRENCES
  *   OUTLINE
  *   OVERRIDES
- *   FLUTTER_OUTLINE
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -3496,9 +3385,6 @@ class AnalysisService implements Enum {
 
   static const AnalysisService OVERRIDES = const AnalysisService._("OVERRIDES");
 
-  static const AnalysisService FLUTTER_OUTLINE =
-      const AnalysisService._("FLUTTER_OUTLINE");
-
   /**
    * A list containing all of the enum values that are defined.
    */
@@ -3511,8 +3397,7 @@ class AnalysisService implements Enum {
     NAVIGATION,
     OCCURRENCES,
     OUTLINE,
-    OVERRIDES,
-    FLUTTER_OUTLINE
+    OVERRIDES
   ];
 
   @override
@@ -3540,8 +3425,6 @@ class AnalysisService implements Enum {
         return OUTLINE;
       case "OVERRIDES":
         return OVERRIDES;
-      case "FLUTTER_OUTLINE":
-        return FLUTTER_OUTLINE;
     }
     throw new Exception('Illegal enum value: $name');
   }
@@ -11387,6 +11270,287 @@ class FlutterOutlineKind implements Enum {
   String toString() => "FlutterOutlineKind.$name";
 
   String toJson() => name;
+}
+
+/**
+ * flutter.outline params
+ *
+ * {
+ *   "file": FilePath
+ *   "outline": FlutterOutline
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterOutlineParams implements HasToJson {
+  String _file;
+
+  FlutterOutline _outline;
+
+  /**
+   * The file with which the outline is associated.
+   */
+  String get file => _file;
+
+  /**
+   * The file with which the outline is associated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The outline associated with the file.
+   */
+  FlutterOutline get outline => _outline;
+
+  /**
+   * The outline associated with the file.
+   */
+  void set outline(FlutterOutline value) {
+    assert(value != null);
+    this._outline = value;
+  }
+
+  FlutterOutlineParams(String file, FlutterOutline outline) {
+    this.file = file;
+    this.outline = outline;
+  }
+
+  factory FlutterOutlineParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      FlutterOutline outline;
+      if (json.containsKey("outline")) {
+        outline = new FlutterOutline.fromJson(
+            jsonDecoder, jsonPath + ".outline", json["outline"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "outline");
+      }
+      return new FlutterOutlineParams(file, outline);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "flutter.outline params", json);
+    }
+  }
+
+  factory FlutterOutlineParams.fromNotification(Notification notification) {
+    return new FlutterOutlineParams.fromJson(
+        new ResponseDecoder(null), "params", notification.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["outline"] = outline.toJson();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("flutter.outline", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterOutlineParams) {
+      return file == other.file && outline == other.outline;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * FlutterService
+ *
+ * enum {
+ *   OUTLINE
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterService implements Enum {
+  static const FlutterService OUTLINE = const FlutterService._("OUTLINE");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FlutterService> VALUES = const <FlutterService>[OUTLINE];
+
+  @override
+  final String name;
+
+  const FlutterService._(this.name);
+
+  factory FlutterService(String name) {
+    switch (name) {
+      case "OUTLINE":
+        return OUTLINE;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory FlutterService.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new FlutterService(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "FlutterService", json);
+  }
+
+  @override
+  String toString() => "FlutterService.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * flutter.setSubscriptions params
+ *
+ * {
+ *   "subscriptions": Map<FlutterService, List<FilePath>>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterSetSubscriptionsParams implements RequestParams {
+  Map<FlutterService, List<String>> _subscriptions;
+
+  /**
+   * A table mapping services to a list of the files being subscribed to the
+   * service.
+   */
+  Map<FlutterService, List<String>> get subscriptions => _subscriptions;
+
+  /**
+   * A table mapping services to a list of the files being subscribed to the
+   * service.
+   */
+  void set subscriptions(Map<FlutterService, List<String>> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  FlutterSetSubscriptionsParams(
+      Map<FlutterService, List<String>> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
+
+  factory FlutterSetSubscriptionsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      Map<FlutterService, List<String>> subscriptions;
+      if (json.containsKey("subscriptions")) {
+        subscriptions = jsonDecoder.decodeMap(
+            jsonPath + ".subscriptions", json["subscriptions"],
+            keyDecoder: (String jsonPath, Object json) =>
+                new FlutterService.fromJson(jsonDecoder, jsonPath, json),
+            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+                .decodeList(jsonPath, json, jsonDecoder.decodeString));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "subscriptions");
+      }
+      return new FlutterSetSubscriptionsParams(subscriptions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "flutter.setSubscriptions params", json);
+    }
+  }
+
+  factory FlutterSetSubscriptionsParams.fromRequest(Request request) {
+    return new FlutterSetSubscriptionsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["subscriptions"] = mapMap(subscriptions,
+        keyCallback: (FlutterService value) => value.toJson());
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "flutter.setSubscriptions", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterSetSubscriptionsParams) {
+      return mapEqual(
+          subscriptions,
+          other.subscriptions,
+          (List<String> a, List<String> b) =>
+              listEqual(a, b, (String a, String b) => a == b));
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * flutter.setSubscriptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterSetSubscriptionsResult implements ResponseResult {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterSetSubscriptionsResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 628296315;
+  }
 }
 
 /**

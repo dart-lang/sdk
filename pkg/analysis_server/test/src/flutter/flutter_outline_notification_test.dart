@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,26 +17,44 @@ import '../utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationOutlineTest);
+    defineReflectiveTests(FlutterNotificationOutlineTest);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
   Folder flutterFolder;
+
+  final Map<FlutterService, List<String>> flutterSubscriptions = {};
 
   Completer _outlineReceived = new Completer();
   FlutterOutline outline;
 
+  FlutterDomainHandler get flutterHandler =>
+      server.handlers.singleWhere((handler) => handler is FlutterDomainHandler);
+
+  void addFlutterSubscription(FlutterService service, String file) {
+    // add file to subscription
+    var files = analysisSubscriptions[service];
+    if (files == null) {
+      files = <String>[];
+      flutterSubscriptions[service] = files;
+    }
+    files.add(file);
+    // set subscriptions
+    Request request =
+        new FlutterSetSubscriptionsParams(flutterSubscriptions).toRequest('0');
+    handleSuccessfulRequest(request, handler: flutterHandler);
+  }
+
   Future prepareOutline() {
-    addAnalysisSubscription(AnalysisService.FLUTTER_OUTLINE, testFile);
+    addFlutterSubscription(FlutterService.OUTLINE, testFile);
     return _outlineReceived.future;
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_FLUTTER_OUTLINE) {
-      var params =
-          new AnalysisFlutterOutlineParams.fromNotification(notification);
+    if (notification.event == FLUTTER_NOTIFICATION_OUTLINE) {
+      var params = new FlutterOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
         outline = params.outline;
         _outlineReceived.complete(null);

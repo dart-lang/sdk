@@ -30,6 +30,8 @@ import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/flutter/flutter_domain.dart';
+import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -199,6 +201,12 @@ class AnalysisServer {
    */
   Map<AnalysisService, Set<String>> analysisServices =
       new HashMap<AnalysisService, Set<String>>();
+
+  /**
+   * A table mapping [FlutterService]s to the file paths for which these
+   * notifications should be sent.
+   */
+  Map<FlutterService, Set<String>> flutterServices = {};
 
   /**
    * Performance information before initial analysis is complete.
@@ -428,7 +436,8 @@ class AnalysisServer {
       new ExecutionDomainHandler(this),
       new DiagnosticDomainHandler(this),
       new AnalyticsDomainHandler(this),
-      new KytheDomainHandler(this)
+      new KytheDomainHandler(this),
+      new FlutterDomainHandler(this)
     ];
   }
 
@@ -909,6 +918,23 @@ class AnalysisServer {
   }
 
   /**
+   * Implementation for `flutter.setSubscriptions`.
+   */
+  void setFlutterSubscriptions(Map<FlutterService, Set<String>> subscriptions) {
+    this.flutterServices = subscriptions;
+    Set<String> allNewFiles =
+        subscriptions.values.expand((files) => files).toSet();
+    for (String file in allNewFiles) {
+      // The result will be produced by the "results" stream with
+      // the fully resolved unit, and processed with sending analysis
+      // notifications as it happens after content changes.
+      if (AnalysisEngine.isDartFileName(file)) {
+        getAnalysisResult(file, sendCachedToStream: true);
+      }
+    }
+  }
+
+  /**
    * Implementation for `analysis.setGeneralSubscriptions`.
    */
   void setGeneralAnalysisSubscriptions(
@@ -1084,6 +1110,10 @@ class AnalysisServer {
     return analysisServices[service]?.contains(file) ?? false;
   }
 
+  bool _hasFlutterServiceSubscription(FlutterService service, String file) {
+    return flutterServices[service]?.contains(file) ?? false;
+  }
+
   _scheduleAnalysisImplementedNotification() async {
     Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
@@ -1255,16 +1285,16 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.FLUTTER_OUTLINE, path)) {
-          _runDelayed(() {
-            sendAnalysisNotificationFlutterOutline(
-                analysisServer, path, result.lineInfo, unit);
-          });
-        }
-        if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OVERRIDES, path)) {
           _runDelayed(() {
             sendAnalysisNotificationOverrides(analysisServer, path, unit);
+          });
+        }
+        if (analysisServer._hasFlutterServiceSubscription(
+            FlutterService.OUTLINE, path)) {
+          _runDelayed(() {
+            sendFlutterNotificationOutline(
+                analysisServer, path, result.lineInfo, unit);
           });
         }
         // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.
