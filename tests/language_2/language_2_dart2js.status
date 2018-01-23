@@ -2057,188 +2057,187 @@ typevariable_substitution2_test/02: RuntimeError
 *: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]
-assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_star_cancel_while_paused_test: RuntimeError
-async_star_test/02: RuntimeError
+async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a03b: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a05b: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_break_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_call_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_local_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_method_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_top_level_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_unnamed_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_control_structures_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_finally_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_regression_23058_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_no_cancel2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_no_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_23116_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_fisk_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_take_reyield_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_test/01: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+async_star_test/02: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+async_star_test/03: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+async_star_test/04: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+async_star_test/05: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+async_star_test/none: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+async_switch_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_switch_test/withDefault: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_this_bound_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_throw_in_catch_test/forceAwait: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_throw_in_catch_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_concat_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_throw_in_catch_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_yield_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_yieldstar_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_and_ifnull_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_backwards_compatibility_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_exceptions_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_use_local_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_future_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_in_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_nonfuture_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_null_aware_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_postfix_expr_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
+bool_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 branches_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
-call_function_apply_test: RuntimeError
-callable_test/none: RuntimeError
+call_function2_test: CompileTimeError
+call_function_apply_test: CompileTimeError
+call_function_test: CompileTimeError
+call_with_no_such_method_test: CompileTimeError
+callable_test/none: CompileTimeError
 canonical_const2_test: RuntimeError
+cha_deopt1_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+cha_deopt2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+cha_deopt3_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
-class_literal_static_test/02: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
-class_literal_static_test/04: MissingCompileTimeError
-class_literal_static_test/05: MissingCompileTimeError
-class_literal_static_test/06: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
-class_literal_static_test/08: MissingCompileTimeError
-class_literal_static_test/09: MissingCompileTimeError
-class_literal_static_test/10: MissingCompileTimeError
-class_literal_static_test/11: MissingCompileTimeError
-class_literal_static_test/12: MissingCompileTimeError
-class_literal_static_test/13: MissingCompileTimeError
-class_literal_static_test/14: MissingCompileTimeError
-class_literal_static_test/15: MissingCompileTimeError
-class_literal_static_test/16: MissingCompileTimeError
-class_literal_static_test/17: MissingCompileTimeError
-class_literal_static_test/18: MissingCompileTimeError
-class_literal_static_test/19: MissingCompileTimeError
-class_literal_static_test/20: MissingCompileTimeError
-class_literal_static_test/21: MissingCompileTimeError
-class_literal_static_test/22: MissingCompileTimeError
-class_literal_static_test/23: MissingCompileTimeError
-class_literal_static_test/24: MissingCompileTimeError
-class_literal_static_test/25: MissingCompileTimeError
-class_override_test: MissingCompileTimeError
-closure_internals_test/01: MissingCompileTimeError
-closure_internals_test/02: MissingCompileTimeError
-closure_internals_test/03: MissingCompileTimeError
+classes_static_method_clash_test: RuntimeError
+closure_in_constructor_test: RuntimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
 closure_type_test: RuntimeError
+compile_time_constant_d_test: CompileTimeError
+compile_time_constant_e_test: CompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-compile_time_constant_static2_test/01: MissingCompileTimeError
-compile_time_constant_static2_test/02: MissingCompileTimeError
-compile_time_constant_static2_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static2_test/05: MissingCompileTimeError
-compile_time_constant_static2_test/06: MissingCompileTimeError
-compile_time_constant_static3_test/01: MissingCompileTimeError
-compile_time_constant_static3_test/02: MissingCompileTimeError
-compile_time_constant_static3_test/03: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/05: MissingCompileTimeError
-compile_time_constant_static3_test/06: MissingCompileTimeError
-compile_time_constant_static4_test/01: MissingCompileTimeError
-compile_time_constant_static4_test/02: MissingCompileTimeError
-compile_time_constant_static4_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/04: MissingCompileTimeError
-compile_time_constant_static5_test/05: MissingCompileTimeError
-compile_time_constant_static5_test/06: MissingCompileTimeError
-compile_time_constant_static5_test/07: MissingCompileTimeError
-compile_time_constant_static5_test/08: MissingCompileTimeError
-compile_time_constant_static5_test/09: MissingCompileTimeError
-compile_time_constant_static5_test/10: MissingCompileTimeError
-compile_time_constant_static5_test/12: MissingCompileTimeError
-compile_time_constant_static5_test/13: MissingCompileTimeError
-compile_time_constant_static5_test/14: MissingCompileTimeError
-compile_time_constant_static5_test/15: MissingCompileTimeError
-compile_time_constant_static5_test/17: MissingCompileTimeError
-compile_time_constant_static5_test/18: MissingCompileTimeError
-compile_time_constant_static5_test/19: MissingCompileTimeError
-compile_time_constant_static5_test/20: MissingCompileTimeError
-compile_time_constant_static5_test/22: MissingCompileTimeError
-compile_time_constant_static5_test/24: MissingCompileTimeError
-compile_time_constant_static5_test/25: MissingCompileTimeError
-compile_time_constant_static_test/01: MissingCompileTimeError
-compile_time_constant_static_test/02: MissingCompileTimeError
-compile_time_constant_static_test/03: MissingCompileTimeError
-conditional_method_invocation_test/05: MissingCompileTimeError
-conditional_method_invocation_test/06: MissingCompileTimeError
-conditional_method_invocation_test/07: MissingCompileTimeError
-conditional_method_invocation_test/08: MissingCompileTimeError
-conditional_method_invocation_test/12: MissingCompileTimeError
-conditional_method_invocation_test/13: MissingCompileTimeError
-conditional_method_invocation_test/18: MissingCompileTimeError
-conditional_method_invocation_test/19: MissingCompileTimeError
-conditional_property_access_test/04: MissingCompileTimeError
-conditional_property_access_test/05: MissingCompileTimeError
-conditional_property_access_test/06: MissingCompileTimeError
-conditional_property_access_test/10: MissingCompileTimeError
-conditional_property_access_test/11: MissingCompileTimeError
-conditional_property_access_test/16: MissingCompileTimeError
-conditional_property_access_test/17: MissingCompileTimeError
-conditional_property_assignment_test/04: MissingCompileTimeError
-conditional_property_assignment_test/05: MissingCompileTimeError
-conditional_property_assignment_test/06: MissingCompileTimeError
-conditional_property_assignment_test/10: MissingCompileTimeError
-conditional_property_assignment_test/11: MissingCompileTimeError
-conditional_property_assignment_test/12: MissingCompileTimeError
-conditional_property_assignment_test/13: MissingCompileTimeError
-conditional_property_assignment_test/27: MissingCompileTimeError
-conditional_property_assignment_test/28: MissingCompileTimeError
-conditional_property_assignment_test/32: MissingCompileTimeError
-conditional_property_assignment_test/33: MissingCompileTimeError
-conditional_property_assignment_test/34: MissingCompileTimeError
-conditional_property_assignment_test/35: MissingCompileTimeError
-conditional_property_increment_decrement_test/04: MissingCompileTimeError
-conditional_property_increment_decrement_test/08: MissingCompileTimeError
-conditional_property_increment_decrement_test/12: MissingCompileTimeError
-conditional_property_increment_decrement_test/16: MissingCompileTimeError
-conditional_property_increment_decrement_test/21: MissingCompileTimeError
-conditional_property_increment_decrement_test/22: MissingCompileTimeError
-conditional_property_increment_decrement_test/27: MissingCompileTimeError
-conditional_property_increment_decrement_test/28: MissingCompileTimeError
-conditional_property_increment_decrement_test/33: MissingCompileTimeError
-conditional_property_increment_decrement_test/34: MissingCompileTimeError
-conditional_property_increment_decrement_test/39: MissingCompileTimeError
-conditional_property_increment_decrement_test/40: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError
+compile_time_constant_static5_test/16: CompileTimeError
+compile_time_constant_static5_test/21: CompileTimeError
+compile_time_constant_static5_test/23: CompileTimeError
+conditional_import_string_test: CompileTimeError
+conditional_import_test: CompileTimeError
+conditional_rewrite_test: RuntimeError
+config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
-const_constructor2_test/05: MissingCompileTimeError
-const_constructor2_test/06: MissingCompileTimeError
-const_constructor2_test/13: MissingCompileTimeError
-const_constructor2_test/14: MissingCompileTimeError
-const_constructor2_test/15: MissingCompileTimeError
-const_constructor2_test/16: MissingCompileTimeError
-const_constructor2_test/17: MissingCompileTimeError
-const_constructor2_test/18: MissingCompileTimeError
+const_constructor2_test/11: CompileTimeError
+const_constructor2_test/12: CompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_constructor3_test/02: MissingCompileTimeError
-const_constructor3_test/04: MissingCompileTimeError
+const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: CompileTimeError
 const_evaluation_test/none: CompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError
-const_init2_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
+const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
+const_map4_test: RuntimeError
+const_redirecting_factory_test: CompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_types_test/01: MissingCompileTimeError
-const_types_test/02: MissingCompileTimeError
-const_types_test/03: MissingCompileTimeError
-const_types_test/04: MissingCompileTimeError
-const_types_test/05: MissingCompileTimeError
-const_types_test/06: MissingCompileTimeError
-const_types_test/13: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_duplicate_final_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/02: MissingCompileTimeError
-constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
-constructor_redirect1_negative_test/none: MissingCompileTimeError
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
+constructor_redirect_test/none: CompileTimeError
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
@@ -2247,54 +2246,72 @@ covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
-crash_6725_test/01: MissingCompileTimeError
+ct_const_test: CompileTimeError
+custom_await_stack_trace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 cyclic_constructor_test/01: Crash # Issue 30856
+cyclic_default_values_test: RuntimeError
+cyclic_typedef_test/10: Crash # Stack Overflow
+cyclic_typedef_test/11: Crash # Stack Overflow
+deferred_closurize_load_library_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constant_list_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
-deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
+deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_before_load: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/static_method: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_null: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_function_type_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_global_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_import_core_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/01: MissingRuntimeError
+deferred_inlined_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_load_constants_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_load_inval_code_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_load_library_wrong_args_test/01: CompileTimeError
+deferred_load_library_wrong_args_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_no_such_method_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_not_loaded_check_test: RuntimeError
-deferred_redirecting_factory_test: RuntimeError
-deferred_super_dependency_test/01: MissingCompileTimeError
+deferred_only_constant_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_optimized_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_redirecting_factory_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_regression_22995_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_regression_28678_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_shadow_load_library_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_shared_and_unshared_classes_test: CompileTimeError
+deferred_static_seperate_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_super_dependency_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/as: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/is: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/type_annotation: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 double_int_to_string_test: RuntimeError
-double_to_string_as_exponential2_test/01: MissingCompileTimeError
-double_to_string_as_exponential2_test/02: MissingCompileTimeError
-double_to_string_as_exponential2_test/03: MissingCompileTimeError
-double_to_string_as_fixed2_test/01: MissingCompileTimeError
-double_to_string_as_fixed2_test/02: MissingCompileTimeError
-double_to_string_as_fixed2_test/03: MissingCompileTimeError
-double_to_string_as_precision2_test/01: MissingCompileTimeError
-double_to_string_as_precision2_test/02: MissingCompileTimeError
-double_to_string_as_precision2_test/03: MissingCompileTimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
-duplicate_implements_test/03: MissingCompileTimeError
-duplicate_implements_test/04: MissingCompileTimeError
-dynamic_prefix_core_test/none: RuntimeError
+dynamic_prefix_core_test/none: CompileTimeError
+emit_const_fields_test: CompileTimeError
 enum_mirror_test: CompileTimeError
-enum_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_increment_bailout_test: CompileTimeError
@@ -2303,20 +2320,34 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/02: MissingCompileTimeError
+first_class_types_test: RuntimeError
+flatten_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/04: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/05: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/06: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/07: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/08: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/10: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/11: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/12: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
+function_propagation_test: CompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
-function_subtype_bound_closure7_test: RuntimeError
+function_subtype_bound_closure7_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
+function_subtype_factory0_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
@@ -2335,22 +2366,23 @@ function_type_alias2_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
-generalized_void_syntax_test: CompileTimeError
+generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
-generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
-generic_list_checked_test: RuntimeError
-generic_methods_generic_function_parameter_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
-generic_methods_simple_as_expression_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
+generic_list_checked_test: CompileTimeError
 generic_methods_simple_as_expression_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
+generic_methods_tearoff_specialization_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 generic_methods_type_expression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
+generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
-generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -2361,105 +2393,56 @@ identical_closure2_test: RuntimeError
 if_null_precedence_test/none: RuntimeError
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
+implicit_downcast_during_return_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 inferrer_synthesized_constructor_test: RuntimeError
 infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 instanceof2_test: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+instantiate_tearoff_of_call_test: CompileTimeError
+instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+instantiate_type_variable_test/01: CompileTimeError
 integer_division_by_zero_test: RuntimeError
-interface_test/00: Crash # 'package:front_end/src/fasta/kernel/body_builder.dart': Failed assertion: line 2218 pos 14: '!target.enclosingClass.isAbstract': is not true.
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: CompileTimeError
 invocation_mirror_invoke_on2_test: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
-is_malformed_type_test/94: MissingCompileTimeError
-is_malformed_type_test/95: MissingCompileTimeError
-is_malformed_type_test/96: MissingCompileTimeError
-is_malformed_type_test/97: MissingCompileTimeError
-is_malformed_type_test/98: MissingCompileTimeError
-is_malformed_type_test/99: MissingCompileTimeError
-is_not_class2_test/01: MissingCompileTimeError
-isnot_malformed_type_test/01: MissingCompileTimeError
-issue11724_test/01: MissingCompileTimeError
-issue1363_test/01: MissingCompileTimeError
-issue15606_test/01: MissingCompileTimeError
-issue18628_1_test/01: MissingCompileTimeError
+invocation_mirror_test: CompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: CompileTimeError
-issue23244_test: RuntimeError
-known_identifier_prefix_error_test/01: MissingCompileTimeError
-known_identifier_prefix_error_test/02: MissingCompileTimeError
-known_identifier_prefix_error_test/03: MissingCompileTimeError
-known_identifier_prefix_error_test/04: MissingCompileTimeError
-known_identifier_prefix_error_test/05: MissingCompileTimeError
-known_identifier_prefix_error_test/06: MissingCompileTimeError
-known_identifier_prefix_error_test/07: MissingCompileTimeError
-known_identifier_prefix_error_test/08: MissingCompileTimeError
-known_identifier_prefix_error_test/09: MissingCompileTimeError
-known_identifier_prefix_error_test/10: MissingCompileTimeError
-known_identifier_prefix_error_test/11: MissingCompileTimeError
-known_identifier_prefix_error_test/12: MissingCompileTimeError
-known_identifier_prefix_error_test/13: MissingCompileTimeError
-known_identifier_prefix_error_test/14: MissingCompileTimeError
-known_identifier_prefix_error_test/15: MissingCompileTimeError
-known_identifier_prefix_error_test/16: MissingCompileTimeError
-known_identifier_prefix_error_test/17: MissingCompileTimeError
-known_identifier_prefix_error_test/18: MissingCompileTimeError
-known_identifier_prefix_error_test/19: MissingCompileTimeError
-known_identifier_prefix_error_test/20: MissingCompileTimeError
-known_identifier_prefix_error_test/21: MissingCompileTimeError
-known_identifier_prefix_error_test/22: MissingCompileTimeError
-known_identifier_prefix_error_test/23: MissingCompileTimeError
-known_identifier_prefix_error_test/24: MissingCompileTimeError
+issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue_1751477_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+issue_25671a_test/01: CompileTimeError
+issue_25671b_test/01: CompileTimeError
+known_identifier_usage_error_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
-list_literal1_test/01: MissingCompileTimeError
-list_literal4_test/00: MissingCompileTimeError
-list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/03: MissingCompileTimeError
-list_literal4_test/04: MissingCompileTimeError
-list_literal4_test/05: MissingCompileTimeError
-list_literal_syntax_test/01: MissingCompileTimeError
-list_literal_syntax_test/02: MissingCompileTimeError
-list_literal_syntax_test/03: MissingCompileTimeError
-malformed2_test/00: MissingCompileTimeError
+library_prefixes_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: CompileTimeError
 map_literal11_test/none: MissingRuntimeError
-map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/01: MissingCompileTimeError
-map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/03: MissingCompileTimeError
-map_literal4_test/04: MissingCompileTimeError
-map_literal4_test/05: MissingCompileTimeError
-map_literal4_test/06: MissingCompileTimeError
 map_literal7_test: RuntimeError
-map_literal8_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+method_override_test: CompileTimeError
+minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/02: MissingCompileTimeError
-mixin_illegal_super_use_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/05: MissingCompileTimeError
-mixin_illegal_super_use_test/06: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
-mixin_illegal_super_use_test/08: MissingCompileTimeError
-mixin_illegal_super_use_test/09: MissingCompileTimeError
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
@@ -2541,35 +2524,30 @@ nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 no_main_test/01: CompileTimeError
 no_such_method_test: CompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
-not_enough_positional_arguments_test/00: MissingCompileTimeError
-not_enough_positional_arguments_test/01: MissingCompileTimeError
-not_enough_positional_arguments_test/02: MissingCompileTimeError
-not_enough_positional_arguments_test/03: MissingCompileTimeError
-not_enough_positional_arguments_test/05: MissingCompileTimeError
-not_enough_positional_arguments_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/07: MissingCompileTimeError
+null_no_such_method_test: CompileTimeError
 null_test/mirrors: CompileTimeError
 null_test/none: CompileTimeError
-number_identifier_test/05: MissingCompileTimeError
-number_identifier_test/08: MissingCompileTimeError
-number_identifier_test/09: MissingCompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-on_catch_malformed_type_test: MissingCompileTimeError
-operator5_test: MissingCompileTimeError
-operator_equals_test: MissingCompileTimeError
+operator4_test: RuntimeError
 operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
-optimized_constant_array_string_access_test: MissingCompileTimeError
 overridden_no_such_method_test: CompileTimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+override_inheritance_field_test/04: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/26: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_generic_test/02: CompileTimeError
+override_inheritance_method_test/17: CompileTimeError
+override_inheritance_method_test/18: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
 override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
@@ -2577,14 +2555,11 @@ override_inheritance_mixed_test/04: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
+parser_quirks_test: CompileTimeError
 prefix5_negative_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
-private_super_constructor_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
-redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
@@ -2592,34 +2567,76 @@ redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
-regress_20394_test/01: MissingCompileTimeError
-regress_23408_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+regress_22443_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22445_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22579_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22728_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22777_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23089_test: Crash # Stack Overflow
+regress_23408_test: CompileTimeError
+regress_23498_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23500_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23500_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23500_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23650_test: RuntimeError
+regress_23996_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_24283_test: RuntimeError
+regress_24935_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_24935_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_25550_test: CompileTimeError
+regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_26668_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_26948_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_28217_test/01: MissingCompileTimeError
-regress_28217_test/none: MissingCompileTimeError
+regress_27659_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_28255_test: CompileTimeError
-regress_28341_test: RuntimeError
+regress_28278_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_29025_test: CompileTimeError
+regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
-regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
+regress_30339_test: CompileTimeError
+setter_no_getter_call_test/01: CompileTimeError
+setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+shadow_parameter_and_local_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
 stacktrace_rethrow_nonerror_test: RuntimeError
 stacktrace_test: RuntimeError # Issue 12698
+string_interpolate_test: CompileTimeError
+string_interpolation_and_buffer_test: RuntimeError
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
+super_in_async1_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async3_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async6_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_no_such_method1_test: CompileTimeError
+super_no_such_method2_test: CompileTimeError
+super_no_such_method3_test: CompileTimeError
+super_no_such_method4_test: CompileTimeError
+super_no_such_method5_test: CompileTimeError
+super_operator_index5_test: CompileTimeError
+super_operator_index6_test: CompileTimeError
+super_operator_index7_test: CompileTimeError
+super_operator_index8_test: CompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
-symbol_literal_test/01: MissingCompileTimeError
 sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
+sync_generator2_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+syncstar_yieldstar_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -2629,113 +2646,26 @@ syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
+type_error_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
-type_parameter_test/01: MissingCompileTimeError
-type_parameter_test/02: MissingCompileTimeError
-type_parameter_test/03: MissingCompileTimeError
-type_parameter_test/04: MissingCompileTimeError
-type_parameter_test/05: MissingCompileTimeError
-type_parameter_test/06: MissingCompileTimeError
-type_parameter_test/07: MissingCompileTimeError
-type_parameter_test/08: MissingCompileTimeError
-type_parameter_test/09: MissingCompileTimeError
-type_promotion_assign_test/01: MissingCompileTimeError
-type_promotion_assign_test/02: MissingCompileTimeError
-type_promotion_assign_test/03: MissingCompileTimeError
-type_promotion_assign_test/04: MissingCompileTimeError
-type_promotion_closure_test/01: MissingCompileTimeError
-type_promotion_closure_test/02: MissingCompileTimeError
-type_promotion_closure_test/03: MissingCompileTimeError
-type_promotion_closure_test/04: MissingCompileTimeError
-type_promotion_closure_test/06: MissingCompileTimeError
-type_promotion_closure_test/07: MissingCompileTimeError
-type_promotion_closure_test/09: MissingCompileTimeError
-type_promotion_closure_test/10: MissingCompileTimeError
-type_promotion_closure_test/11: MissingCompileTimeError
-type_promotion_closure_test/12: MissingCompileTimeError
-type_promotion_closure_test/13: MissingCompileTimeError
-type_promotion_closure_test/14: MissingCompileTimeError
-type_promotion_closure_test/15: MissingCompileTimeError
-type_promotion_closure_test/16: MissingCompileTimeError
-type_promotion_local_test/01: MissingCompileTimeError
-type_promotion_local_test/02: MissingCompileTimeError
-type_promotion_local_test/03: MissingCompileTimeError
-type_promotion_local_test/04: MissingCompileTimeError
-type_promotion_local_test/05: MissingCompileTimeError
-type_promotion_local_test/06: MissingCompileTimeError
-type_promotion_local_test/07: MissingCompileTimeError
-type_promotion_local_test/08: MissingCompileTimeError
-type_promotion_local_test/09: MissingCompileTimeError
-type_promotion_local_test/10: MissingCompileTimeError
-type_promotion_local_test/11: MissingCompileTimeError
-type_promotion_local_test/12: MissingCompileTimeError
-type_promotion_local_test/13: MissingCompileTimeError
-type_promotion_local_test/14: MissingCompileTimeError
-type_promotion_local_test/15: MissingCompileTimeError
-type_promotion_local_test/16: MissingCompileTimeError
-type_promotion_local_test/17: MissingCompileTimeError
-type_promotion_local_test/18: MissingCompileTimeError
-type_promotion_local_test/19: MissingCompileTimeError
-type_promotion_local_test/20: MissingCompileTimeError
-type_promotion_local_test/21: MissingCompileTimeError
-type_promotion_local_test/22: MissingCompileTimeError
-type_promotion_local_test/23: MissingCompileTimeError
-type_promotion_local_test/24: MissingCompileTimeError
-type_promotion_local_test/25: MissingCompileTimeError
-type_promotion_local_test/26: MissingCompileTimeError
-type_promotion_local_test/27: MissingCompileTimeError
-type_promotion_local_test/28: MissingCompileTimeError
-type_promotion_local_test/29: MissingCompileTimeError
-type_promotion_local_test/30: MissingCompileTimeError
-type_promotion_local_test/31: MissingCompileTimeError
-type_promotion_local_test/32: MissingCompileTimeError
-type_promotion_local_test/33: MissingCompileTimeError
-type_promotion_local_test/34: MissingCompileTimeError
-type_promotion_local_test/35: MissingCompileTimeError
-type_promotion_local_test/36: MissingCompileTimeError
-type_promotion_local_test/37: MissingCompileTimeError
-type_promotion_local_test/38: MissingCompileTimeError
-type_promotion_local_test/39: MissingCompileTimeError
-type_promotion_local_test/40: MissingCompileTimeError
-type_promotion_local_test/41: MissingCompileTimeError
+type_parameter_test/none: RuntimeError
+type_promotion_functions_test/02: CompileTimeError
+type_promotion_functions_test/03: CompileTimeError
+type_promotion_functions_test/04: CompileTimeError
+type_promotion_functions_test/09: CompileTimeError
+type_promotion_functions_test/11: CompileTimeError
+type_promotion_functions_test/12: CompileTimeError
+type_promotion_functions_test/13: CompileTimeError
+type_promotion_functions_test/14: CompileTimeError
+type_promotion_functions_test/none: CompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
-type_promotion_logical_and_test/02: MissingCompileTimeError
-type_promotion_logical_and_test/03: MissingCompileTimeError
-type_promotion_more_specific_test/02: MissingCompileTimeError
-type_promotion_more_specific_test/06: MissingCompileTimeError
-type_promotion_more_specific_test/07: MissingCompileTimeError
-type_promotion_more_specific_test/09: MissingCompileTimeError
-type_promotion_multiple_test/01: MissingCompileTimeError
-type_promotion_multiple_test/02: MissingCompileTimeError
-type_promotion_multiple_test/03: MissingCompileTimeError
-type_promotion_multiple_test/04: MissingCompileTimeError
-type_promotion_multiple_test/05: MissingCompileTimeError
-type_promotion_multiple_test/06: MissingCompileTimeError
-type_promotion_multiple_test/07: MissingCompileTimeError
-type_promotion_multiple_test/08: MissingCompileTimeError
-type_promotion_multiple_test/09: MissingCompileTimeError
-type_promotion_multiple_test/10: MissingCompileTimeError
-type_promotion_multiple_test/11: MissingCompileTimeError
-type_promotion_multiple_test/12: MissingCompileTimeError
-type_promotion_multiple_test/13: MissingCompileTimeError
-type_promotion_multiple_test/14: MissingCompileTimeError
-type_promotion_multiple_test/15: MissingCompileTimeError
-type_promotion_multiple_test/16: MissingCompileTimeError
-type_promotion_multiple_test/17: MissingCompileTimeError
-type_promotion_multiple_test/18: MissingCompileTimeError
-type_promotion_multiple_test/19: MissingCompileTimeError
-type_promotion_multiple_test/20: MissingCompileTimeError
-type_promotion_multiple_test/21: MissingCompileTimeError
-type_promotion_multiple_test/22: MissingCompileTimeError
-type_variable_conflict2_test/02: MissingCompileTimeError
+type_promotion_more_specific_test/04: CompileTimeError
+type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
+type_variable_closure2_test: RuntimeError
+type_variable_closure4_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-void_type_callbacks_test/none: CompileTimeError
-void_type_function_types_test/none: CompileTimeError
-void_type_override_test/none: CompileTimeError
-void_type_usage_test/call_as: CompileTimeError
-void_type_usage_test/call_for: CompileTimeError
-void_type_usage_test/call_stmt: CompileTimeError
+unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 void_type_usage_test/conditional2_argument: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2746,7 +2676,7 @@ void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:fron
 void_type_usage_test/conditional2_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional2_return_to_void: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 192 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional2_stmt: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_throw: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_void_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2763,237 +2693,205 @@ void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:fron
 void_type_usage_test/conditional3_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional3_return_to_void: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 192 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional3_stmt: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_throw: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_void_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional_do_while: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional_for_in: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_while: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/field_assign: CompileTimeError
-void_type_usage_test/field_assign2: CompileTimeError
-void_type_usage_test/final_local_as: CompileTimeError
-void_type_usage_test/final_local_for: CompileTimeError
-void_type_usage_test/final_local_stmt: CompileTimeError
-void_type_usage_test/global_as: CompileTimeError
-void_type_usage_test/global_for: CompileTimeError
-void_type_usage_test/global_for_in2: CompileTimeError
 void_type_usage_test/global_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/global_stmt: CompileTimeError
-void_type_usage_test/instance2_as: CompileTimeError
-void_type_usage_test/instance2_for: CompileTimeError
-void_type_usage_test/instance2_for_in3: CompileTimeError
-void_type_usage_test/instance2_stmt: CompileTimeError
-void_type_usage_test/instance3_as: CompileTimeError
-void_type_usage_test/instance3_for: CompileTimeError
-void_type_usage_test/instance3_for_in3: CompileTimeError
-void_type_usage_test/instance3_stmt: CompileTimeError
-void_type_usage_test/instance_as: CompileTimeError
-void_type_usage_test/instance_for: CompileTimeError
-void_type_usage_test/instance_stmt: CompileTimeError
-void_type_usage_test/local_as: CompileTimeError
-void_type_usage_test/local_assign: CompileTimeError
-void_type_usage_test/local_for: CompileTimeError
-void_type_usage_test/local_for_in2: CompileTimeError
 void_type_usage_test/local_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/local_stmt: CompileTimeError
-void_type_usage_test/none: CompileTimeError
-void_type_usage_test/param_as: CompileTimeError
-void_type_usage_test/param_for: CompileTimeError
-void_type_usage_test/param_for_in2: CompileTimeError
 void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/param_stmt: CompileTimeError
-void_type_usage_test/paren_as: CompileTimeError
-void_type_usage_test/paren_for: CompileTimeError
 void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/paren_stmt: CompileTimeError
-void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
+yieldstar_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked && !$strong ]
 *: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
-assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_star_cancel_while_paused_test: RuntimeError
-async_star_test/02: RuntimeError
+async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a03b: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a05b: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b11c: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b11d: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/b12g: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/c10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d01a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d02a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d03a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d05a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d06a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d09a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/d10a: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_break_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_call_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_local_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_method_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_top_level_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_congruence_unnamed_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_body: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_condition: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_init: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/await_in_update: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_continue_label_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_control_structures_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_finally_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_regression_23058_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_rethrow_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/nestedFuture: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/tooManyTypeParameters: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_return_types_test/wrongReturnType: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_cancel_and_throw_in_finally_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_cancel_while_paused_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_no_cancel2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_no_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_23116_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_fisk_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_take_reyield_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_test/01: Crash # Wrong number of template arguments, given 2, expected 1
+async_star_test/02: Crash # Wrong number of template arguments, given 2, expected 1
+async_star_test/03: Crash # Wrong number of template arguments, given 2, expected 1
+async_star_test/04: Crash # Wrong number of template arguments, given 2, expected 1
+async_star_test/05: Crash # Wrong number of template arguments, given 2, expected 1
+async_star_test/none: Crash # Wrong number of template arguments, given 2, expected 1
+async_switch_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_switch_test/withDefault: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_this_bound_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_throw_in_catch_test/forceAwait: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_throw_in_catch_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_concat_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_throw_in_catch_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_yield_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_yieldstar_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_and_ifnull_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_backwards_compatibility_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_exceptions_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_cancel_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_use_local_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_future_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_in_cascade_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_nonfuture_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_null_aware_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_postfix_expr_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bit_operations_test: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
+bool_test: RuntimeError
 branch_canonicalization_test: RuntimeError
-call_function_apply_test: RuntimeError
-callable_test/none: RuntimeError
+call_function2_test: CompileTimeError
+call_function_apply_test: CompileTimeError
+call_function_test: CompileTimeError
+call_with_no_such_method_test: CompileTimeError
+callable_test/none: CompileTimeError
 canonical_const2_test: RuntimeError
+cha_deopt1_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+cha_deopt2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+cha_deopt3_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
-class_literal_static_test/02: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
-class_literal_static_test/04: MissingCompileTimeError
-class_literal_static_test/05: MissingCompileTimeError
-class_literal_static_test/06: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
-class_literal_static_test/08: MissingCompileTimeError
-class_literal_static_test/09: MissingCompileTimeError
-class_literal_static_test/10: MissingCompileTimeError
-class_literal_static_test/11: MissingCompileTimeError
-class_literal_static_test/12: MissingCompileTimeError
-class_literal_static_test/13: MissingCompileTimeError
-class_literal_static_test/14: MissingCompileTimeError
-class_literal_static_test/15: MissingCompileTimeError
-class_literal_static_test/16: MissingCompileTimeError
-class_literal_static_test/17: MissingCompileTimeError
-class_literal_static_test/18: MissingCompileTimeError
-class_literal_static_test/19: MissingCompileTimeError
-class_literal_static_test/20: MissingCompileTimeError
-class_literal_static_test/21: MissingCompileTimeError
-class_literal_static_test/22: MissingCompileTimeError
-class_literal_static_test/23: MissingCompileTimeError
-class_literal_static_test/24: MissingCompileTimeError
-class_literal_static_test/25: MissingCompileTimeError
-class_override_test: MissingCompileTimeError
-closure_internals_test/01: MissingCompileTimeError
-closure_internals_test/02: MissingCompileTimeError
-closure_internals_test/03: MissingCompileTimeError
+classes_static_method_clash_test: RuntimeError
+closure_in_constructor_test: RuntimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closure_type_test: RuntimeError
+compile_time_constant_d_test: CompileTimeError
+compile_time_constant_e_test: CompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-compile_time_constant_static2_test/01: MissingCompileTimeError
-compile_time_constant_static2_test/02: MissingCompileTimeError
-compile_time_constant_static2_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static2_test/05: MissingCompileTimeError
-compile_time_constant_static2_test/06: MissingCompileTimeError
-compile_time_constant_static3_test/01: MissingCompileTimeError
-compile_time_constant_static3_test/02: MissingCompileTimeError
-compile_time_constant_static3_test/03: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/05: MissingCompileTimeError
-compile_time_constant_static3_test/06: MissingCompileTimeError
-compile_time_constant_static4_test/01: MissingCompileTimeError
-compile_time_constant_static4_test/02: MissingCompileTimeError
-compile_time_constant_static4_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/04: MissingCompileTimeError
-compile_time_constant_static5_test/05: MissingCompileTimeError
-compile_time_constant_static5_test/06: MissingCompileTimeError
-compile_time_constant_static5_test/07: MissingCompileTimeError
-compile_time_constant_static5_test/08: MissingCompileTimeError
-compile_time_constant_static5_test/09: MissingCompileTimeError
-compile_time_constant_static5_test/10: MissingCompileTimeError
-compile_time_constant_static5_test/12: MissingCompileTimeError
-compile_time_constant_static5_test/13: MissingCompileTimeError
-compile_time_constant_static5_test/14: MissingCompileTimeError
-compile_time_constant_static5_test/15: MissingCompileTimeError
-compile_time_constant_static5_test/17: MissingCompileTimeError
-compile_time_constant_static5_test/18: MissingCompileTimeError
-compile_time_constant_static5_test/19: MissingCompileTimeError
-compile_time_constant_static5_test/20: MissingCompileTimeError
-compile_time_constant_static5_test/22: MissingCompileTimeError
-compile_time_constant_static5_test/24: MissingCompileTimeError
-compile_time_constant_static5_test/25: MissingCompileTimeError
-compile_time_constant_static_test/01: MissingCompileTimeError
-compile_time_constant_static_test/02: MissingCompileTimeError
-compile_time_constant_static_test/03: MissingCompileTimeError
-conditional_method_invocation_test/05: MissingCompileTimeError
-conditional_method_invocation_test/06: MissingCompileTimeError
-conditional_method_invocation_test/07: MissingCompileTimeError
-conditional_method_invocation_test/08: MissingCompileTimeError
-conditional_method_invocation_test/12: MissingCompileTimeError
-conditional_method_invocation_test/13: MissingCompileTimeError
-conditional_method_invocation_test/18: MissingCompileTimeError
-conditional_method_invocation_test/19: MissingCompileTimeError
-conditional_property_access_test/04: MissingCompileTimeError
-conditional_property_access_test/05: MissingCompileTimeError
-conditional_property_access_test/06: MissingCompileTimeError
-conditional_property_access_test/10: MissingCompileTimeError
-conditional_property_access_test/11: MissingCompileTimeError
-conditional_property_access_test/16: MissingCompileTimeError
-conditional_property_access_test/17: MissingCompileTimeError
-conditional_property_assignment_test/04: MissingCompileTimeError
-conditional_property_assignment_test/05: MissingCompileTimeError
-conditional_property_assignment_test/06: MissingCompileTimeError
-conditional_property_assignment_test/10: MissingCompileTimeError
-conditional_property_assignment_test/11: MissingCompileTimeError
-conditional_property_assignment_test/12: MissingCompileTimeError
-conditional_property_assignment_test/13: MissingCompileTimeError
-conditional_property_assignment_test/27: MissingCompileTimeError
-conditional_property_assignment_test/28: MissingCompileTimeError
-conditional_property_assignment_test/32: MissingCompileTimeError
-conditional_property_assignment_test/33: MissingCompileTimeError
-conditional_property_assignment_test/34: MissingCompileTimeError
-conditional_property_assignment_test/35: MissingCompileTimeError
-conditional_property_increment_decrement_test/04: MissingCompileTimeError
-conditional_property_increment_decrement_test/08: MissingCompileTimeError
-conditional_property_increment_decrement_test/12: MissingCompileTimeError
-conditional_property_increment_decrement_test/16: MissingCompileTimeError
-conditional_property_increment_decrement_test/21: MissingCompileTimeError
-conditional_property_increment_decrement_test/22: MissingCompileTimeError
-conditional_property_increment_decrement_test/27: MissingCompileTimeError
-conditional_property_increment_decrement_test/28: MissingCompileTimeError
-conditional_property_increment_decrement_test/33: MissingCompileTimeError
-conditional_property_increment_decrement_test/34: MissingCompileTimeError
-conditional_property_increment_decrement_test/39: MissingCompileTimeError
-conditional_property_increment_decrement_test/40: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError
+compile_time_constant_static5_test/16: CompileTimeError
+compile_time_constant_static5_test/21: CompileTimeError
+compile_time_constant_static5_test/23: CompileTimeError
+conditional_import_string_test: CompileTimeError
+conditional_import_test: CompileTimeError
+conditional_rewrite_test: RuntimeError
+config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
-const_constructor2_test/05: MissingCompileTimeError
-const_constructor2_test/06: MissingCompileTimeError
-const_constructor2_test/13: MissingCompileTimeError
-const_constructor2_test/14: MissingCompileTimeError
-const_constructor2_test/15: MissingCompileTimeError
-const_constructor2_test/16: MissingCompileTimeError
-const_constructor2_test/17: MissingCompileTimeError
-const_constructor2_test/18: MissingCompileTimeError
+const_constructor2_test/11: CompileTimeError
+const_constructor2_test/12: CompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_constructor3_test/02: MissingCompileTimeError
-const_constructor3_test/04: MissingCompileTimeError
+const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_evaluation_test/01: CompileTimeError
 const_evaluation_test/none: CompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError
-const_init2_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
+const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
+const_map4_test: RuntimeError
+const_redirecting_factory_test: CompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
-const_types_test/01: MissingCompileTimeError
-const_types_test/02: MissingCompileTimeError
-const_types_test/03: MissingCompileTimeError
-const_types_test/04: MissingCompileTimeError
-const_types_test/05: MissingCompileTimeError
-const_types_test/06: MissingCompileTimeError
-const_types_test/13: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_duplicate_final_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/02: MissingCompileTimeError
-constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
-constructor_redirect1_negative_test/none: MissingCompileTimeError
 constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
+constructor_redirect_test/none: CompileTimeError
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
@@ -3002,54 +2900,73 @@ covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
-crash_6725_test/01: MissingCompileTimeError
+ct_const_test: CompileTimeError
+custom_await_stack_trace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 cyclic_constructor_test/01: Crash # Issue 30856
+cyclic_default_values_test: RuntimeError
+cyclic_typedef_test/10: Crash # Stack Overflow
+cyclic_typedef_test/11: Crash # Stack Overflow
+deferred_closurize_load_library_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constant_list_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
-deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
+deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_before_load: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/new_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/static_method: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_null: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_function_type_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_global_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_import_core_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/01: MissingRuntimeError
+deferred_inlined_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_load_constants_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_load_inval_code_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_load_library_wrong_args_test/01: CompileTimeError
+deferred_load_library_wrong_args_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_no_such_method_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_not_loaded_check_test: RuntimeError
-deferred_redirecting_factory_test: RuntimeError
-deferred_super_dependency_test/01: MissingCompileTimeError
+deferred_only_constant_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_optimized_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_redirecting_factory_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_regression_22995_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_regression_28678_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_shadow_load_library_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_shared_and_unshared_classes_test: CompileTimeError
+deferred_static_seperate_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_super_dependency_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/as: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/is: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+deferred_type_dependency_test/type_annotation: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 double_int_to_string_test: RuntimeError
-double_to_string_as_exponential2_test/01: MissingCompileTimeError
-double_to_string_as_exponential2_test/02: MissingCompileTimeError
-double_to_string_as_exponential2_test/03: MissingCompileTimeError
-double_to_string_as_fixed2_test/01: MissingCompileTimeError
-double_to_string_as_fixed2_test/02: MissingCompileTimeError
-double_to_string_as_fixed2_test/03: MissingCompileTimeError
-double_to_string_as_precision2_test/01: MissingCompileTimeError
-double_to_string_as_precision2_test/02: MissingCompileTimeError
-double_to_string_as_precision2_test/03: MissingCompileTimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
-duplicate_implements_test/03: MissingCompileTimeError
-duplicate_implements_test/04: MissingCompileTimeError
-dynamic_prefix_core_test/none: RuntimeError
+dynamic_prefix_core_test/none: CompileTimeError
+emit_const_fields_test: CompileTimeError
 enum_mirror_test: CompileTimeError
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 f_bounded_quantification4_test: RuntimeError
-factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_increment_bailout_test: CompileTimeError
@@ -3058,11 +2975,24 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-final_attempt_reinitialization_test/01: MissingCompileTimeError
-final_attempt_reinitialization_test/02: MissingCompileTimeError
+first_class_types_test: RuntimeError
+flatten_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/03: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/04: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/05: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/06: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/07: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/08: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/09: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/10: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/11: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/12: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+flatten_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
+function_propagation_test: CompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -3072,6 +3002,7 @@ function_subtype_cast1_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
+function_subtype_factory0_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
@@ -3090,15 +3021,18 @@ function_type_alias2_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
+generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 generic_field_mixin6_test/none: RuntimeError
-generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
-generic_list_checked_test: RuntimeError
+generic_list_checked_test: CompileTimeError
+generic_methods_unused_parameter_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [Instance of 'LiteralNull', null]
+generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
-generic_typedef_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -3109,106 +3043,55 @@ identical_closure2_test: RuntimeError
 if_null_precedence_test/none: RuntimeError
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
+implicit_downcast_during_return_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 inferrer_synthesized_constructor_test: RuntimeError
 infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 instanceof2_test: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
+instantiate_tearoff_of_call_test: CompileTimeError
+instantiate_type_variable_test/01: CompileTimeError
 integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: CompileTimeError
 invocation_mirror_invoke_on2_test: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
-invocation_mirror_test: RuntimeError
-is_malformed_type_test/94: MissingCompileTimeError
-is_malformed_type_test/95: MissingCompileTimeError
-is_malformed_type_test/96: MissingCompileTimeError
-is_malformed_type_test/97: MissingCompileTimeError
-is_malformed_type_test/98: MissingCompileTimeError
-is_malformed_type_test/99: MissingCompileTimeError
-is_not_class2_test/01: MissingCompileTimeError
-isnot_malformed_type_test/01: MissingCompileTimeError
-issue11724_test/01: MissingCompileTimeError
-issue1363_test/01: MissingCompileTimeError
-issue15606_test/01: MissingCompileTimeError
-issue18628_1_test/01: MissingCompileTimeError
+invocation_mirror_test: CompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: CompileTimeError
-issue23244_test: RuntimeError
-known_identifier_prefix_error_test/01: MissingCompileTimeError
-known_identifier_prefix_error_test/02: MissingCompileTimeError
-known_identifier_prefix_error_test/03: MissingCompileTimeError
-known_identifier_prefix_error_test/04: MissingCompileTimeError
-known_identifier_prefix_error_test/05: MissingCompileTimeError
-known_identifier_prefix_error_test/06: MissingCompileTimeError
-known_identifier_prefix_error_test/07: MissingCompileTimeError
-known_identifier_prefix_error_test/08: MissingCompileTimeError
-known_identifier_prefix_error_test/09: MissingCompileTimeError
-known_identifier_prefix_error_test/10: MissingCompileTimeError
-known_identifier_prefix_error_test/11: MissingCompileTimeError
-known_identifier_prefix_error_test/12: MissingCompileTimeError
-known_identifier_prefix_error_test/13: MissingCompileTimeError
-known_identifier_prefix_error_test/14: MissingCompileTimeError
-known_identifier_prefix_error_test/15: MissingCompileTimeError
-known_identifier_prefix_error_test/16: MissingCompileTimeError
-known_identifier_prefix_error_test/17: MissingCompileTimeError
-known_identifier_prefix_error_test/18: MissingCompileTimeError
-known_identifier_prefix_error_test/19: MissingCompileTimeError
-known_identifier_prefix_error_test/20: MissingCompileTimeError
-known_identifier_prefix_error_test/21: MissingCompileTimeError
-known_identifier_prefix_error_test/22: MissingCompileTimeError
-known_identifier_prefix_error_test/23: MissingCompileTimeError
-known_identifier_prefix_error_test/24: MissingCompileTimeError
+issue23244_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue_1751477_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+issue_25671a_test/01: CompileTimeError
+issue_25671b_test/01: CompileTimeError
+known_identifier_usage_error_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
-list_literal1_test/01: MissingCompileTimeError
-list_literal4_test/00: MissingCompileTimeError
-list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/03: MissingCompileTimeError
-list_literal4_test/04: MissingCompileTimeError
-list_literal4_test/05: MissingCompileTimeError
-list_literal_syntax_test/01: MissingCompileTimeError
-list_literal_syntax_test/02: MissingCompileTimeError
-list_literal_syntax_test/03: MissingCompileTimeError
-malformed2_test/00: MissingCompileTimeError
+library_prefixes_test: CompileTimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: CompileTimeError
 map_literal11_test/none: MissingRuntimeError
-map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/01: MissingCompileTimeError
-map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/03: MissingCompileTimeError
-map_literal4_test/04: MissingCompileTimeError
-map_literal4_test/05: MissingCompileTimeError
-map_literal4_test/06: MissingCompileTimeError
 map_literal7_test: RuntimeError
-map_literal8_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+method_override_test: CompileTimeError
+minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
 mixin_generic_test: RuntimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/02: MissingCompileTimeError
-mixin_illegal_super_use_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/05: MissingCompileTimeError
-mixin_illegal_super_use_test/06: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
-mixin_illegal_super_use_test/08: MissingCompileTimeError
-mixin_illegal_super_use_test/09: MissingCompileTimeError
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
@@ -3286,34 +3169,29 @@ nested_generic_closure_test: Crash # Unsupported operation: Unsupported type par
 no_main_test/01: CompileTimeError
 no_such_method_native_test: RuntimeError
 no_such_method_test: CompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
-not_enough_positional_arguments_test/00: MissingCompileTimeError
-not_enough_positional_arguments_test/01: MissingCompileTimeError
-not_enough_positional_arguments_test/02: MissingCompileTimeError
-not_enough_positional_arguments_test/03: MissingCompileTimeError
-not_enough_positional_arguments_test/05: MissingCompileTimeError
-not_enough_positional_arguments_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/07: MissingCompileTimeError
+null_no_such_method_test: CompileTimeError
 null_test/mirrors: CompileTimeError
 null_test/none: CompileTimeError
-number_identifier_test/05: MissingCompileTimeError
-number_identifier_test/08: MissingCompileTimeError
-number_identifier_test/09: MissingCompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-on_catch_malformed_type_test: MissingCompileTimeError
-operator5_test: MissingCompileTimeError
-operator_equals_test: MissingCompileTimeError
-optimized_constant_array_string_access_test: MissingCompileTimeError
+operator4_test: RuntimeError
 overridden_no_such_method_test: CompileTimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
+override_inheritance_field_test/04: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/26: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_generic_test/02: CompileTimeError
+override_inheritance_method_test/17: CompileTimeError
+override_inheritance_method_test/18: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
 override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
@@ -3321,13 +3199,10 @@ override_inheritance_mixed_test/04: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
-private_super_constructor_test/01: MissingCompileTimeError
+parser_quirks_test: CompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
-redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
@@ -3335,165 +3210,111 @@ redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
-regress_20394_test/01: MissingCompileTimeError
 regress_21795_test: RuntimeError
-regress_23408_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+regress_22443_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22445_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22579_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22728_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_22777_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23089_test: Crash # Stack Overflow
+regress_23408_test: CompileTimeError
+regress_23498_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23500_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23500_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23500_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_23650_test: RuntimeError
+regress_23996_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
+regress_24935_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_24935_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_25550_test: CompileTimeError
+regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_26668_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_26948_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_28217_test/01: MissingCompileTimeError
-regress_28217_test/none: MissingCompileTimeError
+regress_27659_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_28255_test: CompileTimeError
-regress_28341_test: RuntimeError
+regress_28278_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+regress_29025_test: CompileTimeError
+regress_29405_test: CompileTimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
-regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
+regress_30339_test: CompileTimeError
+setter_no_getter_call_test/01: CompileTimeError
+setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+shadow_parameter_and_local_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 stack_trace_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
 stacktrace_test: RuntimeError # Issue 12698
+string_interpolate_test: CompileTimeError
+string_interpolation_and_buffer_test: RuntimeError
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
 super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
+super_in_async1_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async3_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_in_async6_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+super_no_such_method1_test: CompileTimeError
+super_no_such_method2_test: CompileTimeError
+super_no_such_method3_test: CompileTimeError
+super_no_such_method4_test: CompileTimeError
+super_no_such_method5_test: CompileTimeError
+super_operator_index5_test: CompileTimeError
+super_operator_index6_test: CompileTimeError
+super_operator_index7_test: CompileTimeError
+super_operator_index8_test: CompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_conflict_test: RuntimeError
-symbol_literal_test/01: MissingCompileTimeError
+sync_generator2_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+syncstar_yieldstar_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
-syntax_test/59: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
+type_error_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
-type_parameter_test/01: MissingCompileTimeError
-type_parameter_test/02: MissingCompileTimeError
-type_parameter_test/03: MissingCompileTimeError
-type_parameter_test/04: MissingCompileTimeError
-type_parameter_test/05: MissingCompileTimeError
-type_parameter_test/06: MissingCompileTimeError
-type_parameter_test/07: MissingCompileTimeError
-type_parameter_test/08: MissingCompileTimeError
-type_parameter_test/09: MissingCompileTimeError
-type_promotion_assign_test/01: MissingCompileTimeError
-type_promotion_assign_test/02: MissingCompileTimeError
-type_promotion_assign_test/03: MissingCompileTimeError
-type_promotion_assign_test/04: MissingCompileTimeError
-type_promotion_closure_test/01: MissingCompileTimeError
-type_promotion_closure_test/02: MissingCompileTimeError
-type_promotion_closure_test/03: MissingCompileTimeError
-type_promotion_closure_test/04: MissingCompileTimeError
-type_promotion_closure_test/06: MissingCompileTimeError
-type_promotion_closure_test/07: MissingCompileTimeError
-type_promotion_closure_test/09: MissingCompileTimeError
-type_promotion_closure_test/10: MissingCompileTimeError
-type_promotion_closure_test/11: MissingCompileTimeError
-type_promotion_closure_test/12: MissingCompileTimeError
-type_promotion_closure_test/13: MissingCompileTimeError
-type_promotion_closure_test/14: MissingCompileTimeError
-type_promotion_closure_test/15: MissingCompileTimeError
-type_promotion_closure_test/16: MissingCompileTimeError
-type_promotion_local_test/01: MissingCompileTimeError
-type_promotion_local_test/02: MissingCompileTimeError
-type_promotion_local_test/03: MissingCompileTimeError
-type_promotion_local_test/04: MissingCompileTimeError
-type_promotion_local_test/05: MissingCompileTimeError
-type_promotion_local_test/06: MissingCompileTimeError
-type_promotion_local_test/07: MissingCompileTimeError
-type_promotion_local_test/08: MissingCompileTimeError
-type_promotion_local_test/09: MissingCompileTimeError
-type_promotion_local_test/10: MissingCompileTimeError
-type_promotion_local_test/11: MissingCompileTimeError
-type_promotion_local_test/12: MissingCompileTimeError
-type_promotion_local_test/13: MissingCompileTimeError
-type_promotion_local_test/14: MissingCompileTimeError
-type_promotion_local_test/15: MissingCompileTimeError
-type_promotion_local_test/16: MissingCompileTimeError
-type_promotion_local_test/17: MissingCompileTimeError
-type_promotion_local_test/18: MissingCompileTimeError
-type_promotion_local_test/19: MissingCompileTimeError
-type_promotion_local_test/20: MissingCompileTimeError
-type_promotion_local_test/21: MissingCompileTimeError
-type_promotion_local_test/22: MissingCompileTimeError
-type_promotion_local_test/23: MissingCompileTimeError
-type_promotion_local_test/24: MissingCompileTimeError
-type_promotion_local_test/25: MissingCompileTimeError
-type_promotion_local_test/26: MissingCompileTimeError
-type_promotion_local_test/27: MissingCompileTimeError
-type_promotion_local_test/28: MissingCompileTimeError
-type_promotion_local_test/29: MissingCompileTimeError
-type_promotion_local_test/30: MissingCompileTimeError
-type_promotion_local_test/31: MissingCompileTimeError
-type_promotion_local_test/32: MissingCompileTimeError
-type_promotion_local_test/33: MissingCompileTimeError
-type_promotion_local_test/34: MissingCompileTimeError
-type_promotion_local_test/35: MissingCompileTimeError
-type_promotion_local_test/36: MissingCompileTimeError
-type_promotion_local_test/37: MissingCompileTimeError
-type_promotion_local_test/38: MissingCompileTimeError
-type_promotion_local_test/39: MissingCompileTimeError
-type_promotion_local_test/40: MissingCompileTimeError
-type_promotion_local_test/41: MissingCompileTimeError
+type_parameter_test/none: RuntimeError
+type_promotion_functions_test/02: CompileTimeError
+type_promotion_functions_test/03: CompileTimeError
+type_promotion_functions_test/04: CompileTimeError
+type_promotion_functions_test/09: CompileTimeError
+type_promotion_functions_test/11: CompileTimeError
+type_promotion_functions_test/12: CompileTimeError
+type_promotion_functions_test/13: CompileTimeError
+type_promotion_functions_test/14: CompileTimeError
+type_promotion_functions_test/none: CompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
-type_promotion_logical_and_test/02: MissingCompileTimeError
-type_promotion_logical_and_test/03: MissingCompileTimeError
-type_promotion_more_specific_test/02: MissingCompileTimeError
-type_promotion_more_specific_test/06: MissingCompileTimeError
-type_promotion_more_specific_test/07: MissingCompileTimeError
-type_promotion_more_specific_test/09: MissingCompileTimeError
-type_promotion_multiple_test/01: MissingCompileTimeError
-type_promotion_multiple_test/02: MissingCompileTimeError
-type_promotion_multiple_test/03: MissingCompileTimeError
-type_promotion_multiple_test/04: MissingCompileTimeError
-type_promotion_multiple_test/05: MissingCompileTimeError
-type_promotion_multiple_test/06: MissingCompileTimeError
-type_promotion_multiple_test/07: MissingCompileTimeError
-type_promotion_multiple_test/08: MissingCompileTimeError
-type_promotion_multiple_test/09: MissingCompileTimeError
-type_promotion_multiple_test/10: MissingCompileTimeError
-type_promotion_multiple_test/11: MissingCompileTimeError
-type_promotion_multiple_test/12: MissingCompileTimeError
-type_promotion_multiple_test/13: MissingCompileTimeError
-type_promotion_multiple_test/14: MissingCompileTimeError
-type_promotion_multiple_test/15: MissingCompileTimeError
-type_promotion_multiple_test/16: MissingCompileTimeError
-type_promotion_multiple_test/17: MissingCompileTimeError
-type_promotion_multiple_test/18: MissingCompileTimeError
-type_promotion_multiple_test/19: MissingCompileTimeError
-type_promotion_multiple_test/20: MissingCompileTimeError
-type_promotion_multiple_test/21: MissingCompileTimeError
-type_promotion_multiple_test/22: MissingCompileTimeError
-type_variable_conflict2_test/02: MissingCompileTimeError
+type_promotion_more_specific_test/04: CompileTimeError
+type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
+type_variable_closure2_test: RuntimeError
+type_variable_closure4_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
-void_type_function_types_test/00: MissingCompileTimeError
-void_type_function_types_test/01: MissingCompileTimeError
-void_type_function_types_test/03: MissingCompileTimeError
-void_type_function_types_test/05: MissingCompileTimeError
-void_type_function_types_test/07: MissingCompileTimeError
-void_type_function_types_test/09: MissingCompileTimeError
+unused_overridden_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
-void_type_usage_test/final_local_assign: MissingCompileTimeError
-void_type_usage_test/final_local_for_in2: MissingCompileTimeError
-void_type_usage_test/final_local_plus_eq: MissingCompileTimeError
-void_type_usage_test/global_plus_eq: MissingCompileTimeError
-void_type_usage_test/instance2_plus_eq: MissingCompileTimeError
-void_type_usage_test/instance3_plus_eq: MissingCompileTimeError
-void_type_usage_test/instance_plus_eq: MissingCompileTimeError
-void_type_usage_test/local_plus_eq: MissingCompileTimeError
-void_type_usage_test/param_plus_eq: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
+yieldstar_pause_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && !$strong ]
 *: SkipByDesign

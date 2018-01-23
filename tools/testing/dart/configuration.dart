@@ -252,6 +252,7 @@ class Configuration {
     if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
+    if (isStrong) args.add("--strong");
     return args;
   }
 
