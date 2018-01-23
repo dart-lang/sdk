@@ -1565,7 +1565,7 @@ class CodeGenerator extends Object
             covariantParams.lookup(member.parameters[0]) as ParameterElement;
         methods.add(new JS.Method(
             name,
-            js.call('function(x) { return super.#(#._check(x)); }',
+            js.call('function(x) { return super.# = #._check(x); }',
                 [name, _emitType(param.type)]),
             isSetter: true));
         methods.add(new JS.Method(

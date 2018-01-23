@@ -428,8 +428,6 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
-issue31596_tearoff_test: RuntimeError
-issue31596_test: RuntimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 local_function_test/01: MissingCompileTimeError
@@ -722,7 +720,6 @@ callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
-forwarding_stub_tearoff_test: RuntimeError
 function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
 function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
@@ -757,7 +754,6 @@ instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-mixin_type_parameter5_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
 mock_writable_final_private_field_test: RuntimeError
 nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.

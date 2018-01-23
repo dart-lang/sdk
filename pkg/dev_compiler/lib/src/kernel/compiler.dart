@@ -1285,11 +1285,6 @@ class ProgramCompiler
   }
 
   FunctionType _getMemberRuntimeType(Member member) {
-    // Check whether we have any covariant parameters.
-    // Usually we don't, so we can use the same type.
-    isCovariant(VariableDeclaration p) =>
-        p.isCovariant || p.isGenericCovariantImpl;
-
     var f = member.function;
     if (f == null) {
       assert(member is Field);
@@ -1670,13 +1665,38 @@ class ProgramCompiler
   }
 
   List<JS.Method> _emitCovarianceCheckStub(Procedure member) {
+    // TODO(jmesserly): kernel stubs have a few problems:
+    // - they're generated even when there is no concrete super member
+    // - the stub parameter types don't match the types we need to check to
+    //   ensure soundness of the super member, so we must lookup the super
+    //   member and determine checks ourselves.
+    // - it generates getter stubs, but these are not used
+    if (member.isGetter) return [];
+
+    var enclosingClass = member.enclosingClass;
+    var superMember = (member.forwardingStubSuperTarget ??
+            member.forwardingStubInterfaceTarget)
+        ?.asMember;
+
+    if (superMember == null) return [];
+
+    var superSubstition = Substitution.fromSupertype(hierarchy
+        .getClassAsInstanceOf(enclosingClass, superMember.enclosingClass));
+
     var name = _declareMemberName(member);
     if (member.isSetter) {
+      if (superMember is Field && superMember.isGenericCovariantImpl ||
+          superMember is Procedure &&
+              isCovariant(superMember.function.positionalParameters[0])) {
+        return [];
+      }
       return [
         new JS.Method(
             name,
-            js.call('function(x) { return super.#(#._check(x)); }',
-                [name, _emitType(member.setterType)]),
+            js.call('function(x) { return super.# = #._check(x); }', [
+              name,
+              _emitType(superSubstition.substituteType(superMember.setterType))
+            ]),
             isSetter: true),
         new JS.Method(name, js.call('function() { return super.#; }', [name]),
             isGetter: true)
@@ -1684,10 +1704,12 @@ class ProgramCompiler
     }
     assert(!member.isAccessor);
 
+    var superMethodType = superSubstition
+        .substituteType(superMember.function.functionType) as FunctionType;
     var function = member.function;
 
     var body = <JS.Statement>[];
-    var typeParameters = function.typeParameters;
+    var typeParameters = superMethodType.typeParameters;
     _emitCovarianceBoundsCheck(typeParameters, body);
 
     var typeFormals = _emitTypeFormals(typeParameters);
@@ -1698,24 +1720,33 @@ class ProgramCompiler
       var jsParam = new JS.Identifier(param.name);
       jsParams.add(jsParam);
 
-      if (i >= function.requiredParameterCount) {
-        body.add(js.statement('if (# !== void 0) #._check(#);',
-            [jsParam, _emitType(param.type), jsParam]));
-      } else {
-        body.add(
-            js.statement('#._check(#);', [_emitType(param.type), jsParam]));
+      if (isCovariant(param) &&
+          !isCovariant(superMember.function.positionalParameters[i])) {
+        var check = js.call('#._check(#)',
+            [_emitType(superMethodType.positionalParameters[i]), jsParam]);
+        if (i >= function.requiredParameterCount) {
+          body.add(js.statement('if (# !== void 0) #;', [jsParam, check]));
+        } else {
+          body.add(check.toStatement());
+        }
       }
     }
     var namedParameters = function.namedParameters;
     for (var param in namedParameters) {
-      var name = _propertyName(param.name);
-      body.add(js.statement('if (# in #) #._check(#.#);', [
-        name,
-        namedArgumentTemp,
-        _emitType(param.type),
-        namedArgumentTemp,
-        name
-      ]));
+      if (isCovariant(param) &&
+          !isCovariant(superMember.function.namedParameters
+              .firstWhere((n) => n.name == param.name))) {
+        var name = _propertyName(param.name);
+        var paramType = superMethodType.namedParameters
+            .firstWhere((n) => n.name == param.name);
+        body.add(js.statement('if (# in #) #._check(#.#);', [
+          name,
+          namedArgumentTemp,
+          _emitType(paramType.type),
+          namedArgumentTemp,
+          name
+        ]));
+      }
     }
 
     if (namedParameters.isNotEmpty) jsParams.add(namedArgumentTemp);
@@ -2901,7 +2932,7 @@ class ProgramCompiler
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
     initParameter(VariableDeclaration p, JS.Identifier jsParam) {
-      if (p.isCovariant || p.isGenericCovariantImpl) {
+      if (isCovariant(p)) {
         var castType = _emitType(p.type);
         body.add(js.statement('#._check(#);', [castType, jsParam]));
       }

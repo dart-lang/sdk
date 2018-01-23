@@ -1057,6 +1057,7 @@ covariance_setter_test/02: RuntimeError
 covariance_setter_test/03: RuntimeError
 covariance_setter_test/04: RuntimeError
 covariance_setter_test/05: RuntimeError
+covariance_setter_test/06: RuntimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError

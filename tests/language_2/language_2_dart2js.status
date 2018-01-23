@@ -748,6 +748,7 @@ covariance_setter_test/02: RuntimeError
 covariance_setter_test/03: RuntimeError
 covariance_setter_test/04: RuntimeError
 covariance_setter_test/05: RuntimeError
+covariance_setter_test/06: RuntimeError
 recursive_mixin_test: RuntimeError # no check without --checked
 type_argument_in_super_type_test: RuntimeError
 
