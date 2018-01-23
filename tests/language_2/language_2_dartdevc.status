@@ -521,7 +521,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_lib_extends_field_test: RuntimeError
 mixin_of_mixin_test/01: MissingCompileTimeError
 mixin_of_mixin_test/02: MissingCompileTimeError
 mixin_of_mixin_test/03: MissingCompileTimeError
@@ -761,17 +760,6 @@ instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-mixin_bound_test: RuntimeError
-mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
-mixin_field_test: RuntimeError # NoSuchMethodError: method not found: 'bar'
-mixin_forwarding_constructor1_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
-mixin_forwarding_constructor2_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
-mixin_forwarding_constructor3_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
-mixin_illegal_super_use_test/none: RuntimeError # TypeError: e.bar is not a function
-mixin_is_test: RuntimeError # Expect.isTrue(false) fails.
-mixin_method_test: RuntimeError # Expect.equals(expected: <M2-bar>, actual: <M1-bar>) fails.
-mixin_mixin_type_arguments_test: RuntimeError
-mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_regress_13688_test: RuntimeError
 mixin_type_parameter5_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>

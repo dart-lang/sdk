@@ -647,13 +647,36 @@ class ProgramCompiler
       return _emitJSInterop(t.classNode) ?? visitInterfaceType(t);
     }
 
+    getBaseClass(JS.Expression base, int count) {
+      while (--count >= 0) {
+        base = js.call('#.__proto__', [base]);
+      }
+      return base;
+    }
+
+    var mixins = [];
+    var mixedInType = c.mixedInType;
+    var superclass = c.superclass;
     var supertype = c.supertype.asInterfaceType;
-    var hasUnnamedSuper = _hasUnnamedConstructor(c.superclass);
+    if (mixedInType != null) {
+      mixins.add(mixedInType.asInterfaceType);
+      for (;
+          superclass.isSyntheticMixinImplementation;
+          superclass = superclass.superclass) {
+        mixins.add(hierarchy
+            .getClassAsInstanceOf(c, superclass.mixedInClass)
+            .asInterfaceType);
+      }
+      if (mixins.length > 1) mixins = mixins.reversed.toList();
+      supertype = hierarchy.getClassAsInstanceOf(c, superclass).asInterfaceType;
+    }
+
+    var hasUnnamedSuper = _hasUnnamedConstructor(superclass);
     var isCallable = isCallableClass(c);
 
-    void emitMixinConstructors(JS.Expression className, [InterfaceType mixin]) {
+    void emitMixinConstructors(JS.Expression className, InterfaceType mixin) {
       JS.Statement mixinCtor;
-      if (mixin != null && _hasUnnamedConstructor(mixin.classNode)) {
+      if (_hasUnnamedConstructor(mixin.classNode)) {
         mixinCtor = js.statement('#.#.call(this);', [
           emitClassRef(mixin),
           _usesMixinNew(mixin.classNode)
@@ -662,17 +685,17 @@ class ProgramCompiler
         ]);
       }
 
-      for (var ctor in c.superclass.constructors) {
+      for (var ctor in superclass.constructors) {
         var jsParams = _emitFormalParameters(ctor.function);
         var ctorBody = <JS.Statement>[];
         if (mixinCtor != null) ctorBody.add(mixinCtor);
-        if (ctor.name.name != '' || hasUnnamedSuper) {
-          ctorBody.add(
-              _emitSuperConstructorCall(className, ctor.name.name, jsParams));
+        var name = ctor.name.name;
+        if (name != '' || hasUnnamedSuper) {
+          ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
         }
         body.add(_addConstructorToClass(
             className,
-            ctor.name.name,
+            name,
             _finishConstructorFunction(
                 jsParams, new JS.Block(ctorBody), isCallable)));
       }
@@ -691,12 +714,12 @@ class ProgramCompiler
     }
     var baseClass = emitClassRef(supertype);
 
-    // TODO(jmesserly): conceptually we could use isMixinApplication, however,
-    // avoiding the extra level of nesting is only required if the class itself
-    // is a valid mixin.
     if (isMixinAliasClass(c)) {
       // Given `class C = Object with M [implements I1, I2 ...];`
       // The resulting class C should work as a mixin.
+      //
+      // TODO(jmesserly): is there any way to merge this with the other mixin
+      // code paths, or will these always need special handling?
       body.add(_emitClassStatement(c, className, baseClass, []));
 
       var m = c.mixedInType.asInterfaceType;
@@ -727,22 +750,30 @@ class ProgramCompiler
       return;
     }
 
-    if (c.isMixinApplication) {
-      var m = c.mixedInType.asInterfaceType;
-
-      var mixinId = new JS.TemporaryId(getLocalClassName(c.superclass) +
-          '_' +
-          getLocalClassName(c.mixedInClass));
-      body.add(new JS.ClassExpression(mixinId, baseClass, []).toStatement());
-      // Add constructors
+    // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
+    // classes lack required synthetic members, such as constructors.
+    //
+    // Also, we need to generate one extra level of nesting for alias classes.
+    for (int i = 0; i < mixins.length; i++) {
+      var m = mixins[i];
+      var mixinName =
+          getLocalClassName(superclass) + '_' + getLocalClassName(m.classNode);
+      var mixinId = new JS.TemporaryId(mixinName + '\$');
+      // Bind the mixin class to a name to workaround a V8 bug with es6 classes
+      // and anonymous function names.
+      // TODO(leafp:) Eliminate this once the bug is fixed:
+      // https://bugs.chromium.org/p/v8/issues/detail?id=7069
+      body.add(js.statement("const # = #", [
+        mixinId,
+        new JS.ClassExpression(new JS.TemporaryId(mixinName), baseClass, [])
+      ]));
 
       emitMixinConstructors(mixinId, m);
-      hasUnnamedSuper =
-          hasUnnamedSuper || _hasUnnamedConstructor(c.mixedInClass);
+      hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.classNode);
 
       if (shouldDefer(m)) {
-        deferredSupertypes.add(_callHelperStatement(
-            'mixinMembers(#.__proto__, #)', [className, emitDeferredType(m)]));
+        deferredSupertypes.add(_callHelperStatement('mixinMembers(#, #)',
+            [getBaseClass(className, mixins.length - i), emitDeferredType(m)]));
       } else {
         body.add(_callHelperStatement(
             'mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
@@ -754,8 +785,6 @@ class ProgramCompiler
     _classEmittingTopLevel = savedTopLevelClass;
 
     body.add(_emitClassStatement(c, className, baseClass, methods));
-
-    if (c.isMixinApplication) emitMixinConstructors(className);
   }
 
   /// Defines all constructors for this class as ES5 constructors.
@@ -771,7 +800,7 @@ class ProgramCompiler
           [className, _callHelper('_runtimeType'), className]));
     }
 
-    if (c.isMixinApplication) {
+    if (c.isSyntheticMixinImplementation || isMixinAliasClass(c)) {
       // We already handled this when we defined the class.
       return body;
     }
