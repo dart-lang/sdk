@@ -11,7 +11,6 @@ num_sign_test: Crash, Pass # Issue 31768
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 hash_set_test/01: RuntimeError # Issue 11551
 integer_to_radix_string_test: RuntimeError # Issue 29921
-string_static_test: MissingCompileTimeError
 
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
@@ -119,7 +118,7 @@ int_parse_radix_bad_handler_test: Pass
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
 
 # All static_tests have expected compile-time errors.
-[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
 splay_tree_test/02: MissingCompileTimeError
@@ -170,24 +169,6 @@ package_resource_test: RuntimeError # Issue 26842
 [ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]
 apply3_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
@@ -241,6 +222,7 @@ iterable_empty_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simpli
 iterable_fold_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_fold_test/02: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_fold_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
+iterable_generate_test/01: RuntimeError
 iterable_generate_test/none: RuntimeError
 iterable_reduce_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_reduce_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
@@ -292,6 +274,7 @@ iterable_empty_test: RuntimeError
 iterable_fold_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_fold_test/02: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_fold_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
+iterable_generate_test/01: RuntimeError
 iterable_generate_test/none: RuntimeError
 iterable_reduce_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_reduce_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
@@ -344,17 +327,17 @@ list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 apply3_test: Fail # mirrors not supported
 dynamic_nosuchmethod_test: Fail # mirrors not supported
 
+[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp ]
+iterable_element_at_test/static: MissingCompileTimeError
+
+[ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
+iterable_mapping_test/01: MissingCompileTimeError
+
 [ $compiler == dartdevc && $runtime != none ]
 symbol_operator_test: RuntimeError # Issue 29921
 
-[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp ]
-iterable_element_at_test/static: MissingCompileTimeError
-
 [ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $runtime != none ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
-
-[ $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
-iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
 core_runtime_types_static_test: MissingCompileTimeError
@@ -432,6 +415,36 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
+
+[ $compiler == none && $runtime == vm ]
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
+
+[ $compiler == none && $runtime == vm && !$checked ]
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+iterable_generate_test/01: RuntimeError
 
 [ $compiler == none && ($runtime == flutter || $runtime == vm) ]
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
@@ -560,27 +573,6 @@ string_static_test: MissingCompileTimeError
 [ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign
 
-[ !$checked && ($compiler == dart2js || $compiler == none && $runtime == vm) ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-iterable_generate_test/01: RuntimeError
-
 # Sections for dartk and dartkp.
 #
 # Note: these sections are normalized so we can update them with automated
@@ -598,10 +590,8 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
-[ $compiler == app_jit || $compiler == dart2js || $compiler == none || $compiler == precompiler ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
-
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
+int_parse_radix_bad_handler_test: MissingCompileTimeError
 symbol_operator_test/03: Fail # Issue 11669
 symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
 symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
@@ -643,15 +633,6 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-
-[ $compiler == dart2js || $compiler == none && $runtime == vm ]
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
 
 [ $compiler == dartdevc || $compiler == dart2analyzer && $strong ]
 double_parse_test/01: Skip # Temporarily disable the following tests until we figure out why they started failing.
