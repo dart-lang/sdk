@@ -750,7 +750,6 @@ covariance_setter_test/04: RuntimeError
 covariance_setter_test/05: RuntimeError
 recursive_mixin_test: RuntimeError # no check without --checked
 type_argument_in_super_type_test: RuntimeError
-type_check_const_function_typedef2_test: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && $dart2js_with_kernel ]
 assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
@@ -789,10 +788,6 @@ implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
 issue31596_implement_covariant_test: RuntimeError
-issue31596_override_test/05: MissingCompileTimeError
-issue31596_override_test/06: MissingCompileTimeError
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
@@ -864,23 +859,6 @@ implicit_downcast_during_yield_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
-invalid_cast_test/01: MissingCompileTimeError
-invalid_cast_test/02: MissingCompileTimeError
-invalid_cast_test/03: MissingCompileTimeError
-invalid_cast_test/04: MissingCompileTimeError
-invalid_cast_test/07: MissingCompileTimeError
-invalid_cast_test/08: MissingCompileTimeError
-invalid_cast_test/09: MissingCompileTimeError
-invalid_cast_test/10: MissingCompileTimeError
-invalid_cast_test/11: MissingCompileTimeError
-library_env_test/has_no_mirror_support: Pass
-object_has_no_call_method_test/02: MissingCompileTimeError
-object_has_no_call_method_test/05: MissingCompileTimeError
-object_has_no_call_method_test/08: MissingCompileTimeError
-type_inference_accessor_ref_test/03: MissingCompileTimeError
-type_inference_accessor_ref_test/06: MissingCompileTimeError
-type_inference_circularity_test: MissingCompileTimeError
-type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -3443,8 +3421,8 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_assignment_behavior_test/03: MissingCompileTimeError
-if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/13: MissingCompileTimeError
+if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 if_null_assignment_behavior_test/15: MissingCompileTimeError
 if_null_assignment_static_test/02: MissingCompileTimeError
