@@ -876,7 +876,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  DartType inferInvocation(DartType typeContext, bool typeNeeded, int offset,
+  DartType inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
@@ -975,17 +975,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     DartType inferredType;
-    if (typeNeeded) {
-      lastInferredSubstitution = substitution;
-      inferredType = substitution == null
-          ? returnType
-          : substitution.substituteType(returnType);
-    }
+    lastInferredSubstitution = substitution;
+    inferredType = substitution == null
+        ? returnType
+        : substitution.substituteType(returnType);
     return inferredType;
   }
 
   DartType inferLocalFunction(FunctionNode function, DartType typeContext,
-      bool typeNeeded, int fileOffset, DartType returnContext) {
+      int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = returnContext == null;
     if (!isTopLevel) {
       var positionalParameters = function.positionalParameters;
@@ -1125,7 +1123,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
     this.closureContext = oldClosureContext;
-    return typeNeeded ? function.functionType : null;
+    return function.functionType;
   }
 
   @override
@@ -1145,20 +1143,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
-  DartType inferMethodInvocation(
-      Expression expression,
-      Expression receiver,
-      int fileOffset,
-      bool isImplicitCall,
-      DartType typeContext,
-      bool typeNeeded,
+  DartType inferMethodInvocation(Expression expression, Expression receiver,
+      int fileOffset, bool isImplicitCall, DartType typeContext,
       {VariableDeclaration receiverVariable,
       MethodInvocation desugaredInvocation,
       Object interfaceMember,
       Name methodName,
       Arguments arguments}) {
-    typeNeeded =
-        listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
+    listener.methodInvocationEnter(expression, typeContext);
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType =
         receiver == null ? thisType : inferExpression(receiver, null, true);
@@ -1182,12 +1174,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var checkKind = preCheckInvocationContravariance(receiver, receiverType,
         interfaceMember, desugaredInvocation, arguments, expression);
     var inferredType = inferInvocation(
-        typeContext,
-        typeNeeded || checkKind != MethodContravarianceCheckKind.none,
-        fileOffset,
-        calleeType,
-        calleeType.returnType,
-        arguments,
+        typeContext, fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
@@ -1217,13 +1204,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
   DartType inferPropertyGet(Expression expression, Expression receiver,
-      int fileOffset, DartType typeContext, bool typeNeeded,
+      int fileOffset, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
       Object interfaceMember,
       Name propertyName}) {
-    typeNeeded =
-        listener.propertyGetEnter(expression, typeContext) || typeNeeded;
+    listener.propertyGetEnter(expression, typeContext);
     // First infer the receiver so we can look up the getter that was invoked.
     var receiverType =
         receiver == null ? thisType : inferExpression(receiver, null, true);
@@ -1254,7 +1240,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       listener.propertyGetExit(expression, interfaceMember, inferredType);
     }
-    return typeNeeded ? inferredType : null;
+    return inferredType;
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.

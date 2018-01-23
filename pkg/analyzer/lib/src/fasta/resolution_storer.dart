@@ -241,12 +241,11 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool constructorInvocationEnter(InvocationExpression expression,
+  void constructorInvocationEnter(InvocationExpression expression,
       String prefixName, DartType typeContext) {
     _recordImportPrefix(prefixName);
     _deferReference(expression.fileOffset);
     _deferType(expression.fileOffset);
-    return true;
   }
 
   @override
@@ -310,10 +309,10 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool functionExpressionEnter(
+  void functionExpressionEnter(
       FunctionExpression expression, DartType typeContext) {
     _recordDeclaration(expression, expression.fileOffset);
-    return super.functionExpressionEnter(expression, typeContext);
+    super.functionExpressionEnter(expression, typeContext);
   }
 
   @override
@@ -324,10 +323,9 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool genericExpressionEnter(
+  void genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     super.genericExpressionEnter(expressionType, expression, typeContext);
-    return true;
   }
 
   @override
@@ -459,11 +457,11 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool propertyAssignEnter(
+  void propertyAssignEnter(
       Expression expression, Expression write, DartType typeContext) {
     _deferReference(write.fileOffset);
     _deferType(write.fileOffset);
-    return super.propertyAssignEnter(expression, write, typeContext);
+    super.propertyAssignEnter(expression, write, typeContext);
   }
 
   @override
@@ -501,7 +499,7 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticAssignEnter(
+  void staticAssignEnter(
       Expression expression,
       String prefixName,
       int targetOffset,
@@ -518,7 +516,7 @@ class ResolutionStorer extends TypeInferenceListener {
 
     _deferReference(write.fileOffset);
     _deferType(write.fileOffset);
-    return super.staticAssignEnter(
+    super.staticAssignEnter(
         expression, prefixName, targetOffset, targetClass, write, typeContext);
   }
 
@@ -538,7 +536,7 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticGetEnter(StaticGet expression, String prefixName, int targetOffset,
+  void staticGetEnter(StaticGet expression, String prefixName, int targetOffset,
       Class targetClass, DartType typeContext) {
     // if there was an import prefix, record it.
     _recordImportPrefix(prefixName);
@@ -547,7 +545,7 @@ class ResolutionStorer extends TypeInferenceListener {
       _recordReference(targetClass, targetOffset);
       _recordType(targetClass.rawType, targetOffset);
     }
-    return super.staticGetEnter(
+    super.staticGetEnter(
         expression, prefixName, targetOffset, targetClass, typeContext);
   }
 
@@ -559,7 +557,7 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticInvocationEnter(StaticInvocation expression, String prefixName,
+  void staticInvocationEnter(StaticInvocation expression, String prefixName,
       int targetOffset, Class targetClass, DartType typeContext) {
     // if there was an import prefix, record it.
     _recordImportPrefix(prefixName);
@@ -587,7 +585,7 @@ class ResolutionStorer extends TypeInferenceListener {
     _deferType(expression.arguments.fileOffset); // invoke type
     _deferType(expression.arguments.fileOffset); // type arguments
     _deferType(expression.arguments.fileOffset); // result type
-    return super.staticInvocationEnter(
+    super.staticInvocationEnter(
         expression, prefixName, targetOffset, targetClass, typeContext);
   }
 
@@ -618,11 +616,11 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void thisExpressionExit(ThisExpression expression, DartType inferredType) {}
 
-  bool typeLiteralEnter(@override TypeLiteral expression, String prefixName,
+  void typeLiteralEnter(@override TypeLiteral expression, String prefixName,
       DartType typeContext) {
     // if there was an import prefix, record it.
     _recordImportPrefix(prefixName);
-    return super.typeLiteralEnter(expression, prefixName, typeContext);
+    super.typeLiteralEnter(expression, prefixName, typeContext);
   }
 
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
@@ -631,11 +629,11 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool variableAssignEnter(
+  void variableAssignEnter(
       Expression expression, DartType typeContext, Expression write) {
     _deferReference(write.fileOffset);
     _deferType(write.fileOffset);
-    return super.variableAssignEnter(expression, typeContext, write);
+    super.variableAssignEnter(expression, typeContext, write);
   }
 
   @override
