@@ -71,6 +71,14 @@ static char** ExtractCStringList(Dart_Handle strings,
   return string_args;
 }
 
+bool Process::ModeIsAttached(ProcessStartMode mode) {
+  return (mode == kNormal) || (mode == kInheritStdio);
+}
+
+bool Process::ModeHasStdio(ProcessStartMode mode) {
+  return (mode == kNormal) || (mode == kDetachedWithStdio);
+}
+
 void Process::ClearAllSignalHandlers() {
   for (intptr_t i = 1; i <= kLastSignal; i++) {
     ClearSignalHandler(i, ILLEGAL_PORT);
@@ -145,7 +153,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     }
   }
   int64_t mode =
-      DartUtils::GetInt64ValueCheckRange(Dart_GetNativeArgument(args, 6), 0, 2);
+      DartUtils::GetInt64ValueCheckRange(Dart_GetNativeArgument(args, 6), 0, 3);
   Dart_Handle stdin_handle = Dart_GetNativeArgument(args, 7);
   Dart_Handle stdout_handle = Dart_GetNativeArgument(args, 8);
   Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 9);
@@ -159,7 +167,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       static_cast<ProcessStartMode>(mode), &process_stdout, &process_stdin,
       &process_stderr, &pid, &exit_event, &os_error_message);
   if (error_code == 0) {
-    if (mode != kDetached) {
+    if (Process::ModeHasStdio(static_cast<ProcessStartMode>(mode))) {
       Socket::SetSocketIdNativeField(stdin_handle, process_stdin,
                                      Socket::kFinalizerNormal);
       Socket::SetSocketIdNativeField(stdout_handle, process_stdout,
@@ -167,7 +175,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       Socket::SetSocketIdNativeField(stderr_handle, process_stderr,
                                      Socket::kFinalizerNormal);
     }
-    if (mode == kNormal) {
+    if (Process::ModeIsAttached(static_cast<ProcessStartMode>(mode))) {
       Socket::SetSocketIdNativeField(exit_handle, exit_event,
                                      Socket::kFinalizerNormal);
     }

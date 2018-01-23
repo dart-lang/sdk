@@ -141,12 +141,15 @@ enum ProcessStartMode {
   /// Normal child process.
   NORMAL,
 
+  /// Stdio handles are inherited by the child process.
+  INHERIT_STDIO,
+
   /// Detached child process with no open communication channel.
   DETACHED,
 
   /// Detached child process with stdin, stdout and stderr still open
   /// for communication with the child.
-  DETACHED_WITH_STDIO
+  DETACHED_WITH_STDIO,
 }
 
 /**

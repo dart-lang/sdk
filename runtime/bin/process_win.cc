@@ -504,39 +504,41 @@ class ProcessStarter {
     STARTUPINFOEXW startup_info;
     ZeroMemory(&startup_info, sizeof(startup_info));
     startup_info.StartupInfo.cb = sizeof(startup_info);
-    startup_info.StartupInfo.hStdInput = stdin_handles_[kReadHandle];
-    startup_info.StartupInfo.hStdOutput = stdout_handles_[kWriteHandle];
-    startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
-    startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+    if (mode_ != kInheritStdio) {
+      startup_info.StartupInfo.hStdInput = stdin_handles_[kReadHandle];
+      startup_info.StartupInfo.hStdOutput = stdout_handles_[kWriteHandle];
+      startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
+      startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
 
-    bool supports_proc_thread_attr_lists = EnsureInitialized();
-    if (supports_proc_thread_attr_lists) {
-      // Setup the handles to inherit. We only want to inherit the three handles
-      // for stdin, stdout and stderr.
-      SIZE_T size = 0;
-      // The call to determine the size of an attribute list always fails with
-      // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-      if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
-          (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
-        return CleanupAndReturnError();
+      bool supports_proc_thread_attr_lists = EnsureInitialized();
+      if (supports_proc_thread_attr_lists) {
+        // Setup the handles to inherit. We only want to inherit the three
+        // handles for stdin, stdout and stderr.
+        SIZE_T size = 0;
+        // The call to determine the size of an attribute list always fails with
+        // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+        if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
+            (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
+          return CleanupAndReturnError();
+        }
+        attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
+            Dart_ScopeAllocate(size));
+        ZeroMemory(attribute_list_, size);
+        if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
+          return CleanupAndReturnError();
+        }
+        static const int kNumInheritedHandles = 3;
+        HANDLE inherited_handles[kNumInheritedHandles] = {
+            stdin_handles_[kReadHandle], stdout_handles_[kWriteHandle],
+            stderr_handles_[kWriteHandle]};
+        if (!update_proc_thread_attr(
+                attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+                inherited_handles, kNumInheritedHandles * sizeof(HANDLE), NULL,
+                NULL)) {
+          return CleanupAndReturnError();
+        }
+        startup_info.lpAttributeList = attribute_list_;
       }
-      attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
-          Dart_ScopeAllocate(size));
-      ZeroMemory(attribute_list_, size);
-      if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
-        return CleanupAndReturnError();
-      }
-      static const int kNumInheritedHandles = 3;
-      HANDLE inherited_handles[kNumInheritedHandles] = {
-          stdin_handles_[kReadHandle], stdout_handles_[kWriteHandle],
-          stderr_handles_[kWriteHandle]};
-      if (!update_proc_thread_attr(
-              attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-              inherited_handles, kNumInheritedHandles * sizeof(HANDLE), NULL,
-              NULL)) {
-        return CleanupAndReturnError();
-      }
-      startup_info.lpAttributeList = attribute_list_;
     }
 
     PROCESS_INFORMATION process_info;
@@ -545,7 +547,7 @@ class ProcessStarter {
     // Create process.
     DWORD creation_flags =
         EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
-    if (mode_ != kNormal) {
+    if (!Process::ModeIsAttached(mode_)) {
       creation_flags |= DETACHED_PROCESS;
     }
     BOOL result = CreateProcessW(
@@ -558,26 +560,33 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
+      Log::PrintErr("CreateProcessW failed %d\n", GetLastError());
       return CleanupAndReturnError();
     }
 
-    CloseHandle(stdin_handles_[kReadHandle]);
-    CloseHandle(stdout_handles_[kWriteHandle]);
-    CloseHandle(stderr_handles_[kWriteHandle]);
-    if (mode_ == kNormal) {
+    if (mode_ != kInheritStdio) {
+      CloseHandle(stdin_handles_[kReadHandle]);
+      CloseHandle(stdout_handles_[kWriteHandle]);
+      CloseHandle(stderr_handles_[kWriteHandle]);
+    }
+    if (Process::ModeIsAttached(mode_)) {
       ProcessInfoList::AddProcess(process_info.dwProcessId,
                                   process_info.hProcess,
                                   exit_handles_[kWriteHandle]);
     }
     if (mode_ != kDetached) {
       // Connect the three stdio streams.
-      FileHandle* stdin_handle = new FileHandle(stdin_handles_[kWriteHandle]);
-      FileHandle* stdout_handle = new FileHandle(stdout_handles_[kReadHandle]);
-      FileHandle* stderr_handle = new FileHandle(stderr_handles_[kReadHandle]);
-      *in_ = reinterpret_cast<intptr_t>(stdout_handle);
-      *out_ = reinterpret_cast<intptr_t>(stdin_handle);
-      *err_ = reinterpret_cast<intptr_t>(stderr_handle);
-      if (mode_ == kNormal) {
+      if (Process::ModeHasStdio(mode_)) {
+        FileHandle* stdin_handle = new FileHandle(stdin_handles_[kWriteHandle]);
+        FileHandle* stdout_handle =
+            new FileHandle(stdout_handles_[kReadHandle]);
+        FileHandle* stderr_handle =
+            new FileHandle(stderr_handles_[kReadHandle]);
+        *in_ = reinterpret_cast<intptr_t>(stdout_handle);
+        *out_ = reinterpret_cast<intptr_t>(stdin_handle);
+        *err_ = reinterpret_cast<intptr_t>(stderr_handle);
+      }
+      if (Process::ModeIsAttached(mode_)) {
         FileHandle* exit_handle = new FileHandle(exit_handles_[kReadHandle]);
         *exit_handler_ = reinterpret_cast<intptr_t>(exit_handle);
       }
@@ -603,13 +612,15 @@ class ProcessStarter {
     if (mode_ != kDetached) {
       // Open pipes for stdin, stdout, stderr and for communicating the exit
       // code.
-      if (!CreateProcessPipe(stdin_handles_, pipe_names[0], kInheritRead) ||
-          !CreateProcessPipe(stdout_handles_, pipe_names[1], kInheritWrite) ||
-          !CreateProcessPipe(stderr_handles_, pipe_names[2], kInheritWrite)) {
-        return CleanupAndReturnError();
+      if (Process::ModeHasStdio(mode_)) {
+        if (!CreateProcessPipe(stdin_handles_, pipe_names[0], kInheritRead) ||
+            !CreateProcessPipe(stdout_handles_, pipe_names[1], kInheritWrite) ||
+            !CreateProcessPipe(stderr_handles_, pipe_names[2], kInheritWrite)) {
+          return CleanupAndReturnError();
+        }
       }
       // Only open exit code pipe for non detached processes.
-      if (mode_ == kNormal) {
+      if (Process::ModeIsAttached(mode_)) {
         if (!CreateProcessPipe(exit_handles_, pipe_names[3], kInheritNone)) {
           return CleanupAndReturnError();
         }
