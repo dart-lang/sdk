@@ -60,6 +60,12 @@ dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
 
+[ $compiler == dartk ]
+cc/DartAPI_New: Crash
+cc/DartAPI_TypeGetParameterizedTypes: Crash
+dart/redirection_type_shuffling_test/00: Crash
+dart/redirection_type_shuffling_test/none: Crash
+
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: Skip
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: Skip
@@ -324,8 +330,6 @@ cc/IsolateReload_TypeIdentityGeneric: Fail
 cc/IsolateReload_TypeIdentityParameter: Fail
 
 [ $compiler == dartk && $system == windows ]
-cc/DartAPI_New: Fail
-cc/DartAPI_TypeGetParameterizedTypes: Fail
 cc/IsolateReload_DanglingGetter_Class: Crash
 cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_LibraryLookup: Crash
@@ -345,14 +349,6 @@ cc/Profiler_ToggleRecordAllocation: Fail
 cc/Profiler_TrivialRecordAllocation: Fail
 cc/Service_Address: Fail
 cc/Service_Code: Fail
-dart/redirection_type_shuffling_test/00: Fail
-dart/redirection_type_shuffling_test/none: Fail
-
-[ $compiler == dartk && $system != windows ]
-cc/DartAPI_New: Crash
-cc/DartAPI_TypeGetParameterizedTypes: Crash
-dart/redirection_type_shuffling_test/00: Crash
-dart/redirection_type_shuffling_test/none: Crash
 
 [ $compiler == dartk && $strong ]
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586

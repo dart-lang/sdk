@@ -953,18 +953,13 @@ wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dartk && $system == windows && $strong ]
 ct_const2_test: Fail
-hello_dart_test: Fail
-recursive_mixin_test: Fail
-redirecting_factory_reflection_test: Fail
-
-[ $compiler == dartk && $system != windows && $strong ]
-hello_dart_test: Crash
-recursive_mixin_test: Crash
-redirecting_factory_reflection_test: Crash
 
 [ $compiler == dartk && $strong ]
 cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 28335.
+hello_dart_test: Crash
+recursive_mixin_test: Crash
+redirecting_factory_reflection_test: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

@@ -208,24 +208,6 @@ typed_data/float32x4_static_test: Pass # Issue 31402 (Invocation arguments)
 typed_data/int32x4_static_test/01: Pass # Issue 31402 (Invocation arguments)
 typed_data/int32x4_static_test/02: Pass # Issue 31402 (Invocation arguments)
 
-[ $compiler == dartk && $system == windows && $strong ]
-isolate/issue_22778_test: Fail
-mirrors/constructor_optional_args_test: Fail
-mirrors/invoke_throws_test: Fail
-mirrors/list_constructor_test/01: Fail
-mirrors/list_constructor_test/none: Fail
-mirrors/redirecting_factory_different_type_test/02: Fail
-mirrors/redirecting_factory_different_type_test/none: Fail
-
-[ $compiler == dartk && $system != windows && $strong ]
-isolate/issue_22778_test: Crash
-mirrors/constructor_optional_args_test: Crash
-mirrors/invoke_throws_test: Crash
-mirrors/list_constructor_test/01: Crash
-mirrors/list_constructor_test/none: Crash
-mirrors/redirecting_factory_different_type_test/02: Crash
-mirrors/redirecting_factory_different_type_test/none: Crash
-
 [ $compiler == dartk && $strong ]
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
@@ -239,6 +221,7 @@ async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
 async/zone_run_unary_test: RuntimeError
+isolate/issue_22778_test: Crash
 isolate/kill_self_synchronously_test: RuntimeError
 isolate/message_test: RuntimeError
 isolate/mint_maker_test: RuntimeError
@@ -247,6 +230,7 @@ isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
 mirrors/class_mirror_type_variables_test: RuntimeError
+mirrors/constructor_optional_args_test: Crash
 mirrors/constructors_test: RuntimeError
 mirrors/fake_function_with_call_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError
@@ -269,7 +253,10 @@ mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
 mirrors/invocation_fuzz_test/smi: Crash, Pass # Crashes on opt counter builder (#31838)
 mirrors/invoke_closurization2_test: RuntimeError
+mirrors/invoke_throws_test: Crash
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
+mirrors/list_constructor_test/01: Crash
+mirrors/list_constructor_test/none: Crash
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
 mirrors/null_test: RuntimeError
@@ -277,6 +264,8 @@ mirrors/operator_test: RuntimeError
 mirrors/parameter_is_const_test/none: RuntimeError
 mirrors/parameter_test/01: RuntimeError
 mirrors/parameter_test/none: RuntimeError
+mirrors/redirecting_factory_different_type_test/02: Crash
+mirrors/redirecting_factory_different_type_test/none: Crash
 mirrors/reflected_type_classes_test/01: MissingCompileTimeError
 mirrors/reflected_type_classes_test/02: MissingCompileTimeError
 mirrors/reflected_type_classes_test/03: MissingCompileTimeError
