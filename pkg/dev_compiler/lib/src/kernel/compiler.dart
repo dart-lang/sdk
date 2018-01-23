@@ -1352,21 +1352,18 @@ class ProgramCompiler
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    _addStatementToList(_initializeFields(fields, node), body);
-
-    var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
-        orElse: () => null) as SuperInitializer;
+    body.add(_initializeFields(fields, node));
 
     // If no superinitializer is provided, an implicit superinitializer of the
     // form `super()` is added at the end of the initializer list, unless the
     // enclosing class is class Object.
+    var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
+        orElse: () => null) as SuperInitializer;
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
-    if (jsSuper != null) {
-      _addStatementToList(jsSuper..sourceInformation = superCall, body);
-    }
+    if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
 
     var jsBody = _visitStatement(node.function.body);
-    if (jsBody != null) _addStatementToList(jsBody, body);
+    if (jsBody != null) body.add(jsBody);
     return body;
   }
 
@@ -2851,7 +2848,7 @@ class ProgramCompiler
     var block = _withCurrentFunction(f, () {
       var block = _emitArgumentInitializers(f);
       var jsBody = _visitStatement(f.body);
-      if (jsBody != null) _addStatementToList(jsBody, block);
+      if (jsBody != null) block.add(jsBody);
       return block;
     });
 
@@ -4966,13 +4963,3 @@ bool isObjectMember(String name) {
 
 bool _isObjectMethod(String name) =>
     name == 'toString' || name == 'noSuchMethod';
-
-void _addStatementToList(JS.Statement statement, List<JS.Statement> list) {
-  // If the statement is a nested block, flatten it into the list when
-  // possible.  If the statement is empty, discard it.
-  if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
-    list.addAll(statement.statements);
-  } else if (statement is! JS.EmptyStatement) {
-    list.add(statement);
-  }
-}
