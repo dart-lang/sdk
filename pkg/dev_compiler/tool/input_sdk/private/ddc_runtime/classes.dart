@@ -107,7 +107,7 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
             value[$_originalDeclaration] = makeGenericType;
           }
           map.set(arg, value);
-          if ($setBaseClass) $setBaseClass(value);
+          if ($setBaseClass != null) $setBaseClass.apply(null, args);
         } else {
           value = new Map();
           map.set(arg, value);

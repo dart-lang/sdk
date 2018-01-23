@@ -1217,8 +1217,9 @@ class CodeGenerator extends Object
       List<TypeParameterElement> formals, JS.Statement body,
       [JS.Expression className, List<JS.Statement> deferredBaseClass]) {
     assert(formals.isNotEmpty);
+    var jsFormals = _emitTypeFormals(formals);
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
-      _emitTypeFormals(formals),
+      jsFormals,
       _typeTable.discharge(formals),
       body,
       className ?? new JS.Identifier(element.name)
@@ -1226,7 +1227,7 @@ class CodeGenerator extends Object
 
     var genericArgs = [typeConstructor];
     if (deferredBaseClass != null && deferredBaseClass.isNotEmpty) {
-      genericArgs.add(js.call('(#) => { #; }', [className, deferredBaseClass]));
+      genericArgs.add(js.call('(#) => { #; }', [jsFormals, deferredBaseClass]));
     }
 
     var genericCall = _callHelper('generic(#)', [genericArgs]);
@@ -1274,7 +1275,6 @@ class CodeGenerator extends Object
 
     emitDeferredType(DartType t) {
       if (t is InterfaceType && t.typeArguments.isNotEmpty) {
-        if (t == classElem.type) return className;
         _declareBeforeUse(t.element);
         return _emitGenericClassType(
             t, t.typeArguments.map(emitDeferredType).toList());
@@ -1307,7 +1307,8 @@ class CodeGenerator extends Object
       return _emitJSInterop(t.element) ?? _emitType(t, nameType: false);
     }
 
-    getBaseClass(JS.Expression base, int count) {
+    getBaseClass(int count) {
+      var base = emitDeferredType(classElem.type);
       while (--count >= 0) {
         base = js.call('#.__proto__', [base]);
       }
@@ -1352,7 +1353,7 @@ class CodeGenerator extends Object
     var mixinLength = classElem.mixins.length;
     if (shouldDefer(supertype)) {
       deferredSupertypes.add(_callHelperStatement('setBaseClass(#, #)', [
-        getBaseClass(className, isMixinAliasClass(classElem) ? 0 : mixinLength),
+        getBaseClass(isMixinAliasClass(classElem) ? 0 : mixinLength),
         emitDeferredType(supertype),
       ]));
       supertype = fillDynamicTypeArgs(supertype);
@@ -1371,9 +1372,10 @@ class CodeGenerator extends Object
       bool deferMixin = shouldDefer(m);
       var mixinBody = deferMixin ? deferredSupertypes : body;
       var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
+      var classExpr = deferMixin ? getBaseClass(0) : className;
 
       mixinBody.add(
-          _callHelperStatement('mixinMembers(#, #)', [className, mixinClass]));
+          _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
       _finishTopLevelCodeForClass(classElem);
 
@@ -1385,7 +1387,7 @@ class CodeGenerator extends Object
         //
         //     mixinMembers(C, class C$ extends M { <methods>  });
         mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
-          className,
+          classExpr,
           new JS.ClassExpression(
               new JS.TemporaryId(classElem.name), mixinClass, methods)
         ]));
@@ -1417,7 +1419,7 @@ class CodeGenerator extends Object
 
       if (shouldDefer(m)) {
         deferredSupertypes.add(_callHelperStatement('mixinMembers(#, #)',
-            [getBaseClass(className, mixinLength - i), emitDeferredType(m)]));
+            [getBaseClass(mixinLength - i), emitDeferredType(m)]));
       } else {
         body.add(_callHelperStatement(
             'mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
@@ -3301,13 +3303,7 @@ class CodeGenerator extends Object
 
   /// Emits a Dart [type] into code.
   ///
-  /// If [lowerTypedef] is set, a typedef will be expanded as if it were a
-  /// function type. Similarly if [lowerGeneric] is set, the `List$()` form
-  /// will be used instead of `List`. These flags are used when generating
-  /// the definitions for typedefs and generic types, respectively.
-  ///
-  /// If [nameType] is true, then the type will be named.  In addition,
-  /// if [hoistType] is true, then the named type will be hoisted.
+  /// If [nameType] is true, then the type will be named.
   JS.Expression _emitType(DartType type, {bool nameType: true}) {
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {

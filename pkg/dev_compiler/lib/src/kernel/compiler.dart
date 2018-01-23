@@ -564,8 +564,9 @@ class ProgramCompiler
       [JS.Expression className, List<JS.Statement> deferredBaseClass]) {
     assert(formals.isNotEmpty);
     var name = getTopLevelName(c);
+    var jsFormals = _emitTypeFormals(formals);
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
-      _emitTypeFormals(formals),
+      jsFormals,
       _typeTable.discharge(formals),
       body,
       className ?? new JS.Identifier(name)
@@ -573,7 +574,7 @@ class ProgramCompiler
 
     var genericArgs = [typeConstructor];
     if (deferredBaseClass != null && deferredBaseClass.isNotEmpty) {
-      genericArgs.add(js.call('(#) => { #; }', [className, deferredBaseClass]));
+      genericArgs.add(js.call('(#) => { #; }', [jsFormals, deferredBaseClass]));
     }
 
     var genericCall = _callHelper('generic(#)', [genericArgs]);
@@ -608,7 +609,6 @@ class ProgramCompiler
 
     JS.Expression emitDeferredType(DartType t) {
       if (t is InterfaceType && t.typeArguments.isNotEmpty) {
-        if (t == c.thisType) return className;
         return _emitGenericClassType(t, t.typeArguments.map(emitDeferredType));
       }
       return _emitType(t);
@@ -647,7 +647,8 @@ class ProgramCompiler
       return _emitJSInterop(t.classNode) ?? visitInterfaceType(t);
     }
 
-    getBaseClass(JS.Expression base, int count) {
+    getBaseClass(int count) {
+      var base = emitDeferredType(c.thisType);
       while (--count >= 0) {
         base = js.call('#.__proto__', [base]);
       }
@@ -707,7 +708,7 @@ class ProgramCompiler
     // Unroll mixins.
     if (shouldDefer(supertype)) {
       deferredSupertypes.add(_callHelperStatement('setBaseClass(#, #)', [
-        isMixinAliasClass(c) ? className : js.call('#.__proto__', className),
+        getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
         emitDeferredType(supertype),
       ]));
       supertype = supertype.classNode.rawType;
@@ -726,9 +727,10 @@ class ProgramCompiler
       bool deferMixin = shouldDefer(m);
       var mixinBody = deferMixin ? deferredSupertypes : body;
       var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
+      var classExpr = deferMixin ? getBaseClass(0) : className;
 
       mixinBody.add(
-          _callHelperStatement('mixinMembers(#, #)', [className, mixinClass]));
+          _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
       _classEmittingTopLevel = savedTopLevelClass;
 
@@ -740,7 +742,7 @@ class ProgramCompiler
         //
         //     mixinMembers(C, class C$ extends M { <methods>  });
         mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
-          className,
+          classExpr,
           new JS.ClassExpression(
               new JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
         ]));
@@ -773,7 +775,7 @@ class ProgramCompiler
 
       if (shouldDefer(m)) {
         deferredSupertypes.add(_callHelperStatement('mixinMembers(#, #)',
-            [getBaseClass(className, mixins.length - i), emitDeferredType(m)]));
+            [getBaseClass(mixins.length - i), emitDeferredType(m)]));
       } else {
         body.add(_callHelperStatement(
             'mixinMembers(#, #)', [mixinId, emitClassRef(m)]));

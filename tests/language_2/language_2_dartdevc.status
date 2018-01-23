@@ -721,9 +721,6 @@ truncdiv_test: RuntimeError # Issue 29920
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
-cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
-cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
-f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
@@ -760,13 +757,10 @@ instantiate_tearoff_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-mixin_regress_13688_test: RuntimeError
 mixin_type_parameter5_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
 mock_writable_final_private_field_test: RuntimeError
 nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
-recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
