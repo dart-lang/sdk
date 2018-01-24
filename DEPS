@@ -115,7 +115,7 @@ vars = {
   "protobuf_tag": "@0.7.0",
   "pub_rev": "@64c5f40adf6828da1b63320dd39bcedbef1354c6",
   "pub_semver_tag": "@1.3.2",
-  "quiver_tag": "@0.27.0",
+  "quiver_tag": "@0.28.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
