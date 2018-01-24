@@ -64,6 +64,7 @@ import 'package:linter/src/rules/prefer_collection_literals.dart';
 import 'package:linter/src/rules/prefer_conditional_assignment.dart';
 import 'package:linter/src/rules/prefer_const_constructors.dart';
 import 'package:linter/src/rules/prefer_const_constructors_in_immutables.dart';
+import 'package:linter/src/rules/prefer_const_declarations.dart';
 import 'package:linter/src/rules/prefer_const_literals_to_create_immutables.dart';
 import 'package:linter/src/rules/prefer_constructors_over_static_methods.dart';
 import 'package:linter/src/rules/prefer_contains.dart';
@@ -167,6 +168,7 @@ void registerLintRules() {
     ..register(new PreferConditionalAssignment())
     ..register(new PreferConstConstructors())
     ..register(new PreferConstConstructorsInImmutables())
+    ..register(new PreferConstDeclarations())
     ..register(new PreferConstLiteralsToCreateImmutables())
     ..register(new PreferAssertsInInitializerLists())
     ..register(new PreferConstructorsInsteadOfStaticMethods())
