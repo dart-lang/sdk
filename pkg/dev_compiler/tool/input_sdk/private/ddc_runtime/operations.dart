@@ -297,19 +297,13 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     if ($typeArgs == null) {
       $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
-      // TODO(jmesserly): is this the right error?
-      $throwTypeError(
-          'incorrect number of arguments to generic function ' +
-          $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
-          formalCount + '.');
+      return callNSM();
     } else {
       $ftype.checkBounds($typeArgs);
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
-    $throwTypeError(
-        'got type arguments to non-generic function ' + $typeName($ftype) +
-        ', got <' + $typeArgs + '> expected none.');
+    return callNSM();
   }
 
   if ($_checkApply($ftype, $args)) {
