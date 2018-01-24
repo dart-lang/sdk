@@ -25,6 +25,7 @@ io/print_sync_test: Skip
 io/process_check_arguments_test: Skip
 io/process_detached_test: Skip
 io/process_environment_test: Skip
+io/process_inherit_stdio_test: Skip
 io/process_non_ascii_test: Skip
 io/process_run_output_test: Skip
 io/process_set_exit_code_test: Skip

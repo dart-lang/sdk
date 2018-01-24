@@ -8,8 +8,6 @@ import 'dart:isolate';
 
 import "package:async_helper/async_helper.dart";
 
-import "process_test_util.dart";
-
 void main(List<String> args) {
   String arg = args[0];
   if (arg == "--child") {
