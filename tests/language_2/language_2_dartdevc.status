@@ -683,7 +683,6 @@ execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 final_field_initialization_order_test: RuntimeError # Issue 31058
-first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 forwarding_stub_tearoff_generic_test: RuntimeError
 fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
@@ -721,7 +720,6 @@ truncdiv_test: RuntimeError # Issue 29920
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
-first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
 function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
 function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined

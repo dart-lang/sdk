@@ -633,7 +633,6 @@ field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-first_class_types_test: RuntimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1405,7 +1404,6 @@ field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-first_class_types_test: RuntimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
