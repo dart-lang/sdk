@@ -21,7 +21,8 @@ main() {
   });
 }
 
-class AbstractOutlineComputerTest extends AbstractContextTest {
+@reflectiveTest
+class FlutterOutlineComputerTest extends AbstractContextTest {
   String testPath;
   String testCode;
 
@@ -29,28 +30,57 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     testPath = resourceProvider.convertPath('/test.dart');
-  }
-
-  Future<FlutterOutline> _computeOutline(String code) async {
-    testCode = code;
-    newFile(testPath, content: code);
-    AnalysisResult analysisResult = await driver.getResult(testPath);
-    return new FlutterOutlineComputer(
-            testPath, analysisResult.lineInfo, analysisResult.unit)
-        .compute();
-  }
-}
-
-@reflectiveTest
-class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
-  @override
-  void setUp() {
-    super.setUp();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
   }
 
-  test_attributes_string() async {
+  test_attributes_bool() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Text(true)
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    var textOutline = build.children[0];
+
+    expect(textOutline.attributes, hasLength(1));
+
+    FlutterOutlineAttribute attribute = textOutline.attributes[0];
+    expect(attribute.name, 'data');
+    expect(attribute.label, 'true');
+    expect(attribute.literalValueBoolean, true);
+  }
+
+  test_attributes_int() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Text(42)
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    var textOutline = build.children[0];
+
+    expect(textOutline.attributes, hasLength(1));
+
+    FlutterOutlineAttribute attribute = textOutline.attributes[0];
+    expect(attribute.name, 'data');
+    expect(attribute.label, '42');
+    expect(attribute.literalValueInteger, 42);
+  }
+
+  test_attributes_string_literal() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -61,11 +91,29 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    var textOutline = build.children[0];
 
-    expect(_toText(unitOutline), r'''
-(D) MyWidget
-  (D) build
-    Text
+    expect(textOutline.attributes, hasLength(1));
+
+    FlutterOutlineAttribute attribute = textOutline.attributes[0];
+    expect(attribute.name, 'data');
+    expect(attribute.label, "'my text'");
+    expect(attribute.literalValueString, 'my text');
+  }
+
+  test_attributes_string_interpolation() async {
+    FlutterOutline unitOutline = await _computeOutline(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var name = 'Foo';
+    return const Text('Hello, $name!')
+  }
+}
 ''');
     var myWidget = unitOutline.children[0];
     var build = myWidget.children[0];
@@ -75,8 +123,8 @@ class MyWidget extends StatelessWidget {
 
     FlutterOutlineAttribute attribute = textOutline.attributes[0];
     expect(attribute.name, 'data');
-    expect(attribute.label, 'my text');
-    expect(attribute.literalValueString, 'my text');
+    expect(attribute.label, r"'Hello, $name!'");
+    expect(attribute.literalValueString, isNull);
   }
 
   test_children() async {
@@ -158,6 +206,15 @@ class MyWidget extends StatelessWidget {
       top: Text
       bottom: Text
 ''');
+  }
+
+  Future<FlutterOutline> _computeOutline(String code) async {
+    testCode = code;
+    newFile(testPath, content: code);
+    AnalysisResult analysisResult = await driver.getResult(testPath);
+    return new FlutterOutlineComputer(
+            testPath, analysisResult.lineInfo, analysisResult.unit)
+        .compute();
   }
 
   void _expect(FlutterOutline outline,

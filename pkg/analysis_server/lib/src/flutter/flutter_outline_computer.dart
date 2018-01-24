@@ -38,19 +38,22 @@ class FlutterOutlineComputer {
   /// Flutter attribute, add it to the [attributes].
   void _addAttribute(List<protocol.FlutterOutlineAttribute> attributes,
       Expression argument, ParameterElement parameter) {
-    Element element = argument.staticType?.element;
-    if (element == null) {
-      return;
-    }
-    if (argument is StringLiteral) {
-      var value = argument.stringValue;
+    String label = argument.toString();
+    if (argument is BooleanLiteral) {
       attributes.add(new protocol.FlutterOutlineAttribute(
-          parameter.displayName, value,
-          literalValueString: value));
-    } else if (element.library.isDartCore && element.displayName == 'String') {
-      String text = argument.toString();
+          parameter.displayName, label,
+          literalValueBoolean: argument.value));
+    } else if (argument is IntegerLiteral) {
+      attributes.add(new protocol.FlutterOutlineAttribute(
+          parameter.displayName, label,
+          literalValueInteger: argument.value));
+    } else if (argument is StringLiteral) {
+      attributes.add(new protocol.FlutterOutlineAttribute(
+          parameter.displayName, label,
+          literalValueString: argument.stringValue));
+    } else {
       attributes.add(
-          new protocol.FlutterOutlineAttribute(parameter.displayName, text));
+          new protocol.FlutterOutlineAttribute(parameter.displayName, label));
     }
   }
 
