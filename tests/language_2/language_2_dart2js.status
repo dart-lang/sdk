@@ -288,7 +288,9 @@ not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
+nsm5_test: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
 ref_before_declaration_test/02: MissingCompileTimeError
@@ -794,6 +796,8 @@ issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_tearoff_test: RuntimeError
 issue31596_test: RuntimeError
+nsm5_test: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked && !$dart2js_with_kernel ]
 bool_check_test: RuntimeError # Issue 29647

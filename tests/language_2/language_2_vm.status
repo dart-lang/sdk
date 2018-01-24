@@ -1242,6 +1242,8 @@ generic_methods_function_type_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
+nsm5_test: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError

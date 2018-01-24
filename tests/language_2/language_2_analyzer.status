@@ -1527,9 +1527,11 @@ named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError # Strong mode error
+nsm5_test: MissingCompileTimeError
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 prefix13_negative_test: CompileTimeError, OK

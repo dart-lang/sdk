@@ -812,6 +812,7 @@ no_main_test/01: DartkCrash
 no_main_test/01: Skip
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
+nsm5_test: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError # Issue 31533
 optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/04: MissingCompileTimeError
@@ -857,6 +858,7 @@ override_inheritance_mixed_test/07: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/01: MissingCompileTimeError
 override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 override_inheritance_no_such_method_test/06: MissingCompileTimeError
 override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
@@ -1616,6 +1618,7 @@ no_such_method_test: SkipByDesign
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/04: RuntimeError # Issue #31911
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
+nsm5_test: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
@@ -1666,6 +1669,7 @@ override_inheritance_mixed_test/08: Pass # Correctly passes.
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/01: MissingCompileTimeError
 override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 override_inheritance_no_such_method_test/06: MissingCompileTimeError
 override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError

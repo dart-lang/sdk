@@ -1551,7 +1551,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1591,7 +1591,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1659,7 +1659,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1707,7 +1707,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1738,7 +1738,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value([x]) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 

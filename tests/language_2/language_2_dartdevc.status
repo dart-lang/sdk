@@ -549,6 +549,7 @@ named_parameters_test/04: MissingCompileTimeError
 named_parameters_test/06: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
+nsm5_test: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError # Issue 31533
 optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/04: MissingCompileTimeError
@@ -584,6 +585,7 @@ override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/01: MissingCompileTimeError
 override_inheritance_no_such_method_test/02: MissingCompileTimeError
+override_inheritance_no_such_method_test/05: MissingCompileTimeError
 override_inheritance_no_such_method_test/06: MissingCompileTimeError
 override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError

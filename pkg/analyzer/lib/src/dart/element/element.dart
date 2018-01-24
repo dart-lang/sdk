@@ -752,13 +752,15 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   /**
-   * Return `true` if the class has a `noSuchMethod()` method distinct from the
-   * one declared in class `Object`, as per the Dart Language Specification
-   * (section 10.4).
+   * Return `true` if the class has a concrete `noSuchMethod()` method distinct
+   * from the one declared in class `Object`, as per the Dart Language
+   * Specification (section 10.4).
    */
   bool get hasNoSuchMethod {
-    MethodElement method =
-        lookUpMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
+    MethodElement method = context.analysisOptions.strongMode
+        ? lookUpConcreteMethod(
+            FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library)
+        : lookUpMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
     ClassElement definingClass = method?.enclosingElement;
     return definingClass != null && !definingClass.type.isObject;
   }
