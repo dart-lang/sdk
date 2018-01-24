@@ -68,6 +68,8 @@ DFE* Options::dfe_ = NULL;
 
 DEFINE_BOOL_OPTION_CB(preview_dart_2, { Options::dfe()->set_use_dfe(); });
 
+// TODO(sivachandra): Make it an error to specify --dfe without
+// specifying --preview_dart_2.
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 
 DEFINE_STRING_OPTION_CB(kernel_binaries,

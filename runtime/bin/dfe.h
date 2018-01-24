@@ -45,9 +45,6 @@ class DFE {
     application_kernel_binary_ = application_kernel_binary;
   }
 
-  bool kernel_file_specified() const { return kernel_file_specified_; }
-  void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
-
   // Method to read a kernel file into a kernel program blob.
   // If the specified script [url] is not a kernel IR, compile it first using
   // DFE and then read the resulting kernel file into a kernel program blob.
@@ -72,6 +69,7 @@ class DFE {
   void* ReadScript(const char* script_uri) const;
 
   static void* KernelServiceProgram();
+  static bool KernelServiceDillAvailable();
 
  private:
   // Tries to read [script_uri] as a Kernel IR file.
@@ -92,8 +90,6 @@ class DFE {
   // Kernel binary specified on the cmd line.
   // Loaded instead of platform if --kernel-binaries is not specified.
   void* application_kernel_binary_;
-
-  bool kernel_file_specified_;  // Kernel file was specified on the cmd line.
 
   static void* kKernelServiceProgram;
 

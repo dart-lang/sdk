@@ -60,8 +60,7 @@ DFE::DFE()
       kernel_binaries_path_(NULL),
       platform_binary_filename_(NULL),
       kernel_platform_(NULL),
-      application_kernel_binary_(NULL),
-      kernel_file_specified_(false) {}
+      application_kernel_binary_(NULL) {}
 
 DFE::~DFE() {
   if (frontend_filename_ != NULL) {
@@ -77,6 +76,9 @@ DFE::~DFE() {
 
   delete reinterpret_cast<kernel::Program*>(kernel_platform_);
   kernel_platform_ = NULL;
+
+  delete reinterpret_cast<kernel::Program*>(kKernelServiceProgram);
+  kKernelServiceProgram = NULL;
 
   delete reinterpret_cast<kernel::Program*>(application_kernel_binary_);
   application_kernel_binary_ = NULL;
@@ -107,6 +109,10 @@ char* DFE::FrontendFilename() {
     }
   }
   return frontend_filename_;
+}
+
+bool DFE::KernelServiceDillAvailable() {
+  return kernel_service_dill != NULL;
 }
 
 static void NoopRelease(uint8_t* buffer) {}

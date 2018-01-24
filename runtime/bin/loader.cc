@@ -696,13 +696,11 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
   if (tag == Dart_kKernelTag) {
-    ASSERT(dfe.UseDartFrontend() || dfe.kernel_file_specified());
     Dart_Isolate current = Dart_CurrentIsolate();
     ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
     return dfe.ReadKernelBinary(current, url_string);
   }
-  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) ||
-         (!dfe.UseDartFrontend() && !dfe.kernel_file_specified()));
+  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) || !dfe.UseDartFrontend());
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.

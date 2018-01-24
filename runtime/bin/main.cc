@@ -198,22 +198,16 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (dfe.kernel_file_specified()) {
-    ASSERT(kernel_program != NULL);
-    result = Dart_LoadKernel(kernel_program);
-    isolate_data->kernel_program = NULL;  // Dart_LoadKernel takes ownership.
-  } else {
-    if (kernel_program != NULL) {
-      Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-      CHECK_RESULT(uri);
-      Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
-      CHECK_RESULT(resolved_script_uri);
-      result =
-          Dart_LoadScript(uri, resolved_script_uri,
-                          reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
-      isolate_data->kernel_program = NULL;  // Dart_LoadScript takes ownership.
-      CHECK_RESULT(result);
-    }
+  if (kernel_program != NULL) {
+    Dart_Handle uri = Dart_NewStringFromCString(script_uri);
+    CHECK_RESULT(uri);
+    Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
+    CHECK_RESULT(resolved_script_uri);
+    result =
+        Dart_LoadScript(uri, resolved_script_uri,
+                        reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+    isolate_data->kernel_program = NULL;  // Dart_LoadScript takes ownership.
+    CHECK_RESULT(result);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -493,11 +487,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   if (!isolate_run_app_snapshot) {
     kernel_platform = dfe.kernel_platform();
     kernel_program = dfe.ReadScript(script_uri);
-    if (kernel_program != NULL) {
-      // A kernel file was specified on the command line instead of a source
-      // file. Load that kernel file directly.
-      dfe.set_kernel_file_specified(true);
-    } else if (dfe.UseDartFrontend()) {
+    if (dfe.UseDartFrontend() && (kernel_program == NULL)) {
       kernel_program = dfe.CompileAndReadScript(script_uri, error, exit_code);
       if (kernel_program == NULL) {
         return NULL;
@@ -1058,6 +1048,7 @@ void main(int argc, char** argv) {
   // If a kernel platform binary file is specified, read it. This
   // step will become redundant once we have the snapshot version
   // of the kernel core/platform libraries.
+  void* application_kernel_binary = NULL;
   if (dfe.UsePlatformBinary()) {
     void* kernel_platform = dfe.ReadPlatform();
     if (kernel_platform == NULL) {
@@ -1066,10 +1057,9 @@ void main(int argc, char** argv) {
     }
     dfe.set_kernel_platform(kernel_platform);
   } else {
-    void* application_kernel_binary = dfe.ReadScript(script_name);
+    application_kernel_binary = dfe.ReadScript(script_name);
     if (application_kernel_binary != NULL) {
       dfe.set_application_kernel_binary(application_kernel_binary);
-      dfe.set_kernel_file_specified(true);
     }
   }
 #endif
@@ -1094,7 +1084,16 @@ void main(int argc, char** argv) {
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.get_service_assets = GetVMServiceAssetsArchiveCallback;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  init_params.start_kernel_isolate = dfe.UseDartFrontend();
+  // Start the kernel isolate only if
+  // 1. --dart_preview_2 and/or --dfe is used
+  //
+  // or
+  //
+  // 2. If we have kernel service dill file linked in and a dill file
+  // was specified as the main dart program.
+  init_params.start_kernel_isolate =
+      dfe.UseDartFrontend() || ((application_kernel_binary != NULL) &&
+                                DFE::KernelServiceDillAvailable());
 #else
   init_params.start_kernel_isolate = false;
 #endif
