@@ -3111,7 +3111,6 @@ bad_typedef_test/00: Crash # Issue 28214
 bug31436_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
-built_in_identifier_type_annotation_test/30: Crash # Issue 28815
 built_in_identifier_type_annotation_test/52: Crash # Issue 28815
 built_in_identifier_type_annotation_test/53: Crash # Issue 28815
 built_in_identifier_type_annotation_test/54: Crash # Issue 28815

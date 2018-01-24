@@ -84,11 +84,11 @@ class TopLevelVariableTest extends PartialCodeTest {
               'type',
               'int',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "int _s_;",
-              failing: allExceptEof),
+              allFailing: true),
           new TestDescriptor(
               'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;",
               allFailing: true),
