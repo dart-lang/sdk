@@ -209,6 +209,7 @@ void Loader::SendRequest(intptr_t tag,
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // Forward a request from the tag handler to the kernel isolate.
 // [ tag, send port, url ]
 void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
@@ -216,15 +217,30 @@ void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
   Dart_Port kernel_port = Dart_KernelPort();
   ASSERT(kernel_port != ILLEGAL_PORT);
 
-  Dart_Handle request = Dart_NewList(3);
+  // NOTE: This list should be kept in sync with kernel_service.dart
+  // and kernel_isolate.cc.
+  Dart_Handle request = Dart_NewList(9);
   Dart_ListSetAt(request, 0, Dart_NewInteger(tag));
   Dart_ListSetAt(request, 1, Dart_NewSendPort(port_));
   Dart_ListSetAt(request, 2, url);
+  const char* platform_kernel = dfe.GetPlatformBinaryFilename();
+  if (platform_kernel != NULL) {
+    Dart_ListSetAt(request, 3, Dart_NewStringFromCString(platform_kernel));
+  } else {
+    Dart_ListSetAt(request, 3, Dart_Null());
+  }
+  Dart_ListSetAt(request, 4, Dart_False() /* incremental */);
+  Dart_ListSetAt(request, 5, Dart_True() /* strong */);
+  Dart_ListSetAt(request, 6,
+                 Dart_NewInteger(Dart_GetMainPortId()) /* isolateId */);
+  Dart_ListSetAt(request, 7, Dart_Null() /* sourceFiles */);
+  Dart_ListSetAt(request, 8, Dart_True() /* suppressWarnings */);
   if (Dart_Post(kernel_port, request)) {
     MonitorLocker ml(monitor_);
     pending_operations_++;
   }
 }
+#endif
 
 void Loader::QueueMessage(Dart_CObject* message) {
   MonitorLocker ml(monitor_);

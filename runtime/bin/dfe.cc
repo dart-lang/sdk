@@ -127,6 +127,9 @@ void DFE::SetKernelBinaries(const char* name) {
 }
 
 const char* DFE::GetPlatformBinaryFilename() {
+  if (kernel_binaries_path_ == NULL) {
+    return NULL;
+  }
   if (platform_binary_filename_ == NULL) {
     platform_binary_filename_ = OS::SCreate(
         /*zone=*/NULL, "%s%s%s", kernel_binaries_path_, File::PathSeparator(),
@@ -153,8 +156,13 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
     // recompile the script.
     // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
     // instead of vm_platform.dill to Frontend for compilation.
+    const char* platform_kernel = GetPlatformBinaryFilename();
+    if (platform_kernel == NULL) {
+      return Dart_NewApiError(
+          "Path to platfrom kernel not known; did you miss --kernel-binaries?");
+    }
     Dart_KernelCompilationResult kresult =
-        Dart_CompileToKernel(url_string, GetPlatformBinaryFilename());
+        Dart_CompileToKernel(url_string, platform_kernel);
     if (kresult.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(kresult.error);
     }
@@ -215,8 +223,12 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   const char* sanitized_uri = script_uri;
 #endif
 
+  const char* platform_kernel = GetPlatformBinaryFilename();
+  if (platform_kernel == NULL) {
+    return NULL;
+  }
   Dart_KernelCompilationResult result =
-      Dart_CompileToKernel(sanitized_uri, GetPlatformBinaryFilename());
+      Dart_CompileToKernel(sanitized_uri, platform_kernel);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size,
