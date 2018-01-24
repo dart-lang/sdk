@@ -356,6 +356,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the last invocation didn't require any inference.
   Substitution lastInferredSubstitution;
 
+  /// The [FunctionType] of the callee in the last [inferInvocation], or `null`
+  /// if the last invocation didn't require any inference.
+  FunctionType lastCalleeType;
+
   TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
       this.thisType, this.library)
       : coreTypes = engine.coreTypes,
@@ -883,7 +887,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool skipTypeArgumentInference: false,
       bool isConst: false}) {
     lastInferredSubstitution = null;
+    lastCalleeType = null;
     var calleeTypeParameters = calleeType.typeParameters;
+    if (calleeTypeParameters.isNotEmpty) {
+      // It's possible that one of the callee type parameters might match a type
+      // that already exists as part of inference (e.g. the type of an
+      // argument).  This might happen, for instance, in the case where a
+      // function or method makes a recursive call to itself.  To avoid the
+      // callee type parameters accidentally matching a type that already
+      // exists, and creating invalid inference results, we need to create fresh
+      // type parameters for the callee (see dartbug.com/31759).
+      // TODO(paulberry): is it possible to find a narrower set of circumstances
+      // in which me must do this, to avoid a performance regression?
+      var fresh = getFreshTypeParameters(calleeTypeParameters);
+      calleeType = fresh.applyToFunctionType(calleeType);
+      returnType = fresh.substitute(returnType);
+      calleeTypeParameters = fresh.freshTypeParameters;
+    }
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
         explicitTypeArguments == null &&
@@ -976,6 +996,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     DartType inferredType;
     lastInferredSubstitution = substitution;
+    lastCalleeType = calleeType;
     inferredType = substitution == null
         ? returnType
         : substitution.substituteType(returnType);
@@ -1181,10 +1202,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         expression, inferredType, calleeType, fileOffset);
     if (identical(interfaceMember, 'call')) {
       listener.methodInvocationExitCall(expression, arguments, isImplicitCall,
-          calleeType, lastInferredSubstitution, inferredType);
+          lastCalleeType, lastInferredSubstitution, inferredType);
     } else {
-      listener.methodInvocationExit(expression, arguments, isImplicitCall,
-          interfaceMember, calleeType, lastInferredSubstitution, inferredType);
+      listener.methodInvocationExit(
+          expression,
+          arguments,
+          isImplicitCall,
+          interfaceMember,
+          lastCalleeType,
+          lastInferredSubstitution,
+          inferredType);
     }
     return inferredType;
   }
