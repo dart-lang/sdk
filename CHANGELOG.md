@@ -90,6 +90,8 @@
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
   * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
+  * Added `ProcessStartMode.INHERIT_STDIO`, which allows a child process to
+    inherit the parent's stdio handles.
 
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
