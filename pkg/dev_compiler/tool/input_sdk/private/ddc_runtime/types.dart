@@ -580,9 +580,9 @@ class GenericFunctionType extends AbstractFunctionType {
     for (int i = 0, n = typeFormals.length; i < n; i++) {
       if (i != 0) s += ", ";
       s += JS<String>('!', '#[#].name', typeFormals, i);
-      var typeBound = typeBounds[i];
-      if (!identical(typeBound, _dynamic)) {
-        s += " extends $typeBound";
+      var bound = typeBounds[i];
+      if (JS('bool', '# !== # && # !== #', bound, dynamic, bound, Object)) {
+        s += " extends $bound";
       }
     }
     s += ">" + instantiate(typeFormals).toString();
