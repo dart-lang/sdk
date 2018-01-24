@@ -48,6 +48,9 @@ step_through_constructor_test: Pass, Slow
 
 [ $compiler == dartk && $system == windows && $strong ]
 add_breakpoint_rpc_kernel_test: Skip # Timeout
+code_test: RuntimeError
+get_object_rpc_test: RuntimeError
+get_stack_rpc_test: RuntimeError
 issue_30555_test: Skip # Timeout
 next_through_implicit_call_test: Skip # Timeout
 next_through_operator_bracket_on_super_test: Skip # Timeout

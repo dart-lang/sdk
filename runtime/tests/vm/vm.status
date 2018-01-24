@@ -350,6 +350,9 @@ cc/Profiler_TrivialRecordAllocation: Fail
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
+[ $compiler == dartk && $system == windows && $strong ]
+cc/Profiler_ContextAllocation: Fail
+
 [ $compiler == dartk && $strong ]
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
