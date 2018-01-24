@@ -43,6 +43,9 @@ external_service_disappear_test: Crash # Issue 31587
 coverage_leaf_function_test: RuntimeError
 coverage_optimized_function_test: Skip # Timeout
 get_source_report_test: RuntimeError
+service/get_vm_timeline_rpc_test: Pass, Slow # Sometimes times out (60+ seconds) -- trying slow.
+service/next_through_simple_async_with_returns_test: Pass, Slow # Sometimes times out (60+ seconds) -- trying slow.
+service/step_through_switch_with_continue_test: Pass, Slow # Sometimes times out (60+ seconds) -- trying slow.
 step_test: Pass, Slow
 step_through_constructor_test: Pass, Slow
 

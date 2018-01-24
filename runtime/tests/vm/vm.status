@@ -344,14 +344,12 @@ cc/IsolateReload_TypeIdentityGeneric: Crash
 cc/IsolateReload_TypeIdentityParameter: Crash
 cc/Profiler_BasicSourcePosition: Fail
 cc/Profiler_CodeTicks: Fail
+cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail
 cc/Profiler_ToggleRecordAllocation: Fail
 cc/Profiler_TrivialRecordAllocation: Fail
 cc/Service_Address: Fail
 cc/Service_Code: Fail
-
-[ $compiler == dartk && $system == windows && $strong ]
-cc/Profiler_ContextAllocation: Fail
 
 [ $compiler == dartk && $strong ]
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
