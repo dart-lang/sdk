@@ -809,7 +809,7 @@ class Listener {
     logEvent("TopLevelFields");
   }
 
-  void beginTopLevelMethod(Token token, Token name) {}
+  void beginTopLevelMethod() {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata
@@ -1071,7 +1071,7 @@ class Listener {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
-  void handleNoType(Token token) {
+  void handleNoType() {
     logEvent("NoType");
   }
 

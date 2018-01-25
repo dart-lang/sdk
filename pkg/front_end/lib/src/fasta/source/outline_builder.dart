@@ -416,7 +416,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
+  void beginTopLevelMethod() {
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 

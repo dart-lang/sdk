@@ -224,7 +224,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleNoType(Token token) {
+  void handleNoType() {
     debugEvent("NoType");
     push(NullValue.Type);
   }

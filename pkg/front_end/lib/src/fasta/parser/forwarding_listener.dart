@@ -365,8 +365,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
-    listener?.beginTopLevelMethod(token, name);
+  void beginTopLevelMethod() {
+    listener?.beginTopLevelMethod();
   }
 
   @override
@@ -1150,8 +1150,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNoType(Token token) {
-    listener?.handleNoType(token);
+  void handleNoType() {
+    listener?.handleNoType();
   }
 
   @override

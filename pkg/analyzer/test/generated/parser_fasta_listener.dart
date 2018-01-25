@@ -478,8 +478,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
-    super.beginTopLevelMethod(token, name);
+  void beginTopLevelMethod() {
+    super.beginTopLevelMethod();
     begin('TopLevelMethod');
   }
 
