@@ -40,7 +40,6 @@ function_type_parameter_negative_test: CompileTimeError
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
-generic_list_checked_test: StaticWarning
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
@@ -327,7 +326,6 @@ function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
-generic_list_checked_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
@@ -1043,7 +1041,6 @@ constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 error_stacktrace_test/00: Pass
 field3a_negative_test: StaticWarning # Issue 28823
 forwarding_stub_tearoff_test: CompileTimeError
-generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29070
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29070

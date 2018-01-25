@@ -444,7 +444,6 @@ covariance_field_test/05: RuntimeError
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 function_subtype_setter0_test: RuntimeError
-generic_list_checked_test: RuntimeError
 if_null_precedence_test/none: RuntimeError
 type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 
@@ -616,8 +615,6 @@ deferred_type_dependency_test/type_annotation: CompileTimeError # KernelVM bug: 
 disassemble_test: Pass, Slow
 duplicate_export_negative_test: Fail # Issue 6134
 dynamic_prefix_core_test/none: CompileTimeError
-dynamic_test: RuntimeError
-dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 emit_const_fields_test: CompileTimeError # Issue 31533
 example_constructor_test: Fail, OK
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
@@ -673,7 +670,6 @@ generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
-generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -1444,7 +1440,6 @@ generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
-generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
@@ -1759,8 +1754,8 @@ type_variable_bounds_test/11: MissingCompileTimeError
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
+vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/optimized_guarded_field_isolates_test: RuntimeError
 vm/optimized_stacktrace_test: Crash

@@ -26,29 +26,33 @@ class HasMethodDynamic {
 }
 
 main() {
+  // dynamic is a top-type, equivalent to Object at runtime.
   Expect.isTrue(dynamic is Type);
   Expect.equals(dynamic, dynamic);
 
+  // dynamic is not a subtype of num or String.
   M1<dynamic, dynamic> m1 = new M1<dynamic, dynamic>();
-  Expect.isTrue(m1 is Iface<dynamic, num>);
-  Expect.isTrue(m1 is Iface<String, dynamic>);
-  Expect.isTrue(m1 is Iface<String, num>);
-  Expect.isTrue(m1 is Iface<num, String>);
+  Expect.isFalse(m1 is Iface<dynamic, num>);
+  Expect.isFalse(m1 is Iface<String, dynamic>);
+  Expect.isFalse(m1 is Iface<String, num>);
+  Expect.isFalse(m1 is Iface<num, String>);
 
-  M2<dynamic> m2 = new M2<dynamic>();
-  Expect.isTrue(m2 is Iface<dynamic, num>);
-  Expect.isTrue(m2 is Iface<String, dynamic>);
-  Expect.isTrue(m2 is Iface<String, num>);
-  Expect.isTrue(m2 is Iface<num, String>);
+  M2<dynamic> m2 = new M2<dynamic>(); // is Iface<dynamic, dynamic>.
+  Expect.isFalse(m2 is Iface<dynamic, num>);
+  Expect.isFalse(m2 is Iface<String, dynamic>);
+  Expect.isFalse(m2 is Iface<String, num>);
+  Expect.isFalse(m2 is Iface<num, String>);
 
-  M3 m3 = new M3();
-  Expect.isTrue(m3 is Iface<dynamic, num>);
+  M3 m3 = new M3(); // is IFace<String, dynamic>.
+  Expect.isFalse(m3 is Iface<dynamic, num>);
   Expect.isTrue(m3 is Iface<String, dynamic>);
-  Expect.isTrue(m3 is Iface<String, num>);
+  Expect.isFalse(m3 is Iface<String, num>);
   Expect.isTrue(m3 is! Iface<num, String>);
 
-  F1<int> f1 = (dynamic s, int i) => s[i];
+  F1<int> f1 = (dynamic s, int i) => s[i]; // is dynamic Function(dynamic, int).
   Expect.isTrue(f1 is F1<int>);
+
+  // "dynamic" is not a reserved word or built-in identifier.
 
   HasFieldDynamic has_field = new HasFieldDynamic();
   Expect.equals("dynamic", has_field.dynamic);

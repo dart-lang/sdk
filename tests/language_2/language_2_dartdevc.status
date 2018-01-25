@@ -743,7 +743,6 @@ function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
 function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
 generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
-generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
@@ -813,7 +812,6 @@ deferred_redirecting_factory_test: RuntimeError # Issue 27777; Uncaught Expect.t
 deferred_static_seperate_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
 double_int_to_string_test: RuntimeError # Issue 29920; Expect.equals(expected: <0.0>, actual: <0>) fails.
 double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920; Expect.throws(ArgumentError) fails: Did not throw
-dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>; Expect.isTrue(false) fails.
 example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 3 4 1 2 5 6 >) fails.
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.isTrue(false) fails.
 expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
@@ -893,7 +891,6 @@ config_import_corelib_test: CompileTimeError
 field3_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
-generic_list_checked_test: CompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.

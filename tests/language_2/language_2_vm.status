@@ -68,6 +68,7 @@ vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
 [ $compiler == app_jit && $runtime == vm && $checked ]
+dynamic_test: RuntimeError
 generic_functions_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
@@ -1236,6 +1237,7 @@ vm/math_vm_test: Crash
 
 [ $compiler == none && $runtime == vm && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392. The VM doesn't enforce that potentially const expressions are actually const expressions when the constructor is called with `const`.
+dynamic_test: RuntimeError
 generic_functions_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
