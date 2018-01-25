@@ -1291,123 +1291,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _validateTopLevelInitializer(String name, Expression n) {
-    void validateHasType(PropertyAccessorElement e) {
-      if (e.hasImplicitReturnType) {
-        var variable = e.variable as VariableElementImpl;
-        TopLevelInferenceError error = variable.typeInferenceError;
-        if (error != null) {
-          if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-            _recordMessage(
-                n, StrongModeCode.TOP_LEVEL_CYCLE, [name, error.arguments]);
-          } else {
-            _recordMessage(
-                n, StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE, [name, e.name]);
-          }
-        }
-      }
-    }
-
-    void validateIdentifierElement(AstNode n, Element e) {
-      if (e == null) {
-        return;
-      }
-
-      Element enclosing = e.enclosingElement;
-      if (enclosing is CompilationUnitElement) {
-        if (e is PropertyAccessorElement) {
-          validateHasType(e);
-        }
-      } else if (enclosing is ClassElement) {
-        if (e is PropertyAccessorElement) {
-          if (e.isStatic) {
-            validateHasType(e);
-          } else if (e.hasImplicitReturnType) {
-            _recordMessage(
-                n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [name, e.name]);
-          }
-        }
-      }
-    }
-
-    if (n == null ||
-        n is NullLiteral ||
-        n is BooleanLiteral ||
-        n is DoubleLiteral ||
-        n is IntegerLiteral ||
-        n is StringLiteral ||
-        n is SymbolLiteral ||
-        n is IndexExpression) {
-      // Nothing to validate.
-    } else if (n is AwaitExpression) {
-      _validateTopLevelInitializer(name, n.expression);
-    } else if (n is ThrowExpression) {
-      // Nothing to validate.
-    } else if (n is ParenthesizedExpression) {
-      _validateTopLevelInitializer(name, n.expression);
-    } else if (n is ConditionalExpression) {
-      _validateTopLevelInitializer(name, n.thenExpression);
-      _validateTopLevelInitializer(name, n.elseExpression);
-    } else if (n is BinaryExpression) {
-      TokenType operator = n.operator.type;
-      if (operator == TokenType.AMPERSAND_AMPERSAND ||
-          operator == TokenType.BAR_BAR ||
-          operator == TokenType.EQ_EQ ||
-          operator == TokenType.BANG_EQ) {
-        // These operators give 'bool', no need to validate operands.
-      } else if (operator == TokenType.QUESTION_QUESTION) {
-        _validateTopLevelInitializer(name, n.leftOperand);
-        _validateTopLevelInitializer(name, n.rightOperand);
-      } else {
-        _validateTopLevelInitializer(name, n.leftOperand);
-      }
-    } else if (n is PrefixExpression) {
-      TokenType operator = n.operator.type;
-      if (operator == TokenType.BANG) {
-        // This operator gives 'bool', no need to validate operands.
-      } else {
-        _validateTopLevelInitializer(name, n.operand);
-      }
-    } else if (n is PostfixExpression) {
-      _validateTopLevelInitializer(name, n.operand);
-    } else if (n is ListLiteral) {
-      if (n.typeArguments == null) {
-        for (Expression element in n.elements) {
-          _validateTopLevelInitializer(name, element);
-        }
-      }
-    } else if (n is MapLiteral) {
-      if (n.typeArguments == null) {
-        for (MapLiteralEntry entry in n.entries) {
-          _validateTopLevelInitializer(name, entry.key);
-          _validateTopLevelInitializer(name, entry.value);
-        }
-      }
-    } else if (n is FunctionExpression) {
-      FunctionBody body = n.body;
-      if (body is ExpressionFunctionBody) {
-        _validateTopLevelInitializer(name, body.expression);
-      } else {
-        _recordMessage(n, StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, []);
-      }
-    } else if (n is InstanceCreationExpression) {
-      // Nothing to validate.
-    } else if (n is AsExpression) {
-      // Nothing to validate.
-    } else if (n is IsExpression) {
-      // Nothing to validate.
-    } else if (n is Identifier) {
-      validateIdentifierElement(n, n.staticElement);
-    } else if (n is PropertyAccess) {
-      Element element = n.propertyName.staticElement;
-      validateIdentifierElement(n.propertyName, element);
-    } else if (n is FunctionExpressionInvocation) {
-      _validateTopLevelInitializer(name, n.function);
-    } else if (n is MethodInvocation) {
-      _validateTopLevelInitializer(name, n.methodName);
-      _validateTopLevelInitializer(name, n.target);
-    } else if (n is CascadeExpression) {
-      _validateTopLevelInitializer(name, n.target);
-    }
+    n.accept(new _TopLevelInitializerValidator(this, name));
   }
 }
 
@@ -2067,5 +1951,169 @@ class _OverrideChecker {
     return node is ClassDeclaration
         ? node.withClause
         : (node as ClassTypeAlias).withClause;
+  }
+}
+
+class _TopLevelInitializerValidator extends RecursiveAstVisitor<Null> {
+  final CodeChecker _codeChecker;
+  final String _name;
+
+  _TopLevelInitializerValidator(this._codeChecker, this._name);
+
+  void validateHasType(AstNode n, PropertyAccessorElement e) {
+    if (e.hasImplicitReturnType) {
+      var variable = e.variable as VariableElementImpl;
+      TopLevelInferenceError error = variable.typeInferenceError;
+      if (error != null) {
+        if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
+          _codeChecker._recordMessage(
+              n, StrongModeCode.TOP_LEVEL_CYCLE, [_name, error.arguments]);
+        } else {
+          _codeChecker._recordMessage(
+              n, StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE, [_name, e.name]);
+        }
+      }
+    }
+  }
+
+  void validateIdentifierElement(AstNode n, Element e) {
+    if (e == null) {
+      return;
+    }
+
+    Element enclosing = e.enclosingElement;
+    if (enclosing is CompilationUnitElement) {
+      if (e is PropertyAccessorElement) {
+        validateHasType(n, e);
+      }
+    } else if (enclosing is ClassElement) {
+      if (e is PropertyAccessorElement) {
+        if (e.isStatic) {
+          validateHasType(n, e);
+        } else if (e.hasImplicitReturnType) {
+          _codeChecker._recordMessage(
+              n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [_name, e.name]);
+        }
+      }
+    }
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    // Nothing to validate.
+  }
+
+  @override
+  visitBinaryExpression(BinaryExpression node) {
+    TokenType operator = node.operator.type;
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      // These operators give 'bool', no need to validate operands.
+    } else {
+      node.leftOperand.accept(this);
+    }
+  }
+
+  @override
+  visitCascadeExpression(CascadeExpression node) {
+    node.target.accept(this);
+  }
+
+  @override
+  visitConditionalExpression(ConditionalExpression node) {
+    // No need to validate the condition, since it can't affect type inference.
+    node.thenExpression.accept(this);
+    node.elseExpression.accept(this);
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    FunctionBody body = node.body;
+    if (body is ExpressionFunctionBody) {
+      body.expression.accept(this);
+    } else {
+      _codeChecker._recordMessage(
+          node, StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, []);
+    }
+  }
+
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    var functionType = node.function.staticType;
+    if (node.typeArguments == null &&
+        functionType is FunctionType &&
+        functionType.typeFormals.isNotEmpty) {
+      // Type inference might depend on the parameters
+      super.visitFunctionExpressionInvocation(node);
+    }
+  }
+
+  @override
+  visitIndexExpression(IndexExpression node) {
+    // Nothing to validate.
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var constructor = node.staticElement;
+    ClassElement class_ = constructor?.enclosingElement;
+    if (node.constructorName.type.typeArguments == null &&
+        class_ != null &&
+        class_.typeParameters.isNotEmpty) {
+      // Type inference might depend on the parameters
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  visitIsExpression(IsExpression node) {
+    // Nothing to validate.
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  visitMapLiteral(MapLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    var method = node.methodName.staticElement;
+    validateIdentifierElement(node, method);
+    if (method is ExecutableElement) {
+      if (node.typeArguments == null && method.typeParameters.isNotEmpty) {
+        // Type inference might depend on the parameters
+        super.visitMethodInvocation(node);
+      }
+    }
+  }
+
+  @override
+  visitPrefixExpression(PrefixExpression node) {
+    if (node.operator.type == TokenType.BANG) {
+      // This operator gives 'bool', no need to validate operands.
+    } else {
+      node.operand.accept(this);
+    }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    validateIdentifierElement(node, node.staticElement);
+  }
+
+  @override
+  visitThrowExpression(ThrowExpression node) {
+    // Nothing to validate.
   }
 }
