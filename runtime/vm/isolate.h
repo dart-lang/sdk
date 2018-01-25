@@ -184,7 +184,6 @@ class Isolate : public BaseIsolate {
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
-  void RegisterClassAt(intptr_t index, const Class& cls);
 #if defined(DEBUG)
   void ValidateClassTable();
 #endif

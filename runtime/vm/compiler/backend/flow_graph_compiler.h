@@ -397,6 +397,13 @@ class FlowGraphCompiler : public ValueObject {
                                Label* is_not_instance_lbl);
   void GenerateListTypeCheck(Register kClassIdReg, Label* is_instance_lbl);
 
+  // Returns true if no further checks are necessary but the code coming after
+  // the emitted code here is still required do a runtime call (for the negative
+  // case of throwing an exception).
+  bool GenerateSubclassTypeCheck(Register class_id_reg,
+                                 const Class& type_class,
+                                 Label* is_subtype_lbl);
+
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
                                  intptr_t deopt_id,
@@ -651,17 +658,22 @@ class FlowGraphCompiler : public ValueObject {
                                            intptr_t max_immediate);
 
   // More helpers for EmitTestAndCall.
+
+  static Register EmitTestCidRegister();
+
   void EmitTestAndCallLoadReceiver(intptr_t count_without_type_args,
                                    const Array& arguments_descriptor);
 
   void EmitTestAndCallSmiBranch(Label* label, bool jump_if_smi);
 
-  void EmitTestAndCallLoadCid();
+  void EmitTestAndCallLoadCid(Register class_id_reg);
 
   // Returns new class-id bias.
-  int EmitTestAndCallCheckCid(Label* next_label,
+  int EmitTestAndCallCheckCid(Label* label,
+                              Register class_id_reg,
                               const CidRange& range,
-                              int bias);
+                              int bias,
+                              bool jump_on_miss = true);
 
 // DBC handles type tests differently from all other architectures due
 // to its interpreted nature.

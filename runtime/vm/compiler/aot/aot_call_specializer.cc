@@ -994,13 +994,13 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
     return false;
   }
 
-  TypeRangeCache* cache = precompiler_->type_range_cache();
-  if (cache == NULL) {
+  HierarchyInfo* hi = thread()->hierarchy_info();
+  if (hi == NULL) {
     return false;
   }
 
   intptr_t lower_limit, upper_limit;
-  if (!cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
+  if (!hi->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
     return false;
   }
 
@@ -1068,13 +1068,13 @@ bool AotCallSpecializer::TryReplaceTypeCastWithRangeCheck(
     return false;
   }
 
-  TypeRangeCache* cache = precompiler_->type_range_cache();
-  if (cache == NULL) {
+  HierarchyInfo* hi = thread()->hierarchy_info();
+  if (hi == NULL) {
     return false;
   }
 
   intptr_t lower_limit, upper_limit;
-  if (!cache->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
+  if (!hi->InstanceOfHasClassRange(type, &lower_limit, &upper_limit)) {
     return false;
   }
 

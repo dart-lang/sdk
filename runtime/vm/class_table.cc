@@ -190,15 +190,6 @@ void ClassTable::AllocateIndex(intptr_t index) {
   }
 }
 
-void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(index != kIllegalCid);
-  ASSERT(index >= kNumPredefinedCids);
-  AllocateIndex(index);
-  cls.set_id(index);
-  table_[index] = cls.raw();
-}
-
 #if defined(DEBUG)
 void ClassTable::Unregister(intptr_t index) {
   table_[index] = 0;

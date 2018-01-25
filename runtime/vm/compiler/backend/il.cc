@@ -45,6 +45,93 @@ DEFINE_FLAG(bool,
             "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 
+const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(const Class& klass) {
+  ASSERT(!klass.IsGeneric());
+
+  Zone* zone = thread_->zone();
+  ClassTable* table = thread_->isolate()->class_table();
+  const intptr_t cid_count = table->NumCids();
+  if (cid_subtype_ranges_ == NULL) {
+    cid_subtype_ranges_ = new CidRangeVector[cid_count];
+  }
+
+  CidRangeVector& ranges = cid_subtype_ranges_[klass.id()];
+  if (ranges.length() == 0) {
+    // The ranges haven't been computed yet, so let's compute them.
+
+    Class& cls = Class::Handle(zone);
+    Type& dst_type = Type::Handle(zone, Type::NewNonParameterizedType(klass));
+    AbstractType& cls_type = AbstractType::Handle(zone);
+
+    intptr_t start = -1;
+    for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
+      // Create local zone because deep hierarchies may allocate lots of handles
+      // within one iteration of this loop.
+      StackZone stack_zone(thread_);
+      HANDLESCOPE(thread_);
+
+      if (!table->HasValidClassAt(cid)) continue;
+      if (cid == kTypeArgumentsCid) continue;
+      if (cid == kVoidCid) continue;
+      if (cid == kDynamicCid) continue;
+      if (cid == kNullCid) continue;
+      cls = table->At(cid);
+      if (cls.is_abstract()) continue;
+      if (cls.is_patch()) continue;
+      if (cls.IsTopLevel()) continue;
+
+      cls_type = cls.RareType();
+      const bool is_subtype =
+          cls_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kNew);
+      if (start == -1 && is_subtype) {
+        start = cid;
+      } else if (start != -1 && !is_subtype) {
+        CidRange range(start, cid - 1);
+        ranges.Add(range);
+        start = -1;
+      }
+    }
+
+    if (start != -1) {
+      CidRange range(start, cid_count - 1);
+      ranges.Add(range);
+    }
+
+    if (start == -1 && ranges.length() == 0) {
+      // Not implemented by any concrete class.
+      CidRange range;
+      ASSERT(range.IsIllegalRange());
+      ranges.Add(range);
+    }
+  }
+  return ranges;
+}
+
+bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
+                                            intptr_t* lower_limit,
+                                            intptr_t* upper_limit) {
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+
+  if (!type.IsInstantiated() || type.IsFunctionType() ||
+      type.IsDartFunctionType()) {
+    return false;
+  }
+
+  // TODO(kustermann): Support also classes like 'class Foo extends Bar<Baz> {}'
+  Zone* zone = thread_->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
+  if (type_class.NumTypeArguments() > 0) {
+    return false;
+  }
+  const CidRangeVector& ranges = SubtypeRangesForClass(type_class);
+  if (ranges.length() == 1) {
+    *lower_limit = ranges[0].cid_start;
+    *upper_limit = ranges[0].cid_end;
+    return true;
+  }
+  return false;
+}
+
 #if defined(DEBUG)
 void Instruction::CheckField(const Field& field) const {
   ASSERT(field.IsZoneHandle());

@@ -189,10 +189,6 @@ void Isolate::RegisterClass(const Class& cls) {
   class_table()->Register(cls);
 }
 
-void Isolate::RegisterClassAt(intptr_t index, const Class& cls) {
-  class_table()->RegisterAt(index, cls);
-}
-
 #if defined(DEBUG)
 void Isolate::ValidateClassTable() {
   class_table()->Validate();
