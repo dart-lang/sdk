@@ -13,6 +13,9 @@ final o6 = 1.3; // LINT
 final o7 = null; // LINT
 final o8 = const {}; // LINT
 
+// lint on final keyword
+final a = null; // LINT
+
 class A {
   static const o1 = const []; // OK
   static final o2 = []; // OK
@@ -22,6 +25,10 @@ class A {
   static final o6 = 1.3; // LINT
   static final o7 = null; // LINT
   static final o8 = const {}; // LINT
+
+  // lint on final keyword
+  static //
+      final a = null; // LINT
 
   final i = const []; // OK
 }

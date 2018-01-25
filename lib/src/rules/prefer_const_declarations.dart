@@ -6,14 +6,15 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-// ignore: implementation_imports
-
 
 const _desc = r'Prefer const over final for declarations.';
 
 const _details = r'''
 
 **PREFER** using `const` for const declarations.
+
+Const declarations are more hot-reload friendly and allow to use const
+constructors if an instantiation references this declaration.
 
 **GOOD:**
 ```
@@ -62,7 +63,7 @@ class _Visitor extends SimpleAstVisitor {
     if (!node.variables.isFinal) return;
     if (node.variables.variables
         .every((declaration) => _isConst(declaration.initializer))) {
-      rule.reportLint(node);
+      rule.reportLint(node.variables);
     }
   }
 
@@ -73,7 +74,7 @@ class _Visitor extends SimpleAstVisitor {
     if (!node.fields.isFinal) return;
     if (node.fields.variables
         .every((declaration) => _isConst(declaration.initializer))) {
-      rule.reportLint(node);
+      rule.reportLint(node.fields);
     }
   }
 
