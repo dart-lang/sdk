@@ -337,6 +337,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     IsolateData* isolate_data =
         new IsolateData(uri, package_root, packages_config, NULL);
     isolate_data->kernel_program = kernel_service_program;
+    isolate_data->set_create_isolate_from_kernel(true);
     isolate = Dart_CreateIsolateFromKernel(uri, main, kernel_service_program,
                                            flags, isolate_data, error);
   }
@@ -391,10 +392,12 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   ASSERT(flags != NULL);
   flags->load_vmservice_library = true;
   if (dfe.UsePlatformBinary()) {
+    isolate_data->set_create_isolate_from_kernel(true);
     isolate = Dart_CreateIsolateFromKernel(
         script_uri, NULL, dfe.kernel_platform(), flags, isolate_data, error);
     skip_library_load = true;
   } else if (dfe.application_kernel_binary() != NULL) {
+    isolate_data->set_create_isolate_from_kernel(true);
     isolate = Dart_CreateIsolateFromKernel(script_uri, NULL,
                                            dfe.application_kernel_binary(),
                                            flags, isolate_data, error);
@@ -499,9 +502,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
   Dart_Isolate isolate = NULL;
   if (kernel_platform != NULL) {
+    isolate_data->set_create_isolate_from_kernel(true);
     isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_platform,
                                            flags, isolate_data, error);
   } else if (kernel_program != NULL) {
+    isolate_data->set_create_isolate_from_kernel(true);
     isolate = Dart_CreateIsolateFromKernel(script_uri, main, kernel_program,
                                            flags, isolate_data, error);
   } else {

@@ -21,7 +21,8 @@ IsolateData::IsolateData(const char* url,
       builtin_lib_(NULL),
       loader_(NULL),
       app_snapshot_(app_snapshot),
-      dependencies_(NULL) {
+      dependencies_(NULL),
+      create_isolate_from_kernel_(false) {
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
     this->package_root = strdup(package_root);

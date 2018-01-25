@@ -778,7 +778,12 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
-    if (Dart_KernelIsolateIsRunning()) {
+    if (Dart_KernelIsolateIsRunning() &&
+        isolate_data->create_isolate_from_kernel()) {
+      // TODO(sivachandra): After linking the platform kernel file with
+      // the embedder, the library tag handler should not be called to compile
+      // a script to kernel and load it. Remove this part when platform kernel
+      // kernel file is linked in to the embedder.
       loader->SendKernelRequest(tag, url);
     } else {
       loader->SendRequest(
