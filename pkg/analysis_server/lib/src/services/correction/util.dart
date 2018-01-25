@@ -650,14 +650,14 @@ class CorrectionUtils {
   String _buffer;
   String _endOfLine;
 
-  CorrectionUtils(this.unit) {
+  CorrectionUtils(this.unit, {String buffer}) {
     CompilationUnitElement unitElement = unit.element;
     AnalysisContext context = unitElement.context;
     if (context == null) {
       throw new CancelCorrectionException();
     }
     this._library = unitElement.library;
-    this._buffer = context.getContents(unitElement.source).data;
+    this._buffer = buffer ?? context.getContents(unitElement.source).data;
   }
 
   /**

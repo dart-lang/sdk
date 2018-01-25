@@ -269,6 +269,17 @@ bool isWidgetCreation(InstanceCreationExpression expr) {
 }
 
 /**
+ * Return `true` if the given [node] is the Flutter class `Widget`, or its
+ * subtype.
+ */
+bool isWidgetExpression(AstNode node) {
+  if (node is Expression) {
+    return isWidgetType(node.staticType);
+  }
+  return false;
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `Widget`, or its
  * subtype.
  */
