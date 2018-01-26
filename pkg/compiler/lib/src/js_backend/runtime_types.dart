@@ -1635,15 +1635,12 @@ class FunctionArgumentCollector
   }
 }
 
-/**
- * Representation of the substitution of type arguments
- * when going from the type of a class to one of its supertypes.
- *
- * For [:class B<T> extends A<List<T>, int>:], the substitution is
- * the representation of [: (T) => [<List, T>, int] :].  For more details
- * of the representation consult the documentation of
- * [getSupertypeSubstitution].
- */
+/// Representation of the substitution of type arguments when going from the
+/// type of a class to one of its supertypes.
+///
+/// For `class B<T> extends A<List<T>, int>`, the substitution is the
+/// representation of `(T) => [<List, T>, int]`. For more details of the
+/// representation consult the documentation of [getSupertypeSubstitution].
 //TODO(floitsch): Remove support for non-function substitutions.
 class Substitution {
   final bool isFunction;
@@ -1662,7 +1659,7 @@ class Substitution {
 
 /**
  * A pair of a class that we need a check against and the type argument
- * substition for this check.
+ * substitution for this check.
  */
 class TypeCheck {
   final ClassEntity cls;

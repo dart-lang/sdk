@@ -39,6 +39,14 @@ class TypeTestRegistry {
   /// used for RTI.
   Set<ClassEntity> _rtiNeededClasses;
 
+  /// The required checks on classes.
+  // TODO(johnniwinther): Currently this is wrongfully computed twice. Once
+  // in [computeRequiredTypeChecks] and once in [computeRtiNeededClasses]. The
+  // former is stored in [RuntimeTypeChecks] and used in the
+  // [TypeRepresentationGenerator] and the latter is used to compute the
+  // classes needed for RTI.
+  TypeChecks _requiredChecks;
+
   Iterable<ClassEntity> cachedClassesUsingTypeVariableTests;
 
   Iterable<ClassEntity> get classesUsingTypeVariableTests {
@@ -76,6 +84,14 @@ class TypeTestRegistry {
         failedAt(NO_LOCATION_SPANNABLE,
             "rtiNeededClasses has not been computed yet."));
     return _rtiNeededClasses;
+  }
+
+  TypeChecks get requiredChecks {
+    assert(
+        _requiredChecks != null,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "requiredChecks has not been computed yet."));
+    return _requiredChecks;
   }
 
   /**
@@ -123,7 +139,7 @@ class TypeTestRegistry {
 
     // 2.  Add classes that are referenced by substitutions in object checks and
     //     their superclasses.
-    TypeChecks requiredChecks =
+    _requiredChecks =
         rtiSubstitutions.computeChecks(rtiNeededClasses, checkedClasses);
     Set<ClassEntity> classesUsedInSubstitutions =
         rtiSubstitutions.getClassesUsedInSubstitutions(requiredChecks);

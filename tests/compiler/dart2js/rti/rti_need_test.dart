@@ -32,7 +32,19 @@ main(List<String> args) {
         computeClassDataFromAst: computeAstRtiClassNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
         args: args,
-        options: [Flags.strongMode]);
+        options: [
+          Flags.strongMode
+        ],
+        skipForAst: [
+          'generic_instanceof4.dart',
+          'generic_instanceof4_unused.dart',
+          'list_to_set.dart',
+        ],
+        skipForKernel: [
+          'generic_instanceof4.dart',
+          'generic_instanceof4_unused.dart',
+          'list_to_set.dart',
+        ]);
   });
 }
 
@@ -68,7 +80,13 @@ abstract class ComputeValueMixin<T> {
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
       compiler.frontendStrategy.runtimeTypesNeedBuilderForTesting;
   RuntimeTypesNeed get rtiNeed => compiler.backendClosedWorldForTesting.rtiNeed;
-
+  RuntimeTypesChecks get rtiChecks =>
+      compiler.backend.emitter.typeTestRegistry.rtiChecks;
+  TypeChecks get requiredChecks =>
+      // TODO(johnniwinther): This should have been
+      //   rtiChecks.requiredChecks;
+      // but it is incomplete and extended? by this:
+      compiler.backend.emitter.typeTestRegistry.requiredChecks;
   ClassEntity getFrontendClass(ClassEntity cls);
   MemberEntity getFrontendMember(MemberEntity member);
   Local getFrontendClosure(MemberEntity member);
@@ -128,6 +146,14 @@ abstract class ComputeValueMixin<T> {
         sb, comma, 'explicit', frontendClass, rtiNeedBuilder.isChecks);
     comma = findChecks(
         sb, comma, 'implicit', frontendClass, rtiNeedBuilder.implicitIsChecks);
+    if (rtiChecks.getRequiredArgumentClasses().contains(backendClass)) {
+      sb.write('${comma}required');
+      comma = ',';
+    }
+    Iterable<TypeCheck> checks = requiredChecks[backendClass];
+    if (checks.isNotEmpty) {
+      sb.write('${comma}checks=[${checks.map((c) => c.cls.name).join(',')}]');
+    }
     return sb.toString();
   }
 

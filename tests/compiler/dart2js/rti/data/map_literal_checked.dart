@@ -2,17 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: A:explicit=[B<A>],required*/
-class A {}
-
-/*class: B:needsArgs,deps=[C],explicit=[B<A>]*/
-class B<T> {}
-
-/*class: C:needsArgs*/
-class C<T> {
-  method() => new B<T>();
-}
+/*class: global#double:explicit=[double],implicit=[double],required,checks=[double,num,Object]*/
 
 main() {
-  new C<A>().method() is B<A>;
+  <int, double>{}[0] = 0.5;
 }

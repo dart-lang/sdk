@@ -5,7 +5,8 @@
 /*class: A:explicit=[B<A>]*/
 class A {}
 
-/*class: B:needsArgs,deps=[closure],explicit=[B<A>]*/
+/*ast.class: B:needsArgs,deps=[closure],explicit=[B<A>]*/
+/*kernel.class: B:needsArgs,deps=[closure],explicit=[B<A>],required*/
 class B<T> {}
 
 main() {
