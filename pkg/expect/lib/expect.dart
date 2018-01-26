@@ -484,6 +484,10 @@ class Expect {
    * the type of the exception you could write this:
    *
    *     Expect.throws(myThrowingFunction, (e) => e is MyException);
+   *
+   * If `f` fails an expectation (i.e., throws an [ExpectException]), that
+   * exception is not caught by [Expect.throws]. The test is still considered
+   * failing.
    */
   static void throws(void f(), [bool check(Object error), String reason]) {
     String msg = reason == null ? "" : "($reason)";
