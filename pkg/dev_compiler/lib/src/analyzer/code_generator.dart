@@ -2052,12 +2052,8 @@ class CodeGenerator extends Object
       List<JS.Statement> body) {
     // Metadata
     if (options.emitMetadata && metadata.isNotEmpty) {
-      body.add(js.statement('#[#.metadata] = () => #;', [
-        className,
-        _runtimeModule,
-        new JS.ArrayInitializer(
-            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
-      ]));
+      body.add(js.statement('#[#.metadata] = () => [#];',
+          [className, _runtimeModule, metadata.map(_instantiateAnnotation)]));
     }
   }
 
@@ -2102,11 +2098,8 @@ class CodeGenerator extends Object
   void _emitClassSignature(ClassElement classElem, JS.Expression className,
       Map<Element, Declaration> annotatedMembers, List<JS.Statement> body) {
     if (classElem.interfaces.isNotEmpty) {
-      body.add(js.statement('#[#.implements] = () => #;', [
-        className,
-        _runtimeModule,
-        new JS.ArrayInitializer(classElem.interfaces.map(_emitType).toList())
-      ]));
+      body.add(js.statement('#[#.implements] = () => [#];',
+          [className, _runtimeModule, classElem.interfaces.map(_emitType)]));
     }
 
     void emitSignature(String name, List<JS.Property> elements) {
@@ -3255,10 +3248,9 @@ class CodeGenerator extends Object
 
       addTypeFormalsAsParameters(List<JS.Expression> elements) {
         var names = _typeTable.discharge(typeFormals);
-        var array = new JS.ArrayInitializer(elements);
         return names.isEmpty
-            ? js.call('(#) => #', [tf, array])
-            : js.call('(#) => {#; return #;}', [tf, names, array]);
+            ? js.call('(#) => [#]', [tf, elements])
+            : js.call('(#) => {#; return [#];}', [tf, names, elements]);
       }
 
       typeParts = [addTypeFormalsAsParameters(typeParts)];
@@ -3731,10 +3723,10 @@ class CodeGenerator extends Object
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
       if (typeArgs != null) {
-        return _callHelper('#(#, #, #, #)', [
+        return _callHelper('#(#, [#], #, #)', [
           _emitDynamicOperationName('dgsend'),
           jsTarget,
-          new JS.ArrayInitializer(typeArgs),
+          typeArgs,
           jsName,
           args
         ]);
@@ -3760,8 +3752,7 @@ class CodeGenerator extends Object
       InvocationExpression node, JS.Expression fn, List<JS.Expression> args) {
     var typeArgs = _emitInvokeTypeArguments(node);
     if (typeArgs != null) {
-      return _callHelper(
-          'dgcall(#, #, #)', [fn, new JS.ArrayInitializer(typeArgs), args]);
+      return _callHelper('dgcall(#, [#], #)', [fn, typeArgs, args]);
     } else {
       return _callHelper('dcall(#, #)', [fn, args]);
     }
@@ -5615,8 +5606,7 @@ class CodeGenerator extends Object
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArray);
-    return _callHelper('constList(#, #)',
-        [new JS.ArrayInitializer(elements), _emitType(elementType)]);
+    return _callHelper('constList([#], #)', [elements, _emitType(elementType)]);
   }
 
   JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {

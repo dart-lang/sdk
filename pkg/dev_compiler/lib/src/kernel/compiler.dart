@@ -1089,10 +1089,8 @@ class ProgramCompiler
       body.add(js.statement('#[#.metadata] = #;', [
         className,
         _runtimeModule,
-        new JS.ArrowFun(
-            [],
-            _withLetScopeArrowFunction(() => new JS.ArrayInitializer(
-                new List.from(metadata.map(_instantiateAnnotation)))))
+        _arrowFunctionWithLetScope(() => new JS.ArrayInitializer(
+            metadata.map(_instantiateAnnotation).toList()))
       ]));
     }
   }
@@ -1135,12 +1133,10 @@ class ProgramCompiler
   void _emitClassSignature(
       Class c, JS.Expression className, List<JS.Statement> body) {
     if (c.implementedTypes.isNotEmpty) {
-      body.add(js.statement('#[#.implements] = () => #;', [
+      body.add(js.statement('#[#.implements] = () => [#];', [
         className,
         _runtimeModule,
-        new JS.ArrayInitializer(c.implementedTypes
-            .map((i) => _emitType(i.asInterfaceType))
-            .toList())
+        c.implementedTypes.map((i) => _emitType(i.asInterfaceType))
       ]));
     }
 
@@ -2161,7 +2157,7 @@ class ProgramCompiler
     return body;
   }
 
-  JS.Node _withLetScopeArrowFunction(JS.Expression visitBody()) {
+  JS.ArrowFun _arrowFunctionWithLetScope(JS.Expression visitBody()) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
@@ -2169,7 +2165,8 @@ class ProgramCompiler
     var letVars = _initLetVariables();
 
     _letVariables = savedLetVariables;
-    return letVars == null ? expr : new JS.Block([letVars, expr.toReturn()]);
+    return new JS.ArrowFun(
+        [], letVars == null ? expr : new JS.Block([letVars, expr.toReturn()]));
   }
 
   JS.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix: ''}) {
@@ -2611,10 +2608,9 @@ class ProgramCompiler
 
       addTypeFormalsAsParameters(List<JS.Expression> elements) {
         var names = _typeTable.discharge(typeFormals);
-        var array = new JS.ArrayInitializer(elements);
         return names.isEmpty
-            ? js.call('(#) => #', [tf, array])
-            : js.call('(#) => {#; return #;}', [tf, names, array]);
+            ? js.call('(#) => [#]', [tf, elements])
+            : js.call('(#) => {#; return [#];}', [tf, names, elements]);
       }
 
       typeParts = [addTypeFormalsAsParameters(typeParts)];
@@ -3770,10 +3766,10 @@ class ProgramCompiler
     if (name == 'call') {
       if (isCallingDynamicField || isDynamicOrFunction(receiverType)) {
         if (typeArgs.isNotEmpty) {
-          return _callHelper('dgcall(#, #, #)', [
+          return _callHelper('dgcall(#, [#], #)', [
             jsReceiver,
-            new JS.ArrayInitializer(args.take(typeArgs.length).toList()),
-            args.skip(typeArgs.length).toList()
+            args.take(typeArgs.length),
+            args.skip(typeArgs.length)
           ]);
         } else {
           return _callHelper('dcall(#, #)', [jsReceiver, args]);
@@ -3788,12 +3784,12 @@ class ProgramCompiler
     var jsName = _emitMemberName(name, type: receiverType, member: target);
     if (target == null || isCallingDynamicField) {
       if (typeArgs.isNotEmpty) {
-        return _callHelper('#(#, #, #, #)', [
+        return _callHelper('#(#, [#], #, #)', [
           _emitDynamicOperationName('dgsend'),
           jsReceiver,
-          new JS.ArrayInitializer(args.take(typeArgs.length).toList()),
+          args.take(typeArgs.length),
           jsName,
-          args.skip(typeArgs.length).toList()
+          args.skip(typeArgs.length)
         ]);
       } else {
         return _callHelper('#(#, #, #)',
@@ -4735,8 +4731,7 @@ class ProgramCompiler
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArrayClass);
-    return _callHelper('constList(#, #)',
-        [new JS.ArrayInitializer(elements), _emitType(elementType)]);
+    return _callHelper('constList([#], #)', [elements, _emitType(elementType)]);
   }
 
   JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {

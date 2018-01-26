@@ -696,13 +696,18 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => new LiteralNull();
 
   Instantiator visitArrayInitializer(ArrayInitializer node) {
-    // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers =
-        node.elements.map(visit).toList(growable: false);
+        node.elements.map(visitSplayableExpression).toList(growable: false);
     return (arguments) {
-      List<Expression> elements = elementMakers
-          .map((instantiator) => instantiator(arguments) as Expression)
-          .toList(growable: false);
+      var elements = <Expression>[];
+      for (var instantiator in elementMakers) {
+        var element = instantiator(arguments);
+        if (element is Iterable) {
+          elements.addAll(element);
+        } else {
+          elements.add(element);
+        }
+      }
       return new ArrayInitializer(elements);
     };
   }
