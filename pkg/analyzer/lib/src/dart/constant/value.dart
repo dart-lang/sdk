@@ -100,13 +100,12 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState logicalAnd(InstanceState rightOperandComputer()) {
-    if (value == false) {
-      return FALSE_STATE;
-    }
-    InstanceState rightOperand = rightOperandComputer();
+  BoolState logicalAnd(InstanceState rightOperand) {
     assertBool(rightOperand);
-    return value == null ? UNKNOWN_VALUE : rightOperand.convertToBool();
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? rightOperand.convertToBool() : FALSE_STATE;
   }
 
   @override
@@ -118,13 +117,12 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState logicalOr(InstanceState rightOperandComputer()) {
-    if (value == true) {
-      return TRUE_STATE;
-    }
-    InstanceState rightOperand = rightOperandComputer();
+  BoolState logicalOr(InstanceState rightOperand) {
     assertBool(rightOperand);
-    return value == null ? UNKNOWN_VALUE : rightOperand.convertToBool();
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? TRUE_STATE : rightOperand.convertToBool();
   }
 
   @override
@@ -495,9 +493,9 @@ class DartObjectImpl implements DartObject {
    * object of this kind.
    */
   DartObjectImpl logicalAnd(
-          TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
-      new DartObjectImpl(typeProvider.boolType,
-          _state.logicalAnd(() => rightOperandComputer()?._state));
+          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType, _state.logicalAnd(rightOperand._state));
 
   /**
    * Return the result of invoking the '!' operator on this object. The
@@ -518,9 +516,9 @@ class DartObjectImpl implements DartObject {
    * object of this kind.
    */
   DartObjectImpl logicalOr(
-          TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
-      new DartObjectImpl(typeProvider.boolType,
-          _state.logicalOr(() => rightOperandComputer()?._state));
+          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
+      new DartObjectImpl(
+          typeProvider.boolType, _state.logicalOr(rightOperand._state));
 
   /**
    * Return the result of invoking the '-' operator on this object with the
@@ -1200,8 +1198,8 @@ class DynamicState extends InstanceState {
   }
 
   @override
-  BoolState logicalAnd(InstanceState rightOperandComputer()) {
-    assertBool(rightOperandComputer());
+  BoolState logicalAnd(InstanceState rightOperand) {
+    assertBool(rightOperand);
     return BoolState.UNKNOWN_VALUE;
   }
 
@@ -1209,8 +1207,7 @@ class DynamicState extends InstanceState {
   BoolState logicalNot() => BoolState.UNKNOWN_VALUE;
 
   @override
-  BoolState logicalOr(InstanceState rightOperandComputer()) {
-    InstanceState rightOperand = rightOperandComputer();
+  BoolState logicalOr(InstanceState rightOperand) {
     assertBool(rightOperand);
     return rightOperand.convertToBool();
   }
@@ -1488,8 +1485,7 @@ abstract class InstanceState {
     }
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1564,8 +1560,7 @@ abstract class InstanceState {
   IntState bitAnd(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1576,8 +1571,7 @@ abstract class InstanceState {
    */
   IntState bitNot() {
     assertIntOrNull(this);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1590,8 +1584,7 @@ abstract class InstanceState {
   IntState bitOr(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1604,8 +1597,7 @@ abstract class InstanceState {
   IntState bitXor(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1617,8 +1609,7 @@ abstract class InstanceState {
    */
   StringState concatenate(InstanceState rightOperand) {
     assertString(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1647,8 +1638,7 @@ abstract class InstanceState {
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1670,8 +1660,7 @@ abstract class InstanceState {
   BoolState greaterThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1684,8 +1673,7 @@ abstract class InstanceState {
   BoolState greaterThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1698,8 +1686,7 @@ abstract class InstanceState {
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1718,8 +1705,7 @@ abstract class InstanceState {
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1732,8 +1718,7 @@ abstract class InstanceState {
   BoolState lessThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1743,14 +1728,10 @@ abstract class InstanceState {
    * Throws an [EvaluationException] if the operator is not appropriate for an
    * object of this kind.
    */
-  BoolState logicalAnd(InstanceState rightOperandComputer()) {
+  BoolState logicalAnd(InstanceState rightOperand) {
     assertBool(this);
-    if (convertToBool() == BoolState.FALSE_STATE) {
-      return this;
-    }
-    InstanceState rightOperand = rightOperandComputer();
     assertBool(rightOperand);
-    return rightOperand.convertToBool();
+    return BoolState.FALSE_STATE;
   }
 
   /**
@@ -1771,12 +1752,8 @@ abstract class InstanceState {
    * Throws an [EvaluationException] if the operator is not appropriate for an
    * object of this kind.
    */
-  BoolState logicalOr(InstanceState rightOperandComputer()) {
+  BoolState logicalOr(InstanceState rightOperand) {
     assertBool(this);
-    if (convertToBool() == BoolState.TRUE_STATE) {
-      return this;
-    }
-    InstanceState rightOperand = rightOperandComputer();
     assertBool(rightOperand);
     return rightOperand.convertToBool();
   }
@@ -1791,8 +1768,7 @@ abstract class InstanceState {
   NumState minus(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1803,8 +1779,7 @@ abstract class InstanceState {
    */
   NumState negated() {
     assertNumOrNull(this);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1817,8 +1792,7 @@ abstract class InstanceState {
   NumState remainder(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1831,8 +1805,7 @@ abstract class InstanceState {
   IntState shiftLeft(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1845,8 +1818,7 @@ abstract class InstanceState {
   IntState shiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1857,8 +1829,7 @@ abstract class InstanceState {
    */
   IntState stringLength() {
     assertString(this);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
   /**
@@ -1871,8 +1842,7 @@ abstract class InstanceState {
   NumState times(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
 }
 

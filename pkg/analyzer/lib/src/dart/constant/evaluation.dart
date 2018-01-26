@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library analyzer.src.dart.constant.evaluation;
+
 import 'dart:collection';
 
 import 'package:analyzer/context/declared_variables.dart';
@@ -750,22 +752,6 @@ class ConstantEvaluationEngine {
           reportLocalErrorForRecordedExternalErrors();
           return result;
         }
-      } else if (initializer is AssertInitializer) {
-        Expression condition = initializer.condition;
-        if (condition == null) {
-          errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-              node);
-        }
-        DartObjectImpl evaluationResult = condition.accept(initializerVisitor);
-        if (evaluationResult == null ||
-            !evaluationResult.isBool ||
-            evaluationResult.toBoolValue() != true) {
-          errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-              node);
-          return null;
-        }
       }
     }
     // Evaluate explicit or implicit call to super().
@@ -1255,24 +1241,30 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitBinaryExpression(BinaryExpression node) {
-    TokenType operatorType = node.operator.type;
     DartObjectImpl leftResult = node.leftOperand.accept(this);
-    // evaluate lazy operators
-    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      return _dartObjectComputer.logicalAnd(
-          node, leftResult, () => node.rightOperand.accept(this));
-    } else if (operatorType == TokenType.BAR_BAR) {
-      return _dartObjectComputer.logicalOr(
-          node, leftResult, () => node.rightOperand.accept(this));
-    }
-    // evaluate eager operators
     DartObjectImpl rightResult = node.rightOperand.accept(this);
+    TokenType operatorType = node.operator.type;
+    // 'null' is almost never good operand
+    if (operatorType != TokenType.BANG_EQ &&
+        operatorType != TokenType.EQ_EQ &&
+        operatorType != TokenType.QUESTION_QUESTION) {
+      if (leftResult != null && leftResult.isNull ||
+          rightResult != null && rightResult.isNull) {
+        _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+        return null;
+      }
+    }
+    // evaluate operator
     if (operatorType == TokenType.AMPERSAND) {
       return _dartObjectComputer.bitAnd(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      return _dartObjectComputer.logicalAnd(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BANG_EQ) {
       return _dartObjectComputer.notEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BAR) {
       return _dartObjectComputer.bitOr(node, leftResult, rightResult);
+    } else if (operatorType == TokenType.BAR_BAR) {
+      return _dartObjectComputer.logicalOr(node, leftResult, rightResult);
     } else if (operatorType == TokenType.CARET) {
       return _dartObjectComputer.bitXor(node, leftResult, rightResult);
     } else if (operatorType == TokenType.EQ_EQ) {
@@ -1888,10 +1880,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl logicalAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
-    if (leftOperand != null) {
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.logicalAnd(_typeProvider, rightOperandComputer);
+        return leftOperand.logicalAnd(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1911,10 +1903,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl logicalOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
-    if (leftOperand != null) {
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.logicalOr(_typeProvider, rightOperandComputer);
+        return leftOperand.logicalOr(_typeProvider, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
