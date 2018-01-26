@@ -87,6 +87,7 @@ vars = {
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
   "html_tag" : "@0.13.2+2",
+  "http_io_tag": "@bea7f236fbd62f6e1b47d4806a889f628c58d114",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
   "http_retry_tag": "@0.1.0",
@@ -229,6 +230,8 @@ deps = {
       Var("dart_git") + "html.git" + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + Var("http_tag"),
+  Var("dart_root") + "/third_party/pkg_tested/http_io":
+    Var("dart_git") + "http_io.git" + Var("http_io_tag"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       Var("http_multi_server_tag"),
