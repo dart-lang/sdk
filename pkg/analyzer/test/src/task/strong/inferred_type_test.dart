@@ -2429,7 +2429,7 @@ class B {
 class C extends B {
   f() {}
 }
-var x = new C()./*info:USE_OF_VOID_RESULT*/f();
+var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*info:USE_OF_VOID_RESULT*/f();
 ''');
   }
 

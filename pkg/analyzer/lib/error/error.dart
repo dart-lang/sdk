@@ -667,6 +667,7 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_PARAMETER,
   StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
   StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
+  StrongModeCode.TOP_LEVEL_INSTANCE_METHOD,
   StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
   StrongModeCode.TOP_LEVEL_UNSUPPORTED,
   StrongModeCode.USES_DYNAMIC_AS_BOTTOM,

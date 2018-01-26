@@ -1070,7 +1070,7 @@ const x = const C().t;''');
     Source source = addSource(r'''
 class A {
   const A();
-  m() {}
+  int m() => 0;
 }
 final a = const A();
 const C = a.m;''');
@@ -2894,7 +2894,7 @@ class A {
     Source source = addSource(r'''
 class A {
   static var F = m();
-  m() {}
+  int m() => 0;
 }''');
     await computeAnalysisResult(source);
     assertErrors(

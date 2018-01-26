@@ -3194,7 +3194,7 @@ var b = ((y) => 0)(a.x);
     Source source = addSource('''
 class A {
   var x = 0;
-  int f<T>(x) => 0;
+  int f<T>(int x) => 0;
 }
 var a = new A();
 var b = a.f(a.x);
@@ -3491,6 +3491,126 @@ var b = a.g;
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
     expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  f() => 0;
+}
+var x = new A().f();
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_parameter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f(v) => 0;
+}
+var x = new A().f(0);
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_parameter_generic() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f<T>(v) => 0;
+}
+var x = new A().f(0);
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_parameter_generic_explicit() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f<T>(v) => 0;
+}
+var x = new A().f<int>(0);
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_static() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  static f() => 0;
+}
+var x = A.f();
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_tearoff() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  f() => 0;
+}
+var x = new A().f;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_tearoff_parameter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f(v) => 0;
+}
+var x = new A().f;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_tearoff_static() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  static f() => 0;
+}
+var x = A.f;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
