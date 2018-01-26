@@ -5661,8 +5661,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       return;
     }
-    if (_expressionIsAssignableAtType(
-        returnExpression, staticReturnType, expectedReturnType)) {
+
+    // TODO(mfairhurst) Make this stricter once codebases are compliant.
+    final invalidVoidReturn = staticReturnType.isVoid &&
+        !(expectedReturnType.isVoid || expectedReturnType.isDynamic);
+    if (!invalidVoidReturn &&
+        _expressionIsAssignableAtType(
+            returnExpression, staticReturnType, expectedReturnType)) {
       return;
     }
     if (displayName.isEmpty) {

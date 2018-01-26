@@ -4,8 +4,8 @@
 
 import "package:expect/expect.dart";
 
-void badReturnTypeAsync() async {} // //# 01: compile-time error
-void badReturnTypeAsyncStar() async* {} // //# 02: compile-time error
-void badReturnTypeSyncStar() sync* {} // //# 03: compile-time error
+int badReturnTypeAsync() async {} // //# 01: compile-time error
+int badReturnTypeAsyncStar() async* {} // //# 02: compile-time error
+int badReturnTypeSyncStar() sync* {} // //# 03: compile-time error
 
 void main() {}

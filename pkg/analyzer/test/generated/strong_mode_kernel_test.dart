@@ -438,6 +438,12 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
     // Expected 2 errors of type StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, found 0
     await super.test_setterWithOtherTypeIsError();
   }
+
+  @override
+  @failingTest
+  test_returnOfInvalidType_object_void() async {
+    await super.test_returnOfInvalidType_object_void();
+  }
 }
 
 @reflectiveTest

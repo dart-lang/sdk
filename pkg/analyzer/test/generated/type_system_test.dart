@@ -277,6 +277,7 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
   }
 
   void test_dynamic_void() {
+    // Note: _checkLeastUpperBound tests `LUB(x, y)` as well as `LUB(y, x)`
     _checkLeastUpperBound(dynamicType, voidType, dynamicType);
   }
 
@@ -1235,6 +1236,7 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_dynamic_void() {
+    // Note: _checkGreatestLowerBound tests `GLB(x, y)` as well as `GLB(y, x)`
     _checkGreatestLowerBound(dynamicType, voidType, voidType);
   }
 
@@ -1244,11 +1246,13 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
         futureOrType.instantiate([futureOrDynamicType]);
 
     // Sanity check specific cases of top for GLB/LUB.
-    _checkGreatestLowerBound(objectType, dynamicType, dynamicType);
-    _checkLeastUpperBound(objectType, dynamicType, objectType);
-    _checkGreatestLowerBound(futureOrDynamicType, dynamicType, dynamicType);
-    _checkLeastUpperBound(futureOrDynamicType, objectType, futureOrDynamicType);
-    _checkLeastUpperBound(futureOrDynamicType, futureOrFutureOrDynamicType,
+    _checkLeastUpperBound(objectType, dynamicType, dynamicType);
+    _checkGreatestLowerBound(objectType, dynamicType, objectType);
+    _checkLeastUpperBound(objectType, voidType, objectType);
+    _checkLeastUpperBound(futureOrDynamicType, dynamicType, dynamicType);
+    _checkGreatestLowerBound(
+        futureOrDynamicType, objectType, futureOrDynamicType);
+    _checkGreatestLowerBound(futureOrDynamicType, futureOrFutureOrDynamicType,
         futureOrFutureOrDynamicType);
   }
 
@@ -1256,19 +1260,25 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     // Test every combination of a subset of Tops programatically.
     final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
     final futureOrObjectType = futureOrType.instantiate([objectType]);
+    final futureOrVoidType = futureOrType.instantiate([voidType]);
     final futureOrFutureOrDynamicType =
         futureOrType.instantiate([futureOrDynamicType]);
     final futureOrFutureOrObjectType =
         futureOrType.instantiate([futureOrObjectType]);
+    final futureOrFutureOrVoidType =
+        futureOrType.instantiate([futureOrVoidType]);
 
     final orderedTops = [
       // Lower index, so lower Top
-      futureOrFutureOrObjectType,
-      futureOrFutureOrDynamicType,
-      futureOrObjectType,
-      futureOrDynamicType,
-      objectType,
       dynamicType,
+      objectType,
+      voidType,
+      futureOrDynamicType,
+      futureOrObjectType,
+      futureOrVoidType,
+      futureOrFutureOrDynamicType,
+      futureOrFutureOrObjectType,
+      futureOrFutureOrVoidType,
       // Higher index, higher Top
     ];
 
@@ -1664,7 +1674,7 @@ class StrongSubtypingTest {
 
   void test_dynamic_isTop() {
     DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    List<DartType> equivalents = <DartType>[dynamicType, objectType];
+    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
     List<DartType> subtypes = <DartType>[
       intType,
       doubleType,
@@ -1675,6 +1685,21 @@ class StrongSubtypingTest {
       bottomType
     ];
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
+  }
+
+  void test_void_isTop() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
+    List<DartType> subtypes = <DartType>[
+      intType,
+      doubleType,
+      numType,
+      stringType,
+      functionType,
+      interfaceType,
+      bottomType
+    ];
+    _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
 
   void test_fuzzy_arrows() {
