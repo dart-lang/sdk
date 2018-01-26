@@ -224,24 +224,26 @@ classGetConstructorType(cls, name) => JS('', '''(() => {
   return sigCtor[$name];
 })()''');
 
-setMethodSignature(f, sigF) => defineLazyGetter(f, _methodSig, sigF);
-setFieldSignature(f, sigF) => defineLazyGetter(f, _fieldSig, sigF);
-setGetterSignature(f, sigF) => defineLazyGetter(f, _getterSig, sigF);
-setSetterSignature(f, sigF) => defineLazyGetter(f, _setterSig, sigF);
+void setMethodSignature(f, sigF) => defineLazyGetter(f, _methodSig, sigF);
+void setFieldSignature(f, sigF) => defineLazyGetter(f, _fieldSig, sigF);
+void setGetterSignature(f, sigF) => defineLazyGetter(f, _getterSig, sigF);
+void setSetterSignature(f, sigF) => defineLazyGetter(f, _setterSig, sigF);
 
 // Set up the constructor signature field on the constructor
-setConstructorSignature(f, sigF) => defineLazyGetter(f, _constructorSig, sigF);
+void setConstructorSignature(f, sigF) =>
+    defineLazyGetter(f, _constructorSig, sigF);
 
 // Set up the static signature field on the constructor
-setStaticMethodSignature(f, sigF) =>
+void setStaticMethodSignature(f, sigF) =>
     defineLazyGetter(f, _staticMethodSig, sigF);
 
-setStaticFieldSignature(f, sigF) => defineLazyGetter(f, _staticFieldSig, sigF);
+void setStaticFieldSignature(f, sigF) =>
+    defineLazyGetter(f, _staticFieldSig, sigF);
 
-setStaticGetterSignature(f, sigF) =>
+void setStaticGetterSignature(f, sigF) =>
     defineLazyGetter(f, _staticGetterSig, sigF);
 
-setStaticSetterSignature(f, sigF) =>
+void setStaticSetterSignature(f, sigF) =>
     defineLazyGetter(f, _staticSetterSig, sigF);
 
 bool _hasSigEntry(type, kind, name) {
