@@ -15,7 +15,6 @@ apply3_test: CompileTimeError
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-iterable_reduce_test/01: CompileTimeError
 map_test: Crash # crash in front_end.
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
@@ -234,13 +233,10 @@ integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
 iterable_empty_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
-iterable_fold_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_fold_test/02: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_fold_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
+iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_generate_test/01: RuntimeError
 iterable_generate_test/none: RuntimeError
-iterable_reduce_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_reduce_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
+iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_return_type_test/none: RuntimeError
@@ -300,13 +296,10 @@ integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
 iterable_empty_test: RuntimeError
-iterable_fold_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_fold_test/02: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_fold_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
+iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_generate_test/01: RuntimeError
 iterable_generate_test/none: RuntimeError
-iterable_reduce_test/01: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_reduce_test/none: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
+iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_return_type_test/none: RuntimeError
@@ -409,9 +402,6 @@ bigint_test: Pass, Timeout # Please triage.
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
-iterable_fold_test/02: RuntimeError
-iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 json_map_test: RuntimeError
@@ -435,9 +425,6 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
-iterable_fold_test/02: RuntimeError
-iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 json_map_test: RuntimeError
@@ -525,9 +512,6 @@ integer_arith_vm_test/modPow: RuntimeError # Issue 30170
 integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_fold_test/02: RuntimeError # different type inference problem
-iterable_reduce_test/01: RuntimeError
-iterable_reduce_test/none: RuntimeError
 iterable_return_type_test/02: RuntimeError # Issue 29921
 iterable_to_list_test/*: RuntimeError
 json_map_test: RuntimeError # Issue 29921
@@ -688,7 +672,6 @@ double_parse_test/02: Skip # Temporarily disable the following tests until we fi
 double_parse_test/03: Skip # Temporarily disable the following tests until we figure out why they started failing.
 double_parse_test/04: Skip # Temporarily disable the following tests until we figure out why they started failing.
 double_parse_test/none: Skip # Temporarily disable the following tests until we figure out why they started failing.
-iterable_reduce_test/01: CompileTimeError # Issue 31533
 
 [ $compiler == dartkp || $compiler == precompiler ]
 apply3_test: SkipByDesign
