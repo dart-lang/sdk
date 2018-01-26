@@ -25,13 +25,6 @@ main() {
 
 @reflectiveTest
 class ConstantEvaluatorTest extends ResolverTestCase {
-  void fail_constructor() {
-    EvaluationResult result = _getExpressionValue("?");
-    expect(result.isValid, isTrue);
-    DartObject value = result.value;
-    expect(value, null);
-  }
-
   void fail_identifier_class() {
     EvaluationResult result = _getExpressionValue("?");
     expect(result.isValid, isTrue);
@@ -130,6 +123,88 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   void test_bitXor_int_int() {
     _assertValue3(74 ^ 42, "74 ^ 42");
+  }
+
+  void test_constructorInvocation_assert_false() {
+    EvaluationResult result = _getExpressionValue("const C(0)", context: '''
+class C {
+  const C(int x) : assert(x > 0);
+}
+''');
+    expect(result.isValid, isFalse);
+  }
+
+  test_constructorInvocation_assert_inherited() async {
+    EvaluationResult result =
+        _getExpressionValue("const Center(name: 'v')", context: '''
+class Align {
+  final double widthFactor;
+  const Align({String name, this.widthFactor})
+        assert(widthFactor == null || widthFactor >= 0.0);
+}
+class Center extends Align {
+  const Center({String name})
+    : super(name: name);
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value;
+    expect(value, isNotNull);
+    expect(value.type.name, 'Center');
+    DartObject superclassFields = value.getField(GenericState.SUPERCLASS_FIELD);
+    DartObject widthFactor = superclassFields.getField('widthFactor');
+    expect(widthFactor, isNotNull);
+    expect(widthFactor.isNull, isTrue);
+  }
+
+  void test_constructorInvocation_assert_true() {
+    EvaluationResult result = _getExpressionValue("const C(3)", context: '''
+class C {
+  const C(int x) : assert(x > 0);
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value;
+    expect(value, isNotNull);
+    expect(value.type.name, 'C');
+  }
+
+  void test_constructorInvocation_fieldInitializer() {
+    EvaluationResult result = _getExpressionValue("const C(2)", context: '''
+class C {
+  final int x;
+  const C(this.x);
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value;
+    expect(value, isNotNull);
+    expect(value.type.name, 'C');
+    DartObject x = value.getField('x');
+    expect(x, isNotNull);
+    expect(x.type.name, 'int');
+    expect(x.toIntValue(), 2);
+  }
+
+  void test_constructorInvocation_noArgs() {
+    EvaluationResult result =
+        _getExpressionValue("const C()", context: 'class C {}');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value;
+    expect(value, isNotNull);
+    expect(value.type.name, 'C');
+  }
+
+  void test_constructorInvocation_simpleArgs() {
+    EvaluationResult result = _getExpressionValue("const C(1)", context: '''
+class C {
+  const C(int x);
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value;
+    expect(value, isNotNull);
+    expect(value.type.name, 'C');
   }
 
   void test_divide_double_double() {
@@ -388,14 +463,13 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     expect(value.toStringValue(), expectedValue);
   }
 
-  EvaluationResult _getExpressionValue(String contents) {
-    Source source = addSource("var x = $contents;");
+  EvaluationResult _getExpressionValue(String contents, {String context: ''}) {
+    Source source = addSource("var x = $contents;$context");
     LibraryElement library = resolve2(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    expect(declarations, hasLength(1));
     CompilationUnitMember declaration = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration,
         TopLevelVariableDeclaration, declaration);
