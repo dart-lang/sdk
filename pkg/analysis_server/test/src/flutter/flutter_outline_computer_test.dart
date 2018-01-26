@@ -34,6 +34,38 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
     packageMap['flutter'] = [libFolder];
   }
 
+  test_attribute_namedExpression() async {
+    newFile('/a.dart', content: r'''
+import 'package:flutter/widgets.dart';
+
+class WidgetA extends StatelessWidget {
+  WidgetA({int value});
+}
+''');
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'a.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new WidgetA(
+      value: 42,
+    ); // WidgetA
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+
+    var a = build.children[0];
+    expect(a.attributes, hasLength(1));
+
+    var attribute = a.attributes[0];
+    expect(attribute.name, 'value');
+    expect(attribute.label, '42');
+  }
+
   test_attributes_bool() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -80,29 +112,6 @@ class MyWidget extends StatelessWidget {
     expect(attribute.literalValueInteger, 42);
   }
 
-  test_attributes_string_literal() async {
-    FlutterOutline unitOutline = await _computeOutline('''
-import 'package:flutter/widgets.dart';
-
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Text('my text')
-  }
-}
-''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
-    var textOutline = build.children[0];
-
-    expect(textOutline.attributes, hasLength(1));
-
-    FlutterOutlineAttribute attribute = textOutline.attributes[0];
-    expect(attribute.name, 'data');
-    expect(attribute.label, "'my text'");
-    expect(attribute.literalValueString, 'my text');
-  }
-
   test_attributes_string_interpolation() async {
     FlutterOutline unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
@@ -125,6 +134,29 @@ class MyWidget extends StatelessWidget {
     expect(attribute.name, 'data');
     expect(attribute.label, r"'Hello, $name!'");
     expect(attribute.literalValueString, isNull);
+  }
+
+  test_attributes_string_literal() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Text('my text')
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    var textOutline = build.children[0];
+
+    expect(textOutline.attributes, hasLength(1));
+
+    FlutterOutlineAttribute attribute = textOutline.attributes[0];
+    expect(attribute.name, 'data');
+    expect(attribute.label, "'my text'");
+    expect(attribute.literalValueString, 'my text');
   }
 
   test_children() async {
@@ -206,6 +238,37 @@ class MyWidget extends StatelessWidget {
       top: Text
       bottom: Text
 ''');
+  }
+
+  test_variableName() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var text = new Text('aaa');
+    return new Center(child: text); // Center
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    expect(build.children, hasLength(2));
+
+    var textNew = build.children[0];
+    expect(textNew.kind, FlutterOutlineKind.NEW_INSTANCE);
+    expect(textNew.className, 'Text');
+
+    var center = build.children[1];
+    expect(center.kind, FlutterOutlineKind.NEW_INSTANCE);
+    expect(center.className, 'Center');
+    expect(center.children, hasLength(1));
+
+    var textRef = center.children[0];
+    expect(textRef.kind, FlutterOutlineKind.VARIABLE);
+    expect(textRef.className, 'Text');
+    expect(textRef.variableName, 'text');
   }
 
   Future<FlutterOutline> _computeOutline(String code) async {

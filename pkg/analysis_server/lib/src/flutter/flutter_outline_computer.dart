@@ -38,6 +38,9 @@ class FlutterOutlineComputer {
   /// Flutter attribute, add it to the [attributes].
   void _addAttribute(List<protocol.FlutterOutlineAttribute> attributes,
       Expression argument, ParameterElement parameter) {
+    if (argument is NamedExpression) {
+      argument = (argument as NamedExpression).expression;
+    }
     String label = argument.toString();
     if (argument is BooleanLiteral) {
       attributes.add(new protocol.FlutterOutlineAttribute(
@@ -127,9 +130,16 @@ class FlutterOutlineComputer {
 
     // A generic Widget typed expression.
     if (withGeneric) {
-      return new protocol.FlutterOutline(
-          protocol.FlutterOutlineKind.GENERIC, node.offset, node.length,
-          className: className);
+      var kind = protocol.FlutterOutlineKind.GENERIC;
+
+      String variableName;
+      if (node is SimpleIdentifier) {
+        kind = protocol.FlutterOutlineKind.VARIABLE;
+        variableName = node.name;
+      }
+
+      return new protocol.FlutterOutline(kind, node.offset, node.length,
+          className: className, variableName: variableName);
     }
 
     return null;
