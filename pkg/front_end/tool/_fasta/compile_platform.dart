@@ -9,6 +9,7 @@ import 'dart:async' show Future;
 import 'dart:io' show File, Platform, exitCode;
 
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+import 'package:vm/target/runner.dart' show RunnerTarget;
 
 import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
@@ -34,6 +35,7 @@ const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 Future main(List<String> arguments) async {
   targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
+  targets["runner"] = (TargetFlags flags) => new RunnerTarget(flags);
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n");
