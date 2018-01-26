@@ -470,24 +470,17 @@ abstract class _RuntimeTypesBase {
     // Find all instantiated types that are a subtype of a class that uses
     // one of its type arguments in an is-check and add the arguments to the
     // set of is-checks.
-    // TODO(karlklose): replace this with code that uses a subtype lookup
-    // datastructure in the world.
     for (InterfaceType type in instantiatedTypes) {
       for (ClassEntity cls in classesUsingChecks) {
-        do {
-          // We need the type as instance of its superclass anyway, so we just
-          // try to compute the substitution; if the result is [:null:], the
-          // classes are not related.
-          InterfaceType instance = _types.asInstanceOf(type, cls);
-          if (instance == null) break;
+        // We need the type as instance of its superclass anyway, so we just
+        // try to compute the substitution; if the result is [:null:], the
+        // classes are not related.
+        InterfaceType instance = _types.asInstanceOf(type, cls);
+        if (instance != null) {
           for (DartType argument in instance.typeArguments) {
             implicitIsChecks.add(argument.unaliased);
           }
-          // TODO(johnniwinther): This seems wrong; the type arguments of
-          // [type] are not substituted - `List<int>` yields `Iterable<E>` and
-          // not `Iterable<int>`.
-          type = _types.getSupertype(type.element);
-        } while (type != null && !instantiatedTypes.contains(type));
+        }
       }
     }
   }
