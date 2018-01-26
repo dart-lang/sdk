@@ -140,8 +140,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(Token token) {
-    listener?.beginFactoryMethod(token);
+  void beginFactoryMethod() {
+    listener?.beginFactoryMethod();
   }
 
   @override
@@ -265,8 +265,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMember(Token token) {
-    listener?.beginMember(token);
+  void beginMember() {
+    listener?.beginMember();
   }
 
   @override
@@ -280,8 +280,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMethod(Token token, Token name) {
-    listener?.beginMethod(token, name);
+  void beginMethod() {
+    listener?.beginMethod();
   }
 
   @override

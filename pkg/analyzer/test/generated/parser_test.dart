@@ -2490,7 +2490,12 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_classInClass_abstract() {
     parseCompilationUnit("class C { abstract class B {} }",
-        errors: [expectedError(ParserErrorCode.CLASS_IN_CLASS, 19, 5)]);
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 10, 8),
+                expectedError(ParserErrorCode.CLASS_IN_CLASS, 19, 5)
+              ]
+            : [expectedError(ParserErrorCode.CLASS_IN_CLASS, 19, 5)]);
   }
 
   void test_classInClass_nonAbstract() {
@@ -2671,26 +2676,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('covariant final f = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrorsWithCodes(usingFastaParser
-        ? [
-            ParserErrorCode.FINAL_AND_COVARIANT,
-            // TODO(danrubel): Fasta
-            // 1) reports an error on the `final` modifier then skips over it,
-            // 2) expects a type because `final` was ignored
-            // 3) reports missing type even though final was specified.
-            //
-            // It would be better to omit this second error, but that may
-            // be problematic as `covariant` will have
-            // already been reported to listeners by the time `final` is
-            // encountered and listeners might get get confused if we
-            // report `final` in addition,
-            // or report `covariant` with no type.
-            //
-            // This issue does not exist if `final` is encountered first.
-            // See test_finalAndCovariant().
-            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
-          ]
-        : [ParserErrorCode.FINAL_AND_COVARIANT]);
+    listener.assertErrorsWithCodes([ParserErrorCode.FINAL_AND_COVARIANT]);
   }
 
   void test_covariantAndStatic() {
@@ -2728,16 +2714,18 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('static covariant get x => 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.COVARIANT_MEMBER, 7, 9)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.COVARIANT_AND_STATIC, 7, 9)]
+        : [expectedError(ParserErrorCode.COVARIANT_MEMBER, 7, 9)]);
   }
 
   void test_covariantMember_getter_returnType() {
     createParser('static covariant int get x => 0;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.COVARIANT_MEMBER, 7, 9)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.COVARIANT_AND_STATIC, 7, 9)]
+        : [expectedError(ParserErrorCode.COVARIANT_MEMBER, 7, 9)]);
   }
 
   void test_covariantMember_method() {
@@ -3454,8 +3442,12 @@ class Foo {
     createParser('final covariant f = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.COVARIANT_AFTER_FINAL, 6, 9),
+            expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)
+          ]
+        : [expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)]);
   }
 
   void test_finalAndVar() {

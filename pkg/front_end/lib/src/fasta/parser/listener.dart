@@ -219,7 +219,7 @@ class Listener {
     logEvent("ExpressionStatement");
   }
 
-  void beginFactoryMethod(Token token) {}
+  void beginFactoryMethod() {}
 
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
@@ -612,7 +612,7 @@ class Listener {
     logEvent("StringJuxtaposition");
   }
 
-  void beginMember(Token token) {}
+  void beginMember() {}
 
   /// Handle an invalid member declaration. Substructures:
   /// - metadata
@@ -626,7 +626,7 @@ class Listener {
     logEvent("Member");
   }
 
-  void beginMethod(Token token, Token name) {}
+  void beginMethod() {}
 
   /// Handle the end of a method declaration.  Substructures:
   /// - metadata

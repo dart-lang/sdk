@@ -523,8 +523,7 @@ class ResolvedAstDeserializer {
           return node;
         case AstKind.FACTORY:
           Token beginToken = readBeginToken();
-          return doParse((parser) => parser
-              .parseFactoryMethod(parser.syntheticPreviousToken(beginToken)));
+          return doParse((parser) => parser.parseMember(beginToken));
         case AstKind.FIELD:
           Token beginToken = readBeginToken();
           return doParse((parser) => parser.parseMember(beginToken));
