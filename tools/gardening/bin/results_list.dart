@@ -16,6 +16,7 @@ void addStandardArguments(ArgParser argParser) {
   argParser.addFlag("checked", negatable: false);
   argParser.addOption("compiler", allowed: Compiler.names);
   argParser.addFlag("csp", negatable: false);
+  argParser.addFlag("fasta", negatable: false);
   argParser.addFlag("dart2js-with-kernel", negatable: false);
   argParser.addFlag("dart2js-with-kernel-in-ssa", negatable: false);
   argParser.addFlag("enable-asserts", negatable: false);
@@ -44,6 +45,7 @@ models.Configuration getConfigurationFromArguments(ArgResults argResults) {
       argResults["host-checked"],
       argResults["minified"],
       argResults["csp"],
+      argResults["fasta"],
       argResults["system"],
       [],
       argResults["use-sdk"],
