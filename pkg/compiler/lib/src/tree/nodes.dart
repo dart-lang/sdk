@@ -1295,7 +1295,8 @@ class LiteralInt extends Literal<int> {
       }
       return int.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
-      throw handler(token, ex);
+      handler(token, ex);
+      throw new ArgumentError("handler didn't throw; aborting");
     }
   }
 
@@ -1318,7 +1319,8 @@ class LiteralDouble extends Literal<double> {
       }
       return double.parse(valueToken.lexeme);
     } on FormatException catch (ex) {
-      throw handler(token, ex);
+      handler(token, ex);
+      throw new ArgumentError("handler didn't throw; aborting");
     }
   }
 
