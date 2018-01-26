@@ -30,17 +30,6 @@ bool isModifier(Token token) {
   return true;
 }
 
-/// Skip modifier tokens until the last modifier token is reached
-/// and return that token. If [token] is not a modifier, then return [token].
-Token skipToLastModifier(Token token) {
-  Token next = token.next;
-  while (isModifier(next)) {
-    token = next;
-    next = token.next;
-  }
-  return token;
-}
-
 TypeContinuation typeContinuationAfterVar(TypeContinuation typeContinuation) {
   switch (typeContinuation) {
     case TypeContinuation.NormalFormalParameter:
@@ -302,6 +291,17 @@ class ModifierRecoveryContext2 {
     return token;
   }
 
+  /// Parse modifiers during recovery when modifiers are out of order
+  /// or invalid. Typically clients call methods like
+  /// [parseClassMemberModifiers] which in turn calls this method,
+  /// rather than calling this method directly.
+  ///
+  /// The various modifier token parameters represent tokens of modifiers
+  /// that have already been parsed prior to recovery. The [staticOrCovariant]
+  /// parameter is for convenience if caller has a token that may be either
+  /// `static` or `covariant`. The first non-null parameter of
+  /// [staticOrCovariant], [staticToken], or [covariantToken] will be used,
+  /// in that order, and the others ignored.
   Token parseModifiers(Token token, TypeContinuation typeContinuation,
       {Token externalToken,
       Token staticToken,

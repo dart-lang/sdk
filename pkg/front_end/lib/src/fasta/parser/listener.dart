@@ -219,7 +219,7 @@ class Listener {
     logEvent("ExpressionStatement");
   }
 
-  void beginFactoryMethod() {}
+  void beginFactoryMethod(Token lastConsumed) {}
 
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
@@ -809,7 +809,7 @@ class Listener {
     logEvent("TopLevelFields");
   }
 
-  void beginTopLevelMethod() {}
+  void beginTopLevelMethod(Token lastConsumed) {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata
@@ -939,7 +939,7 @@ class Listener {
 
   /// Called when the parser encounters a `?` operator and begins parsing a
   /// conditional expression.
-  void beginConditionalExpression() {}
+  void beginConditionalExpression(Token question) {}
 
   /// Called when the parser encounters a `:` operator in a conditional
   /// expression.
@@ -1071,7 +1071,7 @@ class Listener {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
-  void handleNoType() {
+  void handleNoType(Token lastConsumed) {
     logEvent("NoType");
   }
 

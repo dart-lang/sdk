@@ -1677,7 +1677,7 @@ class Parser {
       }
       listener.handleClassExtends(extendsKeyword);
     } else {
-      listener.handleNoType();
+      listener.handleNoType(token);
       listener.handleClassExtends(null);
     }
     return token;
@@ -2045,7 +2045,7 @@ class Parser {
       extendsOrSuper = next;
       token = parseType(next);
     } else {
-      listener.handleNoType();
+      listener.handleNoType(token);
     }
     listener.endTypeVariable(token.next, extendsOrSuper);
     return token;
@@ -2224,7 +2224,7 @@ class Parser {
         // A function type without return type.
         // Push the non-existing return type first. The loop below will
         // generate the full type.
-        listener.handleNoType();
+        listener.handleNoType(beforeBegin);
         token = beforeBegin;
       } else if (voidToken != null) {
         listener.handleVoidKeyword(voidToken);
@@ -2306,7 +2306,7 @@ class Parser {
               memberKind == MemberKind.StaticField) {
             reportRecoverableError(
                 begin, fasta.messageMissingConstFinalVarOrType);
-            listener.handleNoType();
+            listener.handleNoType(beforeBegin);
             return beforeBegin;
           }
         }
@@ -2326,7 +2326,7 @@ class Parser {
             return commitType(); // Parse type.
           }
         }
-        listener.handleNoType();
+        listener.handleNoType(beforeBegin);
         return beforeBegin;
 
       case TypeContinuation.OptionalAfterVar:
@@ -2415,7 +2415,7 @@ class Parser {
 
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
-              listener.handleNoType();
+              listener.handleNoType(token);
               return parseNamedFunctionRest(beforeToken, begin, formals, false);
             }
           } else if (optional('<', token.next)) {
@@ -2427,7 +2427,7 @@ class Parser {
                 parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
-                listener.handleNoType();
+                listener.handleNoType(token);
                 return parseNamedFunctionRest(beforeToken, begin, gt, false);
               }
             }
@@ -2487,7 +2487,7 @@ class Parser {
           reportRecoverableError(
               begin, fasta.messageReturnTypeFunctionExpression);
         } else {
-          listener.handleNoType();
+          listener.handleNoType(formals);
         }
         if (beforeName.next != name)
           throw new StateError("beforeName.next != name");
@@ -2648,7 +2648,7 @@ class Parser {
               beforeNameToken = previousToken(beforeNameToken, nameToken);
             }
           } else {
-            listener.handleNoType();
+            listener.handleNoType(beforeToken);
           }
           beforeToken = parseFormalParametersRequiredOpt(
               token, MemberKind.FunctionTypedParameter);
@@ -2663,7 +2663,7 @@ class Parser {
                 fasta.messageInvalidInlineFunctionType);
           }
         } else if (untyped) {
-          listener.handleNoType();
+          listener.handleNoType(token);
         } else {
           Token saved = token;
           commitType();
@@ -3013,12 +3013,12 @@ class Parser {
     if (beforeType != null) {
       parseType(beforeType, typeContinuation, null, memberKind);
     } else if (varFinalOrConst != null) {
-      listener.handleNoType();
+      listener.handleNoType(beforeName);
     } else {
       // Recovery
       reportRecoverableError(
           beforeName.next, fasta.messageMissingConstFinalVarOrType);
-      listener.handleNoType();
+      listener.handleNoType(beforeName);
     }
 
     IdentifierContext context = isTopLevel
@@ -3045,7 +3045,7 @@ class Parser {
 
   Token parseTopLevelMethod(Token beforeStart, Token externalToken,
       Token beforeType, Token getOrSet, Token beforeName) {
-    listener.beginTopLevelMethod();
+    listener.beginTopLevelMethod(beforeStart);
 
     // TODO(danrubel): Consider passing modifiers via endTopLevelMethod
     // rather than handleModifier and handleModifiers
@@ -3057,7 +3057,7 @@ class Parser {
     }
 
     if (beforeType == null) {
-      listener.handleNoType();
+      listener.handleNoType(beforeName);
     } else {
       parseType(beforeType, TypeContinuation.Optional);
     }
@@ -3887,7 +3887,7 @@ class Parser {
     listener.handleModifiers(modifierCount);
 
     if (beforeType == null) {
-      listener.handleNoType();
+      listener.handleNoType(beforeName);
     } else {
       parseType(beforeType, TypeContinuation.Optional);
     }
@@ -3979,7 +3979,7 @@ class Parser {
     }
     listener.handleModifiers(modifierCount);
 
-    listener.beginFactoryMethod();
+    listener.beginFactoryMethod(beforeStart);
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
@@ -4620,7 +4620,7 @@ class Parser {
   Token parseConditionalExpressionRest(Token token) {
     Token question = token = token.next;
     assert(optional('?', question));
-    listener.beginConditionalExpression();
+    listener.beginConditionalExpression(token);
     token = parseExpressionWithoutCascade(token);
     Token colon = ensureColon(token);
     listener.handleConditionalExpressionColon();

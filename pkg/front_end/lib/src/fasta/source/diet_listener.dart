@@ -127,7 +127,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleNoType() {
+  void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
   }
 

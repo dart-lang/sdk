@@ -461,7 +461,7 @@ class ElementListener extends Listener {
       Token token) {}
 
   @override
-  void handleNoType() {
+  void handleNoType(Token lastConsumed) {
     pushNode(null);
   }
 
