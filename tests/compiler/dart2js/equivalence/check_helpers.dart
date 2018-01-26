@@ -587,3 +587,103 @@ void checkMaps<K, V>(Map<K, V> map1, Map<K, V> map2, String messagePrefix,
     print(message);
   }
 }
+
+class DartTypePrinter implements DartTypeVisitor {
+  StringBuffer sb = new StringBuffer();
+
+  @override
+  visit(DartType type, [_]) {
+    type.accept(this, null);
+  }
+
+  String visitTypes(List<DartType> types) {
+    String comma = '';
+    for (DartType type in types) {
+      sb.write(comma);
+      visit(type);
+      comma = ',';
+    }
+    return comma;
+  }
+
+  @override
+  visitDynamicType(DynamicType type, _) {
+    sb.write('dynamic');
+  }
+
+  @override
+  visitTypedefType(TypedefType type, _) {
+    sb.write(type.element.name);
+    if (type.typeArguments.any((type) => !type.isDynamic)) {
+      sb.write('<');
+      visitTypes(type.typeArguments);
+      sb.write('>');
+    }
+  }
+
+  @override
+  visitInterfaceType(InterfaceType type, _) {
+    sb.write(type.element.name);
+    if (type.typeArguments.any((type) => !type.isDynamic)) {
+      sb.write('<');
+      visitTypes(type.typeArguments);
+      sb.write('>');
+    }
+  }
+
+  @override
+  visitFunctionType(FunctionType type, _) {
+    visit(type.returnType);
+    sb.write(' Function');
+    if (type.typeVariables.isNotEmpty) {
+      sb.write('<');
+      visitTypes(type.typeVariables);
+      sb.write('>');
+    }
+    sb.write('(');
+    String comma = visitTypes(type.parameterTypes);
+    if (type.optionalParameterTypes.isNotEmpty) {
+      sb.write(comma);
+      sb.write('[');
+      visitTypes(type.optionalParameterTypes);
+      sb.write(']');
+    }
+    if (type.namedParameters.isNotEmpty) {
+      sb.write(comma);
+      sb.write('{');
+      for (int index = 0; index < type.namedParameters.length; index++) {
+        sb.write(comma);
+        sb.write(type.namedParameters[index]);
+        sb.write(':');
+        visit(type.namedParameterTypes[index]);
+        comma = ',';
+      }
+      sb.write('}');
+    }
+    sb.write(')');
+  }
+
+  @override
+  visitFunctionTypeVariable(FunctionTypeVariable type, _) {
+    sb.write(type);
+  }
+
+  @override
+  visitTypeVariableType(TypeVariableType type, _) {
+    sb.write(type);
+  }
+
+  @override
+  visitVoidType(VoidType type, _) {
+    sb.write('void');
+  }
+
+  String getText() => sb.toString();
+}
+
+/// Normalized toString on types.
+String typeToString(DartType type) {
+  DartTypePrinter printer = new DartTypePrinter();
+  printer.visit(type);
+  return printer.getText();
+}

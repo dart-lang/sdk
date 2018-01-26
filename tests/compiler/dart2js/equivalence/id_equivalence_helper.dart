@@ -185,6 +185,7 @@ Future<CompiledData> computeData(
 
   List<LibraryEntity> globalLibraries = <LibraryEntity>[
     commonElements.coreLibrary,
+    elementEnvironment.lookupLibrary(Uri.parse('dart:collection')),
     commonElements.interceptorsLibrary,
     commonElements.jsHelperLibrary,
   ];

@@ -753,7 +753,6 @@ class JavaScriptBackend {
             nativeBasicData,
             interceptorDataBuilder,
             _backendUsageBuilder,
-            rtiNeedBuilder,
             mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,

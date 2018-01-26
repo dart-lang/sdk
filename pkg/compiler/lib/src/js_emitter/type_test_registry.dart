@@ -13,7 +13,8 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesChecks,
         RuntimeTypesChecksBuilder,
         RuntimeTypesSubstitutions,
-        TypeChecks;
+        TypeChecks,
+        TypeVariableTests;
 import '../js_backend/mirrors_data.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
@@ -39,6 +40,8 @@ class TypeTestRegistry {
   /// used for RTI.
   Set<ClassEntity> _rtiNeededClasses;
 
+  TypeVariableTests _tests;
+
   /// The required checks on classes.
   // TODO(johnniwinther): Currently this is wrongfully computed twice. Once
   // in [computeRequiredTypeChecks] and once in [computeRtiNeededClasses]. The
@@ -50,16 +53,9 @@ class TypeTestRegistry {
   Iterable<ClassEntity> cachedClassesUsingTypeVariableTests;
 
   Iterable<ClassEntity> get classesUsingTypeVariableTests {
-    if (cachedClassesUsingTypeVariableTests == null) {
-      cachedClassesUsingTypeVariableTests = _codegenWorldBuilder.isChecks
-          .where((DartType t) =>
-              t is TypeVariableType && t.element.typeDeclaration is ClassEntity)
-          .map<ClassEntity>((DartType _v) {
-        TypeVariableType v = _v;
-        return v.element.typeDeclaration;
-      }).toList();
-    }
-    return cachedClassesUsingTypeVariableTests;
+    _tests ??= new TypeVariableTests(
+        _closedWorld.commonElements, _codegenWorldBuilder);
+    return _tests.classTests;
   }
 
   final CodegenWorldBuilder _codegenWorldBuilder;

@@ -36,6 +36,7 @@ old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
 old_frontend/patch_test/bug: RuntimeError # Issue 21132
 packages/*: Skip # Skip packages folder
 quarantined/http_test: Pass, Slow
+rti/rti_need_test: Pass, Slow
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.

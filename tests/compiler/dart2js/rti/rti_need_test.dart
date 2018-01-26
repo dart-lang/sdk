@@ -21,6 +21,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/ssa/builder.dart' as ast;
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:kernel/ast.dart' as ir;
+import '../equivalence/check_helpers.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -32,19 +33,7 @@ main(List<String> args) {
         computeClassDataFromAst: computeAstRtiClassNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
         args: args,
-        options: [
-          Flags.strongMode
-        ],
-        skipForAst: [
-          'generic_instanceof4.dart',
-          'generic_instanceof4_unused.dart',
-          'list_to_set.dart',
-        ],
-        skipForKernel: [
-          'generic_instanceof4.dart',
-          'generic_instanceof4_unused.dart',
-          'list_to_set.dart',
-        ]);
+        options: [Flags.strongMode]);
   });
 }
 
@@ -100,9 +89,9 @@ abstract class ComputeValueMixin<T> {
         types.add(type);
       }
     }
-    List<String> list = types.map((t) => t.toString()).toList()..sort();
+    List<String> list = types.map(typeToString).toList()..sort();
     if (list.isNotEmpty) {
-      sb.write('${comma}$prefix=[${list.join('')}]');
+      sb.write('${comma}$prefix=[${list.join(',')}]');
       comma = ',';
     }
     return comma;
@@ -110,8 +99,10 @@ abstract class ComputeValueMixin<T> {
 
   String findDependencies(StringBuffer sb, String comma, Entity entity) {
     Iterable<String> dependencies;
-    if (rtiNeedBuilder.typeArgumentDependencies.containsKey(entity)) {
-      dependencies = rtiNeedBuilder.typeArgumentDependencies[entity]
+    if (rtiNeedBuilder.typeVariableTests.typeArgumentDependencies
+        .containsKey(entity)) {
+      dependencies = rtiNeedBuilder
+          .typeVariableTests.typeArgumentDependencies[entity]
           .map((d) => d.name)
           .toList()
             ..sort();
@@ -138,12 +129,16 @@ abstract class ComputeValueMixin<T> {
       sb.write('${comma}exp');
       comma = ',';
     }
-    if (rtiNeedBuilder.classesUsingTypeVariableTests.contains(frontendClass)) {
+    if (rtiNeedBuilder.typeVariableTests.directClassTests
+        .contains(frontendClass)) {
       sb.write('${comma}test');
       comma = ',';
+    } else if (rtiNeedBuilder.typeVariableTests.classTests
+        .contains(frontendClass)) {
+      sb.write('${comma}indirectTest');
     }
-    comma = findChecks(
-        sb, comma, 'explicit', frontendClass, rtiNeedBuilder.isChecks);
+    comma = findChecks(sb, comma, 'explicit', frontendClass,
+        rtiNeedBuilder.typeVariableTests.isChecks);
     comma = findChecks(
         sb, comma, 'implicit', frontendClass, rtiNeedBuilder.implicitIsChecks);
     if (rtiChecks.getRequiredArgumentClasses().contains(backendClass)) {
@@ -184,8 +179,8 @@ abstract class ComputeValueMixin<T> {
           sb.write('${comma}exp');
           comma = ',';
         }
-        comma = findChecks(
-            sb, comma, 'explicit', frontendClosure, rtiNeedBuilder.isChecks);
+        comma = findChecks(sb, comma, 'explicit', frontendClosure,
+            rtiNeedBuilder.typeVariableTests.isChecks);
       } else if (frontendMember != null) {
         if (rtiNeedBuilder.methodsUsingTypeVariableLiterals
             .contains(frontendMember)) {
@@ -193,8 +188,8 @@ abstract class ComputeValueMixin<T> {
           comma = ',';
         }
         comma = findDependencies(sb, comma, frontendMember);
-        comma = findChecks(
-            sb, comma, 'explicit', frontendMember, rtiNeedBuilder.isChecks);
+        comma = findChecks(sb, comma, 'explicit', frontendMember,
+            rtiNeedBuilder.typeVariableTests.isChecks);
         comma = findChecks(sb, comma, 'implicit', frontendMember,
             rtiNeedBuilder.implicitIsChecks);
       }

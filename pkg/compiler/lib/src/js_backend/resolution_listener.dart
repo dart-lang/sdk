@@ -28,7 +28,6 @@ import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
 import 'type_variable_handler.dart';
-import 'runtime_types.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
@@ -42,7 +41,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final NativeBasicData _nativeData;
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
-  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final MirrorsDataBuilder _mirrorsDataBuilder;
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
@@ -63,7 +61,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._nativeData,
       this._interceptorData,
       this._backendUsage,
-      this._rtiNeedBuilder,
       this._mirrorsDataBuilder,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
@@ -373,10 +370,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.functionClass);
     } else if (cls == _commonElements.mapClass) {
       _registerBackendImpact(impactBuilder, _impacts.mapClass);
-      // For map literals, the dependency between the implementation class
-      // and [Map] is not visible, so we have to add it manually.
-      _rtiNeedBuilder.registerTypeArgumentDependency(
-          _commonElements.mapLiteralClass, cls);
     } else if (cls == _commonElements.boundClosureClass) {
       _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
