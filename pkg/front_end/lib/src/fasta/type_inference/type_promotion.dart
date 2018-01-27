@@ -222,7 +222,7 @@ abstract class TypePromoterImpl extends TypePromoter {
     // appropriate facts for the case where the expression gets short-cut.
     bool isAnd = identical(operator, '&&');
     _currentScope =
-        new _LogicalScope(_currentScope, isAnd ? falseFacts : trueFacts);
+        new _LogicalScope(_currentScope, isAnd, isAnd ? falseFacts : trueFacts);
     // While processing the RHS, assume the condition was false or true,
     // depending on the type of logical expression.
     _currentFacts = isAnd ? trueFacts : falseFacts;
@@ -254,8 +254,15 @@ abstract class TypePromoterImpl extends TypePromoter {
     debugEvent('exitLogicalExpression');
     _LogicalScope scope = _currentScope;
     _currentScope = _currentScope._enclosing;
-    _recordPromotionExpression(logicalExpression, _factsWhenTrue(rhs),
-        _mergeFacts(scope.shortcutFacts, _currentFacts));
+    if (scope.isAnd) {
+      _recordPromotionExpression(logicalExpression, _factsWhenTrue(rhs),
+          _mergeFacts(scope.shortcutFacts, _currentFacts));
+    } else {
+      _recordPromotionExpression(
+          logicalExpression,
+          _mergeFacts(scope.shortcutFacts, _currentFacts),
+          _factsWhenFalse(rhs));
+    }
   }
 
   @override
@@ -680,10 +687,13 @@ class _IsCheck extends TypePromotionFact {
 
 /// [TypePromotionScope] representing the RHS of a logical expression.
 class _LogicalScope extends TypePromotionScope {
+  /// Indicates whether the logical operation is an `&&` or an `||`.
+  final bool isAnd;
+
   /// The fact state in effect if the logical expression gets short-cut.
   final TypePromotionFact shortcutFacts;
 
-  _LogicalScope(TypePromotionScope enclosing, this.shortcutFacts)
+  _LogicalScope(TypePromotionScope enclosing, this.isAnd, this.shortcutFacts)
       : super(enclosing);
 }
 
