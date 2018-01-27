@@ -205,6 +205,20 @@ class A {
     assertNoChanges();
   }
 
+  test_createEdits_invalidUri() async {
+    Source fooSource = addPackageSource('pkg', 'foo.dart', '');
+    await createBuilder('''
+import 'pakage:pkg/foo.dart';
+''');
+    await computeChanges(<ImportedElements>[
+      new ImportedElements(fooSource.fullName, '', <String>['A'])
+    ]);
+    assertChanges('''
+import 'pakage:pkg/foo.dart';
+import 'package:pkg/foo.dart';
+''');
+  }
+
   test_createEdits_noElements() async {
     await createBuilder('');
     await computeChanges(<ImportedElements>[]);
