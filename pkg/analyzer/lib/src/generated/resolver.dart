@@ -4034,8 +4034,9 @@ class ImportsVerifier {
           continue;
         }
       }
-      errorReporter.reportErrorForNode(
-          HintCode.UNUSED_IMPORT, unusedImport.uri);
+      StringLiteral uri = unusedImport.uri;
+      errorReporter
+          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue]);
     }
   }
 

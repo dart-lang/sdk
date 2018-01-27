@@ -629,9 +629,12 @@ class HintCode extends ErrorCode {
 
   /**
    * Unused imports are imports which are never used.
+   *
+   * Parameters:
+   * 0: The content of the unused import's uri
    */
-  static const HintCode UNUSED_IMPORT = const HintCode(
-      'UNUSED_IMPORT', "Unused import.", "Try removing the import directive.");
+  static const HintCode UNUSED_IMPORT = const HintCode('UNUSED_IMPORT',
+      "Unused import: '{0}'.", "Try removing the import directive.");
 
   /**
    * Unused labels are labels that are never referenced in either a 'break' or
