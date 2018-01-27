@@ -612,6 +612,22 @@ class ShadowContinueSwitchStatement extends ContinueSwitchStatement
   }
 }
 
+/// Shadow object representing a deferred check in kernel form.
+class ShadowDeferredCheck extends Let implements ShadowExpression {
+  ShadowDeferredCheck(VariableDeclaration variable, Expression body)
+      : super(variable, body);
+
+  @override
+  DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
+    inferrer.listener.deferredCheckEnter(this, typeContext);
+    // Since the variable is not used in the body we don't need to type infer
+    // it.  We can just type infer the body.
+    var inferredType = inferrer.inferExpression(body, typeContext, true);
+    inferrer.listener.deferredCheckExit(this, inferredType);
+    return inferredType;
+  }
+}
+
 /// Concrete shadow object representing a do loop in kernel form.
 class ShadowDoStatement extends DoStatement implements ShadowStatement {
   ShadowDoStatement(Statement body, Expression condition)

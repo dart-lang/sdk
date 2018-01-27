@@ -170,6 +170,12 @@ class TypeInferenceListener
   void continueSwitchStatementExit(ContinueSwitchStatement statement) =>
       genericStatementExit('continueSwitchStatement', statement);
 
+  void deferredCheckEnter(Let expression, DartType typeContext) =>
+      genericExpressionEnter("deferredCheck", expression, typeContext);
+
+  void deferredCheckExit(Let expression, DartType inferredType) =>
+      genericExpressionExit("deferredCheck", expression, inferredType);
+
   void doStatementEnter(DoStatement statement) =>
       genericStatementEnter("doStatement", statement);
 

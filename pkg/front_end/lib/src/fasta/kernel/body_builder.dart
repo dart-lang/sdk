@@ -3658,7 +3658,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix) {
-    return new Let(
+    return new ShadowDeferredCheck(
         new VariableDeclaration.forValue(
             new CheckLibraryIsLoaded(prefix.dependency)),
         expression);

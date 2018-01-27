@@ -67,7 +67,6 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
 warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
-check_deferred_read: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
