@@ -1148,6 +1148,7 @@ implicit_downcast_during_while_statement_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
+list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
@@ -1168,6 +1169,7 @@ generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+list_is_test: RuntimeError
 malbounded_type_cast_test/none: RuntimeError
 malbounded_type_test_test/none: RuntimeError
 map_literal8_test: RuntimeError

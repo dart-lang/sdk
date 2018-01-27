@@ -525,6 +525,7 @@ issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
+list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
@@ -799,6 +800,7 @@ issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_tearoff_test: RuntimeError
 issue31596_test: RuntimeError
+list_is_test: RuntimeError
 nsm5_test: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
@@ -1104,6 +1106,7 @@ issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
+list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
@@ -1741,6 +1744,7 @@ library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
+list_is_test: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
@@ -2639,6 +2643,7 @@ library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
+list_is_test: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
@@ -3520,6 +3525,7 @@ library_ambiguous_test/04: MissingCompileTimeError
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: RuntimeError, OK
+list_is_test: RuntimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
 list_literal4_test/03: MissingCompileTimeError

@@ -849,7 +849,6 @@ left_shift_test: RuntimeError # Ints and doubles are unified.
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
-list_is_test: RuntimeError # Issue 29920
 mixin_super_test: RuntimeError
 mixin_super_use_test: RuntimeError
 multiline_newline_test/03: RuntimeError
@@ -1000,7 +999,6 @@ library_env_test/has_html_support: RuntimeError # Issue 30907; Unsupported opera
 library_env_test/has_no_io_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_mirror_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/none: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-list_is_test: RuntimeError # Issue 29920; Expect.equals(expected: <true>, actual: <false>) fails.
 local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
 local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
