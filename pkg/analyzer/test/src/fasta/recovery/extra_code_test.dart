@@ -93,6 +93,24 @@ String bar() { }
  */
 @reflectiveTest
 class PunctuationTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_extraComma_extendsClause() {
+    // https://github.com/dart-lang/sdk/issues/22313
+    testRecovery('''
+class A { }
+class B { }
+class Foo extends A, B {
+  Foo() { }
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.UNEXPECTED_TOKEN], '''
+class A { }
+class B { }
+class Foo extends A {
+  Foo() { }
+}
+''');
+  }
+
   void test_extraSemicolon_afterLastClassMember() {
     testRecovery('''
 class C {
