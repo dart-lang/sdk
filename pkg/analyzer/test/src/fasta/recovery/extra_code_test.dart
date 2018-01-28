@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MiscellaneousTest);
     defineReflectiveTests(ModifiersTest);
+    defineReflectiveTests(MultipleTypeTest);
     defineReflectiveTests(PunctuationTest);
   });
 }
@@ -68,6 +69,21 @@ class ModifiersTest extends AbstractRecoveryTest {
 static class A {}
 ''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''
 class A {}
+''');
+  }
+}
+
+@reflectiveTest
+class MultipleTypeTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_topLevelVariable() {
+    // https://github.com/dart-lang/sdk/issues/25875
+    // Recovers with 'void bar() {}', which seems wrong. Seems like we should
+    // keep the first type, not the second.
+    testRecovery('''
+String void bar() { }
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+String bar() { }
 ''');
   }
 }
