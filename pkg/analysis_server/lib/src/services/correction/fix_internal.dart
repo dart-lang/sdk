@@ -2204,14 +2204,10 @@ class FixProcessor {
 
   Future<Null> _addFix_replaceFinalWithConst() async {
     if (node is VariableDeclarationList) {
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(driver);
-      await changeBuilder.addFileEdit(file, fileStamp,
-          (DartFileEditBuilder builder) {
-        builder.addReplacement(
-            range.token((node as VariableDeclarationList).keyword),
-            (DartEditBuilder builder) {
-          builder.write('const');
-        });
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(
+            range.token((node as VariableDeclarationList).keyword), 'const');
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_FINAL_WITH_CONST);
     }
