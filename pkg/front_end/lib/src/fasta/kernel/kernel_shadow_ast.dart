@@ -22,6 +22,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
@@ -584,6 +585,15 @@ class ShadowConstructorInvocation extends ConstructorInvocation
         computeConstructorReturnType(_initialTarget),
         arguments,
         isConst: isConst);
+    if (inferrer.strongMode &&
+        !inferrer.isTopLevel &&
+        inferrer.typeSchemaEnvironment.isSuperBounded(inferredType)) {
+      inferrer.helper.deprecated_addCompileTimeError(
+          fileOffset,
+          templateCantUseSuperBoundedTypeForInstanceCreation
+              .withArguments(inferredType)
+              .message);
+    }
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }

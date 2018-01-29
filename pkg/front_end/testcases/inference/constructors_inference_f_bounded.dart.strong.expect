@@ -19,6 +19,7 @@ class Pair<T extends self::Clonable<self::Pair::T>, U extends self::Clonable<sel
   get reversed() → self::Pair<self::Pair::U, self::Pair::T>
     return new self::Pair::•<self::Pair::U, self::Pair::T>(this.{self::Pair::u}, this.{self::Pair::t});
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Can't use a super-bounded type for instance creation. Got 'test::Pair<test::Clonable<dynamic>, test::Clonable<dynamic>>'.\n      new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair\n                                                                                                             ^"]/* from null */;
 static method main() → dynamic {
   final self::Pair<self::Clonable<dynamic>, self::Clonable<dynamic>> x = new self::Pair::_<self::Clonable<dynamic>, self::Clonable<dynamic>>();
 }

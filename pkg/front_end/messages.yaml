@@ -1827,3 +1827,8 @@ CantInferTypeDueToCircularity:
 AmbiguousSupertypes:
   template: "'#name' can't implement both '#type' and '#type2'"
   severity: ERROR
+
+CantUseSuperBoundedTypeForInstanceCreation:
+  template: "Can't use a super-bounded type for instance creation. Got '#type'."
+  tip: "Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference."
+  severity: ERROR
