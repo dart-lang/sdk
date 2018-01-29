@@ -24,7 +24,6 @@ import 'utils.dart';
 // organized in several categories:
 //
 // === Correctness ===
-// * Handle noSuchMethod invocations correctly.
 // * Verify incremental re-calculation by fresh analysis starting with known
 //   allocated classes.
 // * Auto-generate entry_points.json during build.
@@ -96,6 +95,34 @@ abstract class _Invocation extends _DependencyTracker {
 
   @override
   String toString() => "_Invocation $selector $args";
+
+  /// Processes noSuchMethod() invocation and returns its result.
+  /// Used if target is not found or number of arguments is incorrect.
+  Type _processNoSuchMethod(Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
+    tracePrint("Processing noSuchMethod for receiver $receiver");
+
+    final nsmSelector = new InterfaceSelector(
+        typeFlowAnalysis.hierarchyCache.objectNoSuchMethod,
+        callKind: CallKind.Method);
+
+    final nsmArgs = new Args<Type>([
+      receiver,
+      new Type.cone(
+          typeFlowAnalysis.environment.coreTypes.invocationClass.rawType)
+    ]);
+
+    final nsmInvocation =
+        typeFlowAnalysis._invocationsCache.getInvocation(nsmSelector, nsmArgs);
+
+    final Type type =
+        typeFlowAnalysis.workList.processInvocation(nsmInvocation);
+
+    // Result of this invocation depends on the result of noSuchMethod
+    // inovcation.
+    nsmInvocation.addDependentInvocation(this);
+
+    return type;
+  }
 }
 
 class _DirectInvocation extends _Invocation {
@@ -160,8 +187,8 @@ class _DirectInvocation extends _Invocation {
             .getSummary(member)
             .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
       } else {
-        // TODO(alexmarkov): support noSuchMethod invocation here.
-        return new Type.empty();
+        assertx(selector.callKind == CallKind.Method);
+        return _processNoSuchMethod(args.receiver, typeFlowAnalysis);
       }
     } else {
       if (selector.callKind == CallKind.PropertyGet) {
@@ -211,6 +238,10 @@ class _DispatchableInvocation extends _Invocation {
   Set<Call> _callSites; // Populated only if not polymorphic.
   Member _monomorphicTarget;
 
+  /// Marker for noSuchMethod() invocation in the map of invocation targets.
+  static final Member kNoSuchMethodMarker =
+      new Procedure(new Name('noSuchMethod&&'), ProcedureKind.Method, null);
+
   _DispatchableInvocation(Selector selector, Args<Type> args)
       : super(selector, args) {
     assertx(selector is! DirectSelector);
@@ -233,28 +264,39 @@ class _DispatchableInvocation extends _Invocation {
       tracePrint("No targets...");
     } else {
       if (targets.length == 1) {
-        _setMonomorphicTarget(targets.keys.single);
+        final target = targets.keys.single;
+        if (target != kNoSuchMethodMarker) {
+          _setMonomorphicTarget(target);
+        } else {
+          _setPolymorphic();
+        }
       } else {
         _setPolymorphic();
       }
+
       targets.forEach((Member target, Type receiver) {
-        final directSelector =
-            new DirectSelector(target, callKind: selector.callKind);
+        Type type;
 
-        Args<Type> directArgs = args;
-        if (args.receiver != receiver) {
-          directArgs = new Args<Type>.withReceiver(args, receiver);
+        if (target == kNoSuchMethodMarker) {
+          type = _processNoSuchMethod(receiver, typeFlowAnalysis);
+        } else {
+          final directSelector =
+              new DirectSelector(target, callKind: selector.callKind);
+
+          Args<Type> directArgs = args;
+          if (args.receiver != receiver) {
+            directArgs = new Args<Type>.withReceiver(args, receiver);
+          }
+
+          final directInvocation = typeFlowAnalysis._invocationsCache
+              .getInvocation(directSelector, directArgs);
+
+          type = typeFlowAnalysis.workList.processInvocation(directInvocation);
+
+          // Result of this invocation depends on the results of direct
+          // invocations corresponding to each target.
+          directInvocation.addDependentInvocation(this);
         }
-
-        final directInvocation = typeFlowAnalysis._invocationsCache
-            .getInvocation(directSelector, directArgs);
-
-        final Type type =
-            typeFlowAnalysis.workList.processInvocation(directInvocation);
-
-        // Result of this invocation depends on the results of direct
-        // invocations corresponding to each target.
-        directInvocation.addDependentInvocation(this);
 
         result = result.union(type, typeFlowAnalysis.hierarchyCache);
       });
@@ -341,7 +383,12 @@ class _DispatchableInvocation extends _Invocation {
       tracePrint("Found $target for concrete receiver $receiver");
       _addTarget(targets, target, receiver, typeFlowAnalysis);
     } else {
-      tracePrint("Target is not found for receiver $receiver");
+      if (typeFlowAnalysis.hierarchyCache.hasNonTrivialNoSuchMethod(class_)) {
+        tracePrint("Found non-trivial noSuchMethod for receiver $receiver");
+        _addTarget(targets, kNoSuchMethodMarker, receiver, typeFlowAnalysis);
+      } else {
+        tracePrint("Target is not found for receiver $receiver");
+      }
     }
   }
 
@@ -357,9 +404,19 @@ class _DispatchableInvocation extends _Invocation {
     }
 
     final receiver = args.receiver;
-    for (Member target in typeFlowAnalysis.hierarchyCache
-        .getDynamicTargets(selector as DynamicSelector)) {
+    final _DynamicTargetSet dynamicTargetSet = typeFlowAnalysis.hierarchyCache
+        .getDynamicTargetSet(selector as DynamicSelector);
+
+    dynamicTargetSet.addDependentInvocation(this);
+
+    for (Member target in dynamicTargetSet.targets) {
       _addTarget(targets, target, receiver, typeFlowAnalysis);
+    }
+
+    // Conservatively include noSuchMethod if selector is not from Object,
+    // as class might miss the implementation.
+    if (!dynamicTargetSet.isObjectMember) {
+      _addTarget(targets, kNoSuchMethodMarker, receiver, typeFlowAnalysis);
     }
   }
 
@@ -514,14 +571,20 @@ class _FieldValue extends _DependencyTracker {
 class _DynamicTargetSet extends _DependencyTracker {
   final DynamicSelector selector;
   final Set<Member> targets = new Set<Member>();
+  final bool isObjectMember;
 
-  _DynamicTargetSet(this.selector);
+  _DynamicTargetSet(this.selector, this.isObjectMember);
 }
 
 class _ClassData extends _DependencyTracker {
   final Class class_;
   final Set<_ClassData> supertypes; // List of super-types including this.
   final Set<_ClassData> allocatedSubtypes = new Set<_ClassData>();
+
+  /// Flag indicating if this class has a noSuchMethod() method not inherited
+  /// from Object.
+  /// Lazy initialized by _ClassHierarchyCache.hasNonTrivialNoSuchMethod().
+  bool hasNonTrivialNoSuchMethod;
 
   _ClassData(this.class_, this.supertypes) {
     supertypes.add(this);
@@ -539,6 +602,11 @@ class _ClassHierarchyCache implements TypeHierarchy {
   final Set<Class> allocatedClasses = new Set<Class>();
   final Map<Class, _ClassData> classes = <Class, _ClassData>{};
 
+  /// Object.noSuchMethod().
+  final Member objectNoSuchMethod;
+
+  static final Name noSuchMethodName = new Name("noSuchMethod");
+
   /// Class hierarchy is sealed after analysis is finished.
   /// Once it is sealed, no new allocated classes may be added and no new
   /// targets of invocations may appear.
@@ -547,7 +615,12 @@ class _ClassHierarchyCache implements TypeHierarchy {
   final Map<DynamicSelector, _DynamicTargetSet> _dynamicTargets =
       <DynamicSelector, _DynamicTargetSet>{};
 
-  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy);
+  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy)
+      : objectNoSuchMethod = hierarchy.getDispatchTarget(
+            _typeFlowAnalysis.environment.coreTypes.objectClass,
+            noSuchMethodName) {
+    assertx(objectNoSuchMethod != null);
+  }
 
   _ClassData getClassData(Class c) {
     return classes[c] ??= _createClassData(c);
@@ -673,14 +746,26 @@ class _ClassHierarchyCache implements TypeHierarchy {
     }
   }
 
-  Iterable<Member> getDynamicTargets(DynamicSelector selector) {
-    final targetSet =
-        (_dynamicTargets[selector] ??= _createDynamicTargetSet(selector));
-    return targetSet.targets;
+  bool hasNonTrivialNoSuchMethod(Class c) {
+    final classData = getClassData(c);
+    classData.hasNonTrivialNoSuchMethod ??=
+        (hierarchy.getDispatchTarget(c, noSuchMethodName) !=
+            objectNoSuchMethod);
+    return classData.hasNonTrivialNoSuchMethod;
+  }
+
+  _DynamicTargetSet getDynamicTargetSet(DynamicSelector selector) {
+    return (_dynamicTargets[selector] ??= _createDynamicTargetSet(selector));
   }
 
   _DynamicTargetSet _createDynamicTargetSet(DynamicSelector selector) {
-    final targetSet = new _DynamicTargetSet(selector);
+    // TODO(alexmarkov): consider caching the set of Object selectors.
+    final isObjectMethod = (hierarchy.getDispatchTarget(
+            _typeFlowAnalysis.environment.coreTypes.objectClass, selector.name,
+            setter: selector.isSetter) !=
+        null);
+
+    final targetSet = new _DynamicTargetSet(selector, isObjectMethod);
     for (Class c in allocatedClasses) {
       _addDynamicTarget(c, targetSet);
     }

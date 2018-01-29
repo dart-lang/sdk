@@ -1,0 +1,107 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class T1 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class T2 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class T3 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::T3::";
+}
+class T4 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class T5 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → dynamic;
+  abstract get bar() → dynamic;
+  abstract method bazz(dynamic a1, dynamic a2, dynamic a3, [dynamic a4 = null, dynamic a5 = null]) → dynamic;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return new self::T1::•();
+  }
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return new self::T2::•();
+  }
+}
+class D extends self::C implements self::A {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+}
+class E extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    throw "TFA Error: #lib::E::foo";
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return new self::T4::•();
+  }
+}
+class F extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method twoArg(dynamic a1, dynamic a2) → dynamic
+    throw "TFA Error: #lib::F::twoArg";
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return new self::T2::•();
+  }
+}
+class G extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return new self::T5::•();
+  }
+}
+static field self::A bb = new self::B::•();
+static field self::A dd = new self::D::•();
+static field core::Function unknown;
+static method getDynamic() → dynamic
+  return self::unknown.call();
+static method main(core::List<core::String> args) → dynamic {
+  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::foo}());
+  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::bar});
+  core::print([@vm.inferred-type.metadata=#lib::T1] [@vm.inferred-type.metadata=#lib::B] self::bb.{self::A::bazz}(1, 2, 3, 4));
+  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::foo}());
+  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::bar});
+  core::print([@vm.inferred-type.metadata=#lib::T2] [@vm.inferred-type.metadata=#lib::D] self::dd.{self::A::bazz}(1, 2, 3, 4));
+  new self::E::•();
+  self::A xx = self::getDynamic() as{TypeError} self::A;
+  core::print([@vm.inferred-type.metadata=!] xx.{self::A::bar});
+  dynamic yy = self::getDynamic();
+  core::print([@vm.inferred-type.metadata=!] yy.twoArg(1, 2, 3));
+  new self::F::•();
+  dynamic gg = new self::G::•();
+  core::print([@vm.inferred-type.metadata=#lib::T5] gg.{core::Object::noSuchMethod}(null, null));
+}
