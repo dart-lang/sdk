@@ -78,6 +78,7 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.avoid_init_to_null ||
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
+            errorCode.name == LintNames.prefer_const_declarations ||
             errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
             errorCode.name == LintNames.unnecessary_lambdas ||
             errorCode.name == LintNames.unnecessary_this));
@@ -205,6 +206,8 @@ class DartFixKind {
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
+  static const REPLACE_FINAL_WITH_CONST = const FixKind(
+      'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
   static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
       'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
