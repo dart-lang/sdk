@@ -4195,9 +4195,11 @@ abstract class IndexExpression extends Expression
  * An instance creation expression.
  *
  *    newExpression ::=
- *        ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+ *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
+ *
+ * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 abstract class InstanceCreationExpression extends Expression
     implements ConstructorReferenceNode {

@@ -1322,6 +1322,11 @@ abstract class AnalysisOptions {
   bool get useFastaParser;
 
   /**
+   * Whether to enable the Dart 2.0 preview.
+   */
+  bool previewDart2;
+
+  /**
    * Reset the state of this set of analysis options to its original state.
    */
   void resetToDefaults();
@@ -1466,6 +1471,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool useFastaParser = false;
 
   @override
+  bool previewDart2 = false;
+
+  @override
   bool disableCacheFlushing = false;
 
   /**
@@ -1522,6 +1530,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     useFastaParser = options.useFastaParser;
+    previewDart2 = options.previewDart2;
     if (options is AnalysisOptionsImpl) {
       declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;

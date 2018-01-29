@@ -7,6 +7,7 @@ library analyzer.src.generated.element_resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,7 +20,9 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         IdentifierImpl,
         PrefixedIdentifierImpl,
         SimpleIdentifierImpl;
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -129,6 +132,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   TypePromotionManager _promoteManager;
 
   /**
+   * Gets an instance of [AstFactory] based on the standard AST implementation.
+   */
+  AstFactory _astFactory;
+
+  /**
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
    */
@@ -141,6 +149,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     _typeType = _resolver.typeProvider.typeType;
     _subtypeManager = new SubtypeManager();
     _promoteManager = _resolver.promoteManager;
+    _astFactory = new AstFactoryImpl();
   }
 
   /**
@@ -615,9 +624,22 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
+    bool previewDart2 = _definingLibrary.context.analysisOptions.previewDart2;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
+
+      if (previewDart2 &&
+          staticElement != null &&
+          staticElement is ClassElement) {
+        InstanceCreationExpression instanceCreationExpression =
+            _handleImplicitConstructorCase(node, staticElement);
+        if (instanceCreationExpression != null) {
+          // If a non-null is returned, the node was created, replaced, so we
+          // can return here.
+          return null;
+        }
+      }
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
       if (node.operator.type == TokenType.QUESTION_PERIOD) {
@@ -641,6 +663,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       //
       bool isConditional = node.operator.type == TokenType.QUESTION_PERIOD;
       ClassElement typeReference = getTypeReference(target);
+
+      if (previewDart2 &&
+          typeReference != null &&
+          typeReference is ClassElement) {
+        InstanceCreationExpression instanceCreationExpression =
+            _handleImplicitConstructorCase(node, typeReference);
+        if (instanceCreationExpression != null) {
+          // If a non-null is returned, the node was created, replaced, so we
+          // can return here.
+          return null;
+        }
+      }
+
       if (typeReference != null) {
         if (node.isCascaded) {
           typeReference = _typeType.element;
@@ -1687,6 +1722,72 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return identical(parent.target, node);
     }
     return false;
+  }
+
+  /**
+   * Return the newly created and replaced [InstanceCreationExpression], or
+   * `null` if this is not an implicit constructor case.
+   */
+  InstanceCreationExpression _handleImplicitConstructorCase(
+      MethodInvocation node, ClassElement classElement) {
+    // If target == null, then this is the unnamed constructor, A(), case,
+    // otherwise it is the named constructor A.name() case.
+    Expression target = node.realTarget;
+    bool isNamedConstructorCase = target != null;
+
+    // If we are in the named constructor case, verify that the target is a
+    // SimpleIdentifier and that the operator is '.'
+    SimpleIdentifier targetSimpleId;
+    if (isNamedConstructorCase) {
+      if (target is SimpleIdentifier &&
+          node.operator.type == TokenType.PERIOD) {
+        targetSimpleId = target;
+      } else {
+        // Return null as this is not an implicit constructor case.
+        return null;
+      }
+    }
+
+    // Create the Constructor name, in each case: A[.named]()
+    TypeName typeName;
+    ConstructorName constructorName;
+    if (isNamedConstructorCase) {
+      // A.named()
+      typeName = _astFactory.typeName(targetSimpleId, node.typeArguments);
+      typeName.type = classElement.type;
+
+      constructorName =
+          _astFactory.constructorName(typeName, node.operator, node.methodName);
+    } else {
+      // A()
+      typeName = _astFactory.typeName(node.methodName, node.typeArguments);
+      typeName.type = classElement.type;
+
+      constructorName = _astFactory.constructorName(typeName, null, null);
+    }
+
+    InstanceCreationExpression instanceCreationExpression = _astFactory
+        .instanceCreationExpression(null, constructorName, node.argumentList);
+
+    DartType type = constructorName.type.type;
+    if (type is InterfaceType) {
+      // look up ConstructorElement
+      ConstructorElement constructorElt;
+      SimpleIdentifier name = constructorName.name;
+      if (name == null) {
+        constructorElt = type.lookUpConstructor(null, _definingLibrary);
+      } else {
+        constructorElt = type.lookUpConstructor(name.name, _definingLibrary);
+        name.staticElement = constructorElt;
+      }
+      constructorName.staticElement = constructorElt;
+      instanceCreationExpression.staticElement = constructorElt;
+    }
+
+    instanceCreationExpression.staticType = classElement.type;
+
+    NodeReplacer.replace(node, instanceCreationExpression);
+    return instanceCreationExpression;
   }
 
   /**
