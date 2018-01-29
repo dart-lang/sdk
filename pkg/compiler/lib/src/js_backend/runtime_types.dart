@@ -775,7 +775,9 @@ class TypeVariableTests {
     worldBuilder.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
       for (DartType type in typeArguments) {
-        for (MethodNode method in _methods.values) {
+        // TODO(johnniwinther): Ensure that methods added here will be
+        // processed for matching selectors.
+        for (MethodNode method in _methods.values.toList()) {
           if (method.selectorApplies(selector)) {
             registerDependencies(method, type);
           }
