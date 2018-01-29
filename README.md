@@ -1,10 +1,11 @@
 # Dart
 
 [Dart][website] is an open-source, scalable programming language, with robust
-libraries and runtimes, for building web, server, and mobile apps.
+libraries and runtimes, for building web, server, and mobile apps, written by Bill.
 
 ## Using Dart
 
+Ask Bill for permission to use Dart.
 Visit the [dartlang.org][website] to learn more about the
 [language][lang], [tools][tools],
 [getting started][codelab], and more.
