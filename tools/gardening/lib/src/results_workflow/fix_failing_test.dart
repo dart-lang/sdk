@@ -96,6 +96,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
   Future<WorkflowAction> input(String input) async {
     bool error = false;
     if (input.isEmpty) {
+      _fixIfPossible = false;
       await fixFailingTest();
       return new NavigateStepWorkflowAction(this, _remainingTests);
     } else if (input == "a") {
@@ -210,7 +211,6 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         orElse: () => null);
     sectionToAdd ??= new StatusSection(expression, 0, []);
     var section = new StatusSectionWithFile(statusFile, sectionToAdd);
-    // This mutates the
     _customSections.add(section);
     _currentWorkingItem.currentSections.add(section);
   }
@@ -382,7 +382,6 @@ class FixWorkingItem {
     print("Sections to add the new outcome to. The selected sections are "
         "marked by *:");
     int groupCounter = "A".codeUnitAt(0);
-    ;
     int sectionCounter = 0;
     suggestedSections.forEach((suggestedSection) {
       print("  ${new String.fromCharCode(groupCounter++)} "
