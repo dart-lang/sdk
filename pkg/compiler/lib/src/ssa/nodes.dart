@@ -1697,6 +1697,9 @@ abstract class HInvokeDynamic extends HInvoke {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
+  /// The type arguments passed in this dynamic invocation.
+  List<DartType> get typeArguments;
+
   /**
    * Returns whether this call is on an interceptor object.
    */
@@ -1716,23 +1719,31 @@ abstract class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type)
+  final List<DartType> typeArguments;
+
+  HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type,
+      this.typeArguments)
       : super(selector, null, null, inputs, type) {
     assert(selector.isClosureCall);
+    assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
+  final List<DartType> typeArguments;
+
   HInvokeDynamicMethod(
       Selector selector,
       TypeMask mask,
       List<HInstruction> inputs,
       TypeMask type,
+      this.typeArguments,
       SourceInformation sourceInformation,
-      [bool isIntercepted = false])
+      {bool isIntercepted: false})
       : super(selector, mask, null, inputs, type, isIntercepted) {
     this.sourceInformation = sourceInformation;
+    assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
 
   String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
@@ -1758,13 +1769,17 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
       : super(selector, mask, element, inputs, type) {
     this.sourceInformation = sourceInformation;
   }
-  String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
+
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 
   bool get isTearOff => element != null && element.isFunction;
 
+  List<DartType> get typeArguments => const <DartType>[];
+
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
   bool canThrow() => isTearOff ? inputs.last.canBeNull() : super.canThrow();
+
+  String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
@@ -1778,12 +1793,19 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
       : super(selector, mask, element, inputs, type) {
     this.sourceInformation = sourceInformation;
   }
-  String toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
+
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
+
+  List<DartType> get typeArguments => const <DartType>[];
+
+  String toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
 }
 
 class HInvokeStatic extends HInvoke {
   final MemberEntity element;
+
+  /// The type arguments passed in this static invocation.
+  final List<DartType> typeArguments;
 
   final bool targetCanThrow;
 
@@ -1796,13 +1818,15 @@ class HInvokeStatic extends HInvoke {
   List<DartType> instantiatedTypes;
 
   /** The first input must be the target. */
-  HInvokeStatic(this.element, inputs, TypeMask type,
+  HInvokeStatic(this.element, inputs, TypeMask type, this.typeArguments,
       {this.targetCanThrow: true})
       : super(inputs, type);
 
-  String toString() => 'invoke static: $element';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
+
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
+
+  String toString() => 'invoke static: $element';
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1811,10 +1835,16 @@ class HInvokeSuper extends HInvokeStatic {
   final bool isSetter;
   final Selector selector;
 
-  HInvokeSuper(MemberEntity element, this.caller, this.selector, inputs, type,
+  HInvokeSuper(
+      MemberEntity element,
+      this.caller,
+      this.selector,
+      List<HInstruction> inputs,
+      TypeMask type,
+      List<DartType> typeArguments,
       SourceInformation sourceInformation,
       {this.isSetter})
-      : super(element, inputs, type) {
+      : super(element, inputs, type, typeArguments) {
     this.sourceInformation = sourceInformation;
   }
 
@@ -1849,7 +1879,7 @@ class HInvokeConstructorBody extends HInvokeStatic {
       List<HInstruction> inputs,
       TypeMask type,
       SourceInformation sourceInformation)
-      : super(element, inputs, type) {
+      : super(element, inputs, type, const <DartType>[]) {
     this.sourceInformation = sourceInformation;
   }
 
@@ -2787,12 +2817,19 @@ class HInterceptor extends HInstruction {
  * constant as the first input.
  */
 class HOneShotInterceptor extends HInvokeDynamic {
+  List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
-  HOneShotInterceptor(Selector selector, TypeMask mask,
-      List<HInstruction> inputs, TypeMask type, this.interceptedClasses)
+  HOneShotInterceptor(
+      Selector selector,
+      TypeMask mask,
+      List<HInstruction> inputs,
+      TypeMask type,
+      this.typeArguments,
+      this.interceptedClasses)
       : super(selector, mask, null, inputs, type, true) {
     assert(inputs[0] is HConstant);
     assert(inputs[0].isNull());
+    assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   bool isCallOnInterceptor(ClosedWorld closedWorld) => true;
 

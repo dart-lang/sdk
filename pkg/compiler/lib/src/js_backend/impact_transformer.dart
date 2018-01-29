@@ -21,7 +21,7 @@ import '../native/native.dart' as native;
 import '../options.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart'
-    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+    show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
 import 'backend_impact.dart';
@@ -231,10 +231,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
-    for (DynamicUse dynamicUse in worldImpact.dynamicUses) {
-      registerDynamicInvocation(dynamicUse);
-    }
-
     for (StaticUse staticUse in worldImpact.staticUses) {
       switch (staticUse.kind) {
         case StaticUseKind.CLOSURE:
@@ -244,10 +240,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           if (type.containsTypeVariables) {
             registerImpact(_impacts.computeSignature);
           }
-          break;
-        case StaticUseKind.INVOKE:
-        case StaticUseKind.CLOSURE_CALL:
-          registerStaticInvocation(staticUse);
           break;
         default:
       }
@@ -288,20 +280,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     return transformed;
-  }
-
-  void registerStaticInvocation(StaticUse staticUse) {
-    if (staticUse.typeArguments == null || staticUse.typeArguments.isEmpty) {
-      return;
-    }
-    _rtiNeedBuilder.registerStaticTypeArgumentDependency(
-        staticUse.element, staticUse.typeArguments);
-  }
-
-  void registerDynamicInvocation(DynamicUse dynamicUse) {
-    if (dynamicUse.typeArguments.isEmpty) return;
-    _rtiNeedBuilder.registerDynamicTypeArgumentDependency(
-        dynamicUse.selector, dynamicUse.typeArguments);
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].

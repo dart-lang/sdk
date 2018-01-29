@@ -1542,8 +1542,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       String name = "${n(element.library)}:${n(element.enclosingClass)}."
           "${n(element)}";
       HConstant nameConstant = addConstantString(name);
-      add(new HInvokeStatic(commonElements.traceHelper,
-          <HInstruction>[nameConstant], commonMasks.dynamicType));
+      add(new HInvokeStatic(
+          commonElements.traceHelper,
+          <HInstruction>[nameConstant],
+          commonMasks.dynamicType,
+          const <DartType>[]));
     }
   }
 
@@ -1554,8 +1557,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       HConstant idConstant =
           graph.addConstantInt(element.hashCode, closedWorld);
       HConstant nameConstant = addConstantString(element.name);
-      add(new HInvokeStatic(commonElements.traceHelper,
-          <HInstruction>[idConstant, nameConstant], commonMasks.dynamicType));
+      add(new HInvokeStatic(
+          commonElements.traceHelper,
+          <HInstruction>[idConstant, nameConstant],
+          commonMasks.dynamicType,
+          const <DartType>[]));
     }
   }
 
@@ -1573,8 +1579,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       supertypeInstruction,
       messageInstruction
     ];
-    HInstruction assertIsSubtype =
-        new HInvokeStatic(element, inputs, subtypeInstruction.instructionType);
+    HInstruction assertIsSubtype = new HInvokeStatic(element, inputs,
+        subtypeInstruction.instructionType, const <DartType>[]);
     registry?.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
     add(assertIsSubtype);
   }
@@ -3009,7 +3015,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // closure.
       visit(link.tail.head);
       push(new HInvokeClosure(new Selector.callClosure(0),
-          <HInstruction>[pop()], commonMasks.dynamicType));
+          <HInstruction>[pop()], commonMasks.dynamicType, const <DartType>[]));
     } else {
       // Call a helper method from the isolate library.
       MethodElement element = commonElements.callInIsolate;
@@ -3132,7 +3138,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     String loadId =
         deferredLoadTask.getImportDeferName(node, prefixElement.deferredImport);
     var inputs = [graph.addConstantString(loadId, closedWorld)];
-    push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
+    push(new HInvokeStatic(
+        loadFunction, inputs, commonMasks.nonNullType, const <DartType>[],
         targetCanThrow: false)
       ..sourceInformation = sourceInformation);
   }
@@ -3153,7 +3160,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
       // TODO(johnniwinther): Register this more precisely.
-      registry?.registerDynamicUse(new ConstrainedDynamicUse(selector, null));
+      registry
+          ?.registerDynamicUse(new ConstrainedDynamicUse(selector, null, null));
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';
@@ -3948,8 +3956,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     Selector selector = elements.getSelector(node);
     List<HInstruction> inputs = <HInstruction>[target];
     addDynamicSendArgumentsToList(node, inputs);
-    push(new HInvokeClosure(
-        new Selector.callClosureFrom(selector), inputs, commonMasks.dynamicType)
+    push(new HInvokeClosure(new Selector.callClosureFrom(selector), inputs,
+        commonMasks.dynamicType, const <DartType>[])
       ..sourceInformation = sourceInformation);
   }
 
@@ -4157,7 +4165,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           selector, mask, null, inputs, type, sourceInformation));
     } else {
       push(new HInvokeDynamicMethod(
-          selector, mask, inputs, type, sourceInformation, isIntercepted));
+          selector, mask, inputs, type, const <DartType>[], sourceInformation,
+          isIntercepted: isIntercepted));
     }
   }
 
@@ -4285,7 +4294,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           invokeJsInteropFunction(element, arguments, sourceInformation);
     } else {
       // creating an [HInvokeStatic].
-      instruction = new HInvokeStatic(element, arguments, typeMask,
+      instruction = new HInvokeStatic(
+          element, arguments, typeMask, const <DartType>[],
           targetCanThrow: targetCanThrow)
         ..sourceInformation = sourceInformation;
       if (currentInlinedInstantiations.isNotEmpty) {
@@ -4328,7 +4338,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       type = closedWorld.commonMasks.dynamicType;
     }
     HInstruction instruction = new HInvokeSuper(element, currentNonClosureClass,
-        selector, inputs, type, sourceInformation,
+        selector, inputs, type, const <DartType>[], sourceInformation,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);

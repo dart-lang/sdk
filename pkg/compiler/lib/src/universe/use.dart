@@ -98,8 +98,19 @@ class GenericDynamicUse extends DynamicUse {
 /// type mask or similar.
 class ConstrainedDynamicUse extends DynamicUse {
   final ReceiverConstraint mask;
+  final List<DartType> _typeArguments;
 
-  ConstrainedDynamicUse(Selector selector, this.mask) : super(selector);
+  ConstrainedDynamicUse(Selector selector, this.mask, this._typeArguments)
+      : super(selector) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${_typeArguments?.length ?? 0} were passed.");
+  }
+
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
 enum StaticUseKind {

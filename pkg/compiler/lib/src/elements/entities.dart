@@ -11,6 +11,7 @@ import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'names.dart';
+import 'types.dart';
 
 /// Abstract interface for entities.
 ///
@@ -269,6 +270,14 @@ class ParameterStructure {
   const ParameterStructure.getter() : this(0, 0, const <String>[], 0);
 
   const ParameterStructure.setter() : this(1, 1, const <String>[], 0);
+
+  factory ParameterStructure.fromType(FunctionType type) {
+    return new ParameterStructure(
+        type.parameterTypes.length,
+        type.parameterTypes.length + type.optionalParameterTypes.length,
+        type.namedParameters,
+        type.typeVariables.length);
+  }
 
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>

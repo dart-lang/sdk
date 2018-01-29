@@ -109,17 +109,11 @@ abstract class ComputeValueMixin<T> {
   }
 
   void findDependencies(Features features, Entity entity) {
-    Iterable<String> dependencies;
-    if (rtiNeedBuilder.typeVariableTests.typeArgumentDependencies
-        .containsKey(entity)) {
-      dependencies = rtiNeedBuilder
-          .typeVariableTests.typeArgumentDependencies[entity]
-          .map((d) => d.name)
-          .toList()
-            ..sort();
-    }
-    if (dependencies != null && dependencies.isNotEmpty) {
-      features[Tags.dependencies] = '[${dependencies.join(',')}]';
+    Iterable<Entity> dependencies =
+        rtiNeedBuilder.typeVariableTests.getTypeArgumentDependencies(entity);
+    if (dependencies.isNotEmpty) {
+      List<String> names = dependencies.map((d) => d.name).toList()..sort();
+      features[Tags.dependencies] = '[${names.join(',')}]';
     }
   }
 
@@ -143,9 +137,9 @@ abstract class ComputeValueMixin<T> {
       features.add(Tags.indirectTypeArgumentTest);
     }
     findChecks(features, Tags.explicitTypeCheck, frontendClass,
-        rtiNeedBuilder.typeVariableTests.isChecks);
+        rtiNeedBuilder.typeVariableTests.explicitIsChecks);
     findChecks(features, Tags.implicitTypeCheck, frontendClass,
-        rtiNeedBuilder.implicitIsChecks);
+        rtiNeedBuilder.typeVariableTests.implicitIsChecks);
     if (rtiChecks.getRequiredArgumentClasses().contains(backendClass)) {
       features.add(Tags.requiredArgumentClass);
     }
@@ -176,11 +170,14 @@ abstract class ComputeValueMixin<T> {
         if (rtiNeedBuilder.typeVariableTests.directMethodTests
             .contains(entity)) {
           features.add(Tags.directTypeArgumentTest);
+        } else if (rtiNeedBuilder.typeVariableTests.methodTests
+            .contains(entity)) {
+          features.add(Tags.indirectTypeArgumentTest);
         }
         findChecks(features, Tags.explicitTypeCheck, entity,
-            rtiNeedBuilder.typeVariableTests.isChecks);
+            rtiNeedBuilder.typeVariableTests.explicitIsChecks);
         findChecks(features, Tags.implicitTypeCheck, entity,
-            rtiNeedBuilder.implicitIsChecks);
+            rtiNeedBuilder.typeVariableTests.implicitIsChecks);
       }
 
       if (frontendClosure != null) {

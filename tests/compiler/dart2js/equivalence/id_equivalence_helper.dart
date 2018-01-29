@@ -554,6 +554,7 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
   void checkActualMap(
       Map<Id, ActualData> actualMap, Map<Id, IdValue> expectedMap,
       [Uri uri]) {
+    bool hasLocalFailure = false;
     actualMap.forEach((Id id, ActualData actualData) {
       IdValue actual = actualData.value;
       if (!expectedMap.containsKey(id)) {
@@ -561,18 +562,11 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
           reportHere(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Id $id = ${actual} for ${actualData.object} '
+              'Id $id = ${colors.red('$actual')} for ${actualData.object} '
               '(${actualData.object.runtimeType}) '
               'not expected in ${expectedMap.keys}');
-          if (uri != null) {
-            print('--annotations diff [${uri.pathSegments.last}]-------------');
-            print(data.diffCode(uri));
-            print('----------------------------------------------------------');
-          }
-        }
-        if (filterActualData == null || filterActualData(null, actualData)) {
-          if (actual.value != '') {
-            hasFailure = true;
+          if (filterActualData == null || filterActualData(null, actualData)) {
+            hasLocalFailure = true;
           }
         }
       } else {
@@ -585,35 +579,21 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
               '(${actualData.object.runtimeType})\n '
               'expected: ${colors.green('$expected')}\n '
               'actual: ${colors.red('$actual')}');
-          if (uri != null) {
-            print('--annotations diff [${uri.pathSegments.last}]-------------');
-            print(data.diffCode(uri));
-            print('----------------------------------------------------------');
-          }
-        }
-        if (filterActualData == null ||
-            filterActualData(expected, actualData)) {
-          if (actual != expected) {
-            hasFailure = true;
+          if (filterActualData == null ||
+              filterActualData(expected, actualData)) {
+            hasLocalFailure = true;
           }
         }
       }
     });
-    expectedMap.forEach((Id id, IdValue expected) {
-      if (!actualMap.containsKey(id)) {
-        if (expected.value != '') {
-          print('Id $id = ${expected} not found in ${actualMap.keys}');
-          if (uri != null) {
-            print('--annotations diff [${uri.pathSegments.last}]-------------');
-            print(data.diffCode(uri));
-            print('----------------------------------------------------------');
-          }
-        }
-        if (expected.value != '') {
-          hasFailure = true;
-        }
+    if (hasLocalFailure) {
+      hasFailure = true;
+      if (uri != null) {
+        print('--annotations diff [${uri.pathSegments.last}]-------------');
+        print(data.diffCode(uri));
+        print('----------------------------------------------------------');
       }
-    });
+    }
   }
 
   data.actualMaps.forEach((Uri uri, Map<Id, ActualData> actualMap) {
@@ -623,26 +603,35 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
 
   Set<Id> missingIds = new Set<Id>();
   StringBuffer combinedAnnotationsDiff = new StringBuffer();
-  data.expectedMaps.forEach((Uri uri, Map<Id, IdValue> expectedMap) {
+  void checkMissing(Map<Id, IdValue> expectedMap, Map<Id, ActualData> actualMap,
+      [Uri uri]) {
     expectedMap.forEach((Id id, IdValue expected) {
-      if (!data.actualMaps[uri].containsKey(id)) {
+      if (!actualMap.containsKey(id)) {
         missingIds.add(id);
         StringBuffer sb = new StringBuffer();
-        for (Id id
-            in data.actualMaps[uri].keys /*.where((d) => d.kind == id.kind)*/) {
+        for (Id id in actualMap.keys.where((d) => d.kind == id.kind)) {
           sb.write('\n  $id');
         }
-        reportHere(
-            data.compiler.reporter,
-            computeSpannable(data.elementEnvironment, uri, id),
-            'Expected $expected for id $id missing in${sb}');
+        if (uri != null) {
+          reportHere(
+              data.compiler.reporter,
+              computeSpannable(data.elementEnvironment, uri, id),
+              'Expected $expected for id $id missing in${sb}');
+        } else {
+          print('Expected $expected for id $id missing in${sb}');
+        }
       }
     });
-    if (missingIds.isNotEmpty) {
+    if (missingIds.isNotEmpty && uri != null) {
       combinedAnnotationsDiff.write('Missing in $uri:\n');
       combinedAnnotationsDiff.write('${data.diffCode(uri)}\n');
     }
+  }
+
+  data.expectedMaps.forEach((Uri uri, Map<Id, IdValue> expectedMap) {
+    checkMissing(expectedMap, data.actualMaps[uri], uri);
   });
+  checkMissing(data.expectedMaps.globalData, data.actualMaps.globalData);
   if (combinedAnnotationsDiff.isNotEmpty) {
     print('--annotations diff--------------------------------------------');
     print(combinedAnnotationsDiff.toString());
