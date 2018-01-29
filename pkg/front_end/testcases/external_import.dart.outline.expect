@@ -1,0 +1,8 @@
+@dart._internal::ExternalName::•("org-dartlang-testcase:///here")
+@dart._internal::ExternalName::•("org-dartlang-testcase:///there")
+@dart._internal::ExternalName::•("file:///usr/local/somewhere")
+library;
+import self as self;
+
+static method main() → dynamic
+  ;

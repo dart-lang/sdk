@@ -253,15 +253,11 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
   test_nativeConstConstructor() async {
     return super.test_nativeConstConstructor();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
   test_nativeFunctionBodyInNonSDKCode_function() async {
     return super.test_nativeFunctionBodyInNonSDKCode_function();
   }
@@ -344,22 +340,16 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
   test_uriDoesNotExist_dll() async {
     return super.test_uriDoesNotExist_dll();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
   test_uriDoesNotExist_dylib() async {
     return super.test_uriDoesNotExist_dylib();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31801')
   test_uriDoesNotExist_so() async {
     return super.test_uriDoesNotExist_so();
   }

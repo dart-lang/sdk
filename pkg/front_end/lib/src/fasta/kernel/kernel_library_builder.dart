@@ -810,6 +810,21 @@ class KernelLibraryBuilder
     }
   }
 
+  void addNativeDependency(Uri nativeImportUri) {
+    Builder constructor = loader.getNativeAnnotation();
+    Arguments arguments =
+        new Arguments(<Expression>[new StringLiteral("$nativeImportUri")]);
+    Expression annotation;
+    if (constructor.isConstructor) {
+      annotation = new ConstructorInvocation(constructor.target, arguments)
+        ..isConst = true;
+    } else {
+      annotation = new StaticInvocation(constructor.target, arguments)
+        ..isConst = true;
+    }
+    library.addAnnotation(annotation);
+  }
+
   void addDependencies(Library library, Set<KernelLibraryBuilder> seen) {
     if (!seen.add(this)) {
       return;
@@ -826,6 +841,13 @@ class KernelLibraryBuilder
                   exports[exportIndex].charOffset)) {
         // Add import
         Import import = imports[importIndex++];
+
+        // Rather than add a LibraryDependency, we attach an annotation.
+        if (import.nativeImportUri != null) {
+          addNativeDependency(import.nativeImportUri);
+          continue;
+        }
+
         if (import.deferred && import.prefixBuilder?.dependency != null) {
           library.addDependency(import.prefixBuilder.dependency);
         } else {
