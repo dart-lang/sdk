@@ -1061,6 +1061,99 @@ part of 'foo.dart';
 ''');
   }
 
+  test_convertToAsyncBody_BAD_async() async {
+    await resolveTestUnit('''
+import 'dart:async';
+Future<String> f() async => '';
+''');
+    await assertNoAssistAt('=>', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_asyncStar() async {
+    await resolveTestUnit('''
+import 'dart:async';
+Stream<String> f() async* {}
+''');
+    await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_constructor() async {
+    await resolveTestUnit('''
+class C {
+  C() {}
+}
+''');
+    await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_syncStar() async {
+    await resolveTestUnit('''
+Iterable<String> f() sync* {}
+''');
+    await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_OK_closure() async {
+    await resolveTestUnit('''
+main() {
+  f(() => 123);
+}
+f(g) {}
+''');
+    await assertHasAssistAt('123', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+main() {
+  f(() async => 123);
+}
+f(g) {}
+''');
+  }
+
+  test_convertToAsyncBody_OK_function() async {
+    // TODO(brianwilkerson) Remove the "class C {}" when the bug in the builder
+    // is fixed that causes the import to be incorrectly inserted when the first
+    // character in the file is also being modified.
+    await resolveTestUnit('''
+class C {}
+String f() => '';
+''');
+    await assertHasAssistAt('=>', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {}
+Future<String> f() async => '';
+''');
+  }
+
+  test_convertToAsyncBody_OK_method() async {
+    await resolveTestUnit('''
+class C {
+  int m() { return 0; }
+}
+''');
+    await assertHasAssistAt(
+        '{ return', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {
+  Future<int> m() async { return 0; }
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method_noReturnType() async {
+    await resolveTestUnit('''
+class C {
+  m() { return 0; }
+}
+''');
+    await assertHasAssistAt(
+        '{ return', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+class C {
+  m() async { return 0; }
+}
+''');
+  }
+
   test_convertToBlockBody_BAD_inExpression() async {
     await resolveTestUnit('''
 main() => 123;

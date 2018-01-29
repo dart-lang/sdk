@@ -125,6 +125,7 @@ class AssistProcessor {
     await _addProposal_convertIntoGetter();
     await _addProposal_convertDocumentationIntoBlock();
     await _addProposal_convertDocumentationIntoLine();
+    await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToExpressionFunctionBody();
     await _addProposal_convertFlutterChild();
@@ -159,6 +160,8 @@ class AssistProcessor {
   }
 
   FunctionBody getEnclosingFunctionBody() {
+    // TODO(brianwilkerson) Determine whether there is a reason why this method
+    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
     {
       FunctionExpression function =
           node.getAncestor((node) => node is FunctionExpression);
@@ -672,6 +675,37 @@ class AssistProcessor {
       builder.addSimpleReplacement(replacementRange, "'$relativePath'");
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_PART_OF_TO_URI);
+  }
+
+  Future<Null> _addProposal_convertToAsyncFunctionBody() async {
+    FunctionBody body = getEnclosingFunctionBody();
+    if (body == null || body.isAsynchronous || body.isGenerator) {
+      _coverageMarker();
+      return;
+    }
+    TypeAnnotation returnType;
+    AstNode parent = body.parent;
+    if (parent is ConstructorDeclaration) {
+      return;
+    }
+    if (parent is FunctionExpression) {
+      AstNode grandParent = parent.parent;
+      if (grandParent is FunctionDeclaration) {
+        returnType = grandParent.returnType;
+      }
+    } else if (parent is MethodDeclaration) {
+      returnType = parent.returnType;
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (returnType != null) {
+        builder.replaceTypeWithFuture(returnType, typeProvider);
+      }
+      builder.addSimpleInsertion(body.offset, 'async ');
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_INTO_ASYNC_BODY);
   }
 
   Future<Null> _addProposal_convertToBlockFunctionBody() async {

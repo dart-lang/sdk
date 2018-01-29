@@ -47,6 +47,8 @@ class DartAssistKind {
       "Convert into line documentation comment");
   static const CONVERT_FLUTTER_CHILD =
       const AssistKind('CONVERT_FLUTTER_CHILD', 30, "Convert to children:");
+  static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
+      'CONVERT_INTO_ASYNC_BODY', 30, "Convert into async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
