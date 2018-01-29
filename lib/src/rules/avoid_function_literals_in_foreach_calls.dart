@@ -25,9 +25,9 @@ people.forEach((person) {
 for (var person in people) {
   ...
 }
-```
-people.forEach(print);
 
+people.forEach(print);
+```
 ''';
 
 class AvoidFunctionLiteralInForeachMethod extends LintRule {
