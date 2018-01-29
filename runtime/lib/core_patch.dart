@@ -51,6 +51,7 @@ import "dart:typed_data" show Uint8List, Int64List, Uint16List, Uint32List;
 // part "array.dart";
 // part "array_patch.dart";
 // part "bigint.dart";
+// part "bigint_patch.dart";
 // part "bool_patch.dart";
 // part "date_patch.dart";
 // part "double.dart";
