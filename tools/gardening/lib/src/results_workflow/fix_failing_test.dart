@@ -237,6 +237,9 @@ Expression getNewExpressionFromCommandLine() {
 /// user to pick the correct file.
 StatusFile getStatusFile(FixWorkingItem workingItem) {
   var statusFiles = workingItem.statusFiles();
+  if (statusFiles.length == 1) {
+    return statusFiles.first;
+  }
   print("Which status file should the section be added to/exists in?");
   int i = 0;
   for (var statusFile in statusFiles) {
