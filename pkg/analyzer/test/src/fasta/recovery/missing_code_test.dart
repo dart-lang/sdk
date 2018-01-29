@@ -417,6 +417,28 @@ f() {
     testUserDefinableOperatorWithSuper('~/');
   }
 
+  void test_unclosedStringInterpolation() {
+    // https://github.com/dart-lang/sdk/issues/946
+    // TODO(brianwilkerson) Try to recover better. Ideally there would be a
+    // single error about an unterminated interpolation block.
+    testRecovery(r'''
+f() {
+  print("${42");
+}
+''', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+      ScannerErrorCode.UNTERMINATED_STRING_LITERAL
+    ], r'''
+f() {
+  print("${42}");
+}
+''');
+  }
+
   void testBinaryExpression(String operator) {
     testRecovery('''
 f() => x $operator
@@ -606,6 +628,21 @@ f([a = 0]) {}
 f([a = 0) {}
 ''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
 f([a = 0]) {}
+''');
+  }
+
+  void test_missingComma() {
+    // https://github.com/dart-lang/sdk/issues/22074
+    testRecovery('''
+g(a, b, c) {}
+h(v1, v2, v) {
+  g(v1 == v2 || v1 == v 3, true);
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+g(a, b, c) {}
+h(v1, v2, v) {
+  g(v1 == v2 || v1 == v, 3, true);
+}
 ''');
   }
 
