@@ -1528,6 +1528,14 @@ class Procedure extends Member implements FileUriNode {
   /// constant factories, such as `String.fromEnvironment`.
   bool get isConst => flags & FlagConst != 0;
 
+  /// If set, this flag indicates that this function's implementation exists
+  /// solely for the purpose of type checking arguments and forwarding to
+  /// [forwardingStubSuperTarget].
+  ///
+  /// Note that just because this bit is set doesn't mean that the function was
+  /// not declared in the source; it's possible that this is a forwarding
+  /// semi-stub (see isForwardingSemiStub).  To determine whether this function
+  /// was present in the source, consult [isSyntheticForwarder].
   bool get isForwardingStub => flags & FlagForwardingStub != 0;
 
   /// Indicates whether invocations using this interface target may need to
@@ -1541,6 +1549,11 @@ class Procedure extends Member implements FileUriNode {
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
   bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
+
+  /// If set, this flag indicates that this function was not present in the
+  /// source, and it exists solely for the purpose of type checking arguments
+  /// and forwarding to [forwardingStubSuperTarget].
+  bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);

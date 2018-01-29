@@ -804,8 +804,7 @@ class InterfaceResolver {
         resolution = member;
       }
       if (resolution is Procedure &&
-          resolution.isForwardingStub &&
-          !resolution.isForwardingSemiStub &&
+          resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
         if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
@@ -978,7 +977,7 @@ class InterfaceResolver {
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
-      if (procedure.isForwardingStub && !procedure.isForwardingSemiStub) {
+      if (procedure.isSyntheticForwarder) {
         continue;
       }
       void recordFormalAnnotations(VariableDeclaration formal) {
