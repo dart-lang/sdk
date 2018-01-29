@@ -160,6 +160,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
+  }
+  for (int i = 0; i < typeParameters.length; ++i) {
     freshParameters[i].bound = substitute(typeParameters[i].bound, map);
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
