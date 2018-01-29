@@ -218,3 +218,5 @@ rasta/foo: RuntimeError # Expected, this file has no main method.
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+
+external_import: RuntimeError # The native extension to import doesn't exist. This is ok.

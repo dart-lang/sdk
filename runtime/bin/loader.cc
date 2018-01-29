@@ -700,6 +700,19 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
     return dfe.ReadKernelBinary(current, url_string);
   }
+  if (tag == Dart_kImportResolvedExtensionTag) {
+    if (strncmp(url_string, "file://", 7)) {
+      return DartUtils::NewError(
+          "Resolved native extensions must use the file:// scheme.");
+    }
+    const char* absolute_path = DartUtils::RemoveScheme(url_string);
+
+    if (!File::IsAbsolutePath(absolute_path)) {
+      return DartUtils::NewError("Native extension path must be absolute.");
+    }
+
+    return Extensions::LoadExtension("/", absolute_path, library);
+  }
   ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) || !dfe.UseDartFrontend());
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
