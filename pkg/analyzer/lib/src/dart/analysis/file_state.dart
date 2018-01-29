@@ -785,7 +785,7 @@ class FileSystemState {
       // We are given all required unlinked and linked summaries for it.
       if (externalSummaries != null) {
         String uriStr = uri.toString();
-        if (externalSummaries.hasUnlinkedUnit(uriStr)) {
+        if (externalSummaries.hasLinkedLibrary(uriStr)) {
           file = new FileState._external(this, uri);
           _uriToFile[uri] = file;
           return file;
