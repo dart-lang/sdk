@@ -5555,13 +5555,18 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
         codes_(new (zone) ZoneGrowableArray<Code*>(4 * KB)),
         script_(Script::Handle(zone)),
         code_(Code::Handle(zone)),
-        stack_maps_(Array::Handle(zone)) {}
+        stack_maps_(Array::Handle(zone)),
+        library_(Library::Handle(zone)),
+        kernel_program_info_(KernelProgramInfo::Handle(zone)) {}
 
   void Visit(const Class& cls) {
     script_ = cls.script();
     if (!script_.IsNull()) {
-      objects_->Add(&Object::Handle(zone_, script_.tokens()));
+      Visit(script_);
     }
+
+    library_ = cls.library();
+    objects_->Add(&Object::Handle(zone_, library_.kernel_data()));
 
     if (!include_code_) return;
 
@@ -5572,7 +5577,7 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   void Visit(const Function& function) {
     script_ = function.script();
     if (!script_.IsNull()) {
-      objects_->Add(&Object::Handle(zone_, script_.tokens()));
+      Visit(script_);
     }
 
     if (!include_code_) return;
@@ -5581,6 +5586,23 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
     Visit(code_);
     code_ = function.unoptimized_code();
     Visit(code_);
+  }
+
+  void Visit(const Script& script) {
+    objects_->Add(&Object::Handle(zone_, script_.tokens()));
+    kernel_program_info_ = script_.kernel_program_info();
+    if (!kernel_program_info_.IsNull()) {
+      objects_->Add(
+          &Object::Handle(zone_, kernel_program_info_.string_offsets()));
+      objects_->Add(&Object::Handle(zone_, kernel_program_info_.string_data()));
+      objects_->Add(
+          &Object::Handle(zone_, kernel_program_info_.canonical_names()));
+      objects_->Add(
+          &Object::Handle(zone_, kernel_program_info_.metadata_payloads()));
+      objects_->Add(
+          &Object::Handle(zone_, kernel_program_info_.metadata_mappings()));
+      objects_->Add(&Object::Handle(zone_, kernel_program_info_.constants()));
+    }
   }
 
   ZoneGrowableArray<Object*>* objects() { return objects_; }
@@ -5610,6 +5632,8 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   Script& script_;
   Code& code_;
   Array& stack_maps_;
+  Library& library_;
+  KernelProgramInfo& kernel_program_info_;
 };
 
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
