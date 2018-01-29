@@ -93,7 +93,7 @@ class Configuration {
       _boolToArg("host-checked", hostChecked),
       _boolToArg("minified", minified),
       _boolToArg("csp", csp),
-      _boolToArg("fasta", csp),
+      // We don't create a --fasta arg because fasta is synthesized variable.
       _stringToArg("system", system),
       _listToArg("vm-options", vmOptions),
       _boolToArg("use-sdk", useSdk),
