@@ -6741,6 +6741,19 @@ Function finalVar() {
 ''');
   }
 
+  test_replaceFinalWithConst_method() async {
+    String src = '''
+/*LINT*/final int a = 1;
+''';
+    await findLint(src, LintNames.prefer_const_declarations);
+
+    await applyFix(DartFixKind.REPLACE_FINAL_WITH_CONST);
+
+    verifyResult('''
+const int a = 1;
+''');
+  }
+
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
