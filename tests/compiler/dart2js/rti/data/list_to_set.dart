@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#List:needsArgs,deps=[Class],indirectTest,explicit=[List]*/
-/*class: global#JSArray:needsArgs,deps=[List],indirectTest,explicit=[JSArray],implicit=[JSArray.E]*/
+/*class: global#List:deps=[Class],explicit=[List],indirect,needsArgs*/
+/*class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class<int>();
@@ -12,7 +12,7 @@ main() {
   set is Set<String>;
 }
 
-/*class: Class:needsArgs,indirectTest,implicit=[Class.T]*/
+/*class: Class:implicit=[Class.T],indirect,needsArgs*/
 class Class<T> {
   m() {
     return <T>[];

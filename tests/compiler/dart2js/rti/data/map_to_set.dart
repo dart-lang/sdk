@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:needsArgs,deps=[Class]*/
-/*class: global#LinkedHashMap:needsArgs,deps=[Map]*/
-/*class: global#JsLinkedHashMap:needsArgs,deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K]*/
-/*class: global#double:explicit=[double],required,checks=[num]*/
+/*class: global#Map:deps=[Class],needsArgs*/
+/*class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
+/*class: global#double:checks=[num],explicit=[double],required*/
 
 main() {
   var c = new Class<double, int>();

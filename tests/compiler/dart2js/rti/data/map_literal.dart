@@ -5,7 +5,7 @@
 /*class: global#Map:*/
 /*class: global#LinkedHashMap:deps=[Map]*/
 /*class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
-/*class: global#double:explicit=[double],required,checks=[num]*/
+/*class: global#double:checks=[num],explicit=[double],required*/
 
 main() {
   <int, double>{}[0] = 0.5;

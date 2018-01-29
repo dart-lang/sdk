@@ -4,7 +4,7 @@
 
 class A<T> {}
 
-/*class: B:needsArgs,test,explicit=[B.T]*/
+/*class: B:direct,explicit=[B.T],needsArgs*/
 class B<T> extends A<List<T>> {
   m(T t) => t is T;
 }

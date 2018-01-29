@@ -61,6 +61,19 @@ void computeAstRtiClassNeed(
   new RtiClassNeedAstComputer(compiler, actualMap).computeClassValue(cls);
 }
 
+class Tags {
+  static const String needsTypeArguments = 'needsArgs';
+  static const String needsSignature = 'needsSignature';
+  static const String dependencies = 'deps';
+  static const String explicitTypeCheck = 'explicit';
+  static const String implicitTypeCheck = 'implicit';
+  static const String directTypeArgumentTest = 'direct';
+  static const String indirectTypeArgumentTest = 'indirect';
+  static const String typeLiteral = 'exp';
+  static const String requiredArgumentClass = 'required';
+  static const String typeChecks = 'checks';
+}
+
 abstract class ComputeValueMixin<T> {
   Compiler get compiler;
 
@@ -80,8 +93,8 @@ abstract class ComputeValueMixin<T> {
   MemberEntity getFrontendMember(MemberEntity member);
   Local getFrontendClosure(MemberEntity member);
 
-  String findChecks(StringBuffer sb, String comma, String prefix, Entity entity,
-      Set<DartType> checks) {
+  void findChecks(
+      Features features, String key, Entity entity, Set<DartType> checks) {
     Set<DartType> types = new Set<DartType>();
     FindTypeVisitor finder = new FindTypeVisitor(entity);
     for (DartType type in checks) {
@@ -91,13 +104,11 @@ abstract class ComputeValueMixin<T> {
     }
     List<String> list = types.map(typeToString).toList()..sort();
     if (list.isNotEmpty) {
-      sb.write('${comma}$prefix=[${list.join(',')}]');
-      comma = ',';
+      features[key] = '[${list.join('')}]';
     }
-    return comma;
   }
 
-  String findDependencies(StringBuffer sb, String comma, Entity entity) {
+  void findDependencies(Features features, Entity entity) {
     Iterable<String> dependencies;
     if (rtiNeedBuilder.typeVariableTests.typeArgumentDependencies
         .containsKey(entity)) {
@@ -108,93 +119,89 @@ abstract class ComputeValueMixin<T> {
             ..sort();
     }
     if (dependencies != null && dependencies.isNotEmpty) {
-      sb.write('${comma}deps=[${dependencies.join(',')}]');
-      comma = ',';
+      features[Tags.dependencies] = '[${dependencies.join(',')}]';
     }
-    return comma;
   }
 
   String getClassValue(ClassEntity backendClass) {
-    StringBuffer sb = new StringBuffer();
-    String comma = '';
+    Features features = new Features();
 
     if (rtiNeed.classNeedsTypeArguments(backendClass)) {
-      sb.write('${comma}needsArgs');
-      comma = ',';
+      features.add(Tags.needsTypeArguments);
     }
     ClassEntity frontendClass = getFrontendClass(backendClass);
-    comma = findDependencies(sb, comma, frontendClass);
+    findDependencies(features, frontendClass);
     if (rtiNeedBuilder.classesUsingTypeVariableLiterals
         .contains(frontendClass)) {
-      sb.write('${comma}exp');
-      comma = ',';
+      features.add(Tags.typeLiteral);
     }
     if (rtiNeedBuilder.typeVariableTests.directClassTests
         .contains(frontendClass)) {
-      sb.write('${comma}test');
-      comma = ',';
+      features.add(Tags.directTypeArgumentTest);
     } else if (rtiNeedBuilder.typeVariableTests.classTests
         .contains(frontendClass)) {
-      sb.write('${comma}indirectTest');
+      features.add(Tags.indirectTypeArgumentTest);
     }
-    comma = findChecks(sb, comma, 'explicit', frontendClass,
+    findChecks(features, Tags.explicitTypeCheck, frontendClass,
         rtiNeedBuilder.typeVariableTests.isChecks);
-    comma = findChecks(
-        sb, comma, 'implicit', frontendClass, rtiNeedBuilder.implicitIsChecks);
+    findChecks(features, Tags.implicitTypeCheck, frontendClass,
+        rtiNeedBuilder.implicitIsChecks);
     if (rtiChecks.getRequiredArgumentClasses().contains(backendClass)) {
-      sb.write('${comma}required');
-      comma = ',';
+      features.add(Tags.requiredArgumentClass);
     }
     Iterable<TypeCheck> checks = requiredChecks[backendClass];
     if (checks.isNotEmpty) {
-      sb.write('${comma}checks=[${checks.map((c) => c.cls.name).join(',')}]');
+      features[Tags.typeChecks] =
+          '[${checks.map((c) => c.cls.name).join(',')}]';
     }
-    return sb.toString();
+    return features.getText();
   }
 
   String getMemberValue(MemberEntity backendMember) {
     MemberEntity frontendMember = getFrontendMember(backendMember);
     Local frontendClosure = getFrontendClosure(backendMember);
 
-    StringBuffer sb = new StringBuffer();
-    String comma = '';
+    Features features = new Features();
 
     if (backendMember is FunctionEntity) {
       if (rtiNeed.methodNeedsTypeArguments(backendMember)) {
-        sb.write('${comma}needsArgs');
-        comma = ',';
+        features.add(Tags.needsTypeArguments);
       }
       if (rtiNeed.methodNeedsSignature(backendMember)) {
-        sb.write('${comma}needsSignature');
-        comma = ',';
+        features.add(Tags.needsSignature);
       }
+
+      void addFrontendData(Entity entity) {
+        findDependencies(features, entity);
+        if (rtiNeedBuilder.typeVariableTests.directMethodTests
+            .contains(entity)) {
+          features.add(Tags.directTypeArgumentTest);
+        }
+        findChecks(features, Tags.explicitTypeCheck, entity,
+            rtiNeedBuilder.typeVariableTests.isChecks);
+        findChecks(features, Tags.implicitTypeCheck, entity,
+            rtiNeedBuilder.implicitIsChecks);
+      }
+
       if (frontendClosure != null) {
         if (frontendClosure is LocalFunctionElement &&
             rtiNeed.localFunctionNeedsSignature(frontendClosure)) {
-          sb.write('${comma}needsSignature');
-          comma = ',';
+          features.add(Tags.needsSignature);
         }
+        addFrontendData(frontendClosure);
         if (rtiNeedBuilder.localFunctionsUsingTypeVariableLiterals
             .contains(frontendClosure)) {
-          sb.write('${comma}exp');
-          comma = ',';
+          features.add(Tags.typeLiteral);
         }
-        comma = findChecks(sb, comma, 'explicit', frontendClosure,
-            rtiNeedBuilder.typeVariableTests.isChecks);
       } else if (frontendMember != null) {
+        addFrontendData(frontendMember);
         if (rtiNeedBuilder.methodsUsingTypeVariableLiterals
             .contains(frontendMember)) {
-          sb.write('${comma}exp');
-          comma = ',';
+          features.add(Tags.typeLiteral);
         }
-        comma = findDependencies(sb, comma, frontendMember);
-        comma = findChecks(sb, comma, 'explicit', frontendMember,
-            rtiNeedBuilder.typeVariableTests.isChecks);
-        comma = findChecks(sb, comma, 'implicit', frontendMember,
-            rtiNeedBuilder.implicitIsChecks);
       }
     }
-    return sb.toString();
+    return features.getText();
   }
 }
 

@@ -4,7 +4,7 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A:needsArgs,deps=[B],test,explicit=[A.T]*/
+/*class: A:deps=[B],direct,explicit=[A.T],needsArgs*/
 class A<T> {
   @noInline
   foo(x) {
@@ -12,10 +12,10 @@ class A<T> {
   }
 }
 
-/*class: BB:implicit=[BB],required,checks=[BB]*/
+/*class: BB:checks=[BB],implicit=[BB],required*/
 class BB {}
 
-/*class: B:needsArgs,indirectTest,implicit=[B.T]*/
+/*class: B:implicit=[B.T],indirect,needsArgs*/
 class B<T> implements BB {
   @noInline
   foo() {

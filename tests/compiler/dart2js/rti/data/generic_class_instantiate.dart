@@ -5,7 +5,7 @@
 /*class: A:explicit=[B<A>],required*/
 class A {}
 
-/*class: B:needsArgs,deps=[C],explicit=[B<A>]*/
+/*class: B:deps=[C],explicit=[B<A>],needsArgs*/
 class B<T> {}
 
 /*class: C:needsArgs*/

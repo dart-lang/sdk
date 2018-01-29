@@ -4,7 +4,7 @@
 
 class A<T> {}
 
-/*class: B:needsArgs,explicit=[B<int>]*/
+/*class: B:explicit=[B<int>],needsArgs*/
 class B<T> extends A<T> {}
 
 main() {

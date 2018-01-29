@@ -549,6 +549,7 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
     MemberAnnotations<IdValue> expectedMaps, CompiledData compiledData,
     {bool filterActualData(IdValue expected, ActualData actualData)}) async {
   IdData data = new IdData(code, expectedMaps, compiledData);
+  bool hasFailure = false;
 
   void checkActualMap(
       Map<Id, ActualData> actualMap, Map<Id, IdValue> expectedMap,
@@ -570,7 +571,9 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
           }
         }
         if (filterActualData == null || filterActualData(null, actualData)) {
-          Expect.equals('', actual.value);
+          if (actual.value != '') {
+            hasFailure = true;
+          }
         }
       } else {
         IdValue expected = expectedMap[id];
@@ -578,8 +581,10 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
           reportHere(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Object: ${actualData.object} (${actualData.object.runtimeType}), '
-              'expected: ${expected}, actual: ${actual}');
+              'Object: ${actualData.object} '
+              '(${actualData.object.runtimeType})\n '
+              'expected: ${colors.green('$expected')}\n '
+              'actual: ${colors.red('$actual')}');
           if (uri != null) {
             print('--annotations diff [${uri.pathSegments.last}]-------------');
             print(data.diffCode(uri));
@@ -588,7 +593,9 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
         }
         if (filterActualData == null ||
             filterActualData(expected, actualData)) {
-          Expect.equals(expected, actual);
+          if (actual != expected) {
+            hasFailure = true;
+          }
         }
       }
     });
@@ -602,7 +609,9 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
             print('----------------------------------------------------------');
           }
         }
-        Expect.equals('', expected.value);
+        if (expected.value != '') {
+          hasFailure = true;
+        }
       }
     });
   }
@@ -639,7 +648,13 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
     print(combinedAnnotationsDiff.toString());
     print('--------------------------------------------------------------');
   }
-  Expect.isTrue(missingIds.isEmpty, "Ids not found: ${missingIds}.");
+  if (missingIds.isNotEmpty) {
+    print("Ids not found: ${missingIds}.");
+    hasFailure = true;
+  }
+  if (hasFailure) {
+    Expect.fail('Errors found.');
+  }
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].
@@ -846,5 +861,48 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
   }
   if (hasErrors) {
     Expect.fail('Annotations mismatch');
+  }
+}
+
+/// Set of features used in annotations.
+class Features {
+  Map<String, String> _features = <String, String>{};
+
+  void add(String key, {var value: ''}) {
+    _features[key] = value;
+  }
+
+  bool containsKey(String key) {
+    return _features.containsKey(key);
+  }
+
+  void operator []=(String key, String value) {
+    _features[key] = value;
+  }
+
+  String operator [](String key) => _features[key];
+
+  String remove(String key) => _features.remove(key);
+
+  /// Returns a string containing all features in a comma-separated list sorted
+  /// by feature names.
+  String getText() {
+    StringBuffer sb = new StringBuffer();
+    bool needsComma = false;
+    for (String name in _features.keys.toList()..sort()) {
+      String value = _features[name];
+      if (value != null) {
+        if (needsComma) {
+          sb.write(',');
+        }
+        sb.write(name);
+        if (value != '') {
+          sb.write('=');
+          sb.write(value);
+        }
+        needsComma = true;
+      }
+    }
+    return sb.toString();
   }
 }

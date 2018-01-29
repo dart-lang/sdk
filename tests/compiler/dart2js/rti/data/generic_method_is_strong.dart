@@ -37,7 +37,7 @@ class F2 {}
 /*class: F3:implicit=[F3]*/
 class F3 {}
 
-/*element: topLevelMethod1:needsArgs,explicit=[topLevelMethod1.T]*/
+/*element: topLevelMethod1:direct,explicit=[topLevelMethod1.T],needsArgs*/
 // Calls to this imply a check of the passed type arguments.
 bool topLevelMethod1<T>(T t, {a1}) => t is T;
 
@@ -45,7 +45,7 @@ bool topLevelMethod1<T>(T t, {a1}) => t is T;
 T topLevelMethod2<T>(T t, {a2}) => t;
 
 class Class {
-  /*element: Class.instanceMethod1:needsArgs,explicit=[instanceMethod1.S]*/
+  /*element: Class.instanceMethod1:direct,explicit=[instanceMethod1.S],needsArgs*/
   // Calls to this imply a check of the passed type arguments.
   bool instanceMethod1<S>(S s, {b1}) => s is S;
 
@@ -55,7 +55,7 @@ class Class {
 
 main() {
   // Calls to this imply a check of the passed type arguments.
-  /*needsArgs,explicit=[localFunction1.U]*/
+  /*direct,explicit=[localFunction1.U],needsArgs*/
   bool localFunction1<U>(U u, {c1}) => u is U;
 
   // Calls to this does _not_ imply a check of the passed type arguments.

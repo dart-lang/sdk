@@ -4,10 +4,10 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A:implicit=[A],required,checks=[A]*/
+/*class: A:checks=[A],implicit=[A],required*/
 class A {}
 
-/*class: B:needsArgs,test,explicit=[B.T]*/
+/*class: B:direct,explicit=[B.T],needsArgs*/
 class B<T> {
   @noInline
   method(T t) => t is T;
