@@ -178,10 +178,30 @@ abstract class RuntimeTypesChecks {
 
   /// Return all classes that are referenced in the type of the function, i.e.,
   /// in the return type or the argument types.
-  Set<ClassEntity> getReferencedClasses(FunctionType type);
+  Iterable<ClassEntity> getReferencedClasses(FunctionType type);
 
   /// Return all classes that use type arguments.
-  Set<ClassEntity> getRequiredArgumentClasses();
+  Iterable<ClassEntity> getRequiredArgumentClasses();
+
+  /// Return all classes immediately used in explicit or implicit is-tests.
+  ///
+  /// An is-test of `o is List<String>` will add `List`, but _not_ `String` to
+  /// the [checkedClasses] set.
+  Iterable<ClassEntity> get checkedClasses;
+
+  // Returns all function types immediately used in explicit or implicit
+  // is-tests.
+  //
+  // An is-test of `of is Function(Function())` will add `Function(Function())`
+  // but _not_ `Function()` to the [checkedFunctionTypes] set. An is-test
+  // against a typedef will add its alias to the [checkedFunctionTypes] set.
+  Iterable<FunctionType> get checkedFunctionTypes;
+
+  /// Classes whose type variables are explicitly or implicitly used in
+  /// is-tests.
+  ///
+  /// See [TypeVariableTests.classTests].
+  Iterable<ClassEntity> get classesUsingTypeVariableTests;
 }
 
 class TrivialTypesChecks implements RuntimeTypesChecks {
@@ -195,10 +215,19 @@ class TrivialTypesChecks implements RuntimeTypesChecks {
   TypeChecks get requiredChecks => _typeChecks;
 
   @override
-  Set<ClassEntity> getRequiredArgumentClasses() => _allClasses;
+  Iterable<ClassEntity> getRequiredArgumentClasses() => _allClasses;
 
   @override
-  Set<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
+  Iterable<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
+
+  @override
+  Iterable<ClassEntity> get checkedClasses => _allClasses;
+
+  @override
+  Iterable<FunctionType> get checkedFunctionTypes => const <FunctionType>[];
+
+  @override
+  Iterable<ClassEntity> get classesUsingTypeVariableTests => _allClasses;
 }
 
 /// Interface for computing the needed runtime type checks.
@@ -208,14 +237,7 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks);
-
-  /// Compute type arguments of classes that use one of their type variables in
-  /// is-checks and add the is-checks that they imply.
-  ///
-  /// This function must be called after all is-checks have been registered.
-  void registerImplicitChecks(Set<InterfaceType> instantiatedTypes,
-      Iterable<ClassEntity> classesUsingChecks, Set<DartType> implicitIsChecks);
+      CodegenWorldBuilder codegenWorldBuilder);
 
   bool get rtiChecksBuilderClosed;
 }
@@ -234,14 +256,8 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
       DartType typeArgument, DartType bound) {}
 
   @override
-  void registerImplicitChecks(
-      Set<InterfaceType> instantiatedTypes,
-      Iterable<ClassEntity> classesUsingChecks,
-      Set<DartType> implicitIsChecks) {}
-
-  @override
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+      CodegenWorldBuilder codegenWorldBuilder) {
     Set<ClassEntity> classes = _closedWorld
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()
@@ -250,6 +266,19 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
     TypeChecks typeChecks = _substitutions._requiredChecks =
         _substitutions._computeChecks(classes, classes);
     return new TrivialTypesChecks(typeChecks);
+  }
+
+  Set<ClassEntity> computeCheckedClasses(
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    return _closedWorld
+        .getClassSet(_closedWorld.commonElements.objectClass)
+        .subtypes()
+        .toSet();
+  }
+
+  Set<FunctionType> computeCheckedFunctions(
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    return new Set<FunctionType>();
   }
 }
 
@@ -274,7 +303,7 @@ abstract class RuntimeTypesSubstitutionsMixin
   TypeChecks get _requiredChecks;
 
   TypeChecks _computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked) {
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
@@ -392,7 +421,7 @@ class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
 
   @override
   TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked) {
     return _requiredChecks;
   }
 }
@@ -406,7 +435,7 @@ abstract class RuntimeTypesSubstitutions {
   /// Compute the required type checks and substitutions for the given
   /// instantiated and checked classes.
   TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked);
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked);
 
   Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks);
 
@@ -1004,14 +1033,23 @@ class ResolutionRuntimeTypesNeedBuilderImpl
 class _RuntimeTypesChecks implements RuntimeTypesChecks {
   final RuntimeTypesSubstitutions substitutions;
   final TypeChecks requiredChecks;
-  final Set<ClassEntity> directlyInstantiatedArguments;
-  final Set<ClassEntity> checkedArguments;
+  final Iterable<ClassEntity> directlyInstantiatedArguments;
+  final Iterable<ClassEntity> checkedArguments;
+  final Iterable<ClassEntity> checkedClasses;
+  final Iterable<FunctionType> checkedFunctionTypes;
+  final TypeVariableTests typeVariableTests;
 
-  _RuntimeTypesChecks(this.substitutions, this.requiredChecks,
-      this.directlyInstantiatedArguments, this.checkedArguments);
+  _RuntimeTypesChecks(
+      this.substitutions,
+      this.requiredChecks,
+      this.directlyInstantiatedArguments,
+      this.checkedArguments,
+      this.checkedClasses,
+      this.checkedFunctionTypes,
+      this.typeVariableTests);
 
   @override
-  Set<ClassEntity> getRequiredArgumentClasses() {
+  Iterable<ClassEntity> getRequiredArgumentClasses() {
     Set<ClassEntity> requiredArgumentClasses = new Set<ClassEntity>.from(
         substitutions.getClassesUsedInSubstitutions(requiredChecks));
     return requiredArgumentClasses
@@ -1020,16 +1058,21 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
   }
 
   @override
-  Set<ClassEntity> getReferencedClasses(FunctionType type) {
+  Iterable<ClassEntity> getReferencedClasses(FunctionType type) {
     FunctionArgumentCollector collector = new FunctionArgumentCollector();
     collector.collect(type);
     return collector.classes;
   }
+
+  @override
+  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
+      typeVariableTests.classTests;
 }
 
 class RuntimeTypesImpl extends _RuntimeTypesBase
     with RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesChecksBuilder {
+  final CommonElements _commentElements;
   final ElementEnvironment _elementEnvironment;
 
   // The set of type arguments tested against type variable bounds.
@@ -1041,7 +1084,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   bool rtiChecksBuilderClosed = false;
 
-  RuntimeTypesImpl(this._elementEnvironment, DartTypes types) : super(types);
+  RuntimeTypesImpl(
+      this._commentElements, this._elementEnvironment, DartTypes types)
+      : super(types);
 
   @override
   TypeChecks get _requiredChecks => cachedRequiredChecks;
@@ -1058,20 +1103,47 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    Set<DartType> isChecks =
-        new Set<DartType>.from(codegenWorldBuilder.isChecks);
-    isChecks.addAll(implicitIsChecks);
+      CodegenWorldBuilder codegenWorldBuilder) {
+    TypeVariableTests typeVariableTests =
+        new TypeVariableTests(_commentElements, codegenWorldBuilder);
+    Set<DartType> isChecks = typeVariableTests.isChecks;
+
+    Set<DartType> implicitIsChecks = new Set<DartType>();
+    registerImplicitChecks(codegenWorldBuilder.instantiatedTypes,
+        typeVariableTests.classTests, implicitIsChecks);
+    Set<ClassEntity> checkedClasses = new Set<ClassEntity>();
+    Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
+
+    void processType(DartType t) {
+      if (t is FunctionType) {
+        checkedFunctionTypes.add(t);
+      } else if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      }
+    }
+
+    codegenWorldBuilder.isChecks.forEach(processType);
+    //implicitIsChecks.addAll(_codegenWorldBuilder.instantiatedTypes);
+    implicitIsChecks.forEach(processType);
+
     // These types are needed for is-checks against function types.
     Set<DartType> instantiatedTypesAndClosures =
         computeInstantiatedTypesAndClosures(codegenWorldBuilder);
-    computeInstantiatedArguments(instantiatedTypesAndClosures, isChecks);
-    computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
+    computeInstantiatedArguments(
+        instantiatedTypesAndClosures, isChecks, implicitIsChecks);
+    computeCheckedArguments(
+        instantiatedTypesAndClosures, isChecks, implicitIsChecks);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
     rtiChecksBuilderClosed = true;
-    return new _RuntimeTypesChecks(this, cachedRequiredChecks,
-        directlyInstantiatedArguments, checkedArguments);
+    return new _RuntimeTypesChecks(
+        this,
+        cachedRequiredChecks,
+        directlyInstantiatedArguments,
+        checkedArguments,
+        checkedClasses,
+        checkedFunctionTypes,
+        typeVariableTests);
   }
 
   Set<DartType> computeInstantiatedTypesAndClosures(
@@ -1103,8 +1175,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
    * have a type check against this supertype that includes a check against
    * the type arguments.
    */
-  void computeInstantiatedArguments(
-      Set<DartType> instantiatedTypes, Set<DartType> isChecks) {
+  void computeInstantiatedArguments(Set<DartType> instantiatedTypes,
+      Set<DartType> isChecks, Set<DartType> implicitIsChecks) {
     ArgumentCollector superCollector = new ArgumentCollector();
     ArgumentCollector directCollector = new ArgumentCollector();
     FunctionArgumentCollector functionArgumentCollector =
@@ -1119,6 +1191,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     }
 
     collectFunctionTypeArguments(isChecks);
+    collectFunctionTypeArguments(implicitIsChecks);
     collectFunctionTypeArguments(checkedBounds);
 
     void collectTypeArguments(Iterable<DartType> types,
@@ -1150,8 +1223,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   /// Collects all type arguments used in is-checks.
-  void computeCheckedArguments(
-      Set<DartType> instantiatedTypes, Set<DartType> isChecks) {
+  void computeCheckedArguments(Set<DartType> instantiatedTypes,
+      Set<DartType> isChecks, Set<DartType> implicitIsChecks) {
     ArgumentCollector collector = new ArgumentCollector();
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector();
@@ -1176,6 +1249,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     }
 
     collectTypeArguments(isChecks);
+    collectTypeArguments(implicitIsChecks);
     collectTypeArguments(checkedBounds, isTypeArgument: true);
 
     checkedArguments = collector.classes
@@ -1184,7 +1258,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   @override
   TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked) {
     return _computeChecks(instantiated, checked);
   }
 }

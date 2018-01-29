@@ -13,8 +13,7 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesChecks,
         RuntimeTypesChecksBuilder,
         RuntimeTypesSubstitutions,
-        TypeChecks,
-        TypeVariableTests;
+        TypeChecks;
 import '../js_backend/mirrors_data.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
@@ -22,25 +21,9 @@ import '../world.dart' show ClosedWorld;
 class TypeTestRegistry {
   final ElementEnvironment _elementEnvironment;
 
-  /**
-   * Raw ClassElement symbols occurring in is-checks and type assertions.  If the
-   * program contains parameterized checks `x is Set<int>` and
-   * `x is Set<String>` then the ClassElement `Set` will occur once in
-   * [checkedClasses].
-   */
-  Set<ClassEntity> checkedClasses;
-
-  /**
-   * The set of function types that checked, both explicitly through tests of
-   * typedefs and implicitly through type annotations in checked mode.
-   */
-  Set<FunctionType> checkedFunctionTypes;
-
   /// After [computeNeededClasses] this set only contains classes that are only
   /// used for RTI.
   Set<ClassEntity> _rtiNeededClasses;
-
-  TypeVariableTests _tests;
 
   /// The required checks on classes.
   // TODO(johnniwinther): Currently this is wrongfully computed twice. Once
@@ -49,14 +32,6 @@ class TypeTestRegistry {
   // [TypeRepresentationGenerator] and the latter is used to compute the
   // classes needed for RTI.
   TypeChecks _requiredChecks;
-
-  Iterable<ClassEntity> cachedClassesUsingTypeVariableTests;
-
-  Iterable<ClassEntity> get classesUsingTypeVariableTests {
-    _tests ??= new TypeVariableTests(
-        _closedWorld.commonElements, _codegenWorldBuilder);
-    return _tests.classTests;
-  }
 
   final CodegenWorldBuilder _codegenWorldBuilder;
   final ClosedWorld _closedWorld;
@@ -135,15 +110,15 @@ class TypeTestRegistry {
 
     // 2.  Add classes that are referenced by substitutions in object checks and
     //     their superclasses.
-    _requiredChecks =
-        rtiSubstitutions.computeChecks(rtiNeededClasses, checkedClasses);
+    _requiredChecks = rtiSubstitutions.computeChecks(
+        rtiNeededClasses, rtiChecks.checkedClasses);
     Set<ClassEntity> classesUsedInSubstitutions =
         rtiSubstitutions.getClassesUsedInSubstitutions(requiredChecks);
     addClassesWithSuperclasses(classesUsedInSubstitutions);
 
     // 3.  Add classes that contain checked generic function types. These are
     //     needed to store the signature encoding.
-    for (FunctionType type in checkedFunctionTypes) {
+    for (FunctionType type in rtiChecks.checkedFunctionTypes) {
       ClassEntity contextClass = DartTypes.getClassContext(type);
       if (contextClass != null) {
         _rtiNeededClasses.add(contextClass);
@@ -190,28 +165,6 @@ class TypeTestRegistry {
   }
 
   void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {
-    assert(checkedClasses == null && checkedFunctionTypes == null);
-
-    Set<DartType> implicitIsChecks = new Set<DartType>();
-    rtiChecksBuilder.registerImplicitChecks(
-        _codegenWorldBuilder.instantiatedTypes,
-        classesUsingTypeVariableTests,
-        implicitIsChecks);
-    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(
-        _codegenWorldBuilder, implicitIsChecks);
-
-    checkedClasses = new Set<ClassEntity>();
-    checkedFunctionTypes = new Set<FunctionType>();
-
-    processType(DartType t) {
-      if (t is InterfaceType) {
-        checkedClasses.add(t.element);
-      } else if (t is FunctionType) {
-        checkedFunctionTypes.add(t);
-      }
-    }
-
-    _codegenWorldBuilder.isChecks.forEach(processType);
-    implicitIsChecks.forEach(processType);
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder);
   }
 }

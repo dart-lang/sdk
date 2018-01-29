@@ -21,6 +21,15 @@ class C<T> implements B<T> {}
 class D<T> implements B<int> {}
 class E<T> extends B<T> {}
 class F<T> extends B<List<T>>{}
+class G {
+  call() {}
+} 
+class H implements G {
+  call() {}
+}
+class I<T> {
+  call(T t) {}
+}
 
 main() {
   new A();
@@ -28,6 +37,8 @@ main() {
   new D();
   new E();
   new F();
+  new H();
+  new I();
 }
 ''';
 
@@ -39,6 +50,9 @@ const Map<String, List<String>> expectedIsChecksMap =
   'D': const <String>[r'$isB', r'$asB'],
   'E': const <String>[],
   'F': const <String>[r'$asB'],
+  'G': const <String>[r'$isFunction'],
+  'H': const <String>[r'$isFunction', r'$isG'],
+  'I': const <String>[r'$isFunction', r'$signature'],
 };
 
 main() {
@@ -56,8 +70,10 @@ main() {
 
     void processMember(MemberEntity element) {
       if (element is FunctionEntity) {
-        Expect.isTrue(rtiNeed.methodNeedsTypeArguments(element));
-        Expect.isTrue(rtiNeed.methodNeedsSignature(element));
+        Expect.isTrue(rtiNeed.methodNeedsTypeArguments(element),
+            "Expected $element to need type arguments.");
+        Expect.isTrue(rtiNeed.methodNeedsSignature(element),
+            "Expected $element to need signature.");
       }
     }
 

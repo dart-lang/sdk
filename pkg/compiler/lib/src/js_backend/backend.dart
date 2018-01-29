@@ -989,7 +989,9 @@ class JavaScriptBackend {
           new TrivialRuntimeTypesChecksBuilder(closedWorld, _rtiSubstitutions);
     } else {
       RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(
-          closedWorld.elementEnvironment, closedWorld.dartTypes);
+          closedWorld.commonElements,
+          closedWorld.elementEnvironment,
+          closedWorld.dartTypes);
       _rtiChecksBuilder = runtimeTypesImpl;
       _rtiSubstitutions = runtimeTypesImpl;
     }
