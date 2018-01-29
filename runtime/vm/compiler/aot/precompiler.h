@@ -343,10 +343,6 @@ class Precompiler : public ValueObject {
   }
 
   FieldTypeMap* field_type_map() { return &field_type_map_; }
-  TypeRangeCache* type_range_cache() { return type_range_cache_; }
-  void set_type_range_cache(TypeRangeCache* value) {
-    type_range_cache_ = value;
-  }
 
   static void PopulateWithICData(const Function& func, FlowGraph* graph);
 
@@ -433,7 +429,6 @@ class Precompiler : public ValueObject {
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
   FieldTypeMap field_type_map_;
-  TypeRangeCache* type_range_cache_;
   CidMap feedback_cid_map_;
   FunctionFeedbackMap function_feedback_map_;
   Error& error_;

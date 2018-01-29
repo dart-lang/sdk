@@ -17,9 +17,6 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// A live function is one whose enclosing member function has been enqueued.
   Iterable<Local> get localFunctionsWithFreeTypeVariables;
 
-  /// Set of methods in instantiated classes that are potentially closurized.
-  Iterable<FunctionEntity> get closurizedMembers;
-
   /// Set of live closurized members whose signatures reference type variables.
   ///
   /// A closurized method is considered live if the enclosing class has been
@@ -264,7 +261,7 @@ class InstantiationInfo {
 }
 
 /// Base implementation of [ResolutionEnqueuerWorldBuilder].
-abstract class ResolutionWorldBuilderBase
+abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     implements ResolutionEnqueuerWorldBuilder {
   /// Instantiation information for all classes with instantiated types.
   ///
@@ -347,9 +344,6 @@ abstract class ResolutionWorldBuilderBase
   /// A local function is considered live if the enclosing member function is
   /// live.
   final Set<Local> localFunctionsWithFreeTypeVariables = new Set<Local>();
-
-  /// Set of methods in instantiated classes that are potentially closurized.
-  final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
 
   /// Set of live closurized members whose signatures reference type variables.
   ///
@@ -577,6 +571,7 @@ abstract class ResolutionWorldBuilderBase
 
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
+        registerDynamicInvocation(dynamicUse);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           _process(_instanceMembersByName, (m) => m.invoke());
         }
@@ -627,6 +622,9 @@ abstract class ResolutionWorldBuilderBase
       }
       localFunctions.add(staticUse.element);
       return;
+    } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
+      registerStaticInvocation(staticUse);
+      return;
     }
 
     MemberEntity element = staticUse.element;
@@ -651,6 +649,7 @@ abstract class ResolutionWorldBuilderBase
         fieldSetters.add(staticUse.element);
         break;
       case StaticUseKind.CLOSURE:
+      case StaticUseKind.CLOSURE_CALL:
         // Already handled above.
         break;
       case StaticUseKind.SUPER_TEAR_OFF:
@@ -662,7 +661,10 @@ abstract class ResolutionWorldBuilderBase
         useSet.addAll(usage.write());
         break;
       case StaticUseKind.GET:
+        useSet.addAll(usage.read());
+        break;
       case StaticUseKind.STATIC_TEAR_OFF:
+        closurizedStatics.add(element);
         useSet.addAll(usage.read());
         break;
       case StaticUseKind.SET:
@@ -676,6 +678,9 @@ abstract class ResolutionWorldBuilderBase
         useSet.addAll(usage.init());
         break;
       case StaticUseKind.INVOKE:
+        registerStaticInvocation(staticUse);
+        useSet.addAll(usage.invoke());
+        break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
       case StaticUseKind.REDIRECTION:

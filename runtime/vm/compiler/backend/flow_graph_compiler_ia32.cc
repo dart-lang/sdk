@@ -43,7 +43,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
 }
 
-bool FlowGraphCompiler::SupportsUnboxedMints() {
+bool FlowGraphCompiler::SupportsUnboxedInt64() {
   return FLAG_unbox_mints;
 }
 
@@ -55,7 +55,7 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
   return true;
 }
 
-bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
+bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return true;
 }
 
@@ -381,12 +381,14 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ j(EQUAL, is_instance_lbl);
     return true;  // Fall through
   }
-  // Compare if the classes are equal.
-  if (!type_class.is_abstract()) {
-    __ cmpl(kClassIdReg, Immediate(type_class.id()));
-    __ j(EQUAL, is_instance_lbl);
+
+  // Fast case for cid-range based checks.
+  // Warning: This code destroys the contents of [kClassIdReg].
+  if (GenerateSubclassTypeCheck(kClassIdReg, type_class, is_instance_lbl)) {
+    return false;
   }
-  // Otherwise fallthrough.
+
+  // Otherwise fallthrough, result non-conclusive.
   return true;
 }
 
@@ -1097,6 +1099,10 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 }
 #endif
 
+Register FlowGraphCompiler::EmitTestCidRegister() {
+  return EDI;
+}
+
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
     intptr_t count_without_type_args,
     const Array& arguments_descriptor) {
@@ -1112,22 +1118,25 @@ void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
   __ j(if_smi ? ZERO : NOT_ZERO, label);
 }
 
-void FlowGraphCompiler::EmitTestAndCallLoadCid() {
-  __ LoadClassId(EDI, EAX);
+void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
+  ASSERT(class_id_reg != EAX);
+  __ LoadClassId(class_id_reg, EAX);
 }
 
-int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
+int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* label,
+                                               Register class_id_reg,
                                                const CidRange& range,
-                                               int bias) {
+                                               int bias,
+                                               bool jump_on_miss) {
   intptr_t cid_start = range.cid_start;
   if (range.IsSingleCid()) {
-    __ cmpl(EDI, Immediate(cid_start - bias));
-    __ j(NOT_EQUAL, next_label);
+    __ cmpl(class_id_reg, Immediate(cid_start - bias));
+    __ j(jump_on_miss ? NOT_EQUAL : EQUAL, label);
   } else {
-    __ addl(EDI, Immediate(bias - cid_start));
+    __ addl(class_id_reg, Immediate(bias - cid_start));
     bias = cid_start;
-    __ cmpl(EDI, Immediate(range.Extent()));
-    __ j(ABOVE, next_label);  // Unsigned higher.
+    __ cmpl(class_id_reg, Immediate(range.Extent()));
+    __ j(jump_on_miss ? ABOVE : BELOW_EQUAL, label);  // Unsigned higher.
   }
   return bias;
 }

@@ -23,6 +23,7 @@ function_type_is_check: Crash
 function_type_recovery: Crash
 illegal_named_function_expression: Crash
 illegal_named_function_expression_scope: Crash
+implicit_new: Crash
 implicit_scope_test: Crash
 inference/abstract_class_instantiation: Crash
 inference/assert_initializer: Crash

@@ -1337,6 +1337,20 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31791')
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractNSM() =>
+      super
+          .test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractNSM();
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31791')
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_ifcNSM() =>
+      super
+          .test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_ifcNSM();
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromSuperclass() async {
     return super

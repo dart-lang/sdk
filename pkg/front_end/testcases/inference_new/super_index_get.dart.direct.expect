@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator [](core::int x) → core::num
     return null;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
   operator [](core::Object x) → core::int

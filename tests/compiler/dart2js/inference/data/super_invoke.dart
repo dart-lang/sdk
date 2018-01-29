@@ -230,6 +230,7 @@ class Super9 {
 /*element: Sub9.:[exact=Sub9]*/
 class Sub9 extends Super9 {
   /*element: Sub9.method:[exact=JSUInt31]*/
+  // ignore: abstract_super_member_reference
   method() => super.method();
 }
 

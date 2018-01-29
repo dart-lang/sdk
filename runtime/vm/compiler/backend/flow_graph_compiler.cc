@@ -1148,7 +1148,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   }
 }
 
-void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
+void FlowGraphCompiler::GenerateNumberTypeCheck(Register class_id_reg,
                                                 const AbstractType& type,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
@@ -1164,10 +1164,10 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
   } else if (type.IsDoubleType()) {
     args.Add(kDoubleCid);
   }
-  CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
+  CheckClassIds(class_id_reg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
+void FlowGraphCompiler::GenerateStringTypeCheck(Register class_id_reg,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
   assembler()->Comment("StringTypeCheck");
@@ -1176,10 +1176,10 @@ void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
   args.Add(kTwoByteStringCid);
   args.Add(kExternalOneByteStringCid);
   args.Add(kExternalTwoByteStringCid);
-  CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
+  CheckClassIds(class_id_reg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
+void FlowGraphCompiler::GenerateListTypeCheck(Register class_id_reg,
                                               Label* is_instance_lbl) {
   assembler()->Comment("ListTypeCheck");
   Label unknown;
@@ -1187,7 +1187,7 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
   args.Add(kArrayCid);
   args.Add(kGrowableObjectArrayCid);
   args.Add(kImmutableArrayCid);
-  CheckClassIds(kClassIdReg, args, is_instance_lbl, &unknown);
+  CheckClassIds(class_id_reg, args, is_instance_lbl, &unknown);
   assembler()->Bind(&unknown);
 }
 #endif  // !defined(TARGET_ARCH_DBC)
@@ -1813,7 +1813,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   int bias = 0;
 
   // Value is not Smi.
-  EmitTestAndCallLoadCid();
+  EmitTestAndCallLoadCid(EmitTestCidRegister());
 
   int last_check = which_case_to_skip == length - 1 ? length - 2 : length - 1;
 
@@ -1832,7 +1832,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     Label next_test;
     if (!complete || !is_last_check) {
       bias = EmitTestAndCallCheckCid(is_last_check ? failed : &next_test,
-                                     targets[i], bias);
+                                     EmitTestCidRegister(), targets[i], bias,
+                                     /*jump_on_miss =*/true);
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
@@ -1852,6 +1853,42 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                 token_index, locs, try_index);
   }
 }
+
+bool FlowGraphCompiler::GenerateSubclassTypeCheck(Register class_id_reg,
+                                                  const Class& type_class,
+                                                  Label* is_subtype) {
+  HierarchyInfo* hi = Thread::Current()->hierarchy_info();
+  if (hi != NULL) {
+    // We test up to 4 different cid ranges, if we would need to test more in
+    // order to get a definite answer we fall back to the old mechanism (namely
+    // of going into the subtyping cache)
+    static const intptr_t kMaxNumberOfCidRangesToTest = 4;
+
+    const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+    if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+      Label fail;
+      int bias = 0;
+      for (intptr_t i = 0; i < ranges.length(); ++i) {
+        const CidRange& range = ranges[i];
+        if (!range.IsIllegalRange()) {
+          bias = EmitTestAndCallCheckCid(is_subtype, class_id_reg, range, bias,
+                                         /*jump_on_miss=*/false);
+        }
+      }
+      __ Bind(&fail);
+      return true;
+    }
+  }
+
+  // We don't have cid-ranges for subclasses, so we'll just test against the
+  // class directly if it's non-abstract.
+  if (!type_class.is_abstract()) {
+    __ CompareImmediate(class_id_reg, type_class.id());
+    __ BranchIf(EQUAL, is_subtype);
+  }
+  return false;
+}
+
 #undef __
 #endif
 

@@ -15,7 +15,7 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 
@@ -25,6 +25,6 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }

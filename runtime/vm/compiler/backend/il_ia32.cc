@@ -4515,8 +4515,8 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtsi2sd(result, value);
 }
 
-LocationSummary* MintToDoubleInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* Int64ToDoubleInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
@@ -4527,7 +4527,7 @@ LocationSummary* MintToDoubleInstr::MakeLocationSummary(Zone* zone,
   return result;
 }
 
-void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int64ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* pair = locs()->in(0).AsPairLocation();
   Register in_lo = pair->At(0).reg();
   Register in_hi = pair->At(1).reg();

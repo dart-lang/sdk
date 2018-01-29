@@ -31,7 +31,8 @@ class PrintSummaries extends RecursiveVisitor<Null> {
 
   @override
   defaultMember(Member member) {
-    if (!member.isAbstract) {
+    if (!member.isAbstract &&
+        !((member is Field) && (member.initializer == null))) {
       _buf.writeln("------------ $member ------------");
       _buf.writeln(_summaryColector.createSummary(member));
     }

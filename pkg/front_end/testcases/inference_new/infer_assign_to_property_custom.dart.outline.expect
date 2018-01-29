@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   operator +(dynamic other) → core::int
     ;
@@ -12,7 +12,7 @@ class A extends core::Object {
 }
 class B extends core::Object {
   field self::A a;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static field dynamic v_prefix_pp;

@@ -10619,6 +10619,941 @@ class FileKind implements Enum {
 }
 
 /**
+ * FlutterOutline
+ *
+ * {
+ *   "kind": FlutterOutlineKind
+ *   "offset": int
+ *   "length": int
+ *   "label": optional String
+ *   "dartElement": optional Element
+ *   "attributes": optional List<FlutterOutlineAttribute>
+ *   "className": optional String
+ *   "parentAssociationLabel": optional String
+ *   "variableName": optional String
+ *   "children": optional List<FlutterOutline>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterOutline implements HasToJson {
+  FlutterOutlineKind _kind;
+
+  int _offset;
+
+  int _length;
+
+  String _label;
+
+  Element _dartElement;
+
+  List<FlutterOutlineAttribute> _attributes;
+
+  String _className;
+
+  String _parentAssociationLabel;
+
+  String _variableName;
+
+  List<FlutterOutline> _children;
+
+  /**
+   * The kind of the node.
+   */
+  FlutterOutlineKind get kind => _kind;
+
+  /**
+   * The kind of the node.
+   */
+  void set kind(FlutterOutlineKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The offset of the first character of the element. This is different than
+   * the offset in the Element, which is the offset of the name of the element.
+   * It can be used, for example, to map locations in the file back to an
+   * outline.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the first character of the element. This is different than
+   * the offset in the Element, which is the offset of the name of the element.
+   * It can be used, for example, to map locations in the file back to an
+   * outline.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the element.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the element.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  /**
+   * The text label of the node children of the node. It is provided for any
+   * FlutterOutlineKind.GENERIC node, where better information is not
+   * available.
+   */
+  String get label => _label;
+
+  /**
+   * The text label of the node children of the node. It is provided for any
+   * FlutterOutlineKind.GENERIC node, where better information is not
+   * available.
+   */
+  void set label(String value) {
+    this._label = value;
+  }
+
+  /**
+   * If this node is a Dart element, the description of it; omitted otherwise.
+   */
+  Element get dartElement => _dartElement;
+
+  /**
+   * If this node is a Dart element, the description of it; omitted otherwise.
+   */
+  void set dartElement(Element value) {
+    this._dartElement = value;
+  }
+
+  /**
+   * Additional attributes for this node, which might be interesting to display
+   * on the client. These attributes are usually arguments for the instance
+   * creation or the invocation that created the widget.
+   */
+  List<FlutterOutlineAttribute> get attributes => _attributes;
+
+  /**
+   * Additional attributes for this node, which might be interesting to display
+   * on the client. These attributes are usually arguments for the instance
+   * creation or the invocation that created the widget.
+   */
+  void set attributes(List<FlutterOutlineAttribute> value) {
+    this._attributes = value;
+  }
+
+  /**
+   * If the node creates a new class instance, or a reference to an instance,
+   * this field has the name of the class.
+   */
+  String get className => _className;
+
+  /**
+   * If the node creates a new class instance, or a reference to an instance,
+   * this field has the name of the class.
+   */
+  void set className(String value) {
+    this._className = value;
+  }
+
+  /**
+   * A short text description how this node is associated with the parent node.
+   * For example "appBar" or "body" in Scaffold.
+   */
+  String get parentAssociationLabel => _parentAssociationLabel;
+
+  /**
+   * A short text description how this node is associated with the parent node.
+   * For example "appBar" or "body" in Scaffold.
+   */
+  void set parentAssociationLabel(String value) {
+    this._parentAssociationLabel = value;
+  }
+
+  /**
+   * If FlutterOutlineKind.VARIABLE, the name of the variable.
+   */
+  String get variableName => _variableName;
+
+  /**
+   * If FlutterOutlineKind.VARIABLE, the name of the variable.
+   */
+  void set variableName(String value) {
+    this._variableName = value;
+  }
+
+  /**
+   * The children of the node. The field will be omitted if the node has no
+   * children.
+   */
+  List<FlutterOutline> get children => _children;
+
+  /**
+   * The children of the node. The field will be omitted if the node has no
+   * children.
+   */
+  void set children(List<FlutterOutline> value) {
+    this._children = value;
+  }
+
+  FlutterOutline(FlutterOutlineKind kind, int offset, int length,
+      {String label,
+      Element dartElement,
+      List<FlutterOutlineAttribute> attributes,
+      String className,
+      String parentAssociationLabel,
+      String variableName,
+      List<FlutterOutline> children}) {
+    this.kind = kind;
+    this.offset = offset;
+    this.length = length;
+    this.label = label;
+    this.dartElement = dartElement;
+    this.attributes = attributes;
+    this.className = className;
+    this.parentAssociationLabel = parentAssociationLabel;
+    this.variableName = variableName;
+    this.children = children;
+  }
+
+  factory FlutterOutline.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      FlutterOutlineKind kind;
+      if (json.containsKey("kind")) {
+        kind = new FlutterOutlineKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      String label;
+      if (json.containsKey("label")) {
+        label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
+      }
+      Element dartElement;
+      if (json.containsKey("dartElement")) {
+        dartElement = new Element.fromJson(
+            jsonDecoder, jsonPath + ".dartElement", json["dartElement"]);
+      }
+      List<FlutterOutlineAttribute> attributes;
+      if (json.containsKey("attributes")) {
+        attributes = jsonDecoder.decodeList(
+            jsonPath + ".attributes",
+            json["attributes"],
+            (String jsonPath, Object json) =>
+                new FlutterOutlineAttribute.fromJson(
+                    jsonDecoder, jsonPath, json));
+      }
+      String className;
+      if (json.containsKey("className")) {
+        className = jsonDecoder.decodeString(
+            jsonPath + ".className", json["className"]);
+      }
+      String parentAssociationLabel;
+      if (json.containsKey("parentAssociationLabel")) {
+        parentAssociationLabel = jsonDecoder.decodeString(
+            jsonPath + ".parentAssociationLabel",
+            json["parentAssociationLabel"]);
+      }
+      String variableName;
+      if (json.containsKey("variableName")) {
+        variableName = jsonDecoder.decodeString(
+            jsonPath + ".variableName", json["variableName"]);
+      }
+      List<FlutterOutline> children;
+      if (json.containsKey("children")) {
+        children = jsonDecoder.decodeList(
+            jsonPath + ".children",
+            json["children"],
+            (String jsonPath, Object json) =>
+                new FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
+      }
+      return new FlutterOutline(kind, offset, length,
+          label: label,
+          dartElement: dartElement,
+          attributes: attributes,
+          className: className,
+          parentAssociationLabel: parentAssociationLabel,
+          variableName: variableName,
+          children: children);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "FlutterOutline", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["kind"] = kind.toJson();
+    result["offset"] = offset;
+    result["length"] = length;
+    if (label != null) {
+      result["label"] = label;
+    }
+    if (dartElement != null) {
+      result["dartElement"] = dartElement.toJson();
+    }
+    if (attributes != null) {
+      result["attributes"] = attributes
+          .map((FlutterOutlineAttribute value) => value.toJson())
+          .toList();
+    }
+    if (className != null) {
+      result["className"] = className;
+    }
+    if (parentAssociationLabel != null) {
+      result["parentAssociationLabel"] = parentAssociationLabel;
+    }
+    if (variableName != null) {
+      result["variableName"] = variableName;
+    }
+    if (children != null) {
+      result["children"] =
+          children.map((FlutterOutline value) => value.toJson()).toList();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterOutline) {
+      return kind == other.kind &&
+          offset == other.offset &&
+          length == other.length &&
+          label == other.label &&
+          dartElement == other.dartElement &&
+          listEqual(
+              attributes,
+              other.attributes,
+              (FlutterOutlineAttribute a, FlutterOutlineAttribute b) =>
+                  a == b) &&
+          className == other.className &&
+          parentAssociationLabel == other.parentAssociationLabel &&
+          variableName == other.variableName &&
+          listEqual(children, other.children,
+              (FlutterOutline a, FlutterOutline b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, attributes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parentAssociationLabel.hashCode);
+    hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * FlutterOutlineAttribute
+ *
+ * {
+ *   "name": String
+ *   "label": String
+ *   "literalValueBoolean": optional bool
+ *   "literalValueInteger": optional int
+ *   "literalValueString": optional String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterOutlineAttribute implements HasToJson {
+  String _name;
+
+  String _label;
+
+  bool _literalValueBoolean;
+
+  int _literalValueInteger;
+
+  String _literalValueString;
+
+  /**
+   * The name of the attribute.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the attribute.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The label of the attribute value, usually the Dart code. It might be quite
+   * long, the client should abbreviate as needed.
+   */
+  String get label => _label;
+
+  /**
+   * The label of the attribute value, usually the Dart code. It might be quite
+   * long, the client should abbreviate as needed.
+   */
+  void set label(String value) {
+    assert(value != null);
+    this._label = value;
+  }
+
+  /**
+   * The boolean literal value of the attribute. This field is absent if the
+   * value is not a boolean literal.
+   */
+  bool get literalValueBoolean => _literalValueBoolean;
+
+  /**
+   * The boolean literal value of the attribute. This field is absent if the
+   * value is not a boolean literal.
+   */
+  void set literalValueBoolean(bool value) {
+    this._literalValueBoolean = value;
+  }
+
+  /**
+   * The integer literal value of the attribute. This field is absent if the
+   * value is not an integer literal.
+   */
+  int get literalValueInteger => _literalValueInteger;
+
+  /**
+   * The integer literal value of the attribute. This field is absent if the
+   * value is not an integer literal.
+   */
+  void set literalValueInteger(int value) {
+    this._literalValueInteger = value;
+  }
+
+  /**
+   * The string literal value of the attribute. This field is absent if the
+   * value is not a string literal.
+   */
+  String get literalValueString => _literalValueString;
+
+  /**
+   * The string literal value of the attribute. This field is absent if the
+   * value is not a string literal.
+   */
+  void set literalValueString(String value) {
+    this._literalValueString = value;
+  }
+
+  FlutterOutlineAttribute(String name, String label,
+      {bool literalValueBoolean,
+      int literalValueInteger,
+      String literalValueString}) {
+    this.name = name;
+    this.label = label;
+    this.literalValueBoolean = literalValueBoolean;
+    this.literalValueInteger = literalValueInteger;
+    this.literalValueString = literalValueString;
+  }
+
+  factory FlutterOutlineAttribute.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      String label;
+      if (json.containsKey("label")) {
+        label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "label");
+      }
+      bool literalValueBoolean;
+      if (json.containsKey("literalValueBoolean")) {
+        literalValueBoolean = jsonDecoder.decodeBool(
+            jsonPath + ".literalValueBoolean", json["literalValueBoolean"]);
+      }
+      int literalValueInteger;
+      if (json.containsKey("literalValueInteger")) {
+        literalValueInteger = jsonDecoder.decodeInt(
+            jsonPath + ".literalValueInteger", json["literalValueInteger"]);
+      }
+      String literalValueString;
+      if (json.containsKey("literalValueString")) {
+        literalValueString = jsonDecoder.decodeString(
+            jsonPath + ".literalValueString", json["literalValueString"]);
+      }
+      return new FlutterOutlineAttribute(name, label,
+          literalValueBoolean: literalValueBoolean,
+          literalValueInteger: literalValueInteger,
+          literalValueString: literalValueString);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "FlutterOutlineAttribute", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["label"] = label;
+    if (literalValueBoolean != null) {
+      result["literalValueBoolean"] = literalValueBoolean;
+    }
+    if (literalValueInteger != null) {
+      result["literalValueInteger"] = literalValueInteger;
+    }
+    if (literalValueString != null) {
+      result["literalValueString"] = literalValueString;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterOutlineAttribute) {
+      return name == other.name &&
+          label == other.label &&
+          literalValueBoolean == other.literalValueBoolean &&
+          literalValueInteger == other.literalValueInteger &&
+          literalValueString == other.literalValueString;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, literalValueBoolean.hashCode);
+    hash = JenkinsSmiHash.combine(hash, literalValueInteger.hashCode);
+    hash = JenkinsSmiHash.combine(hash, literalValueString.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * FlutterOutlineKind
+ *
+ * enum {
+ *   DART_ELEMENT
+ *   GENERIC
+ *   NEW_INSTANCE
+ *   INVOCATION
+ *   VARIABLE
+ *   PLACEHOLDER
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterOutlineKind implements Enum {
+  /**
+   * A dart element declaration.
+   */
+  static const FlutterOutlineKind DART_ELEMENT =
+      const FlutterOutlineKind._("DART_ELEMENT");
+
+  /**
+   * A generic Flutter element, without additional information.
+   */
+  static const FlutterOutlineKind GENERIC =
+      const FlutterOutlineKind._("GENERIC");
+
+  /**
+   * A new instance creation.
+   */
+  static const FlutterOutlineKind NEW_INSTANCE =
+      const FlutterOutlineKind._("NEW_INSTANCE");
+
+  /**
+   * An invocation of a method, a top-level function, a function expression,
+   * etc.
+   */
+  static const FlutterOutlineKind INVOCATION =
+      const FlutterOutlineKind._("INVOCATION");
+
+  /**
+   * A reference to a local variable, or a field.
+   */
+  static const FlutterOutlineKind VARIABLE =
+      const FlutterOutlineKind._("VARIABLE");
+
+  /**
+   * The parent node has a required Widget. The node works as a placeholder
+   * child to drop a new Widget to.
+   */
+  static const FlutterOutlineKind PLACEHOLDER =
+      const FlutterOutlineKind._("PLACEHOLDER");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FlutterOutlineKind> VALUES = const <FlutterOutlineKind>[
+    DART_ELEMENT,
+    GENERIC,
+    NEW_INSTANCE,
+    INVOCATION,
+    VARIABLE,
+    PLACEHOLDER
+  ];
+
+  @override
+  final String name;
+
+  const FlutterOutlineKind._(this.name);
+
+  factory FlutterOutlineKind(String name) {
+    switch (name) {
+      case "DART_ELEMENT":
+        return DART_ELEMENT;
+      case "GENERIC":
+        return GENERIC;
+      case "NEW_INSTANCE":
+        return NEW_INSTANCE;
+      case "INVOCATION":
+        return INVOCATION;
+      case "VARIABLE":
+        return VARIABLE;
+      case "PLACEHOLDER":
+        return PLACEHOLDER;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory FlutterOutlineKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new FlutterOutlineKind(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "FlutterOutlineKind", json);
+  }
+
+  @override
+  String toString() => "FlutterOutlineKind.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * flutter.outline params
+ *
+ * {
+ *   "file": FilePath
+ *   "outline": FlutterOutline
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterOutlineParams implements HasToJson {
+  String _file;
+
+  FlutterOutline _outline;
+
+  /**
+   * The file with which the outline is associated.
+   */
+  String get file => _file;
+
+  /**
+   * The file with which the outline is associated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The outline associated with the file.
+   */
+  FlutterOutline get outline => _outline;
+
+  /**
+   * The outline associated with the file.
+   */
+  void set outline(FlutterOutline value) {
+    assert(value != null);
+    this._outline = value;
+  }
+
+  FlutterOutlineParams(String file, FlutterOutline outline) {
+    this.file = file;
+    this.outline = outline;
+  }
+
+  factory FlutterOutlineParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      FlutterOutline outline;
+      if (json.containsKey("outline")) {
+        outline = new FlutterOutline.fromJson(
+            jsonDecoder, jsonPath + ".outline", json["outline"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "outline");
+      }
+      return new FlutterOutlineParams(file, outline);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "flutter.outline params", json);
+    }
+  }
+
+  factory FlutterOutlineParams.fromNotification(Notification notification) {
+    return new FlutterOutlineParams.fromJson(
+        new ResponseDecoder(null), "params", notification.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["outline"] = outline.toJson();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("flutter.outline", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterOutlineParams) {
+      return file == other.file && outline == other.outline;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * FlutterService
+ *
+ * enum {
+ *   OUTLINE
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterService implements Enum {
+  static const FlutterService OUTLINE = const FlutterService._("OUTLINE");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FlutterService> VALUES = const <FlutterService>[OUTLINE];
+
+  @override
+  final String name;
+
+  const FlutterService._(this.name);
+
+  factory FlutterService(String name) {
+    switch (name) {
+      case "OUTLINE":
+        return OUTLINE;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory FlutterService.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new FlutterService(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "FlutterService", json);
+  }
+
+  @override
+  String toString() => "FlutterService.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * flutter.setSubscriptions params
+ *
+ * {
+ *   "subscriptions": Map<FlutterService, List<FilePath>>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterSetSubscriptionsParams implements RequestParams {
+  Map<FlutterService, List<String>> _subscriptions;
+
+  /**
+   * A table mapping services to a list of the files being subscribed to the
+   * service.
+   */
+  Map<FlutterService, List<String>> get subscriptions => _subscriptions;
+
+  /**
+   * A table mapping services to a list of the files being subscribed to the
+   * service.
+   */
+  void set subscriptions(Map<FlutterService, List<String>> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  FlutterSetSubscriptionsParams(
+      Map<FlutterService, List<String>> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
+
+  factory FlutterSetSubscriptionsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      Map<FlutterService, List<String>> subscriptions;
+      if (json.containsKey("subscriptions")) {
+        subscriptions = jsonDecoder.decodeMap(
+            jsonPath + ".subscriptions", json["subscriptions"],
+            keyDecoder: (String jsonPath, Object json) =>
+                new FlutterService.fromJson(jsonDecoder, jsonPath, json),
+            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+                .decodeList(jsonPath, json, jsonDecoder.decodeString));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "subscriptions");
+      }
+      return new FlutterSetSubscriptionsParams(subscriptions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "flutter.setSubscriptions params", json);
+    }
+  }
+
+  factory FlutterSetSubscriptionsParams.fromRequest(Request request) {
+    return new FlutterSetSubscriptionsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["subscriptions"] = mapMap(subscriptions,
+        keyCallback: (FlutterService value) => value.toJson());
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "flutter.setSubscriptions", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterSetSubscriptionsParams) {
+      return mapEqual(
+          subscriptions,
+          other.subscriptions,
+          (List<String> a, List<String> b) =>
+              listEqual(a, b, (String a, String b) => a == b));
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * flutter.setSubscriptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterSetSubscriptionsResult implements ResponseResult {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterSetSubscriptionsResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 628296315;
+  }
+}
+
+/**
  * GeneralAnalysisService
  *
  * enum {

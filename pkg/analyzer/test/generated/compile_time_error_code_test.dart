@@ -400,7 +400,10 @@ f() async {
 g() {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -441,7 +444,10 @@ f() async {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -1064,7 +1070,7 @@ const x = const C().t;''');
     Source source = addSource(r'''
 class A {
   const A();
-  m() {}
+  int m() => 0;
 }
 final a = const A();
 const C = a.m;''');
@@ -2888,7 +2894,7 @@ class A {
     Source source = addSource(r'''
 class A {
   static var F = m();
-  m() {}
+  int m() => 0;
 }''');
     await computeAnalysisResult(source);
     assertErrors(
@@ -3707,7 +3713,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
@@ -3719,7 +3726,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 

@@ -1551,7 +1551,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1591,7 +1591,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1659,7 +1659,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1707,7 +1707,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -1738,7 +1738,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value([x]) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -2429,7 +2429,7 @@ class B {
 class C extends B {
   f() {}
 }
-var x = new C()./*info:USE_OF_VOID_RESULT*/f();
+var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*info:USE_OF_VOID_RESULT*/f();
 ''');
   }
 
@@ -4297,7 +4297,7 @@ var v = new C().f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.type.toString(), 'double');
   }
 
-  test_voidReturnTypeSubtypesDynamic() async {
+  test_voidReturnTypeEquivalentToDynamic() async {
     var unit = await checkFileElement(r'''
 T run<T>(T f()) {
   print("running");
@@ -4317,8 +4317,8 @@ main() {
   var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
   x = 123;
   x = 'hi';
-  y = /*error:INVALID_ASSIGNMENT*/123;
-  y = /*error:INVALID_ASSIGNMENT*/'hi';
+  y = 123;
+  y = 'hi';
 }
   ''');
 
@@ -4381,7 +4381,7 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @failingTest
   @override
-  test_voidReturnTypeSubtypesDynamic() async {
-    await super.test_voidReturnTypeSubtypesDynamic();
+  test_voidReturnTypeEquivalentToDynamic() async {
+    await super.test_voidReturnTypeEquivalentToDynamic();
   }
 }

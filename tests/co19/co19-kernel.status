@@ -9,6 +9,11 @@ Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Metadata/before_type_param_t01: RuntimeError
+Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t05: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # tests need fixing
 LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 
 [ $compiler == dartkp ]
@@ -21,16 +26,17 @@ Language/Expressions/Constants/depending_on_itself_t01: Crash # New entries afte
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Constants/depending_on_itself_t03: Crash
-Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Null/extend_or_implement_t05: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Pass
+Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t05: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # tests need fixing
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # tests need fixing
 
 [ $fasta ]
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
@@ -57,10 +63,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # Please triaage.
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # Please triaage.
 Language/Classes/definition_t23: RuntimeError # Please triaage.
-Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # Please triaage.
-Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # Please triaage.
-Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # Please triaage.
-Language/Expressions/Null/extend_or_implement_t05: MissingCompileTimeError # Please triaage.
 Language/Expressions/Spawning_an_Isolate/*: Skip
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # Please triaage.
 LibTest/isolate/*/*: Skip

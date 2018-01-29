@@ -151,6 +151,131 @@ class TypeEnvironment extends SubtypeTester {
     }
     return !hierarchy.hasProperSubtypes(class_);
   }
+
+  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
+  /// `Null` and all contravariant occurrences of `Null` with `Object`.
+  DartType replaceTopAndBottom(DartType type, {bool isCovariant = true}) {
+    if (type is DynamicType && isCovariant) {
+      return const BottomType();
+    } else if (type is InterfaceType &&
+        type.classNode == objectType.classNode &&
+        isCovariant) {
+      return const BottomType();
+    } else if (type is InterfaceType && type.classNode.typeParameters != null) {
+      List<DartType> typeArguments = type.typeArguments ??
+          calculateBounds(type.classNode.typeParameters, objectType.classNode);
+      List<DartType> replacedTypeArguments =
+          new List<DartType>(typeArguments.length);
+      for (int i = 0; i < replacedTypeArguments.length; i++) {
+        replacedTypeArguments[i] =
+            replaceTopAndBottom(typeArguments[i], isCovariant: true);
+      }
+      return new InterfaceType(type.classNode, replacedTypeArguments);
+    } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
+      List<DartType> typeArguments = type.typeArguments ??
+          calculateBounds(
+              type.typedefNode.typeParameters, objectType.classNode);
+      List<DartType> replacedTypeArguments =
+          new List<DartType>(typeArguments.length);
+      for (int i = 0; i < replacedTypeArguments.length; i++) {
+        replacedTypeArguments[i] =
+            replaceTopAndBottom(typeArguments[i], isCovariant: true);
+      }
+      return new TypedefType(type.typedefNode, replacedTypeArguments);
+    } else if (type is FunctionType) {
+      var replacedReturnType =
+          replaceTopAndBottom(type.returnType, isCovariant: true);
+      var replacedPositionalParameters =
+          new List<DartType>(type.positionalParameters.length);
+      for (int i = 0; i < replacedPositionalParameters.length; i++) {
+        replacedPositionalParameters[i] = replaceTopAndBottom(
+            type.positionalParameters[i],
+            isCovariant: false);
+      }
+      var replacedNamedParameters =
+          new List<NamedType>(type.namedParameters.length);
+      for (int i = 0; i < replacedNamedParameters.length; i++) {
+        replacedNamedParameters[i] = new NamedType(
+            type.namedParameters[i].name,
+            replaceTopAndBottom(type.namedParameters[i].type,
+                isCovariant: false));
+      }
+      return new FunctionType(replacedPositionalParameters, replacedReturnType,
+          namedParameters: replacedNamedParameters,
+          typeParameters: type.typeParameters,
+          requiredParameterCount: type.requiredParameterCount,
+          positionalParameterNames: type.positionalParameterNames,
+          typedefReference: type.typedefReference);
+    }
+    return type;
+  }
+
+  bool isSuperBounded(DartType type) {
+    List<TypeParameter> typeParameters;
+    List<DartType> typeArguments;
+
+    if (type is InterfaceType && type.classNode.typeParameters != null) {
+      typeParameters = type.classNode.typeParameters;
+      typeArguments = type.typeArguments;
+    } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
+      typeParameters = type.typedefNode.typeParameters;
+      typeArguments = type.typeArguments;
+    }
+
+    if (typeParameters == null) {
+      return false;
+    }
+
+    typeArguments =
+        typeArguments ?? calculateBounds(typeParameters, objectType.classNode);
+
+    var substitution = <TypeParameter, DartType>{};
+    for (int i = 0; i < typeParameters.length; i++) {
+      substitution[typeParameters[i]] = typeArguments[i];
+    }
+    var substitutedBounds = new List<DartType>(typeParameters.length);
+    for (int i = 0; i < typeParameters.length; i++) {
+      substitutedBounds[i] = substitute(typeParameters[i].bound, substitution);
+    }
+
+    bool isViolated = false;
+    for (int i = 0; i < typeArguments.length; i++) {
+      if (!isSubtypeOf(typeArguments[i], substitutedBounds[i])) {
+        isViolated = true;
+      }
+    }
+    if (!isViolated) {
+      return false;
+    }
+
+    var replaced = replaceTopAndBottom(type);
+    List<DartType> replacedArguments;
+    if (replaced is InterfaceType) {
+      replacedArguments = replaced.typeArguments;
+    } else if (replaced is TypedefType) {
+      replacedArguments = replaced.typeArguments;
+    }
+
+    if (replacedArguments == null) {
+      return false;
+    }
+
+    var replacedSubstitution = <TypeParameter, DartType>{};
+    for (int i = 0; i < typeParameters.length; i++) {
+      replacedSubstitution[typeParameters[i]] = replacedArguments[i];
+    }
+    var replacedBounds = new List<DartType>(typeParameters.length);
+    for (int i = 0; i < typeParameters.length; i++) {
+      replacedBounds[i] =
+          substitute(typeParameters[i].bound, replacedSubstitution);
+    }
+    for (int i = 0; i < replacedArguments.length; i++) {
+      if (!isSubtypeOf(replacedArguments[i], replacedBounds[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /// The part of [TypeEnvironment] that deals with subtype tests.

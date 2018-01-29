@@ -18,8 +18,10 @@ class DartUnitOutlineComputer {
   final String file;
   final CompilationUnit unit;
   final LineInfo lineInfo;
+  final bool withBasicFlutter;
 
-  DartUnitOutlineComputer(this.file, this.lineInfo, this.unit);
+  DartUnitOutlineComputer(this.file, this.lineInfo, this.unit,
+      {this.withBasicFlutter: false});
 
   /**
    * Returns the computed outline, not `null`.
@@ -418,7 +420,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (flutter.isWidgetCreation(node)) {
+    if (outlineComputer.withBasicFlutter && flutter.isWidgetCreation(node)) {
       List<Outline> children = <Outline>[];
       node.argumentList
           .accept(new _FunctionBodyOutlinesVisitor(outlineComputer, children));

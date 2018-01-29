@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic f = MakeClosure<() → dynamic>(self::closure#C#f#function, null);
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic
@@ -20,7 +20,7 @@ class C extends core::Object {
 }
 class D<T extends core::Object> extends core::Object {
   field dynamic f = MakeClosure<() → dynamic>(self::closure#D#f#function, null);
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic
@@ -36,7 +36,7 @@ class D<T extends core::Object> extends core::Object {
 }
 class E<T extends core::Object> extends core::Object {
   field dynamic f = MakeClosure<() → dynamic>(self::closure#E#f#function, null);
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get g() → dynamic

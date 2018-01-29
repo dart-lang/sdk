@@ -82,8 +82,9 @@ class ImpactSerializer implements WorldImpactVisitor {
     object.setEnum(Key.KIND, staticUse.kind);
     serializeElementReference(
         element, Key.ELEMENT, Key.NAME, object, staticUse.element);
-    if (staticUse.type != null) {
-      object.setType(Key.TYPE, staticUse.type);
+    ResolutionInterfaceType type = staticUse.type;
+    if (type != null) {
+      object.setType(Key.TYPE, type);
     }
     if (staticUse.callStructure != null) {
       serializeCallStructure(
@@ -152,7 +153,7 @@ class ImpactDeserializer {
       StaticUseKind kind = object.getEnum(Key.KIND, StaticUseKind.values);
       Element usedElement =
           deserializeElementReference(element, Key.ELEMENT, Key.NAME, object);
-      ResolutionDartType type = object.getType(Key.TYPE, isOptional: true);
+      ResolutionInterfaceType type = object.getType(Key.TYPE, isOptional: true);
       ObjectDecoder callStructureObject =
           object.getObject(Key.CALL_STRUCTURE, isOptional: true);
       CallStructure callStructure;
@@ -168,7 +169,7 @@ class ImpactDeserializer {
     for (int index = 0; index < dynamicUseDecoder.length; index++) {
       ObjectDecoder object = dynamicUseDecoder.getObject(index);
       Selector selector = deserializeSelector(object);
-      dynamicUses.add(new DynamicUse(selector, null));
+      dynamicUses.add(new DynamicUse(selector));
     }
 
     ListDecoder typeUseDecoder = objectDecoder.getList(Key.TYPE_USES);

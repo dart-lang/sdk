@@ -18,7 +18,7 @@ test(String input, [Map<String, Map<String, String>> expectedOutput]) {
 
   if (starIndex != -1) {
     Expect.equals(expectedOutput, null);
-    Expect.throws(parse, (e) {
+    Expect.throws(parse, (dynamic e) {
       Expect.isTrue(e is FormatException);
       Expect.equals(starIndex, e.offset);
       return e is FormatException;

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
   field self::C::T y;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   set x(self::C::T t) → void
     ;
@@ -12,11 +12,11 @@ class C<T extends core::Object> extends core::Object {
 class D extends core::Object implements self::C<core::num> {
   field core::num x;
   field core::num y;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class E extends core::Object implements self::C<core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   set x(core::num t) → void
     ;

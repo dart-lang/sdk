@@ -78,11 +78,19 @@ class IsolateData {
 
   void OnIsolateShutdown();
 
+  void set_create_isolate_from_kernel(bool value) {
+    create_isolate_from_kernel_ = value;
+  }
+  bool create_isolate_from_kernel() const {
+    return create_isolate_from_kernel_;
+  }
+
  private:
   Dart_Handle builtin_lib_;
   Loader* loader_;
   AppSnapshot* app_snapshot_;
   MallocGrowableArray<char*>* dependencies_;
+  bool create_isolate_from_kernel_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

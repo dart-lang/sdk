@@ -209,6 +209,7 @@ void Loader::SendRequest(intptr_t tag,
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // Forward a request from the tag handler to the kernel isolate.
 // [ tag, send port, url ]
 void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
@@ -216,15 +217,30 @@ void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
   Dart_Port kernel_port = Dart_KernelPort();
   ASSERT(kernel_port != ILLEGAL_PORT);
 
-  Dart_Handle request = Dart_NewList(3);
+  // NOTE: This list should be kept in sync with kernel_service.dart
+  // and kernel_isolate.cc.
+  Dart_Handle request = Dart_NewList(9);
   Dart_ListSetAt(request, 0, Dart_NewInteger(tag));
   Dart_ListSetAt(request, 1, Dart_NewSendPort(port_));
   Dart_ListSetAt(request, 2, url);
+  const char* platform_kernel = dfe.GetPlatformBinaryFilename();
+  if (platform_kernel != NULL) {
+    Dart_ListSetAt(request, 3, Dart_NewStringFromCString(platform_kernel));
+  } else {
+    Dart_ListSetAt(request, 3, Dart_Null());
+  }
+  Dart_ListSetAt(request, 4, Dart_False() /* incremental */);
+  Dart_ListSetAt(request, 5, Dart_True() /* strong */);
+  Dart_ListSetAt(request, 6,
+                 Dart_NewInteger(Dart_GetMainPortId()) /* isolateId */);
+  Dart_ListSetAt(request, 7, Dart_Null() /* sourceFiles */);
+  Dart_ListSetAt(request, 8, Dart_True() /* suppressWarnings */);
   if (Dart_Post(kernel_port, request)) {
     MonitorLocker ml(monitor_);
     pending_operations_++;
   }
 }
+#endif
 
 void Loader::QueueMessage(Dart_CObject* message) {
   MonitorLocker ml(monitor_);
@@ -680,13 +696,24 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
   if (tag == Dart_kKernelTag) {
-    ASSERT(dfe.UseDartFrontend() || dfe.kernel_file_specified());
     Dart_Isolate current = Dart_CurrentIsolate();
     ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
     return dfe.ReadKernelBinary(current, url_string);
   }
-  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) ||
-         (!dfe.UseDartFrontend() && !dfe.kernel_file_specified()));
+  if (tag == Dart_kImportResolvedExtensionTag) {
+    if (strncmp(url_string, "file://", 7)) {
+      return DartUtils::NewError(
+          "Resolved native extensions must use the file:// scheme.");
+    }
+    const char* absolute_path = DartUtils::RemoveScheme(url_string);
+
+    if (!File::IsAbsolutePath(absolute_path)) {
+      return DartUtils::NewError("Native extension path must be absolute.");
+    }
+
+    return Extensions::LoadExtension("/", absolute_path, library);
+  }
+  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) || !dfe.UseDartFrontend());
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.
@@ -764,7 +791,12 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
-    if (Dart_KernelIsolateIsRunning()) {
+    if (Dart_KernelIsolateIsRunning() &&
+        isolate_data->create_isolate_from_kernel()) {
+      // TODO(sivachandra): After linking the platform kernel file with
+      // the embedder, the library tag handler should not be called to compile
+      // a script to kernel and load it. Remove this part when platform kernel
+      // kernel file is linked in to the embedder.
       loader->SendKernelRequest(tag, url);
     } else {
       loader->SendRequest(

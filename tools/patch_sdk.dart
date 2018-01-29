@@ -28,6 +28,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/target/flutter.dart' show FlutterTarget;
+import 'package:vm/target/runner.dart' show RunnerTarget;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
@@ -83,10 +84,11 @@ void usage(String mode) {
   exit(1);
 }
 
-const validModes = const ['vm', 'flutter'];
+const validModes = const ['vm', 'flutter', 'runner'];
 String mode;
 bool get forVm => mode == 'vm';
 bool get forFlutter => mode == 'flutter';
+bool get forRunner => mode == 'runner';
 
 Future _main(List<String> argv) async {
   if (argv.isEmpty) usage('[${validModes.join('|')}]');
@@ -131,6 +133,10 @@ Future _main(List<String> argv) async {
       target = new VmTarget(flags);
       break;
 
+    case 'runner':
+      target = new RunnerTarget(flags);
+      break;
+
     case 'flutter':
     case 'flutter_release':
       target = new FlutterTarget(flags);
@@ -172,7 +178,7 @@ Future _main(List<String> argv) async {
   //    [platformForDeps] is always the VM-specific `platform.dill` file.
   var platformForDeps = platform;
   var sdkDir = outDirUri;
-  if (forFlutter) {
+  if (forFlutter || forRunner) {
     // Note: this fails if `$root_out_dir/vm_platform.dill` doesn't exist.  The
     // target to build the flutter patched sdk depends on
     // //runtime/vm:kernel_platform_files to ensure this file exists.
@@ -257,7 +263,7 @@ Future writeDepsFile(
 /// sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart to include
 /// declarations for vm internal libraries.
 String _updateLibraryMetadata(String sdkOut, String libContents) {
-  if (!forVm && !forFlutter) return libContents;
+  if (!forVm && !forFlutter && !forRunner) return libContents;
   var extraLibraries = new StringBuffer();
   extraLibraries.write('''
   "_builtin": const LibraryInfo(
@@ -291,6 +297,33 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
     extraLibraries.write('''
       "ui": const LibraryInfo(
           "ui/ui.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+  }
+
+  if (forRunner) {
+    extraLibraries.write('''
+      "fuchsia.builtin": const LibraryInfo(
+          "fuchsia.builtin/builtin.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+    extraLibraries.write('''
+      "zircon": const LibraryInfo(
+          "zircon/zircon.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+    extraLibraries.write('''
+      "fuchsia": const LibraryInfo(
+          "fuchsia/fuchsia.dart",
           categories: "Client,Server",
           implementation: true,
           documented: false,
@@ -348,6 +381,42 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
       _writeSync(uiLibraryOut, readInputFile(file.path));
     }
     addLocation(locations, 'ui', path.join('ui', 'ui.dart'));
+  }
+
+  if (forRunner) {
+    var gnRoot = path
+        .dirname(path.dirname(path.dirname(path.dirname(path.absolute(base)))));
+
+    var builtinLibraryInDir = new Directory(
+        path.join(gnRoot, 'topaz', 'runtime', 'dart_runner', 'embedder'));
+    for (var file in builtinLibraryInDir.listSync()) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = path.basename(file.path);
+      var builtinLibraryOut = path.join(sdkOut, 'fuchsia.builtin', name);
+      _writeSync(builtinLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'fuchsia.builtin',
+        path.join('fuchsia.builtin', 'builtin.dart'));
+
+    var zirconLibraryInDir = new Directory(
+        path.join(gnRoot, 'topaz', 'public', 'dart-pkg', 'zircon', 'lib'));
+    for (var file in zirconLibraryInDir.listSync(recursive: true)) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = file.path.substring(zirconLibraryInDir.path.length + 1);
+      var zirconLibraryOut = path.join(sdkOut, 'zircon', name);
+      _writeSync(zirconLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'zircon', path.join('zircon', 'zircon.dart'));
+
+    var fuchsiaLibraryInDir = new Directory(
+        path.join(gnRoot, 'topaz', 'public', 'dart-pkg', 'fuchsia', 'lib'));
+    for (var file in fuchsiaLibraryInDir.listSync(recursive: true)) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = file.path.substring(fuchsiaLibraryInDir.path.length + 1);
+      var fuchsiaLibraryOut = path.join(sdkOut, 'fuchsia', name);
+      _writeSync(fuchsiaLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'fuchsia', path.join('fuchsia', 'fuchsia.dart'));
   }
 }
 

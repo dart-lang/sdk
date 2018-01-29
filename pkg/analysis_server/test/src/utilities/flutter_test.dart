@@ -133,6 +133,47 @@ var b = new Text('bbb');
     expect(isWidgetCreation(b), isTrue);
   }
 
+  test_isWidgetExpression() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  var text = new Text('abc');
+  text;
+  createEmptyText();
+  var intVariable = 42;
+  intVariable;
+}
+
+Text createEmptyText() => new Text('');
+''');
+    {
+      Expression expression = findNodeAtString("new Text('abc')");
+      expect(isWidgetExpression(expression), isTrue);
+    }
+
+    {
+      Expression expression = findNodeAtString("text;");
+      expect(isWidgetExpression(expression), isTrue);
+    }
+
+    {
+      Expression expression = findNodeAtString(
+          "createEmptyText();", (node) => node is MethodInvocation);
+      expect(isWidgetExpression(expression), isTrue);
+    }
+
+    {
+      Expression expression = findNodeAtString("42;");
+      expect(isWidgetExpression(expression), isFalse);
+    }
+
+    {
+      Expression expression = findNodeAtString("intVariable;");
+      expect(isWidgetExpression(expression), isFalse);
+    }
+  }
+
   VariableDeclaration _getTopVariable(String name, [CompilationUnit unit]) {
     unit ??= testUnit;
     for (var topDeclaration in unit.declarations) {

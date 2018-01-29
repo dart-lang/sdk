@@ -9605,6 +9605,12 @@ class DirectoryEntry extends Entry {
         options: {'create': true, 'exclusive': exclusive});
   }
 
+  DirectoryReader createReader() {
+    DirectoryReader reader = _createReader();
+    applyExtension('DirectoryReader', reader);
+    return reader;
+  }
+
   /**
    * Retrieve an already existing directory entry. The returned future will
    * result in an error if a directory at `path` does not exist or if the item
@@ -9637,9 +9643,10 @@ class DirectoryEntry extends Entry {
     throw new UnsupportedError("Not supported");
   }
 
+  @JSName('createReader')
   @DomName('DirectoryEntry.createReader')
   @DocsEditable()
-  DirectoryReader createReader() native;
+  DirectoryReader _createReader() native;
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
@@ -9773,11 +9780,10 @@ class DirectoryEntry extends Entry {
     return completer.future;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
 @DomName('DirectoryReader')
 // http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
 @Experimental()
@@ -9794,16 +9800,16 @@ class DirectoryReader extends Interceptor {
   void _readEntries(_EntriesCallback successCallback,
       [_ErrorCallback errorCallback]) native;
 
-  @JSName('readEntries')
   @DomName('DirectoryReader.readEntries')
   @DocsEditable()
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
     _readEntries((value) {
-      completer.complete(value);
+      completer.complete(new List<Entry>.from(value));
     }, (error) {
       completer.completeError(error);
     });
+
     return completer.future;
   }
 }

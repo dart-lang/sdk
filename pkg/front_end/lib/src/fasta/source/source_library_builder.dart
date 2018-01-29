@@ -234,16 +234,27 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     }
 
-    imports.add(new Import(
-        this,
-        loader.read(resolve(this.uri, uri, uriOffset), charOffset,
-            accessor: this),
-        deferred,
-        prefix,
-        combinators,
-        configurations,
-        charOffset,
-        prefixCharOffset));
+    const String nativeExtensionScheme = "dart-ext:";
+    bool isExternal = uri.startsWith(nativeExtensionScheme);
+    if (isExternal) {
+      uri = uri.substring(nativeExtensionScheme.length);
+      uriOffset += nativeExtensionScheme.length;
+    }
+
+    Uri resolvedUri = resolve(this.uri, uri, uriOffset);
+
+    LibraryBuilder builder = null;
+    if (isExternal) {
+      if (resolvedUri.scheme == "package") {
+        resolvedUri = loader.target.translateUri(resolvedUri);
+      }
+    } else {
+      builder = loader.read(resolvedUri, charOffset, accessor: this);
+    }
+
+    imports.add(new Import(this, builder, deferred, prefix, combinators,
+        configurations, charOffset, prefixCharOffset,
+        nativeImportUri: builder == null ? resolvedUri : null));
   }
 
   void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {

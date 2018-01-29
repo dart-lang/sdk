@@ -16,6 +16,12 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
         {'create': true, 'exclusive': exclusive});
   }
 
+  DirectoryReader createReader() {
+    DirectoryReader reader = _createReader();
+    applyExtension('DirectoryReader', reader);
+    return reader;
+  }
+
   /**
    * Retrieve an already existing directory entry. The returned future will
    * result in an error if a directory at `path` does not exist or if the item

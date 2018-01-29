@@ -5,7 +5,7 @@
 /*class: A:explicit=[B<A>]*/
 class A {}
 
-/*class: B:needsArgs,deps=[method],explicit=[B<A>]*/
+/*class: B:deps=[method],explicit=[B<A>],needsArgs*/
 class B<T> {}
 
 /*ast.element: method:*/

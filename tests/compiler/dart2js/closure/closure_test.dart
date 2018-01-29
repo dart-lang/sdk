@@ -283,7 +283,7 @@ abstract class ComputeValueMixin<T> {
 
   /// Compute a string representation of the data stored for [local] in [info].
   String computeLocalValue(Local local) {
-    List<String> features = <String>[];
+    Features features = new Features();
     if (scopeInfo.localIsUsedInTryOrSync(local)) {
       features.add('inTry');
       // TODO(johnniwinther,efortuna): Should this be enabled and checked?
@@ -306,11 +306,11 @@ abstract class ComputeValueMixin<T> {
       }
     }
     // TODO(johnniwinther,efortuna): Add more info?
-    return (features.toList()..sort()).join(',');
+    return features.getText();
   }
 
   String computeObjectValue(MemberEntity member) {
-    Map<String, String> features = <String, String>{};
+    Features features = new Features();
 
     void addLocals(String name, forEach(f(Local local, _))) {
       List<String> names = <String>[];
@@ -353,22 +353,6 @@ abstract class ComputeValueMixin<T> {
       }
     }
 
-    StringBuffer sb = new StringBuffer();
-    bool needsComma = false;
-    for (String name in features.keys.toList()..sort()) {
-      String value = features[name];
-      if (value != null) {
-        if (needsComma) {
-          sb.write(',');
-        }
-        sb.write(name);
-        if (value != '') {
-          sb.write('=');
-          sb.write(value);
-        }
-        needsComma = true;
-      }
-    }
-    return sb.toString();
+    return features.getText();
   }
 }

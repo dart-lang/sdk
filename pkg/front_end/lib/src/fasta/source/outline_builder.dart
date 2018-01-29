@@ -416,7 +416,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
+  void beginTopLevelMethod(Token lastConsumed) {
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
@@ -499,7 +499,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginMethod(Token token, Token name) {
+  void beginMethod() {
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
@@ -937,7 +937,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginFactoryMethod(Token token) {
+  void beginFactoryMethod(Token lastConsumed) {
     library.beginNestedDeclaration("#factory_method", hasMembers: false);
   }
 

@@ -38,6 +38,8 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart' show NullValue, StackListener;
 
+import '../quote.dart' show unescapeString;
+
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
 
@@ -127,7 +129,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleNoType(Token token) {
+  void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
   }
 
@@ -389,6 +391,13 @@ class DietListener extends StackListener {
     pop(NullValue.Prefix);
 
     Token metadata = pop();
+
+    // Native imports must be skipped because they aren't assigned corresponding
+    // LibraryDependency nodes.
+    Token importUriToken = importKeyword.next;
+    String importUri = unescapeString(importUriToken.lexeme);
+    if (importUri.startsWith("dart-ext:")) return;
+
     Library libraryNode = library.target;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];

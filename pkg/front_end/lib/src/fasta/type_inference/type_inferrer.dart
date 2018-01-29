@@ -356,6 +356,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the last invocation didn't require any inference.
   Substitution lastInferredSubstitution;
 
+  /// The [FunctionType] of the callee in the last [inferInvocation], or `null`
+  /// if the last invocation didn't require any inference.
+  FunctionType lastCalleeType;
+
   TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
       this.thisType, this.library)
       : coreTypes = engine.coreTypes,
@@ -876,14 +880,30 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  DartType inferInvocation(DartType typeContext, bool typeNeeded, int offset,
+  DartType inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
       bool isConst: false}) {
     lastInferredSubstitution = null;
+    lastCalleeType = null;
     var calleeTypeParameters = calleeType.typeParameters;
+    if (calleeTypeParameters.isNotEmpty) {
+      // It's possible that one of the callee type parameters might match a type
+      // that already exists as part of inference (e.g. the type of an
+      // argument).  This might happen, for instance, in the case where a
+      // function or method makes a recursive call to itself.  To avoid the
+      // callee type parameters accidentally matching a type that already
+      // exists, and creating invalid inference results, we need to create fresh
+      // type parameters for the callee (see dartbug.com/31759).
+      // TODO(paulberry): is it possible to find a narrower set of circumstances
+      // in which me must do this, to avoid a performance regression?
+      var fresh = getFreshTypeParameters(calleeTypeParameters);
+      calleeType = fresh.applyToFunctionType(calleeType);
+      returnType = fresh.substitute(returnType);
+      calleeTypeParameters = fresh.freshTypeParameters;
+    }
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
         explicitTypeArguments == null &&
@@ -975,17 +995,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     DartType inferredType;
-    if (typeNeeded) {
-      lastInferredSubstitution = substitution;
-      inferredType = substitution == null
-          ? returnType
-          : substitution.substituteType(returnType);
-    }
+    lastInferredSubstitution = substitution;
+    lastCalleeType = calleeType;
+    inferredType = substitution == null
+        ? returnType
+        : substitution.substituteType(returnType);
     return inferredType;
   }
 
   DartType inferLocalFunction(FunctionNode function, DartType typeContext,
-      bool typeNeeded, int fileOffset, DartType returnContext) {
+      int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = returnContext == null;
     if (!isTopLevel) {
       var positionalParameters = function.positionalParameters;
@@ -1125,7 +1144,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
     this.closureContext = oldClosureContext;
-    return typeNeeded ? function.functionType : null;
+    return function.functionType;
   }
 
   @override
@@ -1145,20 +1164,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
-  DartType inferMethodInvocation(
-      Expression expression,
-      Expression receiver,
-      int fileOffset,
-      bool isImplicitCall,
-      DartType typeContext,
-      bool typeNeeded,
+  DartType inferMethodInvocation(Expression expression, Expression receiver,
+      int fileOffset, bool isImplicitCall, DartType typeContext,
       {VariableDeclaration receiverVariable,
       MethodInvocation desugaredInvocation,
       Object interfaceMember,
       Name methodName,
       Arguments arguments}) {
-    typeNeeded =
-        listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
+    listener.methodInvocationEnter(expression, typeContext);
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType =
         receiver == null ? thisType : inferExpression(receiver, null, true);
@@ -1182,22 +1195,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var checkKind = preCheckInvocationContravariance(receiver, receiverType,
         interfaceMember, desugaredInvocation, arguments, expression);
     var inferredType = inferInvocation(
-        typeContext,
-        typeNeeded || checkKind != MethodContravarianceCheckKind.none,
-        fileOffset,
-        calleeType,
-        calleeType.returnType,
-        arguments,
+        typeContext, fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
     if (identical(interfaceMember, 'call')) {
       listener.methodInvocationExitCall(expression, arguments, isImplicitCall,
-          calleeType, lastInferredSubstitution, inferredType);
+          lastCalleeType, lastInferredSubstitution, inferredType);
     } else {
-      listener.methodInvocationExit(expression, arguments, isImplicitCall,
-          interfaceMember, calleeType, lastInferredSubstitution, inferredType);
+      listener.methodInvocationExit(
+          expression,
+          arguments,
+          isImplicitCall,
+          interfaceMember,
+          lastCalleeType,
+          lastInferredSubstitution,
+          inferredType);
     }
     return inferredType;
   }
@@ -1217,13 +1231,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
   DartType inferPropertyGet(Expression expression, Expression receiver,
-      int fileOffset, DartType typeContext, bool typeNeeded,
+      int fileOffset, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
       Object interfaceMember,
       Name propertyName}) {
-    typeNeeded =
-        listener.propertyGetEnter(expression, typeContext) || typeNeeded;
+    listener.propertyGetEnter(expression, typeContext);
     // First infer the receiver so we can look up the getter that was invoked.
     var receiverType =
         receiver == null ? thisType : inferExpression(receiver, null, true);
@@ -1254,7 +1267,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       listener.propertyGetExit(expression, interfaceMember, inferredType);
     }
-    return typeNeeded ? inferredType : null;
+    return inferredType;
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.

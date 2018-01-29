@@ -3409,6 +3409,7 @@ Future<List<int>> main() async {
 ''');
   }
 
+  @failingTest // This is likely not going to be an error in dart 2.
   test_illegalAsyncReturnType_void() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;

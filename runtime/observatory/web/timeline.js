@@ -622,7 +622,7 @@ function fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent) {
                      parser.hostname +
                      ':' +
                      parser.port +
-                     '/_getCpuProfileTimeline?tags=VMUser&isolateId=' +
+                     '/_getCpuProfileTimeline?tags=None&isolateId=' +
                      isolateId +
                      '&timeOriginMicros=' + timeOrigin +
                      '&timeExtentMicros=' + timeExtent;

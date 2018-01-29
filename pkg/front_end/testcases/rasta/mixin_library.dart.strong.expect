@@ -7,7 +7,7 @@ class Mixin<T extends core::Object> extends core::Object {
   field dynamic y = null;
   field dynamic z = null;
   generic-covariant-impl generic-covariant-interface field self::Mixin::T t = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo() → dynamic

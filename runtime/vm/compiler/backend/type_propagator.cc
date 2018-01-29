@@ -1419,7 +1419,7 @@ CompileType SmiToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
-CompileType MintToDoubleInstr::ComputeType() const {
+CompileType Int64ToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 

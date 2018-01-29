@@ -461,7 +461,7 @@ class ElementListener extends Listener {
       Token token) {}
 
   @override
-  void handleNoType(Token token) {
+  void handleNoType(Token lastConsumed) {
     pushNode(null);
   }
 
@@ -960,13 +960,13 @@ class ElementListener extends Listener {
   }
 
   @override
-  void beginMember(Token token) {
+  void beginMember() {
     memberErrors = memberErrors.prepend(false);
   }
 
   @override
   void beginTopLevelMember(Token token) {
-    beginMember(token);
+    beginMember();
   }
 
   @override

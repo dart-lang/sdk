@@ -141,7 +141,9 @@ class KernelLoader {
   static void FinishLoading(const Class& klass);
 
   const Array& ReadConstantTable();
+  RawString* DetectExternalName();
   void AnnotateNativeProcedures(const Array& constant_table);
+  void LoadNativeExtensionLibraries(const Array& constant_table);
 
   const String& DartSymbol(StringIndex index) {
     return translation_helper_.DartSymbol(index);
@@ -252,6 +254,12 @@ class KernelLoader {
     }
   }
 
+  void EnsurePotentialExtensionLibraries() {
+    if (potential_extension_libraries_.IsNull()) {
+      potential_extension_libraries_ = GrowableObjectArray::New();
+    }
+  }
+
   Program* program_;
 
   Thread* thread_;
@@ -277,6 +285,7 @@ class KernelLoader {
   Class& external_name_class_;
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
+  GrowableObjectArray& potential_extension_libraries_;
 
   Mapping<Library> libraries_;
   Mapping<Class> classes_;

@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::num> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo(self::A<core::num> a) → dynamic

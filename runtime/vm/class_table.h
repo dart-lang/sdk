@@ -191,8 +191,6 @@ class ClassTable {
 
   void AllocateIndex(intptr_t index);
 
-  void RegisterAt(intptr_t index, const Class& cls);
-
 #if defined(DEBUG)
   void Unregister(intptr_t index);
 #endif

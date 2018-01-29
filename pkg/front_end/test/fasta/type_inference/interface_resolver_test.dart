@@ -123,10 +123,10 @@ class InterfaceResolverTest {
       } else if (expression is SuperPropertySet) {
         return expression.interfaceTarget;
       } else {
-        throw fail('Unexpected expression type: ${expression.runtimeType}');
+        fail('Unexpected expression type: ${expression.runtimeType}');
       }
     } else {
-      throw fail('Unexpected body type: ${body.runtimeType}');
+      fail('Unexpected body type: ${body.runtimeType}');
     }
   }
 

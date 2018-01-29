@@ -2658,6 +2658,53 @@ class C implements I {
     verify([source]);
   }
 
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractNSM() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class I {
+  m(p) {}
+}
+class C implements I {
+  noSuchMethod(v);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractOverrideNSM() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class I {
+  m(p) {}
+}
+class B {
+  noSuchMethod(v) => null;
+}
+class C extends B implements I {
+  noSuchMethod(v);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_ifcNSM() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class I {
+  m(p) {}
+  noSuchMethod(v) => null;
+}
+class C implements I {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromSuperclass() async {
     Source source = addSource(r'''
 abstract class A {

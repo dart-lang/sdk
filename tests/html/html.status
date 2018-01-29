@@ -154,6 +154,11 @@ touchevent_test/supported: Fail # Safari does not support TouchEvents
 webgl_1_test: Pass, Fail # Issue 8219
 worker_api_test: Skip # Issue 13221
 
+# The html tests were moved to lib_2/html, and there they should be made strong
+# mode compliant. There's no sense in running the old versions here.
+[ $strong ]
+*: SkipByDesign
+
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
 

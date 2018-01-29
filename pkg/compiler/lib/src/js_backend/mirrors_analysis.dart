@@ -349,11 +349,11 @@ class MirrorsHandler {
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
         DynamicUse dynamicUse =
-            new DynamicUse(new Selector.fromElement(element), null);
+            new DynamicUse(new Selector.fromElement(element));
         impactBuilder.registerDynamicUse(dynamicUse);
         if (element.isField) {
-          DynamicUse dynamicUse = new DynamicUse(
-              new Selector.setter(element.memberName.setter), null);
+          DynamicUse dynamicUse =
+              new DynamicUse(new Selector.setter(element.memberName.setter));
           impactBuilder.registerDynamicUse(dynamicUse);
         }
       }

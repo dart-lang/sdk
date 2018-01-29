@@ -10,22 +10,22 @@ import "dart:core" as core;
 typedef F1 = (sou::A5, [sou::A6]) → sou::A4;
 typedef F2 = (sou::A5, {b: sou::A7}) → sou::A4;
 class C1 extends sou::A1 {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super sou::A1::•();
 }
 class C2 extends core::Object implements sou::A2 {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 abstract class _Object&A3 extends core::Object implements sou::A3 {
 }
 class C3 extends self::_Object&A3 {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 @self::Meta::•(sou::A14)
 class X extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 class Meta extends core::Object {
@@ -44,7 +44,7 @@ import self as self;
 import "dart:core" as core;
 
 class A1 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 class A2 extends core::Object {

@@ -365,6 +365,20 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_strongMode_downCastCompositeWarn();
   }
 
+  @override
+  @failingTest
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke() {
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke();
+  }
+
+  @override
+  @failingTest
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params() {
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params();
+  }
+
   @failingTest
   @override
   test_undefinedGetter() async {

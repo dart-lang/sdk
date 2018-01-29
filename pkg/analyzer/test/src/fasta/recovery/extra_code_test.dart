@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MiscellaneousTest);
     defineReflectiveTests(ModifiersTest);
+    defineReflectiveTests(MultipleTypeTest);
     defineReflectiveTests(PunctuationTest);
   });
 }
@@ -72,11 +73,44 @@ class A {}
   }
 }
 
+@reflectiveTest
+class MultipleTypeTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_topLevelVariable() {
+    // https://github.com/dart-lang/sdk/issues/25875
+    // Recovers with 'void bar() {}', which seems wrong. Seems like we should
+    // keep the first type, not the second.
+    testRecovery('''
+String void bar() { }
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+String bar() { }
+''');
+  }
+}
+
 /**
  * Test how well the parser recovers when there is extra punctuation.
  */
 @reflectiveTest
 class PunctuationTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_extraComma_extendsClause() {
+    // https://github.com/dart-lang/sdk/issues/22313
+    testRecovery('''
+class A { }
+class B { }
+class Foo extends A, B {
+  Foo() { }
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.UNEXPECTED_TOKEN], '''
+class A { }
+class B { }
+class Foo extends A {
+  Foo() { }
+}
+''');
+  }
+
   void test_extraSemicolon_afterLastClassMember() {
     testRecovery('''
 class C {

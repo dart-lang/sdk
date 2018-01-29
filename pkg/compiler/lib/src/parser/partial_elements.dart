@@ -93,9 +93,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
   FunctionExpression parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
-      if (isClassMember && modifiers.isFactory) {
-        p.parseFactoryMethod(p.syntheticPreviousToken(beginToken));
-      } else if (isClassMember) {
+      if (isClassMember) {
         p.parseMember(beginToken);
       } else {
         p.parseTopLevelMember(p.syntheticPreviousToken(beginToken));

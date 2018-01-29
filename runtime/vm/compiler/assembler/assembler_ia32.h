@@ -643,6 +643,10 @@ class Assembler : public ValueObject {
   void AddImmediate(Register reg, const Immediate& imm);
   void SubImmediate(Register reg, const Immediate& imm);
 
+  void CompareImmediate(Register reg, int32_t immediate) {
+    cmpl(reg, Immediate(immediate));
+  }
+
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);

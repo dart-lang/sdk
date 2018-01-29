@@ -1972,6 +1972,15 @@ abstract class StreamTransformer<S, T> {
 }
 
 /**
+ * Base class for implementing [StreamTransformer].
+ *
+ * Contains default implementations of every method except [bind].
+ */
+abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
+  const StreamTransformerBase();
+}
+
+/**
  * An [Iterator] like interface for the values of a [Stream].
  *
  * This wraps a [Stream] and a subscription on the stream. It listens

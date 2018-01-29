@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method call(core::int x) → core::int
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method call(core::int x) → core::int
     ;

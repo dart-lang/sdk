@@ -1,15 +1,7 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
@@ -625,6 +617,35 @@ public interface AnalysisServer {
    * @deprecated
    */
   public void execution_setSubscriptions(List<String> subscriptions);
+
+  /**
+   * {@code flutter.setSubscriptions}
+   *
+   * Subscribe for services that are specific to individual files. All previous subscriptions are
+   * replaced by the current set of subscriptions. If a given service is not included as a key in the
+   * map then no files will be subscribed to the service, exactly as if the service had been included
+   * in the map with an explicit empty list of files.
+   *
+   * Note that this request determines the set of requested subscriptions. The actual set of
+   * subscriptions at any given time is the intersection of this set with the set of files currently
+   * subject to analysis. The files currently subject to analysis are the set of files contained
+   * within an actual analysis root but not excluded, plus all of the files transitively reachable
+   * from those files via import, export and part directives. (See analysis.setAnalysisRoots for an
+   * explanation of how the actual analysis roots are determined.) When the actual analysis roots
+   * change, the actual set of subscriptions is automatically updated, but the set of requested
+   * subscriptions is unchanged.
+   *
+   * If a requested subscription is a directory it is ignored, but remains in the set of requested
+   * subscriptions so that if it later becomes a file it can be included in the set of actual
+   * subscriptions.
+   *
+   * It is an error if any of the keys in the map are not valid services. If there is an error, then
+   * the existing subscriptions will remain unchanged.
+   *
+   * @param subscriptions A table mapping services to a list of the files being subscribed to the
+   *         service.
+   */
+  public void flutter_setSubscriptions(Map<String, List<String>> subscriptions);
 
   /**
    * Return {@code true} if the socket is open.

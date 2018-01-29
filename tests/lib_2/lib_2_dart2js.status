@@ -166,6 +166,7 @@ html/custom/document_register_basic_test: Skip # Times out, or unittest times ou
 html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_classes_test: RuntimeError # Issue 27535
+html/element_types_constructors4_test: RuntimeError
 html/element_types_content_test: Pass, RuntimeError # Issues 28983, 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: Fail

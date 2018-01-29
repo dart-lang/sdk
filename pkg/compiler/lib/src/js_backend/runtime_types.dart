@@ -7,6 +7,7 @@ library js_backend.runtime_types;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/elements.dart' show ClassElement;
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/resolution_types.dart'
     show
         MalformedType,
@@ -17,6 +18,7 @@ import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
+import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 import 'backend_usage.dart';
@@ -50,7 +52,7 @@ abstract class RuntimeTypesNeed {
 
   /// Returns `true` if [method] needs type arguments at runtime type.
   ///
-  /// This is for instance the case for generic methods that uses type tests:
+  /// This is for instance the case for generic methods that use type tests:
   ///
   ///   method<T>(T t) => t is T;
   ///   main() {
@@ -59,8 +61,6 @@ abstract class RuntimeTypesNeed {
   ///   }
   ///
   bool methodNeedsTypeArguments(FunctionEntity method);
-
-  bool classNeedsRtiField(ClassEntity cls);
 
   /// Returns `true` if a signature is needed for [method].
   ///
@@ -114,9 +114,6 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   bool methodNeedsSignature(FunctionEntity method) => true;
 
   @override
-  bool classNeedsRtiField(ClassEntity cls) => true;
-
-  @override
   bool methodNeedsTypeArguments(FunctionEntity method) =>
       // TODO(johnniwinther): Align handling of type arguments passed to factory
       // constructors with type arguments passed the regular generic methods.
@@ -134,31 +131,6 @@ abstract class RuntimeTypesNeedBuilder {
   /// Registers that [localFunction] uses one of its type variables as a
   /// literal.
   void registerLocalFunctionUsingTypeVariableLiteral(Local localFunction);
-
-  /// Registers that if [element] needs type arguments at runtime then so does
-  /// [dependency].
-  ///
-  /// For instance:
-  ///
-  ///     class A<T> {
-  ///       m() => new B<T>();
-  ///     }
-  ///     class B<T> {}
-  ///     main() => new A<String>().m() is B<int>;
-  ///
-  /// Here `A` need type arguments at runtime because `B` needs it in order to
-  /// generate the check against `B<int>`.
-  ///
-  /// This can also involve generic methods:
-  ///
-  ///    class A<T> {}
-  ///    method<T>() => new A<T>();
-  ///    main() => method<int>() is A<int>();
-  ///
-  /// Here `method` need type arguments at runtime because `A` needs it in order
-  /// to generate the check against `A<int>`.
-  ///
-  void registerTypeArgumentDependency(Entity element, Entity dependency);
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -184,9 +156,6 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
       {bool enableTypeAssertions}) {
     return const TrivialRuntimeTypesNeed();
   }
-
-  @override
-  void registerTypeArgumentDependency(Entity element, Entity dependency) {}
 }
 
 /// Interface for the needed runtime type checks.
@@ -196,10 +165,30 @@ abstract class RuntimeTypesChecks {
 
   /// Return all classes that are referenced in the type of the function, i.e.,
   /// in the return type or the argument types.
-  Set<ClassEntity> getReferencedClasses(FunctionType type);
+  Iterable<ClassEntity> getReferencedClasses(FunctionType type);
 
   /// Return all classes that use type arguments.
-  Set<ClassEntity> getRequiredArgumentClasses();
+  Iterable<ClassEntity> getRequiredArgumentClasses();
+
+  /// Return all classes immediately used in explicit or implicit is-tests.
+  ///
+  /// An is-test of `o is List<String>` will add `List`, but _not_ `String` to
+  /// the [checkedClasses] set.
+  Iterable<ClassEntity> get checkedClasses;
+
+  // Returns all function types immediately used in explicit or implicit
+  // is-tests.
+  //
+  // An is-test of `of is Function(Function())` will add `Function(Function())`
+  // but _not_ `Function()` to the [checkedFunctionTypes] set. An is-test
+  // against a typedef will add its alias to the [checkedFunctionTypes] set.
+  Iterable<FunctionType> get checkedFunctionTypes;
+
+  /// Classes whose type variables are explicitly or implicitly used in
+  /// is-tests.
+  ///
+  /// See [TypeVariableTests.classTests].
+  Iterable<ClassEntity> get classesUsingTypeVariableTests;
 }
 
 class TrivialTypesChecks implements RuntimeTypesChecks {
@@ -213,10 +202,19 @@ class TrivialTypesChecks implements RuntimeTypesChecks {
   TypeChecks get requiredChecks => _typeChecks;
 
   @override
-  Set<ClassEntity> getRequiredArgumentClasses() => _allClasses;
+  Iterable<ClassEntity> getRequiredArgumentClasses() => _allClasses;
 
   @override
-  Set<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
+  Iterable<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
+
+  @override
+  Iterable<ClassEntity> get checkedClasses => _allClasses;
+
+  @override
+  Iterable<FunctionType> get checkedFunctionTypes => const <FunctionType>[];
+
+  @override
+  Iterable<ClassEntity> get classesUsingTypeVariableTests => _allClasses;
 }
 
 /// Interface for computing the needed runtime type checks.
@@ -226,14 +224,7 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks);
-
-  /// Compute type arguments of classes that use one of their type variables in
-  /// is-checks and add the is-checks that they imply.
-  ///
-  /// This function must be called after all is-checks have been registered.
-  void registerImplicitChecks(Set<InterfaceType> instantiatedTypes,
-      Iterable<ClassEntity> classesUsingChecks, Set<DartType> implicitIsChecks);
+      CodegenWorldBuilder codegenWorldBuilder);
 
   bool get rtiChecksBuilderClosed;
 }
@@ -252,22 +243,29 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
       DartType typeArgument, DartType bound) {}
 
   @override
-  void registerImplicitChecks(
-      Set<InterfaceType> instantiatedTypes,
-      Iterable<ClassEntity> classesUsingChecks,
-      Set<DartType> implicitIsChecks) {}
-
-  @override
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+      CodegenWorldBuilder codegenWorldBuilder) {
     Set<ClassEntity> classes = _closedWorld
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()
         .toSet();
     rtiChecksBuilderClosed = true;
-    TypeChecks typeChecks = _substitutions._requiredChecks = _substitutions
-        ._computeChecks(/*collector.*/ classes, /*collector.*/ classes);
+    TypeChecks typeChecks = _substitutions._requiredChecks =
+        _substitutions._computeChecks(classes, classes);
     return new TrivialTypesChecks(typeChecks);
+  }
+
+  Set<ClassEntity> computeCheckedClasses(
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    return _closedWorld
+        .getClassSet(_closedWorld.commonElements.objectClass)
+        .subtypes()
+        .toSet();
+  }
+
+  Set<FunctionType> computeCheckedFunctions(
+      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
+    return new Set<FunctionType>();
   }
 }
 
@@ -292,7 +290,7 @@ abstract class RuntimeTypesSubstitutionsMixin
   TypeChecks get _requiredChecks;
 
   TypeChecks _computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked) {
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
@@ -410,7 +408,7 @@ class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
 
   @override
   TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked) {
     return _requiredChecks;
   }
 }
@@ -424,7 +422,7 @@ abstract class RuntimeTypesSubstitutions {
   /// Compute the required type checks and substitutions for the given
   /// instantiated and checked classes.
   TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked);
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked);
 
   Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks);
 
@@ -467,11 +465,6 @@ abstract class RuntimeTypesEncoder {
 abstract class _RuntimeTypesBase {
   final DartTypes _types;
 
-  // TODO(21969): remove this and analyze instantiated types and factory calls
-  // instead to find out which types are instantiated, if finitely many, or if
-  // we have to use the more imprecise generic algorithm.
-  bool get cannotDetermineInstantiatedTypesPrecisely => true;
-
   _RuntimeTypesBase(this._types);
 
   /**
@@ -490,40 +483,19 @@ abstract class _RuntimeTypesBase {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    if (cannotDetermineInstantiatedTypesPrecisely) {
-      for (InterfaceType type in instantiatedTypes) {
-        do {
-          for (DartType argument in type.typeArguments) {
+    // Find all instantiated types that are a subtype of a class that uses
+    // one of its type arguments in an is-check and add the arguments to the
+    // set of is-checks.
+    for (InterfaceType type in instantiatedTypes) {
+      for (ClassEntity cls in classesUsingChecks) {
+        // We need the type as instance of its superclass anyway, so we just
+        // try to compute the substitution; if the result is [:null:], the
+        // classes are not related.
+        InterfaceType instance = _types.asInstanceOf(type, cls);
+        if (instance != null) {
+          for (DartType argument in instance.typeArguments) {
             implicitIsChecks.add(argument.unaliased);
           }
-          // TODO(johnniwinther): This seems wrong; the type arguments of [type]
-          // are not substituted - `List<int>` yields `Iterable<E>` and not
-          // `Iterable<int>`.
-          type = _types.getSupertype(type.element);
-        } while (type != null && !instantiatedTypes.contains(type));
-      }
-    } else {
-      // Find all instantiated types that are a subtype of a class that uses
-      // one of its type arguments in an is-check and add the arguments to the
-      // set of is-checks.
-      // TODO(karlklose): replace this with code that uses a subtype lookup
-      // datastructure in the world.
-      for (InterfaceType type in instantiatedTypes) {
-        for (ClassEntity cls in classesUsingChecks) {
-          do {
-            // We need the type as instance of its superclass anyway, so we just
-            // try to compute the substitution; if the result is [:null:], the
-            // classes are not related.
-            InterfaceType instance = _types.asInstanceOf(type, cls);
-            if (instance == null) break;
-            for (DartType argument in instance.typeArguments) {
-              implicitIsChecks.add(argument.unaliased);
-            }
-            // TODO(johnniwinther): This seems wrong; the type arguments of
-            // [type] are not substituted - `List<int>` yields `Iterable<E>` and
-            // not `Iterable<int>`.
-            type = _types.getSupertype(type.element);
-          } while (type != null && !instantiatedTypes.contains(type));
         }
       }
     }
@@ -556,12 +528,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
 
   bool classNeedsTypeArguments(ClassEntity cls) {
     assert(checkClass(cls));
-    if (_backendUsage.isRuntimeTypeUsed) return true;
-    return classesNeedingTypeArguments.contains(cls);
-  }
-
-  bool classNeedsRtiField(ClassEntity cls) {
-    assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     if (_backendUsage.isRuntimeTypeUsed) return true;
     return classesNeedingTypeArguments.contains(cls);
@@ -572,13 +538,9 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
         methodsNeedingSignature.contains(function);
   }
 
-  // TODO(johnniwinther): Optimize to only include generic methods that really
-  // need the RTI.
   bool methodNeedsTypeArguments(FunctionEntity function) {
     if (function.parameterStructure.typeParameters == 0) return false;
     if (_backendUsage.isRuntimeTypeUsed) return true;
-    // TODO(johnniwinther): Include instance members in analysis.
-    if (function.isInstanceMember) return true;
     return methodsNeedingTypeArguments.contains(function);
   }
 
@@ -620,12 +582,384 @@ class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
   bool checkClass(ClassElement cls) => cls.isDeclaration;
 }
 
+class TypeVariableTests {
+  List<RtiNode> _nodes = <RtiNode>[];
+  Map<ClassEntity, ClassNode> _classes = <ClassEntity, ClassNode>{};
+  Map<Entity, MethodNode> _methods = <Entity, MethodNode>{};
+
+  /// All explicit is-tests.
+  final Set<DartType> explicitIsChecks;
+
+  /// All implicit is-tests.
+  final Set<DartType> implicitIsChecks = new Set<DartType>();
+
+  /// Classes whose type variables are explicitly or implicitly used in
+  /// is-tests.
+  ///
+  /// For instance `A` and `B` in:
+  ///
+  ///     class A<T> {
+  ///       m(o) => o is T;
+  ///     }
+  ///     class B<S> {
+  ///       m(o) => new A<S>().m(o);
+  ///     }
+  ///     main() => new B<int>().m(0);
+  ///
+  Iterable<ClassEntity> get classTests =>
+      _classes.values.where((n) => n.hasTest).map((n) => n.cls).toSet();
+
+  /// Classes that explicitly use their type variables in is-tests.
+  ///
+  /// For instance `A` in:
+  ///
+  ///     class A<T> {
+  ///       m(o) => o is T;
+  ///     }
+  ///     main() => new A<int>().m(0);
+  ///
+  Iterable<ClassEntity> get directClassTests =>
+      _classes.values.where((n) => n.hasDirectTest).map((n) => n.cls).toSet();
+
+  /// Methods that explicitly or implicitly use their type variables in
+  /// is-tests.
+  ///
+  /// For instance `m1` and `m2`in:
+  ///
+  ///     m1<T>(o) => o is T;
+  ///     m2<S>(o) => m1<S>(o);
+  ///     main() => m2<int>(0);
+  ///
+  Iterable<Entity> get methodTests =>
+      _methods.values.where((n) => n.hasTest).map((n) => n.function).toSet();
+
+  /// Methods that explicitly use their type variables in is-tests.
+  ///
+  /// For instance `m` in:
+  ///
+  ///     m<T>(o) => o is T;
+  ///     main() => m<int>(0);
+  ///
+  Iterable<Entity> get directMethodTests => _methods.values
+      .where((n) => n.hasDirectTest)
+      .map((n) => n.function)
+      .toSet();
+
+  /// The entities that need type arguments at runtime if the 'key entity' needs
+  /// type arguments.
+  ///
+  /// For instance:
+  ///
+  ///     class A<T> {
+  ///       m() => new B<T>();
+  ///     }
+  ///     class B<T> {}
+  ///     main() => new A<String>().m() is B<int>;
+  ///
+  /// Here `A` need type arguments at runtime because the key entity `B` needs
+  /// it in order to generate the check against `B<int>`.
+  ///
+  /// This can also involve generic methods:
+  ///
+  ///    class A<T> {}
+  ///    method<T>() => new A<T>();
+  ///    main() => method<int>() is A<int>();
+  ///
+  /// Here `method` need type arguments at runtime because the key entity `A`
+  /// needs it in order to generate the check against `A<int>`.
+  ///
+  Iterable<Entity> getTypeArgumentDependencies(Entity entity) {
+    Iterable<RtiNode> dependencies;
+    if (entity is ClassEntity) {
+      dependencies = _classes[entity]?.dependencies;
+    } else {
+      dependencies = _methods[entity]?.dependencies;
+    }
+    if (dependencies == null) return const <Entity>[];
+    return dependencies.map((n) => n.entity).toSet();
+  }
+
+  TypeVariableTests(ElementEnvironment elementEnvironment,
+      CommonElements commonElements, DartTypes types, WorldBuilder worldBuilder)
+      : explicitIsChecks = new Set<DartType>.from(worldBuilder.isChecks) {
+    ClassNode getClassNode(ClassEntity cls) {
+      return _classes.putIfAbsent(cls, () {
+        ClassNode node = new ClassNode(cls);
+        _nodes.add(node);
+        return node;
+      });
+    }
+
+    MethodNode getMethodNode(Entity function) {
+      return _methods.putIfAbsent(function, () {
+        MethodNode node;
+        if (function is FunctionEntity) {
+          Name instanceName;
+          bool isCallTarget;
+          if (function.isInstanceMember) {
+            isCallTarget = worldBuilder.closurizedMembers.contains(function);
+            instanceName = function.memberName;
+          } else {
+            isCallTarget = worldBuilder.closurizedStatics.contains(function);
+          }
+          node = new MethodNode(function, function.parameterStructure,
+              isCallTarget: isCallTarget, instanceName: instanceName);
+        } else {
+          ParameterStructure parameterStructure =
+              new ParameterStructure.fromType(
+                  elementEnvironment.getLocalFunctionType(function));
+          node =
+              new MethodNode(function, parameterStructure, isCallTarget: true);
+        }
+        _nodes.add(node);
+        return node;
+      });
+    }
+
+    void registerDependencies(RtiNode node, DartType type) {
+      type.forEachTypeVariable((TypeVariableType typeVariable) {
+        Entity typeDeclaration = typeVariable.element.typeDeclaration;
+        if (typeDeclaration is ClassEntity) {
+          node.addDependency(getClassNode(typeDeclaration));
+        } else {
+          node.addDependency(getMethodNode(typeDeclaration));
+        }
+      });
+    }
+
+    // Add the rti dependencies that are implicit in the way the backend
+    // generates code: when we create a new [List], we actually create a
+    // [JSArray] in the backend and we need to add type arguments to the calls
+    // of the list constructor whenever we determine that [JSArray] needs type
+    // arguments.
+    //
+    // This is need for instance for:
+    //
+    //    var list = <int>[];
+    //    var set = list.toSet();
+    //    set is Set<String>;
+    //
+    // It also occurs for [Map] vs [JsLinkedHashMap] in:
+    //
+    //    var map = <int, double>{};
+    //    var set = map.keys.toSet();
+    //    set is Set<String>;
+    //
+    // TODO(johnniwinther): Make this dependency visible from code, possibly
+    // using generic methods.
+    if (commonElements.jsArrayClass != null) {
+      getClassNode(commonElements.jsArrayClass)
+          .addDependency(getClassNode(commonElements.listClass));
+    }
+    if (commonElements.mapLiteralClass != null) {
+      getClassNode(commonElements.mapLiteralClass)
+          .addDependency(getClassNode(commonElements.mapClass));
+    }
+
+    worldBuilder.isChecks.forEach((DartType type) {
+      if (type is InterfaceType) {
+        registerDependencies(getClassNode(type.element), type);
+      }
+    });
+    worldBuilder.instantiatedTypes.forEach((InterfaceType type) {
+      registerDependencies(getClassNode(type.element), type);
+    });
+
+    worldBuilder.forEachStaticTypeArgument(
+        (Entity entity, Iterable<DartType> typeArguments) {
+      for (DartType type in typeArguments) {
+        registerDependencies(getMethodNode(entity), type);
+      }
+    });
+
+    worldBuilder.forEachDynamicTypeArgument(
+        (Selector selector, Iterable<DartType> typeArguments) {
+      for (DartType type in typeArguments) {
+        // TODO(johnniwinther): Ensure that methods added here will be
+        // processed for matching selectors.
+        for (MethodNode method in _methods.values.toList()) {
+          if (method.selectorApplies(selector)) {
+            registerDependencies(method, type);
+          }
+        }
+      }
+    });
+
+    worldBuilder.isChecks.forEach((DartType type) {
+      if (type.isTypeVariable) {
+        TypeVariableType typeVariableType = type;
+        TypeVariableEntity variable = typeVariableType.element;
+        if (variable.typeDeclaration is ClassEntity) {
+          getClassNode(variable.typeDeclaration).markDirectTest();
+        } else {
+          getMethodNode(variable.typeDeclaration).markDirectTest();
+        }
+      }
+    });
+
+    // Compute type arguments of classes that use one of their type variables in
+    // is-checks and add the is-checks that they imply.
+    _classes.forEach((ClassEntity cls, ClassNode node) {
+      if (!node.hasTest) return;
+      // Find all instantiated types that are a subtype of a class that uses
+      // one of its type arguments in an is-check and add the arguments to the
+      // set of is-checks.
+      for (InterfaceType type in worldBuilder.instantiatedTypes) {
+        // We need the type as instance of its superclass anyway, so we just
+        // try to compute the substitution; if the result is [:null:], the
+        // classes are not related.
+        InterfaceType instance = types.asInstanceOf(type, cls);
+        if (instance != null) {
+          for (DartType argument in instance.typeArguments) {
+            implicitIsChecks.add(argument.unaliased);
+          }
+        }
+      }
+    });
+
+    worldBuilder.forEachStaticTypeArgument(
+        (Entity function, Iterable<DartType> typeArguments) {
+      if (!getMethodNode(function).hasTest) return;
+      implicitIsChecks.addAll(typeArguments);
+    });
+    worldBuilder.forEachDynamicTypeArgument(
+        (Selector selector, Iterable<DartType> typeArguments) {
+      for (MethodNode node in _methods.values) {
+        if (!node.hasTest) continue;
+        if (node.selectorApplies(selector)) {
+          implicitIsChecks.addAll(typeArguments);
+        }
+      }
+    });
+  }
+
+  String dump({bool verbose: false}) {
+    StringBuffer sb = new StringBuffer();
+
+    void addNode(RtiNode node) {
+      if (node._testState != 0 || node.dependencies.isNotEmpty || verbose) {
+        sb.write(' $node');
+        if (node._testState & 1 != 0) {
+          sb.write(' direct');
+        }
+        if (node._testState & 2 != 0) {
+          sb.write(' indirect');
+        }
+        if (node.dependencies.isNotEmpty || verbose) {
+          sb.writeln(':');
+          node.dependencies.forEach((n) => sb.writeln('  $n'));
+        } else {
+          sb.writeln();
+        }
+      }
+    }
+
+    void addType(DartType type) {
+      sb.writeln(' $type');
+    }
+
+    sb.writeln('classes:');
+    _classes.values.forEach(addNode);
+    sb.writeln('methods:');
+    _methods.values.forEach(addNode);
+    sb.writeln('explicit is-tests:');
+    explicitIsChecks.forEach(addType);
+    sb.writeln('implicit is-tests:');
+    implicitIsChecks.forEach(addType);
+
+    return sb.toString();
+  }
+}
+
+abstract class RtiNode {
+  Entity get entity;
+  Set<RtiNode> _dependencies;
+  int _testState = 0;
+
+  Iterable<RtiNode> get dependencies => _dependencies ?? const <RtiNode>[];
+
+  bool get hasDirectTest => _testState & 1 != 0;
+  bool get hasIndirectTest => _testState & 2 != 0;
+
+  bool get hasTest => _testState != 0;
+
+  bool addDependency(RtiNode node) {
+    if (entity == node.entity) {
+      // Skip trivial dependencies; if [entity] needs type arguments so does
+      // [entity]!
+      return false;
+    }
+    _dependencies ??= new Set<RtiNode>();
+    return _dependencies.add(node);
+  }
+
+  void markDirectTest() {
+    setTestState(1);
+  }
+
+  void markIndirectTest() {
+    setTestState(2);
+  }
+
+  void setTestState(int value) {
+    if (_testState != value) {
+      if (_testState == 0) {
+        _testState |= value;
+        if (_dependencies != null) {
+          for (RtiNode node in _dependencies) {
+            node.markIndirectTest();
+          }
+        }
+      } else {
+        _testState = value;
+      }
+    }
+  }
+
+  String get kind;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(kind);
+    sb.write(':');
+    sb.write(entity);
+    return sb.toString();
+  }
+}
+
+class ClassNode extends RtiNode {
+  final ClassEntity cls;
+
+  ClassNode(this.cls);
+
+  Entity get entity => cls;
+
+  String get kind => 'class';
+}
+
+class MethodNode extends RtiNode {
+  final Entity function;
+  final ParameterStructure parameterStructure;
+  final bool isCallTarget;
+  final Name instanceName;
+
+  MethodNode(this.function, this.parameterStructure,
+      {this.isCallTarget, this.instanceName});
+
+  Entity get entity => function;
+
+  bool selectorApplies(Selector selector) {
+    return (isCallTarget && selector.isClosureCall ||
+            instanceName == selector.memberName) &&
+        selector.callStructure.signatureApplies(parameterStructure);
+  }
+
+  String get kind => 'method';
+}
+
 class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     implements RuntimeTypesNeedBuilder {
   final ElementEnvironment _elementEnvironment;
-
-  final Map<Entity, Set<Entity>> typeArgumentDependencies =
-      <Entity, Set<Entity>>{};
 
   final Set<ClassEntity> classesUsingTypeVariableLiterals =
       new Set<ClassEntity>();
@@ -635,11 +969,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
   final Set<Local> localFunctionsUsingTypeVariableLiterals = new Set<Local>();
 
-  final Set<ClassEntity> classesUsingTypeVariableTests = new Set<ClassEntity>();
-
-  Set<DartType> isChecks;
-
-  final Set<DartType> implicitIsChecks = new Set<DartType>();
+  TypeVariableTests typeVariableTests;
 
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
       : super(types);
@@ -662,18 +992,14 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   }
 
   @override
-  void registerTypeArgumentDependency(Entity element, Entity dependency) {
-    assert(element != null);
-    Set<Entity> classes =
-        typeArgumentDependencies.putIfAbsent(element, () => new Set<Entity>());
-    classes.add(dependency);
-  }
-
-  @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
       {bool enableTypeAssertions}) {
-    isChecks = new Set<DartType>.from(resolutionWorldBuilder.isChecks);
+    typeVariableTests = new TypeVariableTests(
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        closedWorld.dartTypes,
+        resolutionWorldBuilder);
     Set<ClassEntity> classesNeedingTypeArguments = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingSignature = new Set<FunctionEntity>();
     Set<FunctionEntity> methodsNeedingTypeArguments = new Set<FunctionEntity>();
@@ -703,39 +1029,11 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         localFunctionsNeedingTypeArguments.add(entity);
       }
 
-      Set<Entity> dependencies = typeArgumentDependencies[entity];
-      if (dependencies != null) {
-        dependencies.forEach((Entity other) {
-          potentiallyNeedTypeArguments(other);
-        });
-      }
-    }
-
-    isChecks.forEach((DartType type) {
-      if (type.isTypeVariable) {
-        TypeVariableType typeVariableType = type;
-        TypeVariableEntity variable = typeVariableType.element;
-        // GENERIC_METHODS: When generic method support is complete enough to
-        // include a runtime value for method type variables, this may need to
-        // be updated: It simply ignores method type arguments.
-        if (variable.typeDeclaration is ClassEntity) {
-          classesUsingTypeVariableTests.add(variable.typeDeclaration);
-        }
-      }
-    });
-    // Add is-checks that result from classes using type variables in checks.
-    registerImplicitChecks(resolutionWorldBuilder.instantiatedTypes,
-        classesUsingTypeVariableTests, implicitIsChecks);
-    // Add the rti dependencies that are implicit in the way the backend
-    // generates code: when we create a new [List], we actually create
-    // a JSArray in the backend and we need to add type arguments to
-    // the calls of the list constructor whenever we determine that
-    // JSArray needs type arguments.
-    // TODO(karlklose): make this dependency visible from code.
-    if (closedWorld.commonElements.jsArrayClass != null) {
-      ClassEntity listClass = closedWorld.commonElements.listClass;
-      registerTypeArgumentDependency(
-          closedWorld.commonElements.jsArrayClass, listClass);
+      Iterable<Entity> dependencies =
+          typeVariableTests.getTypeArgumentDependencies(entity);
+      dependencies.forEach((Entity other) {
+        potentiallyNeedTypeArguments(other);
+      });
     }
 
     // Check local functions and closurized members.
@@ -791,8 +1089,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       });
     }
 
-    processChecks(isChecks);
-    processChecks(implicitIsChecks);
+    processChecks(typeVariableTests.explicitIsChecks);
+    processChecks(typeVariableTests.implicitIsChecks);
 
     if (enableTypeAssertions) {
       checkClosures();
@@ -869,14 +1167,23 @@ class ResolutionRuntimeTypesNeedBuilderImpl
 class _RuntimeTypesChecks implements RuntimeTypesChecks {
   final RuntimeTypesSubstitutions substitutions;
   final TypeChecks requiredChecks;
-  final Set<ClassEntity> directlyInstantiatedArguments;
-  final Set<ClassEntity> checkedArguments;
+  final Iterable<ClassEntity> directlyInstantiatedArguments;
+  final Iterable<ClassEntity> checkedArguments;
+  final Iterable<ClassEntity> checkedClasses;
+  final Iterable<FunctionType> checkedFunctionTypes;
+  final TypeVariableTests typeVariableTests;
 
-  _RuntimeTypesChecks(this.substitutions, this.requiredChecks,
-      this.directlyInstantiatedArguments, this.checkedArguments);
+  _RuntimeTypesChecks(
+      this.substitutions,
+      this.requiredChecks,
+      this.directlyInstantiatedArguments,
+      this.checkedArguments,
+      this.checkedClasses,
+      this.checkedFunctionTypes,
+      this.typeVariableTests);
 
   @override
-  Set<ClassEntity> getRequiredArgumentClasses() {
+  Iterable<ClassEntity> getRequiredArgumentClasses() {
     Set<ClassEntity> requiredArgumentClasses = new Set<ClassEntity>.from(
         substitutions.getClassesUsedInSubstitutions(requiredChecks));
     return requiredArgumentClasses
@@ -885,16 +1192,21 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
   }
 
   @override
-  Set<ClassEntity> getReferencedClasses(FunctionType type) {
+  Iterable<ClassEntity> getReferencedClasses(FunctionType type) {
     FunctionArgumentCollector collector = new FunctionArgumentCollector();
     collector.collect(type);
     return collector.classes;
   }
+
+  @override
+  Iterable<ClassEntity> get classesUsingTypeVariableTests =>
+      typeVariableTests.classTests;
 }
 
 class RuntimeTypesImpl extends _RuntimeTypesBase
     with RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesChecksBuilder {
+  final CommonElements _commentElements;
   final ElementEnvironment _elementEnvironment;
 
   // The set of type arguments tested against type variable bounds.
@@ -906,14 +1218,15 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   bool rtiChecksBuilderClosed = false;
 
-  RuntimeTypesImpl(this._elementEnvironment, DartTypes types) : super(types);
+  RuntimeTypesImpl(
+      this._commentElements, this._elementEnvironment, DartTypes types)
+      : super(types);
 
   @override
   TypeChecks get _requiredChecks => cachedRequiredChecks;
 
   Set<ClassEntity> directlyInstantiatedArguments;
   Set<ClassEntity> allInstantiatedArguments;
-  Set<ClassEntity> checkedArguments;
 
   @override
   void registerTypeVariableBoundsSubtypeCheck(
@@ -923,20 +1236,44 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    Set<DartType> isChecks =
-        new Set<DartType>.from(codegenWorldBuilder.isChecks);
-    isChecks.addAll(implicitIsChecks);
+      CodegenWorldBuilder codegenWorldBuilder) {
+    TypeVariableTests typeVariableTests = new TypeVariableTests(
+        _elementEnvironment, _commentElements, _types, codegenWorldBuilder);
+    Set<DartType> explicitIsChecks = typeVariableTests.explicitIsChecks;
+    Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;
+
+    Set<ClassEntity> checkedClasses = new Set<ClassEntity>();
+    Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
+
+    void processType(DartType t) {
+      if (t is FunctionType) {
+        checkedFunctionTypes.add(t);
+      } else if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      }
+    }
+
+    explicitIsChecks.forEach(processType);
+    implicitIsChecks.forEach(processType);
+
     // These types are needed for is-checks against function types.
     Set<DartType> instantiatedTypesAndClosures =
         computeInstantiatedTypesAndClosures(codegenWorldBuilder);
-    computeInstantiatedArguments(instantiatedTypesAndClosures, isChecks);
-    computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
+    computeInstantiatedArguments(
+        instantiatedTypesAndClosures, explicitIsChecks, implicitIsChecks);
+    Set<ClassEntity> checkedArguments = computeCheckedArguments(
+        instantiatedTypesAndClosures, explicitIsChecks, implicitIsChecks);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
     rtiChecksBuilderClosed = true;
-    return new _RuntimeTypesChecks(this, cachedRequiredChecks,
-        directlyInstantiatedArguments, checkedArguments);
+    return new _RuntimeTypesChecks(
+        this,
+        cachedRequiredChecks,
+        directlyInstantiatedArguments,
+        checkedArguments,
+        checkedClasses,
+        checkedFunctionTypes,
+        typeVariableTests);
   }
 
   Set<DartType> computeInstantiatedTypesAndClosures(
@@ -968,8 +1305,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
    * have a type check against this supertype that includes a check against
    * the type arguments.
    */
-  void computeInstantiatedArguments(
-      Set<DartType> instantiatedTypes, Set<DartType> isChecks) {
+  void computeInstantiatedArguments(Set<DartType> instantiatedTypes,
+      Set<DartType> isChecks, Set<DartType> implicitIsChecks) {
     ArgumentCollector superCollector = new ArgumentCollector();
     ArgumentCollector directCollector = new ArgumentCollector();
     FunctionArgumentCollector functionArgumentCollector =
@@ -984,6 +1321,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     }
 
     collectFunctionTypeArguments(isChecks);
+    collectFunctionTypeArguments(implicitIsChecks);
     collectFunctionTypeArguments(checkedBounds);
 
     void collectTypeArguments(Iterable<DartType> types,
@@ -1015,8 +1353,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   /// Collects all type arguments used in is-checks.
-  void computeCheckedArguments(
-      Set<DartType> instantiatedTypes, Set<DartType> isChecks) {
+  Set<ClassEntity> computeCheckedArguments(Set<DartType> instantiatedTypes,
+      Set<DartType> isChecks, Set<DartType> implicitIsChecks) {
     ArgumentCollector collector = new ArgumentCollector();
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector();
@@ -1041,15 +1379,15 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     }
 
     collectTypeArguments(isChecks);
+    collectTypeArguments(implicitIsChecks);
     collectTypeArguments(checkedBounds, isTypeArgument: true);
 
-    checkedArguments = collector.classes
-      ..addAll(functionArgumentCollector.classes);
+    return collector.classes..addAll(functionArgumentCollector.classes);
   }
 
   @override
   TypeChecks computeChecks(
-      Set<ClassEntity> instantiated, Set<ClassEntity> checked) {
+      Iterable<ClassEntity> instantiated, Iterable<ClassEntity> checked) {
     return _computeChecks(instantiated, checked);
   }
 }
@@ -1557,15 +1895,12 @@ class FunctionArgumentCollector
   }
 }
 
-/**
- * Representation of the substitution of type arguments
- * when going from the type of a class to one of its supertypes.
- *
- * For [:class B<T> extends A<List<T>, int>:], the substitution is
- * the representation of [: (T) => [<List, T>, int] :].  For more details
- * of the representation consult the documentation of
- * [getSupertypeSubstitution].
- */
+/// Representation of the substitution of type arguments when going from the
+/// type of a class to one of its supertypes.
+///
+/// For `class B<T> extends A<List<T>, int>`, the substitution is the
+/// representation of `(T) => [<List, T>, int]`. For more details of the
+/// representation consult the documentation of [getSupertypeSubstitution].
 //TODO(floitsch): Remove support for non-function substitutions.
 class Substitution {
   final bool isFunction;
@@ -1584,7 +1919,7 @@ class Substitution {
 
 /**
  * A pair of a class that we need a check against and the type argument
- * substition for this check.
+ * substitution for this check.
  */
 class TypeCheck {
   final ClassEntity cls;

@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef ct = (core::int) → void;
 typedef dt = (core::int) → core::String;
 class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method getf() → void {
@@ -15,7 +15,7 @@ class C<T extends core::Object> extends core::Object {
   }
 }
 class D<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method getf() → void {

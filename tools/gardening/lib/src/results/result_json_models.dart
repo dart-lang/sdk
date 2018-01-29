@@ -16,6 +16,7 @@ class Configuration {
   final bool hostChecked;
   final bool minified;
   final bool csp;
+  final bool fasta;
   final String system;
   final List<String> vmOptions;
   final bool useSdk;
@@ -39,6 +40,7 @@ class Configuration {
       this.hostChecked,
       this.minified,
       this.csp,
+      this.fasta,
       this.system,
       this.vmOptions,
       this.useSdk,
@@ -63,6 +65,7 @@ class Configuration {
         json["host_checked"],
         json["minified"],
         json["csp"],
+        json["fasta"],
         json["system"],
         json["vm_options"],
         json["use_sdk"],
@@ -90,6 +93,7 @@ class Configuration {
       _boolToArg("host-checked", hostChecked),
       _boolToArg("minified", minified),
       _boolToArg("csp", csp),
+      _boolToArg("fasta", csp),
       _stringToArg("system", system),
       _listToArg("vm-options", vmOptions),
       _boolToArg("use-sdk", useSdk),
@@ -109,7 +113,7 @@ class Configuration {
 
   String toCsvString() {
     return "$mode;$arch;$compiler;$runtime;$checked;$strong;$hostChecked;"
-        "$minified;$csp;$system;$vmOptions;$useSdk;$builderTag;$fastStartup;"
+        "$minified;$csp;$fasta;$system;$vmOptions;$useSdk;$builderTag;$fastStartup;"
         "$dart2JsWithKernel;$enableAsserts;$hotReload;"
         "$hotReloadRollback;$previewDart2;$selectors";
   }

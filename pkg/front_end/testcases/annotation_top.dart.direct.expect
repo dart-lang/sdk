@@ -18,7 +18,7 @@ class A extends core::Object {
 @self::a
 @self::A::•(2)
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

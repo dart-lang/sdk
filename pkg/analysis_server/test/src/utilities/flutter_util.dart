@@ -44,6 +44,7 @@ export 'src/material/icons.dart';
 
   newFile('/flutter/lib/widgets.dart', r'''
 export 'src/widgets/basic.dart';
+export 'src/widgets/center.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
 export 'src/widgets/icon.dart';
@@ -194,6 +195,14 @@ class Text extends StatelessWidget {
     Key key,
   })
       : super(key: key);
+}
+''');
+
+    newFile('/flutter/lib/src/widgets/center.dart', r'''
+import 'framework.dart';
+
+class Center extends StatelessWidget {
+  const Center({Widget child, Key key});
 }
 ''');
   }

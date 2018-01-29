@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = (T) → dynamic;
 class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method f(generic-covariant-impl generic-covariant-interface self::C::T x) → void {}
@@ -21,7 +21,7 @@ class C<T extends core::Object> extends core::Object {
     return this.{self::C::f};
 }
 class D extends self::C<core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
   abstract forwarding-stub method f(generic-covariant-impl core::int x) → void;
@@ -31,7 +31,7 @@ class D extends self::C<core::int> {
   abstract forwarding-stub method g3(generic-covariant-impl self::C<core::int> c, generic-covariant-impl core::int x) → void;
 }
 class E extends self::C<core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
   method f(covariant generic-covariant-impl core::int x) → void {}

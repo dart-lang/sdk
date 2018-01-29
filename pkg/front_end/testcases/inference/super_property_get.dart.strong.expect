@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::int x = 0;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
   method g() → void {

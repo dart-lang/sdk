@@ -125,6 +125,15 @@ typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
+[ $compiler == dartk ]
+mirrors/invoke_throws_test: Crash
+mirrors/list_constructor_test/01: Crash
+mirrors/list_constructor_test/none: Crash
+mirrors/mirrors_test: Crash
+mirrors/redirecting_factory_test/01: Crash
+mirrors/redirecting_factory_test/02: Crash
+mirrors/redirecting_factory_test/none: Crash
+
 [ $compiler == dartkp ]
 mirrors/*: Skip # mirrors are not supported by under precompilation
 
@@ -159,6 +168,10 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeo
 
 [ !$checked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
+
+[ $fasta ]
+mirrors/metadata_nested_constructor_call_test/03: MissingCompileTimeError
+mirrors/metadata_nested_constructor_call_test/04: MissingCompileTimeError
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -285,24 +298,6 @@ math/math_test: RuntimeError
 [ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 mirrors/invocation_fuzz_test/smi: Pass, Slow
 mirrors/variable_is_const_test/01: Crash # Please triage.
-
-[ $compiler == dartk && $system == windows ]
-mirrors/invoke_throws_test: Fail
-mirrors/list_constructor_test/01: Fail
-mirrors/list_constructor_test/none: Fail
-mirrors/mirrors_test: Fail
-mirrors/redirecting_factory_test/01: Fail
-mirrors/redirecting_factory_test/02: Fail
-mirrors/redirecting_factory_test/none: Fail
-
-[ $compiler == dartk && $system != windows ]
-mirrors/invoke_throws_test: Crash
-mirrors/list_constructor_test/01: Crash
-mirrors/list_constructor_test/none: Crash
-mirrors/mirrors_test: Crash
-mirrors/redirecting_factory_test/01: Crash
-mirrors/redirecting_factory_test/02: Crash
-mirrors/redirecting_factory_test/none: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

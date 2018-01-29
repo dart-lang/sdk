@@ -13,16 +13,20 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
+import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
 
-ResolutionImpact buildKernelImpact(ir.Member member,
-    KernelToElementMapForImpact elementMap, DiagnosticReporter reporter) {
+ResolutionImpact buildKernelImpact(
+    ir.Member member,
+    KernelToElementMapForImpact elementMap,
+    DiagnosticReporter reporter,
+    CompilerOptions options) {
   KernelImpactBuilder builder = new KernelImpactBuilder(
-      elementMap, elementMap.getMember(member), reporter);
+      elementMap, elementMap.getMember(member), reporter, options);
   if (member is ir.Procedure) {
     return builder.buildProcedure(member);
   } else if (member is ir.Constructor) {
@@ -37,10 +41,12 @@ class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelToElementMapForImpact elementMap;
   final DiagnosticReporter reporter;
+  final CompilerOptions _options;
   final MemberEntity currentMember;
   _ClassEnsurer classEnsurer;
 
-  KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter)
+  KernelImpactBuilder(
+      this.elementMap, this.currentMember, this.reporter, this._options)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember.name}') {
     this.classEnsurer = new _ClassEnsurer(this, this.elementMap.types);
@@ -244,9 +250,13 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNode(entry.value);
   }
 
-  void _visitArguments(ir.Arguments arguments) {
+  List<DartType> _visitArguments(ir.Arguments arguments) {
     arguments.positional.forEach(visitNode);
     arguments.named.forEach(visitNode);
+    if (arguments.types.isEmpty) return null;
+    return _options.strongMode
+        ? arguments.types.map(elementMap.getDartType).toList()
+        : const <DartType>[];
   }
 
   @override
@@ -337,9 +347,9 @@ class KernelImpactBuilder extends ir.Visitor {
       handleNew(node, node.target, isConst: node.isConst);
     } else {
       FunctionEntity target = elementMap.getMethod(node.target);
-      _visitArguments(node.arguments);
+      List<DartType> typeArguments = _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          target, elementMap.getCallStructure(node.arguments)));
+          target, elementMap.getCallStructure(node.arguments), typeArguments));
     }
     switch (elementMap.getForeignKind(node)) {
       case ForeignKind.JS:
@@ -404,13 +414,13 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    _visitArguments(node.arguments);
+    List<DartType> typeArguments = _visitArguments(node.arguments);
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
-    impactBuilder.registerDynamicUse(new DynamicUse(
+    impactBuilder.registerDynamicUse(new GenericDynamicUse(
         new Selector.call(elementMap.getMember(node.target).memberName,
             elementMap.getCallStructure(node.arguments)),
-        null));
+        typeArguments));
   }
 
   @override
@@ -442,8 +452,7 @@ class KernelImpactBuilder extends ir.Visitor {
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
     impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.getter(elementMap.getMember(node.target).memberName),
-        null));
+        new Selector.getter(elementMap.getMember(node.target).memberName)));
   }
 
   @override
@@ -475,8 +484,7 @@ class KernelImpactBuilder extends ir.Visitor {
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
     impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.setter(elementMap.getMember(node.target).memberName),
-        null));
+        new Selector.setter(elementMap.getMember(node.target).memberName)));
   }
 
   @override
@@ -486,32 +494,40 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
+    Selector selector = elementMap.getSelector(invocation);
+    List<DartType> typeArguments = _visitArguments(invocation.arguments);
     var receiver = invocation.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.isFinal &&
         receiver.variable.parent is ir.FunctionDeclaration) {
+      Local localFunction =
+          elementMap.getLocalFunction(receiver.variable.parent);
       // Invocation of a local function. No need for dynamic use.
+      if (_options.strongMode) {
+        // We need to track the type arguments.
+        impactBuilder.registerStaticUse(new StaticUse.closureCall(
+            localFunction, selector.callStructure, typeArguments));
+      }
     } else {
       visitNode(invocation.receiver);
-      impactBuilder.registerDynamicUse(
-          new DynamicUse(elementMap.getSelector(invocation), null));
+      impactBuilder
+          .registerDynamicUse(new GenericDynamicUse(selector, typeArguments));
     }
-    _visitArguments(invocation.arguments);
   }
 
   @override
   void visitPropertyGet(ir.PropertyGet node) {
     visitNode(node.receiver);
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.getter(elementMap.getName(node.name)), null));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(new Selector.getter(elementMap.getName(node.name))));
   }
 
   @override
   void visitPropertySet(ir.PropertySet node) {
     visitNode(node.receiver);
     visitNode(node.value);
-    impactBuilder.registerDynamicUse(new DynamicUse(
-        new Selector.setter(elementMap.getName(node.name)), null));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(new Selector.setter(elementMap.getName(node.name))));
   }
 
   @override
@@ -589,11 +605,10 @@ class KernelImpactBuilder extends ir.Visitor {
       impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
     } else {
       impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
-      impactBuilder
-          .registerDynamicUse(new DynamicUse(Selectors.iterator, null));
+      impactBuilder.registerDynamicUse(new DynamicUse(Selectors.iterator));
     }
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current, null));
-    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current));
+    impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
   }
 
   @override

@@ -90,6 +90,8 @@
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
   * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
+  * Added `ProcessStartMode.INHERIT_STDIO`, which allows a child process to
+    inherit the parent's stdio handles.
 
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
@@ -111,7 +113,13 @@
     `little`, `big` and `host`.
 
 ### Dart VM
+
 * Support for MIPS has been removed.
+
+* Dart `int` is now restricted to 64 bits. On overflow, arithmetic operations wrap
+  around, and integer literals larger than 64 bits are not allowed.
+  See https://github.com/dart-lang/sdk/blob/master/docs/language/informal/int64.md
+  for details.
 
 ### Tool Changes
 

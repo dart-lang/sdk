@@ -29,7 +29,9 @@ class _StdStream extends Stream<List<int>> {
  * Mixing synchronous and asynchronous reads is undefined.
  */
 class Stdin extends _StdStream implements Stream<List<int>> {
-  Stdin._(Stream<List<int>> stream) : super(stream);
+  int _fd;
+
+  Stdin._(Stream<List<int>> stream, this._fd) : super(stream);
 
   /**
    * Synchronously read a line from stdin. This call will block until a full
@@ -369,10 +371,23 @@ Stdin _stdin;
 Stdout _stdout;
 Stdout _stderr;
 
+// These may be set to different values by the embedder by calling
+// _setStdioFDs when initializing dart:io.
+int _stdinFD = 0;
+int _stdoutFD = 1;
+int _stderrFD = 2;
+
+// This is an embedder entrypoint.
+void _setStdioFDs(int stdin, int stdout, int stderr) {
+  _stdinFD = stdin;
+  _stdoutFD = stdout;
+  _stderrFD = stderr;
+}
+
 /// The standard input stream of data read by this program.
 Stdin get stdin {
   if (_stdin == null) {
-    _stdin = _StdIOUtils._getStdioInputStream();
+    _stdin = _StdIOUtils._getStdioInputStream(_stdinFD);
   }
   return _stdin;
 }
@@ -380,7 +395,7 @@ Stdin get stdin {
 /// The standard output stream of data written by this program.
 Stdout get stdout {
   if (_stdout == null) {
-    _stdout = _StdIOUtils._getStdioOutputStream(1);
+    _stdout = _StdIOUtils._getStdioOutputStream(_stdoutFD);
   }
   return _stdout;
 }
@@ -388,7 +403,7 @@ Stdout get stdout {
 /// The standard output stream of errors written by this program.
 Stdout get stderr {
   if (_stderr == null) {
-    _stderr = _StdIOUtils._getStdioOutputStream(2);
+    _stderr = _StdIOUtils._getStdioOutputStream(_stderrFD);
   }
   return _stderr;
 }
@@ -399,7 +414,8 @@ StdioType stdioType(object) {
   if (object is _StdStream) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
-    switch (_StdIOUtils._getStdioHandleType(object == stdout ? 1 : 2)) {
+    int stdiofd = object == stdout ? _stdoutFD : _stderrFD;
+    switch (_StdIOUtils._getStdioHandleType(stdiofd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
         return StdioType.TERMINAL;
       case _STDIO_HANDLE_TYPE_PIPE:
@@ -437,7 +453,7 @@ StdioType stdioType(object) {
 
 class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
-  external static Stdin _getStdioInputStream();
+  external static Stdin _getStdioInputStream(int fd);
 
   /// Returns the socket type or `null` if [socket] is not a builtin socket.
   external static int _socketType(Socket socket);

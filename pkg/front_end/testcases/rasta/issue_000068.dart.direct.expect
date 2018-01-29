@@ -4,22 +4,22 @@ import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
 
 class G<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::A::•()
     ;
 }
 class C extends self::B {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
 }

@@ -511,7 +511,9 @@ class KernelTarget extends TargetImplementation {
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
     return new Constructor(function,
-        name: constructor.name, initializers: <Initializer>[initializer]);
+        name: constructor.name,
+        initializers: <Initializer>[initializer],
+        isSynthetic: true);
   }
 
   Constructor makeDefaultConstructor() {

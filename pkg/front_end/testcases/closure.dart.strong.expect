@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field self::Bar _field = new self::Bar::•();
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class Bar extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

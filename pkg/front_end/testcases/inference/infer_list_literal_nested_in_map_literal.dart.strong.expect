@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class Resource extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class Folder extends self::Resource {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Resource::•()
     ;
 }

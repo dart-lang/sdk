@@ -564,8 +564,9 @@ class ProgramCompiler
       [JS.Expression className, List<JS.Statement> deferredBaseClass]) {
     assert(formals.isNotEmpty);
     var name = getTopLevelName(c);
+    var jsFormals = _emitTypeFormals(formals);
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
-      _emitTypeFormals(formals),
+      jsFormals,
       _typeTable.discharge(formals),
       body,
       className ?? new JS.Identifier(name)
@@ -573,7 +574,7 @@ class ProgramCompiler
 
     var genericArgs = [typeConstructor];
     if (deferredBaseClass != null && deferredBaseClass.isNotEmpty) {
-      genericArgs.add(js.call('(#) => { #; }', [className, deferredBaseClass]));
+      genericArgs.add(js.call('(#) => { #; }', [jsFormals, deferredBaseClass]));
     }
 
     var genericCall = _callHelper('generic(#)', [genericArgs]);
@@ -608,7 +609,6 @@ class ProgramCompiler
 
     JS.Expression emitDeferredType(DartType t) {
       if (t is InterfaceType && t.typeArguments.isNotEmpty) {
-        if (t == c.thisType) return className;
         return _emitGenericClassType(t, t.typeArguments.map(emitDeferredType));
       }
       return _emitType(t);
@@ -647,13 +647,37 @@ class ProgramCompiler
       return _emitJSInterop(t.classNode) ?? visitInterfaceType(t);
     }
 
+    getBaseClass(int count) {
+      var base = emitDeferredType(c.thisType);
+      while (--count >= 0) {
+        base = js.call('#.__proto__', [base]);
+      }
+      return base;
+    }
+
+    var mixins = [];
+    var mixedInType = c.mixedInType;
+    var superclass = c.superclass;
     var supertype = c.supertype.asInterfaceType;
-    var hasUnnamedSuper = _hasUnnamedConstructor(c.superclass);
+    if (mixedInType != null) {
+      mixins.add(mixedInType.asInterfaceType);
+      for (;
+          superclass.isSyntheticMixinImplementation;
+          superclass = superclass.superclass) {
+        mixins.add(hierarchy
+            .getClassAsInstanceOf(c, superclass.mixedInClass)
+            .asInterfaceType);
+      }
+      if (mixins.length > 1) mixins = mixins.reversed.toList();
+      supertype = hierarchy.getClassAsInstanceOf(c, superclass).asInterfaceType;
+    }
+
+    var hasUnnamedSuper = _hasUnnamedConstructor(superclass);
     var isCallable = isCallableClass(c);
 
-    void emitMixinConstructors(JS.Expression className, [InterfaceType mixin]) {
+    void emitMixinConstructors(JS.Expression className, InterfaceType mixin) {
       JS.Statement mixinCtor;
-      if (mixin != null && _hasUnnamedConstructor(mixin.classNode)) {
+      if (_hasUnnamedConstructor(mixin.classNode)) {
         mixinCtor = js.statement('#.#.call(this);', [
           emitClassRef(mixin),
           _usesMixinNew(mixin.classNode)
@@ -662,17 +686,17 @@ class ProgramCompiler
         ]);
       }
 
-      for (var ctor in c.superclass.constructors) {
+      for (var ctor in superclass.constructors) {
         var jsParams = _emitFormalParameters(ctor.function);
         var ctorBody = <JS.Statement>[];
         if (mixinCtor != null) ctorBody.add(mixinCtor);
-        if (ctor.name.name != '' || hasUnnamedSuper) {
-          ctorBody.add(
-              _emitSuperConstructorCall(className, ctor.name.name, jsParams));
+        var name = ctor.name.name;
+        if (name != '' || hasUnnamedSuper) {
+          ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
         }
         body.add(_addConstructorToClass(
             className,
-            ctor.name.name,
+            name,
             _finishConstructorFunction(
                 jsParams, new JS.Block(ctorBody), isCallable)));
       }
@@ -684,28 +708,29 @@ class ProgramCompiler
     // Unroll mixins.
     if (shouldDefer(supertype)) {
       deferredSupertypes.add(_callHelperStatement('setBaseClass(#, #)', [
-        isMixinAliasClass(c) ? className : js.call('#.__proto__', className),
+        getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
         emitDeferredType(supertype),
       ]));
       supertype = supertype.classNode.rawType;
     }
     var baseClass = emitClassRef(supertype);
 
-    // TODO(jmesserly): conceptually we could use isMixinApplication, however,
-    // avoiding the extra level of nesting is only required if the class itself
-    // is a valid mixin.
     if (isMixinAliasClass(c)) {
       // Given `class C = Object with M [implements I1, I2 ...];`
       // The resulting class C should work as a mixin.
+      //
+      // TODO(jmesserly): is there any way to merge this with the other mixin
+      // code paths, or will these always need special handling?
       body.add(_emitClassStatement(c, className, baseClass, []));
 
       var m = c.mixedInType.asInterfaceType;
       bool deferMixin = shouldDefer(m);
       var mixinBody = deferMixin ? deferredSupertypes : body;
       var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
+      var classExpr = deferMixin ? getBaseClass(0) : className;
 
       mixinBody.add(
-          _callHelperStatement('mixinMembers(#, #)', [className, mixinClass]));
+          _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
       _classEmittingTopLevel = savedTopLevelClass;
 
@@ -717,7 +742,7 @@ class ProgramCompiler
         //
         //     mixinMembers(C, class C$ extends M { <methods>  });
         mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
-          className,
+          classExpr,
           new JS.ClassExpression(
               new JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
         ]));
@@ -727,22 +752,30 @@ class ProgramCompiler
       return;
     }
 
-    if (c.isMixinApplication) {
-      var m = c.mixedInType.asInterfaceType;
-
-      var mixinId = new JS.TemporaryId(getLocalClassName(c.superclass) +
-          '_' +
-          getLocalClassName(c.mixedInClass));
-      body.add(new JS.ClassExpression(mixinId, baseClass, []).toStatement());
-      // Add constructors
+    // TODO(jmesserly): we need to unroll kernel mixins because the synthetic
+    // classes lack required synthetic members, such as constructors.
+    //
+    // Also, we need to generate one extra level of nesting for alias classes.
+    for (int i = 0; i < mixins.length; i++) {
+      var m = mixins[i];
+      var mixinName =
+          getLocalClassName(superclass) + '_' + getLocalClassName(m.classNode);
+      var mixinId = new JS.TemporaryId(mixinName + '\$');
+      // Bind the mixin class to a name to workaround a V8 bug with es6 classes
+      // and anonymous function names.
+      // TODO(leafp:) Eliminate this once the bug is fixed:
+      // https://bugs.chromium.org/p/v8/issues/detail?id=7069
+      body.add(js.statement("const # = #", [
+        mixinId,
+        new JS.ClassExpression(new JS.TemporaryId(mixinName), baseClass, [])
+      ]));
 
       emitMixinConstructors(mixinId, m);
-      hasUnnamedSuper =
-          hasUnnamedSuper || _hasUnnamedConstructor(c.mixedInClass);
+      hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.classNode);
 
       if (shouldDefer(m)) {
-        deferredSupertypes.add(_callHelperStatement(
-            'mixinMembers(#.__proto__, #)', [className, emitDeferredType(m)]));
+        deferredSupertypes.add(_callHelperStatement('mixinMembers(#, #)',
+            [getBaseClass(mixins.length - i), emitDeferredType(m)]));
       } else {
         body.add(_callHelperStatement(
             'mixinMembers(#, #)', [mixinId, emitClassRef(m)]));
@@ -754,8 +787,6 @@ class ProgramCompiler
     _classEmittingTopLevel = savedTopLevelClass;
 
     body.add(_emitClassStatement(c, className, baseClass, methods));
-
-    if (c.isMixinApplication) emitMixinConstructors(className);
   }
 
   /// Defines all constructors for this class as ES5 constructors.
@@ -771,7 +802,7 @@ class ProgramCompiler
           [className, _callHelper('_runtimeType'), className]));
     }
 
-    if (c.isMixinApplication) {
+    if (c.isSyntheticMixinImplementation || isMixinAliasClass(c)) {
       // We already handled this when we defined the class.
       return body;
     }
@@ -1058,10 +1089,8 @@ class ProgramCompiler
       body.add(js.statement('#[#.metadata] = #;', [
         className,
         _runtimeModule,
-        new JS.ArrowFun(
-            [],
-            _withLetScopeArrowFunction(() => new JS.ArrayInitializer(
-                new List.from(metadata.map(_instantiateAnnotation)))))
+        _arrowFunctionWithLetScope(() => new JS.ArrayInitializer(
+            metadata.map(_instantiateAnnotation).toList()))
       ]));
     }
   }
@@ -1104,12 +1133,10 @@ class ProgramCompiler
   void _emitClassSignature(
       Class c, JS.Expression className, List<JS.Statement> body) {
     if (c.implementedTypes.isNotEmpty) {
-      body.add(js.statement('#[#.implements] = () => #;', [
+      body.add(js.statement('#[#.implements] = () => [#];', [
         className,
         _runtimeModule,
-        new JS.ArrayInitializer(c.implementedTypes
-            .map((i) => _emitType(i.asInterfaceType))
-            .toList())
+        c.implementedTypes.map((i) => _emitType(i.asInterfaceType))
       ]));
     }
 
@@ -1254,11 +1281,6 @@ class ProgramCompiler
   }
 
   FunctionType _getMemberRuntimeType(Member member) {
-    // Check whether we have any covariant parameters.
-    // Usually we don't, so we can use the same type.
-    isCovariant(VariableDeclaration p) =>
-        p.isCovariant || p.isGenericCovariantImpl;
-
     var f = member.function;
     if (f == null) {
       assert(member is Field);
@@ -1323,21 +1345,18 @@ class ProgramCompiler
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    _addStatementToList(_initializeFields(fields, node), body);
-
-    var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
-        orElse: () => null) as SuperInitializer;
+    body.add(_initializeFields(fields, node));
 
     // If no superinitializer is provided, an implicit superinitializer of the
     // form `super()` is added at the end of the initializer list, unless the
     // enclosing class is class Object.
+    var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
+        orElse: () => null) as SuperInitializer;
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
-    if (jsSuper != null) {
-      _addStatementToList(jsSuper..sourceInformation = superCall, body);
-    }
+    if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
 
     var jsBody = _visitStatement(node.function.body);
-    if (jsBody != null) _addStatementToList(jsBody, body);
+    if (jsBody != null) body.add(jsBody);
     return body;
   }
 
@@ -1642,13 +1661,38 @@ class ProgramCompiler
   }
 
   List<JS.Method> _emitCovarianceCheckStub(Procedure member) {
+    // TODO(jmesserly): kernel stubs have a few problems:
+    // - they're generated even when there is no concrete super member
+    // - the stub parameter types don't match the types we need to check to
+    //   ensure soundness of the super member, so we must lookup the super
+    //   member and determine checks ourselves.
+    // - it generates getter stubs, but these are not used
+    if (member.isGetter) return [];
+
+    var enclosingClass = member.enclosingClass;
+    var superMember = (member.forwardingStubSuperTarget ??
+            member.forwardingStubInterfaceTarget)
+        ?.asMember;
+
+    if (superMember == null) return [];
+
+    var superSubstition = Substitution.fromSupertype(hierarchy
+        .getClassAsInstanceOf(enclosingClass, superMember.enclosingClass));
+
     var name = _declareMemberName(member);
     if (member.isSetter) {
+      if (superMember is Field && superMember.isGenericCovariantImpl ||
+          superMember is Procedure &&
+              isCovariant(superMember.function.positionalParameters[0])) {
+        return [];
+      }
       return [
         new JS.Method(
             name,
-            js.call('function(x) { return super.#(#._check(x)); }',
-                [name, _emitType(member.setterType)]),
+            js.call('function(x) { return super.# = #._check(x); }', [
+              name,
+              _emitType(superSubstition.substituteType(superMember.setterType))
+            ]),
             isSetter: true),
         new JS.Method(name, js.call('function() { return super.#; }', [name]),
             isGetter: true)
@@ -1656,10 +1700,12 @@ class ProgramCompiler
     }
     assert(!member.isAccessor);
 
+    var superMethodType = superSubstition
+        .substituteType(superMember.function.functionType) as FunctionType;
     var function = member.function;
 
     var body = <JS.Statement>[];
-    var typeParameters = function.typeParameters;
+    var typeParameters = superMethodType.typeParameters;
     _emitCovarianceBoundsCheck(typeParameters, body);
 
     var typeFormals = _emitTypeFormals(typeParameters);
@@ -1670,24 +1716,33 @@ class ProgramCompiler
       var jsParam = new JS.Identifier(param.name);
       jsParams.add(jsParam);
 
-      if (i >= function.requiredParameterCount) {
-        body.add(js.statement('if (# !== void 0) #._check(#);',
-            [jsParam, _emitType(param.type), jsParam]));
-      } else {
-        body.add(
-            js.statement('#._check(#);', [_emitType(param.type), jsParam]));
+      if (isCovariant(param) &&
+          !isCovariant(superMember.function.positionalParameters[i])) {
+        var check = js.call('#._check(#)',
+            [_emitType(superMethodType.positionalParameters[i]), jsParam]);
+        if (i >= function.requiredParameterCount) {
+          body.add(js.statement('if (# !== void 0) #;', [jsParam, check]));
+        } else {
+          body.add(check.toStatement());
+        }
       }
     }
     var namedParameters = function.namedParameters;
     for (var param in namedParameters) {
-      var name = _propertyName(param.name);
-      body.add(js.statement('if (# in #) #._check(#.#);', [
-        name,
-        namedArgumentTemp,
-        _emitType(param.type),
-        namedArgumentTemp,
-        name
-      ]));
+      if (isCovariant(param) &&
+          !isCovariant(superMember.function.namedParameters
+              .firstWhere((n) => n.name == param.name))) {
+        var name = _propertyName(param.name);
+        var paramType = superMethodType.namedParameters
+            .firstWhere((n) => n.name == param.name);
+        body.add(js.statement('if (# in #) #._check(#.#);', [
+          name,
+          namedArgumentTemp,
+          _emitType(paramType.type),
+          namedArgumentTemp,
+          name
+        ]));
+      }
     }
 
     if (namedParameters.isNotEmpty) jsParams.add(namedArgumentTemp);
@@ -2102,7 +2157,7 @@ class ProgramCompiler
     return body;
   }
 
-  JS.Node _withLetScopeArrowFunction(JS.Expression visitBody()) {
+  JS.ArrowFun _arrowFunctionWithLetScope(JS.Expression visitBody()) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
@@ -2110,7 +2165,8 @@ class ProgramCompiler
     var letVars = _initLetVariables();
 
     _letVariables = savedLetVariables;
-    return letVars == null ? expr : new JS.Block([letVars, expr.toReturn()]);
+    return new JS.ArrowFun(
+        [], letVars == null ? expr : new JS.Block([letVars, expr.toReturn()]));
   }
 
   JS.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix: ''}) {
@@ -2552,10 +2608,9 @@ class ProgramCompiler
 
       addTypeFormalsAsParameters(List<JS.Expression> elements) {
         var names = _typeTable.discharge(typeFormals);
-        var array = new JS.ArrayInitializer(elements);
         return names.isEmpty
-            ? js.call('(#) => #', [tf, array])
-            : js.call('(#) => {#; return #;}', [tf, names, array]);
+            ? js.call('(#) => [#]', [tf, elements])
+            : js.call('(#) => {#; return [#];}', [tf, names, elements]);
       }
 
       typeParts = [addTypeFormalsAsParameters(typeParts)];
@@ -2822,7 +2877,7 @@ class ProgramCompiler
     var block = _withCurrentFunction(f, () {
       var block = _emitArgumentInitializers(f);
       var jsBody = _visitStatement(f.body);
-      if (jsBody != null) _addStatementToList(jsBody, block);
+      if (jsBody != null) block.add(jsBody);
       return block;
     });
 
@@ -2873,7 +2928,7 @@ class ProgramCompiler
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
     initParameter(VariableDeclaration p, JS.Identifier jsParam) {
-      if (p.isCovariant || p.isGenericCovariantImpl) {
+      if (isCovariant(p)) {
         var castType = _emitType(p.type);
         body.add(js.statement('#._check(#);', [castType, jsParam]));
       }
@@ -3711,10 +3766,10 @@ class ProgramCompiler
     if (name == 'call') {
       if (isCallingDynamicField || isDynamicOrFunction(receiverType)) {
         if (typeArgs.isNotEmpty) {
-          return _callHelper('dgcall(#, #, #)', [
+          return _callHelper('dgcall(#, [#], #)', [
             jsReceiver,
-            new JS.ArrayInitializer(args.take(typeArgs.length).toList()),
-            args.skip(typeArgs.length).toList()
+            args.take(typeArgs.length),
+            args.skip(typeArgs.length)
           ]);
         } else {
           return _callHelper('dcall(#, #)', [jsReceiver, args]);
@@ -3729,12 +3784,12 @@ class ProgramCompiler
     var jsName = _emitMemberName(name, type: receiverType, member: target);
     if (target == null || isCallingDynamicField) {
       if (typeArgs.isNotEmpty) {
-        return _callHelper('#(#, #, #, #)', [
+        return _callHelper('#(#, [#], #, #)', [
           _emitDynamicOperationName('dgsend'),
           jsReceiver,
-          new JS.ArrayInitializer(args.take(typeArgs.length).toList()),
+          args.take(typeArgs.length),
           jsName,
-          args.skip(typeArgs.length).toList()
+          args.skip(typeArgs.length)
         ]);
       } else {
         return _callHelper('#(#, #, #)',
@@ -4676,8 +4731,7 @@ class ProgramCompiler
       DartType elementType, List<JS.Expression> elements) {
     // dart.constList helper internally depends on _interceptors.JSArray.
     _declareBeforeUse(_jsArrayClass);
-    return _callHelper('constList(#, #)',
-        [new JS.ArrayInitializer(elements), _emitType(elementType)]);
+    return _callHelper('constList([#], #)', [elements, _emitType(elementType)]);
   }
 
   JS.Expression _emitList(DartType itemType, List<JS.Expression> items) {
@@ -4937,13 +4991,3 @@ bool isObjectMember(String name) {
 
 bool _isObjectMethod(String name) =>
     name == 'toString' || name == 'noSuchMethod';
-
-void _addStatementToList(JS.Statement statement, List<JS.Statement> list) {
-  // If the statement is a nested block, flatten it into the list when
-  // possible.  If the statement is empty, discard it.
-  if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
-    list.addAll(statement.statements);
-  } else if (statement is! JS.EmptyStatement) {
-    list.add(statement);
-  }
-}

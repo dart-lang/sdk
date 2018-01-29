@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Operators extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator +(dynamic other) → dynamic

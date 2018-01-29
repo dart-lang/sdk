@@ -290,7 +290,7 @@ class Expect {
   static void mapEquals(Map expected, Map actual, [String reason = null]) {
     String msg = _getMessage(reason);
 
-    // Make sure all of the values are present in both and match.
+    // Make sure all of the values are present in both, and they match.
     for (final key in expected.keys) {
       if (!actual.containsKey(key)) {
         _fail('Expect.mapEquals(missing expected key: <$key>$msg) fails');
@@ -484,8 +484,12 @@ class Expect {
    * the type of the exception you could write this:
    *
    *     Expect.throws(myThrowingFunction, (e) => e is MyException);
+   *
+   * If `f` fails an expectation (i.e., throws an [ExpectException]), that
+   * exception is not caught by [Expect.throws]. The test is still considered
+   * failing.
    */
-  static void throws(void f(), [_CheckExceptionFn check, String reason]) {
+  static void throws(void f(), [bool check(Object error), String reason]) {
     String msg = reason == null ? "" : "($reason)";
     if (f is! _Nullary) {
       // Only throws from executing the function body should count as throwing.
@@ -495,10 +499,10 @@ class Expect {
     try {
       f();
     } catch (e, s) {
-      if (check != null) {
-        if (!check(e)) {
-          _fail("Expect.throws$msg: Unexpected '$e'\n$s");
-        }
+      // A test failure doesn't count as throwing.
+      if (e is ExpectException) rethrow;
+      if (check != null && !check(e)) {
+        _fail("Expect.throws$msg: Unexpected '$e'\n$s");
       }
       return;
     }
@@ -566,7 +570,6 @@ class Expect {
 /// Used in [Expect] because [Expect.identical] shadows the real [identical].
 bool _identical(a, b) => identical(a, b);
 
-typedef bool _CheckExceptionFn(exception);
 typedef _Nullary(); // Expect.throws argument must be this type.
 
 class ExpectException implements Exception {
@@ -617,12 +620,9 @@ final bool typeAssertionsEnabled = (() {
 
 /// Is true iff `assert` statements are enabled.
 final bool assertStatementsEnabled = (() {
-  try {
-    assert(false);
-  } on AssertionError {
-    return true;
-  }
-  return false;
+  bool result = false;
+  assert(result = true);
+  return result;
 })();
 
 /// Is true iff checked mode is enabled.

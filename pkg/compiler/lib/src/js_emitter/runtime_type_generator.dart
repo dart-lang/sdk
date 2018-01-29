@@ -140,13 +140,14 @@ class RuntimeTypeGenerator {
 
   TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
 
-  Set<ClassEntity> get checkedClasses => _typeTestRegistry.checkedClasses;
+  Iterable<ClassEntity> get checkedClasses =>
+      _typeTestRegistry.rtiChecks.checkedClasses;
 
   Iterable<ClassEntity> get classesUsingTypeVariableTests =>
-      _typeTestRegistry.classesUsingTypeVariableTests;
+      _typeTestRegistry.rtiChecks.classesUsingTypeVariableTests;
 
-  Set<FunctionType> get checkedFunctionTypes =>
-      _typeTestRegistry.checkedFunctionTypes;
+  Iterable<FunctionType> get checkedFunctionTypes =>
+      _typeTestRegistry.rtiChecks.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -181,7 +182,7 @@ class RuntimeTypeGenerator {
         FunctionEntity method, FunctionType type) {
       assert(!(method is MethodElement && !method.isImplementation));
       jsAst.Expression thisAccess = new jsAst.This();
-      if (!method.isAbstract) {
+      if (method.enclosingClass.isClosure) {
         ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
         if (scopeInfo is ClosureRepresentationInfo) {
           FieldEntity thisLocal = scopeInfo.thisFieldEntity;

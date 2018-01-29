@@ -41,6 +41,18 @@ abstract class Foo<T> {
   T get obj;
 }
 
+class Mock1LazyClass implements LazyClass {
+  noSuchMethod(Invocation i) => i.memberName == #a ? 42 : null;
+}
+
+class Mock2LazyClass implements LazyClass {
+  get a => 42;
+}
+
+class Other {
+  noSuchMethod(Invocation i) {}
+}
+
 // This class would cause compile time issues if JS classes are not properly lazy.
 class FooImpl extends Foo<LazyClass> {
   LazyClass get obj => new LazyClass(100);
@@ -83,6 +95,11 @@ main() {
     });
 
     test('create instance', () {
+      var anon = new AnonClass(a: 42);
+      // Until LazyClass is defined, fall back to Anon behavior.
+      expect(anon is LazyClass, isTrue); //# 01: ok
+      expect(new Object() is! LazyClass, isTrue);
+
       document.body.append(new ScriptElement()
         ..type = 'text/javascript'
         ..innerHtml = r"""
@@ -98,7 +115,6 @@ baz.LazyClass = function LazyClass(a) {
       expect(l is AnonClass, isTrue);
       expect((l as AnonClass) == l, isTrue);
       expect((l as AnonClass2) == l, isTrue);
-      var anon = new AnonClass(a: 42);
       expect(anon is! LazyClass, isTrue); //# 01: ok
       expect(anon is AnonClass, isTrue);
       expect(anon is AnonClass2, isTrue);
@@ -138,6 +154,21 @@ baz.LazyClass = function LazyClass(a) {
       genericClassDynamic.add(instanceLazyObject);
       expect(() => genericClassDynamic.add(42), throws); //# 01: ok
       genericClassDynamic.add(null);
+    });
+
+    test('mocks', () {
+      var mock1 = new Mock1LazyClass();
+      expect(mock1 is LazyClass, isTrue);
+      expect(mock1 as LazyClass, equals(mock1));
+      expect(mock1.a, equals(42));
+
+      var mock2 = new Mock2LazyClass();
+      expect(mock2 is LazyClass, isTrue);
+      expect(mock2 as LazyClass, equals(mock2));
+      expect(mock2.a, equals(42));
+
+      Object other = new Other();
+      expect(other is LazyClass, isFalse);
     });
   });
 }

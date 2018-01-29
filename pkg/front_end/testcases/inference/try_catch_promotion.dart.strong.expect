@@ -3,17 +3,17 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
 }
 class E extends core::StackTrace {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::StackTrace::•()
     ;
 }

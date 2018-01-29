@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: A:explicit=[B<A>]*/
+/*class: A:explicit=[B<A>],required*/
 class A {}
 
-/*class: B:needsArgs,deps=[C],explicit=[B<A>]*/
+/*class: B:deps=[C],explicit=[B<A>],needsArgs*/
 class B<T> {}
 
 /*class: C:needsArgs*/

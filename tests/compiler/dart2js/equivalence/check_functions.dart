@@ -1039,15 +1039,15 @@ void checkEmitters(
       verbose: verbose);
 
   checkSets(
-      emitter1.typeTestRegistry.checkedFunctionTypes,
-      emitter2.typeTestRegistry.checkedFunctionTypes,
+      emitter1.typeTestRegistry.rtiChecks.checkedFunctionTypes,
+      emitter2.typeTestRegistry.rtiChecks.checkedFunctionTypes,
       "TypeTestRegistry checked function types mismatch",
       strategy.typeEquivalence,
       verbose: verbose);
 
   checkSets(
-      emitter1.typeTestRegistry.checkedClasses,
-      emitter2.typeTestRegistry.checkedClasses,
+      emitter1.typeTestRegistry.rtiChecks.checkedClasses,
+      emitter2.typeTestRegistry.rtiChecks.checkedClasses,
       "TypeTestRegistry checked classes mismatch",
       strategy.elementEquivalence,
       verbose: verbose);

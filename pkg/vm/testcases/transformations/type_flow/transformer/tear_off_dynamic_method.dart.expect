@@ -1,0 +1,38 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → core::int;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  method foo() → core::int
+    return 1.{core::num::+}([@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::C::";
+  method foo() → core::int
+    throw "TFA Error: #lib::C::foo";
+}
+class TearOffDynamicMethod extends core::Object {
+  field dynamic bazz;
+  constructor •(dynamic arg) → void
+    : self::TearOffDynamicMethod::bazz = arg.foo, super core::Object::•() {
+    this.{self::TearOffDynamicMethod::bazz}();
+  }
+}
+static field self::A aa = throw "TFA Error: #lib::aa";
+static method knownResult() → dynamic
+  return new self::B::•();
+static method main(core::List<core::String> args) → dynamic {
+  core::Function closure = () → self::B => new self::B::•();
+  new self::TearOffDynamicMethod::•(closure.call());
+}

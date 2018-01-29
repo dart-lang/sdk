@@ -582,6 +582,9 @@ class Assembler : public ValueObject {
 
   void CompareImmediate(Register reg, const Immediate& imm);
   void CompareImmediate(const Address& address, const Immediate& imm);
+  void CompareImmediate(Register reg, int32_t immediate) {
+    return CompareImmediate(reg, Immediate(immediate));
+  }
 
   void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);

@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → void
+    ;
+  operator +(dynamic other) → dynamic
+    ;
+}
+class Bar extends core::Object {
+  constructor named() → void
+    ;
+  operator +(dynamic other) → dynamic
+    ;
+}
+class IndexTester extends core::Object {
+  synthetic constructor •() → void
+    ;
+  operator [](dynamic _) → dynamic
+    ;
+  operator []=(dynamic _a, dynamic _b) → void
+    ;
+}
+static method testNSM() → dynamic
+  ;
+static method f(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;

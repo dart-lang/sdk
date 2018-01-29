@@ -261,7 +261,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
           "Compiler and ${className} disagree on number of fields.");
     }
 
-    if (_rtiNeed.classNeedsRtiField(classElement)) {
+    if (_rtiNeed.classNeedsTypeArguments(classElement)) {
       arguments.add(_reifiedTypeArguments(constant.type));
     }
 
@@ -326,7 +326,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     _worldBuilder.forEachInstanceField(element, (_, FieldEntity field) {
       fields.add(constantReferenceGenerator(constant.fields[field]));
     });
-    if (_rtiNeed.classNeedsRtiField(constant.type.element)) {
+    if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
       fields.add(_reifiedTypeArguments(constant.type));
     }
     jsAst.New instantiation = new jsAst.New(constructor, fields);

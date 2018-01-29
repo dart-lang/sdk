@@ -6,6 +6,7 @@ import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/messages.dart';
+import 'package:front_end/src/fasta/names.dart';
 import 'package:front_end/src/fasta/problems.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -1159,7 +1160,8 @@ class MethodInferenceNode extends MemberInferenceNode {
   void resolveInternal() {
     var declaredMethod = _declaredMethod;
     var overriddenTypes = _computeMethodOverriddenTypes();
-    if (ShadowProcedure.hasImplicitReturnType(declaredMethod)) {
+    if (ShadowProcedure.hasImplicitReturnType(declaredMethod) &&
+        _declaredMethod.name != indexSetName) {
       declaredMethod.function.returnType = _matchTypes(
           overriddenTypes.map((type) => type.returnType),
           declaredMethod.name.name,

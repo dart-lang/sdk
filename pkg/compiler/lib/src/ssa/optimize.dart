@@ -449,6 +449,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             node.mask,
             node.inputs.sublist(1),
             node.instructionType,
+            node.typeArguments,
             node.sourceInformation);
         result.element = target;
         return result;
@@ -482,6 +483,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.mask,
         node.inputs.sublist(1),
         resultMask,
+        const <DartType>[],
         node.sourceInformation)
       ..element = commonElements.jsStringSplit
       ..isAllocation = true;
@@ -511,7 +513,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInvokeStatic tagInstruction = new HInvokeStatic(
         commonElements.setRuntimeTypeInfo,
         <HInstruction>[splitInstruction, typeInfo],
-        resultMask);
+        resultMask,
+        const <DartType>[]);
     // 'Linear typing' trick: [tagInstruction] is the only use of the
     // [splitInstruction], so it becomes the sole alias.
     // TODO(sra): Build this knowledge into alias analysis.
@@ -575,9 +578,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         Selector callSelector = new Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = <HInstruction>[load]
           ..addAll(node.inputs.skip(node.isInterceptedCall ? 2 : 1));
-        HInstruction closureCall =
-            new HInvokeClosure(callSelector, inputs, node.instructionType)
-              ..sourceInformation = node.sourceInformation;
+        HInstruction closureCall = new HInvokeClosure(
+            callSelector, inputs, node.instructionType, node.typeArguments)
+          ..sourceInformation = node.sourceInformation;
         node.block.addAfter(load, closureCall);
         return closureCall;
       }
@@ -641,7 +644,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask returnType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-        node.selector, node.mask, inputs, returnType, node.sourceInformation);
+        node.selector,
+        node.mask,
+        inputs,
+        returnType,
+        node.typeArguments,
+        node.sourceInformation);
     result.element = method;
     return result;
   }
@@ -1114,8 +1122,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         if (parameterStructure.callStructure == node.selector.callStructure) {
           // TODO(sra): Handle adding optional arguments default values.
           assert(!node.isInterceptedCall);
-          return new HInvokeStatic(
-              target, node.inputs.skip(1).toList(), node.instructionType);
+          return new HInvokeStatic(target, node.inputs.skip(1).toList(),
+              node.instructionType, node.typeArguments);
         }
       }
     }
@@ -1251,6 +1259,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             input.instructionType, // receiver mask.
             inputs,
             toStringType,
+            const <DartType>[],
             node.sourceInformation);
         return result;
       }

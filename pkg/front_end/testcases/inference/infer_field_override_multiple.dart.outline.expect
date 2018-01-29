@@ -3,43 +3,43 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get x() → core::int;
 }
 abstract class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get x() → core::int;
 }
 abstract class C extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get x() → core::num;
 }
 abstract class D extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get x() → core::double;
 }
 class E extends self::A implements self::B {
   field dynamic x;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class F extends self::A implements self::C {
   field dynamic x;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class G extends self::A implements self::D {
   field dynamic x;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class H extends self::C implements self::D {
   field dynamic x;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static method main() → dynamic

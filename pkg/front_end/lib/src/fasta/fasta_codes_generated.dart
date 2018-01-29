@@ -419,6 +419,40 @@ Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type)>
+    templateCantUseSuperBoundedTypeForInstanceCreation =
+    const Template<Message Function(DartType _type)>(
+        messageTemplate:
+            r"""Can't use a super-bounded type for instance creation. Got '#type'.""",
+        tipTemplate:
+            r"""Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.""",
+        withArguments:
+            _withArgumentsCantUseSuperBoundedTypeForInstanceCreation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)>
+    codeCantUseSuperBoundedTypeForInstanceCreation =
+    const Code<Message Function(DartType _type)>(
+        "CantUseSuperBoundedTypeForInstanceCreation",
+        templateCantUseSuperBoundedTypeForInstanceCreation,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantUseSuperBoundedTypeForInstanceCreation(
+    DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeCantUseSuperBoundedTypeForInstanceCreation,
+      message:
+          """Can't use a super-bounded type for instance creation. Got '$type'.""",
+      tip: """Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

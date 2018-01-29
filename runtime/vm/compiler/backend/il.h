@@ -315,6 +315,63 @@ class Value : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
+// Represents a range of class-ids for use in class checks and polymorphic
+// dispatches.  The range includes both ends, i.e. it is [cid_start, cid_end].
+struct CidRange : public ZoneAllocated {
+  CidRange(const CidRange& o)
+      : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
+  CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
+      : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
+  CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
+
+  const CidRange& operator=(const CidRange& other) {
+    cid_start = other.cid_start;
+    cid_end = other.cid_end;
+    return *this;
+  }
+
+  bool IsSingleCid() const { return cid_start == cid_end; }
+  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  int32_t Extent() const { return cid_end - cid_start; }
+
+  // The number of class ids this range covers.
+  intptr_t size() const { return cid_end - cid_start + 1; }
+
+  bool IsIllegalRange() const {
+    return cid_start == kIllegalCid && cid_end == kIllegalCid;
+  }
+
+  intptr_t cid_start;
+  intptr_t cid_end;
+};
+
+typedef MallocGrowableArray<CidRange> CidRangeVector;
+
+class HierarchyInfo : public StackResource {
+ public:
+  explicit HierarchyInfo(Thread* thread)
+      : StackResource(thread), thread_(thread), cid_subtype_ranges_(NULL) {
+    thread->set_hierarchy_info(this);
+  }
+
+  ~HierarchyInfo() {
+    thread_->set_hierarchy_info(NULL);
+
+    delete[] cid_subtype_ranges_;
+    cid_subtype_ranges_ = NULL;
+  }
+
+  const CidRangeVector& SubtypeRangesForClass(const Class& klass);
+
+  bool InstanceOfHasClassRange(const AbstractType& type,
+                               intptr_t* lower_limit,
+                               intptr_t* upper_limit);
+
+ private:
+  Thread* thread_;
+  CidRangeVector* cid_subtype_ranges_;
+};
+
 // An embedded container with N elements of type T.  Used (with partial
 // specialization for N=0) because embedded arrays cannot have size 0.
 template <typename T, intptr_t N>
@@ -428,7 +485,7 @@ class EmbeddedArray<T, 0> {
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
   M(Int32ToDouble)                                                             \
-  M(MintToDouble)                                                              \
+  M(Int64ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
@@ -544,22 +601,6 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #else
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // !PRODUCT
-
-// Represents a range of class-ids for use in class checks and polymorphic
-// dispatches.
-struct CidRange : public ZoneAllocated {
-  CidRange(const CidRange& o)
-      : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
-  CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
-      : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
-
-  bool IsSingleCid() const { return cid_start == cid_end; }
-  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
-  int32_t Extent() const { return cid_end - cid_start; }
-
-  intptr_t cid_start;
-  intptr_t cid_end;
-};
 
 // Together with CidRange, this represents a mapping from a range of class-ids
 // to a method for a given selector (method name).  Also can contain an
@@ -6312,16 +6353,18 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
 };
 
-class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  MintToDoubleInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+  Int64ToDoubleInstr(Value* value,
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id), speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
 
-  DECLARE_INSTRUCTION(MintToDouble)
+  DECLARE_INSTRUCTION(Int64ToDouble)
   virtual CompileType ComputeType() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
@@ -6338,10 +6381,17 @@ class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return speculative_mode() == other->AsInt64ToDouble()->speculative_mode();
+  }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(MintToDoubleInstr);
+  const SpeculativeMode speculative_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(Int64ToDoubleInstr);
 };
 
 class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {

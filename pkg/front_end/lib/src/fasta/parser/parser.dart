@@ -76,13 +76,9 @@ import 'member_kind.dart' show MemberKind;
 
 import 'modifier_context.dart'
     show
-        ClassMethodModifierContext,
-        FactoryModifierContext,
-        ModifierContext,
         ModifierRecoveryContext,
-        TopLevelMethodModifierContext,
+        ModifierRecoveryContext2,
         isModifier,
-        parseModifiersOpt,
         typeContinuationAfterVar;
 
 import 'recovery_listeners.dart'
@@ -1191,10 +1187,13 @@ class Parser {
           token = modifierContext.parseRecovery(token,
               covariantToken: covariantToken, varFinalOrConst: varFinalOrConst);
 
+          modifierCount = modifierContext.modifierCount;
+          covariantToken = modifierContext.covariantToken;
+          varFinalOrConst = modifierContext.varFinalOrConst;
+
           memberKind = modifierContext.memberKind;
           typeContinuation = modifierContext.typeContinuation;
           varFinalOrConst = modifierContext.varFinalOrConst;
-          modifierCount = modifierContext.modifierCount;
           modifierContext = null;
         }
       }
@@ -1678,7 +1677,7 @@ class Parser {
       }
       listener.handleClassExtends(extendsKeyword);
     } else {
-      listener.handleNoType(next);
+      listener.handleNoType(token);
       listener.handleClassExtends(null);
     }
     return token;
@@ -1714,7 +1713,7 @@ class Parser {
     return token;
   }
 
-  /// Insert a synthetic identifier before the given [token] and create an error
+  /// Insert a synthetic identifier after the given [token] and create an error
   /// message based on the given [context]. Return the synthetic identifier that
   /// was inserted.
   Token insertSyntheticIdentifier(Token token, IdentifierContext context,
@@ -2046,7 +2045,7 @@ class Parser {
       extendsOrSuper = next;
       token = parseType(next);
     } else {
-      listener.handleNoType(next);
+      listener.handleNoType(token);
     }
     listener.endTypeVariable(token.next, extendsOrSuper);
     return token;
@@ -2225,9 +2224,9 @@ class Parser {
         // A function type without return type.
         // Push the non-existing return type first. The loop below will
         // generate the full type.
-        listener.handleNoType(begin);
+        listener.handleNoType(beforeBegin);
         token = beforeBegin;
-      } else if (functionTypes > 0 && voidToken != null) {
+      } else if (voidToken != null) {
         listener.handleVoidKeyword(voidToken);
         token = voidToken;
       } else {
@@ -2307,7 +2306,7 @@ class Parser {
               memberKind == MemberKind.StaticField) {
             reportRecoverableError(
                 begin, fasta.messageMissingConstFinalVarOrType);
-            listener.handleNoType(begin);
+            listener.handleNoType(beforeBegin);
             return beforeBegin;
           }
         }
@@ -2327,7 +2326,7 @@ class Parser {
             return commitType(); // Parse type.
           }
         }
-        listener.handleNoType(begin);
+        listener.handleNoType(beforeBegin);
         return beforeBegin;
 
       case TypeContinuation.OptionalAfterVar:
@@ -2488,7 +2487,7 @@ class Parser {
           reportRecoverableError(
               begin, fasta.messageReturnTypeFunctionExpression);
         } else {
-          listener.handleNoType(begin);
+          listener.handleNoType(formals);
         }
         if (beforeName.next != name)
           throw new StateError("beforeName.next != name");
@@ -2649,7 +2648,7 @@ class Parser {
               beforeNameToken = previousToken(beforeNameToken, nameToken);
             }
           } else {
-            listener.handleNoType(begin);
+            listener.handleNoType(beforeToken);
           }
           beforeToken = parseFormalParametersRequiredOpt(
               token, MemberKind.FunctionTypedParameter);
@@ -2664,7 +2663,7 @@ class Parser {
                 fasta.messageInvalidInlineFunctionType);
           }
         } else if (untyped) {
-          listener.handleNoType(begin);
+          listener.handleNoType(token);
         } else {
           Token saved = token;
           commitType();
@@ -2755,35 +2754,117 @@ class Parser {
 
   Token parseTopLevelMember(Token token) {
     Token beforeStart = token;
-    token = token.next;
-    listener.beginTopLevelMember(token);
+    Token next = token.next;
+    listener.beginTopLevelMember(next);
 
-    Link<Token> identifiers = findMemberName(beforeStart);
+    Token externalToken;
+    Token varFinalOrConst;
+    TypeContinuation typeContinuation;
+
+    if (isModifier(next)) {
+      if (optional('external', next)) {
+        externalToken = token = next;
+        next = token.next;
+      }
+      if (isModifier(next)) {
+        if (optional('final', next)) {
+          typeContinuation = TypeContinuation.Optional;
+          varFinalOrConst = token = next;
+          next = token.next;
+        } else if (optional('var', next)) {
+          typeContinuation = TypeContinuation.OptionalAfterVar;
+          varFinalOrConst = token = next;
+          next = token.next;
+        } else if (optional('const', next)) {
+          typeContinuation = TypeContinuation.Optional;
+          varFinalOrConst = token = next;
+          next = token.next;
+        }
+        if (isModifier(next)) {
+          ModifierRecoveryContext2 context = new ModifierRecoveryContext2(this);
+          token = context.parseTopLevelModifiers(token, typeContinuation,
+              externalToken: externalToken, varFinalOrConst: varFinalOrConst);
+          next = token.next;
+
+          typeContinuation = context.typeContinuation;
+          externalToken = context.externalToken;
+          varFinalOrConst = context.varFinalOrConst;
+          context = null;
+        }
+      }
+    }
+    typeContinuation ??= TypeContinuation.Required;
+
+    Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      if ((isValidTypeReference(token) ||
-              optional('const', token) ||
-              optional('final', token) ||
-              optional('var', token)) &&
+      // Recovery
+      if ((varFinalOrConst != null) &&
           isPostIdentifierForRecovery(
-              token.next, IdentifierContext.topLevelVariableDeclaration)) {
-        // Recovery: Looks like a top level variable declaration
+              next.next, IdentifierContext.topLevelVariableDeclaration)) {
+        // Looks like a top level variable declaration
         // but missing a variable name.
-        insertSyntheticIdentifier(
-            token, IdentifierContext.topLevelVariableDeclaration);
         return parseFields(
-            beforeStart, token.isModifier ? token : beforeStart, token, true);
+            beforeStart,
+            externalToken,
+            null,
+            null,
+            varFinalOrConst,
+            null,
+            token,
+            MemberKind.TopLevelField,
+            typeContinuation);
+      } else if (next.isIdentifier &&
+          isPostIdentifierForRecovery(
+              next.next, IdentifierContext.topLevelVariableDeclaration)) {
+        // Looks like a top level variable declaration
+        // but missing a variable name.
+        return parseFields(
+            beforeStart,
+            externalToken,
+            null,
+            null,
+            varFinalOrConst,
+            null,
+            token,
+            MemberKind.TopLevelField,
+            typeContinuation);
       } else {
-        return reportInvalidTopLevelDeclaration(token);
+        return reportInvalidTopLevelDeclaration(beforeStart.next);
       }
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportInvalidTopLevelDeclaration(token);
+      return reportInvalidTopLevelDeclaration(beforeStart.next);
     }
     Token beforeName = identifiers.head;
     identifiers = identifiers.tail;
+    if (!beforeName.next.isIdentifier) {
+      // Recovery
+      if (identical(beforeName.stringValue, 'operator')) {
+        // If the token before the invalid name is `operator`
+        // then report the error on the `operator` keyword.
+        reportRecoverableError(beforeName, fasta.messageTopLevelOperator);
+        if (identifiers.isNotEmpty &&
+            identical(identifiers.head.next.stringValue, 'operator')) {
+          identifiers = identifiers.tail;
+        }
+      } else {
+        reportRecoverableErrorWithToken(
+            beforeName.next, fasta.templateUnexpectedToken);
+      }
+      // Insert a synthetic modifier
+      // to be interpreted as the top level function's identifier.
+      beforeName = beforeName.next;
+      rewriter.insertTokenAfter(
+          beforeName,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER,
+              '#synthetic_function_${beforeName.charOffset}',
+              beforeName.charOffset,
+              0));
+    }
     Token getOrSet;
     if (!identifiers.isEmpty) {
       String value = identifiers.head.next.stringValue;
@@ -2809,6 +2890,31 @@ class Parser {
       }
     }
 
+    // Recovery: Anything left in the identifiers list is unexpected.
+    if (identifiers.isNotEmpty) {
+      identifiers = identifiers.reverse();
+      while (identifiers.isNotEmpty) {
+        Token token = identifiers.head;
+        Token next = token.next;
+        identifiers = identifiers.tail;
+        // If we have find the start of a new top level declaration,
+        // then return to parse that new declaration.
+        if (next.isTopLevelKeyword) {
+          listener.handleInvalidTopLevelDeclaration(token);
+          return token;
+        }
+        // Report errors on any unexpected tokens.
+        String value = next.stringValue;
+        if (identical(value, 'operator')) {
+          reportRecoverableError(next, fasta.messageTopLevelOperator);
+        } else if (identical(value, 'factory')) {
+          reportRecoverableError(next, fasta.messageFactoryTopLevelDeclaration);
+        } else {
+          reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+        }
+      }
+    }
+
     token = afterName;
     bool isField;
     while (true) {
@@ -2820,7 +2926,9 @@ class Parser {
           (identical(value, '=>'))) {
         isField = false;
         break;
-      } else if ((identical(value, '=')) || (identical(value, ','))) {
+      } else if (identical(value, '=') ||
+          identical(value, ',') ||
+          identical(value, '}')) {
         isField = true;
         break;
       } else if (identical(value, ';')) {
@@ -2838,46 +2946,89 @@ class Parser {
         if (identical(token.next.kind, EOF_TOKEN)) return token;
       }
     }
-    Token lastModifier =
-        identifiers.isNotEmpty ? identifiers.head.next : beforeStart;
-    return isField
-        ? parseFields(beforeStart, lastModifier, beforeName, true)
-        : parseTopLevelMethod(
-            beforeStart, lastModifier, beforeType, getOrSet, beforeName);
+    if (isField) {
+      if (externalToken != null) {
+        reportRecoverableError(externalToken, fasta.messageExternalField);
+      }
+      if (getOrSet != null) {
+        reportRecoverableErrorWithToken(
+            getOrSet, fasta.templateExtraneousModifier);
+      }
+      return parseFields(
+          beforeStart,
+          externalToken,
+          null,
+          null,
+          varFinalOrConst,
+          beforeType,
+          beforeName,
+          MemberKind.TopLevelField,
+          typeContinuation);
+    } else {
+      if (varFinalOrConst != null) {
+        reportRecoverableErrorWithToken(
+            varFinalOrConst, fasta.templateExtraneousModifier);
+      }
+      return parseTopLevelMethod(
+          beforeStart, externalToken, beforeType, getOrSet, beforeName);
+    }
   }
 
   Token parseFields(
-      Token start, Token lastModifier, Token beforeName, bool isTopLevel) {
-    ModifierContext modifierContext = parseModifiersOpt(
-        this,
-        start,
-        lastModifier,
-        isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
-        null,
-        true,
-        typeContinuationFromFormalParameterKind(null));
-    TypeContinuation typeContinuation = modifierContext.typeContinuation;
-    MemberKind memberKind = modifierContext.memberKind;
-    Token varFinalOrConst = modifierContext.varFinalOrConst;
-    Token token = modifierContext.lastModifier;
-    modifierContext = null;
+      Token beforeStart,
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token varFinalOrConst,
+      Token beforeType,
+      Token beforeName,
+      MemberKind memberKind,
+      TypeContinuation typeContinuation) {
+    // TODO(danrubel): Consider passing modifiers via endTopLevelField
+    // rather than using handleModifier and handleModifiers.
+    int modifierCount = 0;
+    if (externalToken != null) {
+      reportRecoverableError(externalToken, fasta.messageExternalField);
+    }
+    if (staticToken != null) {
+      listener.handleModifier(staticToken);
+      ++modifierCount;
+    } else if (covariantToken != null) {
+      if (varFinalOrConst != null && optional('final', varFinalOrConst)) {
+        reportRecoverableError(covariantToken, fasta.messageFinalAndCovariant);
+        covariantToken = null;
+      } else {
+        listener.handleModifier(covariantToken);
+        ++modifierCount;
+      }
+    }
+    if (varFinalOrConst != null) {
+      listener.handleModifier(varFinalOrConst);
+      ++modifierCount;
+    }
+    listener.handleModifiers(modifierCount);
 
-    token = parseType(token, typeContinuation, null, memberKind);
-    token = token.next;
+    bool isTopLevel = memberKind == MemberKind.TopLevelField;
 
-    Token name = beforeName.next;
-    if (token != name) {
-      reportRecoverableErrorWithToken(token, fasta.templateExtraneousModifier);
-      token = name;
+    if (beforeType != null) {
+      parseType(beforeType, typeContinuation, null, memberKind);
+    } else if (varFinalOrConst != null) {
+      listener.handleNoType(beforeName);
+    } else {
+      // Recovery
+      reportRecoverableError(
+          beforeName.next, fasta.messageMissingConstFinalVarOrType);
+      listener.handleNoType(beforeName);
     }
 
     IdentifierContext context = isTopLevel
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
-    token = ensureIdentifier(beforeName, context);
+    Token name = ensureIdentifier(beforeName, context);
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
+    Token token =
+        parseFieldInitializerOpt(name, name, varFinalOrConst, isTopLevel);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
       token = parseFieldInitializerOpt(name, name, varFinalOrConst, isTopLevel);
@@ -2885,72 +3036,35 @@ class Parser {
     }
     token = ensureSemicolon(token);
     if (isTopLevel) {
-      listener.endTopLevelFields(fieldCount, start.next, token);
+      listener.endTopLevelFields(fieldCount, beforeStart.next, token);
     } else {
-      listener.endFields(fieldCount, start.next, token);
+      listener.endFields(fieldCount, beforeStart.next, token);
     }
     return token;
   }
 
-  Token parseTopLevelMethod(Token start, Token lastModifier, Token beforeType,
-      Token getOrSet, Token beforeName) {
-    Token afterModifiers = lastModifier.next;
-    Token beforeToken = start;
-    Token token = start = start.next;
-    Token name = beforeName.next;
+  Token parseTopLevelMethod(Token beforeStart, Token externalToken,
+      Token beforeType, Token getOrSet, Token beforeName) {
+    listener.beginTopLevelMethod(beforeStart);
 
-    // Parse modifiers
-    Token beforeExternalToken;
-    Token externalToken;
-    if (token == afterModifiers) {
-      listener.beginTopLevelMethod(start, name);
-      listener.handleModifiers(0);
-    } else if (optional('external', token) && token.next == afterModifiers) {
-      listener.beginTopLevelMethod(start, name);
-      beforeExternalToken = beforeToken;
-      externalToken = token;
-      parseModifier(beforeToken);
+    // TODO(danrubel): Consider passing modifiers via endTopLevelMethod
+    // rather than handleModifier and handleModifiers
+    if (externalToken != null) {
+      listener.handleModifier(externalToken);
       listener.handleModifiers(1);
-      token = token.next;
     } else {
-      // If there are modifiers other than or in addition to `external`
-      // then we need to recover.
-      final context = new TopLevelMethodModifierContext(this, beforeName);
-      token = context.parseRecovery(beforeToken, afterModifiers);
-      beforeToken = token;
-      token = token.next;
-      beforeExternalToken = beforeToken;
-      externalToken = context.externalToken;
-      beforeName = context.beforeName;
-      name = beforeName.next;
-
-      // If the modifiers form a partial top level directive or declaration
-      // and we have found the start of a new top level declaration
-      // then return to parse that new declaration.
-      if (context.endInvalidTopLevelDeclarationToken != null) {
-        listener.handleInvalidTopLevelDeclaration(
-            context.endInvalidTopLevelDeclarationToken);
-        return token;
-      }
-
-      listener.beginTopLevelMethod(start, name);
-      if (externalToken == null) {
-        listener.handleModifiers(0);
-      } else {
-        parseModifier(beforeExternalToken);
-        listener.handleModifiers(1);
-      }
-      // Fall through to continue parsing the top level method.
+      listener.handleModifiers(0);
     }
 
     if (beforeType == null) {
-      listener.handleNoType(name);
+      listener.handleNoType(beforeName);
     } else {
       parseType(beforeType, TypeContinuation.Optional);
     }
-    name = ensureIdentifier(
+    Token name = ensureIdentifier(
         beforeName, IdentifierContext.topLevelFunctionDeclaration);
 
+    Token token;
     bool isGetter = false;
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(name);
@@ -2969,7 +3083,7 @@ class Parser {
     }
     token = parseFunctionBody(token, false, externalToken != null);
     asyncState = savedAsyncModifier;
-    listener.endTopLevelMethod(start, getOrSet, token);
+    listener.endTopLevelMethod(beforeStart.next, getOrSet, token);
     return token;
   }
 
@@ -3025,6 +3139,7 @@ class Parser {
 
     Token previous = token;
     token = token.next;
+
     while (token.kind != EOF_TOKEN) {
       if (optional('get', token)) {
         isGetter = true;
@@ -3047,7 +3162,8 @@ class Parser {
         return identifiers;
       } else if (optional("=", token) ||
           optional(";", token) ||
-          optional(",", token)) {
+          optional(",", token) ||
+          optional("}", token)) {
         // A field or abstract getter.
         identifiers = identifiers.prepend(previous);
         return identifiers;
@@ -3497,13 +3613,6 @@ class Parser {
     return (identical(value, 'get')) || (identical(value, 'set'));
   }
 
-  bool isFactoryDeclaration(Token token) {
-    while (isModifier(token)) {
-      token = token.next;
-    }
-    return optional('factory', token);
-  }
-
   bool isModifierOrFactory(Token next) =>
       optional('factory', next) || isModifier(next);
 
@@ -3525,28 +3634,86 @@ class Parser {
   /// ;
   /// ```
   Token parseClassMember(Token token) {
-    Token start = parseMetadataStar(token);
-    token = start.next;
-    listener.beginMember(token);
-    // TODO(danrubel): isFactoryDeclaration scans forward over modifiers
-    // which findMemberName does as well. See if this can be done once
-    // instead of twice.
-    if (isFactoryDeclaration(token)) {
-      token = parseFactoryMethod(start);
+    Token beforeStart = token = parseMetadataStar(token);
+
+    TypeContinuation typeContinuation;
+    Token covariantToken;
+    Token externalToken;
+    Token staticToken;
+    Token varFinalOrConst;
+
+    Token next = token.next;
+    if (isModifier(next)) {
+      if (optional('external', next)) {
+        externalToken = token = next;
+        next = token.next;
+      }
+      if (isModifier(next)) {
+        if (optional('static', next)) {
+          staticToken = token = next;
+          next = token.next;
+        } else if (optional('covariant', next)) {
+          covariantToken = token = next;
+          next = token.next;
+        }
+        if (isModifier(next)) {
+          if (optional('final', next)) {
+            typeContinuation = TypeContinuation.Optional;
+            varFinalOrConst = token = next;
+            next = token.next;
+          } else if (optional('var', next)) {
+            typeContinuation = TypeContinuation.OptionalAfterVar;
+            varFinalOrConst = token = next;
+            next = token.next;
+          } else if (optional('const', next) && covariantToken == null) {
+            typeContinuation = TypeContinuation.Optional;
+            varFinalOrConst = token = next;
+            next = token.next;
+          }
+          if (isModifier(next)) {
+            ModifierRecoveryContext2 context =
+                new ModifierRecoveryContext2(this);
+            token = context.parseClassMemberModifiers(token, typeContinuation,
+                externalToken: externalToken,
+                staticToken: staticToken,
+                covariantToken: covariantToken,
+                varFinalOrConst: varFinalOrConst);
+            next = token.next;
+
+            covariantToken = context.covariantToken;
+            externalToken = context.externalToken;
+            staticToken = context.staticToken;
+            varFinalOrConst = context.varFinalOrConst;
+
+            typeContinuation = context.typeContinuation;
+            context = null;
+          }
+        }
+      }
+    }
+    typeContinuation ??= TypeContinuation.Required;
+
+    listener.beginMember();
+
+    if (optional('factory', next)) {
+      token = parseFactoryMethod(token, beforeStart, externalToken,
+          staticToken ?? covariantToken, varFinalOrConst);
       listener.endMember();
       assert(token.next != null);
       return token;
     }
 
-    Link<Token> identifiers = findMemberName(start);
+    Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
-      return recoverFromInvalidClassMember(start);
+      return recoverFromInvalidClassMember(token, beforeStart, externalToken,
+          staticToken, covariantToken, varFinalOrConst, typeContinuation);
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return recoverFromInvalidClassMember(start);
+      return recoverFromInvalidClassMember(token, beforeStart, externalToken,
+          staticToken, covariantToken, varFinalOrConst, typeContinuation);
     }
     Token beforeName = identifiers.head;
     identifiers = identifiers.tail;
@@ -3580,6 +3747,25 @@ class Parser {
       }
     }
 
+    // Recovery: Anything left in the identifiers list is unexpected.
+    if (identifiers.isNotEmpty) {
+      identifiers = identifiers.reverse();
+      while (identifiers.isNotEmpty) {
+        token = identifiers.head.next;
+        identifiers = identifiers.tail;
+        String value = token.stringValue;
+        if (identical(value, 'class')) {
+          return reportAndSkipClassInClass(token);
+        } else if (identical(value, 'enum')) {
+          return reportAndSkipEnumInClass(token);
+        } else if (identical(value, 'typedef')) {
+          return reportAndSkipTypedefInClass(token);
+        } else {
+          reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+        }
+      }
+    }
+
     token = afterName;
     bool isField;
     while (true) {
@@ -3603,14 +3789,16 @@ class Parser {
           isField = true;
         }
         break;
-      } else if ((identical(value, '=')) || (identical(value, ','))) {
+      } else if (identical(value, '=') ||
+          identical(value, ',') ||
+          identical(value, '}')) {
         isField = true;
         break;
       } else {
         token = reportUnexpectedToken(token);
         if (identical(token.next.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
-          listener.endFields(1, start.next, token.next);
+          listener.endFields(1, beforeStart.next, token.next);
           listener.endMember();
           return token;
         }
@@ -3618,97 +3806,95 @@ class Parser {
       }
     }
 
-    Token lastModifier = identifiers.isNotEmpty ? identifiers.head.next : start;
-    token = isField
-        ? parseFields(start, lastModifier, beforeName, false)
-        : parseMethod(start, lastModifier, beforeType, getOrSet, beforeName);
+    if (isField) {
+      if (getOrSet != null) {
+        reportRecoverableErrorWithToken(
+            getOrSet, fasta.templateExtraneousModifier);
+      }
+      token = parseFields(
+          beforeStart,
+          externalToken,
+          staticToken,
+          covariantToken,
+          varFinalOrConst,
+          beforeType,
+          beforeName,
+          staticToken != null
+              ? MemberKind.StaticField
+              : MemberKind.NonStaticField,
+          typeContinuation);
+    } else {
+      token = parseMethod(beforeStart, externalToken, staticToken,
+          covariantToken, varFinalOrConst, beforeType, getOrSet, beforeName);
+    }
     listener.endMember();
     return token;
   }
 
-  Token parseMethod(Token token, Token lastModifier, Token beforeType,
-      Token getOrSet, Token beforeName) {
-    Token beforeToken = token;
-    Token start = token = token.next;
-    Token name = beforeName.next;
+  Token parseMethod(
+      Token beforeStart,
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token varFinalOrConst,
+      Token beforeType,
+      Token getOrSet,
+      Token beforeName) {
+    bool isOperator = getOrSet == null && optional('operator', beforeName.next);
 
-    Token externalModifier;
-    Token staticModifier;
-    if (token != lastModifier.next) {
-      int modifierCount = 0;
-      if (optional('external', token)) {
-        externalModifier = token;
-        parseModifier(beforeToken);
-        ++modifierCount;
-        beforeToken = token;
-        token = token.next;
-      }
-      if (token != lastModifier.next) {
-        if (optional('static', token)) {
-          staticModifier = token;
-          parseModifier(beforeToken);
-          ++modifierCount;
-          beforeToken = token;
-          token = token.next;
-        }
-        if (token != lastModifier.next) {
-          if (getOrSet == null) {
-            if (optional("const", token)) {
-              if (token.next == lastModifier.next) {
-                parseModifier(beforeToken);
-                ++modifierCount;
-                beforeToken = token;
-                token = token.next;
-              }
-            }
-          } else if (optional('set', getOrSet)) {
-            if (staticModifier == null && optional('covariant', token)) {
-              if (token.next == lastModifier.next) {
-                parseModifier(beforeToken);
-                ++modifierCount;
-                beforeToken = token;
-                token = token.next;
-              }
-            }
-          }
-          // If the next token is a modifier,
-          // then it's probably out of order and we need to recover from that.
-          if (token != lastModifier.next) {
-            final context = new ClassMethodModifierContext(this);
-            token = context.parseRecovery(beforeToken, externalModifier,
-                staticModifier, getOrSet, lastModifier);
-
-            // If the modifiers form a partial top level directive
-            // or declaration and we have found the start of a new top level
-            // declaration then return to parse that new declaration.
-            if (context.endInvalidMemberToken != null) {
-              listener.handleInvalidMember(context.endInvalidMemberToken);
-              return context.endInvalidMemberToken;
-            }
-
-            externalModifier = context.externalToken;
-            staticModifier = context.staticToken;
-            modifierCount = context.modifierCount;
-          }
-        }
-      }
-      listener.beginMethod(start, name);
-      listener.handleModifiers(modifierCount);
-    } else {
-      listener.beginMethod(start, name);
-      listener.handleModifiers(0);
+    int modifierCount = 0;
+    if (externalToken != null) {
+      listener.handleModifier(externalToken);
+      ++modifierCount;
     }
+    if (staticToken != null) {
+      if (!isOperator) {
+        listener.handleModifier(staticToken);
+        ++modifierCount;
+      } else {
+        reportRecoverableError(staticToken, fasta.messageStaticOperator);
+        staticToken = null;
+      }
+    } else if (covariantToken != null) {
+      if (getOrSet != null && !optional('get', getOrSet)) {
+        listener.handleModifier(covariantToken);
+        ++modifierCount;
+      } else {
+        reportRecoverableError(covariantToken, fasta.messageCovariantMember);
+        covariantToken = null;
+      }
+    }
+    if (varFinalOrConst != null) {
+      if (optional('const', varFinalOrConst)) {
+        if (getOrSet == null) {
+          listener.handleModifier(varFinalOrConst);
+          ++modifierCount;
+        } else {
+          reportRecoverableErrorWithToken(
+              varFinalOrConst, fasta.templateExtraneousModifier);
+          varFinalOrConst = null;
+        }
+      } else if (optional('var', varFinalOrConst)) {
+        reportRecoverableError(varFinalOrConst, fasta.messageVarReturnType);
+      } else {
+        assert(optional('final', varFinalOrConst));
+        reportRecoverableErrorWithToken(
+            varFinalOrConst, fasta.templateExtraneousModifier);
+      }
+    }
+    // TODO(danrubel): Move beginMethod event before handleModifier events
+    listener.beginMethod();
+    listener.handleModifiers(modifierCount);
 
     if (beforeType == null) {
-      listener.handleNoType(name);
+      listener.handleNoType(beforeName);
     } else {
       parseType(beforeType, TypeContinuation.Optional);
     }
-    if (getOrSet == null && optional('operator', name)) {
+
+    Token token;
+    if (isOperator) {
       token = parseOperatorName(beforeName);
-      if (staticModifier != null) {
-        reportRecoverableError(staticModifier, fasta.messageStaticOperator);
-      }
     } else {
       token = ensureIdentifier(beforeName, IdentifierContext.methodDeclaration);
       token = parseQualifiedRestOpt(
@@ -3722,14 +3908,14 @@ class Parser {
       isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
     }
-    MemberKind kind = staticModifier != null
+
+    MemberKind kind = staticToken != null
         ? MemberKind.StaticMethod
         : MemberKind.NonStaticMethod;
-    checkFormals(name, isGetter, token.next, kind);
+    checkFormals(beforeName.next, isGetter, token.next, kind);
     token = parseFormalParametersOpt(token, kind);
     token = parseInitializersOpt(token);
 
-    bool allowAbstract = staticModifier == null;
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
     token = parseAsyncModifierOpt(token);
@@ -3737,76 +3923,68 @@ class Parser {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
     Token next = token.next;
-    if (externalModifier != null) {
+    if (externalToken != null) {
       if (!optional(';', next)) {
         reportRecoverableError(next, fasta.messageExternalMethodWithBody);
       }
-      allowAbstract = true;
     }
     if (optional('=', next)) {
       reportRecoverableError(next, fasta.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, false, allowAbstract);
+      token = parseFunctionBody(
+          token, false, staticToken == null || externalToken != null);
     }
     asyncState = savedAsyncModifier;
-    listener.endMethod(getOrSet, start, token);
+    listener.endMethod(getOrSet, beforeStart.next, token);
     return token;
   }
 
-  Token parseFactoryMethod(Token token) {
-    Token next = token.next;
-    Token start = next;
-    assert(isFactoryDeclaration(start));
-    Token constToken;
-    Token externalToken;
-    Token factoryKeyword;
+  Token parseFactoryMethod(Token token, Token beforeStart, Token externalToken,
+      Token staticOrCovariant, Token varFinalOrConst) {
+    Token factoryKeyword = token = token.next;
+    assert(optional('factory', factoryKeyword));
 
-    if (optional('factory', next) && !isModifierOrFactory(next.next)) {
-      listener.handleModifiers(0);
-      factoryKeyword = next;
-      token = next;
-      next = token.next;
-    } else {
-      int modifierCount = 0;
-      if (optional('external', next)) {
-        externalToken = next;
-        parseModifier(token);
-        ++modifierCount;
-        token = next;
-        next = token.next;
-      }
-      if (optional('const', next)) {
-        constToken = next;
-        parseModifier(token);
-        ++modifierCount;
-        token = next;
-        next = token.next;
-      }
-      if (optional('factory', next) && !isModifierOrFactory(next.next)) {
-        factoryKeyword = next;
-        token = next;
-        next = token.next;
-      } else {
-        // Recovery
-        FactoryModifierContext context = new FactoryModifierContext(
-            this, modifierCount, externalToken, constToken);
-        token = context.parseRecovery(token);
-        next = token.next;
-        externalToken = context.externalToken;
-        constToken = context.constToken;
-        factoryKeyword = context.factoryKeyword;
-        modifierCount = context.modifierCount;
-      }
-      listener.handleModifiers(modifierCount);
+    if (!isValidTypeReference(token.next)) {
+      // Recovery
+      ModifierRecoveryContext2 context = new ModifierRecoveryContext2(this);
+      token = context.parseModifiersAfterFactory(token,
+          externalToken: externalToken,
+          staticOrCovariant: staticOrCovariant,
+          varFinalOrConst: varFinalOrConst);
+
+      externalToken = context.externalToken;
+      staticOrCovariant = context.staticToken ?? context.covariantToken;
+      varFinalOrConst = context.varFinalOrConst;
     }
 
-    listener.beginFactoryMethod(factoryKeyword);
+    int modifierCount = 0;
+    if (externalToken != null) {
+      listener.handleModifier(externalToken);
+      ++modifierCount;
+    }
+    if (staticOrCovariant != null) {
+      reportRecoverableErrorWithToken(
+          staticOrCovariant, fasta.templateExtraneousModifier);
+    }
+    if (varFinalOrConst != null) {
+      if (optional('const', varFinalOrConst)) {
+        listener.handleModifier(varFinalOrConst);
+        ++modifierCount;
+      } else {
+        reportRecoverableErrorWithToken(
+            varFinalOrConst, fasta.templateExtraneousModifier);
+        varFinalOrConst = null;
+      }
+    }
+    listener.handleModifiers(modifierCount);
+
+    listener.beginFactoryMethod(beforeStart);
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
     token = parseAsyncModifierOpt(token);
-    next = token.next;
+    Token next = token.next;
     if (!inPlainSync) {
       reportRecoverableError(asyncToken, fasta.messageFactoryNotSync);
     }
@@ -3821,14 +3999,14 @@ class Parser {
       }
       token = parseFunctionBody(token, false, true);
     } else {
-      if (constToken != null && !optional('native', next)) {
+      if (varFinalOrConst != null && !optional('native', next)) {
         // TODO(danrubel): report error to fix
         // test_constFactory in parser_fasta_test.dart
         //reportRecoverableError(constToken, fasta.messageConstFactory);
       }
       token = parseFunctionBody(token, false, false);
     }
-    listener.endFactoryMethod(start, factoryKeyword, token);
+    listener.endFactoryMethod(beforeStart.next, factoryKeyword, token);
     return token;
   }
 
@@ -4442,7 +4620,7 @@ class Parser {
   Token parseConditionalExpressionRest(Token token) {
     Token question = token = token.next;
     assert(optional('?', question));
-    listener.beginConditionalExpression();
+    listener.beginConditionalExpression(token);
     token = parseExpressionWithoutCascade(token);
     Token colon = ensureColon(token);
     listener.handleConditionalExpressionColon();
@@ -5422,10 +5600,11 @@ class Parser {
         token = modifierContext.parseRecovery(token,
             varFinalOrConst: varFinalOrConst);
 
-        memberKind = modifierContext.memberKind;
-        typeContinuation = modifierContext.typeContinuation;
         varFinalOrConst = modifierContext.varFinalOrConst;
         listener.handleModifiers(modifierContext.modifierCount);
+
+        memberKind = modifierContext.memberKind;
+        typeContinuation = modifierContext.typeContinuation;
         modifierContext = null;
       } else {
         listener.handleModifiers(1);
@@ -6086,54 +6265,43 @@ class Parser {
   /// Recover from finding an invalid class member. The metadata for the member,
   /// if any, has already been parsed (and events have already been generated).
   /// The member was expected to start with the token after [token].
-  Token recoverFromInvalidClassMember(Token token) {
-    Token start = token;
+  Token recoverFromInvalidClassMember(
+      Token token,
+      Token beforeStart,
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token varFinalOrConst,
+      TypeContinuation typeContinuation) {
     Token next = token.next;
+    if (staticToken != null ||
+        covariantToken != null ||
+        varFinalOrConst != null ||
+        next.isIdentifier) {
+      // Looks like a partial field declaration
+      token = parseFields(
+          beforeStart,
+          externalToken,
+          staticToken,
+          covariantToken,
+          varFinalOrConst,
+          null,
+          token,
+          MemberKind.NonStaticField,
+          typeContinuation);
+      listener.endMember();
+      return token;
+    }
     if (optional(';', next)) {
       // Report and skip extra semicolons that appear between members.
       // TODO(brianwilkerson): Provide a more specific error message.
-      reportRecoverableError(
-          next, fasta.templateExpectedClassMember.withArguments(next));
+      reportRecoverableErrorWithToken(next, fasta.templateExpectedClassMember);
       listener.handleInvalidMember(next);
       listener.endMember();
       return next;
     }
-
-    // Skip modifiers
-    while (isModifier(next)) {
-      token = next;
-      next = token.next;
-    }
-    Token lastModifier = token;
-
-    if (isValidTypeReference(next) || optional('var', next)) {
-      if (isPostIdentifierForRecovery(
-          next.next, IdentifierContext.fieldDeclaration)) {
-        // Looks like a field declaration but missing a field name.
-        insertSyntheticIdentifier(next, IdentifierContext.fieldDeclaration);
-        token = parseFields(start, lastModifier, next, false);
-        listener.endMember();
-        return token;
-      } else if (next.next.isKeywordOrIdentifier &&
-          isPostIdentifierForRecovery(
-              next.next.next, IdentifierContext.fieldDeclaration)) {
-        // Looks like a field declaration but missing a semicolon
-        // which parseFields will insert.
-        token = parseFields(start, lastModifier, next, false);
-        listener.endMember();
-        return token;
-      }
-    } else if (token != start &&
-        isPostIdentifierForRecovery(next, IdentifierContext.fieldDeclaration)) {
-      // If there is at least one modifier, then
-      // looks like the start of a field but missing field name.
-      insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
-      token = parseFields(start, lastModifier, token, false);
-      listener.endMember();
-      return token;
-    }
     return reportUnrecoverableErrorWithToken(
-        start, fasta.templateExpectedClassMember);
+        next, fasta.templateExpectedClassMember);
   }
 
   /// Report that the nesting depth of the code being parsed is too large for
@@ -6229,6 +6397,60 @@ class Parser {
   Token reportUnexpectedToken(Token token) {
     return reportUnrecoverableErrorWithToken(
         token, fasta.templateUnexpectedToken);
+  }
+
+  Token reportAndSkipClassInClass(Token token) {
+    assert(optional('class', token));
+    reportRecoverableError(token, fasta.messageClassInClass);
+    listener.handleInvalidMember(token);
+    Token next = token.next;
+    // If the declaration appears to be a valid class declaration
+    // then skip the entire declaration so that we only generate the one
+    // error (above) rather than a plethora of unhelpful errors.
+    if (next.isIdentifier) {
+      // skip class name
+      token = next;
+      next = token.next;
+      // TODO(danrubel): consider parsing (skipping) the class header
+      // with a recovery listener so that no events are generated
+      if (optional('{', next) && next.endGroup != null) {
+        // skip class body
+        token = next.endGroup;
+      }
+    }
+    return token;
+  }
+
+  Token reportAndSkipEnumInClass(Token token) {
+    assert(optional('enum', token));
+    reportRecoverableError(token, fasta.messageEnumInClass);
+    listener.handleInvalidMember(token);
+    Token next = token.next;
+    // If the declaration appears to be a valid enum declaration
+    // then skip the entire declaration so that we only generate the one
+    // error (above) rather than a plethora of unhelpful errors.
+    if (next.isIdentifier) {
+      // skip enum name
+      token = next;
+      next = token.next;
+      if (optional('{', next) && next.endGroup != null) {
+        // TODO(danrubel): Consider replacing this `skip enum` functionality
+        // with something that can parse and resolve the declaration
+        // even though it is in a class context
+        token = next.endGroup;
+      }
+    }
+    return token;
+  }
+
+  Token reportAndSkipTypedefInClass(Token token) {
+    assert(optional('typedef', token));
+    reportRecoverableError(token, fasta.messageTypedefInClass);
+    listener.handleInvalidMember(token);
+    // TODO(brianwilkerson): If the declaration appears to be a valid typedef
+    // then skip the entire declaration so that we generate a single error
+    // (above) rather than many unhelpful errors.
+    return token;
   }
 
   /// Create a short token chain from the [beginToken] and [endToken] and return

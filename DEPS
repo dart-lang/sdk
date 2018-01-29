@@ -87,6 +87,7 @@ vars = {
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
   "html_tag" : "@0.13.2+2",
+  "http_io_tag": "@bea7f236fbd62f6e1b47d4806a889f628c58d114",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
   "http_retry_tag": "@0.1.0",
@@ -115,7 +116,7 @@ vars = {
   "protobuf_tag": "@0.7.0",
   "pub_rev": "@64c5f40adf6828da1b63320dd39bcedbef1354c6",
   "pub_semver_tag": "@1.3.2",
-  "quiver_tag": "@0.27.0",
+  "quiver_tag": "@0.28.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
@@ -134,7 +135,7 @@ vars = {
   "test_process_tag": "@1.0.1",
   "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.3",
-  "test_tag": "@0.12.29+1",
+  "test_tag": "@0.12.30+1",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@3.3.0",
@@ -229,6 +230,8 @@ deps = {
       Var("dart_git") + "html.git" + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + Var("http_tag"),
+  Var("dart_root") + "/third_party/pkg_tested/http_io":
+    Var("dart_git") + "http_io.git" + Var("http_io_tag"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       Var("http_multi_server_tag"),

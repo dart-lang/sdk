@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = (T) → void;
 class B<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator +(generic-covariant-impl generic-covariant-interface self::B<self::B::T> other) → self::B<self::B::T>
     return null;
 }
 class C<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   generic-contravariant operator [](core::int i) → self::B<(self::C::T) → void>

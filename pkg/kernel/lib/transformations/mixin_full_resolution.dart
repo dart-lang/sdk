@@ -235,7 +235,8 @@ class MixinFullResolution {
     // Assemble the constructor.
     return new Constructor(function,
         name: superclassConstructor.name,
-        initializers: <Initializer>[superInitializer]);
+        initializers: <Initializer>[superInitializer],
+        isSynthetic: true);
   }
 }
 

@@ -21,11 +21,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
   String testCode;
-  String testFile = '/test.dart';
+  String testFile;
   Source testSource;
+  AnalysisResult testAnalysisResult;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
+
+  @override
+  void setUp() {
+    super.setUp();
+    testFile = resourceProvider.convertPath('/test.dart');
+  }
 
   void addTestSource(String code, [Uri uri]) {
     testCode = code;
@@ -111,10 +118,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<Null> resolveTestUnit(String code) async {
     addTestSource(code);
-    AnalysisResult result = await driver.getResult(testFile);
-    testUnit = result.unit;
+    testAnalysisResult = await driver.getResult(testFile);
+    testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
-      expect(result.errors.where((AnalysisError error) {
+      expect(testAnalysisResult.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&
             error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
             error.errorCode != HintCode.UNUSED_CATCH_STACK &&

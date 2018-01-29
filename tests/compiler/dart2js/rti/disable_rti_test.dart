@@ -11,6 +11,7 @@ import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
+import '../helpers/program_lookup.dart';
 import '../memory_compiler.dart';
 
 const String code = '''
@@ -20,6 +21,15 @@ class C<T> implements B<T> {}
 class D<T> implements B<int> {}
 class E<T> extends B<T> {}
 class F<T> extends B<List<T>>{}
+class G {
+  call() {}
+} 
+class H implements G {
+  call() {}
+}
+class I<T> {
+  call(T t) {}
+}
 
 main() {
   new A();
@@ -27,6 +37,8 @@ main() {
   new D();
   new E();
   new F();
+  new H();
+  new I();
 }
 ''';
 
@@ -38,6 +50,9 @@ const Map<String, List<String>> expectedIsChecksMap =
   'D': const <String>[r'$isB', r'$asB'],
   'E': const <String>[],
   'F': const <String>[r'$asB'],
+  'G': const <String>[r'$isFunction'],
+  'H': const <String>[r'$isFunction', r'$isG'],
+  'I': const <String>[r'$isFunction', r'$signature'],
 };
 
 main() {
@@ -51,13 +66,14 @@ main() {
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
-    ProgramLookup programLookup =
-        new ProgramLookup(compiler.backend.emitter.emitter.programForTesting);
+    ProgramLookup programLookup = new ProgramLookup(compiler);
 
     void processMember(MemberEntity element) {
       if (element is FunctionEntity) {
-        Expect.isTrue(rtiNeed.methodNeedsTypeArguments(element));
-        Expect.isTrue(rtiNeed.methodNeedsSignature(element));
+        Expect.isTrue(rtiNeed.methodNeedsTypeArguments(element),
+            "Expected $element to need type arguments.");
+        Expect.isTrue(rtiNeed.methodNeedsSignature(element),
+            "Expected $element to need signature.");
       }
     }
 
@@ -89,39 +105,4 @@ main() {
     print('--test from kernel------------------------------------------------');
     await runTest(useKernel: true);
   });
-}
-
-class ProgramLookup {
-  final Program program;
-
-  ProgramLookup(this.program);
-
-  Map<LibraryEntity, Library> libraryMap;
-  Map<ClassEntity, Class> classMap = <ClassEntity, Class>{};
-
-  Library getLibrary(LibraryEntity element) {
-    if (libraryMap == null) {
-      libraryMap = <LibraryEntity, Library>{};
-      for (Fragment fragment in program.fragments) {
-        for (Library library in fragment.libraries) {
-          assert(!libraryMap.containsKey(library.element));
-          libraryMap[library.element] = library;
-        }
-      }
-    }
-    return libraryMap[element];
-  }
-
-  Class getClass(ClassEntity element) {
-    Class cls = classMap[element];
-    if (cls == null) {
-      Library library = getLibrary(element.library);
-      for (Class cls in library.classes) {
-        assert(!classMap.containsKey(cls.element));
-        classMap[cls.element] = cls;
-      }
-      cls = classMap[element];
-    }
-    return cls;
-  }
 }

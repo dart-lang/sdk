@@ -375,8 +375,9 @@ class ImportElementsComputer {
    * the same prefix.
    */
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    return (import.element as ImportElement).importedLibrary.source.fullName ==
-            importedElements.path &&
+    LibraryElement library = (import.element as ImportElement).importedLibrary;
+    return library != null &&
+        library.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;
   }
 }

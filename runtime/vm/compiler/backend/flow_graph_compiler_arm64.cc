@@ -38,7 +38,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
 }
 
-bool FlowGraphCompiler::SupportsUnboxedMints() {
+bool FlowGraphCompiler::SupportsUnboxedInt64() {
   return false;
 }
 
@@ -46,9 +46,8 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
-bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
-  // ARM does not have a short instruction sequence for converting int64 to
-  // double.
+bool FlowGraphCompiler::CanConvertInt64ToDouble() {
+  // Unboxed int64 are not supported on ARM64.
   return false;
 }
 
@@ -365,12 +364,14 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ b(is_instance_lbl, EQ);
     return true;  // Fall through
   }
-  // Compare if the classes are equal.
-  if (!type_class.is_abstract()) {
-    __ CompareImmediate(kClassIdReg, type_class.id());
-    __ b(is_instance_lbl, EQ);
+
+  // Fast case for cid-range based checks.
+  // Warning: This code destroys the contents of [kClassIdReg].
+  if (GenerateSubclassTypeCheck(kClassIdReg, type_class, is_instance_lbl)) {
+    return false;
   }
-  // Otherwise fallthrough.
+
+  // Otherwise fallthrough, result non-conclusive.
   return true;
 }
 
@@ -1110,6 +1111,10 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 }
 #endif
 
+Register FlowGraphCompiler::EmitTestCidRegister() {
+  return R2;
+}
+
 void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
     intptr_t count_without_type_args,
     const Array& arguments_descriptor) {
@@ -1127,22 +1132,25 @@ void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
   }
 }
 
-void FlowGraphCompiler::EmitTestAndCallLoadCid() {
-  __ LoadClassId(R2, R0);
+void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
+  ASSERT(class_id_reg != R0);
+  __ LoadClassId(class_id_reg, R0);
 }
 
-int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* next_label,
+int FlowGraphCompiler::EmitTestAndCallCheckCid(Label* label,
+                                               Register class_id_reg,
                                                const CidRange& range,
-                                               int bias) {
+                                               int bias,
+                                               bool jump_on_miss) {
   intptr_t cid_start = range.cid_start;
   if (range.IsSingleCid()) {
-    __ CompareImmediate(R2, cid_start - bias);
-    __ b(next_label, NE);
+    __ CompareImmediate(class_id_reg, cid_start - bias);
+    __ b(label, jump_on_miss ? NE : EQ);
   } else {
-    __ AddImmediate(R2, bias - cid_start);
+    __ AddImmediate(class_id_reg, bias - cid_start);
     bias = cid_start;
-    __ CompareImmediate(R2, range.Extent());
-    __ b(next_label, HI);  // Unsigned higher.
+    __ CompareImmediate(class_id_reg, range.Extent());
+    __ b(label, jump_on_miss ? HI : LS);  // Unsigned higher / less-or-equal.
   }
   return bias;
 }

@@ -969,7 +969,7 @@ class OverlaysPage extends DiagnosticPageWithNav {
 
       if (overlays[overlayPath] != null) {
         buf.write('<pre><code>');
-        buf.write(overlays[overlayPath]);
+        buf.write(escape(overlays[overlayPath]));
         buf.writeln('</code></pre>');
       } else {
         p('<code>${escape(overlayPath)}</code> not found.', raw: true);
@@ -1025,7 +1025,11 @@ class PluginsPage extends DiagnosticPageWithNav {
           name = components[length - 1];
         }
         h4(name);
-        p('path: $id');
+        p('bootstrap package path: $id');
+        if (plugin is DiscoveredPluginInfo) {
+          p('execution path: ${plugin.executionPath}');
+          p('packages file path: ${plugin.packagesPath}');
+        }
         if (data.name == null) {
           if (plugin.exception != null) {
             p('not running');

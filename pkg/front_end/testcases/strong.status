@@ -67,7 +67,6 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
 warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
-check_deferred_read: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
@@ -219,3 +218,5 @@ rasta/foo: RuntimeError # Expected, this file has no main method.
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+
+external_import: RuntimeError # The native extension to import doesn't exist. This is ok.

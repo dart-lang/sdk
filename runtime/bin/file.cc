@@ -559,9 +559,8 @@ void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
-  int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
-         (fd == STDERR_FILENO));
+  const int64_t fd =
+      DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = File::OpenStdio(static_cast<int>(fd));
   Dart_SetIntegerReturnValue(args, reinterpret_cast<intptr_t>(file));
 }

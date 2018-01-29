@@ -2071,8 +2071,7 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
- * Instances of the class `DeadCodeVerifier` traverse an AST structure looking for cases of
- * [HintCode.DEAD_CODE].
+ * A visitor that finds dead code and unused labels.
  */
 class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   /**
@@ -2086,9 +2085,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   final TypeSystem _typeSystem;
 
   /**
-   * Create a new instance of the [DeadCodeVerifier].
-   *
-   * @param errorReporter the error reporter
+   * The object used to track the usage of labels within a given label scope.
+   */
+  _LabelTracker labelTracker;
+
+  /**
+   * Initialize a newly created dead code verifier that will report dead code to
+   * the given [errorReporter] and will use the given [typeSystem] if one is
+   * provided.
    */
   DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
       : this._typeSystem = typeSystem ?? new TypeSystemImpl(null);
@@ -2145,15 +2149,20 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * For each [Block], this method reports and error on all statements between the end of the
-   * block and the first return statement (assuming there it is not at the end of the block.)
-   *
-   * @param node the block to evaluate
+   * For each block, this method reports and error on all statements between the
+   * end of the block and the first return statement (assuming there it is not
+   * at the end of the block.)
    */
   @override
   Object visitBlock(Block node) {
     NodeList<Statement> statements = node.statements;
     _checkForDeadStatementsInNodeList(statements);
+    return null;
+  }
+
+  @override
+  Object visitBreakStatement(BreakStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
     return null;
   }
 
@@ -2181,6 +2190,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return super.visitConditionalExpression(node);
+  }
+
+  @override
+  Object visitContinueStatement(ContinueStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+    return null;
   }
 
   @override
@@ -2244,6 +2259,17 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitLabeledStatement(LabeledStatement node) {
+    _pushLabels(node.labels);
+    try {
+      super.visitLabeledStatement(node);
+    } finally {
+      _popLabels();
+    }
+    return null;
+  }
+
+  @override
   Object visitSwitchCase(SwitchCase node) {
     _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchCase(node);
@@ -2253,6 +2279,21 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   Object visitSwitchDefault(SwitchDefault node) {
     _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     return super.visitSwitchDefault(node);
+  }
+
+  @override
+  Object visitSwitchStatement(SwitchStatement node) {
+    List<Label> labels = <Label>[];
+    for (SwitchMember member in node.members) {
+      labels.addAll(member.labels);
+    }
+    _pushLabels(labels);
+    try {
+      super.visitSwitchStatement(node);
+    } finally {
+      _popLabels();
+    }
+    return null;
   }
 
   @override
@@ -2373,13 +2414,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Given some [NodeList] of [Statement]s, from either a [Block] or
-   * [SwitchMember], this loops through the list searching for dead statements.
-   *
-   * @param statements some ordered list of statements in a [Block] or [SwitchMember]
-   * @param allowMandated allow dead statements mandated by the language spec.
-   *            This allows for a final break, continue, return, or throw statement
-   *            at the end of a switch case, that are mandated by the language spec.
+   * Given some list of [statements], loop through the list searching for dead
+   * statements. If [allowMandated] is true, then allow dead statements that are
+   * mandated by the language spec. This allows for a final break, continue,
+   * return, or throw statement at the end of a switch case, that are mandated
+   * by the language spec.
    */
   void _checkForDeadStatementsInNodeList(NodeList<Statement> statements,
       {bool allowMandated: false}) {
@@ -2415,14 +2454,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Given some [Expression], this method returns [ValidResult.RESULT_TRUE] if it is
-   * `true`, [ValidResult.RESULT_FALSE] if it is `false`, or `null` if the
-   * expression is not a constant boolean value.
-   *
-   * @param expression the expression to evaluate
-   * @return [ValidResult.RESULT_TRUE] if it is `true`, [ValidResult.RESULT_FALSE]
-   *         if it is `false`, or `null` if the expression is not a constant boolean
-   *         value
+   * Given some [expression], return [ValidResult.RESULT_TRUE] if it is `true`,
+   * [ValidResult.RESULT_FALSE] if it is `false`, or `null` if the expression is
+   * not a constant boolean value.
    */
   EvaluationResultImpl _getConstantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
@@ -2449,10 +2483,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if and only if the passed expression is resolved to a constant variable.
-   *
-   * @param expression some conditional expression
-   * @return `true` if and only if the passed expression is resolved to a constant variable
+   * Return `true` if the given [expression] is resolved to a constant variable.
    */
   bool _isDebugConstant(Expression expression) {
     Element element = null;
@@ -2466,6 +2497,25 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       return variable != null && variable.isConst;
     }
     return false;
+  }
+
+  /**
+   * Exit the most recently entered label scope after reporting any labels that
+   * were not referenced within that scope.
+   */
+  void _popLabels() {
+    for (Label label in labelTracker.unusedLabels()) {
+      _errorReporter
+          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+    }
+    labelTracker = labelTracker.outerTracker;
+  }
+
+  /**
+   * Enter a new label scope in which the given [labels] are defined.
+   */
+  void _pushLabels(List<Label> labels) {
+    labelTracker = new _LabelTracker(labelTracker, labels);
   }
 }
 
@@ -3984,8 +4034,9 @@ class ImportsVerifier {
           continue;
         }
       }
-      errorReporter.reportErrorForNode(
-          HintCode.UNUSED_IMPORT, unusedImport.uri);
+      StringLiteral uri = unusedImport.uri;
+      errorReporter
+          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue]);
     }
   }
 
@@ -6968,10 +7019,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 }
 
-/**
- * The abstract class `ScopedVisitor` maintains name and label scopes as an AST structure is
- * being visited.
- */
 /**
  * The abstract class `ScopedVisitor` maintains name and label scopes as an AST structure is
  * being visited.
@@ -10693,6 +10740,67 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
       }
     }
     return super.visitSimpleIdentifier(node);
+  }
+}
+
+/**
+ * An object used to track the usage of labels within a single label scope.
+ */
+class _LabelTracker {
+  /**
+   * The tracker for the outer label scope.
+   */
+  final _LabelTracker outerTracker;
+
+  /**
+   * The labels whose usage is being tracked.
+   */
+  final List<Label> labels;
+
+  /**
+   * A list of flags corresponding to the list of [labels] indicating whether
+   * the corresponding label has been used.
+   */
+  List<bool> used;
+
+  /**
+   * A map from the names of labels to the index of the label in [labels].
+   */
+  final Map<String, int> labelMap = <String, int>{};
+
+  /**
+   * Initialize a newly created label tracker.
+   */
+  _LabelTracker(this.outerTracker, this.labels) {
+    used = new List.filled(labels.length, false);
+    for (int i = 0; i < labels.length; i++) {
+      labelMap[labels[i].label.name] = i;
+    }
+  }
+
+  /**
+   * Record that the label with the given [labelName] has been used.
+   */
+  void recordUsage(String labelName) {
+    if (labelName != null) {
+      int index = labelMap[labelName];
+      if (index != null) {
+        used[index] = true;
+      } else if (outerTracker != null) {
+        outerTracker.recordUsage(labelName);
+      }
+    }
+  }
+
+  /**
+   * Return the unused labels.
+   */
+  Iterable<Label> unusedLabels() sync* {
+    for (int i = 0; i < labels.length; i++) {
+      if (!used[i]) {
+        yield labels[i];
+      }
+    }
   }
 }
 

@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic _field;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class Bar extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 static method useCallback(dynamic callback) → dynamic

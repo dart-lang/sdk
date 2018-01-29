@@ -895,7 +895,7 @@ ResolutionImpact laxImpact(
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         ConstructorElement constructor = staticUse.element;
         ConstructorElement effectiveTarget = constructor.effectiveTarget;
-        ResolutionDartType effectiveTargetType =
+        ResolutionInterfaceType effectiveTargetType =
             constructor.computeEffectiveTargetType(staticUse.type);
         ConstructorElement effectiveTargetDeclaration =
             effectiveTarget.declaration;

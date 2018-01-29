@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  default constructor •() → self::A
+  synthetic constructor •() → self::A
     : invalid-initializer;
 }
 class B extends core::Object {
-  default constructor •() → self::B
+  synthetic constructor •() → self::B
     : invalid-initializer;
 }
 class C extends core::Object {

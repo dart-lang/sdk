@@ -31,6 +31,7 @@ abstract class TargetImplementation extends Target {
   Builder cachedDuplicatedFieldInitializerError;
   Builder cachedFallThroughError;
   Builder cachedNativeAnnotation;
+  Builder cachedNativeExtensionAnnotation;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : super(ticker);

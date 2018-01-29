@@ -82,6 +82,8 @@ class Dynamic extends TypeRep {
   check_T(object) => object;
 }
 
+bool _isJsObject(obj) => JS('bool', '# === #', getReifiedType(obj), jsobject);
+
 class LazyJSType extends TypeRep {
   final Function() _rawJSType;
   final String _dartName;
@@ -90,29 +92,36 @@ class LazyJSType extends TypeRep {
 
   toString() => typeName(_rawJSType());
 
-  rawJSTypeForCheck() {
+  _raw() {
     var raw = _rawJSType();
+    if (raw == null) {
+      _warn('Cannot find native JavaScript type ($_dartName) for type check');
+    }
+    return raw;
+  }
+
+  rawJSTypeForCheck() {
+    var raw = _raw();
     if (raw != null) return raw;
-    _warn('Cannot find native JavaScript type ($_dartName) for type check');
-    return JS('', '#.Object', global_);
+    // Treat as anonymous: return true for any JS object.
+    return jsobject;
+  }
+
+  bool isRawType(obj) {
+    var raw = _raw();
+    if (raw != null) return JS('bool', '# instanceof #', obj, raw);
+    // Treat as anonymous: return true for any JS object.
+    return _isJsObject(obj);
   }
 
   @JSExportName('is')
-  bool is_T(obj) {
-    return JS('bool', '# instanceof #', obj, rawJSTypeForCheck());
-  }
+  bool is_T(obj) => isRawType(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) =>
-      JS('bool', '# instanceof #', obj, rawJSTypeForCheck()) || obj == null
-          ? obj
-          : castError(obj, this, false);
+  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, false);
 
   @JSExportName('_check')
-  check_T(obj) =>
-      JS('bool', '# instanceof #', obj, rawJSTypeForCheck()) || obj == null
-          ? obj
-          : castError(obj, this, true);
+  check_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this, true);
 }
 
 /// An anonymous JS type
@@ -124,20 +133,13 @@ class AnonymousJSType extends TypeRep {
   toString() => _dartName;
 
   @JSExportName('is')
-  bool is_T(obj) => JS('bool', '# === # || #', getReifiedType(obj), jsobject,
-      instanceOf(obj, this));
+  bool is_T(obj) => _isJsObject(obj) || instanceOf(obj, this);
 
   @JSExportName('as')
-  as_T(obj) =>
-      JS('bool', '# == null || # === #', obj, getReifiedType(obj), jsobject)
-          ? obj
-          : cast(obj, this, false);
+  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, false);
 
   @JSExportName('_check')
-  check_T(obj) =>
-      JS('bool', '# == null || # === #', obj, getReifiedType(obj), jsobject)
-          ? obj
-          : cast(obj, this, true);
+  check_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this, true);
 }
 
 void _warn(arg) {
@@ -578,9 +580,9 @@ class GenericFunctionType extends AbstractFunctionType {
     for (int i = 0, n = typeFormals.length; i < n; i++) {
       if (i != 0) s += ", ";
       s += JS<String>('!', '#[#].name', typeFormals, i);
-      var typeBound = typeBounds[i];
-      if (!identical(typeBound, _dynamic)) {
-        s += " extends $typeBound";
+      var bound = typeBounds[i];
+      if (JS('bool', '# !== # && # !== #', bound, dynamic, bound, Object)) {
+        s += " extends $bound";
       }
     }
     s += ">" + instantiate(typeFormals).toString();
@@ -963,9 +965,6 @@ bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
     // All JS types are subtypes of anonymous JS types.
     return $t1 === $jsobject;
   }
-  if ($t2 instanceof $LazyJSType) {
-    return $_isSubtype($t1, $t2.rawJSTypeForCheck(), isCovariant);
-  }
 
   // Function subtyping.
 
@@ -1036,6 +1035,12 @@ isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
   // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:
   // - S !<: S<T1, ..., Tn>
   // - S<dynamic, ..., dynamic> !<: S<T1, ..., Tn>
+  
+  // If we have lazy JS types, unwrap them.  This will effectively
+  // reduce to a prototype check below.
+  if ($t1 instanceof $LazyJSType) $t1 = $t1.rawJSTypeForCheck();
+  if ($t2 instanceof $LazyJSType) $t2 = $t2.rawJSTypeForCheck();
+
   if ($t1 == $t2) return true;
 
   if ($t1 == $Object) return false;
