@@ -23,6 +23,19 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   AnalysisOptions get defaultAnalysisOptions =>
       new AnalysisOptionsImpl()..strongMode = true;
 
+  test_assertion_throws() async {
+    Source source = addSource(r'''
+class A {
+  const A(int x, int y) : assert(x < y);
+}
+var v = const A(3, 2);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    verify([source]);
+  }
+
   test_fieldFormalParameterAssignableToField_extends() async {
     // According to checked-mode type checking rules, a value of type B is
     // assignable to a field of type A, because B extends A (and hence is a

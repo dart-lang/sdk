@@ -1180,11 +1180,21 @@ var x = const C(2);
   test_constEvalTypeBool_binary_leftTrue() async {
     Source source = addSource("const C = (true || 0);");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND,
-      HintCode.DEAD_CODE
-    ]);
+    assertErrors(
+        source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_constEvalTypeBool_logicalOr_trueLeftOperand() async {
+    Source source = addSource(r'''
+class C {
+  final int x;
+  const C({this.x}) : assert(x == null || x >= 0);
+}
+const c = const C();
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
