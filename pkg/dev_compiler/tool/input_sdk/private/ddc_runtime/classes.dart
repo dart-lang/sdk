@@ -15,15 +15,70 @@ part of dart._runtime;
 /// Returns a new type that mixes members from base and the mixin.
 ///
 /// The mixin must be non-generic; generic mixins are handled by [genericMixin].
-mixinMembers(to, from) {
+void mixinMembers(to, from) {
   JS('', '#[#] = #', to, _mixin, from);
   var toProto = JS('', '#.prototype', to);
   var fromProto = JS('', '#.prototype', from);
-  copyProperties(toProto, fromProto);
+  _copyMembers(toProto, fromProto);
   copySignature(to, from, _methodSig);
   copySignature(to, from, _fieldSig);
   copySignature(to, from, _getterSig);
   copySignature(to, from, _setterSig);
+}
+
+void _copyMembers(to, from) {
+  var names = getOwnNamesAndSymbols(from);
+  for (var i = 0, n = JS('int', '#.length', names); i < n; ++i) {
+    var name = JS('', '#[#]', names, i);
+    if (name == 'constructor') continue;
+    _copyMember(to, from, name);
+  }
+  return to;
+}
+
+void _copyMember(to, from, name) {
+  var desc = getOwnPropertyDescriptor(from, name);
+  if (JS('bool', '# == Symbol.iterator', name)) {
+    // On native types, Symbol.iterator may already be present.
+    // TODO(jmesserly): investigate if we still need this.
+    // If so, we need to find a better solution.
+    // See https://github.com/dart-lang/sdk/issues/28324
+    var existing = getOwnPropertyDescriptor(to, name);
+    if (existing != null) {
+      if (JS('bool', '#.writable', existing)) {
+        JS('', '#[#] = #.value', to, name, desc);
+      }
+      return;
+    }
+  }
+  var getter = JS('', '#.get', desc);
+  var setter = JS('', '#.set', desc);
+  if (getter != null) {
+    if (setter == null) {
+      var obj = JS(
+          '',
+          '#.set = { __proto__: #.__proto__, '
+          'set [#](x) { return super[#] = x; } }',
+          desc,
+          to,
+          name,
+          name);
+      JS('', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
+    }
+  } else if (setter != null) {
+    if (getter == null) {
+      var obj = JS(
+          '',
+          '#.get = { __proto__: #.__proto__, '
+          'get [#]() { return super[#]; } }',
+          desc,
+          to,
+          name,
+          name);
+      JS('', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
+    }
+  }
+  defineProperty(to, name, desc);
 }
 
 void copySignature(to, from, signatureField) {
