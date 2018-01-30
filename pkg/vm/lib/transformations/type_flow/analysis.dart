@@ -5,6 +5,7 @@
 /// Global type flow analysis.
 library kernel.transformations.analysis;
 
+import 'dart:collection';
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
@@ -67,7 +68,8 @@ class _DependencyTracker {
 /// This is the basic unit of processing in type flow analysis.
 /// Call sites calling the same method with the same argument types
 /// may reuse results of the analysis through the same _Invocation instance.
-abstract class _Invocation extends _DependencyTracker {
+abstract class _Invocation extends _DependencyTracker
+    with LinkedListEntry<_Invocation> {
   final Selector selector;
   final Args<Type> args;
 
@@ -803,19 +805,22 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
 class _WorkList {
   final TypeFlowAnalysis _typeFlowAnalysis;
-  final Set<_Invocation> pending = new Set<_Invocation>();
+  final LinkedList<_Invocation> pending = new LinkedList<_Invocation>();
   final Set<_Invocation> processing = new Set<_Invocation>();
   final List<_Invocation> callStack = <_Invocation>[];
 
   _WorkList(this._typeFlowAnalysis);
 
+  bool _isPending(_Invocation invocation) => invocation.list != null;
+
   void enqueueInvocation(_Invocation invocation) {
     assertx(invocation.result == null);
-    if (!pending.add(invocation)) {
+    if (_isPending(invocation)) {
       // Re-add the invocation to the tail of the pending queue.
       pending.remove(invocation);
-      pending.add(invocation);
+      assertx(!_isPending(invocation));
     }
+    pending.add(invocation);
   }
 
   void invalidateInvocation(_Invocation invocation) {
@@ -830,14 +835,7 @@ class _WorkList {
   void process() {
     while (pending.isNotEmpty) {
       assertx(callStack.isEmpty && processing.isEmpty);
-      _Invocation invocation = pending.first;
-
-      // Remove from pending before processing, as the invocation
-      // could be invalidated and re-added to pending while processing.
-      pending.remove(invocation);
-
-      processInvocation(invocation);
-      assertx(invocation.result != null);
+      processInvocation(pending.first);
     }
   }
 
@@ -855,6 +853,7 @@ class _WorkList {
 
     if (processing.add(invocation)) {
       callStack.add(invocation);
+      pending.remove(invocation);
 
       final Type result = invocation.process(_typeFlowAnalysis);
 
@@ -866,6 +865,13 @@ class _WorkList {
           invocation.invalidateDependentInvocations(this);
         }
         invocation.invalidatedResult = null;
+      }
+
+      // Invocation is still pending - it was invalidated while being processed.
+      // Move result to invalidatedResult.
+      if (_isPending(invocation)) {
+        invocation.invalidatedResult = result;
+        invocation.result = null;
       }
 
       final last = callStack.removeLast();

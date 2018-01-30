@@ -62,6 +62,12 @@
       "action": "call"
     },
     {
+      "library": "dart:core",
+      "class": "_AssertionError",
+      "name": "_throwNew",
+      "action": "call"
+    },
+    {
       "library": "dart:_builtin",
       "name": "_resolveScriptUri",
       "action": "call"

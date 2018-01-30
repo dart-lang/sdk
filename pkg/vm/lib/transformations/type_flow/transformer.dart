@@ -33,7 +33,9 @@ Program transformProgram(CoreTypes coreTypes, Program program,
       'pkg/vm/lib/transformations/type_flow/entry_points.json',
       'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
     ]}) {
-  final hierarchy = new ClassHierarchy(program);
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+  final hierarchy = new ClassHierarchy(program,
+      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final libraryIndex = new LibraryIndex.all(program);
 
