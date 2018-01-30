@@ -2502,7 +2502,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           token.charOffset,
           optional("const", token) || optional("@", token),
           prefixName: prefixName));
-    } else if (type is UnresolvedAccessor) {
+    } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
       push(throwNoSuchMethodError(
