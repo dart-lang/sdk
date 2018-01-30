@@ -740,7 +740,7 @@ class InterfaceResolverTest {
     expect(y.isGenericCovariantImpl, isFalse);
     expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isTrue);
-    expect(stub.forwardingStubInterfaceTarget.node, same(methodA));
+    expect(stub.forwardingStubInterfaceTarget, same(methodA));
     expect(getStubTarget(stub), same(methodA));
   }
 
@@ -788,7 +788,7 @@ class InterfaceResolverTest {
     expect(y.isGenericCovariantImpl, isTrue);
     expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isFalse);
-    expect(stub.forwardingStubInterfaceTarget.node, same(methodA));
+    expect(stub.forwardingStubInterfaceTarget, same(methodA));
     expect(getStubTarget(stub), same(methodA));
   }
 
@@ -833,7 +833,7 @@ class InterfaceResolverTest {
     ]);
     var nodeE = getForwardingNode(e, false);
     var stub = nodeE.finalize();
-    expect(stub.forwardingStubInterfaceTarget.node, same(methodC));
+    expect(stub.forwardingStubInterfaceTarget, same(methodC));
     expect(getStubTarget(stub), same(methodC));
   }
 
@@ -866,7 +866,7 @@ class InterfaceResolverTest {
         implementedTypes: [i2.asThisSupertype]);
     var nodeE = getForwardingNode(e, true);
     var stub = nodeE.finalize();
-    expect(stub.forwardingStubInterfaceTarget.node, same(setterC));
+    expect(stub.forwardingStubInterfaceTarget, same(setterC));
     expect(getStubTarget(stub), same(setterC));
   }
 
@@ -881,7 +881,7 @@ class InterfaceResolverTest {
         implementedTypes: [b.asThisSupertype]);
     var node = getForwardingNode(c, false);
     var stub = node.finalize();
-    expect(stub.forwardingStubInterfaceTarget.node, same(fieldB));
+    expect(stub.forwardingStubInterfaceTarget, same(fieldB));
   }
 
   void test_merge_candidates_including_mixin() {
@@ -976,7 +976,7 @@ class InterfaceResolverTest {
         name: 'C', implementedTypes: [a.asThisSupertype, b.asThisSupertype]);
     var node = getForwardingNode(c, false);
     var stub = node.finalize();
-    expect(stub.forwardingStubInterfaceTarget.node, same(methodB));
+    expect(stub.forwardingStubInterfaceTarget, same(methodB));
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }
@@ -995,7 +995,7 @@ class InterfaceResolverTest {
     ]);
     var node = getForwardingNode(d, true);
     var stub = node.finalize();
-    expect(stub.forwardingStubInterfaceTarget.node, same(setterB));
+    expect(stub.forwardingStubInterfaceTarget, same(setterB));
     expect(getStubTarget(stub), isNull);
     expect(stub.function.positionalParameters[0].type, objectType);
   }
@@ -1057,7 +1057,7 @@ class InterfaceResolverTest {
         ]);
     var node = getForwardingNode(d, false);
     var stub = node.finalize();
-    expect(stub.forwardingStubInterfaceTarget.node, same(methodB));
+    expect(stub.forwardingStubInterfaceTarget, same(methodB));
     expect(getStubTarget(stub), isNull);
     expect(stub.function.returnType, intType);
   }

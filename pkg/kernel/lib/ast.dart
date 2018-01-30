@@ -1486,10 +1486,37 @@ class Procedure extends Member implements FileUriNode {
   /// The uri of the source file this procedure was loaded from.
   Uri fileUri;
 
-  Reference forwardingStubSuperTarget;
-  Reference forwardingStubInterfaceTarget;
+  Reference forwardingStubSuperTargetReference;
+  Reference forwardingStubInterfaceTargetReference;
 
-  Procedure(Name name, this.kind, this.function,
+  Procedure(Name name, ProcedureKind kind, FunctionNode function,
+      {bool isAbstract: false,
+      bool isStatic: false,
+      bool isExternal: false,
+      bool isConst: false,
+      bool isForwardingStub: false,
+      bool isForwardingSemiStub: false,
+      int transformerFlags: 0,
+      Uri fileUri,
+      Reference reference,
+      Member forwardingStubSuperTarget,
+      Member forwardingStubInterfaceTarget})
+      : this.byReference(name, kind, function,
+            isAbstract: isAbstract,
+            isStatic: isStatic,
+            isExternal: isExternal,
+            isConst: isConst,
+            isForwardingStub: isForwardingStub,
+            isForwardingSemiStub: isForwardingSemiStub,
+            transformerFlags: transformerFlags,
+            fileUri: fileUri,
+            reference: reference,
+            forwardingStubSuperTargetReference:
+                getMemberReference(forwardingStubSuperTarget),
+            forwardingStubInterfaceTargetReference:
+                getMemberReference(forwardingStubInterfaceTarget));
+
+  Procedure.byReference(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -1499,8 +1526,8 @@ class Procedure extends Member implements FileUriNode {
       int transformerFlags: 0,
       this.fileUri,
       Reference reference,
-      this.forwardingStubSuperTarget,
-      this.forwardingStubInterfaceTarget})
+      this.forwardingStubSuperTargetReference,
+      this.forwardingStubInterfaceTargetReference})
       : super(name, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
@@ -1595,6 +1622,20 @@ class Procedure extends Member implements FileUriNode {
   bool get hasGetter => kind != ProcedureKind.Setter;
   bool get hasSetter => kind == ProcedureKind.Setter;
   bool get isFactory => kind == ProcedureKind.Factory;
+
+  Member get forwardingStubSuperTarget =>
+      forwardingStubSuperTargetReference?.asMember;
+
+  void set forwardingStubSuperTarget(Member target) {
+    forwardingStubSuperTargetReference = getMemberReference(target);
+  }
+
+  Member get forwardingStubInterfaceTarget =>
+      forwardingStubInterfaceTargetReference?.asMember;
+
+  void set forwardingStubInterfaceTarget(Member target) {
+    forwardingStubInterfaceTargetReference = getMemberReference(target);
+  }
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 

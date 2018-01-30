@@ -1670,9 +1670,8 @@ class ProgramCompiler
     if (member.isGetter) return [];
 
     var enclosingClass = member.enclosingClass;
-    var superMember = (member.forwardingStubSuperTarget ??
-            member.forwardingStubInterfaceTarget)
-        ?.asMember;
+    var superMember = member.forwardingStubSuperTarget ??
+        member.forwardingStubInterfaceTarget;
 
     if (superMember == null) return [];
 

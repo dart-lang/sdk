@@ -737,7 +737,7 @@ class ResolutionStorer extends TypeInferenceListener {
   /// Otherwise return the given [member].
   static Member _getRealTarget(Member member) {
     if (member is Procedure && member.isForwardingStub) {
-      return member.forwardingStubInterfaceTarget.node;
+      return member.forwardingStubInterfaceTarget;
     }
     return member;
   }
