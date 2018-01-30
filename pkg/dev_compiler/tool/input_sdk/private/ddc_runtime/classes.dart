@@ -58,24 +58,6 @@ final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
 
-/// Wrap a generic class builder function with future flattening.
-flattenFutures(builder) => JS('', '''(() => {
-  function flatten(T) {
-    if (!T) return $builder($dynamic);
-    let futureClass = $getGenericClass($Future);
-    //TODO(leafp): This only handles the direct flattening case.
-    // It would probably be good to at least search up the class
-    // hierarchy.  If we keep doing flattening long term, we may
-    // want to implement the full future flattening per spec.
-    if ($getGenericClass(T) == futureClass) {
-      let args = $getGenericArgs(T);
-      if (args) return $builder(args[0]);
-    }
-    return $builder(T);
-  }
-  return flatten;
-})()''');
-
 /// Memoize a generic type constructor function.
 generic(typeConstructor, setBaseClass) => JS('', '''(() => {
   let length = $typeConstructor.length;

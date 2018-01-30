@@ -1232,10 +1232,6 @@ class CodeGenerator extends Object
 
     var genericCall = _callHelper('generic(#)', [genericArgs]);
 
-    if (element.library.isDartAsync &&
-        (element.name == "Future" || element.name == "_Future")) {
-      genericCall = _callHelper('flattenFutures(#)', [genericCall]);
-    }
     var genericName = _emitTopLevelNameNoInterop(element, suffix: '\$');
     return js.statement('{ # = #; # = #(); }',
         [genericName, genericCall, _emitTopLevelName(element), genericName]);

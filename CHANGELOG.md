@@ -11,6 +11,19 @@
 
 #### Strong Mode
 
+* Future flattening is now done only as specified in the Dart 2.0 spec, rather
+than more broadly.  This means that the following code will now have an error on
+the assignment to `y`.
+
+  ```dart
+    test() {
+      Future<int> f;
+      var x = f.then<Future<List<int>>>((x) => []);
+      Future<List<int>> y = x;
+    }
+    ```
+
+
 ### Core library changes
 
 * `dart:async`

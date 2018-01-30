@@ -343,6 +343,7 @@ async_await_syntax_test/d10a: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
@@ -1030,7 +1031,6 @@ truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
-async_return_types_test/nestedFuture: MissingCompileTimeError
 bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError

@@ -579,10 +579,6 @@ class ProgramCompiler
 
     var genericCall = _callHelper('generic(#)', [genericArgs]);
 
-    if (getLibrary(c) == coreTypes.asyncLibrary &&
-        (name == "Future" || name == "_Future")) {
-      genericCall = _callHelper('flattenFutures(#)', [genericCall]);
-    }
     var genericName = _emitTopLevelNameNoInterop(c, suffix: '\$');
     return js.statement('{ # = #; # = #(); }',
         [genericName, genericCall, _emitTopLevelName(c), genericName]);

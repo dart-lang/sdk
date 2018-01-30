@@ -1642,7 +1642,7 @@ m1() {
   Future<int> f;
   var x = f.then<Future<List<int>>>(/*info:INFERRED_TYPE_CLOSURE*/
                                     (x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/[]);
-  Future<List<int>> y = x;
+  Future<List<int>> y = /*error:INVALID_ASSIGNMENT*/x;
 }
 m2() {
   Future<int> f;
