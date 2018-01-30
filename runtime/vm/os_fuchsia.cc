@@ -44,7 +44,7 @@ intptr_t OS::ProcessId() {
 static zx_status_t GetTimeServicePtr(
     time_service::TimeServiceSyncPtr* time_svc) {
   zx::channel service_root = app::subtle::CreateStaticServiceRootHandle();
-  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).PassChannel();
+  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).TakeChannel();
   return fdio_service_connect_at(service_root.get(), kTimeServiceName,
                                  time_svc_channel.release());
 }
