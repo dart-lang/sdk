@@ -759,8 +759,16 @@ recursive_mixin_test: RuntimeError # no check without --checked
 type_argument_in_super_type_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && $dart2js_with_kernel ]
-assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
-assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128

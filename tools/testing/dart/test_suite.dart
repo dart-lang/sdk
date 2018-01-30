@@ -1410,7 +1410,7 @@ class StandardTestSuite extends TestSuite {
 
     List<String> singleListOfOptions(String name) {
       var matches = new RegExp('// $name=(.*)').allMatches(contents);
-      var options;
+      List<String> options;
       for (var match in matches) {
         if (options != null) {
           throw new Exception(

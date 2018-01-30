@@ -949,6 +949,16 @@ wrong_number_type_arguments_test/none: Pass
 ct_const2_test: Fail
 
 [ $compiler == dartk && $strong ]
+assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 28335.
 hello_dart_test: Crash
