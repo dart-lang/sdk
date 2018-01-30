@@ -211,9 +211,9 @@ class BaseReader {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
 
-  intptr_t ReadRawPointerValue() {
-    int64_t value = Read<int64_t>();
-    return static_cast<intptr_t>(value);
+  void* ReadRawPointerValue() {
+    uintptr_t value = Read<uintptr_t>();
+    return reinterpret_cast<void*>(value);
   }
 
   classid_t ReadClassIDValue() {
@@ -508,7 +508,9 @@ class BaseWriter : public StackResource {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
-  void WriteRawPointerValue(intptr_t value) { Write<int64_t>(value); }
+  void WriteRawPointerValue(void* value) {
+    Write<uintptr_t>(reinterpret_cast<uintptr_t>(value));
+  }
 
   void WriteClassIDValue(classid_t value) { Write<uint32_t>(value); }
   COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));

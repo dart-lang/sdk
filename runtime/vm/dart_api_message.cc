@@ -679,72 +679,81 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 #define READ_TYPED_DATA(type, ctype)                                           \
   {                                                                            \
     READ_TYPED_DATA_HEADER(type);                                              \
-    if (len > 0) {                                                             \
-      ctype* p = reinterpret_cast<ctype*>(object->value.as_typed_data.values); \
-      for (intptr_t i = 0; i < len; i++) {                                     \
-        p[i] = Read<ctype>();                                                  \
-      }                                                                        \
-    }                                                                          \
+    uint8_t* p =                                                               \
+        reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);        \
+    ReadBytes(p, len * sizeof(ctype));                                         \
+    return object;                                                             \
+  }
+
+#define READ_EXTERNAL_TYPED_DATA(type, ctype)                                  \
+  {                                                                            \
+    READ_TYPED_DATA_HEADER(type);                                              \
+    uint8_t* p =                                                               \
+        reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);        \
+    void* data = ReadRawPointerValue();                                        \
+    void* peer = ReadRawPointerValue();                                        \
+    Dart_WeakPersistentHandleFinalizer callback =                              \
+        reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(                  \
+            ReadRawPointerValue());                                            \
+    memmove(p, data, len * sizeof(ctype));                                     \
+    callback(NULL, NULL, peer);                                                \
     return object;                                                             \
   }
 
     case kTypedDataInt8ArrayCid:
-    case kExternalTypedDataInt8ArrayCid: {
-      READ_TYPED_DATA_HEADER(Int8);
-      if (len > 0) {
-        uint8_t* p =
-            reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);
-        ReadBytes(p, len);
-      }
-      return object;
-    }
+      READ_TYPED_DATA(Int8, int8_t);
+    case kExternalTypedDataInt8ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int8, int8_t);
 
     case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid: {
-      READ_TYPED_DATA_HEADER(Uint8);
-      if (len > 0) {
-        uint8_t* p =
-            reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);
-        ReadBytes(p, len);
-      }
-      return object;
-    }
+      READ_TYPED_DATA(Uint8, uint8_t);
+    case kExternalTypedDataUint8ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint8, uint8_t);
 
     case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
       READ_TYPED_DATA(Uint8Clamped, uint8_t);
+    case kExternalTypedDataUint8ClampedArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint8Clamped, uint8_t);
 
     case kTypedDataInt16ArrayCid:
-    case kExternalTypedDataInt16ArrayCid:
       READ_TYPED_DATA(Int16, int16_t);
+    case kExternalTypedDataInt16ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int16, int16_t);
 
     case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint16ArrayCid:
       READ_TYPED_DATA(Uint16, uint16_t);
+    case kExternalTypedDataUint16ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint16, uint16_t);
 
     case kTypedDataInt32ArrayCid:
-    case kExternalTypedDataInt32ArrayCid:
       READ_TYPED_DATA(Int32, int32_t);
+    case kExternalTypedDataInt32ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int32, int32_t);
 
     case kTypedDataUint32ArrayCid:
-    case kExternalTypedDataUint32ArrayCid:
       READ_TYPED_DATA(Uint32, uint32_t);
+    case kExternalTypedDataUint32ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint32, uint32_t);
 
     case kTypedDataInt64ArrayCid:
-    case kExternalTypedDataInt64ArrayCid:
       READ_TYPED_DATA(Int64, int64_t);
+    case kExternalTypedDataInt64ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Int64, int64_t);
 
     case kTypedDataUint64ArrayCid:
-    case kExternalTypedDataUint64ArrayCid:
       READ_TYPED_DATA(Uint64, uint64_t);
+    case kExternalTypedDataUint64ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Uint64, uint64_t);
 
     case kTypedDataFloat32ArrayCid:
-    case kExternalTypedDataFloat32ArrayCid:
       READ_TYPED_DATA(Float32, float);
+    case kExternalTypedDataFloat32ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Float32, float);
 
     case kTypedDataFloat64ArrayCid:
-    case kExternalTypedDataFloat64ArrayCid:
       READ_TYPED_DATA(Float64, double);
+    case kExternalTypedDataFloat64ArrayCid:
+      READ_EXTERNAL_TYPED_DATA(Float64, double);
 
     case kGrowableObjectArrayCid: {
       // A GrowableObjectArray is serialized as its type arguments and
@@ -1187,17 +1196,12 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         case kTypedDataInt8ArrayCid:
         case kTypedDataUint8ArrayCid: {
           uint8_t* bytes = object->value.as_typed_data.values;
-          for (intptr_t i = 0; i < len; i++) {
-            Write<uint8_t>(bytes[i]);
-          }
+          WriteBytes(bytes, len);
           break;
         }
         case kTypedDataUint32ArrayCid: {
-          uint32_t* words =
-              reinterpret_cast<uint32_t*>(object->value.as_typed_data.values);
-          for (intptr_t i = 0; i < len; i++) {
-            Write<uint32_t>(words[i]);
-          }
+          uint8_t* bytes = object->value.as_typed_data.values;
+          WriteBytes(bytes, len * sizeof(uint32_t));
           break;
         }
         default:
@@ -1226,9 +1230,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       Dart_WeakPersistentHandleFinalizer callback =
           object->value.as_external_typed_data.callback;
       WriteSmi(length);
-      WriteRawPointerValue(reinterpret_cast<intptr_t>(data));
-      WriteRawPointerValue(reinterpret_cast<intptr_t>(peer));
-      WriteRawPointerValue(reinterpret_cast<intptr_t>(callback));
+      WriteRawPointerValue(reinterpret_cast<void*>(data));
+      WriteRawPointerValue(peer);
+      WriteRawPointerValue(reinterpret_cast<void*>(callback));
       break;
     }
     case Dart_CObject_kSendPort: {
