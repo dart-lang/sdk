@@ -405,3 +405,6 @@ assertion_initializer_const_error2_test/cc10: Pass # Issue #31321
 assertion_initializer_const_error2_test/cc11: Pass # Issue #31321
 assertion_initializer_const_error2_test/none: Pass
 
+[ $compiler == dart2analyzer && $runtime == none && !$checked ]
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
