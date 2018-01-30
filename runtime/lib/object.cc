@@ -483,6 +483,9 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const intptr_t len = type_arguments.Length();
+  if (len == 0) {
+    return Array::empty_array().raw();
+  }
   ASSERT(len > 0);
   const Array& type_list = Array::Handle(zone, Array::New(len));
   TypeArguments& type_list_type_args =
