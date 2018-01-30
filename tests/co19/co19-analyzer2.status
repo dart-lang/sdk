@@ -17,6 +17,7 @@ Language/Enums/syntax_t09: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Assignment/super_assignment_static_warning_t03: StaticWarning # Issue 15467
 Language/Expressions/Constants/exception_t01: Fail, OK # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/Expressions/Constants/exception_t02: Fail, OK # co19 issue #438, Static variables are initialized lazily, need not be constants
+Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t17: MissingCompileTimeError # Please triage this failure
