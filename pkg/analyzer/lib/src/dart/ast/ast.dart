@@ -6367,7 +6367,9 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
  * An instance creation expression.
  *
  *    newExpression ::=
- *        ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+ *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+ *
+ * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
@@ -6433,8 +6435,23 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _argumentList.endToken;
 
+  /**
+   * Return `true` if this is an implicit constructor invocations.
+   *
+   * This can only be `true` when the previewDart2 option is enabled.
+   */
+  bool get isImplicit => keyword == null;
+
   @override
-  bool get isConst => keyword?.keyword == Keyword.CONST;
+  bool get isConst {
+    if (!isImplicit) {
+      return keyword.keyword == Keyword.CONST;
+    } else {
+      // TODO(brianwilkerson/jwren) compute if this InstanceCreationExpression
+      // is in a const context
+      return false;
+    }
+  }
 
   @override
   int get precedence => 16;

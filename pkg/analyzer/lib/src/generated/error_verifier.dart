@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -3270,10 +3271,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if (expression.isConst) {
+        bool isImplicit =
+            (expression as InstanceCreationExpressionImpl).isImplicit;
+        if (!isImplicit) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
+              expression.isConst
+                  ? StaticWarningCode.CONST_WITH_ABSTRACT_CLASS
+                  : StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
+              typeName);
         } else {
+          // TODO(brianwilkerson/jwren) Create a new different StaticWarningCode
+          // which does not call out the new keyword so explicitly.
           _errorReporter.reportErrorForNode(
               StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
         }

@@ -450,8 +450,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return node.constKeyword != null;
     }
     if (node is InstanceCreationExpression) {
-      InstanceCreationExpression creation = node;
-      return creation.isConst;
+      return node.isConst;
     }
     if (node is ArgumentList ||
         node is ConditionalExpression ||
