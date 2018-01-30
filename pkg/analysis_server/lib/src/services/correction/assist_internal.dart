@@ -683,26 +683,14 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    TypeAnnotation returnType;
     AstNode parent = body.parent;
     if (parent is ConstructorDeclaration) {
       return;
     }
-    if (parent is FunctionExpression) {
-      AstNode grandParent = parent.parent;
-      if (grandParent is FunctionDeclaration) {
-        returnType = grandParent.returnType;
-      }
-    } else if (parent is MethodDeclaration) {
-      returnType = parent.returnType;
-    }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (returnType != null) {
-        builder.replaceTypeWithFuture(returnType, typeProvider);
-      }
-      builder.addSimpleInsertion(body.offset, 'async ');
+      builder.convertFunctionFromSyncToAsync(body, typeProvider);
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_INTO_ASYNC_BODY);

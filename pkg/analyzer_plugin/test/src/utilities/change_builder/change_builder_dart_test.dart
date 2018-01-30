@@ -1350,7 +1350,27 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     return new TestTypeProvider(context);
   }
 
-  test_convertFunctionFromSyncToAsync() async {
+  test_convertFunctionFromSyncToAsync_closure() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, '''var f = () {}''');
+
+    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    TopLevelVariableDeclaration variable = unit.declarations[0];
+    FunctionBody body =
+        (variable.variables.variables[0].initializer as FunctionExpression)
+            .body;
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      (builder as DartFileEditBuilder)
+          .convertFunctionFromSyncToAsync(body, typeProvider);
+    });
+    List<SourceEdit> edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
+  }
+
+  test_convertFunctionFromSyncToAsync_topLevelFunction() async {
     String path = provider.convertPath('/test.dart');
     addSource(path, 'String f() {}');
 

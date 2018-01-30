@@ -1348,6 +1348,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (node is FunctionDeclaration) {
         replaceTypeWithFuture(node.returnType, typeProvider);
         return;
+      } else if (node is FunctionExpression &&
+          node.parent is! FunctionDeclaration) {
+        // Closures don't have a return type.
+        return;
       } else if (node is MethodDeclaration) {
         replaceTypeWithFuture(node.returnType, typeProvider);
         return;
