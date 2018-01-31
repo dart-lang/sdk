@@ -16,8 +16,10 @@ Language/Enums/syntax_t08: MissingCompileTimeError # Please triage this failure.
 Language/Enums/syntax_t09: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Assignment/super_assignment_static_warning_t03: StaticWarning # Issue 15467
 Language/Expressions/Constants/exception_t01: Fail, OK # co19 issue #438, Static variables are initialized lazily, need not be constants
-Language/Expressions/Constants/exception_t02: Fail, OK # co19 issue #438, Static variables are initialized lazily, need not be constants
+Language/Expressions/Constants/literal_number_t01: CompileTimeError # int64
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t01: CompileTimeError # int64
+Language/Expressions/Constants/math_operators_t06: CompileTimeError # int64
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t17: MissingCompileTimeError # Please triage this failure
@@ -47,6 +49,10 @@ Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocat
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t03: StaticWarning # Please triage this failure.
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t04: StaticWarning # Please triage this failure.
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t05: StaticWarning # Please triage this failure.
+Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError # int64
+Language/Expressions/Numbers/syntax_t06: CompileTimeError # int64
+Language/Expressions/Numbers/syntax_t09: CompileTimeError # int64
+Language/Expressions/Numbers/syntax_t10: CompileTimeError # int64
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
@@ -176,8 +182,8 @@ LayoutTests/fast/events/initkeyboardevent-crash_t01: StaticWarning # Please tria
 LayoutTests/fast/html/article-element_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/aside-element_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/html/imports/import-events_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/imports/import-events_t01: CompileTimeError # Please triage this failure.
+LayoutTests/fast/html/imports/import-events_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/select-dropdown-consistent-background-color_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/text-field-input-types_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/inline/boundingBox-with-continuation_t01: StaticWarning # Please triage this failure.
@@ -220,7 +226,52 @@ LibTest/collection/SetMixin/SetMixin_class_A01_t01: StaticWarning # Please triag
 LibTest/collection/SplayTreeMap/inherited_tests_A01_t01: StaticWarning # Please triage this failure.
 LibTest/collection/SplayTreeSet/SplayTreeSet_class_A01_t01: StaticWarning # Please triage this failure.
 LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: StaticWarning # Please triage this failure
+LibTest/core/Duration/Duration_A02_t01: CompileTimeError # int64
 LibTest/core/Set/IterableBase_A01_t01: StaticWarning # Imports libraries with static warnings
+LibTest/core/double/isInfinite_A01_t03: CompileTimeError # int64
+LibTest/core/double/toStringAsExponential_A02_t01: CompileTimeError # int64
+LibTest/core/int/abs_A01_t01: CompileTimeError # int64
+LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError # int64
+LibTest/core/int/ceil_A01_t01: CompileTimeError # int64
+LibTest/core/int/compareTo_A01_t01: CompileTimeError # int64
+LibTest/core/int/floorToDouble_A01_t01: CompileTimeError # int64
+LibTest/core/int/floor_A01_t01: CompileTimeError # int64
+LibTest/core/int/isEven_A01_t01: CompileTimeError # int64
+LibTest/core/int/isInfinite_A01_t01: CompileTimeError # int64
+LibTest/core/int/isNaN_A01_t01: CompileTimeError # int64
+LibTest/core/int/isNegative_A01_t01: CompileTimeError # int64
+LibTest/core/int/isOdd_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_AND_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_GE_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_GT_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_LE_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_LT_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_NOT_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_OR_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_XOR_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_addition_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_division_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_left_shift_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_multiplication_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_remainder_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_remainder_A01_t02: CompileTimeError # int64
+LibTest/core/int/operator_right_shift_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_subtraction_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_truncating_division_A01_t01: CompileTimeError # int64
+LibTest/core/int/operator_truncating_division_A01_t02: CompileTimeError # int64
+LibTest/core/int/operator_unary_minus_A01_t01: CompileTimeError # int64
+LibTest/core/int/parse_A01_t01: CompileTimeError # int64
+LibTest/core/int/remainder_A01_t01: CompileTimeError # int64
+LibTest/core/int/remainder_A01_t02: CompileTimeError # int64
+LibTest/core/int/roundToDouble_A01_t01: CompileTimeError # int64
+LibTest/core/int/round_A01_t01: CompileTimeError # int64
+LibTest/core/int/toDouble_A01_t01: CompileTimeError # int64
+LibTest/core/int/toInt_A01_t01: CompileTimeError # int64
+LibTest/core/int/toStringAsExponential_A02_t01: CompileTimeError # int64
+LibTest/core/int/toStringAsFixed_A02_t01: CompileTimeError # int64
+LibTest/core/int/toStringAsPrecision_A01_t02: CompileTimeError # int64
+LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError # int64
+LibTest/core/int/truncate_A01_t01: CompileTimeError # int64
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: StaticWarning # Please triage this failure.
 LibTest/html/Document/adoptNode_A01_t01: StaticWarning # Please triage this failure.
 LibTest/html/Document/childNodes_A01_t01: StaticWarning # Please triage this failure.
@@ -281,12 +332,19 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Please triage this failure.
 LibTest/math/Point/operator_addition_A02_t01: StaticWarning # Please triage this failure.
 LibTest/math/Point/operator_mult_A03_t01: StaticWarning # Please triage this failure.
 LibTest/math/Point/operator_subtraction_A02_t01: StaticWarning # Please triage this failure.
+LibTest/math/pow_A10_t01: CompileTimeError # int64
+LibTest/typed_data/ByteData/getUint64_A01_t01: CompileTimeError # int64
+LibTest/typed_data/ByteData/setUint64_A01_t01: CompileTimeError # int64
 LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t01: CompileTimeError # int64
+LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError # int64
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError # int64
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError # int64
 WebPlatformTest/DOMEvents/approved/Event.bubbles.false_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/custom-elements/*: Pass, StaticWarning # Issue 18095.
