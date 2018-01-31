@@ -67,36 +67,6 @@ main() {
         equals(new NullableType(new ConeType(t2Raw))));
   });
 
-  test('static-type', () {
-    InterfaceType classType = new InterfaceType(new Class(name: 'C'));
-    FunctionType funcType = new FunctionType([], const VoidType());
-
-    // [T, T.staticType]
-    final testCases = [
-      [new Type.cone(classType), classType],
-      [new Type.cone(funcType), const DynamicType()],
-      [new Type.concrete(classType), classType],
-      [new AnyType(), const DynamicType()],
-      [new Type.nullable(new Type.empty()), const BottomType()],
-      [new Type.nullable(new Type.cone(classType)), classType],
-      [new Type.nullable(new Type.concrete(classType)), classType],
-      [new Type.nullable(new AnyType()), const DynamicType()],
-      [new Type.fromStatic(const DynamicType()), const DynamicType()],
-      [new Type.fromStatic(const BottomType()), const BottomType()],
-      [new Type.fromStatic(classType), classType],
-      [new Type.fromStatic(funcType), const DynamicType()],
-    ];
-
-    for (List testCase in testCases) {
-      Type type = testCase[0] as Type;
-      DartType staticType = testCase[1] as DartType;
-
-      expect(type.staticType, equals(staticType),
-          reason:
-              "Test case: ${type}.staticType is expected to be $staticType");
-    }
-  });
-
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 

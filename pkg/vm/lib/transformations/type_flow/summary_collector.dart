@@ -417,9 +417,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args) {
-    DartType staticType =
-        (node is Expression) ? node.getStaticType(_environment) : null;
-    Call call = new Call(selector, args, staticType);
+    Call call = new Call(selector, args);
     _summary.add(call);
     callSites[node] = call;
     return call;
