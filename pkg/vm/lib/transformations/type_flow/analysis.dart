@@ -255,7 +255,7 @@ class _DispatchableInvocation extends _Invocation {
 
     // Collect all possible targets for this invocation,
     // along with more accurate receiver types for each target.
-    final targets = <Member, Type>{};
+    final targets = <Member, _ReceiverTypeBuilder>{};
     _collectTargetsForReceiverType(args.receiver, targets, typeFlowAnalysis);
 
     // Calculate result as a union of results of direct invocations
@@ -276,7 +276,9 @@ class _DispatchableInvocation extends _Invocation {
         _setPolymorphic();
       }
 
-      targets.forEach((Member target, Type receiver) {
+      targets
+          .forEach((Member target, _ReceiverTypeBuilder receiverTypeBuilder) {
+        Type receiver = receiverTypeBuilder.toType();
         Type type;
 
         if (target == kNoSuchMethodMarker) {
@@ -313,12 +315,14 @@ class _DispatchableInvocation extends _Invocation {
     return result;
   }
 
-  void _collectTargetsForReceiverType(Type receiver, Map<Member, Type> targets,
+  void _collectTargetsForReceiverType(
+      Type receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
     assertx(receiver != const EmptyType()); // should be filtered earlier
 
-    if (receiver is NullableType) {
-      _collectTargetsForNull(targets, typeFlowAnalysis);
+    final bool isNullableReceiver = receiver is NullableType;
+    if (isNullableReceiver) {
       receiver = (receiver as NullableType).baseType;
       assertx(receiver is! NullableType);
     }
@@ -330,7 +334,9 @@ class _DispatchableInvocation extends _Invocation {
           staticReceiverType, typeFlowAnalysis.hierarchyCache);
       assertx(receiver is! NullableType);
 
-      tracePrint("Narrowed down receiver type: $receiver");
+      if (kPrintTrace) {
+        tracePrint("Narrowed down receiver type: $receiver");
+      }
     }
 
     if (receiver is ConeType) {
@@ -340,6 +346,8 @@ class _DispatchableInvocation extends _Invocation {
       receiver = typeFlowAnalysis.hierarchyCache
           .specializeTypeCone((receiver as ConeType).dartType);
     }
+
+    assertx(targets.isEmpty);
 
     if (receiver is ConcreteType) {
       _collectTargetsForConcreteType(receiver, targets, typeFlowAnalysis);
@@ -352,25 +360,32 @@ class _DispatchableInvocation extends _Invocation {
     } else {
       assertx(receiver is EmptyType);
     }
+
+    if (isNullableReceiver) {
+      _collectTargetsForNull(targets, typeFlowAnalysis);
+    }
   }
 
   // TODO(alexmarkov): Consider caching targets for Null type.
-  void _collectTargetsForNull(
-      Map<Member, Type> targets, TypeFlowAnalysis typeFlowAnalysis) {
+  void _collectTargetsForNull(Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
     Class nullClass = typeFlowAnalysis.environment.coreTypes.nullClass;
 
     Member target = typeFlowAnalysis.hierarchyCache.hierarchy
         .getDispatchTarget(nullClass, selector.name, setter: selector.isSetter);
 
     if (target != null) {
-      tracePrint("Found $target for null receiver");
-      _addTarget(targets, target, new Type.nullable(const EmptyType()),
-          typeFlowAnalysis);
+      if (kPrintTrace) {
+        tracePrint("Found $target for null receiver");
+      }
+      _getReceiverTypeBuilder(targets, target).addNull();
     }
   }
 
-  void _collectTargetsForConcreteType(ConcreteType receiver,
-      Map<Member, Type> targets, TypeFlowAnalysis typeFlowAnalysis) {
+  void _collectTargetsForConcreteType(
+      ConcreteType receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
     DartType receiverDartType = receiver.dartType;
 
     assertx(receiverDartType is! FunctionType);
@@ -382,20 +397,27 @@ class _DispatchableInvocation extends _Invocation {
         .getDispatchTarget(class_, selector.name, setter: selector.isSetter);
 
     if (target != null) {
-      tracePrint("Found $target for concrete receiver $receiver");
-      _addTarget(targets, target, receiver, typeFlowAnalysis);
+      if (kPrintTrace) {
+        tracePrint("Found $target for concrete receiver $receiver");
+      }
+      _getReceiverTypeBuilder(targets, target).addConcreteType(receiver);
     } else {
       if (typeFlowAnalysis.hierarchyCache.hasNonTrivialNoSuchMethod(class_)) {
-        tracePrint("Found non-trivial noSuchMethod for receiver $receiver");
-        _addTarget(targets, kNoSuchMethodMarker, receiver, typeFlowAnalysis);
+        if (kPrintTrace) {
+          tracePrint("Found non-trivial noSuchMethod for receiver $receiver");
+        }
+        _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
+            .addConcreteType(receiver);
       } else {
-        tracePrint("Target is not found for receiver $receiver");
+        if (kPrintTrace) {
+          tracePrint("Target is not found for receiver $receiver");
+        }
       }
     }
   }
 
-  void _collectTargetsForSelector(
-      Map<Member, Type> targets, TypeFlowAnalysis typeFlowAnalysis) {
+  void _collectTargetsForSelector(Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
     Selector selector = this.selector;
     if (selector is InterfaceSelector) {
       // TODO(alexmarkov): support generic types and make sure inferred types
@@ -411,25 +433,21 @@ class _DispatchableInvocation extends _Invocation {
 
     dynamicTargetSet.addDependentInvocation(this);
 
+    assertx(targets.isEmpty);
     for (Member target in dynamicTargetSet.targets) {
-      _addTarget(targets, target, receiver, typeFlowAnalysis);
+      _getReceiverTypeBuilder(targets, target).addType(receiver);
     }
 
     // Conservatively include noSuchMethod if selector is not from Object,
     // as class might miss the implementation.
     if (!dynamicTargetSet.isObjectMember) {
-      _addTarget(targets, kNoSuchMethodMarker, receiver, typeFlowAnalysis);
+      _getReceiverTypeBuilder(targets, kNoSuchMethodMarker).addType(receiver);
     }
   }
 
-  void _addTarget(Map<Member, Type> targets, Member member, Type receiver,
-      TypeFlowAnalysis typeFlowAnalysis) {
-    Type oldReceiver = targets[member];
-    if (oldReceiver != null) {
-      receiver = receiver.union(oldReceiver, typeFlowAnalysis.hierarchyCache);
-    }
-    targets[member] = receiver;
-  }
+  _ReceiverTypeBuilder _getReceiverTypeBuilder(
+          Map<Member, _ReceiverTypeBuilder> targets, Member member) =>
+      targets[member] ??= new _ReceiverTypeBuilder();
 
   void _setPolymorphic() {
     if (!_isPolymorphic) {
@@ -482,6 +500,72 @@ class _DispatchableInvocation extends _Invocation {
     if (_callSites != null) {
       _callSites.forEach(_notifyCallSite);
     }
+  }
+}
+
+/// Efficient builder of receiver type.
+///
+/// Supports the following operations:
+/// 1) Add 1..N concrete types OR add 1 arbitrary type.
+/// 2) Make type nullable.
+class _ReceiverTypeBuilder {
+  Type _type;
+  Set<ConcreteType> _set;
+  bool _nullable = false;
+
+  /// Appends a ConcreteType. May be called multiple times.
+  /// Should not be used in conjunction with [addType].
+  void addConcreteType(ConcreteType type) {
+    if (_set == null) {
+      if (_type == null) {
+        _type = type;
+        return;
+      }
+
+      assertx(_type is ConcreteType);
+      assertx(_type != type);
+
+      _set = new Set<ConcreteType>();
+      _set.add(_type);
+
+      _type = null;
+    }
+
+    _set.add(type);
+  }
+
+  /// Appends an arbitrary Type. May be called only once.
+  /// Should not be used in conjunction with [addConcreteType].
+  void addType(Type type) {
+    assertx(_type == null && _set == null);
+    _type = type;
+  }
+
+  /// Makes the resulting type nullable.
+  void addNull() {
+    _nullable = true;
+  }
+
+  /// Returns union of added types.
+  Type toType() {
+    Type t = _type;
+    if (t == null) {
+      if (_set == null) {
+        t = const EmptyType();
+      } else {
+        t = new SetType(_set);
+      }
+    } else {
+      assertx(_set == null);
+    }
+
+    if (_nullable) {
+      if (t is! NullableType) {
+        t = new NullableType(t);
+      }
+    }
+
+    return t;
   }
 }
 

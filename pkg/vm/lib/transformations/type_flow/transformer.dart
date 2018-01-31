@@ -24,6 +24,8 @@ import '../../metadata/inferred_type.dart';
 
 const bool kDumpAllSummaries =
     const bool.fromEnvironment('global.type.flow.dump.all.summaries');
+const bool kDumpClassHierarchy =
+    const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
@@ -57,6 +59,10 @@ Program transformProgram(CoreTypes coreTypes, Program program,
   typeFlowAnalysis.process();
 
   analysisStopWatch.stop();
+
+  if (kDumpClassHierarchy) {
+    debugPrint(typeFlowAnalysis.hierarchyCache);
+  }
 
   final transformsStopWatch = new Stopwatch()..start();
 
