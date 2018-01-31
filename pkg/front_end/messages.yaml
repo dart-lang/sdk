@@ -1398,7 +1398,7 @@ FactoryTopLevelDeclaration:
   template: "Top-level declarations can't be declared to be 'factory'."
   tip: "Try removing the keyword 'factory'."
   analyzerCode: FACTORY_TOP_LEVEL_DECLARATION
-  dart2jsCode: "*ignored*"
+  dart2jsCode: "*fatal*"
   script:
     - "factory class C {}"
 
@@ -1414,7 +1414,7 @@ TopLevelOperator:
   template: "Operators must be declared within a class."
   tip: "Try removing the operator, moving it to a class, or converting it to be a function."
   analyzerCode: TOP_LEVEL_OPERATOR
-  dart2jsCode: "*ignored*"
+  dart2jsCode: "*fatal*"
   script:
     - "operator +(bool x, bool y) => x | y;"
     - "bool operator +(bool x, bool y) => x | y;"

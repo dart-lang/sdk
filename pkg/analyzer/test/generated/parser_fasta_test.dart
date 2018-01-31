@@ -1381,17 +1381,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_typedef_namedFunction() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
-    // 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_EXECUTABLE, found 0
-    super.test_typedef_namedFunction();
-  }
-
-  @override
-  @failingTest
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0

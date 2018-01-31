@@ -1805,7 +1805,7 @@ const Code<Null> codeFactoryTopLevelDeclaration =
 const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
     "FactoryTopLevelDeclaration",
     analyzerCode: "FACTORY_TOP_LEVEL_DECLARATION",
-    dart2jsCode: "*ignored*",
+    dart2jsCode: "*fatal*",
     message: r"""Top-level declarations can't be declared to be 'factory'.""",
     tip: r"""Try removing the keyword 'factory'.""");
 
@@ -4690,7 +4690,7 @@ const Code<Null> codeTopLevelOperator = messageTopLevelOperator;
 const MessageCode messageTopLevelOperator = const MessageCode(
     "TopLevelOperator",
     analyzerCode: "TOP_LEVEL_OPERATOR",
-    dart2jsCode: "*ignored*",
+    dart2jsCode: "*fatal*",
     message: r"""Operators must be declared within a class.""",
     tip:
         r"""Try removing the operator, moving it to a class, or converting it to be a function.""");

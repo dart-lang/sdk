@@ -1307,6 +1307,151 @@ class Parser {
     return token;
   }
 
+  /// Skip over the `Function` type parameter.
+  /// For example, `Function<E>(int foo)` or `Function(foo)` or just `Function`.
+  Token skipGenericFunctionType(Token token) {
+    assert(optional('Function', token));
+    while (true) {
+      Token next = token.next;
+      if (optional('<', next)) {
+        next = next.endGroup;
+        if (next == null) {
+          // TODO(danrubel): Consider better recovery
+          // because this is probably a type reference.
+          return token;
+        }
+        token = next;
+        next = token.next;
+      }
+      if (optional('(', next)) {
+        token = next.endGroup;
+        next = token.next;
+      }
+      if (optional('Function', next)) {
+        token = next;
+      } else {
+        return token;
+      }
+    }
+  }
+
+  /// If the token after [token] begins a valid type reference
+  /// or looks like a valid type reference, then return the last token
+  /// in that type reference, otherwise return [token].
+  ///
+  /// For example, it is an error when built-in keyword is being used as a type,
+  /// as in `abstract<t> foo`. In situations such as this, return the last
+  /// token in that type reference and assume the caller will report the error
+  /// and recover.
+  Token skipTypeReferenceOpt(Token token) {
+    final Token beforeStart = token;
+    token = token.next;
+    TokenType type = token.type;
+    bool looksLikeTypeRef = false;
+    if (type != TokenType.IDENTIFIER) {
+      String value = token.stringValue;
+      if (identical(value, 'get') || identical(value, 'set')) {
+        // No type reference.
+        return beforeStart;
+      } else if (identical(value, 'factory') || identical(value, 'operator')) {
+        Token next = token.next;
+        if (!optional('<', next) || next.endGroup == null) {
+          // No type reference.
+          return beforeStart;
+        }
+        // Even though built-ins cannot be used as a type,
+        // it looks like its being used as such.
+        looksLikeTypeRef = true;
+      } else if (identical(value, 'void')) {
+        // Found type reference.
+        looksLikeTypeRef = true;
+      } else if (identical(value, 'Function')) {
+        // Found type reference.
+        return skipGenericFunctionType(token);
+      } else if (identical(value, 'typedef')) {
+        // `typedef` can be used as a prefix.
+        // For example: `typedef.A x = new typedef.A();`
+        if (!optional('.', token.next)) {
+          // No type reference.
+          return beforeStart;
+        }
+      } else if (!token.isIdentifier) {
+        // No type reference.
+        return beforeStart;
+      }
+    }
+
+    Token next = token.next;
+    if (optional('.', next)) {
+      token = next;
+      next = token.next;
+      if (next.type != TokenType.IDENTIFIER) {
+        String value = next.stringValue;
+        if (identical(value, 'get') || identical(value, 'set')) {
+          // Found a type reference, but missing an identifier after the period.
+          rewriteAndRecover(
+              token,
+              fasta.templateExpectedIdentifier.withArguments(next),
+              new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', next.charOffset, 0));
+          // Return the newly inserted synthetic token
+          // as the end of the type reference.
+          return token.next;
+        } else if (identical(value, '<') || identical(value, 'Function')) {
+          // Found a type reference, but missing an identifier after the period.
+          rewriteAndRecover(
+              token,
+              fasta.templateExpectedIdentifier.withArguments(next),
+              new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', next.charOffset, 0));
+          // Fall through to continue processing as a type reference.
+          next = token.next;
+        } else if (!next.isIdentifier) {
+          if (identical(value, 'void')) {
+            looksLikeTypeRef = true;
+            // Found a type reference, but the period
+            // and preceding identifier are both invalid.
+            reportRecoverableErrorWithToken(
+                token, fasta.templateUnexpectedToken);
+            // Fall through to continue processing as a type reference.
+          } else {
+            // No type reference.
+            return beforeStart;
+          }
+        }
+      }
+      token = next;
+      next = token.next;
+    }
+
+    if (optional('<', next)) {
+      looksLikeTypeRef = true;
+      token = next.endGroup;
+      if (token == null) {
+        // TODO(danrubel): Consider better recovery
+        // because this is probably a type reference.
+        return beforeStart;
+      }
+      next = token.next;
+      if (optional('(', next)) {
+        // No type reference - e.g. `f<E>()`.
+        return beforeStart;
+      }
+    }
+
+    if (optional('Function', next)) {
+      looksLikeTypeRef = true;
+      token = skipGenericFunctionType(next);
+      next = token.next;
+    }
+
+    return next.isIdentifier ||
+            (next.isOperator && !optional('=', next)) ||
+            looksLikeTypeRef
+        ? token
+        : beforeStart;
+  }
+
   bool isValidTypeReference(Token token) {
     int kind = token.kind;
     if (IDENTIFIER_TOKEN == kind) return true;
@@ -2795,183 +2940,128 @@ class Parser {
     }
     typeContinuation ??= TypeContinuation.Required;
 
-    Link<Token> identifiers = findMemberName(token);
-    if (identifiers.isEmpty) {
-      // Recovery
-      if ((varFinalOrConst != null) &&
-          isPostIdentifierForRecovery(
-              next.next, IdentifierContext.topLevelVariableDeclaration)) {
-        // Looks like a top level variable declaration
-        // but missing a variable name.
-        return parseFields(
-            beforeStart,
-            externalToken,
-            null,
-            null,
-            varFinalOrConst,
-            null,
-            token,
-            MemberKind.TopLevelField,
-            typeContinuation);
-      } else if (next.isIdentifier &&
-          isPostIdentifierForRecovery(
-              next.next, IdentifierContext.topLevelVariableDeclaration)) {
-        // Looks like a top level variable declaration
-        // but missing a variable name.
-        return parseFields(
-            beforeStart,
-            externalToken,
-            null,
-            null,
-            varFinalOrConst,
-            null,
-            token,
-            MemberKind.TopLevelField,
-            typeContinuation);
-      } else {
-        return reportInvalidTopLevelDeclaration(beforeStart.next);
-      }
+    Token beforeType = token;
+    // TODO(danrubel): Consider changing the listener contract
+    // so that the type reference can be parsed immediately
+    // rather than skipped now and parsed later.
+    token = skipTypeReferenceOpt(token);
+    if (token == beforeType) {
+      // There is no type reference.
+      beforeType = null;
     }
-    Token afterName = identifiers.head.next;
-    identifiers = identifiers.tail;
+    next = token.next;
 
-    if (identifiers.isEmpty) {
-      return reportInvalidTopLevelDeclaration(beforeStart.next);
-    }
-    Token beforeName = identifiers.head;
-    identifiers = identifiers.tail;
-    if (!beforeName.next.isIdentifier) {
-      // Recovery
-      if (identical(beforeName.stringValue, 'operator')) {
-        // If the token before the invalid name is `operator`
-        // then report the error on the `operator` keyword.
-        reportRecoverableError(beforeName, fasta.messageTopLevelOperator);
-        if (identifiers.isNotEmpty &&
-            identical(identifiers.head.next.stringValue, 'operator')) {
-          identifiers = identifiers.tail;
-        }
-      } else {
-        reportRecoverableErrorWithToken(
-            beforeName.next, fasta.templateUnexpectedToken);
-      }
-      // Insert a synthetic modifier
-      // to be interpreted as the top level function's identifier.
-      beforeName = beforeName.next;
-      rewriter.insertTokenAfter(
-          beforeName,
-          new SyntheticStringToken(
-              TokenType.IDENTIFIER,
-              '#synthetic_function_${beforeName.charOffset}',
-              beforeName.charOffset,
-              0));
-    }
     Token getOrSet;
-    if (!identifiers.isEmpty) {
-      String value = identifiers.head.next.stringValue;
-      if ((identical(value, 'get')) || (identical(value, 'set'))) {
-        getOrSet = identifiers.head.next;
-        identifiers = identifiers.tail;
+    String value = next.stringValue;
+    if (identical(value, 'get') || identical(value, 'set')) {
+      if (next.next.isIdentifier) {
+        getOrSet = token = next;
+        next = token.next;
       }
     }
-    Token beforeType;
-    if (!identifiers.isEmpty) {
-      Token maybeType = identifiers.head.next;
-      if (isValidTypeReference(maybeType)) {
-        beforeType = identifiers.head;
-        identifiers = identifiers.tail;
-      } else if (maybeType.type.isBuiltIn && optional('<', maybeType.next)) {
+
+    if (next.type != TokenType.IDENTIFIER) {
+      value = next.stringValue;
+      if (identical(value, 'factory') || identical(value, 'operator')) {
+        // `factory` and `operator` can be used as an identifier.
+        value = next.next.stringValue;
+        if (getOrSet == null &&
+            !identical(value, '(') &&
+            !identical(value, '{') &&
+            !identical(value, '<') &&
+            !identical(value, '=>') &&
+            !identical(value, '=') &&
+            !identical(value, ';') &&
+            !identical(value, ',')) {
+          // Recovery
+          value = next.stringValue;
+          if (identical(value, 'factory')) {
+            reportRecoverableError(
+                next, fasta.messageFactoryTopLevelDeclaration);
+          } else {
+            reportRecoverableError(next, fasta.messageTopLevelOperator);
+            if (next.next.isOperator) {
+              token = next;
+              next = token.next;
+              if (optional('(', next.next)) {
+                rewriter.insertTokenAfter(
+                    next,
+                    new SyntheticStringToken(
+                        TokenType.IDENTIFIER,
+                        '#synthetic_identifier_${next.charOffset}',
+                        next.charOffset,
+                        0));
+              }
+            }
+          }
+          listener.handleInvalidTopLevelDeclaration(next);
+          return next;
+        }
+        // Fall through and continue parsing
+      } else if (!next.isIdentifier) {
         // Recovery
-        // It is an error when built-in keyword is being used
-        // as a type, as in `abstract<t> foo`.
-        // This error is reported by parseFields and parseTopLevelMethod
-        // via ensureIdentifier.
-        beforeType = identifiers.head;
-        identifiers = identifiers.tail;
-      }
-    }
-
-    // Recovery: Anything left in the identifiers list is unexpected.
-    if (identifiers.isNotEmpty) {
-      identifiers = identifiers.reverse();
-      while (identifiers.isNotEmpty) {
-        Token token = identifiers.head;
-        Token next = token.next;
-        identifiers = identifiers.tail;
-        // If we have find the start of a new top level declaration,
-        // then return to parse that new declaration.
-        if (next.isTopLevelKeyword) {
-          listener.handleInvalidTopLevelDeclaration(token);
-          return token;
-        }
-        // Report errors on any unexpected tokens.
-        String value = next.stringValue;
-        if (identical(value, 'operator')) {
-          reportRecoverableError(next, fasta.messageTopLevelOperator);
-        } else if (identical(value, 'factory')) {
-          reportRecoverableError(next, fasta.messageFactoryTopLevelDeclaration);
+        if (next.isKeyword) {
+          reportRecoverableErrorWithToken(
+              next, fasta.templateExpectedIdentifier);
+          rewriter.insertTokenAfter(
+              next,
+              new SyntheticStringToken(
+                  TokenType.IDENTIFIER,
+                  '#synthetic_identifier_${next.charOffset}',
+                  next.charOffset,
+                  0));
+          token = next;
+          next = token.next;
+        } else if (token == beforeStart) {
+          // Ensure we make progress.
+          return reportInvalidTopLevelDeclaration(next);
         } else {
-          reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+          // Looks like a declaration missing an identifier.
+          // Insert synthetic identifier and fall through.
+          rewriteAndRecover(
+              token,
+              fasta.templateExpectedIdentifier.withArguments(next),
+              new SyntheticStringToken(
+                  TokenType.IDENTIFIER,
+                  '#synthetic_identifier_${next.charOffset}',
+                  next.charOffset,
+                  0));
+          next = token.next;
         }
       }
     }
+    // At this point, `token` is beforeName.
 
-    token = afterName;
-    bool isField;
-    while (true) {
-      // Loop to allow the listener to rewrite the token stream for
-      // error handling.
-      final String value = token.stringValue;
-      if ((identical(value, '(')) ||
-          (identical(value, '{')) ||
-          (identical(value, '=>'))) {
-        isField = false;
-        break;
-      } else if (identical(value, '=') ||
-          identical(value, ',') ||
-          identical(value, '}')) {
-        isField = true;
-        break;
-      } else if (identical(value, ';')) {
-        if (getOrSet != null) {
-          // If we found a "get" keyword, this must be an abstract
-          // getter.
-          isField = (!identical(getOrSet.stringValue, 'get'));
-          // TODO(ahe): This feels like a hack.
-        } else {
-          isField = true;
-        }
-        break;
-      } else {
-        token = reportUnexpectedToken(token);
-        if (identical(token.next.kind, EOF_TOKEN)) return token;
-      }
+    next = next.next;
+    value = next.stringValue;
+    if (identical(value, '<') && next.endGroup != null) {
+      next = next.endGroup.next;
+      value = next.stringValue;
     }
-    if (isField) {
-      if (externalToken != null) {
-        reportRecoverableError(externalToken, fasta.messageExternalField);
-      }
-      if (getOrSet != null) {
-        reportRecoverableErrorWithToken(
-            getOrSet, fasta.templateExtraneousModifier);
-      }
-      return parseFields(
-          beforeStart,
-          externalToken,
-          null,
-          null,
-          varFinalOrConst,
-          beforeType,
-          beforeName,
-          MemberKind.TopLevelField,
-          typeContinuation);
-    } else {
+    if (getOrSet != null ||
+        identical(value, '(') ||
+        identical(value, '{') ||
+        identical(value, '<') ||
+        identical(value, '.') ||
+        identical(value, '=>')) {
       if (varFinalOrConst != null) {
-        reportRecoverableErrorWithToken(
-            varFinalOrConst, fasta.templateExtraneousModifier);
+        if (optional('var', varFinalOrConst)) {
+          reportRecoverableError(varFinalOrConst, fasta.messageVarReturnType);
+        } else {
+          reportRecoverableErrorWithToken(
+              varFinalOrConst, fasta.templateExtraneousModifier);
+        }
       }
       return parseTopLevelMethod(
-          beforeStart, externalToken, beforeType, getOrSet, beforeName);
+          beforeStart, externalToken, beforeType, getOrSet, token);
     }
+
+    if (getOrSet != null) {
+      reportRecoverableErrorWithToken(
+          getOrSet, fasta.templateExtraneousModifier);
+    }
+    return parseFields(beforeStart, externalToken, null, null, varFinalOrConst,
+        beforeType, token, MemberKind.TopLevelField, typeContinuation);
   }
 
   Token parseFields(
