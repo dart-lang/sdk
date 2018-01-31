@@ -12,7 +12,7 @@ class A<T> {
   }
 }
 
-/*class: BB:checks=[BB],implicit=[BB],required*/
+/*class: BB:arg,checked,implicit=[BB]*/
 class BB {}
 
 /*class: B:implicit=[B.T],indirect,needsArgs*/
