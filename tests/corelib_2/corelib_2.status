@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+compare_to2_test: CompileTimeError # invalid test
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
@@ -383,6 +384,7 @@ map_keys2_test: RuntimeError # needs Dart 2 is checks
 iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
+compare_to2_test: CompileTimeError # invalid test
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
