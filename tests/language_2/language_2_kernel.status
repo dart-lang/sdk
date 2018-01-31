@@ -451,8 +451,8 @@ type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
 abstract_getter_test/01: MissingCompileTimeError # Issue 32013.
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32013.
-abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue 32014.
 abstract_syntax_test/00: MissingCompileTimeError # Issue 32013.
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
@@ -1209,8 +1209,8 @@ vm/causal_async_exception_stack_test: RuntimeError
 abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
 abstract_getter_test/01: MissingCompileTimeError # Issue 32013.
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32013.
-abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue 32014.
 abstract_syntax_test/00: MissingCompileTimeError # Issue 32013.
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
