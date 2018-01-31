@@ -1725,8 +1725,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * overriding. The [parameters] is the parameters of the executable element.
    * The [errorNameTarget] is the node to report problems on.
    *
-   * See [StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC],
-   * [CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED],
+   * See [CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED],
    * [CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL],
    * [CompileTimeErrorCode.INVALID_OVERRIDE_NAMED],
    * [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE],
@@ -2092,10 +2091,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     //
     List<ExecutableElement> overriddenExecutables = _inheritanceManager
         .lookupOverrides(_enclosingClass, executableElement.name);
-    if (_checkForInstanceMethodNameCollidesWithSuperclassStatic(
-        executableElement, errorNameTarget)) {
-      return;
-    }
     for (ExecutableElement overriddenElement in overriddenExecutables) {
       if (_checkForAllInvalidOverrideErrorCodes(executableElement,
           overriddenElement, parameters, parameterLocations, errorNameTarget)) {
@@ -4349,81 +4344,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           name,
           [name.name, _getKind(element), element.enclosingElement.name]);
     }
-  }
-
-  /**
-   * Check whether the given [executableElement] collides with the name of a
-   * static method in one of its superclasses, and reports the appropriate
-   * warning if it does. The [errorNameTarget] is the node to report problems
-   * on.
-   *
-   * See [StaticTypeWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC].
-   */
-  bool _checkForInstanceMethodNameCollidesWithSuperclassStatic(
-      ExecutableElement executableElement, SimpleIdentifier errorNameTarget) {
-    String executableElementName = executableElement.name;
-    if (executableElement is! PropertyAccessorElement &&
-        !executableElement.isOperator) {
-      HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      bool executableElementPrivate =
-          Identifier.isPrivateName(executableElementName);
-      while (superclassElement != null &&
-          !visitedClasses.contains(superclassElement)) {
-        visitedClasses.add(superclassElement);
-        LibraryElement superclassLibrary = superclassElement.library;
-        // Check fields.
-        FieldElement fieldElt =
-            superclassElement.getField(executableElementName);
-        if (fieldElt != null) {
-          // Ignore if private in a different library - cannot collide.
-          if (executableElementPrivate &&
-              _currentLibrary != superclassLibrary) {
-            continue;
-          }
-          // instance vs. static
-          if (fieldElt.isStatic) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode
-                    .INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                errorNameTarget,
-                [executableElementName, fieldElt.enclosingElement.displayName]);
-            return true;
-          }
-        }
-        // Check methods.
-        List<MethodElement> methodElements = superclassElement.methods;
-        int length = methodElements.length;
-        for (int i = 0; i < length; i++) {
-          MethodElement methodElement = methodElements[i];
-          // We need the same name.
-          if (methodElement.name != executableElementName) {
-            continue;
-          }
-          // Ignore if private in a different library - cannot collide.
-          if (executableElementPrivate &&
-              _currentLibrary != superclassLibrary) {
-            continue;
-          }
-          // instance vs. static
-          if (methodElement.isStatic) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode
-                    .INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                errorNameTarget,
-                [
-                  executableElementName,
-                  methodElement.enclosingElement.displayName
-                ]);
-            return true;
-          }
-        }
-        superclassType = superclassElement.supertype;
-        superclassElement = superclassType?.element;
-      }
-    }
-    return false;
   }
 
   /**

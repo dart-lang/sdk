@@ -3810,22 +3810,6 @@ class StaticWarningCode extends ErrorCode {
           "inconsistency.");
 
   /**
-   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
-   * an instance method named <i>n</i> and an accessible static member named
-   * <i>n</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the member with the name conflict
-   * 1: the name of the enclosing class that has the static member
-   */
-  static const StaticWarningCode
-      INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC =
-      const StaticWarningCode(
-          'INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC',
-          "'{0}' collides with a static member in the superclass '{1}'.",
-          "Try renaming either the method or the inherited member.");
-
-  /**
    * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a
    * getter <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of
    * <i>m2</i>.

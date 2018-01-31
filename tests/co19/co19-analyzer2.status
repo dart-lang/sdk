@@ -3,12 +3,25 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t01: MissingStaticWarning # test is out of date
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t02: MissingStaticWarning # test is out of date
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t04: MissingStaticWarning # test is out of date
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t05: MissingStaticWarning # test is out of date
+Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t06: MissingStaticWarning # test is out of date
 Language/Classes/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
 Language/Classes/Getters/static_getter_t02: CompileTimeError # Issue 24534
 Language/Classes/Getters/static_t01: StaticWarning # Please triage this failure.
 Language/Classes/Getters/void_return_type_t01: MissingStaticWarning # Issue co19/30264
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: MissingStaticWarning # test is out of date
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t02: MissingStaticWarning # test is out of date
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t04: MissingStaticWarning # test is out of date
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: MissingStaticWarning # test is out of date
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: MissingStaticWarning # test is out of date
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: MissingStaticWarning # test is out of date
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: MissingStaticWarning # test is out of date
 Language/Classes/Instance_Variables/definition_t03: StaticWarning # Please triage this failure.
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: MissingStaticWarning # Issue 23749
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t02: MissingStaticWarning # test is out of date
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: MissingStaticWarning # TBF: Static members should not be accessible via subclasses.
 Language/Classes/definition_t23: CompileTimeError # This seems correct, need to adjust test.
 Language/Classes/method_definition_t06: MissingStaticWarning # Please triage this failure.
