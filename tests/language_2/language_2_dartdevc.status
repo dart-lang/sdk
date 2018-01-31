@@ -833,7 +833,6 @@ expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 final_field_initialization_order_test: RuntimeError # Issue 31058
 forwarding_stub_tearoff_generic_test: RuntimeError
-fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 implicit_downcast_during_compound_assignment_test: RuntimeError
@@ -867,31 +866,8 @@ truncdiv_test: RuntimeError # Issue 29920
 [ $compiler == dartdevk && $runtime != none ]
 conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
-function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
-function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure5a_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure6_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
-function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_checked0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_subtype_local1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
-function_subtype_local2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_local5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_not0_test: RuntimeError # Expect.isFalse(true) fails.
-function_subtype_not2_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_not3_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_simple1_test: RuntimeError # Expect.isTrue(false) fails.
-function_subtype_top_level1_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_typearg5_test: RuntimeError # ReferenceError: JSArrayOfXAndXToX is not defined
-function_type_alias2_test: RuntimeError # Expect.isTrue(false) fails.
-function_type_alias3_test: RuntimeError # TypeError: library11.Library111$ is not a function
-function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
-function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
-generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
-generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError

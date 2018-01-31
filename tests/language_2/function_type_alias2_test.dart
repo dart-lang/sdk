@@ -21,16 +21,16 @@ int baz([int a, int b, int c]) {}
 int bar({int a, int b, int c}) {}
 
 main() {
-  Expect.isTrue(baz is f1);
+  Expect.isFalse(baz is f1);
   Expect.isFalse(baz is f3);
   Expect.isFalse(bar is f1);
-  Expect.isTrue(bar is f3);
-  Expect.isTrue(baz is f1);
+  Expect.isFalse(bar is f3);
+  Expect.isFalse(baz is f1);
   Expect.isTrue(baz is f1<int>);
   Expect.isTrue(bar is f3<int>);
   Expect.isFalse(baz is f1<double>);
   Expect.isFalse(bar is f3<double>);
-  Expect.isTrue(baz is f2);
+  Expect.isFalse(baz is f2);
   Expect.isFalse(bar is f4);
   Expect.isTrue(baz is f2<int>);
   Expect.isFalse(bar is f2<int>);

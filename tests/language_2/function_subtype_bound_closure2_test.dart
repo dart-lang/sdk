@@ -36,5 +36,6 @@ class C<T> {
 main() {
   new C<bool>().test('bool', true);
   new C<int>().test('int', false);
-  new C().test('dynamic', true);
+  new C<Object>().test('Object', false);
+  new C<dynamic>().test('dynamic', false);
 }

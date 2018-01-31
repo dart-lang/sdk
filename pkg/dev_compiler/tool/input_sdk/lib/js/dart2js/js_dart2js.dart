@@ -89,7 +89,6 @@ library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
 
-import 'dart:_interceptors' as _interceptors show JSArray;
 import 'dart:_js_helper' show Primitives;
 import 'dart:_foreign_helper' show JS;
 

@@ -2142,8 +2142,7 @@ class CodeGenerator extends Object
           var type = _emitAnnotatedFunctionType(
               reifiedType, annotationNode?.metadata,
               parameters: annotationNode?.parameters?.parameters,
-              nameType: false,
-              definite: true);
+              nameType: false);
           var property = new JS.Property(_declareMemberName(method), type);
           if (method.isStatic) {
             staticMethods.add(property);
@@ -2205,8 +2204,7 @@ class CodeGenerator extends Object
           var type = _emitAnnotatedFunctionType(
               reifiedType, annotationNode?.metadata,
               parameters: annotationNode?.parameters?.parameters,
-              nameType: false,
-              definite: true);
+              nameType: false);
 
           var property = new JS.Property(_declareMemberName(accessor), type);
           if (isStatic) {
@@ -2262,8 +2260,7 @@ class CodeGenerator extends Object
           var type = _emitAnnotatedFunctionType(
               ctor.type, annotationNode?.metadata,
               parameters: annotationNode?.parameters?.parameters,
-              nameType: false,
-              definite: true);
+              nameType: false);
           constructors.add(new JS.Property(memberName, type));
         }
       }
@@ -2743,12 +2740,8 @@ class CodeGenerator extends Object
   JS.Expression _emitFunctionTagged(JS.Expression fn, DartType type,
       {topLevel: false}) {
     var lazy = topLevel && !_typeIsLoaded(type);
-    var typeRep = _emitFunctionType(type, definite: true);
-    if (lazy) {
-      return _callHelper('lazyFn(#, () => #)', [fn, typeRep]);
-    } else {
-      return _callHelper('fn(#, #)', [fn, typeRep]);
-    }
+    var typeRep = _emitFunctionType(type);
+    return _callHelper(lazy ? 'lazyFn(#, () => #)' : 'fn(#, #)', [fn, typeRep]);
   }
 
   /// Emits an arrow FunctionExpression node.
@@ -3210,9 +3203,7 @@ class CodeGenerator extends Object
   /// Emit the pieces of a function type, as an array of return type,
   /// regular args, and optional/named args.
   JS.Expression _emitFunctionType(FunctionType type,
-      {List<FormalParameter> parameters,
-      bool nameType: true,
-      definite: false}) {
+      {List<FormalParameter> parameters, bool nameType: true}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
@@ -3251,27 +3242,25 @@ class CodeGenerator extends Object
 
       typeParts = [addTypeFormalsAsParameters(typeParts)];
 
-      helperCall = definite ? 'gFnType(#)' : 'gFnTypeFuzzy(#)';
+      helperCall = 'gFnType(#)';
       // If any explicit bounds were passed, emit them.
       if (typeFormals.any((t) => t.bound != null)) {
         var bounds = typeFormals.map((t) => _emitType(t.type.bound)).toList();
         typeParts.add(addTypeFormalsAsParameters(bounds));
       }
     } else {
-      helperCall = definite ? 'fnType(#)' : 'fnTypeFuzzy(#)';
+      helperCall = 'fnType(#)';
     }
     fullType = _callHelper(helperCall, [typeParts]);
     if (!nameType) return fullType;
-    return _typeTable.nameType(type, fullType, definite: definite);
+    return _typeTable.nameType(type, fullType);
   }
 
   JS.Expression _emitAnnotatedFunctionType(
       FunctionType type, List<Annotation> metadata,
-      {List<FormalParameter> parameters,
-      bool nameType: true,
-      bool definite: false}) {
-    var result = _emitFunctionType(type,
-        parameters: parameters, nameType: nameType, definite: definite);
+      {List<FormalParameter> parameters, bool nameType: true}) {
+    var result =
+        _emitFunctionType(type, parameters: parameters, nameType: nameType);
     return _emitAnnotatedResult(result, metadata);
   }
 

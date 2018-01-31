@@ -17,10 +17,10 @@ class A<T> {
 main() {
   var a = new A<lib11.Library111<bool>>();
   var b = new A<lib11.Library111<int>>();
-  Expect.isTrue(a.foo is F);
+  Expect.isTrue(a.foo is! F);
   Expect.isTrue(a.foo is F<bool>);
   Expect.isTrue(a.foo is! F<int>);
-  Expect.isTrue(b.foo is F);
+  Expect.isTrue(b.foo is! F);
   Expect.isTrue(b.foo is! F<bool>);
   Expect.isTrue(a.foo is! F<int>);
 }

@@ -26,7 +26,7 @@ main() {
     Expect.equals(14, g(14));
     Expect.isTrue(f is Function);
     Expect.isTrue(g is Function);
-    Expect.isTrue(f is F);
+    Expect.isTrue(f is! F);
     Expect.isTrue(g is F);
     Expect.isTrue(f is F<int>);
     Expect.isTrue(g is F<int>);
@@ -46,7 +46,7 @@ main() {
     var g = c.g;
     Expect.equals("(bool) => bool", f.runtimeType.toString()); //# 01: ok
     Expect.equals("(Object) => bool", g.runtimeType.toString()); //# 01: ok
-    Expect.isTrue(f is F);
+    Expect.isTrue(f is! F);
     Expect.isTrue(g is F);
     Expect.isTrue(f is! F<int>);
     Expect.isTrue(g is! F<int>);
