@@ -406,8 +406,6 @@ apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
@@ -428,8 +426,6 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 bool_from_environment2_test/03: MissingCompileTimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
@@ -515,8 +511,6 @@ iterable_return_type_test/02: RuntimeError # Issue 29921
 iterable_to_list_test/*: RuntimeError
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 list_removeat_test: RuntimeError # Issue 29921
-list_replace_range_test: RuntimeError # Issue 29921
-list_set_all_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
