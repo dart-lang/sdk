@@ -130,13 +130,13 @@ uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 [ $compiler == dart2js && $runtime == drt && $csp && !$dart2js_with_kernel && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
+[ $compiler == dart2js && $runtime != none ]
+regexp/pcre_test: Pass, Slow # Issue 21593
+
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 splay_tree_from_iterable_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
-
-[ $compiler == dart2js && $runtime != none ]
-regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -315,6 +315,7 @@ list_concurrent_modify_test: RuntimeError
 list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
 list_replace_range_test: RuntimeError # Issue 32010
+list_set_all_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: Crash # Wrong number of template arguments, given 2, expected 1
