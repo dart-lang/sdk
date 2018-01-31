@@ -1748,6 +1748,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
 
+    // Before any ASTs are created, look up ConstructorElement to see if we
+    // should construct an [InstanceCreationExpression] to replace this
+    // [MethodInvocation].
+    ConstructorElement constructorElt;
+    if (isNamedConstructorCase) {
+      constructorElt = classElement.type
+          .lookUpConstructor(node.methodName.name, _definingLibrary);
+    } else {
+      constructorElt =
+          classElement.type.lookUpConstructor(null, _definingLibrary);
+    }
+    // If the constructor was not looked up, return `null` so resulting
+    // resolution, such as error messages, will proceed as a [MethodInvocation].
+    if (constructorElt == null) {
+      return null;
+    }
+
     // Create the Constructor name, in each case: A[.named]()
     TypeName typeName;
     ConstructorName constructorName;
@@ -1755,39 +1772,31 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // A.named()
       typeName = _astFactory.typeName(targetSimpleId, node.typeArguments);
       typeName.type = classElement.type;
-
       constructorName =
           _astFactory.constructorName(typeName, node.operator, node.methodName);
     } else {
       // A()
       typeName = _astFactory.typeName(node.methodName, node.typeArguments);
       typeName.type = classElement.type;
-
       constructorName = _astFactory.constructorName(typeName, null, null);
     }
-
     InstanceCreationExpression instanceCreationExpression = _astFactory
         .instanceCreationExpression(null, constructorName, node.argumentList);
 
-    DartType type = constructorName.type.type;
-    if (type is InterfaceType) {
-      // look up ConstructorElement
-      ConstructorElement constructorElt;
-      SimpleIdentifier name = constructorName.name;
-      if (name == null) {
-        constructorElt = type.lookUpConstructor(null, _definingLibrary);
-      } else {
-        constructorElt = type.lookUpConstructor(name.name, _definingLibrary);
-        name.staticElement = constructorElt;
-      }
-      constructorName.staticElement = constructorElt;
-      instanceCreationExpression.staticElement = constructorElt;
+    if (isNamedConstructorCase) {
+      constructorName.name.staticElement = constructorElt;
     }
-
+    constructorName.staticElement = constructorElt;
+    instanceCreationExpression.staticElement = constructorElt;
     instanceCreationExpression.staticType = classElement.type;
 
-    NodeReplacer.replace(node, instanceCreationExpression);
-    return instanceCreationExpression;
+    // Finally, do the node replacement, true is returned iff the replacement
+    // was successful, only return the new node if it was successful.
+    if (NodeReplacer.replace(node, instanceCreationExpression)) {
+      return instanceCreationExpression;
+    } else {
+      return null;
+    }
   }
 
   /**

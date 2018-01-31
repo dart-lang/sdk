@@ -379,6 +379,30 @@ main() {
     expect(instanceCreationExpression.staticElement, isNotNull);
     expect(instanceCreationExpression.staticType, isNotNull);
   }
+
+  // Test that the call to a static method will not be re-written as a
+  // InstanceCreationExpression AST node.
+  test_visitMethodInvocations_not_implicit_constructor() async {
+    String code = '''
+class A {
+  static staticMethod() {}
+}
+main() {
+  A.staticMethod(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode node = findMarkedIdentifier(code, unit, "(); // marker");
+    assert(node.parent is MethodInvocation);
+  }
+}
+
+class A {
+  static staticMethod() {}
+}
+
+main2() {
+  A.staticMethod(); // marker
 }
 
 @reflectiveTest
