@@ -181,6 +181,7 @@ from_environment_const_type_undefined_test/08: MissingCompileTimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
+list_replace_range_test: RuntimeError # Issue 32010
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
@@ -313,6 +314,7 @@ linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
+list_replace_range_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: Crash # Wrong number of template arguments, given 2, expected 1
