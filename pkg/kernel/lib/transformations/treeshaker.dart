@@ -1251,7 +1251,6 @@ String findNativeName(Member procedure) {
         }
       }
     }
-    throw 'External procedure has no @ExternalName("...") annotation!';
   }
   return null;
 }
