@@ -56,7 +56,6 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
-generalized_void_syntax_test: CompileTimeError # Issue #30176
 hello_dart_test: Skip # Incompatible flag: --compile_all
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError, OK
@@ -856,6 +855,8 @@ switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
 syntax_test/59: MissingCompileTimeError, OK # Issue 30516.
+syntax_test/60: MissingCompileTimeError, OK # Issue 30516.
+syntax_test/61: MissingCompileTimeError, OK # Issue 30516.
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
 transitive_private_library_access_test: MissingCompileTimeError
@@ -1222,7 +1223,6 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
-generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_methods_bounds_test/02: MissingRuntimeError
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK

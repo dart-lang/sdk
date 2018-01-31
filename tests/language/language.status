@@ -424,7 +424,6 @@ duplicate_export_negative_test: Fail # Issue 6134
 example_constructor_test: Fail, OK # Failures related to super call in ctor initializer list
 field_initialization_order_test: Fail, OK # Failures related to super call in ctor initializer list
 final_field_initialization_order_test: Fail, OK # Failures related to super call in ctor initializer list
-generalized_void_syntax_test: CompileTimeError
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 least_upper_bound_expansive_test/*: Fail, OK # Non-contractive types are not supported in the vm.
 main_not_a_function_test/01: Skip # Skipped temporaril until Issue 29895 is fixed.
