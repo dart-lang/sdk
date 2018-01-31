@@ -406,7 +406,6 @@ apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-json_map_test: RuntimeError
 list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -429,7 +428,6 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 bool_from_environment2_test/03: MissingCompileTimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-json_map_test: RuntimeError
 list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -494,7 +492,6 @@ integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
 integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
 integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
-json_map_test: RuntimeError
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
@@ -516,7 +513,6 @@ integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
 iterable_to_list_test/*: RuntimeError
-json_map_test: RuntimeError # Issue 29921
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921

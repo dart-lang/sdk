@@ -9,7 +9,7 @@ import 'dart:convert' show json;
 import 'dart:collection' show LinkedHashMap, HashMap;
 
 bool useReviver = false;
-Map jsonify(Map map) {
+Map<String, dynamic> jsonify(Map map) {
   String encoded = json.encode(map);
   return useReviver
       ? json.decode(encoded, reviver: (key, value) => value)
@@ -35,7 +35,10 @@ void test(bool revive) {
   testEmpty(jsonify({}));
   testAtoB(jsonify({'a': 'b'}));
 
-  Map map = jsonify({});
+  // You can write 'Map<String, dynamic>' here (or 'var' which infers the
+  // same), but if you write just 'Map' as the type, then the type of the
+  // constant argument in the addAll below is not inferred correctly.
+  var map = jsonify({});
   map['a'] = 'b';
   testAtoB(map);
 
@@ -298,17 +301,12 @@ void testConcurrentModifications() {
 }
 
 void testType() {
+  // The documentation of json.decode doesn't actually specify that it returns
+  // a map (it's marked dynamic), but it's a reasonable expectation if you
+  // don't provide a reviver function.
   Expect.isTrue(jsonify({}) is Map);
-  Expect.isTrue(jsonify({}) is HashMap);
-  Expect.isTrue(jsonify({}) is LinkedHashMap);
-
   Expect.isTrue(jsonify({}) is Map<String, dynamic>);
-  Expect.isTrue(jsonify({}) is HashMap<String, dynamic>);
-  Expect.isTrue(jsonify({}) is LinkedHashMap<String, dynamic>);
-
   Expect.isFalse(jsonify({}) is Map<int, dynamic>);
-  Expect.isFalse(jsonify({}) is HashMap<int, dynamic>);
-  Expect.isFalse(jsonify({}) is LinkedHashMap<int, dynamic>);
 }
 
 void testClear() {
