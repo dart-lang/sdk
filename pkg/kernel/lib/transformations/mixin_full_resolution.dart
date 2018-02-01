@@ -107,6 +107,13 @@ class MixinFullResolution {
     // [Object] class.
     if (!processedClasses.add(class_)) return;
 
+    if (!librariesToBeTransformed.contains(class_.enclosingLibrary) &&
+        class_.enclosingLibrary.importUri?.scheme == "dart") {
+      // If we're not asked to transform the platform libraries then we expect
+      // that they will be already transformed.
+      return;
+    }
+
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null &&
         class_.superclass.level.index >= ClassLevel.Mixin.index) {

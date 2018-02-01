@@ -15,9 +15,11 @@ import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 import 'compiler_options.dart' show CompilerOptions;
 
 abstract class IncrementalKernelGenerator {
-  factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint) {
-    return new IncrementalCompiler(new CompilerContext(
-        new ProcessedOptions(options, false, [entryPoint])));
+  factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
+      [Uri bootstrapDill]) {
+    return new IncrementalCompiler(
+        new CompilerContext(new ProcessedOptions(options, false, [entryPoint])),
+        bootstrapDill);
   }
 
   /// Returns a component (nee program) whose libraries are the recompiled
