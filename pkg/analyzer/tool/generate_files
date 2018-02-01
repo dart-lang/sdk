@@ -43,5 +43,5 @@ VM_OPTIONS+=("--checked")
 VM_OPTIONS+=("--packages=${ROOT_DIR}/.packages")
 
 cd "${SCRIPT_DIR}"
-"${DART}" "${VM_OPTIONS[@]}" "task_dependency_graph/generate.dart"
 "${DART}" "${VM_OPTIONS[@]}" "summary/generate.dart"
+"${DART}" "${VM_OPTIONS[@]}" "task_dependency_graph/generate.dart"
