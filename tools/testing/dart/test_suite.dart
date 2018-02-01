@@ -1407,7 +1407,7 @@ class StandardTestSuite extends TestSuite {
   Map<String, dynamic> readOptionsFromFile(Path filePath) {
     if (filePath.filename.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if (filePath.segments().contains('co19')) {
+    } else if (filePath.segments().any(['co19', 'co19_2'].contains)) {
       return readOptionsFromCo19File(filePath);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");

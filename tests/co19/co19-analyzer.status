@@ -502,4 +502,3 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t0
 
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
-

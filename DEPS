@@ -36,6 +36,7 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
+  "co19_2_rev": "@d8cdc47f759b0e89a517403ffa13eccd874bbbc0",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -157,6 +158,10 @@ deps = {
 
   Var("dart_root") + "/tests/co19/src":
       Var("dart_git") + "co19.git" + Var("co19_rev"),
+
+Var("dart_root") + "/tests/co19_2/src":
+      Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
+      Var("co19_2_rev"),
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
