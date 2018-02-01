@@ -12,7 +12,7 @@ import '../../../generated/parser_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExpressionImplTest);
-//    defineReflectiveTests(IntegerLiteralImplTest);
+    defineReflectiveTests(IntegerLiteralImplTest);
   });
 }
 
