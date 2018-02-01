@@ -653,7 +653,7 @@ generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
 generic_tearoff_test: RuntimeError
-generic_test: RuntimeError
+generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 getter_override_test/03: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -1414,7 +1414,7 @@ generic_methods_unused_parameter_test: RuntimeError # Issue 31402 (Variable decl
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
-generic_test: RuntimeError
+generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 getter_override_test/03: MissingCompileTimeError
 hello_dart_test: Skip # Incompatible flag: --compile_all
 identical_const_test/01: MissingCompileTimeError

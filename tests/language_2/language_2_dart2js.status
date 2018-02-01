@@ -853,7 +853,8 @@ forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-generic_test: RuntimeError, OK
+generic_test/01: MissingCompileTimeError
+generic_test/none: RuntimeError # test requires Dart 2 subtyping for `is`
 issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -885,6 +886,7 @@ checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 closure_param_null_to_object_test: RuntimeError
 extract_type_arguments_test: Crash # Issue 31371
+generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_for_in_element_test: RuntimeError
 implicit_downcast_during_for_in_iterable_test: RuntimeError
@@ -1108,7 +1110,7 @@ generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_test: RuntimeError
+generic_test/none: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
