@@ -4113,6 +4113,61 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
     return DynamicTypeImpl.instance;
   }
 
+  /**
+   * An expression _e_ is said to _occur in a constant context_,
+   * * if _e_ is an element of a constant list literal, or a key or value of an
+   *   entry of a constant map literal.
+   * * if _e_ is an actual argument of a constant object expression or of a
+   *   metadata annotation.
+   * * if _e_ is the initializing expression of a constant variable declaration.
+   * * if _e_ is a switch case expression.
+   * * if _e_ is an immediate subexpression of an expression _e1_ which occurs
+   *   in a constant context, unless _e1_ is a `throw` expression or a function
+   *   literal.
+   *
+   * This roughly means that everything which is inside a syntactically constant
+   * expression is in a constant context. A `throw` expression is currently not
+   * allowed in a constant expression, but extensions affecting that status may
+   * be considered. A similar situation arises for function literals.
+   *
+   * Note that the default value of an optional formal parameter is _not_ a
+   * constant context. This choice reserves some freedom to modify the semantics
+   * of default values.
+   */
+  bool get inConstantContext {
+    AstNode child = this;
+    while (child is Expression ||
+        child is ArgumentList ||
+        child is MapLiteralEntry) {
+      AstNode parent = child.parent;
+      if (parent is TypedLiteralImpl && parent.constKeyword != null) {
+        // Inside an explicitly `const` list or map literal.
+        return true;
+      } else if (parent is InstanceCreationExpression) {
+        if (parent.keyword.keyword == Keyword.CONST) {
+          // Inside an explicitly `const` instance creation expression.
+          return true;
+        } else if (parent.keyword.keyword == Keyword.NEW) {
+          // Inside an explicitly non-`const` instance creation expression.
+          return false;
+        }
+      } else if (parent is Annotation) {
+        // Inside an annotation.
+        return true;
+      } else if (parent is VariableDeclaration) {
+        AstNode grandParent = parent.parent;
+        // Inside the initializer for a `const` variable declaration.
+        return grandParent is VariableDeclarationList &&
+            grandParent.keyword.keyword == Keyword.CONST;
+      } else if (parent is SwitchCase) {
+        // Inside a switch case.
+        return true;
+      }
+      child = parent;
+    }
+    return false;
+  }
+
   @override
   bool get isAssignable => false;
 
@@ -6435,23 +6490,21 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   Token get endToken => _argumentList.endToken;
 
+  @override
+  bool get isConst {
+    if (!isImplicit) {
+      return keyword.keyword == Keyword.CONST;
+    } else {
+      return inConstantContext;
+    }
+  }
+
   /**
    * Return `true` if this is an implicit constructor invocations.
    *
    * This can only be `true` when the previewDart2 option is enabled.
    */
   bool get isImplicit => keyword == null;
-
-  @override
-  bool get isConst {
-    if (!isImplicit) {
-      return keyword.keyword == Keyword.CONST;
-    } else {
-      // TODO(brianwilkerson/jwren) compute if this InstanceCreationExpression
-      // is in a const context
-      return false;
-    }
-  }
 
   @override
   int get precedence => 16;
