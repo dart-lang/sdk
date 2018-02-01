@@ -35,7 +35,6 @@ class LocalVariable : public ZoneAllocated {
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
-        needs_type_check_(true),
         index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
@@ -65,13 +64,6 @@ class LocalVariable : public ZoneAllocated {
   // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
-
-  // Returns true if this local variable represent a parameter that needs type
-  // check when we enter the function.
-  bool needs_type_check() const { return needs_type_check_; }
-  void set_needs_type_check(bool needs_type_check) {
-    needs_type_check_ = needs_type_check;
-  }
 
   bool HasIndex() const { return index_ != kUninitializedIndex; }
   int index() const {
@@ -132,7 +124,6 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
-  bool needs_type_check_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 

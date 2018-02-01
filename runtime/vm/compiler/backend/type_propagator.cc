@@ -942,18 +942,8 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType(CompileType::kNonNullable, cid, &type);
   }
 
-  if (Isolate::Current()->strong() && FLAG_use_strong_mode_types) {
-    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-    // Note: in catch-blocks we have ParameterInstr for each local variable
-    // not only for normal parameters.
-    if (index() < scope->num_variables()) {
-      LocalVariable* param = scope->VariableAt(index());
-      if (!param->needs_type_check()) {
-        return CompileType::FromAbstractType(param->type(),
-                                             CompileType::kNullable);
-      }
-    }
-  }
+  // TODO(dartbug.com/30480): Figure out how to use parameter types
+  // without interfering with argument type checks.
 
   return CompileType::Dynamic();
 }
