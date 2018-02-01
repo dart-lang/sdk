@@ -4225,7 +4225,9 @@ abstract class InstanceCreationExpression extends Expression
 
   /**
    * Return `true` if this creation expression is used to invoke a constant
-   * constructor.
+   * constructor, either because the keyword `const` was explicitly provided or
+   * because no keyword was provided and this expression is in a constant
+   * context.
    */
   bool get isConst;
 
@@ -6609,6 +6611,13 @@ abstract class TypedLiteral extends Literal {
    * Set the token representing the 'const' keyword to the given [token].
    */
   void set constKeyword(Token token);
+
+  /**
+   * Return `true` if this literal is a constant expression, either because the
+   * keyword `const` was explicitly provided or because no keyword was provided
+   * and this expression is in a constant context.
+   */
+  bool get isConst;
 
   /**
    * Return the type argument associated with this literal, or `null` if no type

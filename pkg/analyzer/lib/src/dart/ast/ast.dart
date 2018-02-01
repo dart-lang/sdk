@@ -10719,6 +10719,11 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 
   @override
+  bool get isConst {
+    return constKeyword != null || inConstantContext;
+  }
+
+  @override
   TypeArgumentList get typeArguments => _typeArguments;
 
   @override
