@@ -759,6 +759,8 @@ function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
+generic_test/01: MissingCompileTimeError
+generic_test/none: RuntimeError
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_redirecting_factory_test/02: Fail # Issue 12825
 malbounded_redirecting_factory_test/03: Fail # Issue 12825
@@ -2237,6 +2239,7 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
+assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -2629,7 +2632,6 @@ generic_methods_unused_parameter_test: Crash # Interpolated value #1 is not an E
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError

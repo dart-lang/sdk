@@ -1483,6 +1483,7 @@ generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
+generic_test/01: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
