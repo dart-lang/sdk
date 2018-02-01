@@ -26,7 +26,6 @@ class ExportDirectivesTest extends PartialCodeTest {
       'getter',
       'setter'
     ];
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'export_directive',
         [
