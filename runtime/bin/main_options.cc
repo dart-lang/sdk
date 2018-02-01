@@ -72,8 +72,6 @@ DEFINE_BOOL_OPTION_CB(preview_dart_2, { Options::dfe()->set_use_dfe(); });
 // specifying --preview_dart_2.
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 
-DEFINE_STRING_OPTION_CB(kernel_binaries,
-                        { Options::dfe()->SetKernelBinaries(value); });
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {

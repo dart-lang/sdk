@@ -3135,7 +3135,9 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
 DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernel(const char* script_uri, const char* platform_kernel);
+Dart_CompileToKernel(const char* script_uri,
+                     const uint8_t* platform_kernel,
+                     const intptr_t platform_kernel_size);
 
 typedef struct {
   const char* uri;
@@ -3143,7 +3145,8 @@ typedef struct {
 } Dart_SourceFile;
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileSourcesToKernel(const char* script_uri,
-                            const char* platform_kernel,
+                            const uint8_t* platform_kernel,
+                            intptr_t platform_kernel_size,
                             int source_files_count,
                             Dart_SourceFile source_files[],
                             bool incremental_compile);

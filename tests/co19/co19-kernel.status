@@ -60,8 +60,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # Please triaage.
-Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # Please triaage.
 Language/Classes/definition_t23: RuntimeError # Please triaage.
 Language/Expressions/Spawning_an_Isolate/*: Skip
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # Please triaage.

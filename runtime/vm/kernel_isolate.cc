@@ -281,6 +281,10 @@ static Dart_CObject BuildFilesPairs(int source_files_count,
   return files;
 }
 
+static void PassThroughFinalizer(void* isolate_callback_data,
+                                 Dart_WeakPersistentHandle handle,
+                                 void* peer) {}
+
 class KernelCompilationRequest : public ValueObject {
  public:
   KernelCompilationRequest()
@@ -307,7 +311,8 @@ class KernelCompilationRequest : public ValueObject {
   Dart_KernelCompilationResult SendAndWaitForResponse(
       Dart_Port kernel_port,
       const char* script_uri,
-      const char* platform_kernel,
+      const uint8_t* platform_kernel,
+      intptr_t platform_kernel_size,
       int source_files_count,
       Dart_SourceFile source_files[],
       bool incremental_compile) {
@@ -329,9 +334,20 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_platform_kernel;
     if (platform_kernel != NULL) {
-      dart_platform_kernel.type = Dart_CObject_kString;
-      dart_platform_kernel.value.as_string = const_cast<char*>(platform_kernel);
+      dart_platform_kernel.type = Dart_CObject_kExternalTypedData;
+      dart_platform_kernel.value.as_external_typed_data.type =
+          Dart_TypedData_kUint8;
+      dart_platform_kernel.value.as_external_typed_data.length =
+          platform_kernel_size;
+      dart_platform_kernel.value.as_external_typed_data.data =
+          const_cast<uint8_t*>(platform_kernel);
+      dart_platform_kernel.value.as_external_typed_data.peer =
+          const_cast<uint8_t*>(platform_kernel);
+      dart_platform_kernel.value.as_external_typed_data.callback =
+          PassThroughFinalizer;
     } else {
+      // If NULL, the kernel service looks up the platform dill file
+      // next to the executable.
       dart_platform_kernel.type = Dart_CObject_kNull;
     }
 
@@ -492,7 +508,8 @@ KernelCompilationRequest* KernelCompilationRequest::requests_ = NULL;
 
 Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* script_uri,
-    const char* platform_kernel,
+    const uint8_t* platform_kernel,
+    intptr_t platform_kernel_size,
     int source_file_count,
     Dart_SourceFile source_files[],
     bool incremental_compile) {
@@ -507,9 +524,9 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   }
 
   KernelCompilationRequest request;
-  return request.SendAndWaitForResponse(kernel_port, script_uri,
-                                        platform_kernel, source_file_count,
-                                        source_files, incremental_compile);
+  return request.SendAndWaitForResponse(
+      kernel_port, script_uri, platform_kernel, platform_kernel_size,
+      source_file_count, source_files, incremental_compile);
 }
 
 #endif  // DART_PRECOMPILED_RUNTIME

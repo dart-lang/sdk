@@ -79,7 +79,6 @@ eval_test: Pass, Slow
 bad_reload_test: RuntimeError # Please triage.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
-dev_fs_spawn_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
 get_source_report_test: RuntimeError # Please triage.
 library_dependency_test: RuntimeError # Please triage.

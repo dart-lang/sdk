@@ -39,6 +39,7 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
+const String platformKernelFile = 'virtual_platform_kernel.dill';
 
 abstract class Compiler {
   final FileSystem fileSystem;
@@ -47,7 +48,7 @@ abstract class Compiler {
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, Uri platformKernel,
+  Compiler(this.fileSystem, Uri platformKernelPath,
       {this.strongMode: false, bool suppressWarnings: false}) {
     Uri packagesUri = (Platform.packageConfig != null)
         ? Uri.parse(Platform.packageConfig)
@@ -57,7 +58,7 @@ abstract class Compiler {
       print("DFE: Platform.packageConfig: ${Platform.packageConfig}");
       print("DFE: packagesUri: ${packagesUri}");
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
-      print("DFE: platformKernel: ${platformKernel}");
+      print("DFE: platformKernelPath: ${platformKernelPath}");
       print("DFE: strongMode: ${strongMode}");
     }
 
@@ -66,7 +67,7 @@ abstract class Compiler {
       ..fileSystem = fileSystem
       ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
       ..packagesFileUri = packagesUri
-      ..sdkSummary = platformKernel
+      ..sdkSummary = platformKernelPath
       ..verbose = verbose
       ..onProblem =
           (message, Severity severity, String formatted, int line, int column) {
@@ -98,9 +99,9 @@ abstract class Compiler {
 class IncrementalCompiler extends Compiler {
   IncrementalKernelGenerator generator;
 
-  IncrementalCompiler(FileSystem fileSystem, Uri platformKernel,
+  IncrementalCompiler(FileSystem fileSystem, Uri platformKernelPath,
       {bool strongMode: false, bool suppressWarnings: false})
-      : super(fileSystem, platformKernel,
+      : super(fileSystem, platformKernelPath,
             strongMode: strongMode, suppressWarnings: suppressWarnings);
 
   @override
@@ -119,11 +120,11 @@ class IncrementalCompiler extends Compiler {
 class SingleShotCompiler extends Compiler {
   final bool requireMain;
 
-  SingleShotCompiler(FileSystem fileSystem, Uri platformKernel,
+  SingleShotCompiler(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool strongMode: false,
       bool suppressWarnings: false})
-      : super(fileSystem, platformKernel,
+      : super(fileSystem, platformKernelPath,
             strongMode: strongMode, suppressWarnings: suppressWarnings);
 
   @override
@@ -136,8 +137,8 @@ class SingleShotCompiler extends Compiler {
 
 final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
 
-Future<Compiler> lookupOrBuildNewIncrementalCompiler(
-    int isolateId, List sourceFiles, Uri platformKernel,
+Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
+    List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool strongMode: false, bool suppressWarnings: false}) async {
   IncrementalCompiler compiler;
   if (isolateCompilers.containsKey(isolateId)) {
@@ -153,42 +154,45 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
       }
     }
   } else {
-    final FileSystem fileSystem = sourceFiles == null
+    final FileSystem fileSystem = sourceFiles == null && platformKernel == null
         ? StandardFileSystem.instance
-        : _buildFileSystem(sourceFiles);
+        : _buildFileSystem(sourceFiles, platformKernel);
 
     // TODO(aam): IncrementalCompiler instance created below have to be
     // destroyed when corresponding isolate is shut down. To achieve that kernel
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompiler(fileSystem, platformKernel,
+    compiler = new IncrementalCompiler(fileSystem, platformKernelPath,
         strongMode: strongMode, suppressWarnings: suppressWarnings);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
 }
 
-// Process a request from the runtime. See KernelIsolate::CompileToKernel in
-// kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
 Future _processLoadRequest(request) async {
   if (verbose) print("DFE: request: $request");
 
   int tag = request[0];
   final SendPort port = request[1];
   final String inputFileUri = request[2];
-  final Uri script = Uri.base.resolve(inputFileUri);
-  final Uri platformKernel = request[3] != null
-      ? Uri.base.resolveUri(new Uri.file(request[3]))
-      : computePlatformBinariesLocation().resolve(
-          // TODO(sigmund): use `vm_outline.dill` when the mixin transformer is
-          // modular.
-          'vm_platform.dill');
-
   final bool incremental = request[4];
   final bool strong = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
+
+  final Uri script = Uri.base.resolve(inputFileUri);
+  Uri platformKernelPath = null;
+  List<int> platformKernel = null;
+  if (request[3] is String) {
+    platformKernelPath = Uri.base.resolveUri(new Uri.file(request[3]));
+  } else if (request[3] is List<int>) {
+    platformKernelPath = Uri.parse(platformKernelFile);
+    platformKernel = request[3];
+  } else {
+    platformKernelPath = computePlatformBinariesLocation()
+        .resolve(strong ? 'vm_platform_strong.dill' : 'vm_platform.dill');
+  }
 
   Compiler compiler;
   // TODO(aam): There should be no need to have an option to choose
@@ -197,13 +201,13 @@ Future _processLoadRequest(request) async {
   // watch the performance though.
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
-        isolateId, sourceFiles, platformKernel,
+        isolateId, sourceFiles, platformKernelPath, platformKernel,
         suppressWarnings: suppressWarnings);
   } else {
-    final FileSystem fileSystem = sourceFiles == null
+    final FileSystem fileSystem = sourceFiles == null && platformKernel == null
         ? StandardFileSystem.instance
-        : _buildFileSystem(sourceFiles);
-    compiler = new SingleShotCompiler(fileSystem, platformKernel,
+        : _buildFileSystem(sourceFiles, platformKernel);
+    compiler = new SingleShotCompiler(fileSystem, platformKernelPath,
         requireMain: sourceFiles == null,
         strongMode: strong,
         suppressWarnings: suppressWarnings);
@@ -256,17 +260,24 @@ Future _processLoadRequest(request) async {
 ///
 /// The result can be used instead of StandardFileSystem.instance by the
 /// frontend.
-FileSystem _buildFileSystem(List namedSources) {
+FileSystem _buildFileSystem(List namedSources, List<int> platformKernel) {
   MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
-  for (int i = 0; i < namedSources.length ~/ 2; i++) {
+  if (namedSources != null) {
+    for (int i = 0; i < namedSources.length ~/ 2; i++) {
+      fileSystem
+          .entityForUri(Uri.parse(namedSources[i * 2]))
+          .writeAsBytesSync(namedSources[i * 2 + 1]);
+    }
+  }
+  if (platformKernel != null) {
     fileSystem
-        .entityForUri(Uri.parse(namedSources[i * 2]))
-        .writeAsBytesSync(namedSources[i * 2 + 1]);
+        .entityForUri(Uri.parse(platformKernelFile))
+        .writeAsBytesSync(platformKernel);
   }
   return new HybridFileSystem(fileSystem);
 }
 
-train(String scriptUri, String platformKernel) {
+train(String scriptUri, String platformKernelPath) {
   // TODO(28532): Enable on Windows.
   if (Platform.isWindows) return;
 
@@ -287,7 +298,7 @@ train(String scriptUri, String platformKernel) {
     tag,
     responsePort.sendPort,
     scriptUri,
-    platformKernel,
+    platformKernelPath,
     false /* incremental */,
     false /* strong */,
     1 /* isolateId chosen randomly */,

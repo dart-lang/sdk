@@ -18,7 +18,12 @@ class DFE {
   DFE();
   ~DFE();
 
-  char* FrontendFilename();
+  // Call Init before Dart_Initialize to prevent races between the
+  // different isolates.
+  void Init();
+
+  char* frontend_filename() const { return frontend_filename_; }
+
   void set_frontend_filename(const char* name) {
     if (frontend_filename_ != NULL) {
       free(frontend_filename_);
@@ -26,24 +31,19 @@ class DFE {
     frontend_filename_ = strdup(name);
     set_use_dfe();
   }
-  void set_use_dfe() { use_dfe_ = true; }
+  void set_use_dfe(bool value = true) { use_dfe_ = value; }
   bool UseDartFrontend() const { return use_dfe_; }
 
+  // Returns the platform binary file name if the path to
+  // kernel binaries was set using SetKernelBinaries.
   const char* GetPlatformBinaryFilename();
 
-  void SetKernelBinaries(const char* name);
-
-  bool UsePlatformBinary() const { return kernel_binaries_path_ != NULL; }
-
-  void* kernel_platform() const { return kernel_platform_; }
-  void set_kernel_platform(void* kernel_platform) {
-    kernel_platform_ = kernel_platform;
-  }
-
-  void* application_kernel_binary() const { return application_kernel_binary_; }
+  // Set the kernel program for the main application if it was specified
+  // as a dill file.
   void set_application_kernel_binary(void* application_kernel_binary) {
     application_kernel_binary_ = application_kernel_binary;
   }
+  void* application_kernel_binary() const { return application_kernel_binary_; }
 
   // Method to read a kernel file into a kernel program blob.
   // If the specified script [url] is not a kernel IR, compile it first using
@@ -57,19 +57,25 @@ class DFE {
   // 'error' and 'exit_code' have the error values in case of errors.
   void* CompileAndReadScript(const char* script_uri,
                              char** error,
-                             int* exit_code);
-
-  // Reads the platform kernel file.
-  // Returns an in memory kernel representation of the platform kernel file.
-  void* ReadPlatform();
+                             int* exit_code,
+                             bool strong);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
   // valid kernel file, false otherwise.
   void* ReadScript(const char* script_uri) const;
 
-  static void* KernelServiceProgram();
   static bool KernelServiceDillAvailable();
+
+  // We distinguish between "intent to use Dart frontend" vs "can actually
+  // use Dart frontend". The method UseDartFrontend tells us about the
+  // intent to use DFE. This method tells us if Dart frontend can actually
+  // be used.
+  bool CanUseDartFrontend() const;
+
+  void* platform_program(bool strong = false) const;
+
+  void* LoadKernelServiceProgram();
 
  private:
   // Tries to read [script_uri] as a Kernel IR file.
@@ -83,15 +89,14 @@ class DFE {
 
   bool use_dfe_;
   char* frontend_filename_;
-  char* kernel_binaries_path_;
-  char* platform_binary_filename_;
-  void* kernel_platform_;
+
+  void* kernel_service_program_;
+  void* platform_program_;
+  void* platform_strong_program_;
 
   // Kernel binary specified on the cmd line.
   // Loaded instead of platform if --kernel-binaries is not specified.
   void* application_kernel_binary_;
-
-  static void* kKernelServiceProgram;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };

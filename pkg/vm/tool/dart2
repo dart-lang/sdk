@@ -45,5 +45,4 @@ exec "$DART_BINARY"                                                            \
      --reify-generic-functions                                                 \
      --limit-ints-to-64-bits                                                   \
      --dfe="$KERNEL_SERVICE_SNAPSHOT"                                          \
-     --kernel-binaries="$KERNEL_BINARIES_DIR"                                  \
      "$@"

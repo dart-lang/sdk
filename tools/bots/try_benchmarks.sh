@@ -393,7 +393,7 @@ main() {
 EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --checked hello.dart
-    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --dfe=out/ReleaseX64/gen/kernel-service.dart.snapshot --kernel-binaries=out/ReleaseX64 hello.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --dfe=out/ReleaseX64/gen/kernel-service.dart.snapshot hello.dart
     out/ReleaseX64/dart_bootstrap --packages=.packages --use-blobs --snapshot-kind=app-aot --snapshot=blob.bin hello.dart
     out/ReleaseX64/dart_precompiled_runtime --profile-period=10000 blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart2 --profile-period=10000 --packages=.packages hello.dart
