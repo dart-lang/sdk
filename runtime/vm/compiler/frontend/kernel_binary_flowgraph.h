@@ -590,6 +590,26 @@ class InferredTypeMetadataHelper : public MetadataHelper {
   InferredTypeMetadata GetInferredType(intptr_t node_offset);
 };
 
+struct ProcedureAttributesMetadata {
+  explicit ProcedureAttributesMetadata(bool has_dynamic_invocations)
+      : has_dynamic_invocations(has_dynamic_invocations) {}
+  const bool has_dynamic_invocations;
+};
+
+// Helper class which provides access to direct call metadata.
+class ProcedureAttributesMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.procedure-attributes.metadata"; }
+
+  explicit ProcedureAttributesMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+  ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset, bool* has_dynamic_invocations);
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -692,16 +712,33 @@ class StreamingScopeBuilder {
   void EnterScope(intptr_t kernel_offset);
   void ExitScope(TokenPosition start_position, TokenPosition end_position);
 
-  /**
-   * This assumes that the reader is at a FunctionNode,
-   * about to read the positional parameters.
-   */
-  void AddPositionalAndNamedParameters(intptr_t pos = 0);
-  /**
-   * This assumes that the reader is at a FunctionNode,
-   * about to read a parameter (i.e. VariableDeclaration).
-   */
-  void AddVariableDeclarationParameter(intptr_t pos);
+  // This enum controls which parameters would be marked as requring type
+  // check on the callee side.
+  enum ParameterTypeCheckMode {
+    // All parameters will be checked.
+    kTypeCheckAllParameters,
+
+    // Only parameters marked as covariant or generic-covariant-impl will be
+    // checked.
+    kTypeCheckOnlyCovariantParameters,
+
+    // Only parameters *not* marked as covariant or generic-covariant-impl will
+    // be checked. Inverse of kTypeCheckOnlyGenericCovariantImplParameters.
+    kTypeCheckAllExceptCovariantParameters,
+
+    // No parameters will be checked.
+    kTypeCheckNoParameters,
+  };
+
+  // This assumes that the reader is at a FunctionNode,
+  // about to read the positional parameters.
+  void AddPositionalAndNamedParameters(intptr_t pos,
+                                       ParameterTypeCheckMode type_check_mode);
+
+  // This assumes that the reader is at a FunctionNode,
+  // about to read a parameter (i.e. VariableDeclaration).
+  void AddVariableDeclarationParameter(intptr_t pos,
+                                       ParameterTypeCheckMode type_check_mode);
 
   LocalVariable* MakeVariable(TokenPosition declaration_pos,
                               TokenPosition token_pos,
@@ -894,6 +931,7 @@ class StreamingFlowGraphBuilder {
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
+        procedure_attributes_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -915,6 +953,7 @@ class StreamingFlowGraphBuilder {
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
+        procedure_attributes_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -936,6 +975,7 @@ class StreamingFlowGraphBuilder {
         record_yield_positions_into_(NULL),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
+        procedure_attributes_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   ~StreamingFlowGraphBuilder() { delete reader_; }
@@ -1126,7 +1166,14 @@ class StreamingFlowGraphBuilder {
                         const InferredTypeMetadata* result_type = NULL,
                         intptr_t argument_check_bits = 0,
                         intptr_t type_argument_check_bits = 0);
-  Fragment BuildArgumentTypeChecks();
+
+  enum TypeChecksToBuild {
+    kDefaultTypeChecks,
+    kTypeChecksForNoDynamicInvocationsTearOff
+  };
+
+  Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode = kDefaultTypeChecks);
+
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
@@ -1323,12 +1370,14 @@ class StreamingFlowGraphBuilder {
   GrowableArray<intptr_t>* record_yield_positions_into_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   bool metadata_scanned_;
 
   friend class ClassHelper;
   friend class ConstantHelper;
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
+  friend class ProcedureAttributesMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
   friend class InferredTypeMetadataHelper;

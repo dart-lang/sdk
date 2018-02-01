@@ -105,6 +105,9 @@ dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 cc/CorelibCompilerStats: Skip
 cc/Service_Profile: Skip
 
+[ !$strong ]
+dart/callee_side_type_checks_test: SkipByDesign
+
 # Following tests are failing in a weird way on macos/ia32/debug builds
 # need to investigate.
 [ $arch == ia32 && $mode == debug && $runtime == vm && $system == macos ]
