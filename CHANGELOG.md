@@ -64,6 +64,7 @@ the assignment to `y`.
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
   * Added `Provisional` annotation to `dart:core`.
+  * Added static `escape` function to `RegExp` class.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in

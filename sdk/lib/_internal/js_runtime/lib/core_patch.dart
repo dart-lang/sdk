@@ -19,6 +19,7 @@ import 'dart:_js_helper'
         objectHashCode,
         patch,
         Primitives,
+        quoteStringForRegExp,
         stringJoinUnchecked,
         getTraceFromException,
         RuntimeError;
@@ -488,6 +489,9 @@ class RegExp {
           {bool multiLine: false, bool caseSensitive: true}) =>
       new JSSyntaxRegExp(source,
           multiLine: multiLine, caseSensitive: caseSensitive);
+
+  @patch
+  static String escape(String text) => quoteStringForRegExp(text);
 }
 
 // Patch for 'identical' function.

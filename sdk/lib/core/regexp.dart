@@ -24,11 +24,12 @@ part of dart.core;
  *
  * The following example finds all matches of a regular expression in
  * a string.
+ * ```dart
+ * RegExp exp = new RegExp(r"(\w+)");
+ * String str = "Parse my string";
+ * Iterable<Match> matches = exp.allMatches(str);
+ * ```
  *
- *     RegExp exp = new RegExp(r"(\w+)");
- *     String str = "Parse my string";
- *     Iterable<Match> matches = exp.allMatches(str);
- * 
  * Note the use of a _raw string_ (a string prefixed with `r`)
  * in the example above. Use a raw string to treat each character in a string
  * as a literal character.
@@ -42,6 +43,19 @@ abstract class RegExp implements Pattern {
    */
   external factory RegExp(String source,
       {bool multiLine: false, bool caseSensitive: true});
+
+  /**
+   * Returns a regular expression that matches [text].
+   *
+   * If [text] contains characters that are meaningful in regular expressions,
+   * the resulting regular expression will match those characters literally.
+   * If [text] contains no characters that have special meaning in a regular
+   * expression, it is returned unmodified.
+   *
+   * The characters that have special meaning in regular expressions are:
+   * `(`, `)`, `[`, `]`, `{`, `}`, `*`, `+`, `?`, `.`, `^`, `$`, `|` and `\`.
+   */
+  external static String escape(String text);
 
   /**
    * Searches for the first match of the regular expression
