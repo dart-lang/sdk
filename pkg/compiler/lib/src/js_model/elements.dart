@@ -266,7 +266,7 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
         type.namedParameters,
         visitList(type.namedParameterTypes, converter),
         type.typeVariables,
-        type.typedefType);
+        visitTypedefType(type.typedefType, converter));
   }
 
   @override
