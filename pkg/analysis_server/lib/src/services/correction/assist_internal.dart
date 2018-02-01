@@ -1853,6 +1853,17 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_reparentFlutterWidget() async {
+    await _addProposal_reparentFlutterWidgetImpl();
+    await _addProposal_reparentFlutterWidgetImpl(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER,
+        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentClassName: 'Center');
+  }
+
+  Future<Null> _addProposal_reparentFlutterWidgetImpl(
+      {AssistKind kind: DartAssistKind.REPARENT_FLUTTER_WIDGET,
+      String parentLibraryUri,
+      String parentClassName}) async {
     InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
     if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
       _coverageMarker();
@@ -1860,11 +1871,27 @@ class AssistProcessor {
     }
     String newExprSrc = utils.getNodeText(newExpr);
 
+    // If the wrapper class is specified, find its element.
+    ClassElement parentClassElement;
+    if (parentLibraryUri != null && parentClassName != null) {
+      var parentLibrary = await session.getLibraryByUri(parentLibraryUri);
+      var element = parentLibrary.exportNamespace.get(parentClassName);
+      if (element is ClassElement) {
+        parentClassElement = element;
+      } else {
+        return;
+      }
+    }
+
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(newExpr), (DartEditBuilder builder) {
         builder.write('new ');
-        builder.addSimpleLinkedEdit('WIDGET', 'widget');
+        if (parentClassElement == null) {
+          builder.addSimpleLinkedEdit('WIDGET', 'widget');
+        } else {
+          builder.writeType(parentClassElement.type);
+        }
         builder.write('(');
         if (newExprSrc.contains(eol)) {
           int newlineIdx = newExprSrc.lastIndexOf(eol);
@@ -1881,15 +1908,18 @@ class AssistProcessor {
               new RegExp("^$indentOld", multiLine: true), indentNew);
           newExprSrc += ",$eol$indentOld";
         }
-        builder.addSimpleLinkedEdit('CHILD', 'child');
+        if (parentClassElement == null) {
+          builder.addSimpleLinkedEdit('CHILD', 'child');
+        } else {
+          builder.write('child');
+        }
         builder.write(': ');
         builder.write(newExprSrc);
         builder.write(')');
         builder.selectHere();
       });
     });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.REPARENT_FLUTTER_WIDGET);
+    _addAssistFromBuilder(changeBuilder, kind);
   }
 
   Future<Null> _addProposal_replaceConditionalWithIfElse() async {

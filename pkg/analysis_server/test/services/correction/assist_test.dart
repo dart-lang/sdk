@@ -3889,6 +3889,27 @@ class FakeFlutter {
 ''');
   }
 
+  test_reparentFlutterWidgetCenter_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Container();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Center(child: new Container());
+  }
+}
+''');
+  }
+
   test_replaceConditionalWithIfElse_BAD_noEnclosingStatement() async {
     await resolveTestUnit('''
 var v = true ? 111 : 222;
