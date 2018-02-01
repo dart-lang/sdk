@@ -1448,7 +1448,6 @@ class ProgramCompiler
   ///   4. initialize fields not covered in 1-3
   JS.Statement _initializeFields(List<Field> fields, [Constructor ctor]) {
     // Run field initializers if they can have side-effects.
-
     Set<Field> ctorFields;
     if (ctor != null) {
       ctorFields = ctor.initializers
@@ -1458,8 +1457,7 @@ class ProgramCompiler
     }
 
     var body = <JS.Statement>[];
-    emitFieldInit(Field f, Expression initializer,
-        [TreeNode sourceInfo = null]) {
+    emitFieldInit(Field f, Expression initializer, [TreeNode sourceInfo]) {
       var access = _classProperties.virtualFields[f] ?? _declareMemberName(f);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(jsInit
@@ -1478,7 +1476,7 @@ class ProgramCompiler
               _constants.isConstant(init)) {
         continue;
       }
-      emitFieldInit(f, f.initializer);
+      emitFieldInit(f, init);
     }
 
     // Run constructor field initializers such as `: foo = bar.baz`

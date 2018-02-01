@@ -367,7 +367,6 @@ typedef_is_test: Crash
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]
 assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_test/02: RuntimeError
@@ -905,7 +904,6 @@ instantiate_tearoff_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_test/02: RuntimeError
@@ -1334,7 +1332,6 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -2238,7 +2235,6 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_and_or_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 async_await_catch_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).

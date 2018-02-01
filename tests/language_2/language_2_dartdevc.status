@@ -11,8 +11,7 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-assertion_initializer_const_function_test/01: Crash
-assertion_initializer_test: CompileTimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
@@ -48,7 +47,6 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
-implicit_downcast_during_assert_initializer_test: Crash
 import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
@@ -100,7 +98,7 @@ regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 31093
 regress_29405_test: CompileTimeError # Issue 29421
-regress_29784_test/02: CompileTimeError, Crash # Issue 27809
+regress_29784_test/02: MissingCompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
@@ -336,7 +334,6 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -831,7 +828,6 @@ deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Is
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
-final_field_initialization_order_test: RuntimeError # Issue 31058
 forwarding_stub_tearoff_generic_test: RuntimeError
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 getter_closure_execution_order_test: RuntimeError # Issue 29920

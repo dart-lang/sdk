@@ -2452,57 +2452,59 @@ class CodeGenerator extends Object
   JS.Statement _initializeFields(List<VariableDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
     // Run field initializers if they can have side-effects.
-    var fields = new Map<FieldElement, JS.Expression>();
-    var unsetFields = new Map<FieldElement, VariableDeclaration>();
-    for (var fieldNode in fieldDecls) {
-      var element = fieldNode.element as FieldElement;
-      if (_constants.isFieldInitConstant(fieldNode)) {
-        unsetFields[element] = fieldNode;
-      } else {
-        fields[element] = _visitInitializer(fieldNode);
-      }
+    Set<FieldElement> ctorFields;
+    if (ctor != null) {
+      ctorFields = ctor.initializers
+          .map((c) => c is ConstructorFieldInitializer
+              ? c.fieldName.staticElement as FieldElement
+              : null)
+          .toSet()
+            ..remove(null);
     }
 
-    // Initialize fields from `this.fieldName` parameters.
+    var body = <JS.Statement>[];
+    emitFieldInit(FieldElement f, Expression initializer,
+        [AstNode sourceInfo]) {
+      var access =
+          _classProperties.virtualFields[f] ?? _declareMemberName(f.getter);
+      var jsInit = _visitInitializer(initializer, f);
+      body.add(jsInit
+          .toAssignExpression(js.call('this.#', [access])
+            ..sourceInformation = sourceInfo == null ? f : null)
+          .toStatement()
+            ..sourceInformation = sourceInfo);
+    }
+
+    for (var field in fieldDecls) {
+      var f = field.element;
+      if (f.isStatic) continue;
+      var init = field.initializer;
+      if (init == null ||
+          ctorFields != null &&
+              ctorFields.contains(f) &&
+              _constants.isFieldInitConstant(field)) {
+        continue;
+      }
+      emitFieldInit(f, init);
+    }
+
+    // Run constructor field initializers such as `: foo = bar.baz`
     if (ctor != null) {
       for (var p in ctor.parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
-          fields[element.field] = _emitSimpleIdentifier(p.identifier);
+          emitFieldInit(element.field, p.identifier);
         }
       }
 
-      // Run constructor field initializers such as `: foo = bar.baz`
       for (var init in ctor.initializers) {
         if (init is ConstructorFieldInitializer) {
-          var element = init.fieldName.staticElement as FieldElement;
-          fields[element] = _visitAndMarkExpression(init.expression);
+          emitFieldInit(init.fieldName.staticElement, init.expression, init);
         } else if (init is AssertInitializer) {
-          throw new UnimplementedError(
-              'Assert initializers are not implemented. '
-              'See https://github.com/dart-lang/sdk/issues/27809');
+          body.add(_emitAssert(init.condition, init.message));
         }
       }
     }
-
-    for (var f in fields.keys) unsetFields.remove(f);
-
-    // Initialize all remaining fields
-    unsetFields.forEach((element, fieldNode) {
-      var value =
-          _visitExpression(fieldNode.initializer) ?? new JS.LiteralNull();
-      fields[element] = value..sourceInformation = fieldNode.initializer;
-    });
-
-    var body = <JS.Statement>[];
-    fields.forEach((FieldElement e, JS.Expression initialValue) {
-      JS.Expression access =
-          _classProperties.virtualFields[e] ?? _declareMemberName(e.getter);
-      body.add(initialValue
-          .toAssignExpression(
-              js.call('this.#', [access])..sourceInformation = e)
-          .toStatement());
-    });
 
     return JS.Statement.from(body);
   }
@@ -4077,9 +4079,11 @@ class CodeGenerator extends Object
       new JS.EmptyStatement();
 
   @override
-  JS.Statement visitAssertStatement(AssertStatement node) {
+  JS.Statement visitAssertStatement(AssertStatement node) =>
+      _emitAssert(node.condition, node.message);
+
+  JS.Statement _emitAssert(Expression condition, Expression message) {
     // TODO(jmesserly): only emit in checked mode.
-    var condition = node.condition;
     var conditionType = condition.staticType;
     var jsCondition = _visitExpression(condition);
 
@@ -4095,7 +4099,7 @@ class CodeGenerator extends Object
     return js.statement(' if (!#) #.assertFailed(#);', [
       jsCondition,
       _runtimeModule,
-      node.message != null ? [_visitExpression(node.message)] : []
+      message != null ? [_visitExpression(message)] : []
     ]);
   }
 
@@ -4207,7 +4211,8 @@ class CodeGenerator extends Object
     var name =
         new JS.Identifier(node.name.name, type: emitTypeRef(node.element.type))
           ..sourceInformation = node.name;
-    return new JS.VariableInitialization(name, _visitInitializer(node));
+    return new JS.VariableInitialization(
+        name, _visitInitializer(node.initializer, node.element));
   }
 
   /// Emits a list of top-level field.
@@ -4232,8 +4237,10 @@ class CodeGenerator extends Object
           init is InstanceCreationExpression &&
               isSdkInternalRuntime(init.staticElement.library)) {
         _moduleItems.add(closureAnnotate(
-            js.statement('# = #;',
-                [_emitTopLevelName(field.element), _visitInitializer(field)]),
+            js.statement('# = #;', [
+              _emitTopLevelName(field.element),
+              _visitInitializer(field.initializer, field.element)
+            ]),
             field.element,
             field));
       } else {
@@ -4243,14 +4250,12 @@ class CodeGenerator extends Object
     return lazyFields;
   }
 
-  JS.Expression _visitInitializer(VariableDeclaration node) {
-    var init = node.initializer;
+  JS.Expression _visitInitializer(Expression init, Element variable) {
     // explicitly initialize to null, to avoid getting `undefined`.
     // TODO(jmesserly): do this only for vars that aren't definitely assigned.
     if (init == null) return new JS.LiteralNull();
-    var value = _annotatedNullCheck(node.element)
-        ? notNull(init)
-        : _visitExpression(init);
+    var value =
+        _annotatedNullCheck(variable) ? notNull(init) : _visitExpression(init);
     return value..sourceInformation = init;
   }
 
@@ -4268,8 +4273,8 @@ class CodeGenerator extends Object
       accessors.add(closureAnnotate(
           new JS.Method(
               access,
-              js.call('function() { return #; }', _visitInitializer(node))
-                  as JS.Fun,
+              js.call('function() { return #; }',
+                  _visitInitializer(node.initializer, node.element)) as JS.Fun,
               isGetter: true),
           _findAccessor(element, getter: true),
           node));
