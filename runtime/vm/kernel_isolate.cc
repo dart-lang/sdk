@@ -370,10 +370,6 @@ class KernelCompilationRequest : public ValueObject {
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
 
-    Dart_CObject dart_sync_async;
-    dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = FLAG_sync_async;
-
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -382,8 +378,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &dart_strong,
                                    &isolate_id,
                                    &files,
-                                   &suppress_warnings,
-                                   &dart_sync_async};
+                                   &suppress_warnings};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.

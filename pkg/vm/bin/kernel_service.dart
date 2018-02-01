@@ -48,9 +48,7 @@ abstract class Compiler {
   CompilerOptions options;
 
   Compiler(this.fileSystem, Uri platformKernel,
-      {this.strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false}) {
+      {this.strongMode: false, bool suppressWarnings: false}) {
     Uri packagesUri = (Platform.packageConfig != null)
         ? Uri.parse(Platform.packageConfig)
         : null;
@@ -61,14 +59,12 @@ abstract class Compiler {
       print("DFE: Platform.resolvedExecutable: ${Platform.resolvedExecutable}");
       print("DFE: platformKernel: ${platformKernel}");
       print("DFE: strongMode: ${strongMode}");
-      print("DFE: syncAsync: ${syncAsync}");
     }
 
     options = new CompilerOptions()
       ..strongMode = strongMode
       ..fileSystem = fileSystem
-      ..target = new VmTarget(
-          new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
+      ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
       ..packagesFileUri = packagesUri
       ..sdkSummary = platformKernel
       ..verbose = verbose
@@ -103,11 +99,9 @@ class IncrementalCompiler extends Compiler {
   IncrementalKernelGenerator generator;
 
   IncrementalCompiler(FileSystem fileSystem, Uri platformKernel,
-      {bool strongMode: false, bool suppressWarnings: false, syncAsync: false})
+      {bool strongMode: false, bool suppressWarnings: false})
       : super(fileSystem, platformKernel,
-            strongMode: strongMode,
-            suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync);
+            strongMode: strongMode, suppressWarnings: suppressWarnings);
 
   @override
   Future<Program> compileInternal(Uri script) async {
@@ -128,12 +122,9 @@ class SingleShotCompiler extends Compiler {
   SingleShotCompiler(FileSystem fileSystem, Uri platformKernel,
       {this.requireMain: false,
       bool strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false})
+      bool suppressWarnings: false})
       : super(fileSystem, platformKernel,
-            strongMode: strongMode,
-            suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync);
+            strongMode: strongMode, suppressWarnings: suppressWarnings);
 
   @override
   Future<Program> compileInternal(Uri script) async {
@@ -147,9 +138,7 @@ final Map<int, Compiler> isolateCompilers = new Map<int, Compiler>();
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     int isolateId, List sourceFiles, Uri platformKernel,
-    {bool strongMode: false,
-    bool suppressWarnings: false,
-    bool syncAsync: false}) async {
+    {bool strongMode: false, bool suppressWarnings: false}) async {
   IncrementalCompiler compiler;
   if (isolateCompilers.containsKey(isolateId)) {
     compiler = isolateCompilers[isolateId];
@@ -173,9 +162,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
     compiler = new IncrementalCompiler(fileSystem, platformKernel,
-        strongMode: strongMode,
-        suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync);
+        strongMode: strongMode, suppressWarnings: suppressWarnings);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -202,7 +189,6 @@ Future _processLoadRequest(request) async {
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
-  final bool syncAsync = request[9];
 
   Compiler compiler;
   // TODO(aam): There should be no need to have an option to choose
@@ -212,7 +198,7 @@ Future _processLoadRequest(request) async {
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernel,
-        suppressWarnings: suppressWarnings, syncAsync: syncAsync);
+        suppressWarnings: suppressWarnings);
   } else {
     final FileSystem fileSystem = sourceFiles == null
         ? StandardFileSystem.instance
@@ -220,8 +206,7 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompiler(fileSystem, platformKernel,
         requireMain: sourceFiles == null,
         strongMode: strong,
-        suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync);
+        suppressWarnings: suppressWarnings);
   }
 
   CompilationResult result;
@@ -308,7 +293,6 @@ train(String scriptUri, String platformKernel) {
     1 /* isolateId chosen randomly */,
     null /* source files */,
     false /* suppress warnings */,
-    false /* synchronous async */,
   ];
   _processLoadRequest(request);
 }

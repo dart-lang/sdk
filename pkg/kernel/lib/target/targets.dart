@@ -15,20 +15,16 @@ import 'vmreify.dart' show VmGenericTypesReifiedTarget;
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  final bool strongMode;
-  final bool treeShake;
-
-  /// Whether `async` functions start synchronously.
-  final bool syncAsync;
-  final List<ProgramRoot> programRoots;
-  final Uri kernelRuntime;
+  bool strongMode;
+  bool treeShake;
+  List<ProgramRoot> programRoots;
+  Uri kernelRuntime;
 
   TargetFlags(
       {this.strongMode: false,
       this.treeShake: false,
-      this.syncAsync: false,
       this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime});
+      this.kernelRuntime}) {}
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);

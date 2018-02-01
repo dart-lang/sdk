@@ -17,43 +17,6 @@ import "dart:_internal" show VMLibraryHooks, patch;
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartAsync_fatal";
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
-  final _completer = new Completer<T>.sync();
-  bool isSync;
-
-  _AsyncAwaitCompleter() : isSync = false;
-
-  void complete([FutureOr<T> value]) {
-    if (isSync) {
-      _completer.complete(value);
-    } else if (value is Future<T>) {
-      value.then(_completer.complete, onError: _completer.completeError);
-    } else {
-      scheduleMicrotask(() {
-        _completer.complete(value);
-      });
-    }
-  }
-
-  void completeError(e, [st]) {
-    if (isSync) {
-      _completer.completeError(e, st);
-    } else {
-      scheduleMicrotask(() {
-        _completer.completeError(e, st);
-      });
-    }
-  }
-
-  void start(f) {
-    f();
-    isSync = true;
-  }
-
-  Future<T> get future => _completer.future;
-  bool get isCompleted => _completer.isCompleted;
-}
-
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
 // See vm/ast_transformer.cc for usage.

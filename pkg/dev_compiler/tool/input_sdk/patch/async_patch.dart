@@ -17,8 +17,6 @@ import 'dart:_isolate_helper'
 
 import 'dart:_foreign_helper' show JS, JSExportName;
 
-import 'dart:_runtime' as dart;
-
 typedef void _Callback();
 typedef void _TakeCallback(_Callback callback);
 
@@ -69,7 +67,7 @@ async_<T>(Function() initGenerator) {
     onError = zone.registerUnaryCallback(onError);
   }
   var asyncFuture = new _Future<T>();
-  var body = () {
+  scheduleMicrotask(() {
     try {
       iter = JS('', '#[Symbol.iterator]()', initGenerator());
       var iteratorValue = JS('', '#.next(null)', iter);
@@ -99,20 +97,9 @@ async_<T>(Function() initGenerator) {
         _Future._chainCoreFuture(onAwait(value), asyncFuture);
       }
     } catch (e, s) {
-      if (dart.startAsyncSynchronously) {
-        scheduleMicrotask(() {
-          _completeWithErrorCallback(asyncFuture, e, s);
-        });
-      } else {
-        _completeWithErrorCallback(asyncFuture, e, s);
-      }
+      _completeWithErrorCallback(asyncFuture, e, s);
     }
-  };
-  if (dart.startAsyncSynchronously) {
-    body();
-  } else {
-    scheduleMicrotask(body);
-  }
+  });
   return asyncFuture;
 }
 

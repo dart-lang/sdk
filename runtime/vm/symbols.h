@@ -145,9 +145,6 @@ class ObjectPointerVisitor;
   V(CompleterComplete, "complete")                                             \
   V(CompleterCompleteError, "completeError")                                   \
   V(CompleterSyncConstructor, "Completer.sync")                                \
-  V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
-  V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
-  V(_AsyncAwaitStart, "start")                                                 \
   V(CompleterFuture, "future")                                                 \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \

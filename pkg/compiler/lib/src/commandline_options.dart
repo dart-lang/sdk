@@ -88,11 +88,6 @@ class Flags {
   // https://gist.github.com/eernstg/4353d7b4f669745bed3a5423e04a453c.
   static const String genericMethodSyntax = '--generic-method-syntax';
 
-  // Starts `async` functions synchronously.
-  //
-  // This is the Dart 2.0 behavior. This flag is only used during the migration.
-  static const String syncAsync = '--sync-async';
-
   // Initializing-formal access is enabled by default and cannot be disabled.
   // For backward compatibility the option is still accepted, but it is ignored.
   static const String initializingFormalAccess = '--initializing-formal-access';

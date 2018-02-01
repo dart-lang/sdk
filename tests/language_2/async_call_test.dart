@@ -14,8 +14,6 @@ foo() {
 
 bar() async {
   result += "bar";
-  await null;
-  result += "bar2";
 }
 
 main() {
@@ -23,13 +21,13 @@ main() {
   () async {
     var f = new Future(foo);
     var b = bar();
-    Expect.equals("bar", result);
+    Expect.equals("", result);
     scheduleMicrotask(() => result += "micro");
     await b;
     await f;
 
     // Validates that bar is scheduled as a microtask, before foo.
-    Expect.equals("barbar2microfoo", result);
+    Expect.equals("barmicrofoo", result);
     asyncEnd();
   }();
 }

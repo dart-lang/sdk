@@ -132,53 +132,6 @@ class Timer {
   }
 }
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
-  final _completer = new Completer<T>.sync();
-  bool isSync;
-
-  _AsyncAwaitCompleter() : isSync = false;
-
-  void complete([FutureOr<T> value]) {
-    if (isSync) {
-      _completer.complete(value);
-    } else if (value is Future<T>) {
-      value.then(_completer.complete, onError: _completer.completeError);
-    } else {
-      scheduleMicrotask(() {
-        _completer.complete(value);
-      });
-    }
-  }
-
-  void completeError(e, [st]) {
-    if (isSync) {
-      _completer.completeError(e, st);
-    } else {
-      scheduleMicrotask(() {
-        _completer.completeError(e, st);
-      });
-    }
-  }
-
-  Future<T> get future => _completer.future;
-  bool get isCompleted => _completer.isCompleted;
-}
-
-/// Initiates the computation of an `async` function and starts the body
-/// synchronously.
-///
-/// Used as part of the runtime support for the async/await transformation.
-///
-/// This function sets up the first call into the transformed [bodyFunction].
-/// Independently, it takes the [completer] and returns the future of the
-/// completer for convenience of the transformed code.
-dynamic _asyncStartSync(
-    _WrappedAsyncBody bodyFunction, _AsyncAwaitCompleter completer) {
-  bodyFunction(async_error_codes.SUCCESS, null);
-  completer.isSync = true;
-  return completer.future;
-}
-
 /// Initiates the computation of an `async` function.
 ///
 /// Used as part of the runtime support for the async/await transformation.

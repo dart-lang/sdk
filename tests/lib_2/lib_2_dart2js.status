@@ -89,7 +89,6 @@ html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failu
 html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: RuntimeError # Please triage.
-html/notification_permission_test: Timeout # Issue 32002
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
 isolate/kill_self_synchronously_test: RuntimeError

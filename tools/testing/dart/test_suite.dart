@@ -814,12 +814,6 @@ class StandardTestSuite extends TestSuite {
     var commonArguments =
         commonArgumentsFromFile(info.filePath, info.optionsFromFile);
 
-    // TODO(floitsch): Hack. When running the 2.0 tests always start
-    // async functions synchronously.
-    if (suiteName.endsWith("_2")) {
-      commonArguments.insert(0, "--sync-async");
-    }
-
     var vmOptionsList = getVmOptions(info.optionsFromFile);
     assert(!vmOptionsList.isEmpty);
 
@@ -1032,36 +1026,12 @@ class StandardTestSuite extends TestSuite {
       } else {
         var jsDir =
             new Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        // Always run with synchronous starts of `async` functions.
-        // If we want to make this dependent on other parameters or flags,
-        // this flag could be become conditional.
-        content = dartdevcHtml(nameNoExt, jsDir, buildDir, syncAsync: true);
+        content = dartdevcHtml(nameNoExt, jsDir, buildDir);
       }
     }
 
     var htmlPath = '$tempDir/test.html';
     new File(htmlPath).writeAsStringSync(content);
-
-    // TODO(floitsch): Hack. When running the 2.0 tests always start
-    // async functions synchronously.
-    if (suiteName.endsWith("_2") &&
-        configuration.compiler == Compiler.dart2js) {
-      if (optionsFromFile == null) {
-        optionsFromFile = const <String, dynamic>{
-          'sharedOptions': const ['--sync-async']
-        };
-      } else {
-        optionsFromFile = new Map<String, dynamic>.from(optionsFromFile);
-        var sharedOptions = optionsFromFile['sharedOptions'];
-        if (sharedOptions == null) {
-          sharedOptions = const <String>['--sync-async'];
-        } else {
-          sharedOptions = sharedOptions.toList();
-          sharedOptions.insert(0, "--sync-async");
-        }
-        optionsFromFile['sharedOptions'] = sharedOptions;
-      }
-    }
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test. For running Dart in DRT, this will be noop commands.

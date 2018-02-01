@@ -13,10 +13,6 @@ var delayedValue = new Completer();
 var delayedError = new Completer();
 
 foo() async {
-  // Because of this `await null` the function returns and lets the caller
-  // install handlers. When the function finishes, it can then synchronously
-  // propagate the values.
-  await null;
   new Future.microtask(() => 'in microtask')
       .then(events.add)
       .then(delayedValue.complete);
@@ -24,10 +20,6 @@ foo() async {
 }
 
 bar() async {
-  // Because of this `await null` the function returns and lets the caller
-  // install handlers. When the function finishes, it can then synchronously
-  // propagate the values.
-  await null;
   new Future.microtask(() => throw 'in microtask error')
       .catchError(events.add)
       .then(delayedError.complete);

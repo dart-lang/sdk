@@ -79,9 +79,7 @@ class CoreTypes {
   Class _stackTraceClass;
   Class _streamClass;
   Class _completerClass;
-  Class _asyncAwaitCompleterClass;
   Class _futureOrClass;
-  Constructor _asyncAwaitCompleterConstructor;
   Procedure _completerSyncConstructor;
   Procedure _completerComplete;
   Procedure _completerCompleteError;
@@ -164,19 +162,9 @@ class CoreTypes {
     return _completerClass ??= _index.getClass('dart:async', 'Completer');
   }
 
-  Class get asyncAwaitCompleterClass {
-    return _asyncAwaitCompleterClass ??=
-        _index.getClass('dart:async', '_AsyncAwaitCompleter');
-  }
-
   Procedure get completerSyncConstructor {
     return _completerSyncConstructor ??=
         _index.getMember('dart:async', 'Completer', 'sync');
-  }
-
-  Constructor get asyncAwaitCompleterConstructor {
-    return _asyncAwaitCompleterConstructor ??=
-        _index.getMember('dart:async', '_AsyncAwaitCompleter', '');
   }
 
   Procedure get completerComplete {

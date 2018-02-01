@@ -40,8 +40,7 @@ String dart2jsHtml(String title, String scriptPath) {
 /// The [testName] is the short name of the test without any subdirectory path
 /// or extension, like "math_test". The [testJSDir] is the relative path to the
 /// build directory where the dartdevc-generated JS file is stored.
-String dartdevcHtml(String testName, String testJSDir, String buildDir,
-    {bool syncAsync}) {
+String dartdevcHtml(String testName, String testJSDir, String buildDir) {
   var packagePaths = testPackages
       .map((package) => '    "$package": "/root_dart/$buildDir/gen/utils/'
           'dartdevc/pkg/$package",')
@@ -87,7 +86,7 @@ window.ddcSettings = {
 requirejs(["$testName", "dart_sdk", "async_helper"],
     function($testName, sdk, async_helper) {  
   sdk.dart.ignoreWhitelistedErrors(false);
-  if ($syncAsync) sdk.dart.setStartAsyncSynchronously();
+  
   // TODO(rnystrom): This uses DDC's forked version of async_helper. Unfork
   // these packages when possible.
   async_helper.async_helper.asyncTestInitialize(function() {});
