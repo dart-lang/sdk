@@ -42,6 +42,8 @@ import '../parser.dart'
         closeBraceTokenFor,
         optional;
 
+import '../parser/class_member_parser.dart' show ClassMemberParser;
+
 import '../parser/formal_parameter_kind.dart'
     show isOptionalPositionalFormalParameterKind;
 
@@ -62,6 +64,8 @@ import '../scanner.dart' show Token;
 import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 
 import '../scope.dart' show ProblemBuilder;
+
+import '../source/outline_builder.dart' show OutlineBuilder;
 
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
@@ -1871,15 +1875,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void beginFunctionType(Token beginToken) {
     debugEvent("beginFunctionType");
-    enterFunctionTypeScope();
   }
 
-  void enterFunctionTypeScope() {
+  void enterFunctionTypeScope(List typeVariables) {
     debugEvent("enterFunctionTypeScope");
-    List typeVariables = pop();
     enterLocalScope(null,
-        scope.createNestedScope("function-type scope", isModifiable: false));
-    push(typeVariables ?? NullValue.TypeVariables);
+        scope.createNestedScope("function-type scope", isModifiable: true));
     if (typeVariables != null) {
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
       for (KernelTypeVariableBuilder builder in typeVariables) {
@@ -2056,7 +2057,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     functionNestingLevel++;
-    enterFunctionTypeScope();
   }
 
   @override
@@ -2667,7 +2667,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   void enterFunction() {
     debugEvent("enterFunction");
-    enterFunctionTypeScope();
     functionNestingLevel++;
     push(switchScope ?? NullValue.SwitchScope);
     switchScope = null;
@@ -3246,22 +3245,39 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginTypeVariables(Token token) {
+    debugEvent("beginTypeVariables");
+    OutlineBuilder listener = new OutlineBuilder(library);
+    new ClassMemberParser(listener).parseTypeVariablesOpt(token.previous);
+    enterFunctionTypeScope(listener.pop());
+  }
+
+  @override
+  void handleNoTypeVariables(Token token) {
+    debugEvent("NoTypeVariables");
+    enterFunctionTypeScope(null);
+    push(NullValue.TypeVariables);
+  }
+
+  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
     DartType bound = pop();
-    if (bound != null) {
-      // TODO(ahe): To handle F-bounded types, this needs to be a TypeBuilder.
-      // TODO(askesc): Remove message type when no longer needed.
-      // https://github.com/dart-lang/sdk/issues/31766
-      addProblem(fasta.messageUnimplementedBoundsOnTypeVariables,
-          offsetForToken(extendsOrSuper.next));
-    }
     Identifier name = pop();
     // TODO(ahe): Do not discard metadata.
     pop(); // Metadata.
-    push(new KernelTypeVariableBuilder(
-        name.name, library, offsetForToken(name.token), null)
-      ..finish(library, library.loader.coreLibrary["Object"]));
+    KernelTypeVariableBuilder variable;
+    Object inScope = scopeLookup(scope, name.name, token);
+    if (inScope is TypeDeclarationAccessor) {
+      variable = inScope.declaration;
+    } else {
+      // Something went wrong when pre-parsing the type variables.
+      // Assume an error is reported elsewhere.
+      variable = new KernelTypeVariableBuilder(
+          name.name, library, offsetForToken(name.token), null);
+    }
+    variable.parameter.bound = bound;
+    push(variable..finish(library, library.loader.coreLibrary["Object"]));
   }
 
   @override

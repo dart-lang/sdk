@@ -4962,16 +4962,6 @@ Message _withArgumentsUnexpectedToken(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnimplementedBoundsOnTypeVariables =
-    messageUnimplementedBoundsOnTypeVariables;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnimplementedBoundsOnTypeVariables = const MessageCode(
-    "UnimplementedBoundsOnTypeVariables",
-    severity: Severity.warning,
-    message: r"""Unimplemented bounds on type variables.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, Token token)>
     templateUnmatchedToken =
     const Template<Message Function(String string, Token token)>(

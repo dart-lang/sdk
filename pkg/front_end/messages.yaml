@@ -1041,12 +1041,6 @@ InternalProblemUnimplemented:
   template: "Unimplemented #string."
   severity: INTERNAL_PROBLEM
 
-UnimplementedBoundsOnTypeVariables:
-  # Has its own message to make it just a warning.
-  # TODO(askesc): Remove when no longer needed.
-  template: "Unimplemented bounds on type variables."
-  severity: WARNING
-
 InternalProblemUnexpected:
   template: "Expected '#string', but got '#string2'."
   severity: INTERNAL_PROBLEM
