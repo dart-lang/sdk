@@ -270,6 +270,10 @@ template("build_libdart_builtin") {
       ":generate_web_gl_cc_file",
       ":generate_web_sql_cc_file",
     ]
+    if (is_fuchsia) {
+      deps += [ "//zircon/public/lib/launchpad" ]
+      public_deps = [ "//zircon/public/lib/fdio" ]
+    }
     include_dirs = [ ".." ]
     set_sources_assignment_filter([
                                     "*_test.cc",
@@ -321,6 +325,9 @@ template("build_gen_snapshot") {
              ":generate_cli_cc_file",
              ":generate_cli_patch_cc_file",
            ] + extra_deps
+    if (is_fuchsia) {
+      deps += [ "//zircon/public/lib/launchpad" ]
+    }
 
     sources = [
       # Include generated source files.
@@ -376,10 +383,6 @@ template("build_gen_snapshot") {
         "winmm.lib",
       ]
     }
-
-    if (is_fuchsia) {
-      libs = [ "launchpad" ]
-    }
   }
 }
 
@@ -419,6 +422,7 @@ template("build_gen_snapshot_dart_io") {
 
     if (is_fuchsia) {
       deps += [ "//garnet/public/lib/netstack/c" ]
+      public_deps = [ "//zircon/public/lib/fdio" ]
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
@@ -515,8 +519,11 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      deps += [ "//garnet/public/lib/netstack/c" ]
-      libs = [ "launchpad" ]
+      deps += [
+        "//garnet/public/lib/netstack/c",
+        "//zircon/public/lib/launchpad",
+      ]
+      public_deps = [ "//zircon/public/lib/fdio" ]
     }
 
     sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
@@ -799,6 +806,10 @@ template("dart_executable") {
              "$dart_zlib_path",
            ] + extra_deps
 
+    if (is_fuchsia) {
+      deps += [ "//zircon/public/lib/launchpad" ]
+    }
+
     defines = extra_defines
 
     if (dart_use_tcmalloc) {
@@ -840,10 +851,6 @@ template("dart_executable") {
         "Rpcrt4.lib",
         "winmm.lib",
       ]
-    }
-
-    if (is_fuchsia) {
-      libs = [ "launchpad" ]
     }
   }
 }
@@ -1112,7 +1119,7 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    deps += [ "//zircon/system/ulib/trace" ]
+    deps += [ "//zircon/public/lib/trace" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in

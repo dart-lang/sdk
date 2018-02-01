@@ -40,7 +40,6 @@ config("libdart_vm_config") {
   if (is_fuchsia) {
     libs = [
       "zircon",
-      "trace-engine",
     ]
   } else if (is_win) {
     libs = [
@@ -80,7 +79,8 @@ template("build_libdart_vm") {
 
         # TODO(zra): When the platform-specific timeline code is moved out to
         # the embedder, this can go away.
-        "//zircon/system/ulib/fbl",
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
       ]
     }
     public_configs = [ ":libdart_vm_config" ]
