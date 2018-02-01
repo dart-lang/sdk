@@ -349,11 +349,12 @@ main() {
     InstanceCreationExpression instanceCreationExpression =
         constructorName.parent.parent.parent;
     expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression, isNotNull);
     expect(instanceCreationExpression.constructorName.type.type, isNotNull);
     expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
     expect(instanceCreationExpression.staticElement, isNotNull);
     expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
   }
 
   // Test that the call to a constructor with an implicit named constructor is
@@ -373,11 +374,40 @@ main() {
     InstanceCreationExpression instanceCreationExpression =
         constructorName.parent.parent;
     expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // named constructor:
+    expect(instanceCreationExpression.constructorName.name.staticElement,
+        isNotNull);
+  }
+
+  // Test that the call to a constructor with an implicit unnamed constructor is
+  // re-written as an InstanceCreationExpression AST node from a
+  // MethodInvocation.
+  test_visitMethodInvocations_implicit_typeArgs() async {
+    String code = '''
+class A<T> {
+  final T x;
+  A(this.x) {}
+}
+main() {
+  var v = A<int>(42); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName =
+        findMarkedIdentifier(code, unit, "<int>(42); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent.parent;
     expect(instanceCreationExpression, isNotNull);
     expect(instanceCreationExpression.constructorName.type.type, isNotNull);
     expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
     expect(instanceCreationExpression.staticElement, isNotNull);
     expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
   }
 
   // Test that the call to a static method will not be re-written as a
