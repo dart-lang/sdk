@@ -3624,7 +3624,9 @@ class CodeGenerator extends Object
       }
       if (targetType.isDartCoreFunction || targetType.isDynamic) {
         // TODO(vsm): Can a call method take generic type parameters?
-        return _emitDynamicInvoke(node, _visitExpression(target),
+        return _emitDynamicInvoke(
+            _visitExpression(target),
+            _emitInvokeTypeArguments(node),
             _emitArgumentList(node.argumentList));
       }
     }
@@ -3707,6 +3709,10 @@ class CodeGenerator extends Object
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
+      if (jsTarget is JS.Super) {
+        jsTarget = _emitTargetAccess(jsTarget, jsName, element);
+        return _emitDynamicInvoke(jsTarget, typeArgs, args);
+      }
       if (typeArgs != null) {
         return _callHelper('#(#, [#], #, #)', [
           _emitDynamicOperationName('dgsend'),
@@ -3733,9 +3739,8 @@ class CodeGenerator extends Object
     return new JS.Call(jsTarget, args);
   }
 
-  JS.Expression _emitDynamicInvoke(
-      InvocationExpression node, JS.Expression fn, List<JS.Expression> args) {
-    var typeArgs = _emitInvokeTypeArguments(node);
+  JS.Expression _emitDynamicInvoke(JS.Expression fn,
+      List<JS.Expression> typeArgs, List<JS.Expression> args) {
     if (typeArgs != null) {
       return _callHelper('dgcall(#, [#], #)', [fn, typeArgs, args]);
     } else {
@@ -3807,10 +3812,10 @@ class CodeGenerator extends Object
     }
     var fn = _visitExpression(function);
     var args = _emitArgumentList(node.argumentList);
-    if (isDynamicInvoke(function)) {
-      return _emitDynamicInvoke(node, fn, args);
-    }
     var typeArgs = _emitInvokeTypeArguments(node);
+    if (isDynamicInvoke(function)) {
+      return _emitDynamicInvoke(fn, typeArgs, args);
+    }
     if (typeArgs != null) args.insertAll(0, typeArgs);
     return new JS.Call(fn, args);
   }
