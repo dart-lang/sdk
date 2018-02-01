@@ -484,8 +484,8 @@ class ExpressionLifter extends Transformer {
   }
 
   visitFunctionNode(FunctionNode node) {
-    var nestedRewriter =
-        new RecursiveContinuationRewriter(continuationRewriter.helper);
+    var nestedRewriter = new RecursiveContinuationRewriter(
+        continuationRewriter.helper, continuationRewriter.syncAsync);
     return node.accept(nestedRewriter);
   }
 }

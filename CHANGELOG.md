@@ -8,6 +8,9 @@
   This allows libraries with no library declarations (and therefore no name)
   to have parts, and it allows tools to easily find the library of a part
   file.
+* Added support for starting `async` functions synchronously. All tools (VM,
+  dart2js, DDC) have now a flag `--sync-async` to enable this behavior.
+  Currently this behavior is opt-in. It will become the default.
 
 #### Strong Mode
 

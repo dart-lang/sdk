@@ -276,6 +276,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Strip option used by dart2dart.
   final List<String> strips;
 
+  /// Whether to start `async` functions synchronously.
+  final bool startAsyncSynchronously;
+
   /// Create an options object by parsing flags from [options].
   factory CompilerOptions.parse(
       {Uri entryPoint,
@@ -356,6 +359,7 @@ class CompilerOptions implements DiagnosticOptions {
         useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
         useNewSourceInfo: _hasOption(options, Flags.useNewSourceInfo),
         useStartupEmitter: _hasOption(options, Flags.fastStartup),
+        startAsyncSynchronously: _hasOption(options, Flags.syncAsync),
         verbose: _hasOption(options, Flags.verbose));
   }
 
@@ -421,6 +425,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useStartupEmitter: false,
+      bool startAsyncSynchronously: false,
       bool verbose: false}) {
     // TODO(sigmund): should entrypoint be here? should we validate it is not
     // null? In unittests we use the same compiler to analyze or build multiple
@@ -504,6 +509,7 @@ class CompilerOptions implements DiagnosticOptions {
         useMultiSourceInfo: useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo,
         useStartupEmitter: useStartupEmitter,
+        startAsyncSynchronously: startAsyncSynchronously,
         verbose: verbose);
   }
 
@@ -559,6 +565,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.useMultiSourceInfo: false,
       this.useNewSourceInfo: false,
       this.useStartupEmitter: false,
+      this.startAsyncSynchronously: false,
       this.verbose: false})
       : _shownPackageWarnings = shownPackageWarnings;
 
