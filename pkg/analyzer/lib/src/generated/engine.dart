@@ -1297,6 +1297,11 @@ abstract class AnalysisOptions {
   bool get preserveComments;
 
   /**
+   * Return `true` if analyzer should enable the use of Dart 2.0 features.
+   */
+  bool get previewDart2;
+
+  /**
    * Return the opaque signature of the options.
    *
    * The length of the list is guaranteed to equal [signatureLength].
@@ -1320,11 +1325,6 @@ abstract class AnalysisOptions {
    * Return `true` if analyzer should use the Dart 2.0 Front End parser.
    */
   bool get useFastaParser;
-
-  /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  bool previewDart2;
 
   /**
    * Reset the state of this set of analysis options to its original state.
