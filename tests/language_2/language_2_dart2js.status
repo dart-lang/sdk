@@ -2558,12 +2558,19 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 function_propagation_test: CompileTimeError
+function_subtype_bound_closure1_test: RuntimeError
+function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure5_test: RuntimeError
+function_subtype_bound_closure5a_test: RuntimeError
+function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
+function_subtype_cast2_test: RuntimeError
+function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
@@ -2571,18 +2578,27 @@ function_subtype_factory0_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+function_subtype_local1_test: RuntimeError
+function_subtype_local2_test: RuntimeError
+function_subtype_local5_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
+function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
+function_subtype_top_level1_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
