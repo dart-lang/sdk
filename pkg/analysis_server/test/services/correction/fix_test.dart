@@ -26,7 +26,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../src/utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -599,13 +598,11 @@ class A {
   }
 
   test_addMissingRequiredArg_cons_flutter_children() async {
-    addPackageSource(
-        'flutter', 'src/widgets/framework.dart', flutter_framework_code);
-
+    addFlutterPackage();
     _addMetaPackageSource();
 
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
@@ -620,7 +617,7 @@ build() {
     await assertHasFix(
         DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
         '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
@@ -5371,11 +5368,9 @@ class A {
   }
 
   test_undefinedParameter_convertFlutterChild_invalidList() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5392,11 +5387,9 @@ build() {
   }
 
   test_undefinedParameter_convertFlutterChild_OK_hasList() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5410,7 +5403,7 @@ build() {
 }
 ''');
     await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5426,11 +5419,9 @@ build() {
   }
 
   test_undefinedParameter_convertFlutterChild_OK_hasTypedList() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5444,7 +5435,7 @@ build() {
 }
 ''');
     await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5460,11 +5451,9 @@ build() {
   }
 
   test_undefinedParameter_convertFlutterChild_OK_multiLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
     body: new Row(
@@ -5477,7 +5466,7 @@ build() {
 }
 ''');
     await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
     body: new Row(
@@ -5614,30 +5603,6 @@ class Required {
   const Required([this.reason]);
 }
 ''');
-  }
-
-  /**
-   * Configures the [SourceFactory] to have the `flutter` package in
-   * `/packages/flutter/lib` folder.
-   */
-  void _configureFlutterPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      newFile('$flutterPkgLibPath/$path', content: code);
-    });
-    // configure SourceFactory
-    Folder myPkgFolder = getFolder(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
-      'flutter': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'flutter' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:flutter/$path';")
-            .join('\n'));
   }
 }
 

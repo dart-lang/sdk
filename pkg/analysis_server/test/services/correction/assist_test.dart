@@ -11,8 +11,6 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
@@ -25,7 +23,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../src/utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -917,11 +914,9 @@ class A {
   }
 
   test_convertFlutterChild_OK_multiLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -938,7 +933,7 @@ build() {
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -959,11 +954,9 @@ build() {
 
   test_convertFlutterChild_OK_newlineChild() async {
     // This case could occur with deeply nested constructors, common in Flutter.
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -981,7 +974,7 @@ build() {
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -1001,11 +994,9 @@ build() {
   }
 
   test_convertFlutterChild_OK_singleLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -1019,7 +1010,7 @@ build() {
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -3440,11 +3431,9 @@ main() {
   }
 
   test_moveFlutterWidgetDown_OK() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -3465,7 +3454,7 @@ startResize() {}
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -3487,11 +3476,9 @@ startResize() {}
   }
 
   test_moveFlutterWidgetUp_OK() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -3512,7 +3499,7 @@ startResize() {}
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.MOVE_FLUTTER_WIDGET_UP, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
 // start
@@ -3661,11 +3648,9 @@ final V = 1;
 
   test_reparentFlutterList_BAD_multiLine() async {
     verifyNoTestUnitErrors = false;
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -3685,11 +3670,9 @@ build() {
   }
 
   test_reparentFlutterList_BAD_singleLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
   var obj;
@@ -3704,11 +3687,9 @@ class FakeFlutter {
   }
 
   test_reparentFlutterList_OK_multiLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -3725,7 +3706,7 @@ build() {
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_LIST, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -3747,9 +3728,7 @@ build() {
   }
 
   test_reparentFlutterWidget_BAD_minimal() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
 /*caret*/x(){}
 ''');
@@ -3758,11 +3737,9 @@ build() {
   }
 
   test_reparentFlutterWidget_BAD_singleLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
   var obj;
@@ -3777,11 +3754,9 @@ class FakeFlutter {
   }
 
   test_reparentFlutterWidget_OK_multiLines() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
     return new Container(
@@ -3801,7 +3776,7 @@ class FakeFlutter {
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
     return new Container(
@@ -3824,11 +3799,9 @@ class FakeFlutter {
   }
 
   test_reparentFlutterWidget_OK_multiLines_eol2() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';\r
+import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
     return new Container(\r
@@ -3848,7 +3821,7 @@ class FakeFlutter {\r
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';\r
+import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
     return new Container(\r
@@ -3871,11 +3844,9 @@ class FakeFlutter {\r
   }
 
   test_reparentFlutterWidget_OK_singleLine1() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
 // start
@@ -3886,7 +3857,7 @@ class FakeFlutter {
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
 // start
@@ -3898,27 +3869,21 @@ class FakeFlutter {
   }
 
   test_reparentFlutterWidget_OK_singleLine2() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-// start
     return new ClipRect./*caret*/rect();
-// end
   }
 }
 ''');
     _setCaretLocation();
     await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-// start
     return new widget(child: new ClipRect./*caret*/rect());
-// end
   }
 }
 ''');
@@ -4481,30 +4446,6 @@ main() {
         offset, length, driver, new AstProviderForDriver(driver), testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
-  }
-
-  /**
-   * Configures the [SourceFactory] to have the `flutter` package in
-   * `/packages/flutter/lib` folder.
-   */
-  void _configureFlutterPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      newFile('$flutterPkgLibPath/$path', content: code);
-    });
-    // configure SourceFactory
-    Folder myPkgFolder = getFolder(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
-      'flutter': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'flutter' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:flutter/$path';")
-            .join('\n'));
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {
