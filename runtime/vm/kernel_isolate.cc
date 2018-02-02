@@ -84,8 +84,10 @@ class RunKernelTask : public ThreadPool::Task {
     isolate = reinterpret_cast<Isolate*>(create_callback(
         KernelIsolate::kName, NULL, NULL, NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
-      OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
-                   error);
+      if (FLAG_trace_kernel) {
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
+                     error);
+      }
       KernelIsolate::SetKernelIsolate(NULL);
       KernelIsolate::FinishedInitializing();
       return;
