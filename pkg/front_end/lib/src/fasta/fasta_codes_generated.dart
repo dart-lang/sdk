@@ -934,6 +934,42 @@ Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateDeferredTypeAnnotation = const Template<
+        Message Function(DartType _type, String name)>(
+    messageTemplate:
+        r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
+    tipTemplate:
+        r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
+    withArguments: _withArgumentsDeferredTypeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeDeferredTypeAnnotation =
+    const Code<Message Function(DartType _type, String name)>(
+        "DeferredTypeAnnotation", templateDeferredTypeAnnotation,
+        analyzerCode: "TYPE_ANNOTATION_DEFERRED_CLASS",
+        dart2jsCode: "*fatal*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeDeferredTypeAnnotation,
+      message:
+          """The type '$type' is deferred loaded via prefix '$name' and can't be used as a type annotation.""",
+      tip: """Try removing 'deferred' from the import of '$name' or use a supertype of '$type' that isn't deferred.""",
+      arguments: {'type': _type, 'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(int count, int count2, String string, String string2,
             String string3)> templateDillOutlineSummary =
     const Template<

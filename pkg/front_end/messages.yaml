@@ -1145,6 +1145,13 @@ DuplicateDeferred:
   analyzerCode: DUPLICATE_DEFERRED
   dart2jsCode: "*fatal*"
 
+DeferredTypeAnnotation:
+  template: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
+  tip: "Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_ANNOTATION_DEFERRED_CLASS
+  dart2jsCode: "*fatal*"
+
 DuplicatePrefix:
   template: "An import directive can only have one prefix ('as' clause)."
   tip: "Try removing all but one prefix."

@@ -150,6 +150,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_constDeferredClass_new() async {
+    return super.test_constDeferredClass_new();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
   }

@@ -1246,8 +1246,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      return new TypeDeclarationAccessor(
+      TypeDeclarationAccessor accessor = new TypeDeclarationAccessor(
           this, prefix, charOffset, builder, name, token);
+      return (prefix?.deferred == true)
+          ? new DeferredAccessor(this, token, prefix, accessor)
+          : accessor;
     } else if (builder.isLocal) {
       if (constantExpressionRequired &&
           !builder.isConst &&
@@ -1853,12 +1856,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return;
       }
     }
-    if (name is TypeDeclarationAccessor) {
+    if (name is FastaAccessor) {
       push(name.buildTypeWithBuiltArguments(arguments));
-    } else if (name is FastaAccessor) {
-      addProblem(fasta.templateNotAType.withArguments(beginToken.lexeme),
-          beginToken.charOffset);
-      push(const InvalidType());
     } else if (name is TypeBuilder) {
       push(name.build(library));
     } else if (name is PrefixBuilder) {
@@ -2482,6 +2481,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
     String prefixName;
     var type = pop();
+    PrefixBuilder deferredPrefix;
+    int checkOffset;
+    if (type is DeferredAccessor) {
+      DeferredAccessor accessor = type;
+      type = accessor.accessor;
+      deferredPrefix = accessor.builder;
+      checkOffset = accessor.token.charOffset;
+    }
+
     if (type is TypeDeclarationAccessor) {
       TypeDeclarationAccessor accessor = type;
       if (accessor.prefix != null) {
@@ -2493,7 +2501,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
     bool savedConstantExpressionRequired = pop();
     if (type is TypeDeclarationBuilder) {
-      push(buildConstructorInvocation(
+      Expression expression = buildConstructorInvocation(
           type,
           nameToken,
           arguments,
@@ -2501,7 +2509,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           typeArguments,
           token.charOffset,
           optional("const", token) || optional("@", token),
-          prefixName: prefixName));
+          prefixName: prefixName);
+      push(deferredPrefix != null
+          ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
+          : expression);
     } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
@@ -3642,6 +3653,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     library.addCompileTimeError(message, charOffset, uri);
   }
 
+  @override
   void addProblem(Message message, int charOffset) {
     library.addProblem(message, charOffset, uri);
   }
@@ -3673,11 +3685,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix) {
-    return new ShadowDeferredCheck(
-        new VariableDeclaration.forValue(
-            new CheckLibraryIsLoaded(prefix.dependency)),
-        expression);
+  Expression wrapInDeferredCheck(
+      Expression expression, PrefixBuilder prefix, int charOffset) {
+    var check = new VariableDeclaration.forValue(
+        new CheckLibraryIsLoaded(prefix.dependency))
+      ..fileOffset = charOffset;
+    return new ShadowDeferredCheck(check, expression);
   }
 }
 

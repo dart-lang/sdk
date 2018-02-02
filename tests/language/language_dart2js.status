@@ -837,13 +837,9 @@ constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Insta
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
@@ -1152,17 +1148,9 @@ constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Insta
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/as_operation: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_constraints_type_annotation_test/is_check: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_load_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
