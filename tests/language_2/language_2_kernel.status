@@ -870,6 +870,7 @@ redirecting_factory_reflection_test: Crash
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 deferred_constraints_constants_test/default_argument2: MissingCompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
+duplicate_implements_test/02: Slow, Pass
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 
 [ $compiler == dartk && !$strong ]
@@ -1093,6 +1094,8 @@ check_member_static_test/01: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -1243,6 +1246,7 @@ generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash, Pass

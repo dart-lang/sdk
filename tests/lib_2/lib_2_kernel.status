@@ -279,7 +279,7 @@ isolate/error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in b
 isolate/exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/issue_21398_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/issue_24243_parent_isolate_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-isolate/mandel_isolate_test: Slow
+isolate/mandel_isolate_test: Pass, Slow
 isolate/message2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/nested_spawn2_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/nested_spawn_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
