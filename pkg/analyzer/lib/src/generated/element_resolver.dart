@@ -625,7 +625,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
-    bool previewDart2 = _definingLibrary.context.analysisOptions.previewDart2;
+    bool previewDart2 =
+        false; //_definingLibrary.context.analysisOptions.previewDart2;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;

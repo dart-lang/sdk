@@ -32,8 +32,8 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementResolverCodeTest);
-    defineReflectiveTests(PreviewDart2Test);
     defineReflectiveTests(ElementResolverTest);
+    //defineReflectiveTests(PreviewDart2Test);
   });
 }
 
