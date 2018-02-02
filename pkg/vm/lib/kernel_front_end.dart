@@ -19,6 +19,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'transformations/devirtualization.dart' as devirtualization
     show transformProgram;
+import 'transformations/no_dynamic_invocations_annotator.dart'
+    as no_dynamic_invocations_annotator show transformProgram;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformProgram;
 
@@ -58,6 +60,7 @@ _runGlobalTransformations(Program program, bool strongMode) {
       globalTypeFlow.transformProgram(coreTypes, program);
     } else {
       devirtualization.transformProgram(coreTypes, program);
+      no_dynamic_invocations_annotator.transformProgram(coreTypes, program);
     }
   }
 }
