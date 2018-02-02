@@ -138,8 +138,8 @@ Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
-Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Expressions/Instance_Creation/New/evaluation_t19: CompileTimeError # Issue 31938
+Language/Expressions/Instance_Creation/New/evaluation_t20: CompileTimeError # Issue 31938
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
@@ -155,7 +155,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
 Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
-Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
@@ -203,7 +202,7 @@ Language/Statements/Switch/expressions_t04: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
-Language/Types/Static_Types/deferred_type_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Types/Dynamic_Type_System/deferred_type_error_t01: CompileTimeError # Issue 31938
 Language/Types/Type_Void/syntax_t01: Pass # Issue 30470
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
