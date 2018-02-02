@@ -33,7 +33,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementResolverCodeTest);
     defineReflectiveTests(ElementResolverTest);
-    //defineReflectiveTests(PreviewDart2Test);
+    defineReflectiveTests(PreviewDart2Test);
   });
 }
 

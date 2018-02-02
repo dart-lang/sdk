@@ -625,8 +625,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
-    bool previewDart2 =
-        false; //_definingLibrary.context.analysisOptions.previewDart2;
+    bool previewDart2 = _definingLibrary.context.analysisOptions.previewDart2;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
@@ -1708,7 +1707,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     bool isNamedConstructorCase = libraryPrefixId is PrefixedIdentifier;
     ClassElement classElement;
     if (isNamedConstructorCase) {
-      classElement = (libraryPrefixId as PrefixedIdentifier).staticElement;
+      var elt = (libraryPrefixId as PrefixedIdentifier).staticElement;
+      if (elt is ClassElement) {
+        classElement = elt;
+      }
     } else {
       LibraryElementImpl libraryElementImpl = _getImportedLibrary(node.target);
       classElement = libraryElementImpl.getType(node.methodName.name);
