@@ -92,8 +92,6 @@ class DartCompletionManager implements CompletionContributor {
       new LocalLibraryContributor(),
       new LocalReferenceContributor(),
       new NamedConstructorContributor(),
-      // Revisit this contributor and these tests
-      // once DartChangeBuilder API has solidified.
       // new OverrideContributor(),
       new StaticMemberContributor(),
       new TypeMemberContributor(),
