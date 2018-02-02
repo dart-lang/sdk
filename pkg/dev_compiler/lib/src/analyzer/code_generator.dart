@@ -2720,8 +2720,8 @@ class CodeGenerator extends Object
   bool _executesAtTopLevel(AstNode node) {
     var ancestor = node.getAncestor((n) =>
         n is FunctionBody ||
-        (n is FieldDeclaration && n.staticKeyword == null) ||
-        (n is ConstructorDeclaration && n.constKeyword == null));
+        n is FieldDeclaration && n.staticKeyword == null ||
+        n is ConstructorDeclaration && n.constKeyword == null);
     return ancestor == null;
   }
 
@@ -5590,7 +5590,7 @@ class CodeGenerator extends Object
   @override
   JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = (node.staticType as InterfaceType).typeArguments[0];
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       return _emitList(elementType, _visitExpressionList(node.elements));
     }
     return _cacheConst(
@@ -5628,7 +5628,7 @@ class CodeGenerator extends Object
       return new JS.ArrayInitializer(entries);
     }
 
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       var mapType = _emitMapImplType(node.staticType);
       if (node.entries.isEmpty) {
         return js.call('new #.new()', [mapType]);

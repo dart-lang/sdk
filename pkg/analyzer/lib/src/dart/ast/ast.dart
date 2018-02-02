@@ -4144,10 +4144,10 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
         // Inside an explicitly `const` list or map literal.
         return true;
       } else if (parent is InstanceCreationExpression) {
-        if (parent.keyword.keyword == Keyword.CONST) {
+        if (parent.keyword?.keyword == Keyword.CONST) {
           // Inside an explicitly `const` instance creation expression.
           return true;
-        } else if (parent.keyword.keyword == Keyword.NEW) {
+        } else if (parent.keyword?.keyword == Keyword.NEW) {
           // Inside an explicitly non-`const` instance creation expression.
           return false;
         }
@@ -4158,7 +4158,7 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
         AstNode grandParent = parent.parent;
         // Inside the initializer for a `const` variable declaration.
         return grandParent is VariableDeclarationList &&
-            grandParent.keyword.keyword == Keyword.CONST;
+            grandParent.keyword?.keyword == Keyword.CONST;
       } else if (parent is SwitchCase) {
         // Inside a switch case.
         return true;
