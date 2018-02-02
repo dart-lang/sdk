@@ -5673,7 +5673,7 @@ Tag StreamingFlowGraphBuilder::PeekArgumentsFirstPositionalTag() {
 
   // List of positional.
   intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
+  if (list_length > 0) {
     return ReadTag();  // read first tag.
   }
 
