@@ -1890,7 +1890,7 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   @override
   bool isNamedMixinApplication(ClassEntity cls) {
     return elementMap._isMixinApplication(cls) &&
-        elementMap._isUnnamedMixinApplication(cls);
+        !elementMap._isUnnamedMixinApplication(cls);
   }
 
   @override

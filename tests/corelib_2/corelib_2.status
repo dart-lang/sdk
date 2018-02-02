@@ -252,6 +252,8 @@ linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
+list_replace_range_test: RuntimeError
+list_set_all_test: RuntimeError
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic getter: selector=Selector(getter, length, arity=0), mask=[subtype=SetMixin], HTypeInfoReadVariable(SetMixin.E)].

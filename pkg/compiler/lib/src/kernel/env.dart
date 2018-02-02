@@ -349,8 +349,8 @@ class ClassEnvImpl implements ClassEnv {
 
     int mixinMemberCount = 0;
     if (cls.mixedInClass != null) {
-      addFields(cls.mixedInClass, includeStatic: false);
-      addProcedures(cls.mixedInClass, includeStatic: false);
+      addFields(cls.mixedInClass.mixin, includeStatic: false);
+      addProcedures(cls.mixedInClass.mixin, includeStatic: false);
       mergeSort(members, compare: orderByFileOffset);
       mixinMemberCount = members.length;
     }
