@@ -589,6 +589,8 @@ class ResolverTask extends CompilerTask {
   /// until after we finish resolving the current declaration.
   bool isResolvingTypeDeclaration = false;
 
+  bool isPostProcessingTypeDeclaration = false;
+
   /// Classes found in type annotations while resolving a type declaration.
   ///
   /// These are stored here so that they may be resolved after the original
@@ -621,13 +623,18 @@ class ResolverTask extends CompilerTask {
                   .removeFirst()
                   .ensureResolved(resolution);
             }
-            while (pendingClassesToBePostProcessed.isNotEmpty) {
-              _postProcessClassElement(
-                  pendingClassesToBePostProcessed.removeFirst());
+            if (!isPostProcessingTypeDeclaration) {
+              isPostProcessingTypeDeclaration = true;
+              while (pendingClassesToBePostProcessed.isNotEmpty) {
+                _postProcessClassElement(
+                    pendingClassesToBePostProcessed.removeFirst());
+              }
+              isPostProcessingTypeDeclaration = false;
             }
           } while (pendingClassesToBeResolved.isNotEmpty);
           assert(pendingClassesToBeResolved.isEmpty);
-          assert(pendingClassesToBePostProcessed.isEmpty);
+          assert(pendingClassesToBePostProcessed.isEmpty ||
+              isPostProcessingTypeDeclaration);
         }
         return result;
       });
