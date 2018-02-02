@@ -1643,6 +1643,10 @@ class FastaParserTestCase extends Object
     }
   }
 
+  set enableOptionalNewAndConst(bool enable) {
+    // ignored
+  }
+
   @override
   set enableUriInPartOf(bool value) {
     if (value == false) {
@@ -2479,6 +2483,18 @@ class ScopeProxy implements Scope {
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
+  @override
+  @failingTest
+  void test_parseInstanceCreation_noKeyword_noPrefix() {
+    super.test_parseInstanceCreation_noKeyword_noPrefix();
+  }
+
+  @override
+  @failingTest
+  void test_parseInstanceCreation_noKeyword_prefix() {
+    super.test_parseInstanceCreation_noKeyword_prefix();
+  }
+
   @override
   @failingTest
   void test_parseTypeParameterList_single() {

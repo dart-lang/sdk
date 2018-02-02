@@ -55,6 +55,12 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   void set enableNnbd(bool value);
 
   /**
+   * Set a flag indicating whether the parser should parse instance creation
+   * expressions that lack either the `new` or `const` keyword.
+   */
+  void set enableOptionalNewAndConst(bool value);
+
+  /**
    * Set a flag indicating whether the parser is to parse part-of directives
    * that specify a URI rather than a library name.
    */
@@ -2687,6 +2693,15 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
         [expectedError(ParserErrorCode.COVARIANT_AND_STATIC, 10, 6)]);
   }
 
+  void test_covariantAndType_local() {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
+    // this would be a better error message.
+    parseStatement("covariant int x;");
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 9)]
+        : [expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 9)]);
+  }
+
   void test_covariantConstructor() {
     createParser('class C { covariant C(); }');
     ClassDeclaration member = parseFullCompilationUnitMember();
@@ -2699,15 +2714,6 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
           10,
           9)
     ]);
-  }
-
-  void test_covariantAndType_local() {
-    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but
-    // this would be a better error message.
-    parseStatement("covariant int x;");
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 9)]
-        : [expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 9)]);
   }
 
   void test_covariantMember_getter_noReturnType() {
@@ -3149,13 +3155,6 @@ class Foo {
         errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 4)]);
   }
 
-  void test_exportDirectiveAfterPartDirective() {
-    parseCompilationUnit("part 'a.dart'; export 'b.dart';", errors: [
-      expectedError(
-          ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6)
-    ]);
-  }
-
   void test_exportAsType() {
     parseCompilationUnit('export<dynamic> foo;',
         errors: usingFastaParser
@@ -3174,6 +3173,13 @@ class Foo {
                     CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 6)
               ]
             : []);
+  }
+
+  void test_exportDirectiveAfterPartDirective() {
+    parseCompilationUnit("part 'a.dart'; export 'b.dart';", errors: [
+      expectedError(
+          ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, 15, 6)
+    ]);
   }
 
   void test_externalAfterConst() {
@@ -3822,13 +3828,6 @@ class Wrong<T> {
     listener.assertErrors([expectedError(ParserErrorCode.INVALID_SYNC, 0, 4)]);
   }
 
-  void test_invalidTopLevelVar() {
-    parseCompilationUnit("var Function(var arg);", errors: [
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 21, 2),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 2),
-    ]);
-  }
-
   void test_invalidTopLevelSetter() {
     parseCompilationUnit("var set foo; main(){}", errors: [
       expectedError(ParserErrorCode.VAR_RETURN_TYPE, 0, 3),
@@ -3836,6 +3835,13 @@ class Wrong<T> {
           ? expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 8, 3)
           : expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 11, 1),
       expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 11, 1)
+    ]);
+  }
+
+  void test_invalidTopLevelVar() {
+    parseCompilationUnit("var Function(var arg);", errors: [
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 21, 2),
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 2),
     ]);
   }
 
@@ -4982,12 +4988,6 @@ m() {
           ]);
   }
 
-  void test_topLevelFactory_withFunction() {
-    parseCompilationUnit('factory Function() x = null;', errors: [
-      expectedError(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, 0, 7)
-    ]);
-  }
-
   void test_topLevel_getter() {
     createParser('get x => 7;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
@@ -4996,6 +4996,12 @@ m() {
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration function = member;
     expect(function.functionExpression.parameters, isNull);
+  }
+
+  void test_topLevelFactory_withFunction() {
+    parseCompilationUnit('factory Function() x = null;', errors: [
+      expectedError(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, 0, 7)
+    ]);
   }
 
   void test_topLevelOperator_withFunction() {
@@ -9289,6 +9295,12 @@ class ParserTestCase extends EngineTestCase
   bool enableNnbd = false;
 
   /**
+   * A flag indicating whether the parser should parse instance creation
+   * expressions that lack either the `new` or `const` keyword.
+   */
+  bool enableOptionalNewAndConst = false;
+
+  /**
    * A flag indicating whether the parser is to parse part-of directives that
    * specify a URI rather than a library name.
    */
@@ -9341,6 +9353,7 @@ class ParserTestCase extends EngineTestCase
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
+    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     parser.enableUriInPartOf = enableUriInPartOf;
     parser.currentToken = tokenStream;
   }
@@ -9451,6 +9464,7 @@ class ParserTestCase extends EngineTestCase
     listener.setLineInfo(testSource, scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(testSource, listener);
+    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     if (codes != null) {
@@ -9472,6 +9486,7 @@ class ParserTestCase extends EngineTestCase
     Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
+    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;
@@ -9800,6 +9815,7 @@ class ParserTestCase extends EngineTestCase
     Token token = scanner.tokenize();
     Parser parser = new Parser(testSource, listener);
     parser.parseGenericMethodComments = enableGenericMethodComments;
+    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(token);
     expect(statement, isNotNull);
     return statement;
@@ -9825,6 +9841,7 @@ class ParserTestCase extends EngineTestCase
     listener.setLineInfo(testSource, scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(testSource, listener);
+    parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     List<Statement> statements = parser.parseStatements(token);
     expect(statements, hasLength(expectedCount));
     listener.assertErrorsWithCodes(errorCodes);
@@ -13368,6 +13385,40 @@ class C {}
     expect(clause.implementsKeyword, isNotNull);
   }
 
+  void test_parseInstanceCreation_noKeyword_noPrefix() {
+    enableOptionalNewAndConst = true;
+    createParser('f() => C<E>.n();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    FunctionDeclaration f = unit.declarations[0];
+    ExpressionFunctionBody body = f.functionExpression.body;
+    expect(body.expression, new isInstanceOf<InstanceCreationExpression>());
+    InstanceCreationExpression creation = body.expression;
+    expect(creation.keyword, isNull);
+    ConstructorName constructorName = creation.constructorName;
+    expect(constructorName.type.toSource(), 'C<E>');
+    expect(constructorName.period, isNotNull);
+    expect(constructorName.name, isNotNull);
+    expect(creation.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreation_noKeyword_prefix() {
+    enableOptionalNewAndConst = true;
+    createParser('f() => p.C<E>.n();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    FunctionDeclaration f = unit.declarations[0];
+    ExpressionFunctionBody body = f.functionExpression.body;
+    expect(body.expression, new isInstanceOf<InstanceCreationExpression>());
+    InstanceCreationExpression creation = body.expression;
+    expect(creation.keyword, isNull);
+    ConstructorName constructorName = creation.constructorName;
+    expect(constructorName.type.toSource(), 'p.C<E>');
+    expect(constructorName.period, isNotNull);
+    expect(constructorName.name, isNotNull);
+    expect(creation.argumentList, isNotNull);
+  }
+
   void test_parseLibraryIdentifier_invalid() {
     parseCompilationUnit('library <myLibId>;',
         errors: usingFastaParser
@@ -14033,6 +14084,22 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseForStatement_each_genericFunctionType() {
+    var forStatement =
+        parseStatement('for (void Function<T>(T) element in list) {}')
+            as ForEachStatement;
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    expect(forStatement.loopVariable, isNotNull);
+    expect(forStatement.identifier, isNull);
+    expect(forStatement.inKeyword, isNotNull);
+    expect(forStatement.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
   void test_parseForStatement_each_identifier() {
     var forStatement =
         parseStatement('for (element in list) {}') as ForEachStatement;
@@ -14082,22 +14149,6 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
   void test_parseForStatement_each_var() {
     var forStatement =
         parseStatement('for (var element in list) {}') as ForEachStatement;
-    assertNoErrors();
-    expect(forStatement.awaitKeyword, isNull);
-    expect(forStatement.forKeyword, isNotNull);
-    expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNotNull);
-    expect(forStatement.identifier, isNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
-    expect(forStatement.rightParenthesis, isNotNull);
-    expect(forStatement.body, isNotNull);
-  }
-
-  void test_parseForStatement_each_genericFunctionType() {
-    var forStatement =
-        parseStatement('for (void Function<T>(T) element in list) {}')
-            as ForEachStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
