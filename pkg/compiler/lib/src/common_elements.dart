@@ -508,6 +508,8 @@ class CommonElements {
 
   FunctionEntity get asyncHelperStart =>
       _findAsyncHelperFunction("_asyncStart");
+  FunctionEntity get asyncHelperStartSync =>
+      _findAsyncHelperFunction("_asyncStartSync");
   FunctionEntity get asyncHelperAwait =>
       _findAsyncHelperFunction("_asyncAwait");
   FunctionEntity get asyncHelperReturn =>
@@ -549,6 +551,12 @@ class CommonElements {
 
   ConstructorEntity get syncCompleterConstructor =>
       _env.lookupConstructor(_findAsyncHelperClass("Completer"), "sync");
+
+  ConstructorEntity get asyncAwaitCompleterConstructor =>
+      _env.lookupConstructor(asyncAwaitCompleter, "");
+
+  ClassEntity get asyncAwaitCompleter =>
+      _findAsyncHelperClass("_AsyncAwaitCompleter");
 
   ClassEntity get asyncStarController =>
       _findAsyncHelperClass("_AsyncStarStreamController");

@@ -44,7 +44,7 @@ class VmClosureConvertedTarget extends vm_target.VmTarget {
       performTreeShaking(coreTypes, program);
     }
 
-    cont.transformProgram(coreTypes, program);
+    cont.transformProgram(coreTypes, program, flags.syncAsync);
 
     new SanitizeForVM().transform(program);
 

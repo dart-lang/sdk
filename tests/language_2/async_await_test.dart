@@ -19,8 +19,8 @@ main() {
       return expect42(f());
     });
 
-    test("async waits", () {
-      // Calling an "async" function won't do anything immediately.
+    test("async starts synchronously", () {
+      // Calling an "async" function starts immediately.
       var result = [];
       f() async {
         result.add(1);
@@ -31,7 +31,7 @@ main() {
       var future = f();
       result.add(0);
       return future.whenComplete(() {
-        expect(result, equals([0, 1]));
+        expect(result, equals([1, 0]));
       });
     });
 
@@ -184,7 +184,6 @@ main() {
         return new Future.error("err"); // Not awaited.
       }
 
-      ;
       return throwsErr(f());
     });
 

@@ -1065,6 +1065,7 @@ abstract class VMKernelCompilerMixin {
     final args = [
       _isAot ? '--aot' : '--no-aot',
       _isStrong ? '--strong-mode' : '--no-strong-mode',
+      _isStrong ? '--sync-async' : '--no-sync-async',
       '--platform=$vmPlatform',
       '-o',
       dillFile,

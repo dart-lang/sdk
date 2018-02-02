@@ -7574,30 +7574,42 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       Symbols::AsyncStackTraceVar(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
 
-  // Create and return a new future that executes a closure with the current
-  // body.
+  // Create a completer that executes a closure with the current body and
+  // return the corresponding future.
 
   // No need to capture parameters or other variables, since they have already
   // been captured in the corresponding scope as the body has been parsed within
   // a nested block (contained in the async function's block).
-  const Class& future = Class::ZoneHandle(Z, I->object_store()->future_class());
-  ASSERT(!future.IsNull());
-  const Function& constructor = Function::ZoneHandle(
-      Z, future.LookupFunction(Symbols::FutureMicrotask()));
-  ASSERT(!constructor.IsNull());
-  const Class& completer =
-      Class::ZoneHandle(Z, I->object_store()->completer_class());
-  ASSERT(!completer.IsNull());
-  const Function& completer_constructor = Function::ZoneHandle(
-      Z, completer.LookupFunction(Symbols::CompleterSyncConstructor()));
-  ASSERT(!completer_constructor.IsNull());
+
+  const Library& async_lib = Library::Handle(Z, Library::AsyncLibrary());
 
   LocalVariable* async_completer =
       current_block_->scope->LookupVariable(Symbols::AsyncCompleter(), false);
 
   const TokenPosition token_pos = ST(closure_body->token_pos());
-  // Add to AST:
-  //   :async_completer = new Completer.sync();
+
+  Function& completer_constructor = Function::ZoneHandle(Z);
+  if (FLAG_sync_async) {
+    const Class& completer_class = Class::Handle(
+        Z, async_lib.LookupClassAllowPrivate(Symbols::_AsyncAwaitCompleter()));
+    ASSERT(!completer_class.IsNull());
+    completer_constructor = completer_class.LookupConstructorAllowPrivate(
+        Symbols::_AsyncAwaitCompleterConstructor());
+    ASSERT(!completer_constructor.IsNull());
+
+    // Add to AST:
+    //   :async_completer = new _AsyncAwaitCompleter();
+  } else {
+    const Class& completer =
+        Class::Handle(Z, I->object_store()->completer_class());
+    ASSERT(!completer.IsNull());
+    completer_constructor =
+        completer.LookupFunction(Symbols::CompleterSyncConstructor());
+    ASSERT(!completer_constructor.IsNull());
+
+    // Add to AST:
+    //   :async_completer = new Completer.sync();
+  }
   ArgumentListNode* empty_args = new (Z) ArgumentListNode(token_pos);
   ConstructorCallNode* completer_constructor_node =
       new (Z) ConstructorCallNode(token_pos, TypeArguments::ZoneHandle(Z),
@@ -7623,8 +7635,6 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   StoreLocalNode* store_async_op =
       new (Z) StoreLocalNode(token_pos, async_op_var, cn);
   current_block_->statements->Add(store_async_op);
-
-  const Library& async_lib = Library::Handle(Library::AsyncLibrary());
 
   if (FLAG_causal_async_stacks) {
     // Add to AST:
@@ -7689,13 +7699,29 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   current_block_->statements->Add(store_async_catch_error_callback);
 
-  // Add to AST:
-  //   new Future.microtask(:async_op);
-  ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
-  arguments->Add(new (Z) LoadLocalNode(token_pos, async_op_var));
-  ConstructorCallNode* future_node = new (Z) ConstructorCallNode(
-      token_pos, TypeArguments::ZoneHandle(Z), constructor, arguments);
-  current_block_->statements->Add(future_node);
+  if (FLAG_sync_async) {
+    // Add to AST:
+    //   :async_completer.start(:async_op);
+    ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
+    arguments->Add(new (Z) LoadLocalNode(token_pos, async_op_var));
+    InstanceCallNode* start_call = new (Z) InstanceCallNode(
+        token_pos, new (Z) LoadLocalNode(token_pos, async_completer),
+        Symbols::_AsyncAwaitStart(), arguments);
+    current_block_->statements->Add(start_call);
+  } else {
+    // Add to AST:
+    //   new Future.microtask(:async_op);
+    const Class& future = Class::Handle(Z, I->object_store()->future_class());
+    ASSERT(!future.IsNull());
+    const Function& constructor = Function::ZoneHandle(
+        Z, future.LookupFunction(Symbols::FutureMicrotask()));
+    ASSERT(!constructor.IsNull());
+    ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
+    arguments->Add(new (Z) LoadLocalNode(token_pos, async_op_var));
+    ConstructorCallNode* future_node = new (Z) ConstructorCallNode(
+        token_pos, TypeArguments::ZoneHandle(Z), constructor, arguments);
+    current_block_->statements->Add(future_node);
+  }
 
   // Add to AST:
   //   return :async_completer.future;

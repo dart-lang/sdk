@@ -278,6 +278,7 @@ html/interactive_geolocation_test: Skip # Requires allowing geo location.
 html/custom/created_callback_test: RuntimeError
 html/fontface_loaded_test: Fail # Support for promises.
 html/js_typed_interop_lazy_test/01: RuntimeError
+html/notification_permission_test: Timeout # Issue 32002
 html/private_extension_member_test: RuntimeError
 isolate/isolate_stress_test: Pass, Slow # Issue 10697
 js/null_test: RuntimeError # Issue 30652
