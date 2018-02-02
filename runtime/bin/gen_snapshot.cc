@@ -795,27 +795,8 @@ static void PrintUsage() {
 }
 // clang-format on
 
-static const char StubNativeFunctionName[] = "StubNativeFunction";
-
-void StubNativeFunction(Dart_NativeArguments arguments) {
-  // This is a stub function for the resolver
-  Dart_SetReturnValue(
-      arguments, Dart_NewApiError("<EMBEDDER DID NOT SETUP NATIVE RESOLVER>"));
-}
-
-static Dart_NativeFunction StubNativeLookup(Dart_Handle name,
-                                            int argument_count,
-                                            bool* auto_setup_scope) {
-  return &StubNativeFunction;
-}
-
-static const uint8_t* StubNativeSymbol(Dart_NativeFunction nf) {
-  return reinterpret_cast<const uint8_t*>(StubNativeFunctionName);
-}
-
-static void SetupStubNativeResolver(size_t lib_index,
-                                    const Dart_QualifiedFunctionName* entry) {
-  // TODO(24686): Remove this.
+static void LoadEntryPoint(size_t lib_index,
+                           const Dart_QualifiedFunctionName* entry) {
   Dart_Handle library_string = Dart_NewStringFromCString(entry->library_uri);
   DART_CHECK_VALID(library_string);
   Dart_Handle library = Dart_LookupLibrary(library_string);
@@ -842,29 +823,6 @@ static void SetupStubNativeResolver(size_t lib_index,
   }
 
   DART_CHECK_VALID(library);
-  Dart_Handle result =
-      Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
-  DART_CHECK_VALID(result);
-}
-
-// Iterate over all libraries and setup the stub native lookup. This must be
-// run after |SetupStubNativeResolversForPrecompilation| because the former
-// loads some libraries.
-static void SetupStubNativeResolvers() {
-  Dart_Handle libraries = Dart_GetLoadedLibraries();
-  intptr_t libraries_length;
-  Dart_ListLength(libraries, &libraries_length);
-  for (intptr_t i = 0; i < libraries_length; i++) {
-    Dart_Handle library = Dart_ListGetAt(libraries, i);
-    DART_CHECK_VALID(library);
-    Dart_NativeEntryResolver old_resolver = NULL;
-    Dart_GetNativeResolver(library, &old_resolver);
-    if (old_resolver == NULL) {
-      Dart_Handle result =
-          Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
-      DART_CHECK_VALID(result);
-    }
-  }
 }
 
 static void ImportNativeEntryPointLibrariesIntoRoot(
@@ -889,8 +847,7 @@ static void ImportNativeEntryPointLibrariesIntoRoot(
   }
 }
 
-static void SetupStubNativeResolversForPrecompilation(
-    const Dart_QualifiedFunctionName* entries) {
+static void LoadEntryPoints(const Dart_QualifiedFunctionName* entries) {
   if (entries == NULL) {
     return;
   }
@@ -903,8 +860,8 @@ static void SetupStubNativeResolversForPrecompilation(
       // The termination sentinel has null members.
       break;
     }
-    // Setup stub resolvers on loaded libraries
-    SetupStubNativeResolver(index, &entry);
+    // Ensure library named in entry point is loaded.
+    LoadEntryPoint(index, &entry);
   }
 }
 
@@ -1439,8 +1396,7 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
 
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
-    SetupStubNativeResolversForPrecompilation(entry_points);
-    SetupStubNativeResolvers();
+
     CreateAndWritePrecompiledSnapshot(entry_points);
 
     CreateAndWriteDependenciesFile();
@@ -1667,17 +1623,17 @@ int main(int argc, char** argv) {
       AddDependency(commandline_packages_file);
     }
 
-    SetupStubNativeResolversForPrecompilation(entry_points);
+    ASSERT(kernel_program == NULL);
 
-    SetupStubNativeResolvers();
+    // Load the specified script.
+    library = LoadSnapshotCreationScript(app_script_name);
+    CHECK_RESULT(library);
 
-    if (kernel_program == NULL) {
-      // Load the specified script.
-      library = LoadSnapshotCreationScript(app_script_name);
-      CHECK_RESULT(library);
+    // Load any libraries named in the entry points that were not imported by
+    // the script.
+    LoadEntryPoints(entry_points);
 
-      ImportNativeEntryPointLibrariesIntoRoot(entry_points);
-    }
+    ImportNativeEntryPointLibrariesIntoRoot(entry_points);
 
     // Ensure that we mark all libraries as loaded.
     result = Dart_FinalizeLoading(false);
