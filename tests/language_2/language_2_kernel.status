@@ -1204,6 +1204,8 @@ deferred_type_dependency_test/none: CompileTimeError # KernelVM bug: Deferred lo
 deferred_type_dependency_test/type_annotation: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 duplicate_export_negative_test: Fail # Issue 6134
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 enum_mirror_test: SkipByDesign
