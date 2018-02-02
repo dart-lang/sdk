@@ -3910,6 +3910,30 @@ class FakeFlutter {
 ''');
   }
 
+  test_reparentFlutterWidgetPadding_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Container();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET_PADDING, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Container(),
+    );
+  }
+}
+''');
+  }
+
   test_replaceConditionalWithIfElse_BAD_noEnclosingStatement() async {
     await resolveTestUnit('''
 var v = true ? 111 : 222;

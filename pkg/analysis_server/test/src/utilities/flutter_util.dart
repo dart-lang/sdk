@@ -83,9 +83,48 @@ class GestureDetector extends StatelessWidget {
 ''');
   }
 
+  void createRendering() {
+    newFile('$flutterPkgLibPath/rendering.dart', r'''
+export 'painting.dart';
+''');
+  }
+
+  void createPainting() {
+    newFile('$flutterPkgLibPath/painting.dart', r'''
+export 'src/painting/edge_insets.dart';
+''');
+
+    newFile('$flutterPkgLibPath/src/painting/edge_insets.dart', r'''
+abstract class EdgeInsetsGeometry {
+  const EdgeInsetsGeometry();
+}
+
+class EdgeInsets extends EdgeInsetsGeometry {
+  const EdgeInsets.fromLTRB(this.left, this.top, this.right, this.bottom);
+
+  const EdgeInsets.all(double value)
+      : left = value, top = value, right = value, bottom = value;
+
+  const EdgeInsets.only({
+    this.left: 0.0,
+    this.top: 0.0,
+    this.right: 0.0,
+    this.bottom: 0.0
+  });
+
+  const EdgeInsets.symmetric({ double vertical: 0.0,
+                             double horizontal: 0.0 })
+    : left = horizontal, top = vertical, right = horizontal, bottom = vertical;
+}
+''');
+  }
+
   void createSrcWidgets() {
     newFile('$flutterPkgLibPath/src/widgets/basic.dart', r'''
 import 'framework.dart';
+import 'rendering.dart';
+
+export 'painting.dart';
 
 class Center extends StatelessWidget {
   const Center({Widget child, Key key});
@@ -136,6 +175,16 @@ class AspectRatio extends SingleChildRenderObjectWidget {
   const AspectRatio({
     Key key,
     @required aspectRatio,
+    Widget child,
+  });
+}
+
+class Padding extends SingleChildRenderObjectWidget {
+  final EdgeInsetsGeometry padding;
+
+  const Padding({
+    Key key,
+    this.padding,
     Widget child,
   });
 }
@@ -263,8 +312,10 @@ class Text extends StatelessWidget {
 ''');
   }
 
-  createSrcMaterial();
+  createPainting();
+  createRendering();
   createSrcWidgets();
+  createSrcMaterial();
 
   return newFolder(flutterPkgLibPath);
 }

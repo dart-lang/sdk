@@ -1858,12 +1858,18 @@ class AssistProcessor {
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER,
         parentLibraryUri: 'package:flutter/widgets.dart',
         parentClassName: 'Center');
+    await _addProposal_reparentFlutterWidgetImpl(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_PADDING,
+        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentClassName: 'Padding',
+        leadingLines: ['padding: const EdgeInsets.all(8.0),']);
   }
 
   Future<Null> _addProposal_reparentFlutterWidgetImpl(
       {AssistKind kind: DartAssistKind.REPARENT_FLUTTER_WIDGET,
       String parentLibraryUri,
-      String parentClassName}) async {
+      String parentClassName,
+      List<String> leadingLines: const []}) async {
     InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
     if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
       _coverageMarker();
@@ -1893,15 +1899,16 @@ class AssistProcessor {
           builder.writeType(parentClassElement.type);
         }
         builder.write('(');
-        if (newExprSrc.contains(eol)) {
-          int newlineIdx = newExprSrc.lastIndexOf(eol);
-          int eolLen = eol.length;
-          if (newlineIdx == newExprSrc.length - eolLen) {
-            newlineIdx -= eolLen;
-          }
-          String indentOld =
-              utils.getLinePrefix(newExpr.offset + eolLen + newlineIdx);
+        if (newExprSrc.contains(eol) || leadingLines.isNotEmpty) {
+          String indentOld = utils.getLinePrefix(newExpr.offset);
           String indentNew = '$indentOld${utils.getIndent(1)}';
+
+          for (var leadingLine in leadingLines) {
+            builder.write(eol);
+            builder.write(indentNew);
+            builder.write(leadingLine);
+          }
+
           builder.write(eol);
           builder.write(indentNew);
           newExprSrc = newExprSrc.replaceAll(
