@@ -1,3 +1,7 @@
+## 0.31.0
+
+* A number of updates, including support for the new Function syntax.
+
 ## 0.30.0-alpha.0
 * Changed the API for creating BazelWorkspace.  It should now be constructed using BazelWorkspace.find().  Note that this might return `null` in the event that the given path is not part of a BazelWorkspace.
 * Added an AST structure to support asserts in constructor initializers (AssertInitializer).  AstVisitor classes must now implement visitAssertInitializer().
