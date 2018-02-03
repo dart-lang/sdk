@@ -72,6 +72,7 @@ enum SnapshotKind {
   kScript,
   kAppAOTBlobs,
   kAppAOTAssembly,
+  kVMAOTAssembly,
 };
 static SnapshotKind snapshot_kind = kCore;
 
@@ -128,7 +129,13 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 }
 
 static const char* kSnapshotKindNames[] = {
-    "core", "core-jit", "script", "app-aot-blobs", "app-aot-assembly", NULL,
+    "core",
+    "core-jit",
+    "script",
+    "app-aot-blobs",
+    "app-aot-assembly",
+    "vm-aot-assembly",
+    NULL,
 };
 
 #define STRING_OPTIONS_LIST(V)                                                 \
@@ -169,7 +176,9 @@ DEFINE_STRING_OPTION_CB(url_mapping,
 DEFINE_CB_OPTION(ProcessEnvironmentOption);
 
 static bool IsSnapshottingForPrecompilation() {
-  return (snapshot_kind == kAppAOTBlobs) || (snapshot_kind == kAppAOTAssembly);
+  return (snapshot_kind == kAppAOTBlobs) ||
+         (snapshot_kind == kAppAOTAssembly) ||
+         (snapshot_kind == kVMAOTAssembly);
 }
 
 static bool SnapshotKindAllowedFromKernel() {
@@ -276,13 +285,15 @@ static int ParseArguments(int argc,
       }
       break;
     }
-  }
-
-  if (IsSnapshottingForPrecompilation() && (entry_points_files->count() == 0)) {
-    Log::PrintErr(
-        "Building an AOT snapshot requires at least one embedder "
-        "entry points manifest.\n\n");
-    return -1;
+    case kVMAOTAssembly: {
+      if ((assembly_filename == NULL) || (*script_name != NULL)) {
+        Log::PrintErr(
+            "Building an AOT snapshot as assembly requires specifying "
+            "an output file for --assembly and a Dart script.\n\n");
+        return -1;
+      }
+      break;
+    }
   }
 
   if (!obfuscate && obfuscation_map_filename != NULL) {
@@ -504,6 +515,8 @@ class DependenciesFileWriter : public ValueObject {
         // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
+      default:
+        UNREACHABLE();
     }
 
     if (!success_) {
@@ -797,6 +810,10 @@ static void PrintUsage() {
 
 static void LoadEntryPoint(size_t lib_index,
                            const Dart_QualifiedFunctionName* entry) {
+  if (strcmp(entry->library_uri, "::") == 0) {
+    return;  // Root library always loaded; can't `import '::';`.
+  }
+
   Dart_Handle library_string = Dart_NewStringFromCString(entry->library_uri);
   DART_CHECK_VALID(library_string);
   Dart_Handle library = Dart_LookupLibrary(library_string);
@@ -838,12 +855,14 @@ static void ImportNativeEntryPointLibrariesIntoRoot(
       // The termination sentinel has null members.
       break;
     }
-    Dart_Handle entry_library =
-        Dart_LookupLibrary(Dart_NewStringFromCString(entry.library_uri));
-    DART_CHECK_VALID(entry_library);
-    Dart_Handle import_result = Dart_LibraryImportLibrary(
-        entry_library, Dart_RootLibrary(), Dart_EmptyString());
-    DART_CHECK_VALID(import_result);
+    if (strcmp(entry.library_uri, "::") != 0) {
+      Dart_Handle entry_library =
+          Dart_LookupLibrary(Dart_NewStringFromCString(entry.library_uri));
+      DART_CHECK_VALID(entry_library);
+      Dart_Handle import_result = Dart_LibraryImportLibrary(
+          entry_library, Dart_RootLibrary(), Dart_EmptyString());
+      DART_CHECK_VALID(import_result);
+    }
   }
 }
 
@@ -1556,6 +1575,20 @@ int main(int argc, char** argv) {
   Dart_Handle result;
   Dart_Handle library;
   Dart_EnterScope();
+
+  if (snapshot_kind == kVMAOTAssembly) {
+    uint8_t* assembly_buffer = NULL;
+    intptr_t assembly_size = 0;
+    result =
+        Dart_CreateVMAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
+    CHECK_RESULT(result);
+
+    WriteFile(assembly_filename, assembly_buffer, assembly_size);
+
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return 0;
+  }
 
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
