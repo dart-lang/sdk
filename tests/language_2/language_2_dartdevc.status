@@ -54,12 +54,10 @@ implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeErr
 implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_test: CompileTimeError
+implicit_creation/implicit_new_or_const_generic_test: RuntimeError
+implicit_creation/implicit_new_or_const_test: RuntimeError
 implicit_creation/implicit_new_prefix_constructor_generic_named_test: RuntimeError
 implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
 import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
@@ -107,6 +105,7 @@ override_inheritance_method_test/29: CompileTimeError
 parameter_initializer_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix10_negative_test: Fail # Issue 29920
+private_access_test/04: MissingCompileTimeError
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 31093
@@ -125,7 +124,7 @@ try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_literal_prefix_call_test: CompileTimeError
+type_literal_prefix_call_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
 type_promotion_functions_test/03: CompileTimeError # Issue 30895
 type_promotion_functions_test/04: CompileTimeError # Issue 30895
