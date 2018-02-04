@@ -96,7 +96,7 @@ class ThreadInterrupterFuchsia : public AllStatic {
 #elif defined(TARGET_ARCH_ARM64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
     zx_arm64_general_regs_t regs;
-    uint32_t regset_size;
+    size_t regset_size;
     zx_status_t status = zx_thread_read_state(
         thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
     if (status != ZX_OK) {
