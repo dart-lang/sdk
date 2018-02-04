@@ -1762,19 +1762,10 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
-    // Scan tokens
-    var source = new StringSource(content, 'parser_test_StringSource.dart');
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
-    var scanner = new Scanner.fasta(source, listener);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
-    _fastaTokens = scanner.tokenize();
 
-    // Run parser
-    analyzer.Parser parser =
-        new analyzer.Parser(source, listener, useFasta: true);
-    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
-    expect(unit, isNotNull);
+    CompilationUnit unit = parseCompilationUnit2(content, listener);
 
     // Assert and return result
     if (codes != null) {
@@ -1785,6 +1776,22 @@ class FastaParserTestCase extends Object
     } else {
       listener.assertNoErrors();
     }
+    return unit;
+  }
+
+  CompilationUnit parseCompilationUnit2(
+      String content, GatheringErrorListener listener) {
+    // Scan tokens
+    var source = new StringSource(content, 'parser_test_StringSource.dart');
+    var scanner = new Scanner.fasta(source, listener);
+    scanner.scanGenericMethodComments = enableGenericMethodComments;
+    _fastaTokens = scanner.tokenize();
+
+    // Run parser
+    analyzer.Parser parser =
+        new analyzer.Parser(source, listener, useFasta: true);
+    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    expect(unit, isNotNull);
     return unit;
   }
 

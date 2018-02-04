@@ -12,6 +12,8 @@ main() {
 
 class SwitchStatementTest extends PartialCodeTest {
   buildAll() {
+    final allExceptEof =
+        PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
     buildTests(
         'switch_statement',
         [
@@ -22,41 +24,32 @@ class SwitchStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "switch (_s_) {}",
-              allFailing: true),
+              failing: ['block']),
           new TestDescriptor(
               'leftParen',
               'switch (',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
+                ScannerErrorCode.EXPECTED_TOKEN
               ],
               "switch (_s_) {}",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'expression',
               'switch (a',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
+              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
               "switch (a) {}",
-              allFailing: true),
-          new TestDescriptor(
-              'rightParen',
-              'switch (a)',
-              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
-              "switch (a) {}",
-              allFailing: true),
-          new TestDescriptor('leftBrace', 'switch (a) {',
+              failing: allExceptEof),
+          new TestDescriptor('rightParen', 'switch (a)',
               [ParserErrorCode.EXPECTED_TOKEN], "switch (a) {}",
-              allFailing: true),
+              failing: ['block']),
+          new TestDescriptor('leftBrace', 'switch (a) {',
+              [ScannerErrorCode.EXPECTED_TOKEN], "switch (a) {}",
+              failing: allExceptEof),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() { ',
