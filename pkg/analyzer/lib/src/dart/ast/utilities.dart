@@ -7290,7 +7290,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     _visitNode(node.parameter);
     if (node.separator != null) {
-      _writer.print(" ");
+      if (node.separator.lexeme != ":") {
+        _writer.print(" ");
+      }
       _writer.print(node.separator.lexeme);
       _visitNodeWithPrefix(" ", node.defaultValue);
     }
@@ -8603,7 +8605,9 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     safelyVisitNode(node.parameter);
     if (node.separator != null) {
-      sink.write(" ");
+      if (node.separator.lexeme != ":") {
+        sink.write(" ");
+      }
       sink.write(node.separator.lexeme);
       safelyVisitNodeWithPrefix(" ", node.defaultValue);
     }
