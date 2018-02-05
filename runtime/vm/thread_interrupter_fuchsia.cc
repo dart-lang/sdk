@@ -76,10 +76,9 @@ class ThreadInterrupterFuchsia : public AllStatic {
  public:
 #if defined(TARGET_ARCH_X64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_x86_64_general_regs_t regs;
-    size_t regset_size;
+    zx_thread_state_general_regs regs;
     zx_status_t status = zx_thread_read_state(
-        thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
+        thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
     if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
@@ -95,10 +94,9 @@ class ThreadInterrupterFuchsia : public AllStatic {
   }
 #elif defined(TARGET_ARCH_ARM64)
   static bool GrabRegisters(zx_handle_t thread, InterruptedThreadState* state) {
-    zx_arm64_general_regs_t regs;
-    size_t regset_size;
+    zx_thread_state_general_regs regs;
     zx_status_t status = zx_thread_read_state(
-        thread, ZX_THREAD_STATE_REGSET0, &regs, sizeof(regs), &regset_size);
+        thread, ZX_THREAD_STATE_GENERAL_REGS, &regs, sizeof(regs));
     if (status != ZX_OK) {
       if (FLAG_trace_thread_interrupter) {
         OS::PrintErr("ThreadInterrupter failed to get registers: %s\n",
