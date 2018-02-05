@@ -5196,8 +5196,7 @@ class ResolverVisitor extends ScopedVisitor {
       // Analyzer ignores annotations on "part of" directives.
       assert(parent is PartOfDirective);
     } else {
-      elementAnnotationImpl.annotationAst =
-          new ConstantAstCloner().cloneNode(node);
+      elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
     }
     return null;
   }
@@ -5550,7 +5549,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     ConstructorElementImpl constructor = node.element;
     constructor.constantInitializers =
-        new ConstantAstCloner().cloneNodeList(node.initializers);
+        _createCloner().cloneNodeList(node.initializers);
     return null;
   }
 
@@ -5617,7 +5616,7 @@ class ResolverVisitor extends ScopedVisitor {
     // during constant evaluation.
     if (!_hasSerializedConstantInitializer(element)) {
       (element as ConstVariableElement).constantInitializer =
-          new ConstantAstCloner().cloneNode(node.defaultValue);
+          _createCloner().cloneNode(node.defaultValue);
     }
     return null;
   }
@@ -6256,7 +6255,7 @@ class ResolverVisitor extends ScopedVisitor {
     // evaluate the const constructor).
     if (element is ConstVariableElement) {
       (element as ConstVariableElement).constantInitializer =
-          new ConstantAstCloner().cloneNode(node.initializer);
+          _createCloner().cloneNode(node.initializer);
     }
     return null;
   }
@@ -6404,6 +6403,15 @@ class ResolverVisitor extends ScopedVisitor {
       return _createFutureOr(futureTypeParam);
     }
     return declaredType;
+  }
+
+  /**
+   * Return a newly created cloner that can be used to clone constant
+   * expressions.
+   */
+  ConstantAstCloner _createCloner() {
+    return new ConstantAstCloner(
+        definingLibrary.context.analysisOptions.previewDart2);
   }
 
   /**

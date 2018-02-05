@@ -8,8 +8,10 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart'
@@ -37,7 +39,9 @@ typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
  * constants to be evaluated.
  */
 class ConstantAstCloner extends AstCloner {
-  ConstantAstCloner() : super(true);
+  final bool previewDart2;
+
+  ConstantAstCloner(this.previewDart2) : super(true);
 
   @override
   Annotation visitAnnotation(Annotation node) {
@@ -65,8 +69,29 @@ class ConstantAstCloner extends AstCloner {
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
         super.visitInstanceCreationExpression(node);
+    if (previewDart2 && node.keyword == null && node.isConst) {
+      expression.keyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
     expression.staticElement = node.staticElement;
     return expression;
+  }
+
+  @override
+  ListLiteral visitListLiteral(ListLiteral node) {
+    ListLiteral literal = super.visitListLiteral(node);
+    if (previewDart2 && node.constKeyword == null && node.isConst) {
+      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
+    return literal;
+  }
+
+  @override
+  MapLiteral visitMapLiteral(MapLiteral node) {
+    MapLiteral literal = super.visitMapLiteral(node);
+    if (previewDart2 && node.constKeyword == null && node.isConst) {
+      literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
+    }
+    return literal;
   }
 
   @override
