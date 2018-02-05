@@ -1077,6 +1077,26 @@ class C {
     await assertNoAssistAt('{}', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
   }
 
+  test_convertToAsyncBody_BAD_inBody_block() async {
+    await resolveTestUnit('''
+class C {
+  void foo() {
+    print(42);
+  }
+}
+''');
+    await assertNoAssistAt('print', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
+  test_convertToAsyncBody_BAD_inBody_expression() async {
+    await resolveTestUnit('''
+class C {
+  void foo() => print(42);
+}
+''');
+    await assertNoAssistAt('print', DartAssistKind.CONVERT_INTO_ASYNC_BODY);
+  }
+
   test_convertToAsyncBody_BAD_syncStar() async {
     await resolveTestUnit('''
 Iterable<String> f() sync* {}
@@ -1091,7 +1111,7 @@ main() {
 }
 f(g) {}
 ''');
-    await assertHasAssistAt('123', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+    await assertHasAssistAt('=>', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
 main() {
   f(() async => 123);
 }

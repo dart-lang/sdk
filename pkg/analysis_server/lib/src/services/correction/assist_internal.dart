@@ -683,6 +683,18 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+
+    // Function bodies can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in a function body.
+    if (body is BlockFunctionBody &&
+        selectionOffset > body.block.beginToken.end) {
+      return;
+    }
+    if (body is ExpressionFunctionBody &&
+        selectionOffset > body.beginToken.end) {
+      return;
+    }
+
     AstNode parent = body.parent;
     if (parent is ConstructorDeclaration) {
       return;
