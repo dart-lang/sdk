@@ -1777,11 +1777,13 @@ class Assembler : public ValueObject {
                               Register rt,
                               int64_t imm,
                               OperandSize sz) {
+    // EncodeImm19BranchOffset will longjump out if the offset does not fit in
+    // 19 bits.
+    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding = op | size | Arm64Encode::Rt(rt) | encoded_offset;
     Emit(encoding);
   }
@@ -1790,11 +1792,13 @@ class Assembler : public ValueObject {
                            Register rt,
                            intptr_t bit_number,
                            int64_t imm) {
+    // EncodeImm14BranchOffset will longjump out if the offset does not fit in
+    // 14 bits.
+    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
     ASSERT((bit_number >= 0) && (bit_number <= 63));
     ASSERT(Utils::IsInt(16, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
-    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
     const int32_t encoding = op | (static_cast<int32_t>(bit_number) << 19) |
                              (static_cast<int32_t>(crt) << kRtShift) |
                              encoded_offset;
