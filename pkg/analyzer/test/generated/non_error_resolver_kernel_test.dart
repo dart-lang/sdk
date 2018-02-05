@@ -267,16 +267,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  test_nativeConstConstructor() async {
-    return super.test_nativeConstConstructor();
-  }
-
-  @override
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    return super.test_nativeFunctionBodyInNonSDKCode_function();
-  }
-
-  @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31628')
   test_nonConstCaseExpression_constField() async {
@@ -344,20 +334,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
-  }
-
-  @override
-  test_uriDoesNotExist_dll() async {
-    return super.test_uriDoesNotExist_dll();
-  }
-
-  @override
-  test_uriDoesNotExist_dylib() async {
-    return super.test_uriDoesNotExist_dylib();
-  }
-
-  @override
-  test_uriDoesNotExist_so() async {
-    return super.test_uriDoesNotExist_so();
   }
 }
