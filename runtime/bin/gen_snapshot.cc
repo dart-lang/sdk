@@ -1658,13 +1658,14 @@ int main(int argc, char** argv) {
 
     ASSERT(kernel_program == NULL);
 
+    // Load any libraries named in the entry points. Do this before loading the
+    // user's script to ensure conditional imports see the embedder-specific
+    // dart: libraries.
+    LoadEntryPoints(entry_points);
+
     // Load the specified script.
     library = LoadSnapshotCreationScript(app_script_name);
     CHECK_RESULT(library);
-
-    // Load any libraries named in the entry points that were not imported by
-    // the script.
-    LoadEntryPoints(entry_points);
 
     ImportNativeEntryPointLibrariesIntoRoot(entry_points);
 
