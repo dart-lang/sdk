@@ -249,7 +249,11 @@
         },
         {
           "name": "front-end tests",
-          "arguments": ["--compiler=none", "--checked"],
+          "arguments": [
+            "--compiler=none",
+            "--checked",
+            "--timeout=120"
+          ],
           "tests": ["pkg/front_end"]
         },
         {
