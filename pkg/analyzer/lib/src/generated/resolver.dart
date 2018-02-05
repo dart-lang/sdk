@@ -1075,6 +1075,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           DartType futureArgument = returnTypeType.typeArguments[0];
           if (futureArgument.isDynamic ||
               futureArgument.isDartCoreNull ||
+              futureArgument.isVoid ||
               futureArgument.isObject) {
             return;
           }

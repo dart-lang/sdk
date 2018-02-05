@@ -2253,6 +2253,26 @@ Future<int> f() async {}
     verify([source]);
   }
 
+  test_no_missingReturn_async_futureVoid() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<void> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_no_missingReturn_async_futureOrVoid() async {
+    Source source = addSource('''
+import 'dart:async';
+FutureOr<void> f(Future f) async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_missingReturn_factory() async {
     Source source = addSource(r'''
 class A {
