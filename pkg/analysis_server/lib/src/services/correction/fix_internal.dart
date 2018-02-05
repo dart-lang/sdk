@@ -1581,7 +1581,8 @@ class FixProcessor {
     }
     // name
     builder.write(element.displayName);
-    builder.writeTypeParameters(element.typeParameters);
+    builder.writeTypeParameters(element.typeParameters,
+        methodBeingCopied: element);
     // parameters + body
     if (isGetter) {
       builder.write(' => null;');

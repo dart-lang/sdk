@@ -24,6 +24,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /**
@@ -357,6 +358,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (isGetter) {
       writeln(' => null;');
     } else {
+      writeTypeParameters(member.typeParameters, methodBeingCopied: member);
       List<ParameterElement> parameters = member.parameters;
       writeParameters(parameters, methodBeingCopied: member);
       writeln(' {');
@@ -474,9 +476,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ExecutableElement methodBeingCopied}) {
     _EnclosingElementFinder finder = new _EnclosingElementFinder();
     finder.find(dartFileEditBuilder.unit, offset);
-    String parameterSource = _getParameterSource(
-        type, name, finder.enclosingClass, finder.enclosingExecutable,
-        methodBeingCopied: methodBeingCopied);
+    String parameterSource = _getTypeSource(
+        type, finder.enclosingClass, finder.enclosingExecutable,
+        parameterName: name, methodBeingCopied: methodBeingCopied);
     write(parameterSource);
   }
 
@@ -514,16 +516,25 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeTypeParameter(TypeParameterElement typeParameter) {
+  void writeTypeParameter(TypeParameterElement typeParameter,
+      {ExecutableElement methodBeingCopied}) {
     write(typeParameter.name);
     if (typeParameter.bound != null) {
-      write(' extends ');
-      writeType(typeParameter.bound);
+      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      finder.find(dartFileEditBuilder.unit, offset);
+      String bound = _getTypeSource(typeParameter.bound, finder.enclosingClass,
+          finder.enclosingExecutable,
+          methodBeingCopied: methodBeingCopied);
+      if (bound != null) {
+        write(' extends ');
+        write(bound);
+      }
     }
   }
 
   @override
-  void writeTypeParameters(List<TypeParameterElement> typeParameters) {
+  void writeTypeParameters(List<TypeParameterElement> typeParameters,
+      {ExecutableElement methodBeingCopied}) {
     if (typeParameters.isNotEmpty) {
       write('<');
       bool isFirst = true;
@@ -532,7 +543,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           write(', ');
         }
         isFirst = false;
-        writeTypeParameter(typeParameter);
+        writeTypeParameter(typeParameter, methodBeingCopied: methodBeingCopied);
       }
       write('>');
     }
@@ -755,70 +766,39 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
-   * Return the source for the parameter with the given [type] and [name].
-   */
-  String _getParameterSource(DartType type, String name,
-      ClassElement enclosingClass, ExecutableElement enclosingExecutable,
-      {ExecutableElement methodBeingCopied}) {
-    // no type
-    if (type == null || type.isDynamic) {
-      return name;
-    }
-    // function type
-    if (type is FunctionType && type.element.isSynthetic) {
-      FunctionType functionType = type;
-      StringBuffer buffer = new StringBuffer();
-      // return type
-      DartType returnType = functionType.returnType;
-      if (returnType != null && !returnType.isDynamic) {
-        String returnTypeSource = _getTypeSource(
-            returnType, enclosingClass, enclosingExecutable,
-            methodBeingCopied: methodBeingCopied);
-        if (returnTypeSource.isNotEmpty) {
-          buffer.write(returnTypeSource);
-          buffer.write(' ');
-        }
-      }
-      // parameter name
-      buffer.write(name);
-      // parameters
-      buffer.write('(');
-      List<ParameterElement> fParameters = functionType.parameters;
-      for (int i = 0; i < fParameters.length; i++) {
-        ParameterElement fParameter = fParameters[i];
-        if (i != 0) {
-          buffer.write(", ");
-        }
-        buffer.write(_getParameterSource(fParameter.type, fParameter.name,
-            enclosingClass, enclosingExecutable));
-      }
-      buffer.write(')');
-      // done
-      return buffer.toString();
-    }
-    // simple type
-    String typeSource = _getTypeSource(
-        type, enclosingClass, enclosingExecutable,
-        methodBeingCopied: methodBeingCopied);
-    if (typeSource.isNotEmpty) {
-      return '$typeSource $name';
-    }
-    return name;
-  }
-
-  /**
-   * Returns the source to reference [type] in this [CompilationUnit].
+   * Returns the source to reference [type] in this compilation unit.
+   *
+   * If an [enclosingClass] is provided then the reference is being generated
+   * within the class and the type parameters of the class will be considered to
+   * be visible.
+   *
+   * If an [enclosingExecutable] is provided, then the reference is being
+   * generated within the class and the type parameters of the method will be
+   * considered to be visible.
+   *
+   * If a [methodBeingCopied] is provided, then the type parameters of that
+   * method will be duplicated in the copy and will therefore be visible.
+   *
+   * If a [parameterName] is given, then the type is the type of a parameter
+   * and the parameter name will be included, either in-line in a function type
+   * or after the type source for other types.
    *
    * Causes any libraries whose elements are used by the generated source, to be
    * imported.
    */
   String _getTypeSource(DartType type, ClassElement enclosingClass,
       ExecutableElement enclosingExecutable,
-      {ExecutableElement methodBeingCopied, StringBuffer parametersBuffer}) {
-    StringBuffer buffer = new StringBuffer();
+      {String parameterName, ExecutableElement methodBeingCopied}) {
     // type parameter
-    if (!_isTypeVisible(type, enclosingClass, enclosingExecutable,
-        methodBeingCopied: methodBeingCopied)) {
+    type = _getVisibleType(type, enclosingClass, enclosingExecutable,
+        methodBeingCopied: methodBeingCopied);
+    if (type == null ||
+        type.isDynamic ||
+        type.isBottom ||
+        type.isDartCoreNull) {
+      if (parameterName != null) {
+        return parameterName;
+      }
       return 'dynamic';
     }
 
@@ -833,43 +813,54 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && element is! FunctionTypeAliasElement) {
-      if (parametersBuffer == null) {
+      if (parameterName == null) {
         return 'Function';
       }
-      parametersBuffer.write('(');
-      for (ParameterElement parameter in type.parameters) {
-        String parameterType = _getTypeSource(
-            parameter.type, enclosingClass, enclosingExecutable,
-            methodBeingCopied: methodBeingCopied);
-        if (parametersBuffer.length != 1) {
-          parametersBuffer.write(', ');
-        }
-        parametersBuffer.write(parameterType);
-        parametersBuffer.write(' ');
-        parametersBuffer.write(parameter.name);
-      }
-      parametersBuffer.write(')');
-      return _getTypeSource(
+      StringBuffer buffer = new StringBuffer();
+      String returnType = _getTypeSource(
           type.returnType, enclosingClass, enclosingExecutable,
           methodBeingCopied: methodBeingCopied);
-    }
-    // <Bottom>, Null
-    if (type.isBottom || type.isDartCoreNull) {
-      return 'dynamic';
+      if (returnType != null) {
+        buffer.write(returnType);
+        buffer.write(' ');
+      }
+      buffer.write(parameterName);
+      buffer.write('(');
+      int count = type.parameters.length;
+      for (int i = 0; i < count; i++) {
+        ParameterElement parameter = type.parameters[i];
+        String parameterType = _getTypeSource(
+            parameter.type, enclosingClass, enclosingExecutable,
+            parameterName: parameter.name,
+            methodBeingCopied: methodBeingCopied);
+        if (i > 0) {
+          buffer.write(', ');
+        }
+        buffer.write(parameterType);
+      }
+      buffer.write(')');
+      return buffer.toString();
     }
     // prepare element
     if (element == null) {
       String source = type.toString();
       source = source.replaceAll('<dynamic>', '');
       source = source.replaceAll('<dynamic, dynamic>', '');
+      if (parameterName != null) {
+        return '$source $parameterName';
+      }
       return source;
     }
     // check if imported
+    StringBuffer buffer = new StringBuffer();
     LibraryElement definingLibrary = element.library;
     LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
     if (definingLibrary != null && definingLibrary != importingLibrary) {
       // no source, if private
       if (element.isPrivate) {
+        if (parameterName != null) {
+          return parameterName;
+        }
         return '';
       }
       // ensure import
@@ -896,8 +887,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       for (DartType argument in arguments) {
         hasArguments = hasArguments || !argument.isDynamic;
         allArgumentsVisible = allArgumentsVisible &&
-            _isTypeVisible(argument, enclosingClass, enclosingExecutable,
-                methodBeingCopied: methodBeingCopied);
+            _getVisibleType(argument, enclosingClass, enclosingExecutable,
+                    methodBeingCopied: methodBeingCopied) !=
+                null;
       }
       // append type arguments
       if (hasArguments && allArgumentsVisible) {
@@ -918,6 +910,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
         buffer.write(">");
       }
+    }
+    if (parameterName != null) {
+      buffer.write(' ');
+      buffer.write(parameterName);
     }
     // done
     return buffer.toString();
@@ -963,34 +959,61 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
-   * Checks if [type] is visible in either the [enclosingExecutable] or
-   * [enclosingClass].
+   * If the given [type] is visible in either the [enclosingExecutable] or
+   * [enclosingClass], or if there is a local equivalent to the type (such as in
+   * the case of a type parameter from a superclass), then return the type that
+   * is locally visible. Otherwise, return `null`.
    */
-  bool _isTypeVisible(DartType type, ClassElement enclosingClass,
+  DartType _getVisibleType(DartType type, ClassElement enclosingClass,
       ExecutableElement enclosingExecutable,
       {ExecutableElement methodBeingCopied}) {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterParent = parameterElement.enclosingElement;
       // TODO(brianwilkerson) This needs to compare the parameterParent with
-      // each of the parents of the enclosingElement. (That means that we only
-      // need the most closely enclosing element.)
-      return parameterParent == enclosingExecutable ||
+      // each of the parents of the enclosingExecutable. (That means that we
+      // only need the most closely enclosing element.)
+      if (parameterParent == enclosingExecutable ||
           parameterParent == enclosingClass ||
-          parameterParent == methodBeingCopied;
+          parameterParent == methodBeingCopied) {
+        return type;
+      }
+      if (enclosingClass != null &&
+          methodBeingCopied != null &&
+          parameterParent is ClassElement &&
+          parameterParent == methodBeingCopied.enclosingElement) {
+        // The parameter is from the class enclosing the methodBeingCopied. That
+        // means that somewhere along the inheritance chain there must be a type
+        // argument corresponding to the type parameter (either a concrete type
+        // or a type parameter of the enclosingClass). That's the visible type
+        // that needs to be returned.
+        _InheritanceChain chain = new _InheritanceChain(
+            subtype: enclosingClass, supertype: parameterParent);
+        while (chain != null) {
+          DartType mappedType = chain.mapParameter(parameterElement);
+          if (mappedType is TypeParameterType) {
+            parameterElement = mappedType.element;
+            chain = chain.next;
+          } else {
+            return mappedType;
+          }
+        }
+        return parameterElement.type;
+      }
+      return null;
     }
     Element element = type.element;
     if (element == null) {
-      return true;
+      return type;
     }
     LibraryElement definingLibrary = element.library;
     LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
-    if (definingLibrary != null && definingLibrary != importingLibrary) {
-      if (element.isPrivate) {
-        return false;
-      }
+    if (definingLibrary != null &&
+        definingLibrary != importingLibrary &&
+        element.isPrivate) {
+      return null;
     }
-    return true;
+    return type;
   }
 }
 
@@ -1412,6 +1435,91 @@ class _EnclosingElementFinder {
       }
       node = node.parent;
     }
+  }
+}
+
+class _InheritanceChain {
+  final _InheritanceChain next;
+
+  final InterfaceType supertype;
+
+  /**
+   * Return the shortest inheritance chain from a [subtype] to a [supertype], or
+   * `null` if [subtype] does not inherit from [supertype].
+   */
+  factory _InheritanceChain(
+      {@required ClassElement subtype, @required ClassElement supertype}) {
+    List<_InheritanceChain> allChainsFrom(
+        _InheritanceChain next, ClassElement subtype) {
+      List<_InheritanceChain> chains = <_InheritanceChain>[];
+      InterfaceType supertypeType = subtype.supertype;
+      ClassElement supertypeElement = supertypeType.element;
+      if (supertypeElement == supertype) {
+        chains.add(new _InheritanceChain._(next, supertypeType));
+      } else if (supertypeType.isObject) {
+        // Don't add this chain and don't recurse.
+      } else {
+        chains.addAll(allChainsFrom(
+            new _InheritanceChain._(next, supertypeType), supertypeElement));
+      }
+      for (InterfaceType mixinType in subtype.mixins) {
+        ClassElement mixinElement = mixinType.element;
+        if (mixinElement == supertype) {
+          chains.add(new _InheritanceChain._(next, mixinType));
+        }
+      }
+      for (InterfaceType interfaceType in subtype.interfaces) {
+        ClassElement interfaceElement = interfaceType.element;
+        if (interfaceElement == supertype) {
+          chains.add(new _InheritanceChain._(next, interfaceType));
+        } else if (supertypeType.isObject) {
+          // Don't add this chain and don't recurse.
+        } else {
+          chains.addAll(allChainsFrom(
+              new _InheritanceChain._(next, interfaceType), interfaceElement));
+        }
+      }
+      return chains;
+    }
+
+    List<_InheritanceChain> chains = allChainsFrom(null, subtype);
+    if (chains.isEmpty) {
+      return null;
+    }
+    _InheritanceChain shortestChain = chains.removeAt(0);
+    int shortestLength = shortestChain.length;
+    for (_InheritanceChain chain in chains) {
+      int length = chain.length;
+      if (length < shortestLength) {
+        shortestChain = chain;
+        shortestLength = length;
+      }
+    }
+    return shortestChain;
+  }
+
+  /**
+   * Initialize a newly created link in an inheritance chain.
+   */
+  _InheritanceChain._(this.next, this.supertype);
+
+  /**
+   * Return the number of links in the chain starting with this link.
+   */
+  int get length {
+    if (next == null) {
+      return 1;
+    }
+    return next.length + 1;
+  }
+
+  DartType mapParameter(TypeParameterElement typeParameter) {
+    Element parameterParent = typeParameter.enclosingElement;
+    if (parameterParent is ClassElement) {
+      int index = parameterParent.typeParameters.indexOf(typeParameter);
+      return supertype.typeArguments[index];
+    }
+    return null;
   }
 }
 

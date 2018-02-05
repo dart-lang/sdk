@@ -238,14 +238,24 @@ abstract class DartEditBuilder implements EditBuilder {
   /**
    * Write the code to declare the given [typeParameter]. The enclosing angle
    * brackets are not automatically written.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeTypeParameter(TypeParameterElement typeParameter);
+  void writeTypeParameter(TypeParameterElement typeParameter,
+      {ExecutableElement methodBeingCopied});
 
   /**
    * Write the code to declare the given list of [typeParameters]. The enclosing
    * angle brackets are automatically written.
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
    */
-  void writeTypeParameters(List<TypeParameterElement> typeParameters);
+  void writeTypeParameters(List<TypeParameterElement> typeParameters,
+      {ExecutableElement methodBeingCopied});
 }
 
 /**

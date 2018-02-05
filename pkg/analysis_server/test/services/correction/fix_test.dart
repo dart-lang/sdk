@@ -2702,7 +2702,6 @@ class MyEmulator extends Emulator {
 ''');
   }
 
-  @failingTest
   test_createMissingOverrides_functionTypedParameter() async {
     await resolveTestUnit('''
 abstract class A {
@@ -2981,6 +2980,30 @@ abstract class A {
 class B implements A {
   @override
   E1 foo<E1, E2 extends C<int>>(V<E2> v) {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
+  test_createMissingOverrides_method_generic_withBounds() async {
+    // https://github.com/dart-lang/sdk/issues/31199
+    await resolveTestUnit('''
+abstract class A<K, V> {
+  List<T> foo<T extends V>(K key);
+}
+
+class B<K, V> implements A<K, V> {
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A<K, V> {
+  List<T> foo<T extends V>(K key);
+}
+
+class B<K, V> implements A<K, V> {
+  @override
+  List<T> foo<T extends V>(K key) {
     // TODO: implement foo
   }
 }
