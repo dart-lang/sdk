@@ -1645,13 +1645,32 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Before any ASTs are created, look up ConstructorElement to see if we
     // should construct an [InstanceCreationExpression] to replace this
     // [MethodInvocation].
+    InterfaceType classType = classElement.type;
+    if (node.typeArguments != null) {
+      int parameterCount = classType.typeParameters.length;
+      int argumentCount = node.typeArguments.length;
+      if (parameterCount == argumentCount) {
+        // TODO(brianwilkerson) More gracefully handle the case where the counts
+        // are different.
+        List<DartType> typeArguments = node.typeArguments.arguments
+            .map((TypeAnnotation type) => type.type)
+            .toList();
+        classType = classType.instantiate(typeArguments);
+      }
+    } else {
+      int parameterCount = classType.typeParameters.length;
+      if (parameterCount > 0) {
+        List<DartType> typeArguments =
+            new List<DartType>.filled(parameterCount, _dynamicType);
+        classType = classType.instantiate(typeArguments);
+      }
+    }
     ConstructorElement constructorElt;
     if (isNamedConstructorCase) {
-      constructorElt = classElement.type
-          .lookUpConstructor(node.methodName.name, _definingLibrary);
-    } else {
       constructorElt =
-          classElement.type.lookUpConstructor(null, _definingLibrary);
+          classType.lookUpConstructor(node.methodName.name, _definingLibrary);
+    } else {
+      constructorElt = classType.lookUpConstructor(null, _definingLibrary);
     }
     // If the constructor was not looked up, return `null` so resulting
     // resolution, such as error messages, will proceed as a [MethodInvocation].
@@ -1665,13 +1684,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (isNamedConstructorCase) {
       // A.named()
       typeName = _astFactory.typeName(targetSimpleId, node.typeArguments);
-      typeName.type = classElement.type;
+      typeName.type = classType;
       constructorName =
           _astFactory.constructorName(typeName, node.operator, node.methodName);
     } else {
       // A()
       typeName = _astFactory.typeName(node.methodName, node.typeArguments);
-      typeName.type = classElement.type;
+      typeName.type = classType;
       constructorName = _astFactory.constructorName(typeName, null, null);
     }
     InstanceCreationExpression instanceCreationExpression = _astFactory
@@ -1682,15 +1701,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     constructorName.staticElement = constructorElt;
     instanceCreationExpression.staticElement = constructorElt;
-    instanceCreationExpression.staticType = classElement.type;
+    instanceCreationExpression.staticType = classType;
 
     // Finally, do the node replacement, true is returned iff the replacement
     // was successful, only return the new node if it was successful.
     if (NodeReplacer.replace(node, instanceCreationExpression)) {
       return instanceCreationExpression;
-    } else {
-      return null;
     }
+    return null;
   }
 
   /**
