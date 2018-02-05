@@ -226,6 +226,18 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBreakOutsideOfLoop = const MessageCode(
+    "BreakOutsideOfLoop",
+    analyzerCode: "BREAK_OUTSIDE_OF_LOOP",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""A break statement can't be used outside of a loop or switch statement.""",
+    tip: r"""Try removing the break statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
     const Template<Message Function(Token token)>(
         messageTemplate:
@@ -763,6 +775,32 @@ Message _withArgumentsConstructorNotFound(String name) {
       message: """Couldn't find constructor '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueOutsideOfLoop = const MessageCode(
+    "ContinueOutsideOfLoop",
+    analyzerCode: "CONTINUE_OUTSIDE_OF_LOOP",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""A continue statement can't be used outside of a loop or switch statement.""",
+    tip: r"""Try removing the continue statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueWithoutLabelInCase =
+    messageContinueWithoutLabelInCase;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
+    "ContinueWithoutLabelInCase",
+    analyzerCode: "CONTINUE_WITHOUT_LABEL_IN_CASE",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""A continue statement in a switch statement must have a label as a target.""",
+    tip:
+        r"""Try adding a label associated with one of the case clauses to the continue statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>

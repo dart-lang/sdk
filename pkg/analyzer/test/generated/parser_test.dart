@@ -2469,7 +2469,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     IfStatement statement = parseStatement('if (x) {break;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 8, 6)]);
+        [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 8, 5)]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
@@ -2487,7 +2487,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_breakOutsideOfLoop_functionExpression_inALoop() {
     parseStatement("for(; x;) {() {break;};}");
     listener.assertErrors(
-        [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 15, 6)]);
+        [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 15, 5)]);
   }
 
   void test_breakOutsideOfLoop_functionExpression_withALoop() {
@@ -2622,7 +2622,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     IfStatement statement = parseStatement('if (x) {continue;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 9)]);
+        [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 8)]);
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
@@ -2641,7 +2641,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_continueOutsideOfLoop_functionExpression_inALoop() {
     parseStatement("for(; x;) {() {continue;};}");
     listener.assertErrors(
-        [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 15, 9)]);
+        [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 15, 8)]);
   }
 
   void test_continueOutsideOfLoop_functionExpression_withALoop() {
@@ -2653,7 +2653,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
         parseStatement('switch (x) {case 1: continue;}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, 20, 9)]);
+        [expectedError(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, 20, 8)]);
   }
 
   void test_continueWithoutLabelInCase_noError() {

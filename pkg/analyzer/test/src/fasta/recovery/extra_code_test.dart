@@ -70,7 +70,7 @@ final Map v = {
   'b': () => new C()),
   'c': () => new C(),
 };
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 class C {}
 final Map v = {
   'a': () => new C(),

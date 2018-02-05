@@ -72,6 +72,8 @@ import 'identifier_context.dart' show IdentifierContext;
 
 import 'listener.dart' show Listener;
 
+import 'loop_state.dart' show LoopState;
+
 import 'member_kind.dart' show MemberKind;
 
 import 'modifier_context.dart'
@@ -254,6 +256,11 @@ class Parser {
   /// external clients, for example, to parse an expression outside a function.
   AsyncModifier asyncState = AsyncModifier.Sync;
 
+  /// Represents parser state: whether parsing outside a loop,
+  /// inside a loop, or inside a switch. This is used to determine whether
+  /// break and continue statements are allowed.
+  LoopState loopState = LoopState.OutsideLoop;
+
   /// A rewriter for inserting synthetic tokens.
   /// Access using [rewriter] for lazy initialization.
   TokenStreamRewriter cachedRewriter;
@@ -276,6 +283,12 @@ class Parser {
   }
 
   bool get inPlainSync => asyncState == AsyncModifier.Sync;
+
+  bool get isBreakAllowed => loopState != LoopState.OutsideLoop;
+
+  bool get isContinueAllowed => loopState == LoopState.InsideLoop;
+
+  bool get isContinueWithLabelAllowed => loopState != LoopState.OutsideLoop;
 
   /// Parse a compilation unit.
   ///
@@ -4333,6 +4346,8 @@ class Parser {
       }
     }
 
+    LoopState savedLoopState = loopState;
+    loopState = LoopState.OutsideLoop;
     listener.beginBlockFunctionBody(begin);
     token = next;
     while (notEofOrValue('}', token.next)) {
@@ -4350,6 +4365,7 @@ class Parser {
     token = token.next;
     listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
+    loopState = savedLoopState;
     return token;
   }
 
@@ -5851,7 +5867,10 @@ class Parser {
     }
     expect(')', token);
     listener.beginForStatementBody(token.next);
+    LoopState savedLoopState = loopState;
+    loopState = LoopState.InsideLoop;
     token = parseStatement(token);
+    loopState = savedLoopState;
     listener.endForStatementBody(token.next);
     listener.endForStatement(
         forToken, leftParenthesis, leftSeparator, expressionCount, token.next);
@@ -5879,7 +5898,10 @@ class Parser {
     listener.endForInExpression(token);
     expect(')', token);
     listener.beginForInBody(token.next);
+    LoopState savedLoopState = loopState;
+    loopState = LoopState.InsideLoop;
     token = parseStatement(token);
+    loopState = savedLoopState;
     listener.endForInBody(token.next);
     listener.endForIn(
         awaitToken, forKeyword, leftParenthesis, inKeyword, token.next);
@@ -5897,7 +5919,10 @@ class Parser {
     listener.beginWhileStatement(whileToken);
     token = parseParenthesizedExpression(whileToken);
     listener.beginWhileStatementBody(token.next);
+    LoopState savedLoopState = loopState;
+    loopState = LoopState.InsideLoop;
     token = parseStatement(token);
+    loopState = savedLoopState;
     listener.endWhileStatementBody(token.next);
     listener.endWhileStatement(whileToken, token.next);
     return token;
@@ -5913,7 +5938,10 @@ class Parser {
     assert(optional('do', doToken));
     listener.beginDoWhileStatement(doToken);
     listener.beginDoWhileStatementBody(doToken.next);
+    LoopState savedLoopState = loopState;
+    loopState = LoopState.InsideLoop;
     token = parseStatement(doToken).next;
+    loopState = savedLoopState;
     listener.endDoWhileStatementBody(token);
     Token whileToken = token;
     expect('while', token);
@@ -6106,7 +6134,12 @@ class Parser {
     assert(optional('switch', switchKeyword));
     listener.beginSwitchStatement(switchKeyword);
     token = parseParenthesizedExpression(switchKeyword);
+    LoopState savedLoopState = loopState;
+    if (loopState == LoopState.OutsideLoop) {
+      loopState = LoopState.InsideSwitch;
+    }
     token = parseSwitchBlock(token);
+    loopState = savedLoopState;
     listener.endSwitchStatement(switchKeyword, token);
     return token;
   }
@@ -6245,6 +6278,8 @@ class Parser {
     if (token.next.isIdentifier) {
       token = ensureIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
+    } else if (!isBreakAllowed) {
+      reportRecoverableError(breakKeyword, fasta.messageBreakOutsideOfLoop);
     }
     token = ensureSemicolon(token);
     listener.handleBreakStatement(hasTarget, breakKeyword, token);
@@ -6323,6 +6358,16 @@ class Parser {
     if (token.next.isIdentifier) {
       token = ensureIdentifier(token, IdentifierContext.labelReference);
       hasTarget = true;
+      if (!isContinueWithLabelAllowed) {
+        reportRecoverableError(
+            continueKeyword, fasta.messageContinueOutsideOfLoop);
+      }
+    } else if (!isContinueAllowed) {
+      reportRecoverableError(
+          continueKeyword,
+          loopState == LoopState.InsideSwitch
+              ? fasta.messageContinueWithoutLabelInCase
+              : fasta.messageContinueOutsideOfLoop);
     }
     token = ensureSemicolon(token);
     listener.handleContinueStatement(hasTarget, continueKeyword, token);

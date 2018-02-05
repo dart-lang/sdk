@@ -565,6 +565,30 @@ StaticOperator:
   script:
     - "class C { static operator +(int x) => x + 1; }"
 
+BreakOutsideOfLoop:
+  template: "A break statement can't be used outside of a loop or switch statement."
+  tip: "Try removing the break statement."
+  analyzerCode: BREAK_OUTSIDE_OF_LOOP
+  dart2jsCode: "*ignored*"
+  script:
+    - "main() { break; }"
+
+ContinueOutsideOfLoop:
+  template: "A continue statement can't be used outside of a loop or switch statement."
+  tip: "Try removing the continue statement."
+  analyzerCode: CONTINUE_OUTSIDE_OF_LOOP
+  dart2jsCode: "*ignored*"
+  script:
+    - "main() { continue; }"
+
+ContinueWithoutLabelInCase:
+  template: "A continue statement in a switch statement must have a label as a target."
+  tip: "Try adding a label associated with one of the case clauses to the continue statement."
+  analyzerCode: CONTINUE_WITHOUT_LABEL_IN_CASE
+  dart2jsCode: "*ignored*"
+  script:
+    - "main() { switch (x) {case 1: continue;} }"
+
 InvalidAwaitFor:
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
   tip: "Try removing the keyword, or use a for-each statement."

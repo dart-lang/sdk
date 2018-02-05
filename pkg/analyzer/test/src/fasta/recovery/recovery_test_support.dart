@@ -18,12 +18,14 @@ import '../../../generated/test_support.dart';
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
-      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
+      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit),
+      List<ErrorCode> expectedErrorsInValidCode}) {
     CompilationUnit validUnit;
 
     // Assert that the valid code is indeed valid.
     try {
-      validUnit = parseCompilationUnit(validCode);
+      validUnit =
+          parseCompilationUnit(validCode, codes: expectedErrorsInValidCode);
     } catch (e) {
       print('*** Valid code did not parse correctly');
       print(validCode);

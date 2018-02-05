@@ -115,22 +115,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_breakOutsideOfLoop_breakInIfStatement() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
-    super.test_breakOutsideOfLoop_breakInIfStatement();
-  }
-
-  @override
-  @failingTest
-  void test_breakOutsideOfLoop_functionExpression_inALoop() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
-    super.test_breakOutsideOfLoop_functionExpression_inALoop();
-  }
-
-  @override
-  @failingTest
   void test_constConstructorWithBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
@@ -161,30 +145,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, found 0
     super.test_constructorWithReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_continueOutsideOfLoop_continueInIfStatement() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_continueOutsideOfLoop_continueInIfStatement();
-  }
-
-  @override
-  @failingTest
-  void test_continueOutsideOfLoop_functionExpression_inALoop() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_continueOutsideOfLoop_functionExpression_inALoop();
-  }
-
-  @override
-  @failingTest
-  void test_continueWithoutLabelInCase_error() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, found 0
-    super.test_continueWithoutLabelInCase_error();
   }
 
   @override
@@ -2516,30 +2476,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
-  @override
-  @failingTest
-  void test_parseBreakStatement_noLabel() {
-    // TODO(brianwilkerson)
-    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
-    super.test_parseBreakStatement_noLabel();
-  }
-
-  @override
-  @failingTest
-  void test_parseContinueStatement_label() {
-    // TODO(brianwilkerson)
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_parseContinueStatement_label();
-  }
-
-  @override
-  @failingTest
-  void test_parseContinueStatement_noLabel() {
-    // TODO(brianwilkerson)
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_parseContinueStatement_noLabel();
-  }
-
   @override
   void test_parseFunctionDeclarationStatement_typeParameterComments() {
     // Ignored: Fasta does not support the generic comment syntax.

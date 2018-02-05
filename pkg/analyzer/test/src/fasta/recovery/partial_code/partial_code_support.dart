@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 
+import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
 
 /**
@@ -131,9 +133,11 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       StringBuffer invalid = new StringBuffer();
       StringBuffer valid = new StringBuffer();
+      StringBuffer base = new StringBuffer();
       if (head != null) {
         invalid.write(head);
         valid.write(head);
+        base.write(head);
       }
       invalid.write(descriptor.invalid);
       valid.write(descriptor.valid);
@@ -142,11 +146,42 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         invalid.write(suffix.text);
         valid.write(' ');
         valid.write(suffix.text);
+        base.write(' ');
+        base.write(suffix.text);
       }
       if (tail != null) {
         invalid.write(tail);
         valid.write(tail);
+        base.write(tail);
       }
+      //
+      // Determine the existing errors in the code
+      // without either valid or invalid code.
+      //
+      GatheringErrorListener listener =
+          new GatheringErrorListener(checkRanges: true);
+      parseCompilationUnit2(base.toString(), listener);
+      var baseErrorCodes = <ErrorCode>[];
+      listener.errors.forEach((AnalysisError error) {
+        if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
+            error.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
+            error.errorCode == ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
+          baseErrorCodes.add(error.errorCode);
+        }
+      });
+
+      var expectedValidCodeErrors = <ErrorCode>[];
+      expectedValidCodeErrors.addAll(baseErrorCodes);
+      if (descriptor.expectedErrorsInValidCode != null) {
+        expectedValidCodeErrors.addAll(descriptor.expectedErrorsInValidCode);
+      }
+
+      var expectedInvalidCodeErrors = <ErrorCode>[];
+      expectedInvalidCodeErrors.addAll(baseErrorCodes);
+      if (descriptor.errorCodes != null) {
+        expectedInvalidCodeErrors.addAll(descriptor.errorCodes);
+      }
+
       //
       // Run the test.
       //
@@ -156,7 +191,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         bool failed = false;
         try {
           testRecovery(
-              invalid.toString(), descriptor.errorCodes, valid.toString());
+              invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
+              expectedErrorsInValidCode: expectedValidCodeErrors);
           failed = true;
         } catch (e) {
           // Expected to fail.
@@ -166,7 +202,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         }
       } else {
         testRecovery(
-            invalid.toString(), descriptor.errorCodes, valid.toString());
+            invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
+            expectedErrorsInValidCode: expectedValidCodeErrors);
       }
     });
   }
@@ -198,6 +235,11 @@ class TestDescriptor {
   final String valid;
 
   /**
+   * Error codes that the parser is expected to produce in the valid code.
+   */
+  final List<ErrorCode> expectedErrorsInValidCode;
+
+  /**
    * A flag indicating whether all of the tests are expected to fail.
    */
   final bool allFailing;
@@ -212,7 +254,7 @@ class TestDescriptor {
    * Initialize a newly created test descriptor.
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.allFailing: false, this.failing});
+      {this.allFailing: false, this.failing, this.expectedErrorsInValidCode});
 }
 
 /**
