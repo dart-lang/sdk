@@ -206,6 +206,35 @@ class MyWidget extends StatelessWidget {
     }
   }
 
+  test_genericLabel() async {
+    FlutterOutline unitOutline = await _computeOutline(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Center(child: createText(0)); // Center
+  }
+  Text createText(int index) {
+    return new Text('index: $index');
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    expect(build.children, hasLength(1));
+
+    var center = build.children[0];
+    expect(center.kind, FlutterOutlineKind.NEW_INSTANCE);
+    expect(center.className, 'Center');
+    expect(center.children, hasLength(1));
+
+    var textRef = center.children[0];
+    expect(textRef.kind, FlutterOutlineKind.GENERIC);
+    expect(textRef.className, 'Text');
+    expect(textRef.label, 'createText(0)');
+  }
+
   test_parentAssociationLabel() async {
     newFile('/a.dart', content: r'''
 import 'package:flutter/widgets.dart';

@@ -138,8 +138,13 @@ class FlutterOutlineComputer {
         variableName = node.name;
       }
 
+      String label;
+      if (kind == protocol.FlutterOutlineKind.GENERIC) {
+        label = node.toString();
+      }
+
       return new protocol.FlutterOutline(kind, node.offset, node.length,
-          className: className, variableName: variableName);
+          className: className, variableName: variableName, label: label);
     }
 
     return null;
