@@ -62,7 +62,6 @@ assign_static_type_test/02: MissingCompileTimeError
 async_return_types_test/nestedFuture: Fail # Issue 26429
 async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 async_star_cancel_while_paused_test: RuntimeError
-bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -479,7 +478,6 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -786,7 +784,6 @@ assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_test/setter1: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
-bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -1099,7 +1096,6 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
