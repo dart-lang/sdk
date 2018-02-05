@@ -516,9 +516,7 @@ foo() {}
 ''');
   }
 
-  @failingTest
   test_createChange_FunctionTypeAliasElement() async {
-    // https://github.com/dart-lang/sdk/issues/30884
     await indexTestUnit('''
 typedef void F();
 void foo<T>() {}

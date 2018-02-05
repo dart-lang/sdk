@@ -612,6 +612,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
     node.target?.accept(this);
+    node.typeArguments?.accept(this);
     node.argumentList?.accept(this);
   }
 
