@@ -3559,6 +3559,31 @@ class Foo {
     ]);
   }
 
+  void test_genericFunctionType_asIdentifier() {
+    createParser('final int Function = 0;');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertErrors([]);
+  }
+
+  void test_genericFunctionType_asIdentifier2() {
+    if (usingFastaParser) {
+      createParser('int Function() {}');
+      CompilationUnit unit = parser.parseCompilationUnit2();
+      expectNotNullIfNoErrors(unit);
+      listener.assertErrors([]);
+    }
+  }
+
+  void test_genericFunctionType_asIdentifier3() {
+    if (usingFastaParser) {
+      createParser('int Function() => 0;');
+      CompilationUnit unit = parser.parseCompilationUnit2();
+      expectNotNullIfNoErrors(unit);
+      listener.assertErrors([]);
+    }
+  }
+
   void test_genericFunctionType_extraLessThan() {
     createParser('''
 class Wrong<T> {
@@ -13424,8 +13449,8 @@ class C {}
         errors: usingFastaParser
             ? [
                 expectedError(
-                    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 0, 7),
-                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
+                    ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 0, 7),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 17, 1),
               ]
             : [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 1)]);
   }
@@ -15490,6 +15515,15 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
           String lexeme = keyword.lexeme;
           parseCompilationUnit('$lexeme<T>(x) => 0;');
         }
+      }
+    }
+  }
+
+  void test_parseCompilationUnit_builtIn_asGetter() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isBuiltIn) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('get $lexeme => 0;');
       }
     }
   }

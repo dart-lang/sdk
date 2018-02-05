@@ -256,6 +256,12 @@ class Parser {
   /// external clients, for example, to parse an expression outside a function.
   AsyncModifier asyncState = AsyncModifier.Sync;
 
+  // TODO(danrubel): The [loopState] and associated functionality in the
+  // [Parser] duplicates work that the resolver needs to do when resolving
+  // break/continue targets. Long term, this state and functionality will be
+  // removed from the [Parser] class and the resolver will be responsible
+  // for generating all break/continue error messages.
+
   /// Represents parser state: whether parsing outside a loop,
   /// inside a loop, or inside a switch. This is used to determine whether
   /// break and continue statements are allowed.
@@ -1323,9 +1329,12 @@ class Parser {
   /// Skip over the `Function` type parameter.
   /// For example, `Function<E>(int foo)` or `Function(foo)` or just `Function`.
   Token skipGenericFunctionType(Token token) {
-    assert(optional('Function', token));
-    while (true) {
-      Token next = token.next;
+    Token last = token;
+    Token next = token.next;
+    while (optional('Function', next)) {
+      last = token;
+      token = next;
+      next = token.next;
       if (optional('<', next)) {
         next = next.endGroup;
         if (next == null) {
@@ -1340,11 +1349,11 @@ class Parser {
         token = next.endGroup;
         next = token.next;
       }
-      if (optional('Function', next)) {
-        token = next;
-      } else {
-        return token;
-      }
+    }
+    if (next.isKeywordOrIdentifier) {
+      return token;
+    } else {
+      return last;
     }
   }
 
@@ -1358,23 +1367,23 @@ class Parser {
   /// and recover.
   Token skipTypeReferenceOpt(Token token) {
     final Token beforeStart = token;
-    token = token.next;
-    TokenType type = token.type;
+    Token next = token.next;
+
+    TokenType type = next.type;
     bool looksLikeTypeRef = false;
     if (type != TokenType.IDENTIFIER) {
-      String value = token.stringValue;
+      String value = next.stringValue;
       if (identical(value, 'get') || identical(value, 'set')) {
         // No type reference.
         return beforeStart;
       } else if (identical(value, 'factory') || identical(value, 'operator')) {
-        Token next = token.next;
-        if (!optional('<', next) || next.endGroup == null) {
+        Token next2 = next.next;
+        if (!optional('<', next2) || next2.endGroup == null) {
           // No type reference.
           return beforeStart;
         }
         // Even though built-ins cannot be used as a type,
         // it looks like its being used as such.
-        looksLikeTypeRef = true;
       } else if (identical(value, 'void')) {
         // Found type reference.
         looksLikeTypeRef = true;
@@ -1384,17 +1393,18 @@ class Parser {
       } else if (identical(value, 'typedef')) {
         // `typedef` can be used as a prefix.
         // For example: `typedef.A x = new typedef.A();`
-        if (!optional('.', token.next)) {
+        if (!optional('.', next.next)) {
           // No type reference.
           return beforeStart;
         }
-      } else if (!token.isIdentifier) {
+      } else if (!next.isIdentifier) {
         // No type reference.
         return beforeStart;
       }
     }
+    token = next;
+    next = token.next;
 
-    Token next = token.next;
     if (optional('.', next)) {
       token = next;
       next = token.next;
@@ -1438,7 +1448,6 @@ class Parser {
     }
 
     if (optional('<', next)) {
-      looksLikeTypeRef = true;
       token = next.endGroup;
       if (token == null) {
         // TODO(danrubel): Consider better recovery
@@ -1454,7 +1463,7 @@ class Parser {
 
     if (optional('Function', next)) {
       looksLikeTypeRef = true;
-      token = skipGenericFunctionType(next);
+      token = skipGenericFunctionType(token);
       next = token.next;
     }
 
@@ -3047,10 +3056,6 @@ class Parser {
 
     next = next.next;
     value = next.stringValue;
-    if (identical(value, '<') && next.endGroup != null) {
-      next = next.endGroup.next;
-      value = next.stringValue;
-    }
     if (getOrSet != null ||
         identical(value, '(') ||
         identical(value, '{') ||
