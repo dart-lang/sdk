@@ -50,12 +50,12 @@ class BaseTest {
 
   Driver driver;
 
-  /// Normalize text with bullets.
-  String bulletToDash(item) => '$item'.replaceAll('•', '-');
+  bool get useCFE => false;
 
   bool get usePreviewDart2 => false;
 
-  bool get useCFE => false;
+  /// Normalize text with bullets.
+  String bulletToDash(item) => '$item'.replaceAll('•', '-');
 
   /// Start a driver for the given [source], optionally providing additional
   /// [args] and an [options] file path. The value of [options] defaults to an
@@ -434,6 +434,33 @@ var b = new B();
     expect(outSink.toString(), isEmpty);
     expect(errorSink.toString(), isEmpty);
     expect(exitCode, 0);
+  }
+
+  test_onlyErrors_partFirst() async {
+    await withTempDirAsync((tempDir) async {
+      var aDart = path.join(tempDir, 'a.dart');
+      var bDart = path.join(tempDir, 'b.dart');
+
+      var aUri = 'package:aaa/a.dart';
+      var bUri = 'package:aaa/b.dart';
+
+      new File(aDart).writeAsStringSync(r'''
+library lib;
+part 'b.dart';
+class A {}
+''');
+      new File(bDart).writeAsStringSync('''
+part of lib;
+class B {}
+var a = new A();
+var b = new B();
+''');
+
+      // Analyze b.dart (part) and then a.dart (its library).
+      // No errors should be reported - the part should know its library.
+      await _doDrive(bDart, uri: bUri, additionalArgs: ['$aUri|$aDart']);
+      expect(errorSink, isEmpty);
+    });
   }
 
   Future<Null> _doDrive(String path,
@@ -821,13 +848,6 @@ class OptionsTest extends BaseTest {
     expect(driver.context.analysisOptions.useFastaParser, isFalse);
   }
 
-  @failingTest
-  test_useCFE() async {
-    await drive('data/options_tests_project/test_file.dart',
-        args: ['--use-cfe']);
-    expect(driver.context.analysisOptions.useFastaParser, isTrue);
-  }
-
   test_strongSdk() async {
     String testDir = path.join(testDirectory, 'data', 'strong_sdk');
     await drive(path.join(testDir, 'main.dart'), args: ['--strong']);
@@ -839,6 +859,13 @@ class OptionsTest extends BaseTest {
   test_todo() async {
     await drive('data/file_with_todo.dart');
     expect(outSink.toString().contains('[info]'), isFalse);
+  }
+
+  @failingTest
+  test_useCFE() async {
+    await drive('data/options_tests_project/test_file.dart',
+        args: ['--use-cfe']);
+    expect(driver.context.analysisOptions.useFastaParser, isTrue);
   }
 
   test_withFlags_overrideFatalWarning() async {
@@ -893,12 +920,12 @@ class OptionsTest_UseCFE extends OptionsTest {
 
   @override
   @failingTest
-  test_withFlags_overrideFatalWarning() =>
-      super.test_withFlags_overrideFatalWarning();
+  test_previewDart2() => super.test_previewDart2();
 
   @override
   @failingTest
-  test_previewDart2() => super.test_previewDart2();
+  test_withFlags_overrideFatalWarning() =>
+      super.test_withFlags_overrideFatalWarning();
 }
 
 class TestSource implements Source {
