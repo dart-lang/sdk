@@ -231,6 +231,9 @@ _methods_with_named_formals = monitored.Set(
   'XMLHttpRequest.open',
   ])
 
+def hasNamedFormals(full_name):
+  return full_name in _methods_with_named_formals
+
 def ReturnValueConversionHack(idl_type, value, interface_name):
   if idl_type == 'SVGMatrix':
     return '%sTearOff::create(%s)' % (idl_type, value)
@@ -696,12 +699,12 @@ class OperationInfo(object):
     """
     return len(filter(lambda i: not i.is_optional, self.param_infos))
 
-  def ParametersAsArgumentList(self, parameter_count=None):
+  def ParametersAsArgumentList(self, parameter_count=None, ignore_named_parameters=False):
     """Returns a string of the parameter names suitable for passing the
     parameters as arguments.
     """
     def param_name(param_info):
-      if self.requires_named_arguments and param_info.is_optional:
+      if self.requires_named_arguments and param_info.is_optional and not ignore_named_parameters:
         return '%s : %s' % (param_info.name, param_info.name)
       else:
         return param_info.name
@@ -744,17 +747,6 @@ class OperationInfo(object):
               # Events fired need use a JSFunction not a anonymous closure to
               # insure the event can really be removed.
               parameters.append('js.allowInterop(%s)' % p.name)
-# These commented out cases don't actually generate any code.
-#          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
-              # forEach is supported in the DOM for FontFaceSet as it iterates
-              # over the Javascript Object the callback parameters are also
-              # Javascript objects and must be wrapped.
- #             parameters.append('(fontFace, fontFaceAgain, set) => %s(fontFace, fontFaceAgain, wrap_jso(set))' % p.name)
-#          elif dart_js_interop and type_id == 'HeadersForEachCallback':
-              # forEach is supported in the DOM for Headers as it iterates
-              # over the Javascript Object the callback parameters are also
-              # Javascript objects and must be wrapped.
-#              parameters.append('(String value, String key, map) => %s(value, key, wrap_jso(map))' % p.name)
           elif dart_js_interop and type_is_callback and not(isRemoveOperation):
             # Any remove operation that has a a callback doesn't need wrapping.
             # TODO(terry): Kind of hacky but handles all the cases we care about

@@ -15,11 +15,6 @@ html/custom/element_upgrade_failure_test: MissingCompileTimeError
 html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/debugger_test: CompileTimeError # Issue 30900
-html/fileapi_directory_reader_test: Pass, Timeout # Roll 50 failure
-html/fileapi_directory_test: Pass, Timeout # Roll 50 failure
-html/fileapi_entry_test: Pass, Timeout # Roll 50 failure
-html/fileapi_file_entry_test: Pass, Timeout # Roll 50 failure
-html/fileapi_file_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
 html/indexeddb_2_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_3_test: Pass, Timeout # Roll 50 failure
@@ -85,9 +80,6 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/element_classes_test: RuntimeError # Issue 30291
 html/element_types_keygen_test: RuntimeError # Issue 29055
 html/file_sample_test: Pass, RuntimeError
-html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failure.
-html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
-html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
@@ -575,11 +567,6 @@ html/element_types_track_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
 html/exceptions_test: RuntimeError
-html/fileapi_directory_reader_test: RuntimeError
-html/fileapi_directory_test: RuntimeError
-html/fileapi_entry_test: RuntimeError
-html/fileapi_file_entry_test: RuntimeError
-html/fileapi_file_test: RuntimeError
 html/fileapi_supported_test: RuntimeError
 html/filereader_test: RuntimeError
 html/filteredelementlist_test: RuntimeError
@@ -772,10 +759,6 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
-html/fileapi_directory_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
-html/fileapi_entry_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
-html/fileapi_file_entry_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
-html/fileapi_file_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]

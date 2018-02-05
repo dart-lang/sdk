@@ -4,47 +4,43 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
-
-class FileAndDir {
-  FileEntry file;
-  DirectoryEntry dir;
-  FileAndDir(this.file, this.dir);
-}
+import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_helper.dart';
 
 FileSystem fs;
 
-main() {
-  useHtmlIndividualConfiguration();
+main() async {
+  useHtmlConfiguration();
 
-  getFileSystem() {
-    return window.requestFileSystem(100).then((FileSystem fileSystem) {
-      fs = fileSystem;
-    });
+  getFileSystem() async {
+    var fileSystem = await window.requestFileSystem(100);
+    fs = fileSystem;
   }
 
   if (FileSystem.supported) {
-    test('getFileSystem', getFileSystem);
+    await getFileSystem();
 
-    test('fileDoesntExist', () {
-      return fs.root.getFile('file2').catchError((error) {
-        expect(error.code, equals(FileError.NOT_FOUND_ERR));
-      }, test: (e) => e is FileError);
+    test('fileDoesntExist', () async {
+      try {
+        var fileObj = await fs.root.getFile('file2');
+        fail("file found");
+      } catch (error) {
+        expect(true, error is DomException);
+        expect(DomException.NOT_FOUND, error.name);
+      }
     });
 
-    test('fileCreate', () {
-      return fs.root.createFile('file4').then((Entry e) {
-        expect(e.name, equals('file4'));
-        expect(e.isFile, isTrue);
-        return e.getMetadata();
-      }).then((Metadata metadata) {
-        var changeTime = metadata.modificationTime;
-        // Upped because our Windows buildbots can sometimes be particularly
-        // slow.
-        expect(
-            new DateTime.now().difference(changeTime).inMinutes, lessThan(4));
-        expect(metadata.size, equals(0));
-      });
+    test('fileCreate', () async {
+      var fileObj = await fs.root.createFile('file4');
+      expect(fileObj.name, equals('file4'));
+      expect(fileObj.isFile, isTrue);
+
+      var metadata = await fileObj.getMetadata();
+      var changeTime = metadata.modificationTime;
+
+      // Increased Windows buildbots can sometimes be particularly slow.
+      expect(new DateTime.now().difference(changeTime).inMinutes, lessThan(4));
+      expect(metadata.size, equals(0));
     });
   }
 }

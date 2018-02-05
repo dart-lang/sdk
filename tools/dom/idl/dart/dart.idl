@@ -180,6 +180,18 @@ interface EntrySync {
   EntrySync getParent();
 };
 
+// Need to add for Blob which are really File that extends a Blob when called
+// via file() method on FileEntry
+callback interface FileCallback {
+    void handleEvent(File? file);
+};
+
+[DartSupplemental]
+interface FileEntry {
+    [DartSuppress] void file(BlobCallback successCallback, optional ErrorCallback errorCallback);
+    void file(FileCallback successCallback, optional ErrorCallback errorCallback);
+};
+
 [DartSupplemental,
   CustomConstructor,
   Constructor(Array blobParts, optional DOMString type, optional DOMString endings)
