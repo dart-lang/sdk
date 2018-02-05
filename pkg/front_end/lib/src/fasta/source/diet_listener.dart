@@ -482,7 +482,7 @@ class DietListener extends StackListener {
       // redirecting factory bodies.
       return;
     }
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, null, name),
+    buildFunctionBody(bodyToken, lookupConstructor(beginToken, name),
         MemberKind.Factory, metadata);
   }
 
@@ -521,7 +521,12 @@ class DietListener extends StackListener {
       // TODO(ahe): Don't skip this. We need to compile metadata.
       return;
     }
-    ProcedureBuilder builder = lookupBuilder(beginToken, getOrSet, name);
+    ProcedureBuilder builder;
+    if (name is QualifiedName || name == currentClass.name) {
+      builder = lookupConstructor(beginToken, name);
+    } else {
+      builder = lookupBuilder(beginToken, getOrSet, name);
+    }
     buildFunctionBody(
         bodyToken,
         builder,
@@ -735,18 +740,9 @@ class DietListener extends StackListener {
     listener.checkEmpty(token.charOffset);
   }
 
-  Builder lookupBuilder(Token token, Token getOrSet, Object nameOrQualified) {
+  Builder lookupBuilder(Token token, Token getOrSet, String name) {
     // TODO(ahe): Can I move this to Scope or ScopeBuilder?
     Builder builder;
-    String name;
-    String suffix;
-    if (nameOrQualified is QualifiedName) {
-      name = nameOrQualified.prefix;
-      suffix = nameOrQualified.suffix;
-      assert(currentClass != null);
-    } else {
-      name = nameOrQualified;
-    }
     if (currentClass != null) {
       if (uri != currentClass.fileUri) {
         unexpected("$uri", "${currentClass.fileUri}", currentClass.charOffset,
@@ -756,40 +752,46 @@ class DietListener extends StackListener {
       if (getOrSet != null && optional("set", getOrSet)) {
         builder = currentClass.scope.setters[name];
       } else {
-        if (name == currentClass.name) {
-          suffix ??= "";
-        }
-        if (suffix != null) {
-          builder = currentClass.constructors.local[suffix];
-        } else {
-          builder = currentClass.constructors.local[name];
-          if (builder == null) {
-            builder = currentClass.scope.local[name];
-          }
-        }
+        builder = currentClass.scope.local[name];
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
       builder = library.scope.setters[name];
     } else {
       builder = library.scopeBuilder[name];
     }
+    checkBuilder(token, builder, name);
+    return builder;
+  }
+
+  Builder lookupConstructor(Token token, Object nameOrQualified) {
+    assert(currentClass != null);
+    Builder builder;
+    String name;
+    String suffix;
+    if (nameOrQualified is QualifiedName) {
+      name = nameOrQualified.prefix;
+      suffix = nameOrQualified.suffix;
+    } else {
+      name = nameOrQualified;
+      suffix = name == currentClass.name ? "" : name;
+    }
+    builder = currentClass.constructors.local[suffix];
+    checkBuilder(token, builder, nameOrQualified);
+    return builder;
+  }
+
+  void checkBuilder(Token token, Builder builder, Object name) {
     if (builder == null) {
-      return internalProblem(
-          templateInternalProblemNotFound.withArguments(name),
-          token.charOffset,
-          uri);
+      internalProblem(templateInternalProblemNotFound.withArguments("$name"),
+          token.charOffset, uri);
     }
     if (builder.next != null) {
-      String errorName = suffix == null ? name : "$name.$suffix";
-      return deprecated_inputError(
-          uri, token.charOffset, "Duplicated name: $errorName");
+      deprecated_inputError(uri, token.charOffset, "Duplicated name: $name");
     }
-
     if (uri != builder.fileUri) {
       unexpected(
           "$uri", "${builder.fileUri}", builder.charOffset, builder.fileUri);
     }
-    return builder;
   }
 
   @override
