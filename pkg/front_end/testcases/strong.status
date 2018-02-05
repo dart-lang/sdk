@@ -179,7 +179,6 @@ rasta/super: TypeCheckError
 rasta/super_initializer: Fail
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: Fail
-rasta/supports_reflection: VerificationError
 rasta/switch_execution_case_t02: Fail
 rasta/switch_fall_through: Fail
 rasta/this_invoke: Fail

@@ -596,7 +596,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
     if (member is KernelProcedureBuilder) {
-      return member.target.function.returnType;
+      return member.procedure.function.returnType;
     } else {
       assert(member is KernelConstructorBuilder);
       return null;

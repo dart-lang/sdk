@@ -122,7 +122,6 @@ rasta/parser_error: Crash
 rasta/previsit_deferred: Crash
 rasta/static: Crash
 rasta/super_initializer: Crash
-rasta/supports_reflection: VerificationError
 rasta/type_literals: Crash
 rasta/typedef: Crash
 rasta/unresolved: Crash

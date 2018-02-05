@@ -45,7 +45,6 @@ front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
-front_end/tool/_fasta/compile_platform_test: Fail
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
