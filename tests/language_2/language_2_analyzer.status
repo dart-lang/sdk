@@ -7,7 +7,6 @@
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
-assertion_initializer_const_function_test/01: MissingCompileTimeError
 bad_initializer2_negative_test: Fail # Issue 14880
 black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
@@ -354,7 +353,6 @@ void_type_usage_test/paren_void_init: MissingCompileTimeError
 void_type_usage_test/paren_while: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
-assertion_initializer_const_function_test/01: CompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
@@ -1226,7 +1224,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-assertion_initializer_const_function_test/01: MissingStaticWarning
 cascaded_forwarding_stubs_test: CompileTimeError
 config_import_corelib_test: CompileTimeError
 const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
@@ -1353,7 +1350,6 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 additional_interface_adds_optional_args_test: StaticWarning
 argument_assignability_function_typed_test/01: MissingCompileTimeError
 argument_assignability_function_typed_test/02: MissingCompileTimeError
-assertion_initializer_const_function_test/01: MissingStaticWarning
 async_congruence_local_test/01: MissingCompileTimeError
 async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_method_test/01: MissingCompileTimeError

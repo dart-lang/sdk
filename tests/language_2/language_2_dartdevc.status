@@ -11,7 +11,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-assertion_initializer_const_function_test/01: MissingCompileTimeError
 black_listed_test/none: Fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816

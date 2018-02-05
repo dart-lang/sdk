@@ -4400,17 +4400,6 @@ class B extends A with C {}''');
     verify([source]);
   }
 
-  test_nonBoolExpression_functionType() async {
-    Source source = addSource(r'''
-bool makeAssertion() => true;
-f() {
-  assert(makeAssertion);
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_nonBoolExpression_interfaceType() async {
     Source source = addSource(r'''
 f() {

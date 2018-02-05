@@ -5176,11 +5176,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
       }
     } else if (type is FunctionType) {
-      if (type.typeArguments.length == 0 &&
-          !_typeSystem.isAssignableTo(type.returnType, _boolType)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
-      }
+      _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
     }
   }
 
