@@ -142,16 +142,16 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_constructorDeclaration_scope_signature() async {
-    return super.test_constructorDeclaration_scope_signature();
+  @potentialAnalyzerProblem
+  test_constDeferredClass_new() async {
+    return super.test_constDeferredClass_new();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constDeferredClass_new() async {
-    return super.test_constDeferredClass_new();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
+  test_constructorDeclaration_scope_signature() async {
+    return super.test_constructorDeclaration_scope_signature();
   }
 
   @override
@@ -274,13 +274,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   test_nativeFunctionBodyInNonSDKCode_function() async {
     return super.test_nativeFunctionBodyInNonSDKCode_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonBoolExpression_functionType() async {
-    return super.test_nonBoolExpression_functionType();
   }
 
   @override
