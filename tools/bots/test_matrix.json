@@ -731,9 +731,14 @@
         "dart2js-win-x64-ie11"
       ],
       "meta": {
-        "description": "These builders are triggered by dart-sdk-linux and runs the dart2js tests."
+        "description": "These builders run dart2js tests."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "dart2js tests",
           "arguments": [
@@ -852,9 +857,14 @@
     {
       "builders": ["dart2js-minified-linux-x64-d8"],
       "meta": {
-        "description": "This builder is triggered by dart-sdk-linux and runs the dart2js tests with minified."
+        "description": "This builder runs the dart2js tests in minified mode."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "dart2js tests",
           "arguments": [
@@ -983,9 +993,14 @@
     {
       "builders": ["dart2js-csp-minified-linux-x64-drt"],
       "meta": {
-        "description": "This builder is triggered by dart-sdk-linux and runs the dart2js tests with csp and minified."
+        "description": "This builder runs the dart2js tests in csp and minified mode."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "dart2js tests",
           "arguments": [
@@ -1135,15 +1150,6 @@
           "arguments": ["--arch=ia32,x64", "create_sdk" ]
         },
         {
-          "name": "trigger analyzer",
-          "trigger": [
-            "analyzer-linux-release",
-            "analyzer-strong-linux-release",
-            "analyzer-analysis-server-linux"
-          ],
-          "fileset": "analyzer"
-        },
-        {
           "name": "generate API docs",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [ "api_docs" ]
@@ -1153,7 +1159,7 @@
     {
       "builders": ["dart-sdk-mac"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for mac. The builder triggers the analyzer and dart2js mac builders."
+        "description": "This configuration is used by the sdk-builder for mac."
       },
       "steps": [
         {
@@ -1166,7 +1172,7 @@
     {
       "builders": ["dart-sdk-win"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for windows. The builder triggers the analyzer and dart2js windows builders."
+        "description": "This configuration is used by the sdk-builder for windows."
       },
       "steps": [
         {
@@ -1186,6 +1192,11 @@
         "description": "This configuration is used by the analyzer builders not running strong mode."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "analyze tests",
           "arguments": ["--compiler=dart2analyzer", "--use-sdk"]
@@ -1261,6 +1272,11 @@
       },
       "steps": [
         {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
           "name": "analyze tests strong",
           "arguments": ["--compiler=dart2analyzer", "--use-sdk", "--strong"]
         },
@@ -1278,6 +1294,11 @@
     {
       "builders": ["analyzer-analysis-server-linux"],
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "Analyze analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
@@ -1298,9 +1319,14 @@
     {
       "builders": ["pkg-linux-release","pkg-win-release","pkg-mac-release"],
       "meta": {
-        "description": "This configuration is used by the pkg builders. The builder is triggered by the SDK builders with the pkg fileset."
+        "description": "This configuration is used by the pkg builders."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "package unit tests",
           "arguments": [
