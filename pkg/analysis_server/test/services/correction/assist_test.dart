@@ -3977,6 +3977,119 @@ class FakeFlutter {
 ''');
   }
 
+  test_reparentFlutterWidgets_OK_column_coveredByWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: new /*caret*/Text('aaa'),
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: new Column(
+        children: [
+          new /*caret*/Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidgets_OK_column_coversWidgets() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      new Text('bbb'),
+      new Text('ccc'),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    _setStartEndSelection();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      new Column(
+        children: [
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidgets_OK_row() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      new Text('bbb'),
+      new Text('ccc'),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    _setStartEndSelection();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGETS_ROW, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      new Row(
+        children: [
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+  }
+
   test_replaceConditionalWithIfElse_BAD_noEnclosingStatement() async {
     await resolveTestUnit('''
 var v = true ? 111 : 222;

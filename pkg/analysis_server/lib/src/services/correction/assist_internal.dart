@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -31,6 +32,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
@@ -150,6 +152,7 @@ class AssistProcessor {
     await _addProposal_removeTypeAnnotation();
     await _addProposal_reparentFlutterList();
     await _addProposal_reparentFlutterWidget();
+    await _addProposal_reparentFlutterWidgets();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
     await _addProposal_splitAndCondition();
@@ -1941,6 +1944,93 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, kind);
   }
 
+  Future<Null> _addProposal_reparentFlutterWidgets() async {
+    var selectionRange = new SourceRange(selectionOffset, selectionLength);
+    var analyzer = new SelectionAnalyzer(selectionRange);
+    unit.accept(analyzer);
+
+    List<Expression> widgetExpressions = [];
+    if (analyzer.hasSelectedNodes) {
+      for (var selectedNode in analyzer.selectedNodes) {
+        if (!flutter.isWidgetExpression(selectedNode)) {
+          return;
+        }
+        widgetExpressions.add(selectedNode);
+      }
+    } else {
+      var widget = flutter.identifyWidgetExpression(analyzer.coveringNode);
+      if (widget != null) {
+        widgetExpressions.add(widget);
+      }
+    }
+    if (widgetExpressions.isEmpty) {
+      return;
+    }
+
+    var firstWidget = widgetExpressions.first;
+    var lastWidget = widgetExpressions.last;
+    var selectedRange = range.startEnd(firstWidget, lastWidget);
+    String src = utils.getRangeText(selectedRange);
+
+    Future<Null> addAssist(
+        {@required AssistKind kind,
+        @required String parentLibraryUri,
+        @required String parentClassName}) async {
+      ClassElement parentClassElement;
+      {
+        var parentLibrary = await session.getLibraryByUri(parentLibraryUri);
+        var element = parentLibrary.exportNamespace.get(parentClassName);
+        if (element is ClassElement) {
+          parentClassElement = element;
+        } else {
+          return;
+        }
+      }
+
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(selectedRange, (DartEditBuilder builder) {
+          builder.write('new ');
+          builder.writeType(parentClassElement.type);
+          builder.write('(');
+
+          String indentOld = utils.getLinePrefix(firstWidget.offset);
+          String indentNew1 = indentOld + utils.getIndent(1);
+          String indentNew2 = indentOld + utils.getIndent(2);
+
+          builder.write(eol);
+          builder.write(indentNew1);
+          builder.write('children: [');
+          builder.write(eol);
+
+          String newSrc = _replaceSourceIndent(src, indentOld, indentNew2);
+          builder.write(indentNew2);
+          builder.write(newSrc);
+
+          builder.write(',');
+          builder.write(eol);
+
+          builder.write(indentNew1);
+          builder.write('],');
+          builder.write(eol);
+
+          builder.write(indentOld);
+          builder.write(')');
+        });
+      });
+      _addAssistFromBuilder(changeBuilder, kind);
+    }
+
+    await addAssist(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN,
+        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentClassName: 'Column');
+    await addAssist(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_ROW,
+        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentClassName: 'Row');
+  }
+
   Future<Null> _addProposal_replaceConditionalWithIfElse() async {
     ConditionalExpression conditional = null;
     // may be on Statement with Conditional
@@ -2645,6 +2735,12 @@ class AssistProcessor {
     // invalid selection (part of node, etc)
     _coverageMarker();
     return false;
+  }
+
+  static String _replaceSourceIndent(
+      String source, String indentOld, String indentNew) {
+    return source.replaceAll(
+        new RegExp('^$indentOld', multiLine: true), indentNew);
   }
 
   /**
