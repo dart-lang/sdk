@@ -545,12 +545,15 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 
   bool localFunctionNeedsSignature(Local function) {
+    // This function should not be called when the compiler is using the new FE
+    // (--use-kernel). As an invariant, localFunctionsNeedingSignature is always
+    // null when --use-kernel is true.
     if (localFunctionsNeedingSignature == null) {
-      // [localFunctionNeedsRti] is only used by the old frontend.
-      throw new UnsupportedError('RuntimeTypesNeed.localFunctionsNeedingRti');
+      throw new UnsupportedError(
+          'RuntimeTypesNeed.localFunctionNeedingSignature with --use-kernel');
     }
-    return localFunctionsNeedingSignature.contains(function) ||
-        _backendUsage.isRuntimeTypeUsed;
+    return _backendUsage.isRuntimeTypeUsed ||
+        localFunctionsNeedingSignature.contains(function);
   }
 
   @override
