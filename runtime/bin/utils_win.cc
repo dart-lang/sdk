@@ -193,8 +193,7 @@ const char* ShellUtils::UriToPath(const char* uri) {
   if (result != S_OK) {
     return uri;
   }
-  return StringUtilsWin::WideToUtf8(filename_w, filename_len,
-      /* result_len= */ NULL);
+  return StringUtilsWin::WideToUtf8(filename_w);
 }
 
 // Although win32 uses 64-bit integers for representing timestamps,
