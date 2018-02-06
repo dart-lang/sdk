@@ -38,14 +38,14 @@ main() async {
     test('copy_move', () async {
       var fileAndDir = await doDirSetup('copyTo');
       var entry = await fileAndDir.file.copyTo(fileAndDir.dir, name: 'copiedFile');
-      expect(entry.isFile, true);
+      expect(entry.isFile, true, reason: "Expected File");
       expect(entry.name, 'copiedFile');
 
       // getParent
       fileAndDir = await doDirSetup('getParent');
       entry = await fileAndDir.file.getParent();
       expect(entry.name, '');
-      expect(entry.isFile, false);
+      expect(entry.isDirectory, true, reason: "Expected Directory");
 
       // moveTo
       fileAndDir = await doDirSetup('moveTo');
