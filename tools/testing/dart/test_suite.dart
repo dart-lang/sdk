@@ -471,7 +471,7 @@ class VMTestSuite extends TestSuite {
 
     var statusFiles =
         statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
-    var expectations = ExpectationSet.read(statusFiles, configuration);
+    var expectations = new ExpectationSet.read(statusFiles, configuration);
 
     try {
       for (var name in await _listTests(hostRunnerPath)) {
@@ -695,7 +695,7 @@ class StandardTestSuite extends TestSuite {
       return dartDir.append(statusFilePath).toNativePath();
     }).toList();
 
-    return ExpectationSet.read(statusFiles, configuration);
+    return new ExpectationSet.read(statusFiles, configuration);
   }
 
   Future enqueueTests() {
