@@ -8,6 +8,28 @@
 #
 # In order to qualify here these tests need to fail both on the VM and dart2js.
 ### GENERAL FAILURES ###
+LibTest/typed_data/Float32List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Float32List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Float64List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Float64List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int16List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int16List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int32List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int32List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int64List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int64List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int8List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Int8List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint16List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint16List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint32List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint32List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint64List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint64List/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint8ClampedList/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint8ClampedList/last_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint8List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError # co19 issue 130
 
 # Tests that fail on every runtime, but not on the analyzer.
 [ $compiler != dart2analyzer ]
@@ -58,6 +80,18 @@ LibTest/math/atan_A01_t01: Pass, Fail, OK # Issue 26261
 LibTest/math/cos_A01_t01: Pass, Fail, OK # Issue 26261
 LibTest/math/log_A01_t01: Pass, Fail, OK # Issue 26261
 LibTest/math/tan_A01_t01: Pass, Fail, OK # Issue 26261
+
+[ $strong ]
+Language/Expressions/Additive_Expressions/syntax_t01/07: CompileTimeError
+LibTest/typed_data/Float32x4List/first_A01_t02: CompileTimeError # co19 issue 130 + type error
+LibTest/typed_data/Float32x4List/last_A01_t02: CompileTimeError # co19 issue 130 + type error
+
+[ !$strong ]
+LibTest/typed_data/Float32x4List/first_A01_t02: RuntimeError # co19 issue 130
+LibTest/typed_data/Float32x4List/last_A01_t02: RuntimeError # co19 issue 130
+
+[ !$checked && !$strong ]
+Language/Expressions/Additive_Expressions/syntax_t01/07: MissingRuntimeError # Unchecked mode allows List + anything-with-a-zero-length
 
 # Tests that fail everywhere, including the analyzer.
 [ $runtime == vm || $runtime != vm ]

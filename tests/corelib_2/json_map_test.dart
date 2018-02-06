@@ -301,12 +301,15 @@ void testConcurrentModifications() {
 }
 
 void testType() {
+  var map = jsonify({});
+  var type = "${map.runtimeType}";
+
   // The documentation of json.decode doesn't actually specify that it returns
   // a map (it's marked dynamic), but it's a reasonable expectation if you
   // don't provide a reviver function.
-  Expect.isTrue(jsonify({}) is Map);
-  Expect.isTrue(jsonify({}) is Map<String, dynamic>);
-  Expect.isFalse(jsonify({}) is Map<int, dynamic>);
+  Expect.isTrue(map is Map, type);
+  Expect.isTrue(map is Map<String, dynamic>, type);
+  Expect.isFalse(map is Map<int, dynamic>, type);
 }
 
 void testClear() {

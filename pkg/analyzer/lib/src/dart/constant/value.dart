@@ -201,7 +201,7 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
-  HashMap<String, DartObjectImpl> get fields => _state.fields;
+  Map<String, DartObjectImpl> get fields => _state.fields;
 
   @override
   int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
@@ -1355,7 +1355,7 @@ class GenericState extends InstanceState {
   /**
    * The values of the fields of this instance.
    */
-  final HashMap<String, DartObjectImpl> _fieldMap;
+  final Map<String, DartObjectImpl> _fieldMap;
 
   /**
    * Information about the constructor invoked to generate this instance.
@@ -1369,7 +1369,7 @@ class GenericState extends InstanceState {
   GenericState(this._fieldMap, {this.invocation});
 
   @override
-  HashMap<String, DartObjectImpl> get fields => _fieldMap;
+  Map<String, DartObjectImpl> get fields => _fieldMap;
 
   @override
   int get hashCode {
@@ -1452,7 +1452,7 @@ abstract class InstanceState {
    * If this represents a generic dart object, return a map from its field names
    * to their values. Otherwise return null.
    */
-  HashMap<String, DartObjectImpl> get fields => null;
+  Map<String, DartObjectImpl> get fields => null;
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -2427,7 +2427,7 @@ class MapState extends InstanceState {
   /**
    * The entries in the map.
    */
-  final HashMap<DartObjectImpl, DartObjectImpl> _entries;
+  final Map<DartObjectImpl, DartObjectImpl> _entries;
 
   /**
    * Initialize a newly created state to represent a map with the given
@@ -2450,7 +2450,7 @@ class MapState extends InstanceState {
   @override
   bool operator ==(Object object) {
     if (object is MapState) {
-      HashMap<DartObjectImpl, DartObjectImpl> otherElements = object._entries;
+      Map<DartObjectImpl, DartObjectImpl> otherElements = object._entries;
       int count = _entries.length;
       if (otherElements.length != count) {
         return false;

@@ -8,7 +8,7 @@ import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
-import 'dart:collection' show Maps, LinkedHashMap;
+import 'dart:collection' show Maps, LinkedHashMap, MapBase;
 
 /**
  * Parses [json] and builds the corresponding parsed JSON value.
@@ -123,7 +123,7 @@ _convertJsonToDartLazy(object) {
   return object;
 }
 
-class _JsonMap implements Map<String, dynamic> {
+class _JsonMap extends MapBase<String, dynamic> {
   // The original JavaScript object remains unchanged until
   // the map is eventually upgraded, in which case we null it
   // out to reclaim the memory used by it.
@@ -254,8 +254,6 @@ class _JsonMap implements Map<String, dynamic> {
       }
     }
   }
-
-  String toString() => Maps.mapToString(this);
 
   // ------------------------------------------
   // Private helper methods.

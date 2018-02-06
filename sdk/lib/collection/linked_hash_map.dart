@@ -23,7 +23,7 @@ part of dart.collection;
  *
  * The map allows `null` as a key.
  */
-abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /**
    * Creates an insertion-ordered hash-table based [Map].
    *

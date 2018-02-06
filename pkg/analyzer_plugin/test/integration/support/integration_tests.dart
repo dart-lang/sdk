@@ -110,7 +110,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Map from file path to the list of analysis errors which have most recently
    * been received for the file.
    */
-  HashMap<String, List<AnalysisError>> currentAnalysisErrors =
+  Map<String, List<AnalysisError>> currentAnalysisErrors =
       new HashMap<String, List<AnalysisError>>();
 
   /**

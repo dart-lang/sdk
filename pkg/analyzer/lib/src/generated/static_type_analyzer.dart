@@ -82,7 +82,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   /**
    * A table mapping [ExecutableElement]s to their propagated return types.
    */
-  HashMap<ExecutableElement, DartType> _propagatedReturnTypes =
+  Map<ExecutableElement, DartType> _propagatedReturnTypes =
       new HashMap<ExecutableElement, DartType>();
 
   /**
@@ -1676,8 +1676,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @param nameMap an optional map used to map the element name to a type name
    * @return the type specified by the first argument in the argument list
    */
-  DartType _getElementNameAsType(LibraryElement library, String elementName,
-      HashMap<String, String> nameMap) {
+  DartType _getElementNameAsType(
+      LibraryElement library, String elementName, Map<String, String> nameMap) {
     if (elementName != null) {
       if (nameMap != null) {
         elementName = nameMap[elementName.toLowerCase()];
@@ -1776,7 +1776,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * @return the type specified by the first argument in the argument list
    */
   DartType _getFirstArgumentAsTypeWithMap(LibraryElement library,
-          ArgumentList argumentList, HashMap<String, String> nameMap) =>
+          ArgumentList argumentList, Map<String, String> nameMap) =>
       _getElementNameAsType(
           library, _getFirstArgumentAsString(argumentList), nameMap);
 

@@ -16,7 +16,6 @@ apply3_test: CompileTimeError
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-map_test: Crash # crash in front_end.
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
 string_from_environment3_test/03: Crash

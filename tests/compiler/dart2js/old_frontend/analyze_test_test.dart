@@ -23,30 +23,6 @@ const Map<String, List /* <String|MessageKind> */ > WHITE_LIST = const {
   "pkg/kernel/lib/transformations/closure/": const [
     "Duplicated library name 'kernel.transformations.closure.converter'",
   ],
-  "pkg/front_end/lib/src/fasta/kernel/kernel_shadow_ast.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/visitor.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/text/ast_to_text.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/target/vm.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/clone.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/binary/ast_to_binary.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
-  "pkg/kernel/lib/binary/ast_from_binary.dart": const [
-    "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
-  ],
 };
 
 const List<String> SKIP_LIST = const <String>[
