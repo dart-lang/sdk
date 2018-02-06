@@ -1882,12 +1882,12 @@ class AssistProcessor {
       String parentLibraryUri,
       String parentClassName,
       List<String> leadingLines: const []}) async {
-    InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
-    if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
+    Expression widgetExpr = flutter.identifyWidgetExpression(node);
+    if (widgetExpr == null) {
       _coverageMarker();
       return;
     }
-    String newExprSrc = utils.getNodeText(newExpr);
+    String widgetSrc = utils.getNodeText(widgetExpr);
 
     // If the wrapper class is specified, find its element.
     ClassElement parentClassElement;
@@ -1903,7 +1903,7 @@ class AssistProcessor {
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(newExpr), (DartEditBuilder builder) {
+      builder.addReplacement(range.node(widgetExpr), (DartEditBuilder builder) {
         builder.write('new ');
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
@@ -1911,8 +1911,8 @@ class AssistProcessor {
           builder.writeType(parentClassElement.type);
         }
         builder.write('(');
-        if (newExprSrc.contains(eol) || leadingLines.isNotEmpty) {
-          String indentOld = utils.getLinePrefix(newExpr.offset);
+        if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
+          String indentOld = utils.getLinePrefix(widgetExpr.offset);
           String indentNew = '$indentOld${utils.getIndent(1)}';
 
           for (var leadingLine in leadingLines) {
@@ -1923,9 +1923,9 @@ class AssistProcessor {
 
           builder.write(eol);
           builder.write(indentNew);
-          newExprSrc = newExprSrc.replaceAll(
+          widgetSrc = widgetSrc.replaceAll(
               new RegExp("^$indentOld", multiLine: true), indentNew);
-          newExprSrc += ",$eol$indentOld";
+          widgetSrc += ",$eol$indentOld";
         }
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('CHILD', 'child');
@@ -1933,7 +1933,7 @@ class AssistProcessor {
           builder.write('child');
         }
         builder.write(': ');
-        builder.write(newExprSrc);
+        builder.write(widgetSrc);
         builder.write(')');
         builder.selectHere();
       });

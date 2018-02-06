@@ -3756,21 +3756,27 @@ build() {
     await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
   }
 
-  test_reparentFlutterWidget_BAD_singleLine() async {
+  test_reparentFlutterWidget_OK_instanceCreationArgument() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-  var obj;
-// start
+    var obj;
     return new Container(child: obj.xyz./*caret*/abc);
-// end
   }
 }
 ''');
     _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var obj;
+    return new widget(child: new Container(child: obj.xyz./*caret*/abc));
+  }
+}
+''');
   }
 
   test_reparentFlutterWidget_OK_multiLines() async {
@@ -3904,6 +3910,29 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
     return new widget(child: new ClipRect./*caret*/rect());
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidget_OK_variable() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/container;
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/new widget(child: container);
   }
 }
 ''');
