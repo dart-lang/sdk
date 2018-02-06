@@ -1539,7 +1539,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
-    if (node.constKeyword != null) {
+    if (node.isConst) {
       DartObjectImpl result;
       for (Expression element in node.elements) {
         result =
@@ -1558,7 +1558,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMapLiteral(MapLiteral node) {
     super.visitMapLiteral(node);
-    bool isConst = node.constKeyword != null;
+    bool isConst = node.isConst;
     bool reportEqualKeys = true;
     HashSet<DartObject> keys = new HashSet<DartObject>();
     List<Expression> invalidKeys = new List<Expression>();

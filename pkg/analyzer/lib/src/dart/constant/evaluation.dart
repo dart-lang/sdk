@@ -1392,7 +1392,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitListLiteral(ListLiteral node) {
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
       return null;
@@ -1424,7 +1424,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
       return null;
