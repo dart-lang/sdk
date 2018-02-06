@@ -57,7 +57,7 @@ main() async {
         entry = await fs.root.getFile('file4');
         fail("File file4 should not exist.");
       } catch (error) {
-        expect(true, error is DomException);
+        expect(error is DomException, true, reason: "Not DomException - not exist");
         expect(DomException.NOT_FOUND, error.name);
       }
 
@@ -69,7 +69,7 @@ main() async {
         var entry = await fileAndDir.dir.getFile(fileAndDir.file.name);
         fail("file not removed");
       } catch (error) {
-        expect(true, error is DomException);
+        expect(error is DomException, true, reason: "Not DomException - removed");
         expect(DomException.NOT_FOUND, error.name);
       }
     });
