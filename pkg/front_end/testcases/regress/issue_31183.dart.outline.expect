@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
+  field dynamic operator;
   synthetic constructor •() → void
     ;
   operator unary-() → dynamic

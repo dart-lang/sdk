@@ -68,8 +68,9 @@ class MemberListener extends NodeListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
-    super.endMethod(getOrSet, beginToken, endToken);
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+    super.endMethod(getOrSet, beginToken, beginParam, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
     bool isConstructor = isConstructorName(method.name);

@@ -512,7 +512,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     debugEvent("Method");
     MethodBody bodyKind = pop();
     if (bodyKind == MethodBody.RedirectingFactoryBody) {

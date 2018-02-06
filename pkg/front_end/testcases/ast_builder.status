@@ -108,6 +108,7 @@ rasta/issue_000001: Crash
 rasta/issue_000002: Crash
 rasta/issue_000004: Crash
 rasta/issue_000031: Crash
+rasta/issue_000032: Crash
 rasta/issue_000036: Crash
 rasta/issue_000039: VerificationError
 rasta/issue_000042: Crash

@@ -3637,8 +3637,6 @@ malformed_test/22: MissingCompileTimeError
 malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
-method_name_test: Fail # issue 25574
-method_name_test: Pass
 method_override2_test/*: MissingCompileTimeError
 method_override2_test/none: Pass
 method_override3_test/*: MissingCompileTimeError

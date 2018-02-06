@@ -511,16 +511,13 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     debugEvent("Method");
-    Token bodyToken = pop();
+    pop(); // bodyToken
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null) {
-      // TODO(ahe): Don't skip this. We need to compile metadata.
-      return;
-    }
     ProcedureBuilder builder;
     if (name is QualifiedName ||
         (getOrSet == null && name == currentClass.name)) {
@@ -529,7 +526,7 @@ class DietListener extends StackListener {
       builder = lookupBuilder(beginToken, getOrSet, name);
     }
     buildFunctionBody(
-        bodyToken,
+        beginParam,
         builder,
         builder.isStatic ? MemberKind.StaticMethod : MemberKind.NonStaticMethod,
         metadata);

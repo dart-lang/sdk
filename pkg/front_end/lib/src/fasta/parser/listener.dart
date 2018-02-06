@@ -638,7 +638,8 @@ class Listener {
   /// - initializers
   /// - async marker
   /// - body
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     logEvent("Method");
   }
 

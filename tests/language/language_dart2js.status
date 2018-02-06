@@ -225,7 +225,6 @@ malbounded_type_test_test/04: Fail # Issue 14121
 malformed2_test/00: RuntimeError
 malformed2_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
-method_name_test: CompileTimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -591,7 +590,6 @@ list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 many_overridden_no_such_method_test: RuntimeError
 map_literal4_test: RuntimeError
-method_name_test: CompileTimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -900,7 +898,6 @@ list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 many_overridden_no_such_method_test: CompileTimeError
 map_literal4_test: RuntimeError
-method_name_test: CompileTimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -1212,7 +1209,6 @@ list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 many_overridden_no_such_method_test: CompileTimeError
 map_literal4_test: RuntimeError
-method_name_test: CompileTimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -1460,7 +1456,6 @@ library_env_test/has_no_io_support: RuntimeError, OK # The following tests are s
 library_env_test/has_no_mirror_support: RuntimeError, OK # The following tests are supposed to fail. In testing-mode, dart2js supports all dart:X libraries (because it uses '--categories=all').
 list_literal4_test: RuntimeError # Issue 12890
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
-method_name_test: Fail # issue 25574
 method_override5_test: RuntimeError # Issue 12809
 mint_arithmetic_test: RuntimeError # Issue 1533
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101

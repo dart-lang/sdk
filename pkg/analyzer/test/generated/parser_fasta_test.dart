@@ -611,20 +611,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_invalidOperator_unary() {
-    // TODO(danrubel) Wrong errors
-    super.test_invalidOperator_unary();
-  }
-
-  void test_invalidOperator_unary_noErrors() {
-    // TODO(danrubel): remove this test once test_invalidOperator_unary passes.
-    createParser('int operator unary- => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-  }
-
-  @override
-  @failingTest
   void test_invalidOperatorAfterSuper_primaryExpression() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
@@ -2315,13 +2301,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Unhandled compile-time error:
     // A function expression can't have a name.
     super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_constructorInitializers_empty() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_constructorInitializers_empty();
   }
 
   @override

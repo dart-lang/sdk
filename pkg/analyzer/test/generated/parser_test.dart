@@ -2601,6 +2601,24 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
         : [expectedError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, 0, 3)]);
   }
 
+  void test_constructorPartial() {
+    createParser('class C { C< }');
+    parser.parseCompilationUnit2();
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+            expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
+            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 13, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1)
+          ]);
+  }
+
   void test_constTypedef() {
     parseCompilationUnit("const typedef F();",
         errors: [expectedError(ParserErrorCode.CONST_TYPEDEF, 0, 5)]);
@@ -3809,11 +3827,26 @@ class Wrong<T> {
   }
 
   void test_invalidOperator_unary() {
-    createParser('int operator unary- => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 5)]);
+    createParser('class C { int operator unary- => 0; }');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 5),
+            expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 28, 1),
+            expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 28, 0)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 8),
+            expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 28, 1),
+            expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 28, 1),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 28, 1),
+            expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 30, 2),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 30, 2),
+            expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 33, 1),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 33, 1),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 34, 1)
+          ]);
   }
 
   void test_invalidOperatorAfterSuper_assignableExpression() {
@@ -10511,8 +10544,9 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     createParser('C() : {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_INITIALIZER, 4, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)]
+        : [expectedError(ParserErrorCode.MISSING_INITIALIZER, 4, 1)]);
   }
 
   void test_incomplete_constructorInitializers_missingEquals() {
@@ -15504,6 +15538,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
       if (keyword.isBuiltIn) {
         String lexeme = keyword.lexeme;
         parseCompilationUnit('$lexeme(x) => 0;');
+        parseCompilationUnit('class C {$lexeme(x) => 0;}');
       }
     }
   }
@@ -15514,6 +15549,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
         if (keyword.isBuiltIn) {
           String lexeme = keyword.lexeme;
           parseCompilationUnit('$lexeme<T>(x) => 0;');
+          parseCompilationUnit('class C {$lexeme<T>(x) => 0;}');
         }
       }
     }
@@ -15524,6 +15560,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
       if (keyword.isBuiltIn) {
         String lexeme = keyword.lexeme;
         parseCompilationUnit('get $lexeme => 0;');
+        parseCompilationUnit('class C {get $lexeme => 0;}');
       }
     }
   }
