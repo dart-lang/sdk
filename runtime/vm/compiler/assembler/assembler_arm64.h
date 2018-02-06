@@ -1837,6 +1837,9 @@ class Assembler : public ValueObject {
         } else {
           EmitConditionalBranchOp(op, InvertCondition(cond),
                                   2 * Instr::kInstrSize);
+          // Make a new dest that takes the new position into account after the
+          // inverted test.
+          const int64_t dest = label->Position() - buffer_.Size();
           b(dest);
         }
       } else {
@@ -1867,6 +1870,9 @@ class Assembler : public ValueObject {
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
         EmitCompareAndBranchOp(op == CBZ ? CBNZ : CBZ, rt,
                                2 * Instr::kInstrSize, sz);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
         b(dest);
       } else {
         EmitCompareAndBranchOp(op, rt, dest, sz);
@@ -1893,12 +1899,15 @@ class Assembler : public ValueObject {
       if (use_far_branches() && !CanEncodeImm14BranchOffset(dest)) {
         EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
                             2 * Instr::kInstrSize);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
         b(dest);
       } else {
         EmitTestAndBranchOp(op, rt, bit_number, dest);
       }
     } else {
-      const int64_t position = buffer_.Size();
+      int64_t position = buffer_.Size();
       if (use_far_branches()) {
         EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
                             2 * Instr::kInstrSize);

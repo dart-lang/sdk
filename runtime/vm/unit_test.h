@@ -86,11 +86,30 @@
 #define ASSEMBLER_TEST_RUN(name, test)                                         \
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
   ISOLATE_UNIT_TEST_CASE(name) {                                               \
-    Assembler __assembler__;                                                   \
-    AssemblerTest test("" #name, &__assembler__);                              \
-    AssemblerTestGenerate##name(test.assembler());                             \
-    test.Assemble();                                                           \
-    AssemblerTestRun##name(&test);                                             \
+    {                                                                          \
+      bool use_far_branches = false;                                           \
+      LongJumpScope jump;                                                      \
+      if (setjmp(*jump.Set()) == 0) {                                          \
+        Assembler assembler(use_far_branches);                                 \
+        AssemblerTest test("" #name, &assembler);                              \
+        AssemblerTestGenerate##name(test.assembler());                         \
+        test.Assemble();                                                       \
+        AssemblerTestRun##name(&test);                                         \
+        return;                                                                \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
+    if (error.raw() == Object::branch_offset_error().raw()) {                  \
+      bool use_far_branches = true;                                            \
+      Assembler assembler(use_far_branches);                                   \
+      AssemblerTest test("" #name, &assembler);                                \
+      AssemblerTestGenerate##name(test.assembler());                           \
+      test.Assemble();                                                         \
+      AssemblerTestRun##name(&test);                                           \
+    } else {                                                                   \
+      FATAL1("Unexpected error: %s\n", error.ToErrorCString());                \
+    }                                                                          \
   }                                                                            \
   static void AssemblerTestRun##name(AssemblerTest* test)
 

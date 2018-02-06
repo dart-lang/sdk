@@ -1076,6 +1076,52 @@ ASSEMBLER_TEST_RUN(TstBranchIfNotZeroNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate((0 << 5) | 1), 0);
+
+  __ tbz(&l, R1, 5);
+
+  const intptr_t kRange = 1 << 14;  // tbz has 14 bits of range.
+  for (intptr_t i = 0; i < kRange; i++) {
+    __ brk(0);
+  }
+
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroFar, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate((1 << 5) | 1), 0);
+
+  __ tbnz(&l, R1, 5);
+
+  const intptr_t kRange = 1 << 14;  // tbnz has 14 bits of range.
+  for (intptr_t i = 0; i < kRange; i++) {
+    __ brk(0);
+  }
+
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfNotZeroFar, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
   Label l;
 
@@ -1093,6 +1139,80 @@ ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
 ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar1, assembler) {
+  Label l;
+
+  __ LoadImmediate(R0, 41);
+  __ tbnz(&l, R0, 5);
+  __ Stop("Hammertime");
+
+  for (int i = 0; i < 0x10000; i++) {
+    __ add(R0, R0, Operand(1));
+    __ sub(R0, R0, Operand(1));
+  }
+
+  __ AddImmediate(R0, R0, -1);  // Not run.
+
+  __ Bind(&l);
+  __ AddImmediate(R0, R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar1, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar2, assembler) {
+  Label l;
+
+  for (int i = 0; i < 0x10000; i++) {
+    __ add(R0, R0, Operand(1));
+    __ sub(R0, R0, Operand(1));
+  }
+
+  __ LoadImmediate(R0, 41);
+  __ tbnz(&l, R0, 5);
+  __ Stop("Hammertime");
+
+  __ AddImmediate(R0, R0, -1);  // Not run.
+
+  __ Bind(&l);
+  __ AddImmediate(R0, R0, 1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar2, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar3, assembler) {
+  Label l, l2;
+  __ LoadImmediate(R0, 41);
+  __ b(&l, AL);
+
+  __ AddImmediate(R0, R0, -1);  // Not run.
+
+  __ Bind(&l2);
+  __ AddImmediate(R0, R0, 1);
+  __ ret();
+
+  for (int i = 0; i < 0x10000; i++) {
+    __ add(R0, R0, Operand(1));
+    __ sub(R0, R0, Operand(1));
+  }
+
+  __ Bind(&l);
+  __ tbnz(&l2, R0, 5);
+  __ Stop("Hammertime");
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroFar3, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(FcmpEqBranchNotTaken, assembler) {
