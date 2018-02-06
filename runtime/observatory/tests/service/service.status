@@ -76,13 +76,16 @@ eval_test: Pass, Slow
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+async_generator_breakpoint_test: RuntimeError
 bad_reload_test: RuntimeError # Please triage.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
 get_source_report_test: RuntimeError # Please triage.
 library_dependency_test: RuntimeError # Please triage.
+positive_token_pos_test: RuntimeError
 reload_sources_test: Timeout, Skip # Please triage.
+rewind_test: RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
@@ -121,4 +124,3 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
 *: SkipByDesign # The service tests should run without being reloaded.
-

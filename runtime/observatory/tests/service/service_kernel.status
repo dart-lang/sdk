@@ -96,3 +96,5 @@ external_service_registration_via_notification_test: CompileTimeError # Issue 31
 external_service_synchronous_invocation_test: CompileTimeError # Issue 31696
 step_through_arithmetic_test: RuntimeError
 
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
+async_single_step_exception_test: RuntimeError
