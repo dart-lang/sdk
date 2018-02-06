@@ -522,7 +522,8 @@ class DietListener extends StackListener {
       return;
     }
     ProcedureBuilder builder;
-    if (name is QualifiedName || name == currentClass.name) {
+    if (name is QualifiedName ||
+        (getOrSet == null && name == currentClass.name)) {
       builder = lookupConstructor(beginToken, name);
     } else {
       builder = lookupBuilder(beginToken, getOrSet, name);

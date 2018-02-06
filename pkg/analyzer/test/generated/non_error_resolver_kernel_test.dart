@@ -254,13 +254,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30834')
-  test_memberWithClassName_setter() async {
-    return super.test_memberWithClassName_setter();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_methodDeclaration_scope_signature() async {
     return super.test_methodDeclaration_scope_signature();

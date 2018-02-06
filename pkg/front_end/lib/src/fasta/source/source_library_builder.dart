@@ -210,8 +210,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
     LibraryBuilder coreLibrary =
         loader.read(resolve(this.uri, "dart:core", -1), -1);
-    LibraryBuilder imported = coreLibrary
-        .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
+    LibraryBuilder imported =
+        coreLibrary.loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     return imported != null ? "true" : "";
   }
 
@@ -399,7 +399,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     bool isConstructor = builder is ProcedureBuilder &&
         (builder.isConstructor || builder.isFactory);
-    if (!isConstructor && name == currentDeclaration.name) {
+    if (!isConstructor &&
+        !builder.isSetter &&
+        name == currentDeclaration.name) {
       addCompileTimeError(
           messageMemberWithSameNameAsClass, charOffset, fileUri);
     }
