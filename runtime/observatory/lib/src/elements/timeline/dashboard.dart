@@ -96,15 +96,16 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     }
     _frame.src = _makeFrameUrl();
     _content.children = [
-      new HeadingElement.h1()
-        ..children = ([new Text("Timeline")]
+      new HeadingElement.h2()
+        ..children = ([new Text("Timeline View")]
           ..addAll(_createButtons())
           ..addAll(_createTabs())),
-      new Text(_view == _TimelineView.frame
-          ? 'Logical view of the computation involved in each frame. '
-              '(Timestamps may not be preserved)'
-          : 'Sequence of events generated during the execution. '
-          '(Timestamps are preserved)')
+      new ParagraphElement()
+        ..text = (_view == _TimelineView.frame
+            ? 'Logical view of the computation involved in each frame '
+                '(timestamps may not be preserved)'
+            : 'Sequence of events generated during the execution '
+            '(timestamps are preserved)')
     ];
     if (children.isEmpty) {
       children = [
@@ -128,32 +129,27 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
           ..text = 'Enable'
           ..title = 'The Timeline is not fully enabled, click to enable'
           ..onClick.listen((e) => _enable()),
-        new ButtonElement()
-          ..classes = ['header_button']
-          ..text = ' 📂 Load'
-          ..title = 'Load a saved timeline from file'
-          ..onClick.listen((e) => _load()),
       ];
     }
     return [
       new ButtonElement()
         ..classes = ['header_button']
-        ..text = ' ↺ Refresh'
-        ..title = 'Refresh the current timeline'
+        ..text = 'Load from VM'
+        ..title = 'Load the timeline'
         ..onClick.listen((e) => _refresh()),
       new ButtonElement()
         ..classes = ['header_button']
-        ..text = ' ❌ Clear'
-        ..title = 'Clear the current Timeline to file'
+        ..text = 'Reset Timeline'
+        ..title = 'Reset the current timeline'
         ..onClick.listen((e) => _clear()),
       new ButtonElement()
-        ..classes = ['header_button']
-        ..text = ' 💾 Save'
+        ..classes = ['header_button', 'left-pad']
+        ..text = 'Save to File…'
         ..title = 'Save the current Timeline to file'
         ..onClick.listen((e) => _save()),
       new ButtonElement()
         ..classes = ['header_button']
-        ..text = ' 📂 Load'
+        ..text = 'Load from File…'
         ..title = 'Load a saved timeline from file'
         ..onClick.listen((e) => _load()),
     ];
@@ -219,13 +215,9 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     return _postMessage('clear');
   }
 
-  Future _save() async {
-    return _postMessage('save');
-  }
+  Future _save() => _postMessage('save');
 
-  Future _load() async {
-    return _postMessage('load');
-  }
+  Future _load() => _postMessage('load');
 
   Future _postMessage(String method,
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
