@@ -5,8 +5,9 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
-#include <errno.h>  // NOLINT
-#include <time.h>   // NOLINT
+#include <errno.h>   // NOLINT
+#include <Shlwapi.h> // NOLINT
+#include <time.h>    // NOLINT
 
 #include "bin/log.h"
 #include "bin/utils.h"
@@ -181,6 +182,19 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   }
   LocalFree(unicode_argv);
   return true;
+}
+
+const char* ShellUtils::UriToPath(const char* uri) {
+  Utf8ToWideScope uri_w(uri);
+  wchar_t filename_w[MAX_PATH];
+  DWORD filename_len = MAX_PATH;
+  HRESULT result = PathCreateFromUrlW(uri_w.wide(), filename_w, &filename_len,
+      /* dwFlags= */ NULL);
+  if (result != S_OK) {
+    return uri;
+  }
+  return StringUtilsWin::WideToUtf8(filename_w, filename_len,
+      /* result_len= */ NULL);
 }
 
 // Although win32 uses 64-bit integers for representing timestamps,

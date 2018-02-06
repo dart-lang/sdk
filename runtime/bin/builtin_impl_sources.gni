@@ -70,6 +70,7 @@ builtin_impl_sources = [
 ]
 
 builtin_impl_tests = [
+  "bin_utils_test.cc",
   "crypto_test.cc",
   "directory_test.cc",
   "eventhandler_test.cc",

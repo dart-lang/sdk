@@ -99,6 +99,11 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
+const char* ShellUtils::UriToPath(const char* uri) {
+  return (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0) ?
+    uri + 7 : uri;
+}
+
 static mach_timebase_info_data_t timebase_info;
 
 void TimerUtils::InitOnce() {
