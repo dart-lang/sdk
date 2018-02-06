@@ -1407,6 +1407,13 @@ class CompileTimeErrorCode extends ErrorCode {
           "Enums can't be instantiated.",
           "Try using one of the defined constants.");
 
+  static const CompileTimeErrorCode INTEGER_LITERAL_OUT_OF_RANGE =
+      const CompileTimeErrorCode(
+          'INTEGER_LITERAL_OUT_OF_RANGE',
+          "The integer literal {0} can't be represented in 64 bits.",
+          "Try using the BigInt class if you need an integer larger than "
+          "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.");
+
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
    * begin with the character @, followed by a constant expression that must be
@@ -2813,13 +2820,13 @@ class StaticTypeWarningCode extends ErrorCode {
           "Try changing the condition.");
 
   /**
-   * 13.15 Assert: It is a static type warning if the type of <i>e</i> may not
-   * be assigned to either bool or () &rarr; bool
+   * 17.17 Assert: It is a static type warning if the type of <i>e</i> may not
+   * be assigned to bool.
    */
   static const StaticTypeWarningCode NON_BOOL_EXPRESSION =
       const StaticTypeWarningCode(
           'NON_BOOL_EXPRESSION',
-          "Assertions must be on either a 'bool' or '() -> bool'.",
+          "The expression in an assert must be of type 'bool'.",
           "Try changing the expression.");
 
   /**
@@ -3801,22 +3808,6 @@ class StaticWarningCode extends ErrorCode {
           "'{0}' is inherited as a getter and also a method.",
           "Try adjusting the supertypes of this class to remove the "
           "inconsistency.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
-   * an instance method named <i>n</i> and an accessible static member named
-   * <i>n</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the member with the name conflict
-   * 1: the name of the enclosing class that has the static member
-   */
-  static const StaticWarningCode
-      INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC =
-      const StaticWarningCode(
-          'INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC',
-          "'{0}' collides with a static member in the superclass '{1}'.",
-          "Try renaming either the method or the inherited member.");
 
   /**
    * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a

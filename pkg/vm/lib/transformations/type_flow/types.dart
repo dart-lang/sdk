@@ -42,11 +42,6 @@ DartType _normalizeDartType(DartType type) {
 abstract class TypeExpr {
   const TypeExpr();
 
-  /// Static [DartType] approximation.
-  /// May not be available for certain inferred types (such as [EmptyType] and
-  /// [SetType]) as they don't have corresponding Dart types.
-  DartType get staticType;
-
   /// Returns computed type of this type expression.
   /// [types] is the list of types computed for the statements in the summary.
   Type getComputedType(List<Type> types);
@@ -97,9 +92,6 @@ abstract class Type extends TypeExpr {
     return new Type.nullable(new ConeType(dartType));
   }
 
-  @override
-  DartType get staticType;
-
   Class getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
   @override
@@ -130,9 +122,6 @@ class EmptyType extends Type {
   const EmptyType();
 
   @override
-  DartType get staticType => throw 'Unable to get static type of empty type';
-
-  @override
   int get hashCode => 997;
 
   @override
@@ -160,10 +149,6 @@ class NullableType extends Type {
     assertx(baseType != null);
     assertx(baseType is! NullableType);
   }
-
-  @override
-  DartType get staticType =>
-      (baseType is EmptyType) ? const BottomType() : baseType.staticType;
 
   @override
   int get hashCode => (baseType.hashCode + 31) & kHashMask;
@@ -210,9 +195,6 @@ class AnyType extends Type {
   const AnyType();
 
   @override
-  DartType get staticType => const DynamicType();
-
-  @override
   int get hashCode => 991;
 
   @override
@@ -250,9 +232,6 @@ class SetType extends Type {
   SetType(this.types) {
     assertx(types.length >= 2);
   }
-
-  @override
-  DartType get staticType => throw 'Unable to get static type of set type';
 
   @override
   int get hashCode => _hashCode ??= _computeHashCode();
@@ -338,9 +317,6 @@ class ConeType extends Type {
   }
 
   @override
-  DartType get staticType => dartType;
-
-  @override
   Class getConcreteClass(TypeHierarchy typeHierarchy) => typeHierarchy
       .specializeTypeCone(dartType)
       .getConcreteClass(typeHierarchy);
@@ -421,9 +397,6 @@ class ConcreteType extends Type {
         ((dartType is InterfaceType) &&
             !(dartType as InterfaceType).classNode.isAbstract));
   }
-
-  @override
-  DartType get staticType => dartType;
 
   @override
   Class getConcreteClass(TypeHierarchy typeHierarchy) =>

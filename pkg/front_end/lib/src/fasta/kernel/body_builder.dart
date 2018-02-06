@@ -42,6 +42,8 @@ import '../parser.dart'
         closeBraceTokenFor,
         optional;
 
+import '../parser/class_member_parser.dart' show ClassMemberParser;
+
 import '../parser/formal_parameter_kind.dart'
     show isOptionalPositionalFormalParameterKind;
 
@@ -62,6 +64,8 @@ import '../scanner.dart' show Token;
 import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 
 import '../scope.dart' show ProblemBuilder;
+
+import '../source/outline_builder.dart' show OutlineBuilder;
 
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
@@ -592,7 +596,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
     if (member is KernelProcedureBuilder) {
-      return member.target.function.returnType;
+      return member.procedure.function.returnType;
     } else {
       assert(member is KernelConstructorBuilder);
       return null;
@@ -1242,8 +1246,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      return new TypeDeclarationAccessor(
+      TypeDeclarationAccessor accessor = new TypeDeclarationAccessor(
           this, prefix, charOffset, builder, name, token);
+      return (prefix?.deferred == true)
+          ? new DeferredAccessor(this, token, prefix, accessor)
+          : accessor;
     } else if (builder.isLocal) {
       if (constantExpressionRequired &&
           !builder.isConst &&
@@ -1849,12 +1856,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return;
       }
     }
-    if (name is TypeDeclarationAccessor) {
+    if (name is FastaAccessor) {
       push(name.buildTypeWithBuiltArguments(arguments));
-    } else if (name is FastaAccessor) {
-      addProblem(fasta.templateNotAType.withArguments(beginToken.lexeme),
-          beginToken.charOffset);
-      push(const InvalidType());
     } else if (name is TypeBuilder) {
       push(name.build(library));
     } else if (name is PrefixBuilder) {
@@ -1871,15 +1874,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void beginFunctionType(Token beginToken) {
     debugEvent("beginFunctionType");
-    enterFunctionTypeScope();
   }
 
-  void enterFunctionTypeScope() {
+  void enterFunctionTypeScope(List typeVariables) {
     debugEvent("enterFunctionTypeScope");
-    List typeVariables = pop();
     enterLocalScope(null,
-        scope.createNestedScope("function-type scope", isModifiable: false));
-    push(typeVariables ?? NullValue.TypeVariables);
+        scope.createNestedScope("function-type scope", isModifiable: true));
     if (typeVariables != null) {
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
       for (KernelTypeVariableBuilder builder in typeVariables) {
@@ -2056,7 +2056,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     functionNestingLevel++;
-    enterFunctionTypeScope();
   }
 
   @override
@@ -2482,6 +2481,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
     String prefixName;
     var type = pop();
+    PrefixBuilder deferredPrefix;
+    int checkOffset;
+    if (type is DeferredAccessor) {
+      DeferredAccessor accessor = type;
+      type = accessor.accessor;
+      deferredPrefix = accessor.builder;
+      checkOffset = accessor.token.charOffset;
+    }
+
     if (type is TypeDeclarationAccessor) {
       TypeDeclarationAccessor accessor = type;
       if (accessor.prefix != null) {
@@ -2493,7 +2501,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
     bool savedConstantExpressionRequired = pop();
     if (type is TypeDeclarationBuilder) {
-      push(buildConstructorInvocation(
+      Expression expression = buildConstructorInvocation(
           type,
           nameToken,
           arguments,
@@ -2501,8 +2509,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           typeArguments,
           token.charOffset,
           optional("const", token) || optional("@", token),
-          prefixName: prefixName));
-    } else if (type is UnresolvedAccessor) {
+          prefixName: prefixName);
+      push(deferredPrefix != null
+          ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
+          : expression);
+    } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
       push(throwNoSuchMethodError(
@@ -2667,7 +2678,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   void enterFunction() {
     debugEvent("enterFunction");
-    enterFunctionTypeScope();
     functionNestingLevel++;
     push(switchScope ?? NullValue.SwitchScope);
     switchScope = null;
@@ -3246,22 +3256,39 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void beginTypeVariables(Token token) {
+    debugEvent("beginTypeVariables");
+    OutlineBuilder listener = new OutlineBuilder(library);
+    new ClassMemberParser(listener).parseTypeVariablesOpt(token.previous);
+    enterFunctionTypeScope(listener.pop());
+  }
+
+  @override
+  void handleNoTypeVariables(Token token) {
+    debugEvent("NoTypeVariables");
+    enterFunctionTypeScope(null);
+    push(NullValue.TypeVariables);
+  }
+
+  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
     DartType bound = pop();
-    if (bound != null) {
-      // TODO(ahe): To handle F-bounded types, this needs to be a TypeBuilder.
-      // TODO(askesc): Remove message type when no longer needed.
-      // https://github.com/dart-lang/sdk/issues/31766
-      addProblem(fasta.messageUnimplementedBoundsOnTypeVariables,
-          offsetForToken(extendsOrSuper.next));
-    }
     Identifier name = pop();
     // TODO(ahe): Do not discard metadata.
     pop(); // Metadata.
-    push(new KernelTypeVariableBuilder(
-        name.name, library, offsetForToken(name.token), null)
-      ..finish(library, library.loader.coreLibrary["Object"]));
+    KernelTypeVariableBuilder variable;
+    Object inScope = scopeLookup(scope, name.name, token);
+    if (inScope is TypeDeclarationAccessor) {
+      variable = inScope.declaration;
+    } else {
+      // Something went wrong when pre-parsing the type variables.
+      // Assume an error is reported elsewhere.
+      variable = new KernelTypeVariableBuilder(
+          name.name, library, offsetForToken(name.token), null);
+    }
+    variable.parameter.bound = bound;
+    push(variable..finish(library, library.loader.coreLibrary["Object"]));
   }
 
   @override
@@ -3626,6 +3653,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     library.addCompileTimeError(message, charOffset, uri);
   }
 
+  @override
   void addProblem(Message message, int charOffset) {
     library.addProblem(message, charOffset, uri);
   }
@@ -3657,11 +3685,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix) {
-    return new ShadowDeferredCheck(
-        new VariableDeclaration.forValue(
-            new CheckLibraryIsLoaded(prefix.dependency)),
-        expression);
+  Expression wrapInDeferredCheck(
+      Expression expression, PrefixBuilder prefix, int charOffset) {
+    var check = new VariableDeclaration.forValue(
+        new CheckLibraryIsLoaded(prefix.dependency))
+      ..fileOffset = charOffset;
+    return new ShadowDeferredCheck(check, expression);
   }
 }
 

@@ -21,6 +21,7 @@ import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 
 import 'mock_sdk.dart';
+import 'src/utilities/flutter_util.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -54,6 +55,11 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
+
+  void addFlutterPackage() {
+    Folder libFolder = configureFlutterPackage(resourceProvider);
+    packageMap['flutter'] = [libFolder];
+  }
 
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;

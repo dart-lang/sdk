@@ -26,7 +26,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../src/utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -211,6 +210,190 @@ bool test() {
 
 @reflectiveTest
 class FixProcessorTest extends BaseFixProcessorTest {
+  test_addAsync_asyncFor() async {
+    await resolveTestUnit('''
+import 'dart:async';
+void main(Stream<String> names) {
+  await for (String name in names) {
+    print(name);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+import 'dart:async';
+Future main(Stream<String> names) async {
+  await for (String name in names) {
+    print(name);
+  }
+}
+''');
+  }
+
+  test_addAsync_BAD_nullFunctionBody() async {
+    await resolveTestUnit('''
+var F = await;
+''');
+    await assertNoFix(DartFixKind.ADD_ASYNC);
+  }
+
+  test_addAsync_blockFunctionBody() async {
+    await resolveTestUnit('''
+foo() {}
+main() {
+  await foo();
+}
+''');
+    List<AnalysisError> errors = await _computeErrors();
+    expect(errors, hasLength(2));
+    errors.sort((a, b) => a.message.compareTo(b.message));
+    // No fix for ";".
+    {
+      AnalysisError error = errors[0];
+      expect(error.message, "Expected to find ';'.");
+      List<Fix> fixes = await _computeFixes(error);
+      expect(fixes, isEmpty);
+    }
+    // Has fix for "await".
+    {
+      AnalysisError error = errors[1];
+      expect(error.message, startsWith("Undefined name 'await' in function"));
+      List<Fix> fixes = await _computeFixes(error);
+      // has exactly one fix
+      expect(fixes, hasLength(1));
+      Fix fix = fixes[0];
+      expect(fix.kind, DartFixKind.ADD_ASYNC);
+      // apply to "file"
+      List<SourceFileEdit> fileEdits = fix.change.edits;
+      expect(fileEdits, hasLength(1));
+      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
+      // verify
+      expect(resultCode, '''
+foo() {}
+main() async {
+  await foo();
+}
+''');
+    }
+  }
+
+  test_addAsync_closure() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+    };
+    await resolveTestUnit('''
+import 'dart:async';
+
+void takeFutureCallback(Future callback()) {}
+
+void doStuff() => takeFutureCallback(() => await 1);
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+import 'dart:async';
+
+void takeFutureCallback(Future callback()) {}
+
+void doStuff() => takeFutureCallback(() async => await 1);
+''');
+  }
+
+  test_addAsync_expressionFunctionBody() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+    };
+    await resolveTestUnit('''
+foo() {}
+main() => await foo();
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+foo() {}
+main() async => await foo();
+''');
+  }
+
+  test_addAsync_returnFuture() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+    };
+    await resolveTestUnit('''
+foo() {}
+int main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+import 'dart:async';
+
+foo() {}
+Future<int> main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
+  test_addAsync_returnFuture_alreadyFuture() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+    };
+    await resolveTestUnit('''
+import 'dart:async';
+foo() {}
+Future<int> main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+import 'dart:async';
+foo() {}
+Future<int> main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
+  test_addAsync_returnFuture_dynamic() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+    };
+    await resolveTestUnit('''
+foo() {}
+dynamic main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+foo() {}
+dynamic main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
+  test_addAsync_returnFuture_noType() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+    };
+    await resolveTestUnit('''
+foo() {}
+main() {
+  await foo();
+  return 42;
+}
+''');
+    await assertHasFix(DartFixKind.ADD_ASYNC, '''
+foo() {}
+main() async {
+  await foo();
+  return 42;
+}
+''');
+  }
+
   test_addFieldFormalParameters_hasRequiredParameter() async {
     await resolveTestUnit('''
 class Test {
@@ -415,13 +598,11 @@ class A {
   }
 
   test_addMissingRequiredArg_cons_flutter_children() async {
-    addPackageSource(
-        'flutter', 'src/widgets/framework.dart', flutter_framework_code);
-
+    addFlutterPackage();
     _addMetaPackageSource();
 
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
@@ -436,7 +617,7 @@ build() {
     await assertHasFix(
         DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
         '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 class MyWidget extends Widget {
@@ -763,170 +944,6 @@ import 'package:meta/meta.dart';
 test({@Required("Really who doesn't need an abc?") int abc}) {}
 main() {
   test(abc: null);
-}
-''');
-  }
-
-  test_addSync_asyncFor() async {
-    await resolveTestUnit('''
-import 'dart:async';
-void main(Stream<String> names) {
-  await for (String name in names) {
-    print(name);
-  }
-}
-''');
-    await assertHasFix(DartFixKind.ADD_ASYNC, '''
-import 'dart:async';
-Future main(Stream<String> names) async {
-  await for (String name in names) {
-    print(name);
-  }
-}
-''');
-  }
-
-  test_addSync_BAD_nullFunctionBody() async {
-    await resolveTestUnit('''
-var F = await;
-''');
-    await assertNoFix(DartFixKind.ADD_ASYNC);
-  }
-
-  test_addSync_blockFunctionBody() async {
-    await resolveTestUnit('''
-foo() {}
-main() {
-  await foo();
-}
-''');
-    List<AnalysisError> errors = await _computeErrors();
-    expect(errors, hasLength(2));
-    errors.sort((a, b) => a.message.compareTo(b.message));
-    // No fix for ";".
-    {
-      AnalysisError error = errors[0];
-      expect(error.message, "Expected to find ';'.");
-      List<Fix> fixes = await _computeFixes(error);
-      expect(fixes, isEmpty);
-    }
-    // Has fix for "await".
-    {
-      AnalysisError error = errors[1];
-      expect(error.message, startsWith("Undefined name 'await' in function"));
-      List<Fix> fixes = await _computeFixes(error);
-      // has exactly one fix
-      expect(fixes, hasLength(1));
-      Fix fix = fixes[0];
-      expect(fix.kind, DartFixKind.ADD_ASYNC);
-      // apply to "file"
-      List<SourceFileEdit> fileEdits = fix.change.edits;
-      expect(fileEdits, hasLength(1));
-      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
-      // verify
-      expect(resultCode, '''
-foo() {}
-main() async {
-  await foo();
-}
-''');
-    }
-  }
-
-  test_addSync_expressionFunctionBody() async {
-    errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
-    };
-    await resolveTestUnit('''
-foo() {}
-main() => await foo();
-''');
-    await assertHasFix(DartFixKind.ADD_ASYNC, '''
-foo() {}
-main() async => await foo();
-''');
-  }
-
-  test_addSync_returnFuture() async {
-    errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
-    };
-    await resolveTestUnit('''
-foo() {}
-int main() {
-  await foo();
-  return 42;
-}
-''');
-    await assertHasFix(DartFixKind.ADD_ASYNC, '''
-import 'dart:async';
-
-foo() {}
-Future<int> main() async {
-  await foo();
-  return 42;
-}
-''');
-  }
-
-  test_addSync_returnFuture_alreadyFuture() async {
-    errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
-    };
-    await resolveTestUnit('''
-import 'dart:async';
-foo() {}
-Future<int> main() {
-  await foo();
-  return 42;
-}
-''');
-    await assertHasFix(DartFixKind.ADD_ASYNC, '''
-import 'dart:async';
-foo() {}
-Future<int> main() async {
-  await foo();
-  return 42;
-}
-''');
-  }
-
-  test_addSync_returnFuture_dynamic() async {
-    errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
-    };
-    await resolveTestUnit('''
-foo() {}
-dynamic main() {
-  await foo();
-  return 42;
-}
-''');
-    await assertHasFix(DartFixKind.ADD_ASYNC, '''
-foo() {}
-dynamic main() async {
-  await foo();
-  return 42;
-}
-''');
-  }
-
-  test_addSync_returnFuture_noType() async {
-    errorFilter = (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
-    };
-    await resolveTestUnit('''
-foo() {}
-main() {
-  await foo();
-  return 42;
-}
-''');
-    await assertHasFix(DartFixKind.ADD_ASYNC, '''
-foo() {}
-main() async {
-  await foo();
-  return 42;
 }
 ''');
   }
@@ -2685,7 +2702,6 @@ class MyEmulator extends Emulator {
 ''');
   }
 
-  @failingTest
   test_createMissingOverrides_functionTypedParameter() async {
     await resolveTestUnit('''
 abstract class A {
@@ -2964,6 +2980,30 @@ abstract class A {
 class B implements A {
   @override
   E1 foo<E1, E2 extends C<int>>(V<E2> v) {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
+  test_createMissingOverrides_method_generic_withBounds() async {
+    // https://github.com/dart-lang/sdk/issues/31199
+    await resolveTestUnit('''
+abstract class A<K, V> {
+  List<T> foo<T extends V>(K key);
+}
+
+class B<K, V> implements A<K, V> {
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A<K, V> {
+  List<T> foo<T extends V>(K key);
+}
+
+class B<K, V> implements A<K, V> {
+  @override
+  List<T> foo<T extends V>(K key) {
     // TODO: implement foo
   }
 }
@@ -5351,11 +5391,9 @@ class A {
   }
 
   test_undefinedParameter_convertFlutterChild_invalidList() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5372,11 +5410,9 @@ build() {
   }
 
   test_undefinedParameter_convertFlutterChild_OK_hasList() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5390,7 +5426,7 @@ build() {
 }
 ''');
     await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5406,11 +5442,9 @@ build() {
   }
 
   test_undefinedParameter_convertFlutterChild_OK_hasTypedList() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5424,7 +5458,7 @@ build() {
 }
 ''');
     await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
@@ -5440,11 +5474,9 @@ build() {
   }
 
   test_undefinedParameter_convertFlutterChild_OK_multiLine() async {
-    _configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
     await resolveTestUnit('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
     body: new Row(
@@ -5457,7 +5489,7 @@ build() {
 }
 ''');
     await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
     body: new Row(
@@ -5594,30 +5626,6 @@ class Required {
   const Required([this.reason]);
 }
 ''');
-  }
-
-  /**
-   * Configures the [SourceFactory] to have the `flutter` package in
-   * `/packages/flutter/lib` folder.
-   */
-  void _configureFlutterPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      newFile('$flutterPkgLibPath/$path', content: code);
-    });
-    // configure SourceFactory
-    Folder myPkgFolder = getFolder(flutterPkgLibPath);
-    UriResolver pkgResolver = new PackageMapUriResolver(resourceProvider, {
-      'flutter': [myPkgFolder]
-    });
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
-    driver.configure(sourceFactory: sourceFactory);
-    // force 'flutter' resolution
-    addSource(
-        '/tmp/other.dart',
-        pathToCode.keys
-            .map((path) => "import 'package:flutter/$path';")
-            .join('\n'));
   }
 }
 
@@ -6423,6 +6431,19 @@ class C {
   int f;
   C(this.f);
 }
+''');
+  }
+
+  test_replaceFinalWithConst_method() async {
+    String src = '''
+/*LINT*/final int a = 1;
+''';
+    await findLint(src, LintNames.prefer_const_declarations);
+
+    await applyFix(DartFixKind.REPLACE_FINAL_WITH_CONST);
+
+    verifyResult('''
+const int a = 1;
 ''');
   }
 

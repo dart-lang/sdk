@@ -205,12 +205,17 @@ ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
           'applyExtension(\'FileEntry\', value);',
       ]
   },
+  'Entry': {
+      'getMetadata': [
+          'applyExtension(\'Metadata\', value);',
+      ]
+  },
   'FileEntry': {
       'createWriter': [
           'applyExtension(\'FileWriter\', value);'
       ],
       'file': [
-          'applyExtension(\'Blob\', value);'
+          'applyExtension(\'File\', value);'
       ]
   },
   'SQLTransaction': {

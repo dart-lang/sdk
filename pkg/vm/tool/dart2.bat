@@ -13,10 +13,12 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set OUT_DIR=%SCRIPTPATH%/../../../out/
 
-REM Remove trailing spaces
-set DART_CONFIGURATION=%DART_CONFIGURATION: =%
-
+REM Remove trailing spaces if line is not empty
+if not "%DART_CONFIGURATION%" == "" (
+  set DART_CONFIGURATION=%DART_CONFIGURATION: =%
+)
 if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
+
 if "%DART_USE_SDK%"=="" set DART_USE_SDK=0
 set BUILD_DIR=%OUT_DIR%%DART_CONFIGURATION%
 

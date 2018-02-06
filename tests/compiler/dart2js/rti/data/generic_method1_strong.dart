@@ -13,16 +13,15 @@ class A<T> {
   }
 }
 
-// TODO(johnniwinther): Should include 'required'. Update the 'checkedArguments'
+// TODO(johnniwinther): Should include 'arg'. Update the 'checkedArguments'
 // computation to take method type arguments into account.
-/*class: BB:implicit=[BB]*/
+/*class: BB:checked,implicit=[BB]*/
 class BB {}
 
 /*element: method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/
 @noInline
 method2<T>() => new A<T>();
 
-// TODO(johnniwinther): Should include 'checks=[BB]'.
 /*class: B:deps=[method1],implicit=[B.T],indirect,needsArgs*/
 class B<T> implements BB {
   @noInline

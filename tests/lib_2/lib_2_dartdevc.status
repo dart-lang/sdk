@@ -4,13 +4,12 @@
 
 [ $compiler == dartdevc ]
 async/futures_test: RuntimeError # Issue 29922
+html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 
 [ $compiler == dartdevk ]
-async/future_or_strong_test: RuntimeError
 async/future_value_chain4_test: CompileTimeError
 async/slow_consumer_test: CompileTimeError
-async/zone_run_unary_test: CompileTimeError # Issue 31537
 collection/list_test: RuntimeError
 convert/chunked_conversion1_test: RuntimeError
 convert/chunked_conversion_utf82_test: RuntimeError
@@ -106,6 +105,7 @@ html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
 html/mediasource_test: RuntimeError # Issue 29922
 html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/notification_permission_test: Timeout # Issue 32002
 html/scripts_htmltest: Skip # Issue 29919
 html/transferables_test: CompileTimeError # Issue 30975
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky

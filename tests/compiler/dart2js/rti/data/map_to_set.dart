@@ -5,7 +5,8 @@
 /*class: global#Map:deps=[Class],needsArgs*/
 /*class: global#LinkedHashMap:deps=[Map],needsArgs*/
 /*class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
-/*class: global#double:checks=[num],explicit=[double],required*/
+/*class: global#double:arg,explicit=[double]*/
+/*class: global#JSDouble:*/
 
 main() {
   var c = new Class<double, int>();

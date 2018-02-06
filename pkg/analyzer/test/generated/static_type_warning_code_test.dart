@@ -854,7 +854,18 @@ f() {
 }''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  test_nonBoolExpression_functionType() async {
+  test_nonBoolExpression_functionType_bool() async {
+    Source source = addSource(r'''
+bool makeAssertion() => true;
+f() {
+  assert(makeAssertion);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
+    verify([source]);
+  }
+
+  test_nonBoolExpression_functionType_int() async {
     await assertErrorsInCode(r'''
 int makeAssertion() => 1;
 f() {

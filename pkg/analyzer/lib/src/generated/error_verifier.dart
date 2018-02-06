@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.error_verifier;
-
 import 'dart:collection';
 import "dart:math" as math;
 
@@ -16,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -917,6 +916,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitIntegerLiteral(IntegerLiteral node) {
+    _checkForOutOfRange(node);
+    return super.visitIntegerLiteral(node);
+  }
+
+  @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
     return super.visitIsExpression(node);
@@ -1720,8 +1725,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * overriding. The [parameters] is the parameters of the executable element.
    * The [errorNameTarget] is the node to report problems on.
    *
-   * See [StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC],
-   * [CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED],
+   * See [CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED],
    * [CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL],
    * [CompileTimeErrorCode.INVALID_OVERRIDE_NAMED],
    * [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE],
@@ -2087,10 +2091,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     //
     List<ExecutableElement> overriddenExecutables = _inheritanceManager
         .lookupOverrides(_enclosingClass, executableElement.name);
-    if (_checkForInstanceMethodNameCollidesWithSuperclassStatic(
-        executableElement, errorNameTarget)) {
-      return;
-    }
     for (ExecutableElement overriddenElement in overriddenExecutables) {
       if (_checkForAllInvalidOverrideErrorCodes(executableElement,
           overriddenElement, parameters, parameterLocations, errorNameTarget)) {
@@ -3270,10 +3270,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if (expression.isConst) {
+        bool isImplicit =
+            (expression as InstanceCreationExpressionImpl).isImplicit;
+        if (!isImplicit) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
+              expression.isConst
+                  ? StaticWarningCode.CONST_WITH_ABSTRACT_CLASS
+                  : StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
+              typeName);
         } else {
+          // TODO(brianwilkerson/jwren) Create a new different StaticWarningCode
+          // which does not call out the new keyword so explicitly.
           _errorReporter.reportErrorForNode(
               StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
         }
@@ -4340,81 +4347,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check whether the given [executableElement] collides with the name of a
-   * static method in one of its superclasses, and reports the appropriate
-   * warning if it does. The [errorNameTarget] is the node to report problems
-   * on.
-   *
-   * See [StaticTypeWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC].
-   */
-  bool _checkForInstanceMethodNameCollidesWithSuperclassStatic(
-      ExecutableElement executableElement, SimpleIdentifier errorNameTarget) {
-    String executableElementName = executableElement.name;
-    if (executableElement is! PropertyAccessorElement &&
-        !executableElement.isOperator) {
-      HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      bool executableElementPrivate =
-          Identifier.isPrivateName(executableElementName);
-      while (superclassElement != null &&
-          !visitedClasses.contains(superclassElement)) {
-        visitedClasses.add(superclassElement);
-        LibraryElement superclassLibrary = superclassElement.library;
-        // Check fields.
-        FieldElement fieldElt =
-            superclassElement.getField(executableElementName);
-        if (fieldElt != null) {
-          // Ignore if private in a different library - cannot collide.
-          if (executableElementPrivate &&
-              _currentLibrary != superclassLibrary) {
-            continue;
-          }
-          // instance vs. static
-          if (fieldElt.isStatic) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode
-                    .INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                errorNameTarget,
-                [executableElementName, fieldElt.enclosingElement.displayName]);
-            return true;
-          }
-        }
-        // Check methods.
-        List<MethodElement> methodElements = superclassElement.methods;
-        int length = methodElements.length;
-        for (int i = 0; i < length; i++) {
-          MethodElement methodElement = methodElements[i];
-          // We need the same name.
-          if (methodElement.name != executableElementName) {
-            continue;
-          }
-          // Ignore if private in a different library - cannot collide.
-          if (executableElementPrivate &&
-              _currentLibrary != superclassLibrary) {
-            continue;
-          }
-          // instance vs. static
-          if (methodElement.isStatic) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode
-                    .INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                errorNameTarget,
-                [
-                  executableElementName,
-                  methodElement.enclosingElement.displayName
-                ]);
-            return true;
-          }
-        }
-        superclassType = superclassElement.supertype;
-        superclassElement = superclassType?.element;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Verify that an 'int' can be assigned to the parameter corresponding to the
    * given [argument]. This is used for prefix and postfix expressions where
    * the argument value is implicit.
@@ -5244,11 +5176,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
       }
     } else if (type is FunctionType) {
-      if (type.typeArguments.length == 0 &&
-          !_typeSystem.isAssignableTo(type.returnType, _boolType)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
-      }
+      _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
     }
   }
 
@@ -5357,6 +5286,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
             formalParameter);
       }
+    }
+  }
+
+  void _checkForOutOfRange(IntegerLiteral node) {
+    String lexeme = node.literal.lexeme;
+    AstNode parent = node.parent;
+    bool isNegated =
+        parent is PrefixExpression && parent.operator.type == TokenType.MINUS;
+    if (!IntegerLiteralImpl.isValidLiteral(lexeme, isNegated)) {
+      if (isNegated) {
+        lexeme = '-$lexeme';
+      }
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, node, [lexeme]);
     }
   }
 

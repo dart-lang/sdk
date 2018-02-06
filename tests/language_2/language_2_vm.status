@@ -4,6 +4,16 @@
 # Sections in this file should contain "$runtime == vm".
 
 [ $compiler == dartkp ]
+assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
 
@@ -46,7 +56,6 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
-generalized_void_syntax_test: CompileTimeError # Issue #30176
 hello_dart_test: Skip # Incompatible flag: --compile_all
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError, OK
@@ -372,14 +381,31 @@ flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
+function_subtype_bound_closure1_test: RuntimeError
+function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure5_test: RuntimeError
+function_subtype_bound_closure5a_test: RuntimeError
+function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
+function_subtype_cast2_test: RuntimeError
+function_subtype_cast3_test: RuntimeError
+function_subtype_checked0_test: RuntimeError
+function_subtype_local1_test: RuntimeError
+function_subtype_local2_test: RuntimeError
+function_subtype_local5_test: RuntimeError
+function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_not3_test: RuntimeError
+function_subtype_top_level1_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/00: MissingCompileTimeError
 function_type_call_getter2_test/01: MissingCompileTimeError
@@ -411,6 +437,8 @@ generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
 generic_tearoff_test: RuntimeError
+generic_test/01: MissingCompileTimeError
+generic_test/none: RuntimeError # test requires Dart 2 subtyping for `is`
 getter_no_setter2_test/00: MissingCompileTimeError
 getter_no_setter2_test/01: MissingCompileTimeError
 getter_no_setter2_test/03: MissingCompileTimeError
@@ -846,6 +874,8 @@ switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
 syntax_test/59: MissingCompileTimeError, OK # Issue 30516.
+syntax_test/60: MissingCompileTimeError, OK # Issue 30516.
+syntax_test/61: MissingCompileTimeError, OK # Issue 30516.
 top_level_getter_no_setter1_test: MissingCompileTimeError
 top_level_getter_no_setter2_test: MissingCompileTimeError
 transitive_private_library_access_test: MissingCompileTimeError
@@ -1212,7 +1242,6 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
-generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_methods_bounds_test/02: MissingRuntimeError
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK

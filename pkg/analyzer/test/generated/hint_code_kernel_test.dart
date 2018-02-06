@@ -490,4 +490,10 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_importDeferredLibraryWithLoadFunction() async {
     await super.test_importDeferredLibraryWithLoadFunction();
   }
+
+  @failingTest
+  @override
+  test_no_missingReturn_async_futureOrVoid() async {
+    await super.test_no_missingReturn_async_futureOrVoid();
+  }
 }

@@ -352,12 +352,15 @@ class RunServiceTask : public ThreadPool::Task {
       got_unwind = RunMain(isolate);
     }
 
+    // FinishedInitializing should be called irrespective of whether
+    // running main caused an error or not. Otherwise, other isolates
+    // waiting for service isolate to come up will deadlock.
+    ServiceIsolate::FinishedInitializing();
+
     if (got_unwind) {
       ShutdownIsolate(reinterpret_cast<uword>(isolate));
       return;
     }
-
-    ServiceIsolate::FinishedInitializing();
 
     isolate->message_handler()->Run(Dart::thread_pool(), NULL, ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));

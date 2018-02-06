@@ -390,7 +390,7 @@ library l;''');
   }
 
   void test_visitDefaultFormalParameter_named_value() {
-    _assertCloneUnitMember('main({p : 0}) {}');
+    _assertCloneUnitMember('main({p: 0}) {}');
   }
 
   void test_visitDefaultFormalParameter_positional_noValue() {

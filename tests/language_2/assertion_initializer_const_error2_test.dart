@@ -10,38 +10,38 @@ class C {
   final int x;
   // Const constructors.
   const C.cc01(this.x, y)
-      : assert(x < y)  //# cc01: checked mode compile-time error
+      : assert(x < y)  //# cc01: compile-time error
       ;
   const C.cc02(x, y) : x = x
-      , assert(x < y)  //# cc02: checked mode compile-time error
+      , assert(x < y)  //# cc02: compile-time error
       ;
   const C.cc03(x, y) :
-      assert(x < y),  //# cc03: checked mode compile-time error
+      assert(x < y),  //# cc03: compile-time error
       x = x;
   const C.cc05(this.x, y) :
-      assert(x < y),   //# cc05: checked mode compile-time error
+      assert(x < y),   //# cc05: compile-time error
       super();
   const C.cc06(x, y) : x = x
-      , assert(x < y)  //# cc06: checked mode compile-time error
+      , assert(x < y)  //# cc06: compile-time error
       , super()
       ;
   const C.cc07(x, y) :
-      assert(x < y),  //# cc07: checked mode compile-time error
+      assert(x < y),  //# cc07: compile-time error
       x = x, super();
   const C.cc08(x, y) :
-      assert(x < y),  //# cc08: checked mode compile-time error
+      assert(x < y),  //# cc08: compile-time error
       x = x
       , assert(y > x)  //# cc08: continued
       , super()
       ;
   const C.cc09(this.x, y)
-      : assert(x < y, "$x < $y")  //# cc09: checked mode compile-time error
+      : assert(x < y, "$x < $y")  //# cc09: compile-time error
       ;
   const C.cc10(this.x, y)
-      : assert(x < y,)  //# cc10: checked mode compile-time error
+      : assert(x < y,)  //# cc10: compile-time error
       ;
   const C.cc11(this.x, y)
-      : assert(x < y, "$x < $y",)  //# cc11: checked mode compile-time error
+      : assert(x < y, "$x < $y",)  //# cc11: compile-time error
       ;
 }
 

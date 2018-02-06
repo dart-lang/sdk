@@ -595,9 +595,12 @@ class KernelLibraryBuilder
     endNestedDeclaration("#method").resolveTypes(typeVariables, this);
     String procedureName;
     ProcedureBuilder procedure;
-    String constructorName =
-        isTopLevel ? null : computeAndValidateConstructorName(name, charOffset);
     MetadataCollector metadataCollector = loader.target.metadataCollector;
+    String constructorName = isTopLevel ||
+            kind == ProcedureKind.Getter ||
+            kind == ProcedureKind.Setter
+        ? null
+        : computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
       procedureName = constructorName;
       procedure = new KernelConstructorBuilder(

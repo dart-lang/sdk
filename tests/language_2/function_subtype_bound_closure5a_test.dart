@@ -40,5 +40,7 @@ class D<S, T> extends Cm<T> {}
 main() {
   new D<String, bool>().test('bool', true);
   new D<bool, int>().test('int', false);
-  new D().test('dynamic', true);
+  new D<Object, Object>().test('Object', false);
+  new D<Null, Null>().test('Null', true);
+  new D<dynamic, dynamic>().test('dynamic', false);
 }

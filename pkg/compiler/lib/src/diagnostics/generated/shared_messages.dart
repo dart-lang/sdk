@@ -43,7 +43,6 @@ const Map<MessageKind, MessageTemplate> TEMPLATES =
       howToFix: "Try removing '#{modifier}'.",
       examples: const [
         "var String foo; main(){}",
-        "var set foo; main(){}",
         "var final foo; main(){}",
         "var var foo; main(){}",
         "var const foo; main(){}",

@@ -16,12 +16,16 @@ set -e
 
 OPTIONS=()
 PACKAGES=
+SYNC_ASYNC=
 
 ARGV=()
 for arg in "$@"; do
   case $arg in
     --packages=*)
     PACKAGES="$arg"
+    ;;
+    --sync-async)
+    SYNC_ASYNC="--sync-async"
     ;;
     --*)
     OPTIONS+=("$arg")
@@ -72,6 +76,7 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
      "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
      --aot                                                                     \
+     $SYNC_ASYNC                                                               \
      $PACKAGES                                                                 \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"

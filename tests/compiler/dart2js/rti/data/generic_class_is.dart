@@ -4,7 +4,7 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A:checks=[A],implicit=[A],required*/
+/*class: A:arg,checked,implicit=[A]*/
 class A {}
 
 /*class: B:direct,explicit=[B.T],needsArgs*/

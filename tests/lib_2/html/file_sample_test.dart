@@ -129,7 +129,7 @@ main() {
       expect(fileEntry.name, 'log.txt');
 
       List<Entry> entries = await readEntries(fs.root);
-      expect(entries.length, 1);
+      expect(entries.length > 0, true);
       expect(entries[0].isDirectory, true);
       expect(entries[0].name, 'my_directory');
 

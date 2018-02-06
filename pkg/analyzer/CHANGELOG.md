@@ -1,3 +1,14 @@
+## 0.31.0+1
+
+* Update SDK constraint to require Dart v2-dev release.
+
+## 0.31.0
+
+* **NOTE** This release was pulled from the package site due to an invalid SDK
+  constraint that was fixed in `0.31.0+1`.
+
+* A number of updates, including support for the new Function syntax.
+
 ## 0.30.0-alpha.0
 * Changed the API for creating BazelWorkspace.  It should now be constructed using BazelWorkspace.find().  Note that this might return `null` in the event that the given path is not part of a BazelWorkspace.
 * Added an AST structure to support asserts in constructor initializers (AssertInitializer).  AstVisitor classes must now implement visitAssertInitializer().

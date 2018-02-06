@@ -129,12 +129,15 @@ String _getParametersString(engine.Element element) {
         element.parameters.isEmpty) {
       return null;
     }
-    parameters = element.parameters;
+    parameters = element.parameters.toList();
   } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.parameters;
+    parameters = element.parameters.toList();
   } else {
     return null;
   }
+
+  parameters.sort(_preferRequiredParams);
+
   StringBuffer sb = new StringBuffer();
   String closeOptionalString = '';
   for (engine.ParameterElement parameter in parameters) {
@@ -213,4 +216,16 @@ bool _isStatic(engine.Element element) {
     return element.isStatic;
   }
   return false;
+}
+
+// Sort @required named parameters before optional ones.
+int _preferRequiredParams(
+    engine.ParameterElement e1, engine.ParameterElement e2) {
+  int rank1 = e1.isRequired
+      ? 0
+      : e1.parameterKind != engine.ParameterKind.NAMED ? -1 : 1;
+  int rank2 = e2.isRequired
+      ? 0
+      : e2.parameterKind != engine.ParameterKind.NAMED ? -1 : 1;
+  return rank1 - rank2;
 }

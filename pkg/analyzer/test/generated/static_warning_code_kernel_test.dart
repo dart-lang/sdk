@@ -835,70 +835,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_field() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_field();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_field2() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_field2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_getter() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_getter2() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_getter2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_interface() async {
-    return super
-        .test_instanceMethodNameCollidesWithSuperclassStatic_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_method2() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_method2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_setter() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_setter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_setter2() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_setter2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidGetterOverrideReturnType() async {
     return super.test_invalidGetterOverrideReturnType();
   }
@@ -1660,45 +1596,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_asExpression() async {
-    return super.test_typeAnnotationDeferredClass_asExpression();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_catchClause() async {
-    return super.test_typeAnnotationDeferredClass_catchClause();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_fieldFormalParameter() async {
-    return super.test_typeAnnotationDeferredClass_fieldFormalParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeAnnotationDeferredClass_functionDeclaration_returnType() async {
     return super
         .test_typeAnnotationDeferredClass_functionDeclaration_returnType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() async {
-    return super
-        .test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_isExpression() async {
-    return super.test_typeAnnotationDeferredClass_isExpression();
   }
 
   @override
@@ -1712,36 +1612,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_simpleFormalParameter() async {
-    return super.test_typeAnnotationDeferredClass_simpleFormalParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_typeArgumentList() async {
-    return super.test_typeAnnotationDeferredClass_typeArgumentList();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_typeArgumentList2() async {
-    return super.test_typeAnnotationDeferredClass_typeArgumentList2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeAnnotationDeferredClass_typeParameter_bound() async {
     return super.test_typeAnnotationDeferredClass_typeParameter_bound();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationDeferredClass_variableDeclarationList() async {
-    return super.test_typeAnnotationDeferredClass_variableDeclarationList();
   }
 
   @override

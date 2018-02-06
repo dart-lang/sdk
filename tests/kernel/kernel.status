@@ -17,6 +17,8 @@ unsorted/invocation_errors_test: RuntimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
+unsorted/loop_test: CompileTimeError # int64
+unsorted/simple_literal_test: CompileTimeError # int64
 unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dartk && $strong ]

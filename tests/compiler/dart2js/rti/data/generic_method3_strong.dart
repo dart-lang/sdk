@@ -13,14 +13,13 @@ class A<T> {
   }
 }
 
-/*class: BB:checks=[BB],implicit=[BB],required*/
+/*class: BB:arg,checked,implicit=[BB]*/
 class BB {}
 
 /*element: method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/
 @noInline
 method2<T>() => new A<T>();
 
-// TODO(johnniwinther): Should include 'checks=[BB]'.
 /*class: B:implicit=[B.T],indirect,needsArgs*/
 class B<T> implements BB {
   @noInline

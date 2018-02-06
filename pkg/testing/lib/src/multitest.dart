@@ -4,7 +4,7 @@
 
 library testing.multitest;
 
-import 'dart:async' show Stream, StreamTransformer;
+import 'dart:async' show Stream, StreamTransformerBase;
 
 import 'dart:io' show Directory, File;
 
@@ -25,7 +25,7 @@ bool isCheckedModeError(Set<String> expectations) {
 }
 
 class MultitestTransformer
-    implements StreamTransformer<TestDescription, TestDescription> {
+    extends StreamTransformerBase<TestDescription, TestDescription> {
   static RegExp multitestMarker = new RegExp(r"//[#/]");
   static int _multitestMarkerLength = 3;
 

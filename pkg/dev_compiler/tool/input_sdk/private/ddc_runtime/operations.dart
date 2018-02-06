@@ -439,10 +439,7 @@ final _ignoreTypeFailure = JS('', '''(() => {
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
         !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
-        $_isFunctionType(type) && $_isFunctionType(actual) ||
-        !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||
-        !!$isSubtype(type, $StreamSubscription) &&
-        !!$isSubtype(actual, $StreamSubscription)) {
+        !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream)) {
       console.warn('Ignoring cast fail from ' + $typeName(actual) +
                    ' to ' + $typeName(type));
       return true;

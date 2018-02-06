@@ -1949,12 +1949,15 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   jsAst.Comment buildGeneratedBy() {
-    List<String> options = [];
-    if (_closedWorld.backendUsage.isMirrorsUsed) {
-      options.add('mirrors');
-    }
-    if (compiler.options.useContentSecurityPolicy) options.add("CSP");
-    return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
+    StringBuffer flavor = new StringBuffer();
+    flavor.write(compiler.options.useKernel ? 'kernel FE' : 'ast FE');
+    if (compiler.options.strongMode) flavor.write(', strong');
+    if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
+    if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
+    flavor.write(', full emitter');
+    if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
+    if (_closedWorld.backendUsage.isMirrorsUsed) flavor.write(', mirrors');
+    return new jsAst.Comment(generatedBy(compiler, flavor: '$flavor'));
   }
 
   void outputDeferredMap() {

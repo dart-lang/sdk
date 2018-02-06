@@ -44,7 +44,10 @@ ArgParser parser = new ArgParser()
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
-      defaultsTo: 'continuation');
+      defaultsTo: 'continuation')
+  ..addFlag('sync-async',
+      help: 'Whether `async` functions start synchronously.',
+      defaultsTo: false);
 
 main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments[0] == '--batch') {
@@ -69,6 +72,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var output = options['out'];
   var format = options['format'];
   var verbose = options['verbose'];
+  var syncAsync = options['sync-async'];
 
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
@@ -85,7 +89,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   final hierarchy = new ClassHierarchy(program);
   switch (options['transformation']) {
     case 'continuation':
-      program = cont.transformProgram(coreTypes, program);
+      program = cont.transformProgram(coreTypes, program, syncAsync);
       break;
     case 'resolve-mixins':
       mix.transformLibraries(

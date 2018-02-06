@@ -417,7 +417,7 @@ class ForwardingNode extends Procedure {
     }
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
-    procedure.forwardingStubSuperTarget = superTarget.reference;
+    procedure.forwardingStubSuperTarget = superTarget;
   }
 
   /// Creates a forwarding stub based on the given [target].
@@ -465,7 +465,7 @@ class ForwardingNode extends Procedure {
         returnType: substitution.substituteType(target.function.returnType));
     Member finalTarget;
     if (target is Procedure && target.isForwardingStub) {
-      finalTarget = target.forwardingStubInterfaceTarget.node;
+      finalTarget = target.forwardingStubInterfaceTarget;
     } else if (target is SyntheticAccessor) {
       finalTarget = target._field;
     } else {
@@ -475,7 +475,7 @@ class ForwardingNode extends Procedure {
         isAbstract: true,
         isForwardingStub: true,
         fileUri: enclosingClass.fileUri,
-        forwardingStubInterfaceTarget: finalTarget.reference)
+        forwardingStubInterfaceTarget: finalTarget)
       ..fileOffset = enclosingClass.fileOffset
       ..parent = enclosingClass
       ..isGenericContravariant = target.isGenericContravariant;
@@ -804,8 +804,7 @@ class InterfaceResolver {
         resolution = member;
       }
       if (resolution is Procedure &&
-          resolution.isForwardingStub &&
-          !resolution.isForwardingSemiStub &&
+          resolution.isSyntheticForwarder &&
           identical(resolution.enclosingClass, class_)) {
         if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
@@ -978,7 +977,7 @@ class InterfaceResolver {
     for (var procedure in class_.procedures) {
       if (procedure.isStatic) continue;
       // Forwarding stubs are annotated separately
-      if (procedure.isForwardingStub && !procedure.isForwardingSemiStub) {
+      if (procedure.isSyntheticForwarder) {
         continue;
       }
       void recordFormalAnnotations(VariableDeclaration formal) {

@@ -964,16 +964,12 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_logicalAnd_false_null() {
-    expect(() {
-      _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
-    }, throwsEvaluationException);
+    _assertLogicalAnd(_boolValue(false), _boolValue(false), _nullValue());
   }
 
   void test_logicalAnd_false_string() {
-    expect(() {
-      _assertLogicalAnd(
-          _boolValue(false), _boolValue(false), _stringValue("false"));
-    }, throwsEvaluationException);
+    _assertLogicalAnd(
+        _boolValue(false), _boolValue(false), _stringValue("false"));
   }
 
   void test_logicalAnd_false_true() {
@@ -1097,16 +1093,11 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_logicalOr_true_null() {
-    expect(() {
-      _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
-    }, throwsEvaluationException);
+    _assertLogicalOr(_boolValue(true), _boolValue(true), _nullValue());
   }
 
   void test_logicalOr_true_string() {
-    expect(() {
-      _assertLogicalOr(
-          _boolValue(true), _boolValue(true), _stringValue("true"));
-    }, throwsEvaluationException);
+    _assertLogicalOr(_boolValue(true), _boolValue(true), _stringValue("true"));
   }
 
   void test_logicalOr_true_true() {
@@ -1716,10 +1707,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.logicalAnd(_typeProvider, right);
+        left.logicalAnd(_typeProvider, () => right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.logicalAnd(_typeProvider, right);
+      DartObjectImpl result = left.logicalAnd(_typeProvider, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1750,10 +1741,10 @@ class DartObjectImplTest extends EngineTestCase {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.logicalOr(_typeProvider, right);
+        left.logicalOr(_typeProvider, () => right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.logicalOr(_typeProvider, right);
+      DartObjectImpl result = left.logicalOr(_typeProvider, () => right);
       expect(result, isNotNull);
       expect(result, expected);
     }

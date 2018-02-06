@@ -2012,7 +2012,7 @@ void Parser::ParseParameterType(ParamList* params) {
   // It is too early to resolve the type here, since it can be a result type
   // referring to a not yet declared function type parameter.
   parameter.type = &AbstractType::ZoneHandle(
-      Z, ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve));
+      Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
 
   // At this point, we must see an identifier for the parameter name, unless
   // we are using the function type syntax (in which case the name is optional,
@@ -2059,10 +2059,6 @@ void Parser::ParseParameterType(ParamList* params) {
       params->num_fixed_parameters++;
       ASSERT(params->num_optional_parameters == 0);
     }
-  }
-  if (parameter.type->IsVoidType()) {
-    ReportError("parameter '%s' may not be 'void'",
-                parameter.name->ToCString());
   }
   if (params->implicitly_final) {
     parameter.is_final = true;
@@ -2286,10 +2282,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       params->num_fixed_parameters++;
       ASSERT(params->num_optional_parameters == 0);
     }
-  }
-  if (parameter.type->IsVoidType()) {
-    ReportError("parameter '%s' may not be 'void'",
-                parameter.name->ToCString());
   }
   if (params->implicitly_final) {
     parameter.is_final = true;
@@ -4756,8 +4748,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
             "missing 'var', 'final', 'const' or type"
             " in field declaration");
       }
-    } else if (member.type->IsVoidType()) {
-      ReportError(member.name_pos, "field may not be 'void'");
     }
     if (!member.type->IsResolved()) {
       AbstractType& type = AbstractType::ZoneHandle(Z, member.type->raw());
@@ -7584,30 +7574,42 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       Symbols::AsyncStackTraceVar(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
 
-  // Create and return a new future that executes a closure with the current
-  // body.
+  // Create a completer that executes a closure with the current body and
+  // return the corresponding future.
 
   // No need to capture parameters or other variables, since they have already
   // been captured in the corresponding scope as the body has been parsed within
   // a nested block (contained in the async function's block).
-  const Class& future = Class::ZoneHandle(Z, I->object_store()->future_class());
-  ASSERT(!future.IsNull());
-  const Function& constructor = Function::ZoneHandle(
-      Z, future.LookupFunction(Symbols::FutureMicrotask()));
-  ASSERT(!constructor.IsNull());
-  const Class& completer =
-      Class::ZoneHandle(Z, I->object_store()->completer_class());
-  ASSERT(!completer.IsNull());
-  const Function& completer_constructor = Function::ZoneHandle(
-      Z, completer.LookupFunction(Symbols::CompleterSyncConstructor()));
-  ASSERT(!completer_constructor.IsNull());
+
+  const Library& async_lib = Library::Handle(Z, Library::AsyncLibrary());
 
   LocalVariable* async_completer =
       current_block_->scope->LookupVariable(Symbols::AsyncCompleter(), false);
 
   const TokenPosition token_pos = ST(closure_body->token_pos());
-  // Add to AST:
-  //   :async_completer = new Completer.sync();
+
+  Function& completer_constructor = Function::ZoneHandle(Z);
+  if (FLAG_sync_async) {
+    const Class& completer_class = Class::Handle(
+        Z, async_lib.LookupClassAllowPrivate(Symbols::_AsyncAwaitCompleter()));
+    ASSERT(!completer_class.IsNull());
+    completer_constructor = completer_class.LookupConstructorAllowPrivate(
+        Symbols::_AsyncAwaitCompleterConstructor());
+    ASSERT(!completer_constructor.IsNull());
+
+    // Add to AST:
+    //   :async_completer = new _AsyncAwaitCompleter();
+  } else {
+    const Class& completer =
+        Class::Handle(Z, I->object_store()->completer_class());
+    ASSERT(!completer.IsNull());
+    completer_constructor =
+        completer.LookupFunction(Symbols::CompleterSyncConstructor());
+    ASSERT(!completer_constructor.IsNull());
+
+    // Add to AST:
+    //   :async_completer = new Completer.sync();
+  }
   ArgumentListNode* empty_args = new (Z) ArgumentListNode(token_pos);
   ConstructorCallNode* completer_constructor_node =
       new (Z) ConstructorCallNode(token_pos, TypeArguments::ZoneHandle(Z),
@@ -7633,8 +7635,6 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   StoreLocalNode* store_async_op =
       new (Z) StoreLocalNode(token_pos, async_op_var, cn);
   current_block_->statements->Add(store_async_op);
-
-  const Library& async_lib = Library::Handle(Library::AsyncLibrary());
 
   if (FLAG_causal_async_stacks) {
     // Add to AST:
@@ -7699,13 +7699,29 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   current_block_->statements->Add(store_async_catch_error_callback);
 
-  // Add to AST:
-  //   new Future.microtask(:async_op);
-  ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
-  arguments->Add(new (Z) LoadLocalNode(token_pos, async_op_var));
-  ConstructorCallNode* future_node = new (Z) ConstructorCallNode(
-      token_pos, TypeArguments::ZoneHandle(Z), constructor, arguments);
-  current_block_->statements->Add(future_node);
+  if (FLAG_sync_async) {
+    // Add to AST:
+    //   :async_completer.start(:async_op);
+    ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
+    arguments->Add(new (Z) LoadLocalNode(token_pos, async_op_var));
+    InstanceCallNode* start_call = new (Z) InstanceCallNode(
+        token_pos, new (Z) LoadLocalNode(token_pos, async_completer),
+        Symbols::_AsyncAwaitStart(), arguments);
+    current_block_->statements->Add(start_call);
+  } else {
+    // Add to AST:
+    //   new Future.microtask(:async_op);
+    const Class& future = Class::Handle(Z, I->object_store()->future_class());
+    ASSERT(!future.IsNull());
+    const Function& constructor = Function::ZoneHandle(
+        Z, future.LookupFunction(Symbols::FutureMicrotask()));
+    ASSERT(!constructor.IsNull());
+    ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);
+    arguments->Add(new (Z) LoadLocalNode(token_pos, async_op_var));
+    ConstructorCallNode* future_node = new (Z) ConstructorCallNode(
+        token_pos, TypeArguments::ZoneHandle(Z), constructor, arguments);
+    current_block_->statements->Add(future_node);
+  }
 
   // Add to AST:
   //   return :async_completer.future;
@@ -8003,7 +8019,7 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
     type_is_optional = true;
   }
   if ((CurrentToken() == Token::kVOID) || IsFunctionTypeSymbol()) {
-    return ParseFunctionType(AbstractType::Handle(Z), finalization);
+    return ParseTypeOrFunctionType(true, finalization);
   }
   if (CurrentToken() != Token::kIDENT) {
     if (type_is_optional) {
@@ -8023,7 +8039,7 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
       return Type::DynamicType();
     }
   }
-  return ParseTypeOrFunctionType(false, finalization);
+  return ParseTypeOrFunctionType(false, finalization);  // void handled above.
 }
 
 // Returns ast nodes of the variable initialization. Variables without an
@@ -8480,6 +8496,8 @@ bool Parser::TryParseQualIdent() {
 // Allow 'void' as type if 'allow_void' is true.
 // Note that 'void Function()' is always allowed, since it is a function type
 // and not the void type.
+// TODO(regis): Consider removing allow_void argument, since this call is only
+// used where void is allowed. Wait for Dart 2 spec to stabilize.
 bool Parser::TryParseType(bool allow_void) {
   bool found = false;
   if (CurrentToken() == Token::kVOID) {
@@ -8536,8 +8554,7 @@ bool Parser::IsVariableDeclaration() {
   }
   if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kVOID) &&
       (CurrentToken() != Token::kCONST)) {
-    // Not a legal type identifier or void (result type of function type)
-    // or const keyword or metadata.
+    // Not a legal type identifier or void or const keyword or metadata.
     return false;
   }
   const TokenPosition saved_pos = TokenPos();
@@ -8548,7 +8565,7 @@ bool Parser::IsVariableDeclaration() {
     have_type = true;  // Type is dynamic if 'const' is not followed by a type.
   }
   if ((CurrentToken() == Token::kVOID) || IsFunctionTypeSymbol()) {
-    if (TryParseType(false)) {
+    if (TryParseType(true)) {
       have_type = true;
     }
   } else if (IsIdentifier()) {  // Type or variable name.
@@ -8558,7 +8575,7 @@ bool Parser::IsVariableDeclaration() {
         Token::IsIdentifier(follower)) {  // Variable name following a type.
       // We see the beginning of something that could be a type.
       const TokenPosition type_pos = TokenPos();
-      if (TryParseType(false)) {
+      if (TryParseType(false)) {  // void handled above.
         have_type = true;
       } else {
         SetPosition(type_pos);
@@ -8685,10 +8702,12 @@ bool Parser::IsForInStatement() {
       CurrentToken() == Token::kCONST) {
     ConsumeToken();
   }
-  if (IsIdentifier()) {
-    if (LookaheadToken(1) == Token::kIN) {
+  // void as the loop variable type does not make much sense, but it is not
+  // disallowed by the spec.
+  if (IsIdentifier() || (CurrentToken() == Token::kVOID)) {
+    if ((CurrentToken() != Token::kVOID) && (LookaheadToken(1) == Token::kIN)) {
       return true;
-    } else if (TryParseType(false)) {
+    } else if (TryParseType(true)) {
       if (IsIdentifier()) {
         ConsumeToken();
       }

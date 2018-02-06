@@ -12,9 +12,11 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * A completion contributor used to suggest replacing partial identifiers inside
@@ -48,7 +50,7 @@ class OverrideContributor implements DartCompletionContributor {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         CompletionSuggestion suggestion =
-            _buildSuggestion(request, targetId, element);
+            await _buildSuggestion(request, targetId, element);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -58,33 +60,29 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return a template for an override of the given [element] in the given
-   * [source]. If selected, the template will replace [targetId].
+   * Return a template for an override of the given [element]. If selected, the
+   * template will replace [targetId].
    */
-  String _buildRepacementText(Source source, SimpleIdentifier targetId,
-      CompilationUnit unit, ExecutableElement element) {
-    // AnalysisContext context = element.context;
-    // Inject partially resolved unit for use by change builder
-    // DartChangeBuilder builder = new DartChangeBuilder(context, unit);
-    // builder.addFileEdit(source, context.getModificationStamp(source),
-    //     (DartFileEditBuilder builder) {
-    //   builder.addReplacement(targetId.offset, targetId.length,
-    //       (DartEditBuilder builder) {
-    //     builder.writeOverrideOfInheritedMember(element);
-    //   });
-    // });
-    // return builder.sourceChange.edits[0].edits[0].replacement.trim();
-    return '';
+  Future<String> _buildReplacementText(AnalysisResult result,
+      SimpleIdentifier targetId, ExecutableElement element) async {
+    DartChangeBuilder builder =
+        new DartChangeBuilder(result.driver.currentSession);
+    await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
+        builder.writeOverrideOfInheritedMember(element);
+      });
+    });
+    return builder.sourceChange.edits[0].edits[0].replacement.trim();
   }
 
   /**
    * Build a suggestion to replace [targetId] in the given [unit]
    * with an override of the given [element].
    */
-  CompletionSuggestion _buildSuggestion(DartCompletionRequest request,
-      SimpleIdentifier targetId, ExecutableElement element) {
-    String completion = _buildRepacementText(
-        request.source, targetId, request.target.unit, element);
+  Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
+      SimpleIdentifier targetId, ExecutableElement element) async {
+    String completion =
+        await _buildReplacementText(request.result, targetId, element);
     if (completion == null || completion.length == 0) {
       return null;
     }

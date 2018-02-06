@@ -142,6 +142,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_constDeferredClass_new() async {
+    return super.test_constDeferredClass_new();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
@@ -187,6 +194,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_genericTypeAlias_invalidGenericFunctionType() async {
     return super.test_genericTypeAlias_invalidGenericFunctionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_integerLiteralOutOfRange_negative_valid() async {
+    return super.test_integerLiteralOutOfRange_negative_valid();
   }
 
   @override
@@ -240,33 +254,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30834')
-  test_memberWithClassName_setter() async {
-    return super.test_memberWithClassName_setter();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_methodDeclaration_scope_signature() async {
     return super.test_methodDeclaration_scope_signature();
-  }
-
-  @override
-  test_nativeConstConstructor() async {
-    return super.test_nativeConstConstructor();
-  }
-
-  @override
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    return super.test_nativeFunctionBodyInNonSDKCode_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonBoolExpression_functionType() async {
-    return super.test_nonBoolExpression_functionType();
   }
 
   @override
@@ -337,20 +327,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
-  }
-
-  @override
-  test_uriDoesNotExist_dll() async {
-    return super.test_uriDoesNotExist_dll();
-  }
-
-  @override
-  test_uriDoesNotExist_dylib() async {
-    return super.test_uriDoesNotExist_dylib();
-  }
-
-  @override
-  test_uriDoesNotExist_so() async {
-    return super.test_uriDoesNotExist_so();
   }
 }

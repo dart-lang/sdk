@@ -3769,6 +3769,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethodComments = options.strongMode;
+    parser.enableOptionalNewAndConst = options.previewDart2;
     parser.enableUriInPartOf = options.enableUriInPartOf;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;

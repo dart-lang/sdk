@@ -226,6 +226,18 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBreakOutsideOfLoop = const MessageCode(
+    "BreakOutsideOfLoop",
+    analyzerCode: "BREAK_OUTSIDE_OF_LOOP",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""A break statement can't be used outside of a loop or switch statement.""",
+    tip: r"""Try removing the break statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
     const Template<Message Function(Token token)>(
         messageTemplate:
@@ -765,6 +777,32 @@ Message _withArgumentsConstructorNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueOutsideOfLoop = const MessageCode(
+    "ContinueOutsideOfLoop",
+    analyzerCode: "CONTINUE_OUTSIDE_OF_LOOP",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""A continue statement can't be used outside of a loop or switch statement.""",
+    tip: r"""Try removing the continue statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueWithoutLabelInCase =
+    messageContinueWithoutLabelInCase;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
+    "ContinueWithoutLabelInCase",
+    analyzerCode: "CONTINUE_WITHOUT_LABEL_IN_CASE",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""A continue statement in a switch statement must have a label as a target.""",
+    tip:
+        r"""Try adding a label associated with one of the case clauses to the continue statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>
     templateCouldNotParseUri =
     const Template<Message Function(String string, String string2)>(
@@ -930,6 +968,42 @@ const Code<Message Function(String name)> codeDeferredPrefixDuplicatedCause =
 Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
   return new Message(codeDeferredPrefixDuplicatedCause,
       message: """'$name' is used here.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        String
+            name)> templateDeferredTypeAnnotation = const Template<
+        Message Function(DartType _type, String name)>(
+    messageTemplate:
+        r"""The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation.""",
+    tipTemplate:
+        r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
+    withArguments: _withArgumentsDeferredTypeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, String name)>
+    codeDeferredTypeAnnotation =
+    const Code<Message Function(DartType _type, String name)>(
+        "DeferredTypeAnnotation", templateDeferredTypeAnnotation,
+        analyzerCode: "TYPE_ANNOTATION_DEFERRED_CLASS",
+        dart2jsCode: "*fatal*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeDeferredTypeAnnotation,
+      message:
+          """The type '$type' is deferred loaded via prefix '$name' and can't be used as a type annotation.""",
+      tip: """Try removing 'deferred' from the import of '$name' or use a supertype of '$type' that isn't deferred.""",
+      arguments: {'type': _type, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1805,7 +1879,7 @@ const Code<Null> codeFactoryTopLevelDeclaration =
 const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
     "FactoryTopLevelDeclaration",
     analyzerCode: "FACTORY_TOP_LEVEL_DECLARATION",
-    dart2jsCode: "*ignored*",
+    dart2jsCode: "*fatal*",
     message: r"""Top-level declarations can't be declared to be 'factory'.""",
     tip: r"""Try removing the keyword 'factory'.""");
 
@@ -2231,9 +2305,8 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Token token)> codeIntegerLiteralIsOutOfRange =
     const Code<Message Function(Token token)>(
-  "IntegerLiteralIsOutOfRange",
-  templateIntegerLiteralIsOutOfRange,
-);
+        "IntegerLiteralIsOutOfRange", templateIntegerLiteralIsOutOfRange,
+        analyzerCode: "INTEGER_LITERAL_OUT_OF_RANGE", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIntegerLiteralIsOutOfRange(Token token) {
@@ -4690,7 +4763,7 @@ const Code<Null> codeTopLevelOperator = messageTopLevelOperator;
 const MessageCode messageTopLevelOperator = const MessageCode(
     "TopLevelOperator",
     analyzerCode: "TOP_LEVEL_OPERATOR",
-    dart2jsCode: "*ignored*",
+    dart2jsCode: "*fatal*",
     message: r"""Operators must be declared within a class.""",
     tip:
         r"""Try removing the operator, moving it to a class, or converting it to be a function.""");
@@ -4961,16 +5034,6 @@ Message _withArgumentsUnexpectedToken(Token token) {
   return new Message(codeUnexpectedToken,
       message: """Unexpected token '$lexeme'.""", arguments: {'token': token});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeUnimplementedBoundsOnTypeVariables =
-    messageUnimplementedBoundsOnTypeVariables;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnimplementedBoundsOnTypeVariables = const MessageCode(
-    "UnimplementedBoundsOnTypeVariables",
-    severity: Severity.warning,
-    message: r"""Unimplemented bounds on type variables.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, Token token)>

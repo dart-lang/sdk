@@ -170,6 +170,10 @@ class JsElementCreatorMixin {
     return createClass(library, cls.name, isAbstract: cls.isAbstract);
   }
 
+  TypedefEntity convertTypedef(LibraryEntity library, IndexedTypedef typedef) {
+    return createTypedef(library, typedef.name);
+  }
+
   MemberEntity convertMember(
       LibraryEntity library, ClassEntity cls, IndexedMember member) {
     Name memberName = new Name(member.memberName.text, library,
@@ -261,7 +265,8 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
         visitList(type.optionalParameterTypes, converter),
         type.namedParameters,
         visitList(type.namedParameterTypes, converter),
-        type.typeVariables);
+        type.typeVariables,
+        visitTypedefType(type.typedefType, converter));
   }
 
   @override

@@ -24,6 +24,8 @@ import '../../metadata/inferred_type.dart';
 
 const bool kDumpAllSummaries =
     const bool.fromEnvironment('global.type.flow.dump.all.summaries');
+const bool kDumpClassHierarchy =
+    const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
@@ -33,7 +35,9 @@ Program transformProgram(CoreTypes coreTypes, Program program,
       'pkg/vm/lib/transformations/type_flow/entry_points.json',
       'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
     ]}) {
-  final hierarchy = new ClassHierarchy(program);
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+  final hierarchy = new ClassHierarchy(program,
+      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final libraryIndex = new LibraryIndex.all(program);
 
@@ -55,6 +59,10 @@ Program transformProgram(CoreTypes coreTypes, Program program,
   typeFlowAnalysis.process();
 
   analysisStopWatch.stop();
+
+  if (kDumpClassHierarchy) {
+    debugPrint(typeFlowAnalysis.hierarchyCache);
+  }
 
   final transformsStopWatch = new Stopwatch()..start();
 

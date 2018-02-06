@@ -516,6 +516,30 @@ foo() {}
 ''');
   }
 
+  test_createChange_FunctionTypeAliasElement() async {
+    await indexTestUnit('''
+typedef void F();
+void foo<T>() {}
+void main() {
+  foo<F>();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('F()');
+    expect(refactoring.refactoringName, 'Rename Function Type Alias');
+    expect(refactoring.elementKindName, 'function type alias');
+    expect(refactoring.oldName, 'F');
+    refactoring.newName = 'G';
+    // validate change
+    return assertSuccessfulRefactoring('''
+typedef void G();
+void foo<T>() {}
+void main() {
+  foo<G>();
+}
+''');
+  }
+
   test_createChange_PropertyAccessorElement_getter_declaration() async {
     await _test_createChange_PropertyAccessorElement("test {}");
   }

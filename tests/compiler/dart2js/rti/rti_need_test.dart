@@ -12,6 +12,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/js_backend/runtime_types.dart';
@@ -70,8 +71,23 @@ class Tags {
   static const String directTypeArgumentTest = 'direct';
   static const String indirectTypeArgumentTest = 'indirect';
   static const String typeLiteral = 'exp';
-  static const String requiredArgumentClass = 'required';
   static const String typeChecks = 'checks';
+
+  /// This class is needed as a checked type argument.
+  ///
+  /// For instance directly in `String` in `o is List<String>` or indirectly
+  /// as `String` in
+  ///
+  ///   class C<T> {
+  ///     method(o) => o is T;
+  ///   }
+  ///   main() => new C<String>().method('');
+  static const String argumentClass = 'arg';
+
+  // Objects are checked against this class.
+  //
+  // For instance `String` in `o is String`.
+  static const String checkedClass = 'checked';
 }
 
 abstract class ComputeValueMixin<T> {
@@ -84,11 +100,7 @@ abstract class ComputeValueMixin<T> {
   RuntimeTypesNeed get rtiNeed => compiler.backendClosedWorldForTesting.rtiNeed;
   RuntimeTypesChecks get rtiChecks =>
       compiler.backend.emitter.typeTestRegistry.rtiChecks;
-  TypeChecks get requiredChecks =>
-      // TODO(johnniwinther): This should have been
-      //   rtiChecks.requiredChecks;
-      // but it is incomplete and extended? by this:
-      compiler.backend.emitter.typeTestRegistry.requiredChecks;
+  TypeChecks get requiredChecks => rtiChecks.requiredChecks;
   ClassEntity getFrontendClass(ClassEntity cls);
   MemberEntity getFrontendMember(MemberEntity member);
   Local getFrontendClosure(MemberEntity member);
@@ -104,7 +116,7 @@ abstract class ComputeValueMixin<T> {
     }
     List<String> list = types.map(typeToString).toList()..sort();
     if (list.isNotEmpty) {
-      features[key] = '[${list.join('')}]';
+      features[key] = '[${list.join(',')}]';
     }
   }
 
@@ -140,13 +152,16 @@ abstract class ComputeValueMixin<T> {
         rtiNeedBuilder.typeVariableTests.explicitIsChecks);
     findChecks(features, Tags.implicitTypeCheck, frontendClass,
         rtiNeedBuilder.typeVariableTests.implicitIsChecks);
+    if (rtiChecks.checkedClasses.contains(backendClass)) {
+      features.add(Tags.checkedClass);
+    }
     if (rtiChecks.getRequiredArgumentClasses().contains(backendClass)) {
-      features.add(Tags.requiredArgumentClass);
+      features.add(Tags.argumentClass);
     }
     Iterable<TypeCheck> checks = requiredChecks[backendClass];
     if (checks.isNotEmpty) {
       features[Tags.typeChecks] =
-          '[${checks.map((c) => c.cls.name).join(',')}]';
+          '[${(checks.map((c) => c.cls.name).toList()..sort()).join(',')}]';
     }
     return features.getText();
   }
@@ -203,7 +218,7 @@ abstract class ComputeValueMixin<T> {
 }
 
 /// Visitor that determines whether a type refers to [entity].
-class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
+class FindTypeVisitor extends BaseResolutionDartTypeVisitor<bool, Null> {
   final Entity entity;
 
   FindTypeVisitor(this.entity);

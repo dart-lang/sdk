@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/parser_fasta_test.dart';
+import '../../../generated/test_support.dart';
 
 /**
  * The base class for tests that test how well the parser recovers from various
@@ -17,15 +18,36 @@ import '../../../generated/parser_fasta_test.dart';
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
-      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
-    CompilationUnit invalidUnit =
-        parseCompilationUnit(invalidCode, codes: errorCodes);
+      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit),
+      List<ErrorCode> expectedErrorsInValidCode}) {
+    CompilationUnit validUnit;
+
+    // Assert that the valid code is indeed valid.
+    try {
+      validUnit =
+          parseCompilationUnit(validCode, codes: expectedErrorsInValidCode);
+    } catch (e) {
+      print('*** Valid code did not parse correctly');
+      print(validCode);
+      rethrow;
+    }
+
+    // Compare the structures before asserting valid errors.
+    GatheringErrorListener listener =
+        new GatheringErrorListener(checkRanges: true);
+    CompilationUnit invalidUnit = parseCompilationUnit2(invalidCode, listener);
     validateTokenStream(invalidUnit.beginToken);
-    CompilationUnit validUnit = parseCompilationUnit(validCode);
     if (adjustValidUnitBeforeComparison != null) {
       validUnit = adjustValidUnitBeforeComparison(validUnit);
     }
     ResultComparator.compare(invalidUnit, validUnit);
+
+    // Assert valid errors.
+    if (errorCodes != null) {
+      listener.assertErrorsWithCodes(errorCodes);
+    } else {
+      listener.assertNoErrors();
+    }
   }
 
   void validateTokenStream(Token token) {
@@ -43,10 +65,10 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
 class ResultComparator extends AstComparator {
   bool failDifferentLength(List first, List second) {
     StringBuffer buffer = new StringBuffer();
-    buffer.write('Expected a list of length ');
-    buffer.write(second.length);
-    buffer.write('; found a list of length ');
-    buffer.writeln(first.length);
+    buffer.writeln('Expected a list of length ${second.length}');
+    buffer.writeln('  $second');
+    buffer.writeln('But found a list of length ${first.length}');
+    buffer.writeln('  $first');
     if (first is NodeList) {
       _safelyWriteNodePath(buffer, first.owner);
     }

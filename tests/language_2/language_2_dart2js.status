@@ -40,15 +40,13 @@ regress_30339_test: RuntimeError # Issue 30393
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 
-[ $compiler == dart2js && $runtime != drt && !$dart2js_with_kernel ]
-issue23244_test: RuntimeError # 23244
-
 [ $compiler == dart2js && $runtime == ff && !$dart2js_with_kernel ]
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == jsshell ]
+async_call_test: RuntimeError # Timer interface not supported: Issue 7728.
 async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
 async_star_test/03: RuntimeError
@@ -71,17 +69,32 @@ covariant_tear_off_type_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
+function_subtype_bound_closure1_test: RuntimeError
+function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure5_test: RuntimeError
+function_subtype_bound_closure5a_test: RuntimeError
+function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
+function_subtype_cast2_test: RuntimeError
+function_subtype_cast3_test: RuntimeError
+function_subtype_checked0_test: RuntimeError
+function_subtype_local1_test: RuntimeError
+function_subtype_local2_test: RuntimeError
+function_subtype_local5_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
+function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
+function_subtype_top_level1_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
@@ -154,6 +167,8 @@ function_type/function_type90_test: RuntimeError # Issue 30476
 function_type/function_type96_test: RuntimeError # Issue 30476
 function_type/function_type9_test: RuntimeError # Issue 30476
 function_type_alias2_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 callable_test/none: RuntimeError
@@ -169,29 +184,45 @@ covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
+function_subtype_bound_closure1_test: RuntimeError
+function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure5_test: RuntimeError
+function_subtype_bound_closure5a_test: RuntimeError
+function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
+function_subtype_cast2_test: RuntimeError
+function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
+function_subtype_local1_test: RuntimeError
+function_subtype_local2_test: RuntimeError
+function_subtype_local5_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
+function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
+function_subtype_top_level1_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
@@ -281,6 +312,7 @@ invalid_cast_test/08: MissingCompileTimeError
 invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
+issue23244_test: RuntimeError # 23244
 issue31596_super_test/05: RuntimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
@@ -334,7 +366,6 @@ typedef_is_test: Crash
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel && $strong ]
 assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_test/02: RuntimeError
@@ -727,6 +758,8 @@ function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
+generic_test/01: MissingCompileTimeError
+generic_test/none: RuntimeError
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_redirecting_factory_test/02: Fail # Issue 12825
 malbounded_redirecting_factory_test/03: Fail # Issue 12825
@@ -759,8 +792,6 @@ recursive_mixin_test: RuntimeError # no check without --checked
 type_argument_in_super_type_test: RuntimeError
 
 [ $compiler == dart2js && !$checked && $dart2js_with_kernel ]
-assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
-assertion_initializer_const_error2_test/none: Pass
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128
@@ -823,7 +854,8 @@ forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-generic_test: RuntimeError, OK
+generic_test/01: MissingCompileTimeError
+generic_test/none: RuntimeError # test requires Dart 2 subtyping for `is`
 issue31596_implement_covariant_test: RuntimeError
 issue31596_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -833,6 +865,7 @@ type_check_const_function_typedef2_test: MissingCompileTimeError
 function_subtype_inline2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
+async_error_timing_test: Crash
 bug31436_test: RuntimeError
 built_in_identifier_type_annotation_test/22: Crash # Issue 28815
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28815
@@ -855,6 +888,7 @@ checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 closure_param_null_to_object_test: RuntimeError
 extract_type_arguments_test: Crash # Issue 31371
+generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_for_in_element_test: RuntimeError
 implicit_downcast_during_for_in_iterable_test: RuntimeError
@@ -874,7 +908,6 @@ instantiate_tearoff_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_test/02: RuntimeError
@@ -1079,7 +1112,7 @@ generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_test: RuntimeError
+generic_test/none: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
@@ -1409,6 +1442,7 @@ await_not_started_immediately_test: Crash # Assertion failure: Runtime type info
 await_null_aware_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_postfix_expr_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
@@ -1526,24 +1560,11 @@ deferred_closurize_load_library_test: Crash # Assertion failure: Runtime type in
 deferred_constant_list_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/new: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/new_before_load: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/new_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/new_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/new_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/static_method: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_null: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_function_type_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_global_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_import_core_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -1624,12 +1645,19 @@ full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
 function_propagation_test: CompileTimeError
+function_subtype_bound_closure1_test: RuntimeError
+function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure5_test: RuntimeError
+function_subtype_bound_closure5a_test: RuntimeError
+function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
+function_subtype_cast2_test: RuntimeError
+function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
@@ -1637,18 +1665,27 @@ function_subtype_factory0_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+function_subtype_local1_test: RuntimeError
+function_subtype_local2_test: RuntimeError
+function_subtype_local5_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
+function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
+function_subtype_top_level1_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
@@ -1658,7 +1695,7 @@ generic_async_test: Crash # Assertion failure: Runtime type information not avai
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
-generic_function_bounds_test: CompileTimeError
+generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node U.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
@@ -1682,7 +1719,7 @@ generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_tearoff_test: CompileTimeError
 generic_test: RuntimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
@@ -1847,16 +1884,8 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
-mixin_mixin4_test: RuntimeError
-mixin_mixin5_test: RuntimeError
-mixin_mixin6_test: RuntimeError
-mixin_mixin7_test: RuntimeError
-mixin_mixin_bound2_test: RuntimeError
-mixin_mixin_bound_test: RuntimeError
-mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
@@ -2313,6 +2342,7 @@ await_not_started_immediately_test: Crash # Assertion failure: Runtime type info
 await_null_aware_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_postfix_expr_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_regression_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
@@ -2428,24 +2458,11 @@ deferred_closurize_load_library_test: Crash # Assertion failure: Runtime type in
 deferred_constant_list_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_constants_test/none: CompileTimeError
 deferred_constraints_constants_test/reference_after_load: CompileTimeError
-deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/new: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/new_before_load: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/new_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/new_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/new_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/static_method: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_null: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_function_type_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_global_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 deferred_import_core_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -2527,12 +2544,19 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 function_propagation_test: CompileTimeError
+function_subtype_bound_closure1_test: RuntimeError
+function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure5_test: RuntimeError
+function_subtype_bound_closure5a_test: RuntimeError
+function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
+function_subtype_cast2_test: RuntimeError
+function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
@@ -2540,18 +2564,27 @@ function_subtype_factory0_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
+function_subtype_local1_test: RuntimeError
+function_subtype_local2_test: RuntimeError
+function_subtype_local5_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
+function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
+function_subtype_top_level1_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_alias3_test: RuntimeError
+function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
@@ -2559,7 +2592,7 @@ fuzzy_arrows_test/03: RuntimeError
 generic_async_star_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 generic_async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 generic_field_mixin6_test/none: RuntimeError
-generic_function_bounds_test: CompileTimeError
+generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node U.
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
@@ -2583,8 +2616,7 @@ generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [Instance of 'LiteralNull', null]
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_test: RuntimeError
+generic_tearoff_test: CompileTimeError
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -2747,9 +2779,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_issue10216_2_test: RuntimeError
-mixin_mixin7_test: RuntimeError
-mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError

@@ -1180,11 +1180,21 @@ var x = const C(2);
   test_constEvalTypeBool_binary_leftTrue() async {
     Source source = addSource("const C = (true || 0);");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND,
-      HintCode.DEAD_CODE
-    ]);
+    assertErrors(
+        source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_constEvalTypeBool_logicalOr_trueLeftOperand() async {
+    Source source = addSource(r'''
+class C {
+  final int x;
+  const C({this.x}) : assert(x == null || x >= 0);
+}
+const c = const C();
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3208,6 +3218,18 @@ E e(String name) {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
     verify([source]);
+  }
+
+  test_integerLiteralOutOfRange_negative() async {
+    Source source = addSource('int x = -9223372036854775809;');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
+  }
+
+  test_integerLiteralOutOfRange_positive() async {
+    Source source = addSource('int x = 9223372036854775808;');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
   }
 
   test_invalidAnnotation_getter() async {

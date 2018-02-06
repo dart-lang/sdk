@@ -270,6 +270,10 @@ template("build_libdart_builtin") {
       ":generate_web_gl_cc_file",
       ":generate_web_sql_cc_file",
     ]
+    if (is_fuchsia) {
+      deps += [ "//zircon/public/lib/launchpad" ]
+      public_deps = [ "//zircon/public/lib/fdio" ]
+    }
     include_dirs = [ ".." ]
     set_sources_assignment_filter([
                                     "*_test.cc",
@@ -321,6 +325,9 @@ template("build_gen_snapshot") {
              ":generate_cli_cc_file",
              ":generate_cli_patch_cc_file",
            ] + extra_deps
+    if (is_fuchsia) {
+      deps += [ "//zircon/public/lib/launchpad" ]
+    }
 
     sources = [
       # Include generated source files.
@@ -376,10 +383,6 @@ template("build_gen_snapshot") {
         "winmm.lib",
       ]
     }
-
-    if (is_fuchsia) {
-      libs = [ "launchpad" ]
-    }
   }
 }
 
@@ -419,6 +422,7 @@ template("build_gen_snapshot_dart_io") {
 
     if (is_fuchsia) {
       deps += [ "//garnet/public/lib/netstack/c" ]
+      public_deps = [ "//zircon/public/lib/fdio" ]
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
@@ -515,8 +519,11 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      deps += [ "//garnet/public/lib/netstack/c" ]
-      libs = [ "launchpad" ]
+      deps += [
+        "//garnet/public/lib/netstack/c",
+        "//zircon/public/lib/launchpad",
+      ]
+      public_deps = [ "//zircon/public/lib/fdio" ]
     }
 
     sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
@@ -673,24 +680,64 @@ bin_to_assembly("isolate_snapshot_instructions_assembly") {
   executable = true
 }
 
-action("kernel_service_dill_cc") {
+template("dill_to_cc") {
+  assert(defined(invoker.dill_file), "Need dill_file in $target_name.")
+  assert(defined(invoker.data_symbol), "Need data_symbol in $target_name.")
+  assert(defined(invoker.size_symbol), "Need size_symbol in $target_name.")
+  assert(defined(invoker.output), "Need output in $target_name.")
+
+  extra_deps = []
+  if (defined(invoker.deps)) {
+    extra_deps += invoker.deps
+  }
+
+  action(target_name) {
+    deps = extra_deps
+    script = "../tools/dill_to_data_cc.py"
+    inputs = [
+      "../tools/dill_to_data_cc.py",
+      invoker.dill_file,
+    ]
+    outputs = [
+      invoker.output,
+    ]
+    args = [
+      "--dill_file=" + rebase_path(invoker.dill_file),
+      "--data_symbol=" + invoker.data_symbol,
+      "--size_symbol=" + invoker.size_symbol,
+      "--output=" + rebase_path(invoker.output),
+    ]
+  }
+}
+
+dill_to_cc("kernel_service_dill_cc") {
   deps = [
     "../../utils/kernel-service:kernel_service_dill",
   ]
-  script = "../tools/dill_to_data_cc.py"
-  inputs = [
-    "../tools/dill_to_data_cc.py",
-    "$root_gen_dir/kernel_service.dill",
+  dill_file = "$root_gen_dir/kernel_service.dill"
+  data_symbol = "kKernelServiceDill"
+  size_symbol = "kKernelServiceDillSize"
+  output = "$root_gen_dir/kernel_service.dill.cc"
+}
+
+dill_to_cc("platform_dill_cc") {
+  deps = [
+    "../vm:vm_legacy_platform",
   ]
-  outputs = [
-    "$root_gen_dir/kernel_service.dill.cc",
+  dill_file = "$root_out_dir/vm_platform.dill"
+  data_symbol = "kPlatformDill"
+  size_symbol = "kPlatformDillSize"
+  output = "$target_gen_dir/vm_platform.dill.cc"
+}
+
+dill_to_cc("platform_strong_dill_cc") {
+  deps = [
+    "../vm:vm_platform",
   ]
-  args = [
-    "--dill_file=" + rebase_path("$root_gen_dir/kernel_service.dill"),
-    "--data_symbol=kKernelServiceDill",
-    "--size_symbol=kKernelServiceDillSize",
-    "--output=" + rebase_path("$root_gen_dir/kernel_service.dill.cc"),
-  ]
+  dill_file = "$root_out_dir/vm_platform_strong.dill"
+  data_symbol = "kPlatformStrongDill"
+  size_symbol = "kPlatformStrongDillSize"
+  output = "$target_gen_dir/vm_platform_strong.dill.cc"
 }
 
 source_set("dart_snapshot_cc") {
@@ -698,6 +745,8 @@ source_set("dart_snapshot_cc") {
     ":isolate_snapshot_data_assembly",
     ":isolate_snapshot_instructions_assembly",
     ":kernel_service_dill_cc",
+    ":platform_dill_cc",
+    ":platform_strong_dill_cc",
     ":vm_snapshot_data_assembly",
     ":vm_snapshot_instructions_assembly",
   ]
@@ -705,6 +754,8 @@ source_set("dart_snapshot_cc") {
     "$root_gen_dir/kernel_service.dill.cc",
     "$target_gen_dir/isolate_snapshot_data.S",
     "$target_gen_dir/isolate_snapshot_instructions.S",
+    "$target_gen_dir/vm_platform.dill.cc",
+    "$target_gen_dir/vm_platform_strong.dill.cc",
     "$target_gen_dir/vm_snapshot_data.S",
     "$target_gen_dir/vm_snapshot_instructions.S",
   ]
@@ -755,6 +806,10 @@ template("dart_executable") {
              "$dart_zlib_path",
            ] + extra_deps
 
+    if (is_fuchsia) {
+      deps += [ "//zircon/public/lib/launchpad" ]
+    }
+
     defines = extra_defines
 
     if (dart_use_tcmalloc) {
@@ -796,10 +851,6 @@ template("dart_executable") {
         "Rpcrt4.lib",
         "winmm.lib",
       ]
-    }
-
-    if (is_fuchsia) {
-      libs = [ "launchpad" ]
     }
   }
 }
@@ -1068,7 +1119,7 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    deps += [ "//zircon/system/ulib/trace" ]
+    deps += [ "//zircon/public/lib/trace" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in

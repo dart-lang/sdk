@@ -9,11 +9,40 @@ import 'recovery_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AnnotationTest);
     defineReflectiveTests(MiscellaneousTest);
     defineReflectiveTests(ModifiersTest);
     defineReflectiveTests(MultipleTypeTest);
     defineReflectiveTests(PunctuationTest);
   });
+}
+
+/**
+ * Test how well the parser recovers when annotations are included in places
+ * where they are not allowed.
+ */
+@reflectiveTest
+class AnnotationTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_typeArgument() {
+    // https://github.com/dart-lang/sdk/issues/22314
+    // Parser crashes
+    // 'package:analyzer/src/fasta/ast_builder.dart': Failed assertion:
+    //     line 256 pos 12: 'token.isKeywordOrIdentifier': is not true.
+    testRecovery('''
+const annotation = null;
+class A<E> {}
+class C {
+  m() => new A<@annotation C>();
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.UNEXPECTED_TOKEN], '''
+const annotation = null;
+class A<E> {}
+class C {
+  m() => new A<C>();
+}
+''');
+  }
 }
 
 /**
@@ -31,12 +60,40 @@ class B = Object with A;
 ''');
   }
 
+  @failingTest
+  void test_extraParenInMapLiteral() {
+    // https://github.com/dart-lang/sdk/issues/12100
+    testRecovery('''
+class C {}
+final Map v = {
+  'a': () => new C(),
+  'b': () => new C()),
+  'c': () => new C(),
+};
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+class C {}
+final Map v = {
+  'a': () => new C(),
+  'b': () => new C(),
+  'c': () => new C(),
+};
+''');
+  }
+
   void test_getter_parameters() {
     testRecovery('''
 int get g() => 0;
 ''', [ParserErrorCode.GETTER_WITH_PARAMETERS], '''
 int get g => 0;
 ''');
+  }
+
+  void test_invalidRangeCheck() {
+    parseCompilationUnit('''
+f(x) {
+  while (1 < x < 3) {}
+}
+''', codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
   }
 
   void test_multipleRedirectingInitializers() {
@@ -73,6 +130,10 @@ class A {}
   }
 }
 
+/**
+ * Test how well the parser recovers when multiple type annotations are
+ * provided.
+ */
 @reflectiveTest
 class MultipleTypeTest extends AbstractRecoveryTest {
   @failingTest

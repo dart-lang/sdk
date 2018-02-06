@@ -614,9 +614,6 @@ class TestTypeProvider extends TypeProviderBase {
       ElementFactory.methodElement(">", _boolType, [_numType]),
       ElementFactory.methodElement(">=", _boolType, [_numType]),
       ElementFactory.methodElement("==", _boolType, [_objectType]),
-      ElementFactory.methodElement("isNaN", _boolType),
-      ElementFactory.methodElement("isNegative", _boolType),
-      ElementFactory.methodElement("isInfinite", _boolType),
       ElementFactory.methodElement("abs", _numType),
       ElementFactory.methodElement("floor", _numType),
       ElementFactory.methodElement("ceil", _numType),
@@ -630,6 +627,11 @@ class TestTypeProvider extends TypeProviderBase {
       ElementFactory
           .methodElement("toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
+    ];
+    numElement.accessors = [
+      ElementFactory.getterElement('isInfinite', false, _boolType),
+      ElementFactory.getterElement('isNaN', false, _boolType),
+      ElementFactory.getterElement('isNegative', false, _boolType),
     ];
     intElement.methods = <MethodElement>[
       ElementFactory.methodElement("&", _intType, [_intType]),

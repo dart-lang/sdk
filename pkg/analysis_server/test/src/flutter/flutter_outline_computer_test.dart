@@ -206,6 +206,62 @@ class MyWidget extends StatelessWidget {
     }
   }
 
+  test_genericLabel_invocation() async {
+    FlutterOutline unitOutline = await _computeOutline(r'''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(children: [
+      createText(0),
+      createEmptyText(),
+      WidgetFactory.createMyText(),
+    ]);
+  }
+  Text createEmptyText() {
+    return new Text('');
+  }
+  Text createText(int index) {
+    return new Text('index: $index');
+  }
+}
+
+class WidgetFactory {
+  static Text createMyText() => new Text('');
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+    expect(build.children, hasLength(1));
+
+    var row = build.children[0];
+    expect(row.kind, FlutterOutlineKind.NEW_INSTANCE);
+    expect(row.className, 'Row');
+    expect(row.children, hasLength(3));
+
+    {
+      var text = row.children[0];
+      expect(text.kind, FlutterOutlineKind.GENERIC);
+      expect(text.className, 'Text');
+      expect(text.label, 'createText(…)');
+    }
+
+    {
+      var text = row.children[1];
+      expect(text.kind, FlutterOutlineKind.GENERIC);
+      expect(text.className, 'Text');
+      expect(text.label, 'createEmptyText()');
+    }
+
+    {
+      var text = row.children[2];
+      expect(text.kind, FlutterOutlineKind.GENERIC);
+      expect(text.className, 'Text');
+      expect(text.label, 'WidgetFactory.createMyText()');
+    }
+  }
+
   test_parentAssociationLabel() async {
     newFile('/a.dart', content: r'''
 import 'package:flutter/widgets.dart';

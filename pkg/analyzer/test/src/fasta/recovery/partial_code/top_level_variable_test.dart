@@ -90,8 +90,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               "int _s_;",
               allFailing: true),
           new TestDescriptor(
-              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;",
-              allFailing: true),
+              'typeName', 'int a', [ParserErrorCode.EXPECTED_TOKEN], "int a;"),
           new TestDescriptor(
               'var',
               'var',
@@ -103,7 +102,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               failing: allExceptEof),
           new TestDescriptor(
               'varName', 'var a', [ParserErrorCode.EXPECTED_TOKEN], "var a;",
-              failing: allExceptEof),
+              failing: ['typedef', 'functionNonVoid', 'getter', 'setter']),
           new TestDescriptor(
               'varNameEquals',
               'var a =',
@@ -113,15 +112,8 @@ class TopLevelVariableTest extends PartialCodeTest {
               ],
               "var a = _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
-              'varNameEqualsExpression',
-              'var a = b',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "var a = b;",
-              allFailing: true),
+          new TestDescriptor('varNameEqualsExpression', 'var a = b',
+              [ParserErrorCode.EXPECTED_TOKEN], "var a = b;"),
         ],
         PartialCodeTest.declarationSuffixes);
   }

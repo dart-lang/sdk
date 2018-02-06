@@ -361,21 +361,6 @@ void testMissingCloseBraceInClass() {
   Expect.throws(parse, check);
 }
 
-void testUnmatchedAngleBracket() {
-  final String source = 'A<'; // unmatched '<'
-  parse() {
-    fullParseUnit(source, reporter: new Collector());
-  }
-
-  check(exn) {
-    Collector c = exn;
-    Expect.equals(LT_TOKEN, c.token);
-    return true;
-  }
-
-  Expect.throws(parse, check);
-}
-
 void main() {
   testGenericTypes();
   // TODO(ahe): Enable this test when we handle library prefixes.
@@ -393,5 +378,4 @@ void main() {
   testOperatorParse();
   testMissingCloseParen();
   testMissingCloseBraceInClass();
-  testUnmatchedAngleBracket();
 }

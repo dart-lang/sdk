@@ -887,7 +887,7 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
       new (Z) Value(call->ArgumentAt(0)), &field,
       AbstractType::ZoneHandle(Z, field.type()), call->token_pos(),
-      FLAG_use_field_guards ? &flow_graph()->parsed_function() : NULL);
+      isolate()->use_field_guards() ? &flow_graph()->parsed_function() : NULL);
   load->set_is_immutable(field.is_final());
 
   // Discard the environment from the original instruction because the load
@@ -945,7 +945,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     AddReceiverCheck(instr);
   }
 
-  if (FLAG_use_field_guards) {
+  if (I->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
       ASSERT(I->use_field_guards());
       InsertBefore(instr,
@@ -972,8 +972,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                               new (Z) Value(instr->ArgumentAt(1)),
                               kEmitStoreBarrier, instr->token_pos());
 
-  ASSERT(FLAG_use_field_guards || !store->IsUnboxedStore());
-  if (FLAG_use_field_guards && store->IsUnboxedStore()) {
+  ASSERT(I->use_field_guards() || !store->IsUnboxedStore());
+  if (I->use_field_guards() && store->IsUnboxedStore()) {
     flow_graph()->parsed_function().AddToGuardedFields(&field);
   }
 

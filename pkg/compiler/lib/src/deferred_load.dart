@@ -15,7 +15,8 @@ import 'constants/values.dart'
         ConstantValue,
         ConstructedConstantValue,
         DeferredConstantValue,
-        DeferredGlobalConstantValue;
+        DeferredGlobalConstantValue,
+        TypeConstantValue;
 import 'elements/types.dart';
 import 'elements/elements.dart'
     show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
@@ -369,6 +370,12 @@ abstract class DeferredLoadTask extends CompilerTask {
       if (constant is ConstructedConstantValue) {
         ClassEntity cls = constant.type.element;
         _updateElementRecursive(cls, oldSet, newSet, queue);
+      }
+      if (constant is TypeConstantValue) {
+        var type = constant.representedType;
+        if (type is TypedefType) {
+          _updateElementRecursive(type.element, oldSet, newSet, queue);
+        }
       }
       constant.getDependencies().forEach((ConstantValue dependency) {
         if (dependency is DeferredConstantValue) {

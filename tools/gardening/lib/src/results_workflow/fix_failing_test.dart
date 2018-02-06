@@ -29,10 +29,10 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
   List<FailingTest> _remainingTests;
 
   // These fields are mutated to persist user input.
-  String _lastComment = null;
+  String _lastComment;
   FixWorkingItem _lastWorkingItem;
   List<StatusSectionWithFile> _customSections = [];
-  bool _fixIfPossible = false;
+  StatusExpectations _statusExpectations;
 
   FixFailingTest(this._testResult);
 
@@ -46,44 +46,19 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     }
     // We have to compute status files on every show, because we modify the
     // status files on every fix.
-    var statusExpectations = new StatusExpectations(_testResult);
-    await statusExpectations.loadStatusFiles();
+    _statusExpectations = new StatusExpectations(_testResult);
+    await _statusExpectations.loadStatusFiles();
 
     _remainingTests = payload.sublist(1);
     var failingTest = payload.first;
 
-    if (!failingTest.stillFailing(statusExpectations)) {
+    if (!failingTest.stillFailing(_statusExpectations)) {
       return new NavigateStepWorkflowAction(this, _remainingTests);
     }
 
     _currentWorkingItem = new FixWorkingItem(failingTest.result.name,
-        failingTest, statusExpectations, _lastComment, this._customSections);
+        failingTest, _statusExpectations, _lastComment, this._customSections);
     _currentWorkingItem.init();
-
-    if (_lastWorkingItem != null && _fixIfPossible) {
-      // Outcome may be larger from the previous one, but current newOutcome
-      // will always be a singleton list. So we check by matching first
-      // element.
-      var outcomeIsSame = _currentWorkingItem.newOutcome.first ==
-          _lastWorkingItem.newOutcome.first;
-      var lastConfigurations =
-          _lastWorkingItem.failingTest.failingConfigurations;
-      var currentConfigurations =
-          _currentWorkingItem.failingTest.failingConfigurations;
-      var sameConfigurations = lastConfigurations.length ==
-              currentConfigurations.length &&
-          lastConfigurations.every(
-              (configuration) => currentConfigurations.contains(configuration));
-      if (outcomeIsSame && sameConfigurations) {
-        _lastWorkingItem.currentSections.forEach((section) {
-          addExpressionToCustomSections(
-              section.section.condition, section.statusFile.path);
-        });
-        print("Auto-fixing ${_currentWorkingItem.name}");
-        await fixFailingTest();
-        return new NavigateStepWorkflowAction(this, _remainingTests);
-      }
-    }
 
     print("");
     print("${_remainingTests.length + 1} tests remaining.");
@@ -111,9 +86,8 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
       _lastComment = _currentWorkingItem.comment;
     } else if (input == "f") {
       // Fix failing tests and try to fix the coming ones.
-      _fixIfPossible = true;
       await fixFailingTest();
-      return new NavigateStepWorkflowAction(this, _remainingTests);
+      return _fixAllSimilarTests();
     } else if (input == "o") {
       // Case change new outcome.
       _currentWorkingItem.newOutcome = getNewOutcome();
@@ -137,6 +111,35 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
       askAboutTest();
     }
     return new WaitForInputWorkflowAction();
+  }
+
+  Future<WorkflowAction> _fixAllSimilarTests() async {
+    for (FailingTest similarTest in _remainingTests) {
+      _currentWorkingItem = new FixWorkingItem(similarTest.result.name,
+          similarTest, _statusExpectations, _lastComment, this._customSections);
+      _currentWorkingItem.init();
+      // Outcome may be larger from the previous one, but current newOutcome
+      // will always be a singleton list. So we check by matching first
+      // element.
+      var outcomeIsSame = _currentWorkingItem.newOutcome.first ==
+          _lastWorkingItem.newOutcome.first;
+      var lastConfigurations =
+          _lastWorkingItem.failingTest.failingConfigurations;
+      var currentConfigurations =
+          _currentWorkingItem.failingTest.failingConfigurations;
+      var sameConfigurations = lastConfigurations.length ==
+              currentConfigurations.length &&
+          lastConfigurations.every(
+              (configuration) => currentConfigurations.contains(configuration));
+      if (outcomeIsSame && sameConfigurations) {
+        _currentWorkingItem.currentSections = _lastWorkingItem.currentSections;
+        print("Auto-fixing ${_currentWorkingItem.name}");
+        var realLast = _lastWorkingItem;
+        await fixFailingTest(); // Sets _lastWorkingItem to _currentWorkingItem
+        _lastWorkingItem = realLast; // Might not be needed
+      }
+    }
+    return new NavigateStepWorkflowAction(this, const <FailingTest>[]);
   }
 
   @override
@@ -164,10 +167,10 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
   /// Fixes the failing test based on the data in [_currentWorkingItem].
   Future fixFailingTest() async {
     // Delete all existing entries that are wrong.
-    var statusFiles = new Set<StatusFile>();
+    var changedFiles = new Set<StatusFile>();
     for (var statusEntry in _currentWorkingItem.statusEntries) {
       statusEntry.section.entries.remove(statusEntry.entry);
-      statusFiles.add(statusEntry.statusFile);
+      changedFiles.add(statusEntry.statusFile);
     }
     // Add new expectations to status sections.
     var path = getQualifiedNameForTest(_currentWorkingItem.name);
@@ -184,12 +187,12 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         currentSection.statusFile.sections.add(currentSection.section);
       }
       currentSection.section.entries.add(statusEntry);
-      statusFiles.add(currentSection.statusFile);
+      changedFiles.add(currentSection.statusFile);
     }
     // Save the modified status files.
-    for (var statusFile in statusFiles) {
-      var normalized = normalizeStatusFile(statusFile);
-      await new File(statusFile.path).writeAsString(normalized.toString());
+    for (var file in changedFiles) {
+      await new File(file.path)
+          .writeAsString(normalizeStatusFile(file).toString());
     }
     _lastWorkingItem = _currentWorkingItem;
   }
@@ -210,7 +213,6 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         orElse: () => null);
     sectionToAdd ??= new StatusSection(expression, 0, []);
     var section = new StatusSectionWithFile(statusFile, sectionToAdd);
-    // This mutates the
     _customSections.add(section);
     _currentWorkingItem.currentSections.add(section);
   }
@@ -237,6 +239,9 @@ Expression getNewExpressionFromCommandLine() {
 /// user to pick the correct file.
 StatusFile getStatusFile(FixWorkingItem workingItem) {
   var statusFiles = workingItem.statusFiles();
+  if (statusFiles.length == 1) {
+    return statusFiles.first;
+  }
   print("Which status file should the section be added to/exists in?");
   int i = 0;
   for (var statusFile in statusFiles) {
@@ -382,7 +387,6 @@ class FixWorkingItem {
     print("Sections to add the new outcome to. The selected sections are "
         "marked by *:");
     int groupCounter = "A".codeUnitAt(0);
-    ;
     int sectionCounter = 0;
     suggestedSections.forEach((suggestedSection) {
       print("  ${new String.fromCharCode(groupCounter++)} "

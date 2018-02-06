@@ -241,7 +241,7 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var args = ['--kernel-binaries=${context.platformBinaries.toFilePath()}'];
+      var args = [];
       if (context.strongMode) {
         args.add('--strong');
         args.add('--reify-generic-functions');

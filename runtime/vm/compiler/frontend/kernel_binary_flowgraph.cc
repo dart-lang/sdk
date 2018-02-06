@@ -566,9 +566,8 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
   }
 #endif  // DEBUG
 
-  last_node_offset_ = builder_->data_program_offset_ +
-                      builder_->parsed_function()->function().kernel_offset();
-  last_mapping_index_ = FindMetadataMapping(last_node_offset_);
+  last_node_offset_ = kIntptrMax;
+  last_mapping_index_ = 0;
 }
 
 intptr_t MetadataHelper::FindMetadataMapping(intptr_t node_offset) {
@@ -732,6 +731,25 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
   return DirectCallMetadata(target, check_receiver_for_null);
 }
 
+bool ProcedureAttributesMetadataHelper::ReadMetadata(intptr_t node_offset,
+                                                     bool* has_dynamic_calls) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    *has_dynamic_calls = true;
+    return false;
+  }
+  *has_dynamic_calls = false;
+  return true;
+}
+
+ProcedureAttributesMetadata
+ProcedureAttributesMetadataHelper::GetProcedureAttributes(
+    intptr_t node_offset) {
+  bool has_dynamic_calls = true;
+  ReadMetadata(node_offset, &has_dynamic_calls);
+  return ProcedureAttributesMetadata(has_dynamic_calls);
+}
+
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     intptr_t node_offset) {
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
@@ -803,7 +821,21 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   ActiveTypeParametersScope active_type_params(&active_class_, function, Z);
 
   LocalScope* enclosing_scope = NULL;
-  if (function.IsLocalFunction()) {
+  if (function.IsImplicitClosureFunction() && !function.is_static()) {
+    // Create artificial enclosing scope for the tear-off that contains
+    // captured receiver value. This ensure that AssertAssignable will correctly
+    // load instantiator type arguments if they are needed.
+    Class& klass = Class::Handle(Z, function.Owner());
+    Type& klass_type = H.GetCanonicalType(klass);
+    result_->this_variable =
+        MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                     Symbols::This(), klass_type);
+    result_->this_variable->set_index(0);
+    result_->this_variable->set_is_captured();
+    enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
+    enclosing_scope->set_context_level(0);
+    enclosing_scope->AddVariable(result_->this_variable);
+  } else if (function.IsLocalFunction()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));
   }
@@ -835,6 +867,9 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   builder_->SetOffset(function.kernel_offset());
 
   FunctionNodeHelper function_node_helper(builder_);
+  const ProcedureAttributesMetadata attrs =
+      builder_->procedure_attributes_metadata_helper_.GetProcedureAttributes(
+          function.kernel_offset());
 
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
@@ -904,9 +939,34 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         result_->type_arguments_variable = variable;
       }
 
+      ParameterTypeCheckMode type_check_mode = kTypeCheckAllParameters;
+      if (!function.IsImplicitClosureFunction()) {
+        if (function.is_static()) {
+          // In static functions we don't check anything.
+          type_check_mode = kTypeCheckForStaticFunction;
+        } else if (!attrs.has_dynamic_invocations) {
+          // If the current function is never a target of a dynamic invocation
+          // and this parameter is not marked with generic-covariant-impl
+          // (which means that among all super-interfaces no type parameters
+          // ever occur at the position of this parameter) then we don't need
+          // to check this parameter on the callee side, because strong mode
+          // guarantees that it was checked at the caller side.
+          type_check_mode = kTypeCheckForNonDynamicallyInvokedMethod;
+        }
+      } else {
+        if (!attrs.has_dynamic_invocations) {
+          // This is a tear-off of an instance method that can not be reached
+          // from any dynamic invocation. The method would not check any
+          // parameters except covariant ones and those annotated with
+          // generic-covariant-impl. Which means that we have to check
+          // the rest in the tear-off itself..
+          type_check_mode = kTypeCheckForTearOffOfNonDynamicallyInvokedMethod;
+        }
+      }
+
       // Continue reading FunctionNode:
       // read positional_parameters and named_parameters.
-      AddPositionalAndNamedParameters(pos);
+      AddPositionalAndNamedParameters(pos, type_check_mode);
 
       // We generate a synthetic body for implicit closure functions - which
       // will forward the call to the real function.
@@ -1945,7 +2005,7 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   // read positional_parameters and named_parameters.
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
-  AddPositionalAndNamedParameters();
+  AddPositionalAndNamedParameters(0, kTypeCheckAllParameters);
 
   // "Peek" is now done.
   builder_->SetOffset(offset);
@@ -1971,21 +2031,25 @@ void StreamingScopeBuilder::ExitScope(TokenPosition start_position,
   scope_ = scope_->parent();
 }
 
-void StreamingScopeBuilder::AddPositionalAndNamedParameters(intptr_t pos) {
+void StreamingScopeBuilder::AddPositionalAndNamedParameters(
+    intptr_t pos,
+    ParameterTypeCheckMode type_check_mode /* = kTypeCheckAllParameters*/) {
   // List of positional.
   intptr_t list_length = builder_->ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    AddVariableDeclarationParameter(pos++);  // read ith positional parameter.
+    AddVariableDeclarationParameter(pos++, type_check_mode);
   }
 
   // List of named.
   list_length = builder_->ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
-    AddVariableDeclarationParameter(pos++);  // read ith named parameter.
+    AddVariableDeclarationParameter(pos++, type_check_mode);
   }
 }
 
-void StreamingScopeBuilder::AddVariableDeclarationParameter(intptr_t pos) {
+void StreamingScopeBuilder::AddVariableDeclarationParameter(
+    intptr_t pos,
+    ParameterTypeCheckMode type_check_mode) {
   intptr_t kernel_offset = builder_->ReaderOffset();  // no tag.
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
@@ -2001,6 +2065,35 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(intptr_t pos) {
   }
   if (variable->name().raw() == Symbols::IteratorParameter().raw()) {
     variable->set_is_forced_stack();
+  }
+
+  const bool is_covariant =
+      helper.IsGenericCovariantImpl() || helper.IsCovariant();
+  switch (type_check_mode) {
+    case kTypeCheckAllParameters:
+      variable->set_type_check_mode(LocalVariable::kDoTypeCheck);
+      break;
+    case kTypeCheckForTearOffOfNonDynamicallyInvokedMethod:
+      if (is_covariant) {
+        // Don't type check covariant parameters - they will be checked by
+        // a function we forward to. Their types however are not known.
+        variable->set_type_check_mode(LocalVariable::kSkipTypeCheck);
+      } else {
+        variable->set_type_check_mode(LocalVariable::kDoTypeCheck);
+      }
+      break;
+    case kTypeCheckForNonDynamicallyInvokedMethod:
+      if (is_covariant) {
+        variable->set_type_check_mode(LocalVariable::kDoTypeCheck);
+      } else {
+        // Types of non-covariant parameters are guaranteed to match by
+        // front-end enforcing strong mode types at call site.
+        variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+      }
+      break;
+    case kTypeCheckForStaticFunction:
+      variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+      break;
   }
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(builder_->data_program_offset_ + kernel_offset,
@@ -3980,11 +4073,25 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
-  // Tearoffs of static methods needs to perform arguments checks since static
-  // methods they forward to don't do it themselves.
-  if (I->argument_type_checks() && !target.NeedsArgumentTypeChecks(I)) {
-    AlternativeReadingScope _(reader_);
-    body += BuildArgumentTypeChecks();
+  if (I->argument_type_checks()) {
+    if (!target.NeedsArgumentTypeChecks(I)) {
+      // Tearoffs of static methods needs to perform arguments checks since
+      // static methods they forward to don't do it themselves.
+      AlternativeReadingScope _(reader_);
+      body += BuildArgumentTypeChecks();
+    } else {
+      // Check if target function was annotated with no-dynamic-invocations.
+      const ProcedureAttributesMetadata attrs =
+          procedure_attributes_metadata_helper_.GetProcedureAttributes(
+              target.kernel_offset());
+      if (!attrs.has_dynamic_invocations) {
+        // If it was then we might need to build some checks in the
+        // tear-off.
+        AlternativeReadingScope _(reader_);
+        body +=
+            BuildArgumentTypeChecks(kTypeChecksForNoDynamicInvocationsTearOff);
+      }
+    }
   }
 
   function_node_helper.ReadUntilExcluding(
@@ -4041,7 +4148,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks() {
+Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
+    TypeChecksToBuild mode /*= kDefaultTypeChecks*/) {
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
   const Function& dart_function = parsed_function()->function();
@@ -4060,53 +4168,60 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks() {
   }
 
   // Type parameters
-  intptr_t list_length = ReadListLength();
-  TypeArguments& forwarding_params = TypeArguments::Handle(Z);
-  if (forwarding_target != NULL) {
-    forwarding_params = forwarding_target->type_parameters();
-    ASSERT(forwarding_params.Length() == list_length);
-  }
-  TypeParameter& forwarding_param = TypeParameter::Handle(Z);
-  for (intptr_t i = 0; i < list_length; ++i) {
-    ReadFlags();                                         // skip flags
-    SkipListOfExpressions();                             // skip annotations
-    String& name = H.DartSymbol(ReadStringReference());  // read name
-    AbstractType& bound = T.BuildType();                 // read bound
-
+  if (mode == kDefaultTypeChecks) {
+    intptr_t num_type_params = ReadListLength();
+    TypeArguments& forwarding_params = TypeArguments::Handle(Z);
     if (forwarding_target != NULL) {
-      forwarding_param ^= forwarding_params.TypeAt(i);
-      bound = forwarding_param.bound();
+      forwarding_params = forwarding_target->type_parameters();
+      ASSERT(forwarding_params.Length() == num_type_params);
     }
+    TypeParameter& forwarding_param = TypeParameter::Handle(Z);
+    for (intptr_t i = 0; i < num_type_params; ++i) {
+      ReadFlags();                                         // skip flags
+      SkipListOfExpressions();                             // skip annotations
+      String& name = H.DartSymbol(ReadStringReference());  // read name
+      AbstractType& bound = T.BuildType();                 // read bound
 
-    if (I->strong() && !bound.IsObjectType() &&
-        (I->reify_generic_functions() || dart_function.IsFactory())) {
-      ASSERT(!bound.IsDynamicType());
-      TypeParameter& param = TypeParameter::Handle(Z);
-      if (dart_function.IsFactory()) {
-        param ^= TypeArguments::Handle(
-                     Class::Handle(dart_function.Owner()).type_parameters())
-                     .TypeAt(i);
-      } else {
-        param ^=
-            TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
+      if (forwarding_target != NULL) {
+        forwarding_param ^= forwarding_params.TypeAt(i);
+        bound = forwarding_param.bound();
       }
-      ASSERT(param.IsFinalized());
-      body += CheckTypeArgumentBound(param, bound, name);
+
+      if (I->strong() && !bound.IsObjectType() &&
+          (I->reify_generic_functions() || dart_function.IsFactory())) {
+        ASSERT(!bound.IsDynamicType());
+        TypeParameter& param = TypeParameter::Handle(Z);
+        if (dart_function.IsFactory()) {
+          param ^= TypeArguments::Handle(
+                       Class::Handle(dart_function.Owner()).type_parameters())
+                       .TypeAt(i);
+        } else {
+          param ^=
+              TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
+        }
+        ASSERT(param.IsFinalized());
+        body += CheckTypeArgumentBound(param, bound, name);
+      }
     }
+    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
-  function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
 
   // Positional.
-  list_length = ReadListLength();
-  const intptr_t positional_length = list_length;
+  const intptr_t num_positional_params = ReadListLength();
   const intptr_t kFirstParameterOffset = 1;
-  for (intptr_t i = 0; i < list_length; ++i) {
+  for (intptr_t i = 0; i < num_positional_params; ++i) {
     // ith variable offset.
     const intptr_t offset = ReaderOffset();
+    SkipVariableDeclaration();
+
     LocalVariable* param = LookupVariable(offset + data_program_offset_);
+    if (!param->needs_type_check()) {
+      continue;
+    }
+
     const AbstractType* target_type = &param->type();
     if (forwarding_target != NULL) {
       // We add 1 to the parameter index to account for the receiver.
@@ -4116,25 +4231,29 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks() {
     body += LoadLocal(param);
     body += CheckArgumentType(param, *target_type);
     body += Drop();
-    SkipVariableDeclaration();  // read ith variable.
   }
 
   // Named.
-  list_length = ReadListLength();
-  for (intptr_t i = 0; i < list_length; ++i) {
+  const intptr_t num_named_params = ReadListLength();
+  for (intptr_t i = 0; i < num_named_params; ++i) {
     // ith variable offset.
-    LocalVariable* param =
-        LookupVariable(ReaderOffset() + data_program_offset_);
-    body += LoadLocal(param);
+    const intptr_t offset = ReaderOffset();
+    SkipVariableDeclaration();
+
+    LocalVariable* param = LookupVariable(offset + data_program_offset_);
+    if (!param->needs_type_check()) {
+      continue;
+    }
+
     const AbstractType* target_type = &param->type();
     if (forwarding_target != NULL) {
       // We add 1 to the parameter index to account for the receiver.
       target_type = &AbstractType::ZoneHandle(
-          Z, forwarding_target->ParameterTypeAt(positional_length + i + 1));
+          Z, forwarding_target->ParameterTypeAt(num_positional_params + i + 1));
     }
+    body += LoadLocal(param);
     body += CheckArgumentType(param, *target_type);
     body += Drop();
-    SkipVariableDeclaration();  // read ith variable.
   }
 
   return body;
@@ -5554,7 +5673,7 @@ Tag StreamingFlowGraphBuilder::PeekArgumentsFirstPositionalTag() {
 
   // List of positional.
   intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
+  if (list_length > 0) {
     return ReadTag();  // read first tag.
   }
 
@@ -9584,6 +9703,9 @@ void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
 
   const intptr_t kUInt32Size = 4;
   Reader reader(H.metadata_mappings());
+  if (reader.size() == 0) {
+    return;
+  }
 
   // Scan through metadata mappings in reverse direction.
 
@@ -9630,6 +9752,18 @@ void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
         }
         inferred_type_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
                                                            mappings_num);
+      }
+    } else if (H.StringEquals(tag, ProcedureAttributesMetadataHelper::tag())) {
+      ASSERT(node_references_num == 0);
+
+      if (mappings_num > 0) {
+        if (!FLAG_precompiled_mode) {
+          FATAL(
+              "ProcedureAttributesMetadata is allowed in precompiled mode "
+              "only");
+        }
+        procedure_attributes_metadata_helper_.SetMetadataMappings(
+            offset + kUInt32Size, mappings_num);
       }
     }
   }

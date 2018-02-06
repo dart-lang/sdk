@@ -788,9 +788,9 @@ void Precompiler::AddEntryPoints(
       lib = Library::LookupLibrary(T, library_uri);
     }
     if (lib.IsNull()) {
-      String& msg =
-          String::Handle(Z, String::NewFormatted("Cannot find entry point %s\n",
-                                                 entry_points[i].library_uri));
+      String& msg = String::Handle(
+          Z, String::NewFormatted("Cannot find entry point '%s'\n",
+                                  entry_points[i].library_uri));
       Jump(Error::Handle(Z, ApiError::New(msg)));
       UNREACHABLE();
     }
@@ -808,7 +808,7 @@ void Precompiler::AddEntryPoints(
       cls = lib.LookupLocalClass(class_name);
       if (cls.IsNull()) {
         String& msg = String::Handle(
-            Z, String::NewFormatted("Cannot find entry point %s %s\n",
+            Z, String::NewFormatted("Cannot find entry point '%s' '%s'\n",
                                     entry_points[i].library_uri,
                                     entry_points[i].class_name));
         Jump(Error::Handle(Z, ApiError::New(msg)));
@@ -822,7 +822,7 @@ void Precompiler::AddEntryPoints(
 
     if (func.IsNull() && field.IsNull()) {
       String& msg = String::Handle(
-          Z, String::NewFormatted("Cannot find entry point %s %s %s\n",
+          Z, String::NewFormatted("Cannot find entry point '%s' '%s' '%s'\n",
                                   entry_points[i].library_uri,
                                   entry_points[i].class_name,
                                   entry_points[i].function_name));

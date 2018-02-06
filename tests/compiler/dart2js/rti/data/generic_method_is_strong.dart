@@ -12,29 +12,30 @@ class B1 {}
 
 class B2 {}
 
-/*class: C1:implicit=[C1]*/
+/*class: C1:checked,implicit=[C1]*/
 class C1 {}
 
 class C2 {}
 
+/*class: C3:checked*/
 class C3 {}
 
-/*class: D1:implicit=[D1]*/
+/*class: D1:checked,implicit=[D1]*/
 class D1 {}
 
 class D2 {}
 
-/*class: E1:implicit=[E1]*/
+/*class: E1:checked,implicit=[E1]*/
 class E1 {}
 
 class E2 {}
 
-/*class: F1:implicit=[F1]*/
+/*class: F1:checked,implicit=[F1]*/
 class F1 {}
 
 class F2 {}
 
-/*class: F3:implicit=[F3]*/
+/*class: F3:checked,implicit=[F3]*/
 class F3 {}
 
 /*element: topLevelMethod1:direct,explicit=[topLevelMethod1.T],needsArgs*/

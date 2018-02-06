@@ -8,8 +8,24 @@
   This allows libraries with no library declarations (and therefore no name)
   to have parts, and it allows tools to easily find the library of a part
   file.
+* Added support for starting `async` functions synchronously. All tools (VM,
+  dart2js, DDC) have now a flag `--sync-async` to enable this behavior.
+  Currently this behavior is opt-in. It will become the default.
 
 #### Strong Mode
+
+* Future flattening is now done only as specified in the Dart 2.0 spec, rather
+than more broadly.  This means that the following code will now have an error on
+the assignment to `y`.
+
+  ```dart
+    test() {
+      Future<int> f;
+      var x = f.then<Future<List<int>>>((x) => []);
+      Future<List<int>> y = x;
+    }
+    ```
+
 
 ### Core library changes
 
@@ -51,6 +67,7 @@
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
   * Added `Provisional` annotation to `dart:core`.
+  * Added static `escape` function to `RegExp` class.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in

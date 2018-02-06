@@ -414,6 +414,18 @@ main() {
     assertThat(element).isReferencedAt('A();', true);
   }
 
+  test_isReferencedBy_ClassElement_invocationTypeArgument() async {
+    await _indexTestUnit('''
+class A {}
+void f<T>() {}
+main() {
+  f<A>();
+}
+''');
+    Element element = findElement('A');
+    assertThat(element)..isReferencedAt('A>();', false);
+  }
+
   test_isReferencedBy_ClassTypeAlias() async {
     await _indexTestUnit('''
 class A {}

@@ -5,6 +5,7 @@
 /// Global type flow analysis.
 library kernel.transformations.analysis;
 
+import 'dart:collection';
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
@@ -24,7 +25,6 @@ import 'utils.dart';
 // organized in several categories:
 //
 // === Correctness ===
-// * Handle noSuchMethod invocations correctly.
 // * Verify incremental re-calculation by fresh analysis starting with known
 //   allocated classes.
 // * Auto-generate entry_points.json during build.
@@ -68,7 +68,8 @@ class _DependencyTracker {
 /// This is the basic unit of processing in type flow analysis.
 /// Call sites calling the same method with the same argument types
 /// may reuse results of the analysis through the same _Invocation instance.
-abstract class _Invocation extends _DependencyTracker {
+abstract class _Invocation extends _DependencyTracker
+    with LinkedListEntry<_Invocation> {
   final Selector selector;
   final Args<Type> args;
 
@@ -96,6 +97,34 @@ abstract class _Invocation extends _DependencyTracker {
 
   @override
   String toString() => "_Invocation $selector $args";
+
+  /// Processes noSuchMethod() invocation and returns its result.
+  /// Used if target is not found or number of arguments is incorrect.
+  Type _processNoSuchMethod(Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
+    tracePrint("Processing noSuchMethod for receiver $receiver");
+
+    final nsmSelector = new InterfaceSelector(
+        typeFlowAnalysis.hierarchyCache.objectNoSuchMethod,
+        callKind: CallKind.Method);
+
+    final nsmArgs = new Args<Type>([
+      receiver,
+      new Type.cone(
+          typeFlowAnalysis.environment.coreTypes.invocationClass.rawType)
+    ]);
+
+    final nsmInvocation =
+        typeFlowAnalysis._invocationsCache.getInvocation(nsmSelector, nsmArgs);
+
+    final Type type =
+        typeFlowAnalysis.workList.processInvocation(nsmInvocation);
+
+    // Result of this invocation depends on the result of noSuchMethod
+    // inovcation.
+    nsmInvocation.addDependentInvocation(this);
+
+    return type;
+  }
 }
 
 class _DirectInvocation extends _Invocation {
@@ -160,8 +189,8 @@ class _DirectInvocation extends _Invocation {
             .getSummary(member)
             .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
       } else {
-        // TODO(alexmarkov): support noSuchMethod invocation here.
-        return new Type.empty();
+        assertx(selector.callKind == CallKind.Method);
+        return _processNoSuchMethod(args.receiver, typeFlowAnalysis);
       }
     } else {
       if (selector.callKind == CallKind.PropertyGet) {
@@ -211,6 +240,10 @@ class _DispatchableInvocation extends _Invocation {
   Set<Call> _callSites; // Populated only if not polymorphic.
   Member _monomorphicTarget;
 
+  /// Marker for noSuchMethod() invocation in the map of invocation targets.
+  static final Member kNoSuchMethodMarker =
+      new Procedure(new Name('noSuchMethod&&'), ProcedureKind.Method, null);
+
   _DispatchableInvocation(Selector selector, Args<Type> args)
       : super(selector, args) {
     assertx(selector is! DirectSelector);
@@ -222,7 +255,7 @@ class _DispatchableInvocation extends _Invocation {
 
     // Collect all possible targets for this invocation,
     // along with more accurate receiver types for each target.
-    final targets = <Member, Type>{};
+    final targets = <Member, _ReceiverTypeBuilder>{};
     _collectTargetsForReceiverType(args.receiver, targets, typeFlowAnalysis);
 
     // Calculate result as a union of results of direct invocations
@@ -233,28 +266,41 @@ class _DispatchableInvocation extends _Invocation {
       tracePrint("No targets...");
     } else {
       if (targets.length == 1) {
-        _setMonomorphicTarget(targets.keys.single);
+        final target = targets.keys.single;
+        if (target != kNoSuchMethodMarker) {
+          _setMonomorphicTarget(target);
+        } else {
+          _setPolymorphic();
+        }
       } else {
         _setPolymorphic();
       }
-      targets.forEach((Member target, Type receiver) {
-        final directSelector =
-            new DirectSelector(target, callKind: selector.callKind);
 
-        Args<Type> directArgs = args;
-        if (args.receiver != receiver) {
-          directArgs = new Args<Type>.withReceiver(args, receiver);
+      targets
+          .forEach((Member target, _ReceiverTypeBuilder receiverTypeBuilder) {
+        Type receiver = receiverTypeBuilder.toType();
+        Type type;
+
+        if (target == kNoSuchMethodMarker) {
+          type = _processNoSuchMethod(receiver, typeFlowAnalysis);
+        } else {
+          final directSelector =
+              new DirectSelector(target, callKind: selector.callKind);
+
+          Args<Type> directArgs = args;
+          if (args.receiver != receiver) {
+            directArgs = new Args<Type>.withReceiver(args, receiver);
+          }
+
+          final directInvocation = typeFlowAnalysis._invocationsCache
+              .getInvocation(directSelector, directArgs);
+
+          type = typeFlowAnalysis.workList.processInvocation(directInvocation);
+
+          // Result of this invocation depends on the results of direct
+          // invocations corresponding to each target.
+          directInvocation.addDependentInvocation(this);
         }
-
-        final directInvocation = typeFlowAnalysis._invocationsCache
-            .getInvocation(directSelector, directArgs);
-
-        final Type type =
-            typeFlowAnalysis.workList.processInvocation(directInvocation);
-
-        // Result of this invocation depends on the results of direct
-        // invocations corresponding to each target.
-        directInvocation.addDependentInvocation(this);
 
         result = result.union(type, typeFlowAnalysis.hierarchyCache);
       });
@@ -269,12 +315,14 @@ class _DispatchableInvocation extends _Invocation {
     return result;
   }
 
-  void _collectTargetsForReceiverType(Type receiver, Map<Member, Type> targets,
+  void _collectTargetsForReceiverType(
+      Type receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
     assertx(receiver != const EmptyType()); // should be filtered earlier
 
-    if (receiver is NullableType) {
-      _collectTargetsForNull(targets, typeFlowAnalysis);
+    final bool isNullableReceiver = receiver is NullableType;
+    if (isNullableReceiver) {
       receiver = (receiver as NullableType).baseType;
       assertx(receiver is! NullableType);
     }
@@ -286,7 +334,9 @@ class _DispatchableInvocation extends _Invocation {
           staticReceiverType, typeFlowAnalysis.hierarchyCache);
       assertx(receiver is! NullableType);
 
-      tracePrint("Narrowed down receiver type: $receiver");
+      if (kPrintTrace) {
+        tracePrint("Narrowed down receiver type: $receiver");
+      }
     }
 
     if (receiver is ConeType) {
@@ -296,6 +346,8 @@ class _DispatchableInvocation extends _Invocation {
       receiver = typeFlowAnalysis.hierarchyCache
           .specializeTypeCone((receiver as ConeType).dartType);
     }
+
+    assertx(targets.isEmpty);
 
     if (receiver is ConcreteType) {
       _collectTargetsForConcreteType(receiver, targets, typeFlowAnalysis);
@@ -308,25 +360,32 @@ class _DispatchableInvocation extends _Invocation {
     } else {
       assertx(receiver is EmptyType);
     }
+
+    if (isNullableReceiver) {
+      _collectTargetsForNull(targets, typeFlowAnalysis);
+    }
   }
 
   // TODO(alexmarkov): Consider caching targets for Null type.
-  void _collectTargetsForNull(
-      Map<Member, Type> targets, TypeFlowAnalysis typeFlowAnalysis) {
+  void _collectTargetsForNull(Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
     Class nullClass = typeFlowAnalysis.environment.coreTypes.nullClass;
 
     Member target = typeFlowAnalysis.hierarchyCache.hierarchy
         .getDispatchTarget(nullClass, selector.name, setter: selector.isSetter);
 
     if (target != null) {
-      tracePrint("Found $target for null receiver");
-      _addTarget(targets, target, new Type.nullable(const EmptyType()),
-          typeFlowAnalysis);
+      if (kPrintTrace) {
+        tracePrint("Found $target for null receiver");
+      }
+      _getReceiverTypeBuilder(targets, target).addNull();
     }
   }
 
-  void _collectTargetsForConcreteType(ConcreteType receiver,
-      Map<Member, Type> targets, TypeFlowAnalysis typeFlowAnalysis) {
+  void _collectTargetsForConcreteType(
+      ConcreteType receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
     DartType receiverDartType = receiver.dartType;
 
     assertx(receiverDartType is! FunctionType);
@@ -338,15 +397,27 @@ class _DispatchableInvocation extends _Invocation {
         .getDispatchTarget(class_, selector.name, setter: selector.isSetter);
 
     if (target != null) {
-      tracePrint("Found $target for concrete receiver $receiver");
-      _addTarget(targets, target, receiver, typeFlowAnalysis);
+      if (kPrintTrace) {
+        tracePrint("Found $target for concrete receiver $receiver");
+      }
+      _getReceiverTypeBuilder(targets, target).addConcreteType(receiver);
     } else {
-      tracePrint("Target is not found for receiver $receiver");
+      if (typeFlowAnalysis.hierarchyCache.hasNonTrivialNoSuchMethod(class_)) {
+        if (kPrintTrace) {
+          tracePrint("Found non-trivial noSuchMethod for receiver $receiver");
+        }
+        _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
+            .addConcreteType(receiver);
+      } else {
+        if (kPrintTrace) {
+          tracePrint("Target is not found for receiver $receiver");
+        }
+      }
     }
   }
 
-  void _collectTargetsForSelector(
-      Map<Member, Type> targets, TypeFlowAnalysis typeFlowAnalysis) {
+  void _collectTargetsForSelector(Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
     Selector selector = this.selector;
     if (selector is InterfaceSelector) {
       // TODO(alexmarkov): support generic types and make sure inferred types
@@ -357,20 +428,26 @@ class _DispatchableInvocation extends _Invocation {
     }
 
     final receiver = args.receiver;
-    for (Member target in typeFlowAnalysis.hierarchyCache
-        .getDynamicTargets(selector as DynamicSelector)) {
-      _addTarget(targets, target, receiver, typeFlowAnalysis);
+    final _DynamicTargetSet dynamicTargetSet = typeFlowAnalysis.hierarchyCache
+        .getDynamicTargetSet(selector as DynamicSelector);
+
+    dynamicTargetSet.addDependentInvocation(this);
+
+    assertx(targets.isEmpty);
+    for (Member target in dynamicTargetSet.targets) {
+      _getReceiverTypeBuilder(targets, target).addType(receiver);
+    }
+
+    // Conservatively include noSuchMethod if selector is not from Object,
+    // as class might miss the implementation.
+    if (!dynamicTargetSet.isObjectMember) {
+      _getReceiverTypeBuilder(targets, kNoSuchMethodMarker).addType(receiver);
     }
   }
 
-  void _addTarget(Map<Member, Type> targets, Member member, Type receiver,
-      TypeFlowAnalysis typeFlowAnalysis) {
-    Type oldReceiver = targets[member];
-    if (oldReceiver != null) {
-      receiver = receiver.union(oldReceiver, typeFlowAnalysis.hierarchyCache);
-    }
-    targets[member] = receiver;
-  }
+  _ReceiverTypeBuilder _getReceiverTypeBuilder(
+          Map<Member, _ReceiverTypeBuilder> targets, Member member) =>
+      targets[member] ??= new _ReceiverTypeBuilder();
 
   void _setPolymorphic() {
     if (!_isPolymorphic) {
@@ -423,6 +500,72 @@ class _DispatchableInvocation extends _Invocation {
     if (_callSites != null) {
       _callSites.forEach(_notifyCallSite);
     }
+  }
+}
+
+/// Efficient builder of receiver type.
+///
+/// Supports the following operations:
+/// 1) Add 1..N concrete types OR add 1 arbitrary type.
+/// 2) Make type nullable.
+class _ReceiverTypeBuilder {
+  Type _type;
+  Set<ConcreteType> _set;
+  bool _nullable = false;
+
+  /// Appends a ConcreteType. May be called multiple times.
+  /// Should not be used in conjunction with [addType].
+  void addConcreteType(ConcreteType type) {
+    if (_set == null) {
+      if (_type == null) {
+        _type = type;
+        return;
+      }
+
+      assertx(_type is ConcreteType);
+      assertx(_type != type);
+
+      _set = new Set<ConcreteType>();
+      _set.add(_type);
+
+      _type = null;
+    }
+
+    _set.add(type);
+  }
+
+  /// Appends an arbitrary Type. May be called only once.
+  /// Should not be used in conjunction with [addConcreteType].
+  void addType(Type type) {
+    assertx(_type == null && _set == null);
+    _type = type;
+  }
+
+  /// Makes the resulting type nullable.
+  void addNull() {
+    _nullable = true;
+  }
+
+  /// Returns union of added types.
+  Type toType() {
+    Type t = _type;
+    if (t == null) {
+      if (_set == null) {
+        t = const EmptyType();
+      } else {
+        t = new SetType(_set);
+      }
+    } else {
+      assertx(_set == null);
+    }
+
+    if (_nullable) {
+      if (t is! NullableType) {
+        t = new NullableType(t);
+      }
+    }
+
+    return t;
   }
 }
 
@@ -514,14 +657,20 @@ class _FieldValue extends _DependencyTracker {
 class _DynamicTargetSet extends _DependencyTracker {
   final DynamicSelector selector;
   final Set<Member> targets = new Set<Member>();
+  final bool isObjectMember;
 
-  _DynamicTargetSet(this.selector);
+  _DynamicTargetSet(this.selector, this.isObjectMember);
 }
 
 class _ClassData extends _DependencyTracker {
   final Class class_;
   final Set<_ClassData> supertypes; // List of super-types including this.
   final Set<_ClassData> allocatedSubtypes = new Set<_ClassData>();
+
+  /// Flag indicating if this class has a noSuchMethod() method not inherited
+  /// from Object.
+  /// Lazy initialized by _ClassHierarchyCache.hasNonTrivialNoSuchMethod().
+  bool hasNonTrivialNoSuchMethod;
 
   _ClassData(this.class_, this.supertypes) {
     supertypes.add(this);
@@ -539,6 +688,11 @@ class _ClassHierarchyCache implements TypeHierarchy {
   final Set<Class> allocatedClasses = new Set<Class>();
   final Map<Class, _ClassData> classes = <Class, _ClassData>{};
 
+  /// Object.noSuchMethod().
+  final Member objectNoSuchMethod;
+
+  static final Name noSuchMethodName = new Name("noSuchMethod");
+
   /// Class hierarchy is sealed after analysis is finished.
   /// Once it is sealed, no new allocated classes may be added and no new
   /// targets of invocations may appear.
@@ -547,7 +701,12 @@ class _ClassHierarchyCache implements TypeHierarchy {
   final Map<DynamicSelector, _DynamicTargetSet> _dynamicTargets =
       <DynamicSelector, _DynamicTargetSet>{};
 
-  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy);
+  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy)
+      : objectNoSuchMethod = hierarchy.getDispatchTarget(
+            _typeFlowAnalysis.environment.coreTypes.objectClass,
+            noSuchMethodName) {
+    assertx(objectNoSuchMethod != null);
+  }
 
   _ClassData getClassData(Class c) {
     return classes[c] ??= _createClassData(c);
@@ -673,14 +832,26 @@ class _ClassHierarchyCache implements TypeHierarchy {
     }
   }
 
-  Iterable<Member> getDynamicTargets(DynamicSelector selector) {
-    final targetSet =
-        (_dynamicTargets[selector] ??= _createDynamicTargetSet(selector));
-    return targetSet.targets;
+  bool hasNonTrivialNoSuchMethod(Class c) {
+    final classData = getClassData(c);
+    classData.hasNonTrivialNoSuchMethod ??=
+        (hierarchy.getDispatchTarget(c, noSuchMethodName) !=
+            objectNoSuchMethod);
+    return classData.hasNonTrivialNoSuchMethod;
+  }
+
+  _DynamicTargetSet getDynamicTargetSet(DynamicSelector selector) {
+    return (_dynamicTargets[selector] ??= _createDynamicTargetSet(selector));
   }
 
   _DynamicTargetSet _createDynamicTargetSet(DynamicSelector selector) {
-    final targetSet = new _DynamicTargetSet(selector);
+    // TODO(alexmarkov): consider caching the set of Object selectors.
+    final isObjectMethod = (hierarchy.getDispatchTarget(
+            _typeFlowAnalysis.environment.coreTypes.objectClass, selector.name,
+            setter: selector.isSetter) !=
+        null);
+
+    final targetSet = new _DynamicTargetSet(selector, isObjectMethod);
     for (Class c in allocatedClasses) {
       _addDynamicTarget(c, targetSet);
     }
@@ -718,19 +889,22 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
 class _WorkList {
   final TypeFlowAnalysis _typeFlowAnalysis;
-  final Set<_Invocation> pending = new Set<_Invocation>();
+  final LinkedList<_Invocation> pending = new LinkedList<_Invocation>();
   final Set<_Invocation> processing = new Set<_Invocation>();
   final List<_Invocation> callStack = <_Invocation>[];
 
   _WorkList(this._typeFlowAnalysis);
 
+  bool _isPending(_Invocation invocation) => invocation.list != null;
+
   void enqueueInvocation(_Invocation invocation) {
     assertx(invocation.result == null);
-    if (!pending.add(invocation)) {
+    if (_isPending(invocation)) {
       // Re-add the invocation to the tail of the pending queue.
       pending.remove(invocation);
-      pending.add(invocation);
+      assertx(!_isPending(invocation));
     }
+    pending.add(invocation);
   }
 
   void invalidateInvocation(_Invocation invocation) {
@@ -745,14 +919,7 @@ class _WorkList {
   void process() {
     while (pending.isNotEmpty) {
       assertx(callStack.isEmpty && processing.isEmpty);
-      _Invocation invocation = pending.first;
-
-      // Remove from pending before processing, as the invocation
-      // could be invalidated and re-added to pending while processing.
-      pending.remove(invocation);
-
-      processInvocation(invocation);
-      assertx(invocation.result != null);
+      processInvocation(pending.first);
     }
   }
 
@@ -770,6 +937,7 @@ class _WorkList {
 
     if (processing.add(invocation)) {
       callStack.add(invocation);
+      pending.remove(invocation);
 
       final Type result = invocation.process(_typeFlowAnalysis);
 
@@ -781,6 +949,13 @@ class _WorkList {
           invocation.invalidateDependentInvocations(this);
         }
         invocation.invalidatedResult = null;
+      }
+
+      // Invocation is still pending - it was invalidated while being processed.
+      // Move result to invalidatedResult.
+      if (_isPending(invocation)) {
+        invocation.invalidatedResult = result;
+        invocation.result = null;
       }
 
       final last = callStack.removeLast();

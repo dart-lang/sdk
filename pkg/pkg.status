@@ -45,7 +45,6 @@ front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
-front_end/tool/_fasta/compile_platform_test: Fail
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
@@ -71,6 +70,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
+front_end/test/incremental_load_from_dill_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
 front_end/test/src/base/file_repository_test: SkipByDesign # Uses dart:io

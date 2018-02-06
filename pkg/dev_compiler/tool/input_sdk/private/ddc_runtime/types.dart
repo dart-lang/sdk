@@ -227,7 +227,8 @@ final _fnTypeTypeMap = JS('', 'new Map()');
 /// index path (if present) is the canonical function type.
 final List _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
 
-_memoizeArray(map, arr, create) => JS('', '''(() => {
+@NoReifyGeneric()
+T _memoizeArray<T>(map, arr, T create()) => JS('', '''(() => {
   let len = $arr.length;
   $map = $_lookupNonTerminal($map, len);
   for (var i = 0; i < len-1; ++i) {
@@ -239,41 +240,20 @@ _memoizeArray(map, arr, create) => JS('', '''(() => {
   return result;
 })()''');
 
-// Map dynamic to bottom. If meta-data is present,
-// we slice off the remaining meta-data and make
-// it the second element of a packet for processing
-// later on in the constructor.
-_normalizeParameter(a) => JS('', '''(() => {
-  if ($a instanceof Array) {
-    let result = [];
-    result.push(($a[0] == $dynamic) ? $bottom : $a[0]);
-    result.push($a.slice(1));
-    return result;
-  }
-  return ($a == $dynamic) ? $bottom : $a;
-})()''');
-
-List _canonicalizeArray(definite, array, map) => JS('', '''(() => {
-  let arr = ($definite)
-     ? $array
-     : $array.map($_normalizeParameter);
-  return $_memoizeArray($map, arr, () => arr);
-})()''');
+List _canonicalizeArray(List array, map) =>
+    _memoizeArray(map, array, () => array);
 
 // TODO(leafp): This only canonicalizes of the names are
 // emitted in a consistent order.
-_canonicalizeNamed(definite, named, map) => JS('', '''(() => {
+_canonicalizeNamed(named, map) => JS('', '''(() => {
   let key = [];
   let names = $getOwnPropertyNames($named);
-  let r = {};
   for (var i = 0; i < names.length; ++i) {
     let name = names[i];
     let type = $named[name];
-    if (!definite) r[name] = type = $_normalizeParameter(type);
     key.push(name);
     key.push(type);
   }
-  if (!$definite) $named = r;
   return $_memoizeArray($map, key, () => $named);
 })()''');
 
@@ -287,16 +267,15 @@ _lookupNonTerminal(map, key) => JS('', '''(() => {
 // TODO(leafp): This handles some low hanging fruit, but
 // really we should make all of this faster, and also
 // handle more cases here.
-_createSmall(count, definite, returnType, required) => JS('', '''(() => {
-  let map = $_fnTypeSmallMap[$count];
-  let args = ($definite) ? $required
-    : $required.map($_normalizeParameter);
-  for (var i = 0; i < $count; ++i) {
-    map = $_lookupNonTerminal(map, args[i]);
+FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
+  let count = $required.length;
+  let map = $_fnTypeSmallMap[count];
+  for (var i = 0; i < count; ++i) {
+    map = $_lookupNonTerminal(map, $required[i]);
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = new $FunctionType.new($returnType, args, [], {});
+ result = ${new FunctionType(returnType, required, [], JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');
@@ -311,14 +290,7 @@ class FunctionType extends AbstractFunctionType {
   String _stringValue;
 
   /**
-   * Construct a function type. There are two arrow constructors,
-   * distinguished by the "definite" flag.
-   *
-   * The fuzzy arrow (definite is false) treats any arguments
-   * of type dynamic as having type bottom, and will always be
-   * called with a dynamic invoke.
-   *
-   * The definite arrow (definite is true) leaves arguments unchanged.
+   * Construct a function type.
    *
    * We eagerly normalize the argument types to avoid having to deal with
    * this logic in multiple places.
@@ -327,28 +299,29 @@ class FunctionType extends AbstractFunctionType {
    * that all instances will share.
    *
    */
-  static create(definite, returnType, List args, extra) {
+  static FunctionType create(returnType, List args, extra) {
     // Note that if extra is ever passed as an empty array
     // or an empty map, we can end up with semantically
     // identical function types that don't canonicalize
     // to the same object since we won't fall into this
     // fast path.
     if (extra == null && JS('bool', '#.length < 3', args)) {
-      return _createSmall(JS('', '#.length', args), definite, returnType, args);
+      return _createSmall(returnType, args);
     }
-    args = _canonicalizeArray(definite, args, _fnTypeArrayArgMap);
+    args = _canonicalizeArray(args, _fnTypeArrayArgMap);
     var keys;
-    var create;
+    FunctionType Function() create;
     if (extra == null) {
       keys = [returnType, args];
       create = () => new FunctionType(returnType, args, [], JS('', '{}'));
     } else if (JS('bool', '# instanceof Array', extra)) {
-      var optionals = _canonicalizeArray(definite, extra, _fnTypeArrayArgMap);
+      var optionals =
+          _canonicalizeArray(JS('', '#', extra), _fnTypeArrayArgMap);
       keys = [returnType, args, optionals];
       create =
           () => new FunctionType(returnType, args, optionals, JS('', '{}'));
     } else {
-      var named = _canonicalizeNamed(definite, extra, _fnTypeNamedArgMap);
+      var named = _canonicalizeNamed(extra, _fnTypeNamedArgMap);
       keys = [returnType, args, named];
       create = () => new FunctionType(returnType, args, [], named);
     }
@@ -509,14 +482,12 @@ class TypeVariable extends TypeRep {
 }
 
 class GenericFunctionType extends AbstractFunctionType {
-  final bool definite;
   final _instantiateTypeParts;
   final int formalCount;
   final _instantiateTypeBounds;
   List<TypeVariable> _typeFormals;
 
-  GenericFunctionType(
-      this.definite, instantiateTypeParts, this._instantiateTypeBounds)
+  GenericFunctionType(instantiateTypeParts, this._instantiateTypeBounds)
       : _instantiateTypeParts = instantiateTypeParts,
         formalCount = JS('int', '#.length', instantiateTypeParts);
 
@@ -555,10 +526,10 @@ class GenericFunctionType extends AbstractFunctionType {
     }
   }
 
-  instantiate(typeArgs) {
+  FunctionType instantiate(typeArgs) {
     var parts = JS('', '#.apply(null, #)', _instantiateTypeParts, typeArgs);
-    return JS('', '#.create(#, #[0], #[1], #[2])', FunctionType, definite,
-        parts, parts, parts);
+    return FunctionType.create(
+        JS('', '#[0]', parts), JS('', '#[1]', parts), JS('', '#[2]', parts));
   }
 
   List instantiateTypeBounds(List typeArgs) {
@@ -690,22 +661,14 @@ class GenericFunctionType extends AbstractFunctionType {
   }
 }
 
-typedef(name, AbstractFunctionType Function() closure) =>
+Typedef typedef(name, AbstractFunctionType Function() closure) =>
     new Typedef(name, closure);
 
-/// Create a definite function type.
-///
-/// No substitution of dynamic for bottom occurs.
-fnType(returnType, List args, [extra = undefined]) =>
-    FunctionType.create(true, returnType, args, extra);
+/// Create a function type.
+FunctionType fnType(returnType, List args, [extra = undefined]) =>
+    FunctionType.create(returnType, args, extra);
 
-/// Create a "fuzzy" function type.
-///
-/// If any arguments are dynamic they will be replaced with bottom.
-fnTypeFuzzy(returnType, List args, [extra = undefined]) =>
-    FunctionType.create(false, returnType, args, extra);
-
-/// Creates a definite generic function type.
+/// Creates a generic function type.
 ///
 /// A function type consists of two things: an instantiate function, and an
 /// function that returns a list of upper bound constraints for each
@@ -716,10 +679,7 @@ fnTypeFuzzy(returnType, List args, [extra = undefined]) =>
 /// For example given the type <T extends Iterable<T>>(T) -> T, we can declare
 /// this type with `gFnType(T => [T, [T]], T => [Iterable$(T)])`.\
 gFnType(instantiateFn, typeBounds) =>
-    new GenericFunctionType(true, instantiateFn, typeBounds);
-
-gFnTypeFuzzy(instantiateFn, typeBounds) =>
-    new GenericFunctionType(false, instantiateFn, typeBounds);
+    new GenericFunctionType(instantiateFn, typeBounds);
 
 /// TODO(vsm): Remove when mirrors is deprecated.
 /// This is a temporary workaround to support dart:mirrors, which doesn't

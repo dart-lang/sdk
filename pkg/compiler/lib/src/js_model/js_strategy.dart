@@ -88,6 +88,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
     Entity toBackendEntity(Entity entity) {
       if (entity is ClassEntity) return map.toBackendClass(entity);
       if (entity is MemberEntity) return map.toBackendMember(entity);
+      if (entity is TypedefEntity) return map.toBackendTypedef(entity);
       if (entity is TypeVariableEntity) {
         return map.toBackendTypeVariable(entity);
       }
@@ -682,6 +683,11 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
       var element = toBackendEntity(type.element);
       var args = type.typeArguments.map(_handleType).toList();
       return new InterfaceType(element, args);
+    }
+    if (type is TypedefType) {
+      var element = toBackendEntity(type.element);
+      var args = type.typeArguments.map(_handleType).toList();
+      return new TypedefType(element, args);
     }
 
     // TODO(redemption): handle other types.

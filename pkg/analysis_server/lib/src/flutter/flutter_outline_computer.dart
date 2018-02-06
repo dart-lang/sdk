@@ -138,11 +138,38 @@ class FlutterOutlineComputer {
         variableName = node.name;
       }
 
+      String label;
+      if (kind == protocol.FlutterOutlineKind.GENERIC) {
+        label = _getShortLabel(node);
+      }
+
       return new protocol.FlutterOutline(kind, node.offset, node.length,
-          className: className, variableName: variableName);
+          className: className, variableName: variableName, label: label);
     }
 
     return null;
+  }
+
+  String _getShortLabel(AstNode node) {
+    if (node is MethodInvocation) {
+      var buffer = new StringBuffer();
+
+      if (node.target != null) {
+        buffer.write(_getShortLabel(node.target));
+        buffer.write('.');
+      }
+
+      buffer.write(node.methodName.name);
+
+      if (node.argumentList == null || node.argumentList.arguments.isEmpty) {
+        buffer.write('()');
+      } else {
+        buffer.write('(…)');
+      }
+
+      return buffer.toString();
+    }
+    return node.toString();
   }
 }
 

@@ -33,6 +33,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementResolverCodeTest);
     defineReflectiveTests(ElementResolverTest);
+    defineReflectiveTests(PreviewDart2Test);
   });
 }
 
@@ -1294,5 +1295,251 @@ class ElementResolverTest extends EngineTestCase {
     } finally {
       _visitor.labelScope = outerScope;
     }
+  }
+}
+
+@reflectiveTest
+class PreviewDart2Test extends ResolverTestCase {
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
+      ..previewDart2 = true;
+    resetWith(options: options);
+  }
+
+  /**
+   * Tests and verifies that even with a explicit 'new' keyword, the
+   * construction of the InstanceCreationExpression node with types and elements
+   * is all correct.
+   */
+  test_visitMethodInvocations_explicit() async {
+    String code = '''
+class A {
+  A() {}
+}
+main() {
+  var v = new A(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit unnamed constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C()
+   */
+  test_visitMethodInvocations_implicit() async {
+    String code = '''
+class A {
+  A() {}
+}
+main() {
+  var v = A(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit named constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C.n()
+   */
+  test_visitMethodInvocations_implicit_named() async {
+    String code = '''
+class A {
+  A.named() {}
+}
+main() {
+  var v = A.named(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // named constructor:
+    expect(instanceCreationExpression.constructorName.name.staticElement,
+        isNotNull);
+  }
+
+  /**
+   * Test that the call to a constructor with a prefixed implicit constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * p.C()
+   */
+  test_visitMethodInvocations_implicit_prefixed() async {
+    addNamedSource("/fileOne.dart", r'''
+class A {
+  A() {}
+}
+''');
+    String code = '''
+import 'fileOne.dart' as one;
+
+main() {
+  var v = one.A(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with a prefixed implicit named constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * p.C.n()
+   */
+  test_visitMethodInvocations_implicit_prefixed_named() async {
+    addNamedSource("/fileOne.dart", r'''
+class A {
+  A.named() {}
+}
+''');
+    String code = '''
+import 'fileOne.dart' as one;
+main() {
+  var v = one.A.named(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // named constructor:
+    expect(instanceCreationExpression.constructorName.name.staticElement,
+        isNotNull);
+  }
+
+  /**
+   * Test that the call to a constructor with a prefixed implicit constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * p.C<>()
+   */
+  test_visitMethodInvocations_implicit_prefixed_typeArgs() async {
+    addNamedSource("/fileOne.dart", r'''
+class A<T> {
+  final T x;
+  A(this.x) {}
+}
+''');
+    String code = '''
+import 'fileOne.dart' as one;
+
+main() {
+  var v = one.A<int>(42); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName =
+        findMarkedIdentifier(code, unit, "<int>(42); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit unnamed constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C<>()
+   */
+  test_visitMethodInvocations_implicit_typeArgs() async {
+    String code = '''
+class A<T> {
+  final T x;
+  A(this.x) {}
+}
+main() {
+  var v = A<int>(42); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode constructorName =
+        findMarkedIdentifier(code, unit, "<int>(42); // marker");
+    InstanceCreationExpression instanceCreationExpression =
+        constructorName.parent.parent.parent;
+    expect(instanceCreationExpression, isNotNull);
+    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
+    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticElement, isNotNull);
+    expect(instanceCreationExpression.staticType, isNotNull);
+    // unnamed constructor:
+    expect(instanceCreationExpression.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a static method will not be re-written as a
+   * InstanceCreationExpression AST node.
+   */
+  test_visitMethodInvocations_not_implicit_constructor() async {
+    String code = '''
+class A {
+  static staticMethod() {}
+}
+main() {
+  A.staticMethod(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode node = findMarkedIdentifier(code, unit, "(); // marker");
+    assert(node.parent is MethodInvocation);
   }
 }

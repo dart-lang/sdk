@@ -1,10 +1,11 @@
 library fileapi;
 
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_helper.dart';
 
 class FileAndDir {
   FileEntry file;
@@ -14,37 +15,30 @@ class FileAndDir {
 
 FileSystem fs;
 
-main() {
-  useHtmlIndividualConfiguration();
+main() async {
+  useHtmlConfiguration();
 
-  getFileSystem() {
-    return window.requestFileSystem(100).then((FileSystem fileSystem) {
-      fs = fileSystem;
-    });
+  getFileSystem() async {
+    var fileSystem = await window.requestFileSystem(100);
+    fs = fileSystem;
   }
 
   // Do the boilerplate to get several files and directories created to then
   // test the functions that use those items.
-  Future doDirSetup(String testName) {
-    return fs.root.createFile('file_$testName').then((Entry file) {
-      return fs.root
-          .createDirectory('dir_$testName')
-          .then((Entry dir) {
-        return new Future.value(new FileAndDir(file, dir));
-      });
-    });
+  Future doDirSetup(String testName) async {
+    await getFileSystem();
+
+    var file = await fs.root.createFile('file_$testName');
+    var dir = await fs.root.createDirectory('dir_$testName');
+    return new Future.value(new FileAndDir(file, dir));
   }
 
   if (FileSystem.supported) {
-    test('getFileSystem', getFileSystem);
-
-    test('readEntries', () {
-      return doDirSetup('readEntries').then((fileAndDir) {
-        var reader = fileAndDir.dir.createReader();
-        return reader.readEntries();
-      }).then((entries) {
-        expect(entries is List, true);
-      });
+    test('readEntries', () async {
+      var fileAndDir = await doDirSetup('readEntries');
+      var reader = await fileAndDir.dir.createReader();
+      var entries = await reader.readEntries();
+      expect(entries is List, true);
     });
   }
 }

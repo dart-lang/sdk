@@ -19,11 +19,11 @@ dyn(x) => x;
 
 class CheckEnv<X, Y> {
   test(bool intX) {
-    Expect.isTrue(<F<X>>[] is List<F>);
+    Expect.isTrue(<F<X>>[] is! List<F>);
     Expect.isTrue(<F<X>>[] is List<F<X>>);
     Expect.isTrue(<F<X>>[] is List<G<Y, X>>);
 
-    Expect.isTrue(dyn(<F<X>>[]) is List<F>);
+    Expect.isTrue(dyn(<F<X>>[]) is! List<F>);
     Expect.isTrue(dyn(<F<X>>[]) is List<F<X>>);
     Expect.isTrue(dyn(<F<X>>[]) is List<G<Y, X>>);
 

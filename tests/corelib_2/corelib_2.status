@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+compare_to2_test: CompileTimeError # invalid test
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
@@ -130,13 +131,13 @@ uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 [ $compiler == dart2js && $runtime == drt && $csp && !$dart2js_with_kernel && $minified ]
 core_runtime_types_test: Pass, Fail # Issue 27913
 
+[ $compiler == dart2js && $runtime != none ]
+regexp/pcre_test: Pass, Slow # Issue 21593
+
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 splay_tree_from_iterable_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
-
-[ $compiler == dart2js && $runtime != none ]
-regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -181,6 +182,7 @@ from_environment_const_type_undefined_test/08: MissingCompileTimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
+list_replace_range_test: RuntimeError # Issue 32010
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
@@ -250,6 +252,8 @@ linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
+list_replace_range_test: RuntimeError
+list_set_all_test: RuntimeError
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic getter: selector=Selector(getter, length, arity=0), mask=[subtype=SetMixin], HTypeInfoReadVariable(SetMixin.E)].
@@ -313,6 +317,8 @@ linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
+list_replace_range_test: RuntimeError # Issue 32010
+list_set_all_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: Crash # Wrong number of template arguments, given 2, expected 1
@@ -380,6 +386,7 @@ map_keys2_test: RuntimeError # needs Dart 2 is checks
 iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
+compare_to2_test: CompileTimeError # invalid test
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
@@ -406,9 +413,6 @@ apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-json_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
@@ -429,9 +433,6 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 bool_from_environment2_test/03: MissingCompileTimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-json_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
@@ -494,7 +495,6 @@ integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
 integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
 integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
-json_map_test: RuntimeError
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
@@ -516,11 +516,8 @@ integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
 iterable_to_list_test/*: RuntimeError
-json_map_test: RuntimeError # Issue 29921
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 list_removeat_test: RuntimeError # Issue 29921
-list_replace_range_test: RuntimeError # Issue 29921
-list_set_all_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
 null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM

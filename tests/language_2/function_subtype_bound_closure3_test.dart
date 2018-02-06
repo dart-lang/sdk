@@ -32,5 +32,5 @@ class C<T> {
 main() {
   new C<bool>().test('bool');
   new C<int>().test('int');
-  new C().test('dynamic');
+  new C<dynamic>().test('dynamic');
 }

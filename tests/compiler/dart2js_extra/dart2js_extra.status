@@ -11,6 +11,7 @@ constant_javascript_semantics4_test: Fail, OK
 local_function_call_test: RuntimeError # Issue 31879
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
+generic_class_is_test: Fail # Issue 32004
 no_such_method_test: Fail # Wrong Invocation.memberName.
 statements_test: Fail
 typed_locals_test: Pass, Fail
@@ -84,7 +85,6 @@ deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
 invalid_annotation2_test/none: RuntimeError
-label_test/06: MissingCompileTimeError
 minus_zero_test/01: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
@@ -132,7 +132,6 @@ deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: Kerne
 deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
-label_test/06: MissingCompileTimeError
 mirror_enqueuer_regression_test: Pass
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
@@ -160,7 +159,6 @@ deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
 inference_nsm_mirrors_test: CompileTimeError
 invalid_annotation2_test/none: CompileTimeError
-label_test/06: MissingCompileTimeError
 mirror_enqueuer_regression_test: CompileTimeError
 mirror_invalid_field_access2_test: CompileTimeError
 mirror_invalid_field_access3_test: CompileTimeError
@@ -209,7 +207,6 @@ deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
 inference_nsm_mirrors_test: CompileTimeError
 invalid_annotation2_test/none: CompileTimeError
-label_test/06: MissingCompileTimeError
 mirror_enqueuer_regression_test: CompileTimeError
 mirror_invalid_field_access2_test: CompileTimeError
 mirror_invalid_field_access3_test: CompileTimeError

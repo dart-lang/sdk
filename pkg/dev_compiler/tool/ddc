@@ -60,6 +60,12 @@ if [ "$1" = "-k" ]; then
   shift
 fi
 
+SYNC_ASYNC=false
+if [ "$1" = "--sync-async" ]; then
+  SYNC_ASYNC=true
+  shift
+fi
+
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 
@@ -104,6 +110,7 @@ echo "
     let sdk = require(\"dart_sdk\");
     let main = require(\"./$BASENAME\").$BASENAME.main;
     sdk.dart.ignoreWhitelistedErrors(false);
+    if ($SYNC_ASYNC) sdk.dart.setStartAsyncSynchronously();
     try {
       sdk._isolate_helper.startRootIsolate(main, []);
     } catch(e) {

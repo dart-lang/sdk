@@ -12,6 +12,9 @@ mirrors/mirrors_reader_test: Pass, Slow
 mirrors/*: Skip # Issue 27929: Triage
 
 [ $compiler == dart2analyzer ]
+convert/base64_test/01: CompileTimeError # int64
+convert/utf82_test: CompileTimeError # int64
+math/double_pow_test: CompileTimeError # int64
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
@@ -23,6 +26,7 @@ mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared 
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 profiler/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
+typed_data/int32x4_bigint_test: CompileTimeError # int64
 
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958

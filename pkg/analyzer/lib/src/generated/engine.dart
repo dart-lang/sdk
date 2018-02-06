@@ -1297,6 +1297,11 @@ abstract class AnalysisOptions {
   bool get preserveComments;
 
   /**
+   * Return `true` if analyzer should enable the use of Dart 2.0 features.
+   */
+  bool get previewDart2;
+
+  /**
    * Return the opaque signature of the options.
    *
    * The length of the list is guaranteed to equal [signatureLength].
@@ -1466,6 +1471,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool useFastaParser = false;
 
   @override
+  bool previewDart2 = false;
+
+  @override
   bool disableCacheFlushing = false;
 
   /**
@@ -1522,6 +1530,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     useFastaParser = options.useFastaParser;
+    previewDart2 = options.previewDart2;
     if (options is AnalysisOptionsImpl) {
       declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;

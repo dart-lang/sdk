@@ -85,7 +85,6 @@ factory6_test/00: CompileTimeError
 field_increment_bailout_test: CompileTimeError
 field_override_test/01: CompileTimeError
 function_malformed_result_type_test: CompileTimeError
-generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 internal_library_test/01: CompileTimeError

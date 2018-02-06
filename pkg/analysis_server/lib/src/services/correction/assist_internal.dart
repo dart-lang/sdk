@@ -125,6 +125,7 @@ class AssistProcessor {
     await _addProposal_convertIntoGetter();
     await _addProposal_convertDocumentationIntoBlock();
     await _addProposal_convertDocumentationIntoLine();
+    await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToExpressionFunctionBody();
     await _addProposal_convertFlutterChild();
@@ -159,6 +160,8 @@ class AssistProcessor {
   }
 
   FunctionBody getEnclosingFunctionBody() {
+    // TODO(brianwilkerson) Determine whether there is a reason why this method
+    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
     {
       FunctionExpression function =
           node.getAncestor((node) => node is FunctionExpression);
@@ -672,6 +675,37 @@ class AssistProcessor {
       builder.addSimpleReplacement(replacementRange, "'$relativePath'");
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_PART_OF_TO_URI);
+  }
+
+  Future<Null> _addProposal_convertToAsyncFunctionBody() async {
+    FunctionBody body = getEnclosingFunctionBody();
+    if (body == null || body.isAsynchronous || body.isGenerator) {
+      _coverageMarker();
+      return;
+    }
+
+    // Function bodies can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in a function body.
+    if (body is BlockFunctionBody &&
+        selectionOffset > body.block.beginToken.end) {
+      return;
+    }
+    if (body is ExpressionFunctionBody &&
+        selectionOffset > body.beginToken.end) {
+      return;
+    }
+
+    AstNode parent = body.parent;
+    if (parent is ConstructorDeclaration) {
+      return;
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.convertFunctionFromSyncToAsync(body, typeProvider);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_INTO_ASYNC_BODY);
   }
 
   Future<Null> _addProposal_convertToBlockFunctionBody() async {
@@ -1831,6 +1865,23 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_reparentFlutterWidget() async {
+    await _addProposal_reparentFlutterWidgetImpl();
+    await _addProposal_reparentFlutterWidgetImpl(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER,
+        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentClassName: 'Center');
+    await _addProposal_reparentFlutterWidgetImpl(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_PADDING,
+        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentClassName: 'Padding',
+        leadingLines: ['padding: const EdgeInsets.all(8.0),']);
+  }
+
+  Future<Null> _addProposal_reparentFlutterWidgetImpl(
+      {AssistKind kind: DartAssistKind.REPARENT_FLUTTER_WIDGET,
+      String parentLibraryUri,
+      String parentClassName,
+      List<String> leadingLines: const []}) async {
     InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
     if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
       _coverageMarker();
@@ -1838,36 +1889,56 @@ class AssistProcessor {
     }
     String newExprSrc = utils.getNodeText(newExpr);
 
+    // If the wrapper class is specified, find its element.
+    ClassElement parentClassElement;
+    if (parentLibraryUri != null && parentClassName != null) {
+      var parentLibrary = await session.getLibraryByUri(parentLibraryUri);
+      var element = parentLibrary.exportNamespace.get(parentClassName);
+      if (element is ClassElement) {
+        parentClassElement = element;
+      } else {
+        return;
+      }
+    }
+
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(newExpr), (DartEditBuilder builder) {
         builder.write('new ');
-        builder.addSimpleLinkedEdit('WIDGET', 'widget');
+        if (parentClassElement == null) {
+          builder.addSimpleLinkedEdit('WIDGET', 'widget');
+        } else {
+          builder.writeType(parentClassElement.type);
+        }
         builder.write('(');
-        if (newExprSrc.contains(eol)) {
-          int newlineIdx = newExprSrc.lastIndexOf(eol);
-          int eolLen = eol.length;
-          if (newlineIdx == newExprSrc.length - eolLen) {
-            newlineIdx -= eolLen;
-          }
-          String indentOld =
-              utils.getLinePrefix(newExpr.offset + eolLen + newlineIdx);
+        if (newExprSrc.contains(eol) || leadingLines.isNotEmpty) {
+          String indentOld = utils.getLinePrefix(newExpr.offset);
           String indentNew = '$indentOld${utils.getIndent(1)}';
+
+          for (var leadingLine in leadingLines) {
+            builder.write(eol);
+            builder.write(indentNew);
+            builder.write(leadingLine);
+          }
+
           builder.write(eol);
           builder.write(indentNew);
           newExprSrc = newExprSrc.replaceAll(
               new RegExp("^$indentOld", multiLine: true), indentNew);
           newExprSrc += ",$eol$indentOld";
         }
-        builder.addSimpleLinkedEdit('CHILD', 'child');
+        if (parentClassElement == null) {
+          builder.addSimpleLinkedEdit('CHILD', 'child');
+        } else {
+          builder.write('child');
+        }
         builder.write(': ');
         builder.write(newExprSrc);
         builder.write(')');
         builder.selectHere();
       });
     });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.REPARENT_FLUTTER_WIDGET);
+    _addAssistFromBuilder(changeBuilder, kind);
   }
 
   Future<Null> _addProposal_replaceConditionalWithIfElse() async {

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*class: global#List:deps=[Class],explicit=[List],indirect,needsArgs*/
-/*class: global#JSArray:deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
+/*class: global#JSArray:checked,deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class<int>();

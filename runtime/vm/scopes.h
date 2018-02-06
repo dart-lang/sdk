@@ -35,6 +35,7 @@ class LocalVariable : public ZoneAllocated {
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
+        type_check_mode_(kDoTypeCheck),
         index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
@@ -64,6 +65,24 @@ class LocalVariable : public ZoneAllocated {
   // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
+
+  enum TypeCheckMode {
+    kDoTypeCheck,
+    kSkipTypeCheck,
+    kTypeCheckedByCaller,
+  };
+
+  // Returns true if this local variable represents a parameter that needs type
+  // check when we enter the function.
+  bool needs_type_check() const { return type_check_mode_ == kDoTypeCheck; }
+
+  // Returns true if this local variable represents a parameter which type is
+  // guaranteed by the caller.
+  bool was_type_checked_by_caller() const {
+    return type_check_mode_ == kTypeCheckedByCaller;
+  }
+
+  void set_type_check_mode(TypeCheckMode mode) { type_check_mode_ = mode; }
 
   bool HasIndex() const { return index_ != kUninitializedIndex; }
   int index() const {
@@ -124,6 +143,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
+  TypeCheckMode type_check_mode_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 

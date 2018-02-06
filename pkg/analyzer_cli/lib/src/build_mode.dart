@@ -266,6 +266,11 @@ class BuildMode {
                 mode: io.FileMode.WRITE_ONLY);
           }
         });
+      } else {
+        // Build the graph, e.g. associate parts with libraries.
+        for (var file in uriToFileMap.values) {
+          analysisDriver.fsState.getFileForPath(file.path);
+        }
       }
 
       if (options.buildSummaryOnly) {

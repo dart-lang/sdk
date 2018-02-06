@@ -129,6 +129,11 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
     // Skipped by design.
   }
 
+  @override
+  test_externalSummaries_partReuse() {
+    // Skipped by design.
+  }
+
   @failingTest
   @potentialAnalyzerProblem
   @override
