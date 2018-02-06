@@ -6,9 +6,10 @@ library fasta.built_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../kernel/kernel_builder.dart' show KernelTypeBuilder, LibraryBuilder;
+import '../kernel/kernel_builder.dart'
+    show KernelTypeBuilder, LibraryBuilder, TypeBuilder;
 
-import '../problems.dart' show unimplemented;
+import '../problems.dart' show unimplemented, unsupported;
 
 class BuiltTypeBuilder extends KernelTypeBuilder {
   final DartType builtType;
@@ -34,5 +35,9 @@ class BuiltTypeBuilder extends KernelTypeBuilder {
 
   String get name {
     return unimplemented("name", -1, null);
+  }
+
+  BuiltTypeBuilder clone(List<TypeBuilder> newTypes) {
+    return unsupported("clone", -1, null);
   }
 }

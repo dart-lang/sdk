@@ -18,6 +18,7 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
+        TypeBuilder,
         TypeVariableBuilder;
 
 class KernelTypeVariableBuilder
@@ -75,5 +76,13 @@ class KernelTypeVariableBuilder
 
   void applyPatch(covariant KernelTypeVariableBuilder patch) {
     patch.actualOrigin = this;
+  }
+
+  KernelTypeVariableBuilder clone(List<TypeBuilder> newTypes) {
+    // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.
+    // An alternative is to use the offset of the node the cloned type variable
+    // is declared on.
+    return new KernelTypeVariableBuilder(
+        name, parent, charOffset, bound.clone(newTypes));
   }
 }

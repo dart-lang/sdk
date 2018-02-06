@@ -128,7 +128,6 @@ rasta/unresolved: Crash
 rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Crash
-redirecting_factory_typeparambounds_test: VerificationError
 regress/issue_29937: Crash
 regress/issue_29941: Crash
 regress/issue_29942: Crash

@@ -348,13 +348,21 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void beginClassDeclaration(Token begin, Token name) {
     debugEvent("beginNamedMixinApplication");
-    library.currentDeclaration.name = name.lexeme;
+    List<TypeVariableBuilder> typeVariables = pop();
+    push(typeVariables ?? NullValue.TypeVariables);
+    library.currentDeclaration
+      ..name = name.lexeme
+      ..typeVariables = typeVariables;
   }
 
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
     debugEvent("beginNamedMixinApplication");
-    library.currentDeclaration.name = name.lexeme;
+    List<TypeVariableBuilder> typeVariables = pop();
+    push(typeVariables ?? NullValue.TypeVariables);
+    library.currentDeclaration
+      ..name = name.lexeme
+      ..typeVariables = typeVariables;
   }
 
   @override

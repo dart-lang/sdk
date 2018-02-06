@@ -22,7 +22,6 @@ import '../builder/builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
         QualifiedName,
@@ -640,7 +639,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   List<TypeVariableBuilder> copyTypeVariables(
-      List<TypeVariableBuilder> original);
+      List<TypeVariableBuilder> original, DeclarationBuilder declaration);
 
   @override
   String get fullNameForErrors {
@@ -687,23 +686,21 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   String name;
 
-  final Map<ProcedureBuilder, DeclarationBuilder<T>> factoryDeclarations;
+  List<TypeVariableBuilder> typeVariables;
 
-  DeclarationBuilder(this.members, this.setters, this.constructors,
-      this.factoryDeclarations, this.name, this.parent) {
+  DeclarationBuilder(
+      this.members, this.setters, this.constructors, this.name, this.parent) {
     assert(name != null);
   }
 
   DeclarationBuilder.library()
-      : this(<String, Builder>{}, <String, Builder>{}, null, null, "library",
-            null);
+      : this(<String, Builder>{}, <String, Builder>{}, null, "library", null);
 
   DeclarationBuilder createNested(String name, bool hasMembers) {
     return new DeclarationBuilder<T>(
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
-        <ProcedureBuilder, DeclarationBuilder<T>>{},
         name,
         this);
   }
@@ -722,26 +719,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
     if (typeVariables == null) {
       // If there are no type variables in the scope, propagate our types to be
       // resolved in the parent declaration.
-      factoryDeclarations.forEach((_, DeclarationBuilder<T> declaration) {
-        parent.types.addAll(declaration.types);
-      });
       parent.types.addAll(types);
     } else {
-      factoryDeclarations.forEach(
-          (ProcedureBuilder procedure, DeclarationBuilder<T> declaration) {
-        assert(procedure.typeVariables.isEmpty);
-        procedure.typeVariables
-            .addAll(library.copyTypeVariables(typeVariables));
-        DeclarationBuilder<T> savedDeclaration = library.currentDeclaration;
-        library.currentDeclaration = declaration;
-        for (TypeVariableBuilder tv in procedure.typeVariables) {
-          NamedTypeBuilder<T, dynamic> t = procedure.returnType;
-          t.arguments
-              .add(library.addNamedType(tv.name, null, procedure.charOffset));
-        }
-        library.currentDeclaration = savedDeclaration;
-        declaration.resolveTypes(procedure.typeVariables, library);
-      });
       Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};
       for (TypeVariableBuilder builder in typeVariables) {
         map[builder.name] = builder;
@@ -769,14 +748,6 @@ class DeclarationBuilder<T extends TypeBuilder> {
       }
     }
     types.clear();
-  }
-
-  /// Called to register [procedure] as a factory whose types are collected in
-  /// [factoryDeclaration]. Later, once the class has been built, we can
-  /// synthesize type variables on the factory matching the class'.
-  void addFactoryDeclaration(
-      ProcedureBuilder procedure, DeclarationBuilder<T> factoryDeclaration) {
-    factoryDeclarations[procedure] = factoryDeclaration;
   }
 
   Scope toScope(Scope parent) {
