@@ -15,30 +15,12 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // - SetMixin
   // If changing a method here, also change the other copies.
 
-  Iterable<R> cast<R>() {
-    Iterable<Object> self = this;
-    return self is Iterable<R> ? self : Iterable.castFrom<E, R>(this);
-  }
-
-  Iterable<R> retype<R>() => Iterable.castFrom<E, R>(this);
-
   Iterable<T> map<T>(T f(E element)) => new MappedIterable<E, T>(this, f);
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable<T> whereType<T>() sync* {
-    for (Object element in this) if (element is T) yield element;
-  }
-
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
       new ExpandIterable<E, T>(this, f);
-
-  Iterable<E> followedBy(Iterable<E> other) sync* {
-    // TODO(lrn): Optimize this (some operations can be more efficient,
-    // and the concatenation has efficient length if the source iterables do).
-    yield* this;
-    yield* other;
-  }
 
   bool contains(Object element) {
     for (E e in this) {
@@ -186,7 +168,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E orElse()}) {
+  E singleWhere(bool test(E value)) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -199,7 +181,6 @@ abstract class IterableMixin<E> implements Iterable<E> {
       }
     }
     if (foundMatching) return result;
-    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -220,7 +201,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
 /**
  * Base class for implementing [Iterable].
  *
- * This class implements all methods of [Iterable], except [Iterable.iterator],
+ * This class implements all methods of [Iterable] except [Iterable.iterator]
  * in terms of `iterator`.
  */
 abstract class IterableBase<E> extends Iterable<E> {
@@ -287,7 +268,7 @@ abstract class IterableBase<E> extends Iterable<E> {
   }
 }
 
-/** A collection used to identify cyclic lists during toString() calls. */
+/** A set used to identify cyclic lists during toString() calls. */
 final List _toStringVisiting = [];
 
 /** Check if we are currently visiting `o` in a toString call. */

@@ -102,36 +102,6 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
       new CastSet<S, T>(source, newSet);
 
   /**
-   * Provides a view of this set as a set of [R] instances, if necessary.
-   *
-   * If this set is already a `Set<R>`, it is returned unchanged.
-   *
-   * If this set contains only instances of [R], all read operations
-   * will work correctly. If any operation tries to access an element
-   * that is not an instance of [R], the access will throw instead.
-   *
-   * Elements added to the set (e.g., by using [add] or [addAll])
-   * must be instance of [R] to be valid arguments to the adding function,
-   * and they must be instances of [E] as well to be accepted by
-   * this set as well.
-   */
-  Set<R> cast<R>();
-
-  /**
-   * Provides a view of this set as a set of [R] instances.
-   *
-   * If this set contains only instances of [R], all read operations
-   * will work correctly. If any operation tries to access an element
-   * that is not an instance of [R], the access will throw instead.
-   *
-   * Elements added to the set (e.g., by using [add] or [addAll])
-   * must be instance of [R] to be valid arguments to the adding function,
-   * and they must be instances of [E] as well to be accepted by
-   * this set as well.
-   */
-  Set<R> retype<R>();
-
-  /**
    * Provides an iterator that iterates over the elements of this set.
    *
    * The order of iteration is defined by the individual `Set` implementation,

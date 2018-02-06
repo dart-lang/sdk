@@ -64,30 +64,6 @@ class _HttpSession implements HttpSession {
     _data.forEach(f);
   }
 
-  Iterable<MapEntry> get entries => _data.entries;
-
-  void addEntries(Iterable<MapEntry> entries) {
-    _data.addEntries(entries);
-  }
-
-  Map<K, V> map<K, V>(MapEntry<K, V> transform(key, value)) =>
-      _data.map(transform);
-
-  void removeWhere(bool test(key, value)) {
-    _data.removeWhere(test);
-  }
-
-  Map<K, V> cast<K, V>() => _data.cast<K, V>();
-
-  Map<K, V> retype<K, V>() => _data.retype<K, V>();
-
-  update(key, update(value), {ifAbsent()}) =>
-      _data.update(key, update, ifAbsent: ifAbsent);
-
-  void updateAll(update(key, value)) {
-    _data.updateAll(update);
-  }
-
   Iterable get keys => _data.keys;
   Iterable get values => _data.values;
   int get length => _data.length;

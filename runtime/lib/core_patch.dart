@@ -36,9 +36,7 @@ import "dart:collection"
         LinkedList,
         LinkedListEntry,
         ListBase,
-        MapBase,
         Maps,
-        UnmodifiableMapBase,
         UnmodifiableMapView;
 
 import "dart:convert" show ascii, Encoding, json, latin1, utf8;

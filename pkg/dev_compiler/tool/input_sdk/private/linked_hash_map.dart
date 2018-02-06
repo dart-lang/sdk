@@ -7,8 +7,8 @@
 
 part of dart._js_helper;
 
-abstract class InternalMap<K, V> extends MapBase<K, V>
-    implements LinkedHashMap<K, V>, HashMap<K, V> {
+/// Our internal LinkedHashMaps.
+abstract class InternalMap<K, V> implements LinkedHashMap<K, V> {
   @notNull
   get _map;
 
@@ -240,6 +240,8 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
+
+  String toString() => Maps.mapToString(this);
 }
 
 @NoReifyGeneric()

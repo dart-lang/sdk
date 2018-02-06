@@ -932,7 +932,7 @@ class _LibraryResynthesizer {
    */
   Namespace buildExportNamespace(
       Namespace publicNamespace, List<LinkedExportName> exportNames) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    HashMap<String, Element> definedNames = new HashMap<String, Element>();
     // Start by populating all the public names from [publicNamespace].
     publicNamespace.definedNames.forEach((String name, Element element) {
       definedNames[name] = element;
@@ -1693,7 +1693,7 @@ class _UnitResynthesizer {
   }
 
   UnitExplicitTopLevelAccessors buildUnitExplicitTopLevelAccessors() {
-    Map<String, TopLevelVariableElementImpl> implicitVariables =
+    HashMap<String, TopLevelVariableElementImpl> implicitVariables =
         new HashMap<String, TopLevelVariableElementImpl>();
     UnitExplicitTopLevelAccessors accessorsData =
         new UnitExplicitTopLevelAccessors();

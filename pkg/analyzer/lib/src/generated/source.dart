@@ -35,14 +35,14 @@ class ContentCache {
    * A table mapping the full path of sources to the contents of those sources.
    * This is used to override the default contents of a source.
    */
-  Map<String, String> _contentMap = new HashMap<String, String>();
+  HashMap<String, String> _contentMap = new HashMap<String, String>();
 
   /**
    * A table mapping the full path of sources to the modification stamps of
    * those sources. This is used when the default contents of a source has been
    * overridden.
    */
-  Map<String, int> _stampMap = new HashMap<String, int>();
+  HashMap<String, int> _stampMap = new HashMap<String, int>();
 
   int _nextStamp = 0;
 

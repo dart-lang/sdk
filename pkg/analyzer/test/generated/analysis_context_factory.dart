@@ -409,7 +409,7 @@ class AnalysisContextFactory {
     //
     // Record the elements.
     //
-    Map<Source, LibraryElement> elementMap =
+    HashMap<Source, LibraryElement> elementMap =
         new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
     if (asyncSource != null) {

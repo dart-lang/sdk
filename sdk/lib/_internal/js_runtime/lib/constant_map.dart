@@ -46,20 +46,13 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
   const ConstantMap._();
 
-  Map<RK, RV> cast<RK, RV>() {
-    Map<Object, Object> self = this;
-    return self is Map<RK, RV> ? self : Map.castFrom<K, V, RK, RV>(this);
-  }
-
-  Map<RK, RV> retype<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
-
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => !isEmpty;
 
-  String toString() => MapBase.mapToString(this);
+  String toString() => Maps.mapToString(this);
 
-  static Null _throwUnmodifiable() {
+  static _throwUnmodifiable() {
     throw new UnsupportedError('Cannot modify unmodifiable Map');
   }
 
@@ -68,35 +61,6 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   V remove(K key) => _throwUnmodifiable();
   void clear() => _throwUnmodifiable();
   void addAll(Map<K, V> other) => _throwUnmodifiable();
-
-  Iterable<MapEntry<K, V>> get entries sync* {
-    for (var key in keys) yield new MapEntry<K, V>(key, this[key]);
-  }
-
-  void addEntries(Iterable<MapEntry<K, V>> entries) {
-    for (var entry in entries) this[entry.key] = entry.value;
-  }
-
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) {
-    var result = <K2, V2>{};
-    this.forEach((K key, V value) {
-      var entry = transform(key, value);
-      result[entry.key] = entry.value;
-    });
-    return result;
-  }
-
-  V update(K key, V update(V value), {V ifAbsent()}) {
-    _throwUnmodifiable();
-  }
-
-  void updateAll(V update(K key, V value)) {
-    _throwUnmodifiable();
-  }
-
-  void removeWhere(bool test(K key, V value)) {
-    _throwUnmodifiable();
-  }
 }
 
 class ConstantStringMap<K, V> extends ConstantMap<K, V> {

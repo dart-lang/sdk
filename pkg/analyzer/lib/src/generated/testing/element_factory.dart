@@ -165,7 +165,7 @@ class ElementFactory {
         constantElement.isStatic = true;
         constantElement.isConst = true;
         constantElement.type = enumType;
-        Map<String, DartObjectImpl> fieldMap =
+        HashMap<String, DartObjectImpl> fieldMap =
             new HashMap<String, DartObjectImpl>();
         fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
         fieldMap[nameFieldName] =

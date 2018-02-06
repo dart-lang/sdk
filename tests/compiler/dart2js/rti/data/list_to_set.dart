@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#List:deps=[Class,EmptyIterable,Iterable,JSArray,ListIterable,SetMixin,SubListIterable],explicit=[List],implicit=[List.E],indirect,needsArgs*/
-/*class: global#JSArray:checked,deps=[EmptyIterable,List,ListIterable,SetMixin,SubListIterable],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
+/*class: global#List:deps=[Class],explicit=[List],indirect,needsArgs*/
+/*class: global#JSArray:checked,deps=[List],explicit=[JSArray],implicit=[JSArray.E],indirect,needsArgs*/
 
 main() {
   var c = new Class<int>();

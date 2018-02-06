@@ -10,7 +10,7 @@ class _IOServicePorts {
   static const int maxPorts = 32;
   List<SendPort> _ports = <SendPort>[];
   List<SendPort> _freePorts = <SendPort>[];
-  Map<int, SendPort> _usedPorts = new HashMap<int, SendPort>();
+  HashMap<int, SendPort> _usedPorts = new HashMap<int, SendPort>();
 
   _IOServicePorts();
 

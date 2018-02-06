@@ -5,7 +5,7 @@
 import 'dart:collection';
 import "package:expect/expect.dart";
 
-class MyList<E> extends ListBase<E> {
+class MyList<E> extends Object with ListMixin<E> implements List<E> {
   List<E> _list;
 
   MyList(List<E> this._list);

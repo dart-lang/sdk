@@ -97,32 +97,6 @@ class TrackMap<K, V> implements Map<K, V> {
     _map.clear();
   }
 
-  Map<KR, VR> cast<KR, VR>() => _map.cast<KR, VR>();
-
-  Map<KR, VR> retype<KR, VR>() => _map.retype<KR, VR>();
-
-  Iterable<MapEntry<K, V>> get entries => _map.entries;
-
-  void addEntries(Iterable<MapEntry<K, V>> entries) {
-    for (var entry in entries) this[entry.key] = entry.value;
-  }
-
-  Map<KR, VR> map<KR, VR>(MapEntry<KR, VR> transform(K key, V value)) =>
-      _map.map(transform);
-
-  V update(K key, V update(V value), {V ifAbsent()}) =>
-      _map.update(key, update, ifAbsent: ifAbsent);
-
-  void updateAll(V update(K key, V value)) {
-    _map.updateAll(update);
-  }
-
-  void removeWhere(bool test(K key, V value)) {
-    int before = _map.length;
-    _map.removeWhere(test);
-    _notifyLengthChanged(_map.length - before);
-  }
-
   void _notifyLengthChanged(int delta) {
     int oldLength = _map.length;
     int newLength = oldLength + delta;

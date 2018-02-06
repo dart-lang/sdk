@@ -164,7 +164,7 @@ class CodeGenerator extends Object
   /// The current function body being compiled.
   FunctionBody _currentFunction;
 
-  Map<TypeDefiningElement, AstNode> _declarationNodes;
+  HashMap<TypeDefiningElement, AstNode> _declarationNodes;
 
   /// The stack of currently emitting elements, if generating top-level code
   /// for them. This is not used when inside method bodies, because order does

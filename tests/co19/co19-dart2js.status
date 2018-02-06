@@ -1537,8 +1537,8 @@ LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: Pass, RuntimeError # Is
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: Pass, RuntimeError # Issue 29634
-LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: Pass, RuntimeError # Issue 29634
+LayoutTests/fast/canvas/webgl/buffer-bind-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: Pass, RuntimeError # Issue 29634
@@ -1584,6 +1584,7 @@ LayoutTests/fast/canvas/webgl/gl-teximage_t01: RuntimeError # Please triage this
 LayoutTests/fast/canvas/webgl/gl-teximage_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Pass, RuntimeError # Issue 29634
+LayoutTests/fast/canvas/webgl/gl-vertex-attrib-zero-issues_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-vertex-attrib-zero-issues_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/gl-vertex-attrib_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-vertex-attrib_t01: Pass, RuntimeError # Issue 29634
@@ -1614,6 +1615,7 @@ LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please t
 LayoutTests/fast/canvas/webgl/null-uniform-location_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/null-uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: Pass, RuntimeError # Issue 29634
+LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
@@ -1720,6 +1722,7 @@ LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage 
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nonascii_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/css/parsing-object-position_t01: Pass, RuntimeError # Issue 29634
+LayoutTests/fast/css/parsing-object-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-target-indirect-sibling-001_t01: Skip # Times out.
 LayoutTests/fast/css/pseudo-target-indirect-sibling-002_t01: Skip # Times out.
 LayoutTests/fast/css/selector-text-escape_t01: Pass, RuntimeError # Issue 29634
@@ -7062,8 +7065,4 @@ LibTest/typed_data/Uint16List/runtimeType_A01_t01: Fail # co19-roll r559: Please
 LibTest/typed_data/Uint32List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
-
-[ $compiler == dart2js && !$strong ]
-LibTest/typed_data/Float32x4List/first_A01_t02: Pass # co19 issue 130 + type error
-LibTest/typed_data/Float32x4List/last_A01_t02: Pass # co19 issue 130 + type error
 

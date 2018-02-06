@@ -11,8 +11,8 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 testIntIterable(iterable) {
-  Expect.isTrue(iterable is Iterable<int>, "${iterable.runtimeType}");
-  Expect.isFalse(iterable is Iterable<String>, "${iterable.runtimeType}");
+  Expect.isTrue(iterable is Iterable<int>);
+  Expect.isFalse(iterable is Iterable<String>);
 }
 
 void testIterable(Iterable<int> iterable, [int depth = 3]) {

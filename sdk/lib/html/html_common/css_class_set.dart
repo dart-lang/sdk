@@ -4,7 +4,7 @@
 
 part of html_common;
 
-abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
+abstract class CssClassSetImpl implements CssClassSet {
   static final RegExp _validTokenRE = new RegExp(r'^\S+$');
 
   String _validateToken(String value) {
@@ -200,8 +200,8 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
       readClasses().firstWhere(test, orElse: orElse);
   String lastWhere(bool test(String value), {String orElse()}) =>
       readClasses().lastWhere(test, orElse: orElse);
-  String singleWhere(bool test(String value), {String orElse()}) =>
-      readClasses().singleWhere(test, orElse: orElse);
+  String singleWhere(bool test(String value)) =>
+      readClasses().singleWhere(test);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {

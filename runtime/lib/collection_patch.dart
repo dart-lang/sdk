@@ -57,7 +57,7 @@ class HashMap<K, V> {
 
 const int _MODIFICATION_COUNT_MASK = 0x3fffffff;
 
-class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
+class _HashMap<K, V> implements HashMap<K, V> {
   static const int _INITIAL_CAPACITY = 8;
 
   int _elementCount = 0;
@@ -240,6 +240,8 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     _buckets = newBuckets;
   }
 
+  String toString() => Maps.mapToString(this);
+
   Set<K> _newKeySet() => new _HashSet<K>();
 }
 
@@ -338,6 +340,8 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
     return null;
   }
 
+  String toString() => Maps.mapToString(this);
+
   Set<K> _newKeySet() => new _CustomHashSet<K>(_equals, _hashCode, _validKey);
 }
 
@@ -426,6 +430,8 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     }
     return null;
   }
+
+  String toString() => Maps.mapToString(this);
 
   Set<K> _newKeySet() => new _IdentityHashSet<K>();
 }
@@ -565,8 +571,6 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   bool _equals(e1, e2) => e1 == e2;
   int _hashCode(e) => e.hashCode;
-
-  static Set<R> _newEmpty<R>() => new _HashSet<R>();
 
   // Iterable.
 
@@ -728,15 +732,12 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   }
 
   HashSet<E> _newSet() => new _HashSet<E>();
-  HashSet<R> _newSimilarSet<R>() => new _HashSet<R>();
 }
 
 class _IdentityHashSet<E> extends _HashSet<E> {
   int _hashCode(e) => identityHashCode(e);
   bool _equals(e1, e2) => identical(e1, e2);
-
   HashSet<E> _newSet() => new _IdentityHashSet<E>();
-  HashSet<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
 }
 
 class _CustomHashSet<E> extends _HashSet<E> {
@@ -780,7 +781,6 @@ class _CustomHashSet<E> extends _HashSet<E> {
   int _hashCode(e) => _hasher(e);
 
   HashSet<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
-  HashSet<R> _newSimilarSet<R>() => new _HashSet<R>();
 }
 
 class _HashSetEntry<E> {

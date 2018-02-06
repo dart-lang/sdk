@@ -29,7 +29,7 @@ part of dart.collection;
  * constant time: [add], [contains], [remove], and [length], provided the hash
  * codes of objects are well distributed..
  */
-abstract class LinkedHashSet<E> implements Set<E> {
+abstract class LinkedHashSet<E> implements HashSet<E> {
   /**
    * Create an insertion-ordered hash set using the provided
    * [equals] and [hashCode].

@@ -372,8 +372,8 @@ class PrefixedNamespaceTest extends ResolverTestCase {
     expect(namespace.get('p.A'), same(element));
   }
 
-  Map<String, Element> _toMap(List<Element> elements) {
-    Map<String, Element> map = new HashMap<String, Element>();
+  HashMap<String, Element> _toMap(List<Element> elements) {
+    HashMap<String, Element> map = new HashMap<String, Element>();
     for (Element element in elements) {
       map[element.name] = element;
     }

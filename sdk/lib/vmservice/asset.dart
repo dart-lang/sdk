@@ -37,13 +37,13 @@ class Asset {
     }
   }
 
-  static Map<String, Asset> request() {
+  static HashMap<String, Asset> request() {
     Uint8List tarBytes = _requestAssets();
     if (tarBytes == null) {
       return null;
     }
     List assetList = _decodeAssets(tarBytes);
-    Map<String, Asset> assets = new HashMap<String, Asset>();
+    HashMap<String, Asset> assets = new HashMap<String, Asset>();
     for (int i = 0; i < assetList.length; i += 2) {
       var a = new Asset(assetList[i], assetList[i + 1]);
       assets[a.name] = a;
@@ -56,8 +56,8 @@ class Asset {
 
 List _decodeAssets(Uint8List data) native "VMService_DecodeAssets";
 
-Map<String, Asset> _assets;
-Map<String, Asset> get assets {
+HashMap<String, Asset> _assets;
+HashMap<String, Asset> get assets {
   if (_assets == null) {
     try {
       _assets = Asset.request();

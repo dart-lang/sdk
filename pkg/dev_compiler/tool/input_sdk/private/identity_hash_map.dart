@@ -89,6 +89,8 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
+
+  String toString() => Maps.mapToString(this);
 }
 
 class _JSMapIterable<E> extends EfficientLengthIterable<E> {

@@ -102,7 +102,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * Creates a [HashMap] that contains all key/value pairs of [other].
    */
   factory HashMap.from(Map other) {
-    Map<K, V> result = new HashMap<K, V>();
+    HashMap<K, V> result = new HashMap<K, V>();
     other.forEach((k, v) {
       result[k] = v;
     });
@@ -124,7 +124,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    */
   factory HashMap.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) {
-    Map<K, V> map = new HashMap<K, V>();
+    HashMap<K, V> map = new HashMap<K, V>();
     Maps._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
@@ -141,7 +141,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * It is an error if the two [Iterable]s don't have the same length.
    */
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    Map<K, V> map = new HashMap<K, V>();
+    HashMap<K, V> map = new HashMap<K, V>();
     Maps._fillMapWithIterables(map, keys, values);
     return map;
   }

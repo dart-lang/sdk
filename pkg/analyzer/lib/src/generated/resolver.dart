@@ -1356,7 +1356,7 @@ class BuildLibraryElementUtils {
       return;
     }
     // Collect getters and setters.
-    Map<String, PropertyAccessorElement> getters =
+    HashMap<String, PropertyAccessorElement> getters =
         new HashMap<String, PropertyAccessorElement>();
     List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
     _collectAccessors(getters, setters, library.definingCompilationUnit);
@@ -3028,7 +3028,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
       //
       // Create a value for the constant.
       //
-      Map<String, DartObjectImpl> fieldMap =
+      HashMap<String, DartObjectImpl> fieldMap =
           new HashMap<String, DartObjectImpl>();
       fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
       DartObjectImpl value =
@@ -6937,7 +6937,7 @@ class ResolverVisitor extends ScopedVisitor {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
     List<ParameterElement> unnamedParameters = new List<ParameterElement>();
-    Map<String, ParameterElement> namedParameters = null;
+    HashMap<String, ParameterElement> namedParameters = null;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
@@ -7745,7 +7745,7 @@ class SubtypeManager {
    * A map between [ClassElement]s and a set of [ClassElement]s that are subtypes of the
    * key.
    */
-  Map<ClassElement, HashSet<ClassElement>> _subtypeMap =
+  HashMap<ClassElement, HashSet<ClassElement>> _subtypeMap =
       new HashMap<ClassElement, HashSet<ClassElement>>();
 
   /**
@@ -8890,7 +8890,7 @@ class TypePromotionManager_TypePromoteScope {
   /**
    * A table mapping elements to the promoted type of that element.
    */
-  Map<Element, DartType> _promotedTypes = new HashMap<Element, DartType>();
+  HashMap<Element, DartType> _promotedTypes = new HashMap<Element, DartType>();
 
   /**
    * Initialize a newly created scope to be an empty child of the given scope.

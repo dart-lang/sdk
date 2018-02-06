@@ -56,10 +56,6 @@ library lib.foo;
 """
   }, warnings: [
     MessageKind.DUPLICATED_LIBRARY_RESOURCE
-  ], hints: [
-    MessageKind.HIDDEN_WARNINGS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
   ]);
 
   await test({
@@ -79,10 +75,6 @@ library lib.bar;
 """
   }, warnings: [
     MessageKind.DUPLICATED_LIBRARY_RESOURCE
-  ], hints: [
-    MessageKind.HIDDEN_WARNINGS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
   ]);
 
   await test({
@@ -102,10 +94,6 @@ library lib.baz;
 """
   }, warnings: [
     MessageKind.DUPLICATED_LIBRARY_RESOURCE
-  ], hints: [
-    MessageKind.HIDDEN_WARNINGS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
   ]);
 
   await test({
@@ -130,10 +118,6 @@ library lib.boz;
 """
   }, warnings: [
     MessageKind.DUPLICATED_LIBRARY_RESOURCE
-  ], hints: [
-    MessageKind.HIDDEN_WARNINGS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
   ]);
 
   await test({
@@ -147,10 +131,7 @@ import 'pkg/lib/qux.dart';
 // No library tag.
 """
   }, hints: [
-    MessageKind.DUPLICATED_RESOURCE,
-    MessageKind.HIDDEN_WARNINGS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
+    MessageKind.DUPLICATED_RESOURCE
   ]);
 
   await test({
@@ -169,9 +150,5 @@ library lib;
   }, warnings: [
     MessageKind.DUPLICATED_LIBRARY_NAME,
     MessageKind.DUPLICATED_LIBRARY_NAME
-  ], hints: [
-    MessageKind.HIDDEN_WARNINGS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
-    MessageKind.HIDDEN_WARNINGS_HINTS,
   ]);
 }

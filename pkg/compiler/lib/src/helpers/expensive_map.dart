@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:collection";
-
 /**
  * The expensive map is a data structure useful for tracking down
  * excessive memory usage due to large maps. It acts as an ordinary
  * hash map, but it uses 10 times more memory (by default).
  */
-class ExpensiveMap<K, V> extends MapBase<K, V> {
+class ExpensiveMap<K, V> implements Map<K, V> {
   final List _maps;
 
   ExpensiveMap([int copies = 10]) : _maps = new List(copies) {
@@ -65,44 +63,6 @@ class ExpensiveMap<K, V> extends MapBase<K, V> {
   void clear() {
     for (int i = 0; i < _maps.length; i++) {
       _maps[i].clear();
-    }
-  }
-
-  Map<KR, VR> cast<KR, VR>() {
-    Map<Object, Object> self = this;
-    return self is Map<KR, VR> ? self : Map.castFrom<K, V, KR, VR>(this);
-  }
-
-  Map<KR, VR> retype<KR, VR>() => Map.castFrom<K, V, KR, VR>(this);
-
-  Iterable<MapEntry<K, V>> get entries => _maps[0].entries;
-
-  void addEntries(Iterable<MapEntry<K, V>> entries) {
-    for (int i = 0; i < _maps.length; i++) {
-      _maps[i].addEntries(entries);
-    }
-  }
-
-  Map<KR, VR> map<KR, VR>(MapEntry<KR, VR> transform(K key, V value)) =>
-      _maps[0].map(transform);
-
-  V update(K key, V update(V value), {V ifAbsent()}) {
-    V result;
-    for (int i = 0; i < _maps.length; i++) {
-      result = _maps[i].update(key, update, ifAbsent: ifAbsent);
-    }
-    return result;
-  }
-
-  void updateAll(V update(K key, V value)) {
-    for (int i = 0; i < _maps.length; i++) {
-      _maps[i].updateAll(update);
-    }
-  }
-
-  void removeWhere(bool test(K key, V value)) {
-    for (int i = 0; i < _maps.length; i++) {
-      _maps[i].removeWhere(test);
     }
   }
 

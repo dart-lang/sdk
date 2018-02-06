@@ -61,23 +61,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   "pkg/kernel/lib/binary/ast_from_binary.dart": const [
     "Library 'dart:core' doesn't export a 'MapEntry' declaration.",
   ],
-  "sdk/lib/_internal/js_runtime/lib/js_array.dart": const [
-    "Method type variables do not have a runtime value.",
-  ],
-  "sdk/lib/collection/iterable.dart": const [
-    "Method type variables do not have a runtime value.",
-  ],
-  "sdk/lib/collection/list.dart": const [
-    "Method type variables do not have a runtime value.",
-    "Method type variables are treated as `dynamic` in `as` expressions.",
-  ],
-  "sdk/lib/collection/set.dart": const [
-    "Method type variables do not have a runtime value.",
-  ],
-  "sdk/lib/core/iterable.dart": const [
-    "Method type variables do not have a runtime value.",
-    "Method type variables are treated as `dynamic` in `as` expressions.",
-  ],
 };
 
 void main() {

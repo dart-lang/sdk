@@ -383,30 +383,6 @@ abstract class TypedData {
   ByteBuffer get buffer;
 }
 
-abstract class _TypedIntList extends TypedData {
-  /**
-   * Returns the concatenation of this list and [other].
-   *
-   * If other is also a typed-data integer list, the returned list will
-   * be a type-data integer list capable of containing all the elements of
-   * this list and of [other].
-   * Otherwise the returned list will be a normal growable `List<int>`.
-   */
-  List<int> operator +(List<int> other);
-}
-
-abstract class _TypedFloatList extends TypedData {
-  /**
-   * Returns the concatenation of this list and [other].
-   *
-   * If other is also a typed-data floating point number list,
-   * the returned list will be a type-data float list capable of containing
-   * all the elements of this list and of [other].
-   * Otherwise the returned list will be a normal growable `List<double>`.
-   */
-  List<double> operator +(List<double> other);
-}
-
 // TODO(lrn): Remove class for Dart 2.0.
 /** Deprecated, use [Endian] instead. */
 abstract class Endianness {
@@ -742,7 +718,7 @@ abstract class ByteData implements TypedData {
  * interpreted as a signed 8-bit two's complement integer with values in the
  * range -128 to +127.
  */
-abstract class Int8List implements List<int>, _TypedIntList {
+abstract class Int8List implements List<int>, TypedData {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -792,7 +768,7 @@ abstract class Int8List implements List<int>, _TypedIntList {
  * interpreted as an unsigned 8-bit integer with values in the
  * range 0 to 255.
  */
-abstract class Uint8List implements List<int>, _TypedIntList {
+abstract class Uint8List implements List<int>, TypedData {
   /**
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -827,15 +803,6 @@ abstract class Uint8List implements List<int>, _TypedIntList {
     return buffer.asUint8List(offsetInBytes, length);
   }
 
-  /**
-   * Returns a concatenation of this list and [other].
-   *
-   * If [other] is also a typed-data list, then the return list will be a
-   * typed data list capable of holding both unsigned 8-bit integers and
-   * the elements of [other], otherwise it'll be a normal list of integers.
-   */
-  List<int> operator +(List<int> other);
-
   /** Deprecated, use [bytesPerElement] instead. */
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 1;
@@ -851,7 +818,7 @@ abstract class Uint8List implements List<int>, _TypedIntList {
  * That is, all values below zero are stored as zero
  * and all values above 255 are stored as 255.
  */
-abstract class Uint8ClampedList implements List<int>, _TypedIntList {
+abstract class Uint8ClampedList implements List<int>, TypedData {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -903,7 +870,7 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
  * interpreted as a signed 16-bit two's complement integer with values in the
  * range -32768 to +32767.
  */
-abstract class Int16List implements List<int>, _TypedIntList {
+abstract class Int16List implements List<int>, TypedData {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -957,7 +924,7 @@ abstract class Int16List implements List<int>, _TypedIntList {
  * interpreted as an unsigned 16-bit integer with values in the
  * range 0 to 65535.
  */
-abstract class Uint16List implements List<int>, _TypedIntList {
+abstract class Uint16List implements List<int>, TypedData {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -1012,7 +979,7 @@ abstract class Uint16List implements List<int>, _TypedIntList {
  * interpreted as a signed 32-bit two's complement integer with values in the
  * range -2147483648 to 2147483647.
  */
-abstract class Int32List implements List<int>, _TypedIntList {
+abstract class Int32List implements List<int>, TypedData {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1066,7 +1033,7 @@ abstract class Int32List implements List<int>, _TypedIntList {
  * interpreted as an unsigned 32-bit integer with values in the
  * range 0 to 4294967295.
  */
-abstract class Uint32List implements List<int>, _TypedIntList {
+abstract class Uint32List implements List<int>, TypedData {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -1121,7 +1088,7 @@ abstract class Uint32List implements List<int>, _TypedIntList {
  * interpreted as a signed 64-bit two's complement integer with values in the
  * range -9223372036854775808 to +9223372036854775807.
  */
-abstract class Int64List implements List<int>, _TypedIntList {
+abstract class Int64List implements List<int>, TypedData {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1175,7 +1142,7 @@ abstract class Int64List implements List<int>, _TypedIntList {
  * interpreted as an unsigned 64-bit integer with values in the
  * range 0 to 18446744073709551615.
  */
-abstract class Uint64List implements List<int>, _TypedIntList {
+abstract class Uint64List implements List<int>, TypedData {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -1231,7 +1198,7 @@ abstract class Uint64List implements List<int>, _TypedIntList {
  * single-precision value. Values read are converted to a double
  * value with the same value.
  */
-abstract class Float32List implements List<double>, _TypedFloatList {
+abstract class Float32List implements List<double>, TypedData {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1282,7 +1249,7 @@ abstract class Float32List implements List<double>, _TypedFloatList {
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-abstract class Float64List implements List<double>, _TypedFloatList {
+abstract class Float64List implements List<double>, TypedData {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1364,14 +1331,6 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
     return buffer.asFloat32x4List(offsetInBytes, length);
   }
 
-  /**
-   * Returns the concatenation of this list and [other].
-   *
-   * If [other] is also a [Float32x4List], the result is a new [Float32x4List],
-   * otherwise the result is a normal growable `List<Float32x4>`.
-   */
-  List<Float32x4> operator +(List<Float32x4> other);
-
   /** Deprecated, use [bytesPerElement] instead. */
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 16;
@@ -1419,14 +1378,6 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
     return buffer.asInt32x4List(offsetInBytes, length);
   }
 
-  /**
-   * Returns the concatenation of this list and [other].
-   *
-   * If [other] is also a [Int32x4List], the result is a new [Int32x4List],
-   * otherwise the result is a normal growable `List<Int32x4>`.
-   */
-  List<Int32x4> operator +(List<Int32x4> other);
-
   /** Deprecated, use [bytesPerElement] instead. */
   static const int BYTES_PER_ELEMENT = bytesPerElement;
   static const int bytesPerElement = 16;
@@ -1451,14 +1402,6 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
    * and copies over the elements.
    */
   external factory Float64x2List.fromList(List<Float64x2> elements);
-
-  /**
-   * Returns the concatenation of this list and [other].
-   *
-   * If [other] is also a [Float64x2List], the result is a new [Float64x2List],
-   * otherwise the result is a normal growable `List<Float64x2>`.
-   */
-  List<Float64x2> operator +(List<Float64x2> other);
 
   /**
    * Creates a [Float64x2List] _view_ of the specified region in [buffer].

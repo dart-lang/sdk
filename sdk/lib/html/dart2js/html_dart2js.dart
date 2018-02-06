@@ -33081,7 +33081,7 @@ class SpeechSynthesisVoice extends Interceptor {
 @DomName('Storage')
 @Unstable()
 @Native("Storage")
-class Storage extends Interceptor with MapMixin<String, String> {
+class Storage extends Interceptor implements Map<String, String> {
   void addAll(Map<String, String> other) {
     other.forEach((k, v) {
       this[k] = v;
@@ -41453,7 +41453,7 @@ abstract class _WorkletGlobalScope extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class _AttributeMap extends MapBase<String, String> {
+abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
@@ -41463,13 +41463,6 @@ abstract class _AttributeMap extends MapBase<String, String> {
       this[k] = v;
     });
   }
-
-  Map<K, V> cast<K, V>() {
-    Map<Object, Object> self = this;
-    return self is Map<K, V> ? self : Map.castFrom<String, String, K, V>(this);
-  }
-
-  Map<K, V> retype<K, V>() => Map.castFrom<String, String, K, V>(this);
 
   bool containsValue(Object value) {
     for (var v in this.values) {
@@ -41618,7 +41611,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap extends MapBase<String, String> {
+class _DataAttributeMap implements Map<String, String> {
   final Map<String, String> _attributes;
 
   _DataAttributeMap(this._attributes);
@@ -41630,13 +41623,6 @@ class _DataAttributeMap extends MapBase<String, String> {
       this[k] = v;
     });
   }
-
-  Map<K, V> cast<K, V>() {
-    Map<Object, Object> self = this;
-    return self is Map<K, V> ? self : Map.castFrom<String, String, K, V>(this);
-  }
-
-  Map<K, V> retype<K, V>() => Map.castFrom<String, String, K, V>(this);
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object value) => values.any((v) => v == value);
@@ -43654,7 +43640,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     return new FixedSizeListIterator<E>(this);
   }
 
-  // From List<E>:
+  // From Collection<E>:
   void add(E value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -43663,6 +43649,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  // From List<E>:
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }

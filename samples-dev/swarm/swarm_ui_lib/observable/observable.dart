@@ -146,22 +146,6 @@ class ObservableList<T> extends AbstractObservable
 
   int get length => _internal.length;
 
-  List<R> cast<R>() => _internal.cast<R>();
-
-  List<R> retype<R>() => _internal.retype<R>();
-
-  Iterable<R> whereType<R>() => _internal.whereType<R>();
-
-  List<T> operator +(List<T> other) => _internal + other;
-
-  Iterable<T> followedBy(Iterable<T> other) => _internal.followedBy(other);
-
-  int indexWhere(bool test(T element), [int start = 0]) =>
-      _internal.indexWhere(test, start);
-
-  int lastIndexWhere(bool test(T element), [int start]) =>
-      _internal.lastIndexWhere(test, start);
-
   void set length(int value) {
     _internal.length = value;
     recordGlobalChange();
@@ -198,15 +182,7 @@ class ObservableList<T> extends AbstractObservable
   }
 
   T get first => _internal.first;
-  void set first(T value) {
-    _internal.first = value;
-  }
-
   T get last => _internal.last;
-  void set last(T value) {
-    _internal.last = value;
-  }
-
   T get single => _internal.single;
 
   void insert(int index, T element) {
@@ -238,7 +214,7 @@ class ObservableList<T> extends AbstractObservable
     return _internal.indexOf(element, start);
   }
 
-  int lastIndexOf(Object element, [int start]) {
+  int lastIndexOf(Object element, [int start = null]) {
     if (start == null) start = length - 1;
     return _internal.lastIndexOf(element, start);
   }
@@ -312,7 +288,8 @@ class ObservableList<T> extends AbstractObservable
     throw new UnimplementedError();
   }
 
-  R fold<R>(R initialValue, R combine(R previousValue, T element)) {
+  dynamic fold(
+      var initialValue, dynamic combine(var previousValue, T element)) {
     throw new UnimplementedError();
   }
 
@@ -320,8 +297,8 @@ class ObservableList<T> extends AbstractObservable
   Iterator<T> get iterator => _internal.iterator;
 
   Iterable<T> where(bool f(T element)) => _internal.where(f);
-  Iterable<R> map<R>(R f(T element)) => _internal.map(f);
-  Iterable<R> expand<R>(Iterable<R> f(T element)) => _internal.expand(f);
+  Iterable map(f(T element)) => _internal.map(f);
+  Iterable expand(Iterable f(T element)) => _internal.expand(f);
   List<T> skip(int count) => _internal.skip(count);
   List<T> take(int count) => _internal.take(count);
   bool every(bool f(T element)) => _internal.every(f);
@@ -348,8 +325,8 @@ class ObservableList<T> extends AbstractObservable
   Iterable<T> takeWhile(bool test(T value)) => throw new UnimplementedError();
   Iterable<T> skipWhile(bool test(T value)) => throw new UnimplementedError();
 
-  T singleWhere(bool test(T value), {T orElse()}) {
-    return _internal.singleWhere(test, orElse: orElse);
+  T singleWhere(bool test(T value)) {
+    return _internal.singleWhere(test);
   }
 
   T elementAt(int index) {

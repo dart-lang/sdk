@@ -389,7 +389,7 @@ class List<E> {
 
   @patch
   factory List.from(Iterable elements, {bool growable: true}) {
-    List<E> list = <E>[];
+    List<E> list = new List<E>();
     for (E e in elements) {
       list.add(e);
     }

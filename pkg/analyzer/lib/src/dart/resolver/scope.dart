@@ -707,7 +707,7 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    Map<String, Element> exportedNames = _getExportMapping(exportedLibrary);
+    HashMap<String, Element> exportedNames = _getExportMapping(exportedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     return new Namespace(exportedNames);
   }
@@ -716,7 +716,7 @@ class NamespaceBuilder {
    * Create a namespace representing the export namespace of the given [library].
    */
   Namespace createExportNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> exportedNames = _getExportMapping(library);
+    HashMap<String, Element> exportedNames = _getExportMapping(library);
     return new Namespace(exportedNames);
   }
 
@@ -732,7 +732,7 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
+    HashMap<String, Element> exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     PrefixElement prefix = element.prefix;
     if (prefix != null) {
@@ -746,7 +746,7 @@ class NamespaceBuilder {
    * [library].
    */
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    HashMap<String, Element> definedNames = new HashMap<String, Element>();
     _addPublicNames(definedNames, library.definingCompilationUnit);
     for (CompilationUnitElement compilationUnit in library.parts) {
       _addPublicNames(definedNames, compilationUnit);
@@ -805,7 +805,8 @@ class NamespaceBuilder {
    * Apply the given [combinators] to all of the names in the given table of
    * [definedNames].
    */
-  Map<String, Element> _applyCombinators(Map<String, Element> definedNames,
+  HashMap<String, Element> _applyCombinators(
+      HashMap<String, Element> definedNames,
       List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
@@ -828,11 +829,11 @@ class NamespaceBuilder {
    * library because all of the names defined by them will be added by another
    * library.
    */
-  Map<String, Element> _computeExportMapping(
+  HashMap<String, Element> _computeExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
-      Map<String, Element> definedNames = new HashMap<String, Element>();
+      HashMap<String, Element> definedNames = new HashMap<String, Element>();
       for (ExportElement element in library.exports) {
         LibraryElement exportedLibrary = element.exportedLibrary;
         if (exportedLibrary != null &&
@@ -841,7 +842,7 @@ class NamespaceBuilder {
           // The exported library will be null if the URI does not reference a
           // valid library.
           //
-          Map<String, Element> exportedNames =
+          HashMap<String, Element> exportedNames =
               _computeExportMapping(exportedLibrary, visitedElements);
           exportedNames = _applyCombinators(exportedNames, element.combinators);
           definedNames.addAll(exportedNames);
@@ -857,12 +858,12 @@ class NamespaceBuilder {
     }
   }
 
-  Map<String, Element> _getExportMapping(LibraryElement library) {
+  HashMap<String, Element> _getExportMapping(LibraryElement library) {
     if (library.exportNamespace != null) {
       return library.exportNamespace.definedNames;
     }
     if (library is LibraryElementImpl) {
-      Map<String, Element> exportMapping =
+      HashMap<String, Element> exportMapping =
           _computeExportMapping(library, new HashSet<LibraryElement>());
       library.exportNamespace = new Namespace(exportMapping);
       return exportMapping;
@@ -875,8 +876,8 @@ class NamespaceBuilder {
    * with exception of [hiddenNames].
    */
   Map<String, Element> _hide(
-      Map<String, Element> definedNames, List<String> hiddenNames) {
-    Map<String, Element> newNames =
+      HashMap<String, Element> definedNames, List<String> hiddenNames) {
+    HashMap<String, Element> newNames =
         new HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
       newNames.remove(name);
@@ -888,9 +889,9 @@ class NamespaceBuilder {
   /**
    * Return a new map of names which has only [shownNames] from [definedNames].
    */
-  Map<String, Element> _show(
-      Map<String, Element> definedNames, List<String> shownNames) {
-    Map<String, Element> newNames = new HashMap<String, Element>();
+  HashMap<String, Element> _show(
+      HashMap<String, Element> definedNames, List<String> shownNames) {
+    HashMap<String, Element> newNames = new HashMap<String, Element>();
     for (String name in shownNames) {
       Element element = definedNames[name];
       if (element != null) {
@@ -925,7 +926,7 @@ class PrefixedNamespace implements Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
-  final Map<String, Element> _definedNames;
+  final HashMap<String, Element> _definedNames;
 
   /**
    * Initialize a newly created namespace to have the names resulting from
@@ -991,7 +992,7 @@ abstract class Scope {
    * A table mapping names that are defined in this scope to the element
    * representing the thing declared with that name.
    */
-  Map<String, Element> _definedNames = null;
+  HashMap<String, Element> _definedNames = null;
 
   /**
    * Return the scope in which this scope is lexically enclosed.

@@ -451,7 +451,7 @@ class InheritanceManager {
     if (lookupMaps == null) {
       resultMap = new Map<String, ExecutableElement>();
     } else {
-      Map<String, List<ExecutableElement>> unionMap =
+      HashMap<String, List<ExecutableElement>> unionMap =
           _unionInterfaceLookupMaps(lookupMaps);
       resultMap = _resolveInheritanceLookup(classElt, unionMap);
     }
@@ -872,9 +872,9 @@ class InheritanceManager {
    * @param lookupMaps the maps to be unioned together.
    * @return the resulting union map.
    */
-  Map<String, List<ExecutableElement>> _unionInterfaceLookupMaps(
+  HashMap<String, List<ExecutableElement>> _unionInterfaceLookupMaps(
       List<Map<String, ExecutableElement>> lookupMaps) {
-    Map<String, List<ExecutableElement>> unionMap =
+    HashMap<String, List<ExecutableElement>> unionMap =
         new HashMap<String, List<ExecutableElement>>();
     for (Map<String, ExecutableElement> lookupMap in lookupMaps) {
       for (String memberName in lookupMap.keys) {
