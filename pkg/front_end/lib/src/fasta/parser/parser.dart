@@ -469,11 +469,11 @@ class Parser {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
       directiveState?.checkDeclaration();
-      return parseTopLevelMember(start);
+      return parseTopLevelMemberImpl(start);
     } else if (start.next != next) {
       directiveState?.checkDeclaration();
       // Handle the edge case where a modifier is being used as an identifier
-      return parseTopLevelMember(start);
+      return parseTopLevelMemberImpl(start);
     }
     // Recovery
     if (next.isOperator && optional('(', next.next)) {
@@ -485,7 +485,7 @@ class Parser {
           next,
           new SyntheticStringToken(TokenType.IDENTIFIER,
               '#synthetic_function_${next.charOffset}', token.charOffset, 0));
-      return parseTopLevelMember(next);
+      return parseTopLevelMemberImpl(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
     listener.beginTopLevelMember(next);
@@ -533,7 +533,7 @@ class Parser {
       if (next.isIdentifier || optional("void", next)) {
         return parseTypedef(previous);
       } else {
-        return parseTopLevelMember(previous);
+        return parseTopLevelMemberImpl(previous);
       }
     } else {
       // The remaining top level keywords are built-in keywords
@@ -545,7 +545,7 @@ class Parser {
           identical(nextValue, '<') ||
           identical(nextValue, '.')) {
         directiveState?.checkDeclaration();
-        return parseTopLevelMember(previous);
+        return parseTopLevelMemberImpl(previous);
       } else if (identical(value, 'library')) {
         directiveState?.checkLibrary(this, token);
         return parseLibraryName(previous);
@@ -1886,7 +1886,11 @@ class Parser {
   Token insertSyntheticIdentifier(Token token, IdentifierContext context,
       [String stringValue]) {
     Token next = token.next;
-    stringValue ??= '';
+    stringValue ??= context == IdentifierContext.methodDeclaration ||
+            context == IdentifierContext.topLevelVariableDeclaration ||
+            context == IdentifierContext.fieldDeclaration
+        ? '#synthetic_identifier_${next.offset}'
+        : '';
     Message message = context.recoveryTemplate.withArguments(next);
     Token identifier = new SyntheticStringToken(
         TokenType.IDENTIFIER, stringValue, next.charOffset, 0);
@@ -1937,8 +1941,7 @@ class Parser {
           token = next.next;
           // Supply a non-empty method name so that it does not accidentally
           // match the default constructor.
-          token = insertSyntheticIdentifier(
-              next, context, '#synthetic_method_name_${token.offset}');
+          token = insertSyntheticIdentifier(next, context);
         } else if (context == IdentifierContext.topLevelVariableDeclaration ||
             context == IdentifierContext.fieldDeclaration) {
           // Since the token is not a keyword or identifier, consume it to
@@ -1946,8 +1949,7 @@ class Parser {
           token = next.next;
           // Supply a non-empty method name so that it does not accidentally
           // match the default constructor.
-          token = insertSyntheticIdentifier(
-              next, context, '#synthetic_field_name_${token.offset}');
+          token = insertSyntheticIdentifier(next, context);
         } else if (context == IdentifierContext.constructorReference) {
           token = insertSyntheticIdentifier(token, context);
         } else {
@@ -2919,7 +2921,18 @@ class Parser {
     return token;
   }
 
+  /// Parse a top level field or function.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
   Token parseTopLevelMember(Token token) {
+    token = parseMetadataStar(syntheticPreviousToken(token));
+    return parseTopLevelMemberImpl(token).next;
+  }
+
+  Token parseTopLevelMemberImpl(Token token) {
     Token beforeStart = token;
     Token next = token.next;
     listener.beginTopLevelMember(next);
@@ -3023,31 +3036,15 @@ class Parser {
       } else if (!next.isIdentifier) {
         // Recovery
         if (next.isKeyword) {
-          reportRecoverableErrorWithToken(
-              next, fasta.templateExpectedIdentifier);
-          rewriter.insertTokenAfter(
-              next,
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER,
-                  '#synthetic_identifier_${next.charOffset}',
-                  next.charOffset,
-                  0));
-          token = next;
-          next = token.next;
+          // Fall through to parse the keyword as the identifier.
+          // ensureIdentifier will report the error.
         } else if (token == beforeStart) {
           // Ensure we make progress.
           return reportInvalidTopLevelDeclaration(next);
         } else {
           // Looks like a declaration missing an identifier.
           // Insert synthetic identifier and fall through.
-          rewriteAndRecover(
-              token,
-              fasta.templateExpectedIdentifier.withArguments(next),
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER,
-                  '#synthetic_identifier_${next.charOffset}',
-                  next.charOffset,
-                  0));
+          insertSyntheticIdentifier(token, IdentifierContext.methodDeclaration);
           next = token.next;
         }
       }
@@ -3707,7 +3704,7 @@ class Parser {
     listener.beginClassBody(token);
     int count = 0;
     while (notEofOrValue('}', token.next)) {
-      token = parseClassMember(token);
+      token = parseClassMemberImpl(token);
       ++count;
     }
     token = token.next;
@@ -3730,8 +3727,8 @@ class Parser {
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
-  Token parseMember(Token token) {
-    return parseClassMember(syntheticPreviousToken(token)).next;
+  Token parseClassMember(Token token) {
+    return parseClassMemberImpl(syntheticPreviousToken(token)).next;
   }
 
   /// ```
@@ -3741,7 +3738,7 @@ class Parser {
   ///   methodDeclaration
   /// ;
   /// ```
-  Token parseClassMember(Token token) {
+  Token parseClassMemberImpl(Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
     TypeContinuation typeContinuation;
