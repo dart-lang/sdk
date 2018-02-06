@@ -113,6 +113,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
   }
 
   Future<WorkflowAction> _fixAllSimilarTests() async {
+    var unhandledTests = <FailingTest>[];
     for (FailingTest similarTest in _remainingTests) {
       _currentWorkingItem = new FixWorkingItem(similarTest.result.name,
           similarTest, _statusExpectations, _lastComment, this._customSections);
@@ -141,9 +142,11 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         var realLast = _lastWorkingItem;
         await fixFailingTest(); // Sets _lastWorkingItem to _currentWorkingItem
         _lastWorkingItem = realLast; // Might not be needed
+      } else {
+        unhandledTests.add(similarTest);
       }
     }
-    return new NavigateStepWorkflowAction(this, const <FailingTest>[]);
+    return new NavigateStepWorkflowAction(this, unhandledTests);
   }
 
   @override
