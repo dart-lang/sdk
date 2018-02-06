@@ -42,11 +42,8 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
 implicit_creation/implicit_new_or_const_generic_test: RuntimeError
@@ -809,6 +806,7 @@ type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool
 [ $compiler == dartdevk && $checked ]
 assertion_initializer_const_error2_test/*: MissingCompileTimeError
 assertion_initializer_const_error2_test/none: Pass
+implicit_creation/implicit_new_constructor_generic_test: Pass
 
 [ $compiler == dartdevk && !$checked ]
 assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.

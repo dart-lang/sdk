@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-import "implicit_new_generic_class_test.dart" as prefix;
+import "implicit_new_constructor_generic_named_test.dart" as prefix;
 
 // Test that an omitted `new` is allowed for a generic constructor invocation.
 
