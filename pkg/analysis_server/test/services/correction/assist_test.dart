@@ -3909,6 +3909,29 @@ class FakeFlutter {
 ''');
   }
 
+  test_reparentFlutterWidget_OK_variable() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/container;
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/new widget(child: container);
+  }
+}
+''');
+  }
+
   test_reparentFlutterWidgetCenter_OK() async {
     addFlutterPackage();
     await resolveTestUnit('''
