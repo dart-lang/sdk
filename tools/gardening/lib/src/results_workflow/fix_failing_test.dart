@@ -18,7 +18,7 @@ import '../results/status_files.dart';
 import '../util.dart';
 import '../workflow.dart';
 
-final RegExp toggleSectionRegExp = new RegExp(r"^t(\d+)$");
+final RegExp toggleSectionRegExp = new RegExp(r"^(\d+)$");
 
 /// This is the main workflow step, where the user is asked what to do with the
 /// failure and input comments etc. For every test, [onShow] is called with the
@@ -165,7 +165,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     print("o       : Modify outcomes.");
     print("r       : Reset to initial state.");
     print("s       : Skip this failure.");
-    print("ti      : Toggle selection of section, where i is the index.");
+    print("<n>     : Toggle selection of the section with the index <n>.");
   }
 
   /// Fixes the failing test based on the data in [_currentWorkingItem].
