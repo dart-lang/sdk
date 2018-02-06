@@ -47,8 +47,8 @@ main() async {
       var fileObj = await fileAndDir.file.file();
       expect(fileObj.name, fileAndDir.file.name);
       expect(fileObj.relativePath, '');
-      expect(new DateTime.now().difference(fileObj.lastModifiedDate).inSeconds,
-          lessThan(60));
+      expect(new DateTime.now().difference(fileObj.lastModifiedDate).inMinutes,
+          lessThan(30));
     });
   }
 }
