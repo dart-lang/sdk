@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart_action.gni")
 import("../../build/dart_host_sdk_toolchain.gni")
 import("../application_snapshot.gni")
 
@@ -23,18 +24,17 @@ copy("copy_kernel_service_snapshot") {
     ":kernel-service",
   ]
   sources = [
-    rebase_path("$root_gen_dir/kernel-service.dart.snapshot"),
+    "$root_gen_dir/kernel-service.dart.snapshot",
   ]
   outputs = [
     "$root_out_dir/kernel-service.dart.snapshot",
   ]
 }
 
-compiled_action("kernel_service_dill") {
+dart_action("kernel_service_dill") {
   deps = [
     "../../runtime/vm:vm_legacy_platform",
   ]
-  tool = "../../runtime/bin:dart_bootstrap"
   kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
   gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
 
@@ -47,11 +47,12 @@ compiled_action("kernel_service_dill") {
     "$root_gen_dir/kernel_service.dill",
   ]
 
+  script = gen_kernel_script
+
   # TODO: Switch over to vm_platform_strong.dill and remove the
   # flags --no-strong-mode once https://github.com/dart-lang/sdk/issues/31623
   # is fixed.
   args = [
-    rebase_path(gen_kernel_script),
     "--packages=file:///" + rebase_path("../../.packages"),
     "--platform=file:///" + rebase_path("$root_out_dir/vm_platform.dill"),
     "--no-aot",
