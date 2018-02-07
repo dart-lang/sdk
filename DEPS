@@ -104,7 +104,7 @@ vars = {
   "markdown_tag": "@1.0.0",
   "matcher_tag": "@0.12.1+4",
   "mime_tag": "@0.9.6",
-  "mockito_tag": "@2.0.2",
+  "mockito_tag": "@a92db054fba18bc2d605be7670aee74b7cadc00a",
   "mustache4dart_tag" : "@v2.1.0",
   "oauth2_tag": "@1.1.0",
   "observatory_pub_packages_rev": "@4c282bb240b68f407c8c7779a65c68eeb0139dc6",
