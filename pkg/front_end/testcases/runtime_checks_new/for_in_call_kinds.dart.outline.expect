@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   static field dynamic staticField;
   field dynamic instanceField;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   static set staticSetter(dynamic x) → void
     ;

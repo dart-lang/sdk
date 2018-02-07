@@ -11,6 +11,9 @@ accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25624
 accessor_conflict_import_prefixed_test: StaticWarning # Issue 25624
 accessor_conflict_import_test: StaticWarning # Issue 25624
 application_negative_test: CompileTimeError # Issue 14528, The following tests are currently assumed to be failing because the test is wrong.
+assert_message_test: StaticWarning
+assertion_initializer_test: StaticWarning
+assertion_test: StaticWarning
 bad_initializer1_negative_test: CompileTimeError # Issue 14529, The following tests are currently assumed to be failing because the test is wrong.
 bad_initializer2_negative_test: Fail # Issue 14880
 bad_named_constructor_negative_test: CompileTimeError # Issue 18693, The following tests are currently assumed to be failing because the test is wrong.
@@ -387,6 +390,7 @@ unhandled_exception_negative_test: CompileTimeError
 unresolved_in_factory_negative_test: Fail # Issue 12163
 unresolved_top_level_method_negative_test: StaticWarning
 unresolved_top_level_var_negative_test: Fail # Issue 12163
+vm/canonicalization_preserves_deopt_test: StaticWarning
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/reflect_core_vm_test: CompileTimeError # This test uses "const Symbol('_setAt')"
@@ -394,16 +398,29 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
-
 [ $compiler == dart2analyzer && $runtime == none ]
-assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-assertion_initializer_const_function_test/01: MissingStaticWarning
+arithmetic_test: CompileTimeError # int64
+bit_operations_test/01: CompileTimeError # int64
+bit_operations_test/02: CompileTimeError # int64
+bit_operations_test/03: CompileTimeError # int64
+bit_operations_test/04: CompileTimeError # int64
+bit_operations_test/none: CompileTimeError # int64
+deopt_inlined_function_lazy_test: CompileTimeError # int64
+guess_cid_test: CompileTimeError # int64
+identical_closure2_test: CompileTimeError # int64
+int2_test: CompileTimeError # int64
+mint_compares_test: CompileTimeError # int64
+number_identity_test: CompileTimeError # int64
+vm/regress_14903_test: CompileTimeError # int64
 
 [ $compiler == dart2analyzer && $runtime == none && $checked ]
-assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #
 assertion_initializer_const_error2_test/cc10: Pass # Issue #31321
 assertion_initializer_const_error2_test/cc11: Pass # Issue #31321
 assertion_initializer_const_error2_test/none: Pass
+
+[ $compiler == dart2analyzer && $runtime == none && !$checked ]
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[ $compiler == dart2analyzer && $strong ]
+*: Skip # Issue 28649
 

@@ -462,7 +462,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     }
 
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes, typeVariables);
+        namedParameters, namedParameterTypes, typeVariables, null);
   }
 
   @override
@@ -592,10 +592,15 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
             ..sort((a, b) => a.compareTo(b));
           List<DartType> namedParameterTypes =
               new List.filled(namedParameters.length, dynamic);
-          data.callType = new FunctionType(dynamic, requiredParameterTypes,
-              optionalParameterTypes, namedParameters, namedParameterTypes,
+          data.callType = new FunctionType(
+              dynamic,
+              requiredParameterTypes,
+              optionalParameterTypes,
+              namedParameters,
+              namedParameterTypes,
               // TODO(johnniwinther): Generate existential types here.
-              const <FunctionTypeVariable>[]);
+              const <FunctionTypeVariable>[],
+              null);
         } else {
           // The function type is not valid.
           data.callType = const DynamicType();
@@ -1207,7 +1212,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   ResolutionImpact computeWorldImpact(KMember member) {
     return buildKernelImpact(
-        _members.getData(member).definition.node, this, reporter);
+        _members.getData(member).definition.node, this, reporter, options);
   }
 
   ScopeModel computeScopeModel(KMember member) {
@@ -1650,6 +1655,10 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       }
       index++;
     }
+
+    DartType typedefType =
+        node.typedef == null ? null : elementMap.getTypedefType(node.typedef);
+
     FunctionType type = new FunctionType(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
@@ -1660,7 +1669,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
-        typeVariables ?? const <FunctionTypeVariable>[]);
+        typeVariables ?? const <FunctionTypeVariable>[],
+        typedefType);
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
@@ -1880,7 +1890,7 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   @override
   bool isNamedMixinApplication(ClassEntity cls) {
     return elementMap._isMixinApplication(cls) &&
-        elementMap._isUnnamedMixinApplication(cls);
+        !elementMap._isUnnamedMixinApplication(cls);
   }
 
   @override
@@ -2073,6 +2083,10 @@ class JsToFrontendMapImpl extends JsToFrontendMapBase
     return _backend._members.getEntity(member.memberIndex);
   }
 
+  TypedefEntity toBackendTypedef(covariant IndexedTypedef typedef) {
+    return _backend._typedefs.getEntity(typedef.typedefIndex);
+  }
+
   TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
     if (typeVariable is KLocalTypeVariable) {
       failedAt(
@@ -2133,6 +2147,25 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedClass newClass = convertClass(newLibrary, oldClass);
       _classMap[env.cls] = _classes.register(newClass, data.copy(), env);
       assert(newClass.classIndex == oldClass.classIndex);
+    }
+    for (int typedefIndex = 0;
+        typedefIndex < _elementMap._typedefs.length;
+        typedefIndex++) {
+      IndexedTypedef oldTypedef = _elementMap._typedefs.getEntity(typedefIndex);
+      TypedefData data = _elementMap._typedefs.getData(oldTypedef);
+      IndexedLibrary oldLibrary = oldTypedef.library;
+      LibraryEntity newLibrary = _libraries.getEntity(oldLibrary.libraryIndex);
+      IndexedTypedef newTypedef = convertTypedef(newLibrary, oldTypedef);
+      _typedefMap[data.node] = _typedefs.register(
+          newTypedef,
+          new TypedefData(
+              data.node,
+              newTypedef,
+              new TypedefType(
+                  newTypedef,
+                  new List<DartType>.filled(
+                      data.node.typeParameters.length, const DynamicType()))));
+      assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
     for (int memberIndex = 0;
         memberIndex < _elementMap._members.length;

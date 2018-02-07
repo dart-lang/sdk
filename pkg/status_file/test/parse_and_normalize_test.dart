@@ -20,16 +20,17 @@ void main() {
       // to be valid and looks more like some kind of template or help document.
       // Ignore it.
       var co19StatusFile = repoRoot.resolve('tests/co19/src/co19.status');
+      var co19_2StatusFile = repoRoot.resolve('tests/co19_2/src/co19.status');
       if (FileSystemEntity.identicalSync(
-          entry.path, new File.fromUri(co19StatusFile).path)) {
+              entry.path, new File.fromUri(co19StatusFile).path) ||
+          FileSystemEntity.identicalSync(
+              entry.path, new File.fromUri(co19_2StatusFile).path)) {
         continue;
       }
 
       try {
         var statusFile = new StatusFile.read(entry.path);
-        print("-------" + entry.path + "---------------");
-        print(statusFile.toString());
-        print("-------" + entry.path + "---------------");
+        statusFile.toString();
       } catch (err, st) {
         print(err);
         print(st);

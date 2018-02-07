@@ -25,6 +25,12 @@ abstract class TypeBuilder {
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
 
+  /// Clones the type builder recursively without binding the subterms to
+  /// existing declaration or type variable builders.  All newly built types
+  /// are added to [newTypes], so that they can be added to a proper scope and
+  /// resolved later.
+  TypeBuilder clone(List<TypeBuilder> newTypes);
+
   build(LibraryBuilder library);
 
   buildInvalidType(int charOffset, Uri fileUri);

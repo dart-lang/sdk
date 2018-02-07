@@ -13,6 +13,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         LibraryBuilder,
         MixinApplicationBuilder,
+        TypeBuilder,
         TypeVariableBuilder;
 
 class KernelMixinApplicationBuilder
@@ -42,5 +43,11 @@ class KernelMixinApplicationBuilder
   @override
   buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);
+  }
+
+  KernelMixinApplicationBuilder clone(List<TypeBuilder> newTypes) {
+    int charOffset = -1; // TODO(dmitryas): Provide these.
+    Uri fileUri = null; // TODO(dmitryas): Provide these.
+    return unsupported("clone", charOffset, fileUri);
   }
 }

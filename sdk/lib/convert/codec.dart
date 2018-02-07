@@ -40,7 +40,7 @@ abstract class Codec<S, T> {
   /**
    * Returns the decoder of `this`, converting from [T] to [S].
    *
-   * It may be stateful an should not be reused.
+   * It may be stateful and should not be reused.
    */
   Converter<T, S> get decoder;
 

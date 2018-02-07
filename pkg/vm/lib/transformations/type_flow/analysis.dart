@@ -5,6 +5,7 @@
 /// Global type flow analysis.
 library kernel.transformations.analysis;
 
+import 'dart:collection';
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
@@ -24,12 +25,6 @@ import 'utils.dart';
 // organized in several categories:
 //
 // === Correctness ===
-// * Add unit tests!!!
-// * Support dynamic calls via getters & dynamic tear-offs.
-// * Re-evaluate field initializer if its dependency changes (avoid
-//   re-using cached value).
-// * Handle noSuchMethod invocations correctly (especially in case of dynamic
-//   calls).
 // * Verify incremental re-calculation by fresh analysis starting with known
 //   allocated classes.
 // * Auto-generate entry_points.json during build.
@@ -73,7 +68,8 @@ class _DependencyTracker {
 /// This is the basic unit of processing in type flow analysis.
 /// Call sites calling the same method with the same argument types
 /// may reuse results of the analysis through the same _Invocation instance.
-class _Invocation extends _DependencyTracker {
+abstract class _Invocation extends _DependencyTracker
+    with LinkedListEntry<_Invocation> {
   final Selector selector;
   final Args<Type> args;
 
@@ -84,9 +80,7 @@ class _Invocation extends _DependencyTracker {
   /// result or not (to avoid invalidation of callers if result hasn't changed).
   Type invalidatedResult;
 
-  bool _isPolymorphic = false;
-  Set<Call> _callSites; // Populated only if non-direct and not polymorphic.
-  Member _monomorphicTarget;
+  Type process(TypeFlowAnalysis typeFlowAnalysis);
 
   _Invocation(this.selector, this.args);
 
@@ -104,7 +98,358 @@ class _Invocation extends _DependencyTracker {
   @override
   String toString() => "_Invocation $selector $args";
 
-  void setPolymorphic() {
+  /// Processes noSuchMethod() invocation and returns its result.
+  /// Used if target is not found or number of arguments is incorrect.
+  Type _processNoSuchMethod(Type receiver, TypeFlowAnalysis typeFlowAnalysis) {
+    tracePrint("Processing noSuchMethod for receiver $receiver");
+
+    final nsmSelector = new InterfaceSelector(
+        typeFlowAnalysis.hierarchyCache.objectNoSuchMethod,
+        callKind: CallKind.Method);
+
+    final nsmArgs = new Args<Type>([
+      receiver,
+      new Type.cone(
+          typeFlowAnalysis.environment.coreTypes.invocationClass.rawType)
+    ]);
+
+    final nsmInvocation =
+        typeFlowAnalysis._invocationsCache.getInvocation(nsmSelector, nsmArgs);
+
+    final Type type =
+        typeFlowAnalysis.workList.processInvocation(nsmInvocation);
+
+    // Result of this invocation depends on the result of noSuchMethod
+    // inovcation.
+    nsmInvocation.addDependentInvocation(this);
+
+    return type;
+  }
+}
+
+class _DirectInvocation extends _Invocation {
+  _DirectInvocation(DirectSelector selector, Args<Type> args)
+      : super(selector, args);
+
+  @override
+  Type process(TypeFlowAnalysis typeFlowAnalysis) {
+    assertx(typeFlowAnalysis.currentInvocation == this);
+
+    if (selector.member is Field) {
+      return _processField(typeFlowAnalysis);
+    } else {
+      return _processFunction(typeFlowAnalysis);
+    }
+  }
+
+  Type _processField(TypeFlowAnalysis typeFlowAnalysis) {
+    final Field field = selector.member as Field;
+    final int firstParamIndex = field.isStatic ? 0 : 1;
+    final _FieldValue fieldValue = typeFlowAnalysis.getFieldValue(field);
+
+    switch (selector.callKind) {
+      case CallKind.PropertyGet:
+        assertx(args.values.length == firstParamIndex);
+        assertx(args.names.isEmpty);
+        return fieldValue.getValue(typeFlowAnalysis);
+
+      case CallKind.PropertySet:
+        assertx(args.values.length == firstParamIndex + 1);
+        assertx(args.names.isEmpty);
+        final Type setterArg = args.values[firstParamIndex];
+        fieldValue.setValue(setterArg, typeFlowAnalysis);
+        return const EmptyType();
+
+      case CallKind.Method:
+        // Call via field.
+        // TODO(alexmarkov): support function types and use inferred type
+        // to get more precise return type.
+        return new Type.fromStatic(const DynamicType());
+
+      case CallKind.FieldInitializer:
+        assertx(args.values.isEmpty);
+        assertx(args.names.isEmpty);
+        fieldValue.setValue(
+            typeFlowAnalysis
+                .getSummary(field)
+                .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis),
+            typeFlowAnalysis);
+        return const EmptyType();
+    }
+
+    // Make dartanalyzer happy.
+    throw 'Unexpected call kind ${selector.callKind}';
+  }
+
+  Type _processFunction(TypeFlowAnalysis typeFlowAnalysis) {
+    final Member member = selector.member;
+    if (selector.memberAgreesToCallKind(member)) {
+      if (_isLegalNumberOfArguments()) {
+        return typeFlowAnalysis
+            .getSummary(member)
+            .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
+      } else {
+        assertx(selector.callKind == CallKind.Method);
+        return _processNoSuchMethod(args.receiver, typeFlowAnalysis);
+      }
+    } else {
+      if (selector.callKind == CallKind.PropertyGet) {
+        // Tear-off.
+        // TODO(alexmarkov): capture receiver type
+        assertx((member is Procedure) && !member.isGetter && !member.isSetter);
+        typeFlowAnalysis.addRawCall(new DirectSelector(member));
+        return new Type.fromStatic(const DynamicType());
+      } else {
+        // Call via getter.
+        // TODO(alexmarkov): capture receiver type
+        assertx((selector.callKind == CallKind.Method) &&
+            (member is Procedure) &&
+            member.isGetter);
+        typeFlowAnalysis.addRawCall(
+            new DirectSelector(member, callKind: CallKind.PropertyGet));
+        return new Type.fromStatic(const DynamicType());
+      }
+    }
+  }
+
+  bool _isLegalNumberOfArguments() {
+    final function = selector.member.function;
+    assertx(function != null);
+
+    final int positionalArguments = args.positionalCount;
+
+    final int firstParamIndex = hasReceiverArg(selector.member) ? 1 : 0;
+    final int requiredParameters =
+        firstParamIndex + function.requiredParameterCount;
+    if (positionalArguments < requiredParameters) {
+      return false;
+    }
+
+    final int positionalParameters =
+        firstParamIndex + function.positionalParameters.length;
+    if (positionalArguments > positionalParameters) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+class _DispatchableInvocation extends _Invocation {
+  bool _isPolymorphic = false;
+  Set<Call> _callSites; // Populated only if not polymorphic.
+  Member _monomorphicTarget;
+
+  /// Marker for noSuchMethod() invocation in the map of invocation targets.
+  static final Member kNoSuchMethodMarker =
+      new Procedure(new Name('noSuchMethod&&'), ProcedureKind.Method, null);
+
+  _DispatchableInvocation(Selector selector, Args<Type> args)
+      : super(selector, args) {
+    assertx(selector is! DirectSelector);
+  }
+
+  @override
+  Type process(TypeFlowAnalysis typeFlowAnalysis) {
+    assertx(typeFlowAnalysis.currentInvocation == this);
+
+    // Collect all possible targets for this invocation,
+    // along with more accurate receiver types for each target.
+    final targets = <Member, _ReceiverTypeBuilder>{};
+    _collectTargetsForReceiverType(args.receiver, targets, typeFlowAnalysis);
+
+    // Calculate result as a union of results of direct invocations
+    // corresponding to each target.
+    Type result = new Type.empty();
+
+    if (targets.isEmpty) {
+      tracePrint("No targets...");
+    } else {
+      if (targets.length == 1) {
+        final target = targets.keys.single;
+        if (target != kNoSuchMethodMarker) {
+          _setMonomorphicTarget(target);
+        } else {
+          _setPolymorphic();
+        }
+      } else {
+        _setPolymorphic();
+      }
+
+      targets
+          .forEach((Member target, _ReceiverTypeBuilder receiverTypeBuilder) {
+        Type receiver = receiverTypeBuilder.toType();
+        Type type;
+
+        if (target == kNoSuchMethodMarker) {
+          type = _processNoSuchMethod(receiver, typeFlowAnalysis);
+        } else {
+          final directSelector =
+              new DirectSelector(target, callKind: selector.callKind);
+
+          Args<Type> directArgs = args;
+          if (args.receiver != receiver) {
+            directArgs = new Args<Type>.withReceiver(args, receiver);
+          }
+
+          final directInvocation = typeFlowAnalysis._invocationsCache
+              .getInvocation(directSelector, directArgs);
+
+          type = typeFlowAnalysis.workList.processInvocation(directInvocation);
+
+          // Result of this invocation depends on the results of direct
+          // invocations corresponding to each target.
+          directInvocation.addDependentInvocation(this);
+        }
+
+        result = result.union(type, typeFlowAnalysis.hierarchyCache);
+      });
+    }
+
+    // TODO(alexmarkov): handle closures more precisely
+    if ((selector is DynamicSelector) && (selector.name.name == "call")) {
+      tracePrint("Possible closure call, result is dynamic");
+      result = new Type.fromStatic(const DynamicType());
+    }
+
+    return result;
+  }
+
+  void _collectTargetsForReceiverType(
+      Type receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
+    assertx(receiver != const EmptyType()); // should be filtered earlier
+
+    final bool isNullableReceiver = receiver is NullableType;
+    if (isNullableReceiver) {
+      receiver = (receiver as NullableType).baseType;
+      assertx(receiver is! NullableType);
+    }
+
+    if (selector is InterfaceSelector) {
+      final staticReceiverType =
+          new Type.fromStatic(selector.member.enclosingClass.rawType);
+      receiver = receiver.intersection(
+          staticReceiverType, typeFlowAnalysis.hierarchyCache);
+      assertx(receiver is! NullableType);
+
+      if (kPrintTrace) {
+        tracePrint("Narrowed down receiver type: $receiver");
+      }
+    }
+
+    if (receiver is ConeType) {
+      // Specialization of type cone will add dependency of the current
+      // invocation to the receiver class. A new allocated class discovered
+      // in the receiver cone will invalidate this invocation.
+      receiver = typeFlowAnalysis.hierarchyCache
+          .specializeTypeCone((receiver as ConeType).dartType);
+    }
+
+    assertx(targets.isEmpty);
+
+    if (receiver is ConcreteType) {
+      _collectTargetsForConcreteType(receiver, targets, typeFlowAnalysis);
+    } else if (receiver is SetType) {
+      for (var type in receiver.types) {
+        _collectTargetsForConcreteType(type, targets, typeFlowAnalysis);
+      }
+    } else if (receiver is AnyType) {
+      _collectTargetsForSelector(targets, typeFlowAnalysis);
+    } else {
+      assertx(receiver is EmptyType);
+    }
+
+    if (isNullableReceiver) {
+      _collectTargetsForNull(targets, typeFlowAnalysis);
+    }
+  }
+
+  // TODO(alexmarkov): Consider caching targets for Null type.
+  void _collectTargetsForNull(Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
+    Class nullClass = typeFlowAnalysis.environment.coreTypes.nullClass;
+
+    Member target = typeFlowAnalysis.hierarchyCache.hierarchy
+        .getDispatchTarget(nullClass, selector.name, setter: selector.isSetter);
+
+    if (target != null) {
+      if (kPrintTrace) {
+        tracePrint("Found $target for null receiver");
+      }
+      _getReceiverTypeBuilder(targets, target).addNull();
+    }
+  }
+
+  void _collectTargetsForConcreteType(
+      ConcreteType receiver,
+      Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
+    DartType receiverDartType = receiver.dartType;
+
+    assertx(receiverDartType is! FunctionType);
+    assertx(receiverDartType is InterfaceType); // TODO(alexmarkov)
+
+    Class class_ = (receiverDartType as InterfaceType).classNode;
+
+    Member target = typeFlowAnalysis.hierarchyCache.hierarchy
+        .getDispatchTarget(class_, selector.name, setter: selector.isSetter);
+
+    if (target != null) {
+      if (kPrintTrace) {
+        tracePrint("Found $target for concrete receiver $receiver");
+      }
+      _getReceiverTypeBuilder(targets, target).addConcreteType(receiver);
+    } else {
+      if (typeFlowAnalysis.hierarchyCache.hasNonTrivialNoSuchMethod(class_)) {
+        if (kPrintTrace) {
+          tracePrint("Found non-trivial noSuchMethod for receiver $receiver");
+        }
+        _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
+            .addConcreteType(receiver);
+      } else {
+        if (kPrintTrace) {
+          tracePrint("Target is not found for receiver $receiver");
+        }
+      }
+    }
+  }
+
+  void _collectTargetsForSelector(Map<Member, _ReceiverTypeBuilder> targets,
+      TypeFlowAnalysis typeFlowAnalysis) {
+    Selector selector = this.selector;
+    if (selector is InterfaceSelector) {
+      // TODO(alexmarkov): support generic types and make sure inferred types
+      // are always same or better than static types.
+//      assertx(selector.member.enclosingClass ==
+//          _typeFlowAnalysis.environment.coreTypes.objectClass, details: selector);
+      selector = new DynamicSelector(selector.callKind, selector.name);
+    }
+
+    final receiver = args.receiver;
+    final _DynamicTargetSet dynamicTargetSet = typeFlowAnalysis.hierarchyCache
+        .getDynamicTargetSet(selector as DynamicSelector);
+
+    dynamicTargetSet.addDependentInvocation(this);
+
+    assertx(targets.isEmpty);
+    for (Member target in dynamicTargetSet.targets) {
+      _getReceiverTypeBuilder(targets, target).addType(receiver);
+    }
+
+    // Conservatively include noSuchMethod if selector is not from Object,
+    // as class might miss the implementation.
+    if (!dynamicTargetSet.isObjectMember) {
+      _getReceiverTypeBuilder(targets, kNoSuchMethodMarker).addType(receiver);
+    }
+  }
+
+  _ReceiverTypeBuilder _getReceiverTypeBuilder(
+          Map<Member, _ReceiverTypeBuilder> targets, Member member) =>
+      targets[member] ??= new _ReceiverTypeBuilder();
+
+  void _setPolymorphic() {
     if (!_isPolymorphic) {
       _isPolymorphic = true;
       _monomorphicTarget = null;
@@ -115,7 +460,7 @@ class _Invocation extends _DependencyTracker {
     }
   }
 
-  void setMonomorphicTarget(Member target) {
+  void _setMonomorphicTarget(Member target) {
     assertx(!_isPolymorphic);
     assertx((_monomorphicTarget == null) || (_monomorphicTarget == target));
     _monomorphicTarget = target;
@@ -158,11 +503,79 @@ class _Invocation extends _DependencyTracker {
   }
 }
 
+/// Efficient builder of receiver type.
+///
+/// Supports the following operations:
+/// 1) Add 1..N concrete types OR add 1 arbitrary type.
+/// 2) Make type nullable.
+class _ReceiverTypeBuilder {
+  Type _type;
+  Set<ConcreteType> _set;
+  bool _nullable = false;
+
+  /// Appends a ConcreteType. May be called multiple times.
+  /// Should not be used in conjunction with [addType].
+  void addConcreteType(ConcreteType type) {
+    if (_set == null) {
+      if (_type == null) {
+        _type = type;
+        return;
+      }
+
+      assertx(_type is ConcreteType);
+      assertx(_type != type);
+
+      _set = new Set<ConcreteType>();
+      _set.add(_type);
+
+      _type = null;
+    }
+
+    _set.add(type);
+  }
+
+  /// Appends an arbitrary Type. May be called only once.
+  /// Should not be used in conjunction with [addConcreteType].
+  void addType(Type type) {
+    assertx(_type == null && _set == null);
+    _type = type;
+  }
+
+  /// Makes the resulting type nullable.
+  void addNull() {
+    _nullable = true;
+  }
+
+  /// Returns union of added types.
+  Type toType() {
+    Type t = _type;
+    if (t == null) {
+      if (_set == null) {
+        t = const EmptyType();
+      } else {
+        t = new SetType(_set);
+      }
+    } else {
+      assertx(_set == null);
+    }
+
+    if (_nullable) {
+      if (t is! NullableType) {
+        t = new NullableType(t);
+      }
+    }
+
+    return t;
+  }
+}
+
 class _InvocationsCache {
   final Set<_Invocation> _invocations = new Set<_Invocation>();
 
   _Invocation getInvocation(Selector selector, Args<Type> args) {
-    _Invocation invocation = new _Invocation(selector, args);
+    _Invocation invocation = (selector is DirectSelector)
+        ? new _DirectInvocation(selector, args)
+        : new _DispatchableInvocation(selector, args);
     _Invocation result = _invocations.lookup(invocation);
     if (result == null) {
       bool added = _invocations.add(invocation);
@@ -173,166 +586,91 @@ class _InvocationsCache {
   }
 }
 
-/// Base class for handlers of invocations of a member.
-abstract class _MemberInvocationHandler extends _DependencyTracker {
-  final Member member;
-  Summary _summary;
-
-  _MemberInvocationHandler(this.member);
-
-  Summary getSummary(TypeFlowAnalysis typeFlowAnalysis) {
-    return _summary ??= typeFlowAnalysis.summaryCollector.createSummary(member);
-  }
-
-  Type handleInvocation(
-      _Invocation invocation, TypeFlowAnalysis typeFlowAnalysis);
-
-  @override
-  String toString() => "_M $member";
-}
-
-class _ProcedureInvocationHandler extends _MemberInvocationHandler {
-  _ProcedureInvocationHandler(Member member) : super(member);
-
-  @override
-  Type handleInvocation(
-      _Invocation invocation, TypeFlowAnalysis typeFlowAnalysis) {
-    if (invocation.selector.memberAgreesToCallKind(member)) {
-      if (_isLegalNumberOfArguments(invocation)) {
-        addDependentInvocation(typeFlowAnalysis.currentInvocation);
-        return getSummary(typeFlowAnalysis).apply(
-            invocation.args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
-      } else {
-        return new Type.empty();
-      }
-    } else {
-      if (invocation.selector.callKind == CallKind.PropertyGet) {
-        // Tear-off.
-        // TODO(alexmarkov): capture receiver type
-        assertx((member is Procedure) &&
-            !(member as Procedure).isGetter &&
-            !(member as Procedure).isSetter);
-        typeFlowAnalysis.addRawCall(new DirectSelector(member));
-        return new Type.fromStatic(const DynamicType());
-      } else {
-        // Call via getter.
-        // TODO(alexmarkov): capture receiver type
-        assertx((invocation.selector.callKind == CallKind.Method) &&
-            (member is Procedure) &&
-            (member as Procedure).isGetter);
-        typeFlowAnalysis.addRawCall(
-            new DirectSelector(member, callKind: CallKind.PropertyGet));
-        return new Type.fromStatic(const DynamicType());
-      }
-    }
-  }
-
-  bool _isLegalNumberOfArguments(_Invocation invocation) {
-    final function = member.function;
-    assertx(function != null);
-
-    final int positionalArguments = invocation.args.positionalCount;
-
-    final int firstParamIndex = hasReceiverArg(member) ? 1 : 0;
-    final int requiredParameters =
-        firstParamIndex + function.requiredParameterCount;
-    if (positionalArguments < requiredParameters) {
-      return false;
-    }
-
-    final int positionalParameters =
-        firstParamIndex + function.positionalParameters.length;
-    if (positionalArguments > positionalParameters) {
-      return false;
-    }
-
-    return true;
-  }
-}
-
-class _FieldGetterInvocationHandler extends _MemberInvocationHandler {
+class _FieldValue extends _DependencyTracker {
+  final Field field;
   Type value;
+  _DirectInvocation _initializerInvocation;
 
-  _FieldGetterInvocationHandler(Field member) : super(member);
+  _FieldValue(this.field) {
+    if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
+      value = new Type.nullable(const EmptyType());
+    } else {
+      value = const EmptyType();
+    }
+  }
 
-  Field get field => member as Field;
+  bool _isDefaultValueOfFieldObservable() {
+    if (field.isStatic) {
+      return true;
+    }
 
-  int get receiverCount => field.isStatic ? 0 : 1;
+    final enclosingClass = field.enclosingClass;
+    assertx(enclosingClass != null);
+
+    // Default value is not observable if every generative constructor
+    // is redirecting or initializes the field.
+    return !enclosingClass.constructors.every((Constructor constr) {
+      for (var initializer in constr.initializers) {
+        if ((initializer is RedirectingInitializer) ||
+            ((initializer is FieldInitializer) &&
+                (initializer.field == field))) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }
 
   void ensureInitialized(TypeFlowAnalysis typeFlowAnalysis) {
-    if (value == null) {
-      // Evaluate initializer
-      final args = new Args<Type>(const <Type>[]);
-      value = getSummary(typeFlowAnalysis)
-          .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
+    if (field.initializer != null) {
+      if (_initializerInvocation == null) {
+        _initializerInvocation = typeFlowAnalysis._invocationsCache
+            .getInvocation(
+                new DirectSelector(field, callKind: CallKind.FieldInitializer),
+                new Args<Type>(const <Type>[]));
+      }
 
-      // TODO(alexmarkov): re-evaluate initializer on invalidations
+      // It may update the field value.
+      typeFlowAnalysis.workList.processInvocation(_initializerInvocation);
     }
   }
 
-  @override
-  Type handleInvocation(
-      _Invocation invocation, TypeFlowAnalysis typeFlowAnalysis) {
+  Type getValue(TypeFlowAnalysis typeFlowAnalysis) {
     ensureInitialized(typeFlowAnalysis);
+    addDependentInvocation(typeFlowAnalysis.currentInvocation);
+    return value;
+  }
 
-    if (invocation.selector.callKind == CallKind.PropertyGet) {
-      assertx(invocation.args.values.length == receiverCount);
-      assertx(invocation.args.names.isEmpty);
-      addDependentInvocation(typeFlowAnalysis.currentInvocation);
-      return value;
-    } else {
-      // Call via field.
-      assertx(invocation.selector.callKind == CallKind.Method);
-      return new Type.fromStatic(const DynamicType());
+  void setValue(Type newValue, TypeFlowAnalysis typeFlowAnalysis) {
+    final Type newType = value.union(newValue, typeFlowAnalysis.hierarchyCache);
+    if (newType != value) {
+      tracePrint("Set field $field value $newType");
+      invalidateDependentInvocations(typeFlowAnalysis.workList);
+      value = newType;
     }
   }
 
   @override
-  String toString() => "_GetF $member {value: $value}";
+  String toString() => "_FieldValue $field => $value";
 }
 
-class _FieldSetterInvocationHandler extends _MemberInvocationHandler {
-  final _FieldGetterInvocationHandler getter;
-
-  _FieldSetterInvocationHandler(this.getter) : super(getter.field);
-
-  Field get field => getter.field;
-  int get receiverCount => getter.receiverCount;
-
-  @override
-  Type handleInvocation(
-      _Invocation invocation, TypeFlowAnalysis typeFlowAnalysis) {
-    getter.ensureInitialized(typeFlowAnalysis);
-    assertx(invocation.selector.callKind == CallKind.PropertySet);
-
-    assertx(invocation.args.values.length == receiverCount + 1);
-    assertx(invocation.args.names.isEmpty);
-    final Type setterArg = invocation.args.values[receiverCount];
-
-    final Type newType =
-        getter.value.union(setterArg, typeFlowAnalysis.hierarchyCache);
-    if (newType != getter.value) {
-      getter.invalidateDependentInvocations(typeFlowAnalysis.workList);
-      getter.value = newType;
-    }
-    return new Type.empty();
-  }
-
-  @override
-  String toString() => "_SetF $member";
-}
-
-class _DynamicInvocationHandler extends _DependencyTracker {
+class _DynamicTargetSet extends _DependencyTracker {
   final DynamicSelector selector;
   final Set<Member> targets = new Set<Member>();
+  final bool isObjectMember;
 
-  _DynamicInvocationHandler(this.selector);
+  _DynamicTargetSet(this.selector, this.isObjectMember);
 }
 
 class _ClassData extends _DependencyTracker {
   final Class class_;
   final Set<_ClassData> supertypes; // List of super-types including this.
   final Set<_ClassData> allocatedSubtypes = new Set<_ClassData>();
+
+  /// Flag indicating if this class has a noSuchMethod() method not inherited
+  /// from Object.
+  /// Lazy initialized by _ClassHierarchyCache.hasNonTrivialNoSuchMethod().
+  bool hasNonTrivialNoSuchMethod;
 
   _ClassData(this.class_, this.supertypes) {
     supertypes.add(this);
@@ -350,22 +688,25 @@ class _ClassHierarchyCache implements TypeHierarchy {
   final Set<Class> allocatedClasses = new Set<Class>();
   final Map<Class, _ClassData> classes = <Class, _ClassData>{};
 
+  /// Object.noSuchMethod().
+  final Member objectNoSuchMethod;
+
+  static final Name noSuchMethodName = new Name("noSuchMethod");
+
   /// Class hierarchy is sealed after analysis is finished.
   /// Once it is sealed, no new allocated classes may be added and no new
   /// targets of invocations may appear.
   /// It also means that there is no need to add dependencies on classes.
   bool _sealed = false;
+  final Map<DynamicSelector, _DynamicTargetSet> _dynamicTargets =
+      <DynamicSelector, _DynamicTargetSet>{};
 
-  final Map<Member, _ProcedureInvocationHandler> _procedureHandlers =
-      <Member, _ProcedureInvocationHandler>{};
-  final Map<Field, _FieldGetterInvocationHandler> _fieldGetterHandlers =
-      <Field, _FieldGetterInvocationHandler>{};
-  final Map<Field, _FieldSetterInvocationHandler> _fieldSetterHandlers =
-      <Field, _FieldSetterInvocationHandler>{};
-  final Map<DynamicSelector, _DynamicInvocationHandler> _dynamicHandlers =
-      <DynamicSelector, _DynamicInvocationHandler>{};
-
-  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy);
+  _ClassHierarchyCache(this._typeFlowAnalysis, this.hierarchy)
+      : objectNoSuchMethod = hierarchy.getDispatchTarget(
+            _typeFlowAnalysis.environment.coreTypes.objectClass,
+            noSuchMethodName) {
+    assertx(objectNoSuchMethod != null);
+  }
 
   _ClassData getClassData(Class c) {
     return classes[c] ??= _createClassData(c);
@@ -393,8 +734,8 @@ class _ClassHierarchyCache implements TypeHierarchy {
         supertype.invalidateDependentInvocations(_typeFlowAnalysis.workList);
       }
 
-      for (var handler in _dynamicHandlers.values) {
-        _addDynamicTarget(cl, handler);
+      for (var targetSet in _dynamicTargets.values) {
+        _addDynamicTarget(cl, targetSet);
       }
     }
   }
@@ -491,65 +832,40 @@ class _ClassHierarchyCache implements TypeHierarchy {
     }
   }
 
-  _MemberInvocationHandler getMemberHandler(Member member, CallKind callKind) {
-    if (member is Field) {
-      if (callKind == CallKind.PropertySet) {
-        return _fieldSetterHandlers[member] ??=
-            new _FieldSetterInvocationHandler(
-                getMemberHandler(member, CallKind.PropertyGet));
-      } else {
-        return _fieldGetterHandlers[member] ??=
-            new _FieldGetterInvocationHandler(member);
-      }
-    } else {
-      return _procedureHandlers[member] ??=
-          new _ProcedureInvocationHandler(member);
-    }
+  bool hasNonTrivialNoSuchMethod(Class c) {
+    final classData = getClassData(c);
+    classData.hasNonTrivialNoSuchMethod ??=
+        (hierarchy.getDispatchTarget(c, noSuchMethodName) !=
+            objectNoSuchMethod);
+    return classData.hasNonTrivialNoSuchMethod;
   }
 
-  bool isMemberUsed(Member member) {
-    if (member is Field) {
-      return _fieldGetterHandlers[member]?.value != null;
-    } else {
-      return _procedureHandlers[member]?._summary != null;
-    }
+  _DynamicTargetSet getDynamicTargetSet(DynamicSelector selector) {
+    return (_dynamicTargets[selector] ??= _createDynamicTargetSet(selector));
   }
 
-  Iterable<Member> getDynamicTargets(DynamicSelector selector) {
-    final handler =
-        (_dynamicHandlers[selector] ??= _createDynamicHandler(selector));
-    return handler.targets;
-  }
+  _DynamicTargetSet _createDynamicTargetSet(DynamicSelector selector) {
+    // TODO(alexmarkov): consider caching the set of Object selectors.
+    final isObjectMethod = (hierarchy.getDispatchTarget(
+            _typeFlowAnalysis.environment.coreTypes.objectClass, selector.name,
+            setter: selector.isSetter) !=
+        null);
 
-  _DynamicInvocationHandler _createDynamicHandler(DynamicSelector selector) {
-    final handler = new _DynamicInvocationHandler(selector);
+    final targetSet = new _DynamicTargetSet(selector, isObjectMethod);
     for (Class c in allocatedClasses) {
-      _addDynamicTarget(c, handler);
+      _addDynamicTarget(c, targetSet);
     }
-    return handler;
+    return targetSet;
   }
 
-  void _addDynamicTarget(Class c, _DynamicInvocationHandler handler) {
+  void _addDynamicTarget(Class c, _DynamicTargetSet targetSet) {
     assertx(!_sealed);
-    final selector = handler.selector;
+    final selector = targetSet.selector;
     final member = hierarchy.getDispatchTarget(c, selector.name,
         setter: selector.isSetter);
     if (member != null) {
-      if (selector.memberAgreesToCallKind(member)) {
-        if (handler.targets.add(member)) {
-          handler.invalidateDependentInvocations(_typeFlowAnalysis.workList);
-        }
-      } else {
-        if (selector.callKind == CallKind.Method) {
-          // Call via getter/field.
-          // TODO(alexmarkov)
-          // assertx(false);
-        } else {
-          assertx(selector.callKind == CallKind.PropertyGet);
-          // Tear-off.
-          // TODO(alexmarkov)
-          // assertx(false);
-        }
+      if (targetSet.targets.add(member)) {
+        targetSet.invalidateDependentInvocations(_typeFlowAnalysis.workList);
       }
     }
   }
@@ -566,184 +882,29 @@ class _ClassHierarchyCache implements TypeHierarchy {
     classes.values.forEach((c) {
       buf.write("    ${c.dump()}\n");
     });
-    buf.write("  handlers:\n");
-    _procedureHandlers.values.forEach((handler) {
-      buf.write("    $handler\n");
-    });
-    _fieldGetterHandlers.values.forEach((handler) {
-      buf.write("    $handler\n");
-    });
-    _fieldSetterHandlers.values.forEach((handler) {
-      buf.write("    $handler\n");
-    });
     buf.write("}\n");
     return buf.toString();
   }
 }
 
-class _InvocationAnalyzer {
-  final TypeFlowAnalysis _typeFlowAnalysis;
-
-  _InvocationAnalyzer(this._typeFlowAnalysis);
-
-  Type processInvocation(_Invocation invocation) {
-    final Selector selector = invocation.selector;
-    Type result = null;
-
-    if (selector is DirectSelector) {
-      result = _processDirectInvocation(selector, invocation);
-    } else {
-      result = _processMultipleTargets(selector, invocation);
-    }
-
-    assertx(result != null);
-    invocation.result = result;
-
-    if (invocation.invalidatedResult != null) {
-      if (invocation.invalidatedResult != result) {
-        invocation.invalidateDependentInvocations(_typeFlowAnalysis.workList);
-      }
-      invocation.invalidatedResult = null;
-    }
-
-    return result;
-  }
-
-  Type _processDirectInvocation(
-      DirectSelector selector, _Invocation invocation) {
-    final handler = _typeFlowAnalysis.hierarchyCache
-        .getMemberHandler(selector.member, selector.callKind);
-    return handler.handleInvocation(invocation, _typeFlowAnalysis);
-  }
-
-  Type _processMultipleTargets(Selector selector, _Invocation invocation) {
-    Iterable<_MemberInvocationHandler> targets = _collectTargets(invocation);
-    Type result = new Type.empty();
-
-    if (targets.isEmpty) {
-      tracePrint("No targets...");
-    } else {
-      if (targets.length == 1) {
-        invocation.setMonomorphicTarget(targets.single.member);
-      } else {
-        invocation.setPolymorphic();
-      }
-      for (var handler in targets) {
-        Type type = handler.handleInvocation(invocation, _typeFlowAnalysis);
-        result = result.union(type, _typeFlowAnalysis.hierarchyCache);
-      }
-    }
-
-    // TODO(alexmarkov): handle closures more precisely
-    if ((selector is DynamicSelector) && (selector.name.name == "call")) {
-      tracePrint("Possible closure call, result is dynamic");
-      result = new Type.fromStatic(const DynamicType());
-    }
-
-    return result;
-  }
-
-  Iterable<_MemberInvocationHandler> _collectTargets(_Invocation invocation) {
-    assertx(invocation.selector is! DirectSelector);
-
-    Type receiver = invocation.args.receiver;
-    assertx(receiver != const EmptyType()); // should be filtered earlier
-
-    Set<Member> targets = new Set<Member>();
-    _collectForReceiverType(receiver, invocation.selector, targets);
-
-    return targets.map((Member member) => _typeFlowAnalysis.hierarchyCache
-        .getMemberHandler(member, invocation.selector.callKind));
-  }
-
-  void _collectForReceiverType(
-      Type receiver, Selector selector, Set<Member> targets) {
-    if (receiver is NullableType) {
-      _collectForConcreteType(
-          _typeFlowAnalysis.environment.nullType, selector, targets);
-      receiver = (receiver as NullableType).baseType;
-      assertx(receiver is! NullableType);
-    }
-
-    if (selector is InterfaceSelector) {
-      final staticReceiverType =
-          new Type.fromStatic(selector.member.enclosingClass.rawType);
-      receiver = receiver.intersection(
-          staticReceiverType, _typeFlowAnalysis.hierarchyCache);
-      assertx(receiver is! NullableType);
-
-      tracePrint("Narrowed down receiver type: $receiver");
-    }
-
-    if (receiver is ConeType) {
-      receiver = _typeFlowAnalysis.hierarchyCache
-          .specializeTypeCone((receiver as ConeType).dartType);
-    }
-
-    if (receiver is ConcreteType) {
-      _collectForConcreteType(receiver.dartType, selector, targets);
-    } else if (receiver is SetType) {
-      for (var type in receiver.types) {
-        _collectForConcreteType(type.dartType, selector, targets);
-      }
-    } else if (receiver is AnyType) {
-      _collectForSelector(selector, targets);
-    } else {
-      assertx(receiver is EmptyType);
-    }
-  }
-
-  void _collectForConcreteType(
-      DartType receiver, Selector selector, Set<Member> targets) {
-    if (receiver is FunctionType) {
-      assertx((selector is DynamicSelector) && (selector.name.name == "call"));
-      return;
-    }
-
-    assertx(receiver is InterfaceType); // TODO(alexmarkov)
-
-    Class class_ = (receiver as InterfaceType).classNode;
-
-    Member target = _typeFlowAnalysis.hierarchyCache.hierarchy
-        .getDispatchTarget(class_, selector.name, setter: selector.isSetter);
-
-    if (target != null) {
-      tracePrint("Found $target for concrete receiver type $receiver");
-      targets.add(target);
-    } else {
-      tracePrint("Target is not found for concrete receiver type $receiver");
-    }
-  }
-
-  void _collectForSelector(Selector selector, Set<Member> targets) {
-    if (selector is InterfaceSelector) {
-      // TODO(alexmarkov): support generic types and make sure inferred types
-      // are always same or better than static types.
-//      assertx(selector.member.enclosingClass ==
-//          _typeFlowAnalysis.environment.coreTypes.objectClass, details: selector);
-      selector = new DynamicSelector(selector.callKind, selector.name);
-    }
-
-    targets.addAll(_typeFlowAnalysis.hierarchyCache
-        .getDynamicTargets(selector as DynamicSelector));
-  }
-}
-
 class _WorkList {
   final TypeFlowAnalysis _typeFlowAnalysis;
-  final Set<_Invocation> pending = new Set<_Invocation>();
+  final LinkedList<_Invocation> pending = new LinkedList<_Invocation>();
   final Set<_Invocation> processing = new Set<_Invocation>();
   final List<_Invocation> callStack = <_Invocation>[];
 
   _WorkList(this._typeFlowAnalysis);
 
+  bool _isPending(_Invocation invocation) => invocation.list != null;
+
   void enqueueInvocation(_Invocation invocation) {
     assertx(invocation.result == null);
-    if (!pending.add(invocation)) {
+    if (_isPending(invocation)) {
       // Re-add the invocation to the tail of the pending queue.
       pending.remove(invocation);
-      pending.add(invocation);
+      assertx(!_isPending(invocation));
     }
+    pending.add(invocation);
   }
 
   void invalidateInvocation(_Invocation invocation) {
@@ -758,14 +919,7 @@ class _WorkList {
   void process() {
     while (pending.isNotEmpty) {
       assertx(callStack.isEmpty && processing.isEmpty);
-      _Invocation invocation = pending.first;
-
-      // Remove from pending before processing, as the invocation
-      // could be invalidated and re-added to pending while processing.
-      pending.remove(invocation);
-
-      processInvocation(invocation);
-      assertx(invocation.result != null);
+      processInvocation(pending.first);
     }
   }
 
@@ -783,9 +937,26 @@ class _WorkList {
 
     if (processing.add(invocation)) {
       callStack.add(invocation);
+      pending.remove(invocation);
 
-      final Type result =
-          _typeFlowAnalysis.invocationAnalyzer.processInvocation(invocation);
+      final Type result = invocation.process(_typeFlowAnalysis);
+
+      assertx(result != null);
+      invocation.result = result;
+
+      if (invocation.invalidatedResult != null) {
+        if (invocation.invalidatedResult != result) {
+          invocation.invalidateDependentInvocations(this);
+        }
+        invocation.invalidatedResult = null;
+      }
+
+      // Invocation is still pending - it was invalidated while being processed.
+      // Move result to invalidatedResult.
+      if (_isPending(invocation)) {
+        invocation.invalidatedResult = result;
+        invocation.result = null;
+      }
 
       final last = callStack.removeLast();
       assertx(identical(last, invocation));
@@ -797,7 +968,11 @@ class _WorkList {
     } else {
       // Recursive invocation, approximate with static type.
       Statistics.recursiveInvocationsApproximated++;
-      return new Type.fromStatic(invocation.selector.staticReturnType);
+      final staticType =
+          new Type.fromStatic(invocation.selector.staticReturnType);
+      tracePrint(
+          "Approximated recursive invocation with static type $staticType");
+      return staticType;
     }
   }
 }
@@ -809,8 +984,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
   _InvocationsCache _invocationsCache = new _InvocationsCache();
-  _InvocationAnalyzer invocationAnalyzer;
   _WorkList workList;
+
+  final Map<Member, Summary> _summaries = <Member, Summary>{};
+  final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
 
   TypeFlowAnalysis(
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
@@ -819,7 +996,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy);
     summaryCollector =
         new SummaryCollector(environment, this, nativeCodeOracle);
-    invocationAnalyzer = new _InvocationAnalyzer(this);
     workList = new _WorkList(this);
 
     if (entryPointsJSONFiles != null) {
@@ -829,12 +1005,26 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   _Invocation get currentInvocation => workList.callStack.last;
 
+  Summary getSummary(Member member) {
+    return _summaries[member] ??= summaryCollector.createSummary(member);
+  }
+
+  _FieldValue getFieldValue(Field field) {
+    return _fieldValues[field] ??= new _FieldValue(field);
+  }
+
   void process() {
     workList.process();
     hierarchyCache.seal();
   }
 
-  bool isMemberUsed(Member member) => hierarchyCache.isMemberUsed(member);
+  bool isMemberUsed(Member member) {
+    if (member is Field) {
+      return _fieldValues.containsKey(member);
+    } else {
+      return _summaries.containsKey(member);
+    }
+  }
 
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
@@ -851,7 +1041,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       tracePrint("APPLY $invocation");
     }
 
-    if (callSite != null) {
+    if ((callSite != null) && (invocation is _DispatchableInvocation)) {
       invocation.addCallSite(callSite);
     }
 

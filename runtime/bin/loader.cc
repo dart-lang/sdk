@@ -209,23 +209,6 @@ void Loader::SendRequest(intptr_t tag,
   }
 }
 
-// Forward a request from the tag handler to the kernel isolate.
-// [ tag, send port, url ]
-void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
-  // This port delivers loading messages to the Kernel isolate.
-  Dart_Port kernel_port = Dart_KernelPort();
-  ASSERT(kernel_port != ILLEGAL_PORT);
-
-  Dart_Handle request = Dart_NewList(3);
-  Dart_ListSetAt(request, 0, Dart_NewInteger(tag));
-  Dart_ListSetAt(request, 1, Dart_NewSendPort(port_));
-  Dart_ListSetAt(request, 2, url);
-  if (Dart_Post(kernel_port, request)) {
-    MonitorLocker ml(monitor_);
-    pending_operations_++;
-  }
-}
-
 void Loader::QueueMessage(Dart_CObject* message) {
   MonitorLocker ml(monitor_);
   if (results_length_ == results_capacity_) {
@@ -679,14 +662,25 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
+  Dart_Isolate current = Dart_CurrentIsolate();
   if (tag == Dart_kKernelTag) {
-    ASSERT(dfe.UseDartFrontend() || dfe.kernel_file_specified());
-    Dart_Isolate current = Dart_CurrentIsolate();
     ASSERT(!Dart_IsServiceIsolate(current) && !Dart_IsKernelIsolate(current));
     return dfe.ReadKernelBinary(current, url_string);
   }
-  ASSERT(Dart_IsKernelIsolate(Dart_CurrentIsolate()) ||
-         (!dfe.UseDartFrontend() && !dfe.kernel_file_specified()));
+  if (tag == Dart_kImportResolvedExtensionTag) {
+    if (strncmp(url_string, "file://", 7)) {
+      return DartUtils::NewError(
+          "Resolved native extensions must use the file:// scheme.");
+    }
+    const char* absolute_path = DartUtils::RemoveScheme(url_string);
+
+    if (!File::IsAbsolutePath(absolute_path)) {
+      return DartUtils::NewError("Native extension path must be absolute.");
+    }
+
+    return Extensions::LoadExtension("/", absolute_path, library);
+  }
+  ASSERT(Dart_IsKernelIsolate(current) || !dfe.UseDartFrontend());
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.
@@ -764,8 +758,9 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
-    if (Dart_KernelIsolateIsRunning()) {
-      loader->SendKernelRequest(tag, url);
+    if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
+        !Dart_IsKernelIsolate(current)) {
+      FATAL("Loader should not be called to compile scripts to kernel.");
     } else {
       loader->SendRequest(
           tag, url,

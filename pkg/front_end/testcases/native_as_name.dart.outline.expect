@@ -8,25 +8,25 @@ class W extends core::Object {
     ;
 }
 class X extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method native() → core::String
     ;
 }
 class Y1 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   abstract get native() → core::String;
 }
 class Y2 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   get native() → core::String
     ;
 }
 class Z extends core::Object {
   field core::String f;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   set native(core::String s) → dynamic
     ;

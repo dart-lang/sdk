@@ -64,7 +64,7 @@ class MethodTest extends PartialCodeTest {
               failing: allExceptEof),
           new TestDescriptor('final_name', 'final f',
               [ParserErrorCode.EXPECTED_TOKEN], 'final f;',
-              allFailing: true),
+              failing: ['methodNonVoid', 'getter', 'setter']),
           new TestDescriptor(
               'final_equals',
               'final f =',
@@ -90,7 +90,7 @@ class MethodTest extends PartialCodeTest {
               failing: allExceptEof),
           new TestDescriptor(
               'var_name', 'var f', [ParserErrorCode.EXPECTED_TOKEN], 'var f;',
-              allFailing: true),
+              failing: ['methodNonVoid', 'getter', 'setter']),
           new TestDescriptor(
               'var_equals',
               'var f =',
@@ -109,14 +109,13 @@ class MethodTest extends PartialCodeTest {
               'type_noName',
               'A',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'A _s_;',
-              failing: allExceptEof),
+              allFailing: true),
           new TestDescriptor(
-              'type_name', 'A f', [ParserErrorCode.EXPECTED_TOKEN], 'A f;',
-              failing: allExceptEof),
+              'type_name', 'A f', [ParserErrorCode.EXPECTED_TOKEN], 'A f;'),
           new TestDescriptor(
               'type_equals',
               'A f =',
@@ -168,7 +167,7 @@ class MethodTest extends PartialCodeTest {
               failing: allExceptEof),
           new TestDescriptor('static_final_name', 'static final f',
               [ParserErrorCode.EXPECTED_TOKEN], 'static final f;',
-              allFailing: true),
+              failing: ['methodNonVoid', 'getter', 'setter']),
           new TestDescriptor(
               'static_final_equals',
               'static final f =',
@@ -194,7 +193,7 @@ class MethodTest extends PartialCodeTest {
               failing: allExceptEof),
           new TestDescriptor('static_var_name', 'static var f',
               [ParserErrorCode.EXPECTED_TOKEN], 'static var f;',
-              allFailing: true),
+              failing: ['methodNonVoid', 'getter', 'setter']),
           new TestDescriptor(
               'static_var_equals',
               'static var f =',
@@ -213,14 +212,13 @@ class MethodTest extends PartialCodeTest {
               'static_type_noName',
               'static A',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'static A _s_;',
-              failing: allExceptEof),
+              allFailing: true),
           new TestDescriptor('static_type_name', 'static A f',
-              [ParserErrorCode.EXPECTED_TOKEN], 'static A f;',
-              failing: allExceptEof),
+              [ParserErrorCode.EXPECTED_TOKEN], 'static A f;'),
           new TestDescriptor(
               'static_type_equals',
               'static A f =',

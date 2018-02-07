@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class Callable extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method call(dynamic x) → dynamic
     ;
 }
 class CallableGetter extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   get call() → dynamic
     ;

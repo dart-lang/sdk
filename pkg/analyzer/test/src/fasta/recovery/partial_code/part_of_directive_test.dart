@@ -23,7 +23,6 @@ class PartOfDirectivesTest extends PartialCodeTest {
       'getter',
       'setter'
     ];
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'part_of_directive',
         [

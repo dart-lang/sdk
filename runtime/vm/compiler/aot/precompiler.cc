@@ -211,13 +211,6 @@ TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
     lower_limits_[i] = kNotComputed;
     upper_limits_[i] = kNotComputed;
   }
-  ASSERT(precompiler->type_range_cache() == NULL);
-  precompiler->set_type_range_cache(this);
-}
-
-TypeRangeCache::~TypeRangeCache() {
-  ASSERT(precompiler_->type_range_cache() == this);
-  precompiler_->set_type_range_cache(NULL);
 }
 
 RawError* Precompiler::CompileAll(
@@ -233,98 +226,6 @@ RawError* Precompiler::CompileAll(
     thread->clear_sticky_error();
     return error.raw();
   }
-}
-
-bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
-                                             intptr_t* lower_limit,
-                                             intptr_t* upper_limit) {
-  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
-
-  if (!type.IsInstantiated()) return false;
-  if (type.IsFunctionType()) return false;
-  if (type.IsDartFunctionType()) return false;
-
-  Zone* zone = thread_->zone();
-  const TypeArguments& type_arguments =
-      TypeArguments::Handle(zone, type.arguments());
-  if (!type_arguments.IsNull() &&
-      !type_arguments.IsRaw(0, type_arguments.Length()))
-    return false;
-
-  intptr_t type_cid = type.type_class_id();
-  if (lower_limits_[type_cid] == kNotContiguous) return false;
-  if (lower_limits_[type_cid] != kNotComputed) {
-    *lower_limit = lower_limits_[type_cid];
-    *upper_limit = upper_limits_[type_cid];
-    return true;
-  }
-
-  *lower_limit = -1;
-  *upper_limit = -1;
-  intptr_t last_matching_cid = -1;
-
-  ClassTable* table = thread_->isolate()->class_table();
-  Class& cls = Class::Handle(zone);
-  AbstractType& cls_type = AbstractType::Handle(zone);
-  for (intptr_t cid = kInstanceCid; cid < table->NumCids(); cid++) {
-    // Create local zone because deep hierarchies may allocate lots of handles
-    // within one iteration of this loop.
-    StackZone stack_zone(thread_);
-    HANDLESCOPE(thread_);
-
-    if (!table->HasValidClassAt(cid)) continue;
-    if (cid == kTypeArgumentsCid) continue;
-    if (cid == kVoidCid) continue;
-    if (cid == kDynamicCid) continue;
-    if (cid == kNullCid) continue;  // Instance is not at Bottom like Null type.
-    cls = table->At(cid);
-    if (cls.is_abstract()) continue;
-    if (cls.is_patch()) continue;
-    if (cls.IsTopLevel()) continue;
-
-    cls_type = cls.RareType();
-    if (cls_type.IsSubtypeOf(type, NULL, NULL, Heap::kNew)) {
-      last_matching_cid = cid;
-      if (*lower_limit == -1) {
-        // Found beginning of range.
-        *lower_limit = cid;
-      } else if (*upper_limit == -1) {
-        // Expanding range.
-      } else {
-        // Found a second range.
-        lower_limits_[type_cid] = kNotContiguous;
-        return false;
-      }
-    } else {
-      if (*lower_limit == -1) {
-        // Still before range.
-      } else if (*upper_limit == -1) {
-        // Found end of range.
-        *upper_limit = last_matching_cid;
-      } else {
-        // After range.
-      }
-    }
-  }
-  if (*lower_limit == -1) {
-    // Not implemented by any concrete class.
-    *lower_limit = kIllegalCid;
-    *upper_limit = kIllegalCid;
-  }
-
-  if (*upper_limit == -1) {
-    ASSERT(last_matching_cid != -1);
-    *upper_limit = last_matching_cid;
-  }
-
-  if (FLAG_trace_precompiler) {
-    THR_Print("Type check for %s is cid range [%" Pd ", %" Pd "]\n",
-              type.ToCString(), *lower_limit, *upper_limit);
-  }
-
-  lower_limits_[type_cid] = *lower_limit;
-  upper_limits_[type_cid] = *upper_limit;
-  return true;
 }
 
 Precompiler::Precompiler(Thread* thread)
@@ -354,7 +255,6 @@ Precompiler::Precompiler(Thread* thread)
       types_to_retain_(),
       consts_to_retain_(),
       field_type_map_(),
-      type_range_cache_(NULL),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {}
 
@@ -375,7 +275,10 @@ void Precompiler::DoCompileAll(
       ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
 
       ClassFinalizer::SortClasses();
-      TypeRangeCache trc(this, T, I->class_table()->NumCids());
+
+      // The cid-ranges of subclasses of a class are e.g. used for is/as checks
+      // as well as other type checks.
+      HierarchyInfo hierarchy_info(T);
 
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
@@ -516,7 +419,7 @@ void Precompiler::PrecompileStaticInitializers() {
       for (intptr_t j = 0; j < fields_.Length(); j++) {
         field_ ^= fields_.At(j);
         if (field_.is_static() && field_.is_final() &&
-            field_.has_initializer()) {
+            field_.has_initializer() && !field_.is_const()) {
           if (FLAG_trace_precompiler) {
             THR_Print("Precompiling initializer for %s\n", field_.ToCString());
           }
@@ -885,9 +788,9 @@ void Precompiler::AddEntryPoints(
       lib = Library::LookupLibrary(T, library_uri);
     }
     if (lib.IsNull()) {
-      String& msg =
-          String::Handle(Z, String::NewFormatted("Cannot find entry point %s\n",
-                                                 entry_points[i].library_uri));
+      String& msg = String::Handle(
+          Z, String::NewFormatted("Cannot find entry point '%s'\n",
+                                  entry_points[i].library_uri));
       Jump(Error::Handle(Z, ApiError::New(msg)));
       UNREACHABLE();
     }
@@ -905,7 +808,7 @@ void Precompiler::AddEntryPoints(
       cls = lib.LookupLocalClass(class_name);
       if (cls.IsNull()) {
         String& msg = String::Handle(
-            Z, String::NewFormatted("Cannot find entry point %s %s\n",
+            Z, String::NewFormatted("Cannot find entry point '%s' '%s'\n",
                                     entry_points[i].library_uri,
                                     entry_points[i].class_name));
         Jump(Error::Handle(Z, ApiError::New(msg)));
@@ -919,7 +822,7 @@ void Precompiler::AddEntryPoints(
 
     if (func.IsNull() && field.IsNull()) {
       String& msg = String::Handle(
-          Z, String::NewFormatted("Cannot find entry point %s %s %s\n",
+          Z, String::NewFormatted("Cannot find entry point '%s' '%s' '%s'\n",
                                   entry_points[i].library_uri,
                                   entry_points[i].class_name,
                                   entry_points[i].function_name));

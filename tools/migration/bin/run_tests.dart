@@ -47,17 +47,10 @@ const strong = "--strong";
 /// possibly followed by some modifier for a specific bot or annotated step on
 /// a bot. The configs here are ordered the same order as the waterfall.
 final allConfigs = {
-  "vm": [noCompiler, vm],
   "vm-checked": [noCompiler, vm, checked],
-  "vm-app": [appJit, vm],
-  "vm-app-product": [productMode, appJit, vm],
-  "vm-kernel": [dartk, releaseMode, vm],
   "vm-kernel-strong": [dartk, releaseMode, vm, strong],
-  "vm-kernel-precomp": [dartkp, releaseMode, precompiled],
   "vm-kernel-precomp-strong": [dartkp, releaseMode, precompiled, strong],
-  "vm-precomp": [precompiler, precompiled],
   "vm-precomp-checked": [precompiler, precompiled, checked],
-  "vm-product": [productMode, noCompiler, vm],
   // TODO(rnystrom): Add dart2js-d8-hostchecked, dart2js-d8-minified, or
   // dart2js-jsshell?
   "analyzer": [analyzer, noRuntime, useSdk],
@@ -77,14 +70,6 @@ final allConfigs = {
     dart2js,
     d8,
     dart2jsWithKernel,
-    useSdk,
-    dart2jsBatch
-  ],
-  "dart2js-d8-withkernel-checked": [
-    dart2js,
-    d8,
-    dart2jsWithKernel,
-    checked,
     useSdk,
     dart2jsBatch
   ],

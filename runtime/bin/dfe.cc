@@ -15,6 +15,10 @@
 extern "C" {
 extern const uint8_t kKernelServiceDill[];
 extern intptr_t kKernelServiceDillSize;
+extern const uint8_t kPlatformDill[];
+extern intptr_t kPlatformDillSize;
+extern const uint8_t kPlatformStrongDill[];
+extern intptr_t kPlatformStrongDillSize;
 }
 
 namespace dart {
@@ -23,17 +27,21 @@ namespace bin {
 #if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
 const uint8_t* kernel_service_dill = NULL;
 const intptr_t kernel_service_dill_size = 0;
+const uint8_t* platform_dill = NULL;
+const intptr_t platform_dill_size = 0;
+const uint8_t* platform_strong_dill = NULL;
+const intptr_t platform_strong_dill_size = 0;
 #else
 const uint8_t* kernel_service_dill = kKernelServiceDill;
 const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
+const uint8_t* platform_dill = kPlatformDill;
+const intptr_t platform_dill_size = kPlatformDillSize;
+const uint8_t* platform_strong_dill = kPlatformStrongDill;
+const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 #endif
 
 const char kKernelServiceSnapshot[] = "kernel-service.dart.snapshot";
 const char kSnapshotsDirectory[] = "snapshots";
-const char kPlatformBinaryName[] = "vm_platform.dill";
-const char kPlatformStrongBinaryName[] = "vm_platform_strong.dill";
-
-void* DFE::kKernelServiceProgram = NULL;
 
 static char* GetDirectoryPrefixFromExeName() {
   const char* name = Platform::GetExecutableName();
@@ -54,14 +62,15 @@ static char* GetDirectoryPrefixFromExeName() {
   return StringUtils::StrNDup(name, i + 1);
 }
 
+static void NoopRelease(uint8_t* buffer) {}
+
 DFE::DFE()
     : use_dfe_(false),
       frontend_filename_(NULL),
-      kernel_binaries_path_(NULL),
-      platform_binary_filename_(NULL),
-      kernel_platform_(NULL),
-      application_kernel_binary_(NULL),
-      kernel_file_specified_(false) {}
+      kernel_service_program_(NULL),
+      platform_program_(NULL),
+      platform_strong_program_(NULL),
+      application_kernel_binary_(NULL) {}
 
 DFE::~DFE() {
   if (frontend_filename_ != NULL) {
@@ -69,23 +78,34 @@ DFE::~DFE() {
   }
   frontend_filename_ = NULL;
 
-  free(kernel_binaries_path_);
-  kernel_binaries_path_ = NULL;
+  delete reinterpret_cast<kernel::Program*>(kernel_service_program_);
+  kernel_service_program_ = NULL;
 
-  free(platform_binary_filename_);
-  platform_binary_filename_ = NULL;
+  delete reinterpret_cast<kernel::Program*>(platform_program_);
+  platform_program_ = NULL;
 
-  delete reinterpret_cast<kernel::Program*>(kernel_platform_);
-  kernel_platform_ = NULL;
-
-  delete reinterpret_cast<kernel::Program*>(kKernelServiceProgram);
-  kKernelServiceProgram = NULL;
+  delete reinterpret_cast<kernel::Program*>(platform_strong_program_);
+  platform_strong_program_ = NULL;
 
   delete reinterpret_cast<kernel::Program*>(application_kernel_binary_);
   application_kernel_binary_ = NULL;
 }
 
-char* DFE::FrontendFilename() {
+void DFE::Init() {
+  if (platform_dill == NULL) {
+    return;
+  }
+  // platform_dill is not NULL implies that platform_strong_dill is also
+  // not NULL.
+  if (platform_program_ == NULL) {
+    platform_program_ =
+        Dart_ReadKernelBinary(platform_dill, platform_dill_size, NoopRelease);
+  }
+  if (platform_strong_program_ == NULL) {
+    platform_strong_program_ = Dart_ReadKernelBinary(
+        platform_strong_dill, platform_strong_dill_size, NoopRelease);
+  }
+
   if (frontend_filename_ == NULL) {
     // Look for the frontend snapshot next to the executable.
     char* dir_prefix = GetDirectoryPrefixFromExeName();
@@ -109,37 +129,34 @@ char* DFE::FrontendFilename() {
       frontend_filename_ = NULL;
     }
   }
-  return frontend_filename_;
 }
 
 bool DFE::KernelServiceDillAvailable() {
   return kernel_service_dill != NULL;
 }
 
-static void NoopRelease(uint8_t* buffer) {}
-
-void* DFE::KernelServiceProgram() {
+void* DFE::LoadKernelServiceProgram() {
   if (kernel_service_dill == NULL) {
     return NULL;
   }
-  if (kKernelServiceProgram == NULL) {
-    kKernelServiceProgram = Dart_ReadKernelBinary(
+  if (kernel_service_program_ == NULL) {
+    kernel_service_program_ = Dart_ReadKernelBinary(
         kernel_service_dill, kernel_service_dill_size, NoopRelease);
   }
-  return kKernelServiceProgram;
+  return kernel_service_program_;
 }
 
-void DFE::SetKernelBinaries(const char* name) {
-  kernel_binaries_path_ = strdup(name);
-}
-
-const char* DFE::GetPlatformBinaryFilename() {
-  if (platform_binary_filename_ == NULL) {
-    platform_binary_filename_ = OS::SCreate(
-        /*zone=*/NULL, "%s%s%s", kernel_binaries_path_, File::PathSeparator(),
-        FLAG_strong ? kPlatformStrongBinaryName : kPlatformBinaryName);
+void* DFE::platform_program(bool strong) const {
+  if (strong) {
+    return platform_strong_program_;
+  } else {
+    return platform_program_;
   }
-  return platform_binary_filename_;
+}
+
+bool DFE::CanUseDartFrontend() const {
+  return (platform_program() != NULL) &&
+         (KernelServiceDillAvailable() || (frontend_filename() != NULL));
 }
 
 static void ReleaseFetchedBytes(uint8_t* buffer) {
@@ -161,7 +178,7 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
     // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
     // instead of vm_platform.dill to Frontend for compilation.
     Dart_KernelCompilationResult kresult =
-        Dart_CompileToKernel(url_string, GetPlatformBinaryFilename());
+        Dart_CompileToKernel(url_string, platform_dill, platform_dill_size);
     if (kresult.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(kresult.error);
     }
@@ -212,7 +229,8 @@ class WindowsPathSanitizer {
 
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
-                                int* exit_code) {
+                                int* exit_code,
+                                bool strong) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
 #if defined(HOST_OS_WINDOWS)
@@ -222,8 +240,12 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   const char* sanitized_uri = script_uri;
 #endif
 
-  Dart_KernelCompilationResult result =
-      Dart_CompileToKernel(sanitized_uri, GetPlatformBinaryFilename());
+  const uint8_t* platform_binary =
+      strong ? platform_strong_dill : platform_dill;
+  intptr_t platform_binary_size =
+      strong ? platform_strong_dill_size : platform_dill_size;
+  Dart_KernelCompilationResult result = Dart_CompileToKernel(
+      sanitized_uri, platform_binary, platform_binary_size);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size,
@@ -242,10 +264,6 @@ void* DFE::CompileAndReadScript(const char* script_uri,
       break;
   }
   return NULL;
-}
-
-void* DFE::ReadPlatform() {
-  return ReadScript(GetPlatformBinaryFilename());
 }
 
 void* DFE::ReadScript(const char* script_uri) const {

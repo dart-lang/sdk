@@ -25,6 +25,7 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
   ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
+  ..addFlag('sync-async', help: 'Start `async` functions synchronously')
   ..addFlag('embed-sources',
       help: 'Embed source files in the generated kernel program',
       defaultsTo: true);
@@ -62,12 +63,14 @@ Future<int> compile(List<String> arguments) async {
   final String packages = options['packages'];
   final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
+  final bool syncAsync = options['sync-async'];
 
   ErrorDetector errorDetector = new ErrorDetector();
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..strongMode = strongMode
-    ..target = new VmTarget(new TargetFlags(strongMode: strongMode))
+    ..target = new VmTarget(
+        new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
     ..linkedDependencies = <Uri>[Uri.base.resolve(platformKernel)]
     ..packagesFileUri = packages != null ? Uri.base.resolve(packages) : null
     ..reportMessages = true

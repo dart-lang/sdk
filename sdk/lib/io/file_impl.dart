@@ -168,7 +168,6 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   _FileStreamConsumer.fromStdio(int fd) {
-    assert(1 <= fd && fd <= 2);
     _openFuture = new Future.value(_File._openStdioSync(fd));
   }
 

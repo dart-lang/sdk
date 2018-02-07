@@ -14,8 +14,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show OutputUnit, OutputUnitData;
-import '../elements/elements.dart'
-    show ClassElement, MethodElement, MixinApplicationElement;
+import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -140,13 +139,14 @@ class RuntimeTypeGenerator {
 
   TypeTestRegistry get _typeTestRegistry => emitterTask.typeTestRegistry;
 
-  Set<ClassEntity> get checkedClasses => _typeTestRegistry.checkedClasses;
+  Iterable<ClassEntity> get checkedClasses =>
+      _typeTestRegistry.rtiChecks.checkedClasses;
 
   Iterable<ClassEntity> get classesUsingTypeVariableTests =>
-      _typeTestRegistry.classesUsingTypeVariableTests;
+      _typeTestRegistry.rtiChecks.classesUsingTypeVariableTests;
 
-  Set<FunctionType> get checkedFunctionTypes =>
-      _typeTestRegistry.checkedFunctionTypes;
+  Iterable<FunctionType> get checkedFunctionTypes =>
+      _typeTestRegistry.rtiChecks.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
   ///
@@ -181,7 +181,7 @@ class RuntimeTypeGenerator {
         FunctionEntity method, FunctionType type) {
       assert(!(method is MethodElement && !method.isImplementation));
       jsAst.Expression thisAccess = new jsAst.This();
-      if (!method.isAbstract) {
+      if (method.enclosingClass.isClosure) {
         ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
         if (scopeInfo is ClosureRepresentationInfo) {
           FieldEntity thisLocal = scopeInfo.thisFieldEntity;
@@ -321,7 +321,7 @@ class RuntimeTypeGenerator {
       supertypesNeedSubstitutions = true;
     }
 
-    if (cls is MixinApplicationElement) {
+    if (_elementEnvironment.isMixinApplication(cls)) {
       supertypesNeedSubstitutions = true;
     }
 

@@ -117,7 +117,8 @@ void sendAnalysisNotificationOutline(AnalysisServer server, String file,
     // compute library name
     String libraryName = _computeLibraryName(dartUnit);
     // compute Outline
-    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
+    var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit,
+        withBasicFlutter: true);
     protocol.Outline outline = computer.compute();
     // send notification
     var params = new protocol.AnalysisOutlineParams(file, fileKind, outline,

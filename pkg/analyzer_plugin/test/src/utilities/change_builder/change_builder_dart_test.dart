@@ -887,31 +887,85 @@ class MyClass {}''';
     expect(group.positions, hasLength(1));
   }
 
-  test_writeOverrideOfInheritedMember() async {
-    String path = provider.convertPath('/test.dart');
-    String content = '''
+  test_writeOverrideOfInheritedMember_method() async {
+    await _assertWriteOverrideOfInheritedMethod('''
 class A {
   A add(A a) => null;
 }
 class B extends A {
-}''';
-    addSource(path, content);
-    ClassElement classA = await _getClassElement(path, 'A');
-
-    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeOverrideOfInheritedMember(classA.methods[0]);
-      });
-    });
-    SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('''
+}
+''', '''
 @override
 A add(A a) {
   // TODO: implement add
   return null;
-}'''));
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_functionTypeAlias() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+typedef int F(int left, int right);
+abstract class A {
+  void perform(F f);
+}
+class B extends A {
+}
+''', '''
+@override
+void perform(F f) {
+  // TODO: implement perform
+  return null;
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_functionTypedParameter() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A {
+  forEach(int f(double p1, String p2));
+}
+
+class B extends A {
+}
+''', '''
+@override
+forEach(int f(double p1, String p2)) {
+  // TODO: implement forEach
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_generic_noBounds() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A {
+  List<T> get<T>(T key);
+}
+class B implements A {
+}
+''', '''
+@override
+List<T> get<T>(T key) {
+  // TODO: implement get
+  return null;
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_generic_withBounds() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A<K1, V1> {
+  List<T> get<T extends V1>(K1 key);
+}
+class B<K2, V2> implements A<K2, V2> {
+}
+''', '''
+@override
+List<T> get<T extends V2>(K2 key) {
+  // TODO: implement get
+  return null;
+}
+''');
   }
 
   test_writeParameterMatchingArgument() async {
@@ -1330,6 +1384,28 @@ f(int i, String s) {
     expect(resultCode, expectedCode);
   }
 
+  /**
+   * Assuming that the [content] being edited defines a class named 'A' whose
+   * first method is the member to be overridden and ends with a class to which
+   * an inherited method is to be added, assert that the text of the overridden
+   * member matches the [expected] text (modulo white space).
+   */
+  _assertWriteOverrideOfInheritedMethod(String content, String expected) async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, content);
+    ClassElement classA = await _getClassElement(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 2, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeOverrideOfInheritedMember(classA.methods[0]);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace(expected));
+  }
+
   Future<ClassElement> _getClassElement(String path, String name) async {
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.getType(name);
@@ -1350,7 +1426,27 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     return new TestTypeProvider(context);
   }
 
-  test_convertFunctionFromSyncToAsync() async {
+  test_convertFunctionFromSyncToAsync_closure() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, '''var f = () {}''');
+
+    CompilationUnit unit = (await driver.getResult(path))?.unit;
+    TopLevelVariableDeclaration variable = unit.declarations[0];
+    FunctionBody body =
+        (variable.variables.variables[0].initializer as FunctionExpression)
+            .body;
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      (builder as DartFileEditBuilder)
+          .convertFunctionFromSyncToAsync(body, typeProvider);
+    });
+    List<SourceEdit> edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
+  }
+
+  test_convertFunctionFromSyncToAsync_topLevelFunction() async {
     String path = provider.convertPath('/test.dart');
     addSource(path, 'String f() {}');
 

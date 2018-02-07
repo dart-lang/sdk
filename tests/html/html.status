@@ -52,6 +52,9 @@ svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 
+[ $compiler == fasta ]
+*: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+
 [ $runtime == drt ]
 webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
 
@@ -154,7 +157,12 @@ touchevent_test/supported: Fail # Safari does not support TouchEvents
 webgl_1_test: Pass, Fail # Issue 8219
 worker_api_test: Skip # Issue 13221
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+# The html tests were moved to lib_2/html, and there they should be made strong
+# mode compliant. There's no sense in running the old versions here.
+[ $strong ]
+*: SkipByDesign
+
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dart2js && $runtime == chrome ]

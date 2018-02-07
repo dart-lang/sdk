@@ -366,9 +366,16 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_nonBoolExpression_functionType() async {
+  test_nonBoolExpression_functionType_bool() async {
     // Expected 1 errors of type StaticTypeWarningCode.NON_BOOL_EXPRESSION, found 0
-    await super.test_nonBoolExpression_functionType();
+    await super.test_nonBoolExpression_functionType_bool();
+  }
+
+  @override
+  @failingTest
+  test_nonBoolExpression_functionType_int() async {
+    // Expected 1 errors of type StaticTypeWarningCode.NON_BOOL_EXPRESSION, found 0
+    await super.test_nonBoolExpression_functionType_int();
   }
 
   @override

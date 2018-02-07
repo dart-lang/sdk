@@ -313,7 +313,7 @@ class ProcessStarter {
     ExitCodeHandler::ProcessStarted();
 
     // Register the child process if not detached.
-    if (mode_ == kNormal) {
+    if (Process::ModeIsAttached(mode_)) {
       err = RegisterProcess(pid);
       if (err != 0) {
         return err;
@@ -333,7 +333,7 @@ class ProcessStarter {
     // Read the result of executing the child process.
     VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
     exec_control_[1] = -1;
-    if (mode_ == kNormal) {
+    if (Process::ModeIsAttached(mode_)) {
       err = ReadExecResult();
     } else {
       err = ReadDetachedExecResult(&pid);
@@ -343,7 +343,7 @@ class ProcessStarter {
 
     // Return error code if any failures.
     if (err != 0) {
-      if (mode_ == kNormal) {
+      if (Process::ModeIsAttached(mode_)) {
         // Since exec() failed, we're not interested in the exit code.
         // We close the reading side of the exit code pipe here.
         // GetProcessExitCodes will get a broken pipe error when it
@@ -356,7 +356,7 @@ class ProcessStarter {
       return err;
     }
 
-    if (mode_ != kDetached) {
+    if (Process::ModeHasStdio(mode_)) {
       // Connect stdio, stdout and stderr.
       FDUtils::SetNonBlocking(read_in_[0]);
       *in_ = read_in_[0];
@@ -403,7 +403,7 @@ class ProcessStarter {
     FDUtils::SetCloseOnExec(read_in_[1]);
 
     // For detached processes the pipe to connect stderr and stdin are not used.
-    if (mode_ != kDetached) {
+    if (Process::ModeHasStdio(mode_)) {
       result = TEMP_FAILURE_RETRY(pipe(read_err_));
       if (result < 0) {
         return CleanupAndReturnError();
@@ -430,7 +430,7 @@ class ProcessStarter {
       perror("Failed receiving notification message");
       exit(1);
     }
-    if (mode_ == kNormal) {
+    if (Process::ModeIsAttached(mode_)) {
       ExecProcess();
     } else {
       ExecDetachedProcess();
@@ -438,16 +438,20 @@ class ProcessStarter {
   }
 
   void ExecProcess() {
-    if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
-      ReportChildError();
-    }
+    if (mode_ == kNormal) {
+      if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
+        ReportChildError();
+      }
 
-    if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
-      ReportChildError();
-    }
+      if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
+        ReportChildError();
+      }
 
-    if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
-      ReportChildError();
+      if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
+        ReportChildError();
+      }
+    } else {
+      ASSERT(mode_ == kInheritStdio);
     }
 
     if (working_directory_ != NULL &&

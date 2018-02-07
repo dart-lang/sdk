@@ -10,32 +10,32 @@
 namespace dart {
 namespace bin {
 
-bool Stdin::ReadByte(int* byte) {
+bool Stdin::ReadByte(intptr_t fd, int* byte) {
   UNIMPLEMENTED();
   return false;
 }
 
-bool Stdin::GetEchoMode(bool* enabled) {
+bool Stdin::GetEchoMode(intptr_t fd, bool* enabled) {
   UNIMPLEMENTED();
   return false;
 }
 
-bool Stdin::SetEchoMode(bool enabled) {
+bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
   UNIMPLEMENTED();
   return false;
 }
 
-bool Stdin::GetLineMode(bool* enabled) {
+bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
   UNIMPLEMENTED();
   return false;
 }
 
-bool Stdin::SetLineMode(bool enabled) {
+bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
   UNIMPLEMENTED();
   return false;
 }
 
-bool Stdin::AnsiSupported(bool* supported) {
+bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
   UNIMPLEMENTED();
   return false;
 }

@@ -158,7 +158,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.INSTANTIATION:
         case TypeUseKind.MIRROR_INSTANTIATION:
         case TypeUseKind.NATIVE_INSTANTIATION:
-          registerRequiredType(type);
           break;
         case TypeUseKind.IS_CHECK:
           onIsCheck(type, transformed);
@@ -216,7 +215,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         transformed
             .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
       }
-      registerRequiredType(mapLiteralUse.type);
     }
 
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
@@ -224,7 +222,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       // factory constructors are registered directly.
       transformed
           .registerTypeUse(new TypeUse.instantiation(listLiteralUse.type));
-      registerRequiredType(listLiteralUse.type);
     }
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
@@ -243,10 +240,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           if (type.containsTypeVariables) {
             registerImpact(_impacts.computeSignature);
           }
-          break;
-        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        case StaticUseKind.CONSTRUCTOR_INVOKE:
-          registerRequiredType(staticUse.type);
           break;
         default:
       }
@@ -289,22 +282,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     return transformed;
   }
 
-  /// Register [type] as required for the runtime type information system.
-  void registerRequiredType(DartType type) {
-    if (!type.isInterfaceType) return;
-    InterfaceType interfaceType = type;
-    // If [argument] has type variables or is a type variable, this method
-    // registers a RTI dependency between the entity that introduced the type
-    // variable and the class of [type]. If the class of [type] requires type
-    // arguments at runtime, then the entity that introduced the type variable
-    // does too.
-    interfaceType.forEachTypeVariable((TypeVariableType typeVariable) {
-      Entity typeDeclaration = typeVariable.element.typeDeclaration;
-      _rtiNeedBuilder.registerTypeArgumentDependency(
-          interfaceType.element, typeDeclaration);
-    });
-  }
-
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
   void onIsCheck(DartType type, TransformedWorldImpact transformed) {
     void registerImpact(BackendImpact impact) {
@@ -312,7 +289,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       _backendUsageBuider.processBackendImpact(impact);
     }
 
-    registerRequiredType(type);
     type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 

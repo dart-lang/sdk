@@ -47,6 +47,7 @@ class AotCallSpecializer : public CallSpecializer {
   bool TryInlineFieldAccess(InstanceCallInstr* call);
   bool TryInlineFieldAccess(StaticCallInstr* call);
 
+  bool IsSupportedIntOperandForStaticDoubleOp(CompileType* operand_type);
   Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
 
   Value* PrepareReceiverOfDevirtualizedCall(Value* input, intptr_t cid);

@@ -1169,18 +1169,6 @@ f() {
     verify([source]);
   }
 
-  test_forEach_genericFunctionType() async {
-    Source source = addSource(r'''
-main() {
-  for (Null Function<T>(T, Null) e in []) {
-    e;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_caseBlockNotTerminated() async {
     Source source = addSource(r'''
 f(int p) {
@@ -2410,6 +2398,18 @@ class A {
     verify([source]);
   }
 
+  test_forEach_genericFunctionType() async {
+    Source source = addSource(r'''
+main() {
+  for (Null Function<T>(T, Null) e in []) {
+    e;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_functionDeclaration_scope_returnType() async {
     Source source = addSource("int f(int) { return 0; }");
     await computeAnalysisResult(source);
@@ -3008,6 +3008,30 @@ class C implements A, B {
     verify([source]);
   }
 
+  @failingTest // Does not work with old task model
+  test_infer_mixin() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+
+class B {}
+
+class M<T> extends A<T> {}
+
+class C extends A<B> with M {}
+''');
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    ClassElement classC =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    expect(classC.mixins, hasLength(1));
+    expect(classC.mixins[0].toString(), 'M<B>');
+  }
+
   test_initializingFormalForNonExistentField() async {
     Source source = addSource(r'''
 class A {
@@ -3103,6 +3127,36 @@ class A {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  test_integerLiteralOutOfRange_negative_leadingZeros() async {
+    Source source = addSource('int x = -000923372036854775809;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_negative_valid() async {
+    Source source = addSource('int x = -9223372036854775808;');
+    await computeAnalysisResult(source);
+    assertErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_positive_leadingZeros() async {
+    Source source = addSource('int x = 000923372036854775808;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_positive_valid() async {
+    Source source = addSource('int x = 9223372036854775807;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_integerLiteralOutOfRange_positive_zero() async {
+    Source source = addSource('int x = 0;');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_invalidAnnotation_constantVariable_field() async {
@@ -4370,17 +4424,6 @@ class B extends A with C {}''');
     verify([source]);
   }
 
-  test_nonBoolExpression_functionType() async {
-    Source source = addSource(r'''
-bool makeAssertion() => true;
-f() {
-  assert(makeAssertion);
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_nonBoolExpression_interfaceType() async {
     Source source = addSource(r'''
 f() {
@@ -5413,6 +5456,13 @@ class B {
     verify([source]);
   }
 
+  test_typeArgument_boundToFunctionType() async {
+    Source source = addSource("class A<T extends void Function<T>(T)>{}");
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_typeArgumentNotMatchingBounds_const() async {
     Source source = addSource(r'''
 class A {}
@@ -6394,13 +6444,6 @@ f() async* {
 f() sync* {
   yield 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_typeArgument_boundToFunctionType() async {
-    Source source = addSource("class A<T extends void Function<T>(T)>{}");
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

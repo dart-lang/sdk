@@ -177,7 +177,6 @@ convert_to_future_members = monitored.Set(
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
   'DirectoryEntry.removeRecursively',
-  'DirectoryReader.readEntries',
   'Entry.copyTo',
   'Entry.getMetadata',
   'Entry.getParent',
@@ -206,12 +205,17 @@ ddc_extensions = monitored.Dict('ddcextensions.ddc_extensions', {
           'applyExtension(\'FileEntry\', value);',
       ]
   },
+  'Entry': {
+      'getMetadata': [
+          'applyExtension(\'Metadata\', value);',
+      ]
+  },
   'FileEntry': {
       'createWriter': [
           'applyExtension(\'FileWriter\', value);'
       ],
       'file': [
-          'applyExtension(\'Blob\', value);'
+          'applyExtension(\'File\', value);'
       ]
   },
   'SQLTransaction': {
@@ -279,6 +283,8 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'CustomEvent.detail',
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
+  'DirectoryEntry.createReader',
+  'DirectoryReader.readEntries',
   'Document.createElement',
   'Document.createElementNS',
   'Document.createEvent',

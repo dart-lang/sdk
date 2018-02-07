@@ -36,6 +36,7 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   "co19_rev": "@dec2b67aaab3bb7339b9764049707e71e601da3d",
+  "co19_2_rev": "@d8cdc47f759b0e89a517403ffa13eccd874bbbc0",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -50,7 +51,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.7",
-  "async_tag": "@2.0.2",
+  "async_tag": "@corelib_2_2_1",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -87,6 +88,7 @@ vars = {
   "func_rev": "@25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "@1.1.5",
   "html_tag" : "@0.13.2+2",
+  "http_io_tag": "@35dc43c9144cf7ed4236843dacd62ebaf89df21a",
   "http_multi_server_tag" : "@2.0.4",
   "http_parser_tag" : "@3.1.1",
   "http_retry_tag": "@0.1.0",
@@ -101,7 +103,7 @@ vars = {
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@1.0.0",
   "matcher_tag": "@0.12.1+4",
-  "mime_tag": "@0.9.4",
+  "mime_tag": "@0.9.6",
   "mockito_tag": "@2.0.2",
   "mustache4dart_tag" : "@v2.1.0",
   "oauth2_tag": "@1.1.0",
@@ -115,7 +117,7 @@ vars = {
   "protobuf_tag": "@0.7.0",
   "pub_rev": "@64c5f40adf6828da1b63320dd39bcedbef1354c6",
   "pub_semver_tag": "@1.3.2",
-  "quiver_tag": "@0.27.0",
+  "quiver_tag": "@0.28.0",
   "resource_rev":"@af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "@a4c7c6f23a664a37bc1b6f15a819e3f2a292791a",
   "shelf_static_rev": "@3558aa35a0d2f0f35868c3fd64b258e140db0122",
@@ -134,13 +136,13 @@ vars = {
   "test_process_tag": "@1.0.1",
   "term_glyph_tag": "@1.0.0",
   "test_reflective_loader_tag": "@0.1.3",
-  "test_tag": "@0.12.29+1",
+  "test_tag": "@0.12.30+1",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@3.3.0",
-  "utf_tag": "@0.9.0+3",
-  "watcher_tag": "@0.9.7+4",
-  "web_socket_channel_tag": "@1.0.6",
+  "utf_tag": "@0.9.0+4",
+  "watcher_tag": "@0.9.7+7",
+  "web_socket_channel_tag": "@corelib_2_2_1",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "yaml_tag": "@2.1.13",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
@@ -156,6 +158,10 @@ deps = {
 
   Var("dart_root") + "/tests/co19/src":
       Var("dart_git") + "co19.git" + Var("co19_rev"),
+
+Var("dart_root") + "/tests/co19_2/src":
+      Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
+      Var("co19_2_rev"),
 
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
@@ -229,6 +235,8 @@ deps = {
       Var("dart_git") + "html.git" + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + Var("http_tag"),
+  Var("dart_root") + "/third_party/pkg_tested/http_io":
+    Var("dart_git") + "http_io.git" + Var("http_io_tag"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       Var("http_multi_server_tag"),

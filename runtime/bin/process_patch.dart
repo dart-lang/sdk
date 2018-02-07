@@ -281,7 +281,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     }
     _mode = mode;
 
-    if (mode != ProcessStartMode.DETACHED) {
+    if (_modeHasStdio(mode)) {
       // stdin going to process.
       _stdin = new _StdSink(new _Socket._writePipe().._owner = this);
       // stdout coming from process.
@@ -289,7 +289,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       // stderr coming from process.
       _stderr = new _StdStream(new _Socket._readPipe().._owner = this);
     }
-    if (mode == ProcessStartMode.NORMAL) {
+    if (_modeIsAttached(mode)) {
       _exitHandler = new _Socket._readPipe();
     }
     _ended = false;
@@ -302,6 +302,16 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       (_stdout._stream as _Socket)._nativeSocket;
   _NativeSocket get _stderrNativeSocket =>
       (_stderr._stream as _Socket)._nativeSocket;
+
+  static bool _modeIsAttached(ProcessStartMode mode) {
+    return (mode == ProcessStartMode.NORMAL) ||
+        (mode == ProcessStartMode.INHERIT_STDIO);
+  }
+
+  static bool _modeHasStdio(ProcessStartMode mode) {
+    return (mode == ProcessStartMode.NORMAL) ||
+        (mode == ProcessStartMode.DETACHED_WITH_STDIO);
+  }
 
   static String _getShellCommand() {
     if (Platform.isWindows) {
@@ -390,7 +400,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   Future<Process> _start() {
     var completer = new Completer<Process>();
-    if (_mode == ProcessStartMode.NORMAL) {
+    if (_modeIsAttached(_mode)) {
       _exitCode = new Completer<int>();
     }
     // TODO(ager): Make the actual process starting really async instead of
@@ -404,10 +414,10 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
           _workingDirectory,
           _environment,
           _mode.index,
-          _mode == ProcessStartMode.DETACHED ? null : _stdinNativeSocket,
-          _mode == ProcessStartMode.DETACHED ? null : _stdoutNativeSocket,
-          _mode == ProcessStartMode.DETACHED ? null : _stderrNativeSocket,
-          _mode != ProcessStartMode.NORMAL ? null : _exitHandler._nativeSocket,
+          _modeHasStdio(_mode) ? _stdinNativeSocket : null,
+          _modeHasStdio(_mode) ? _stdoutNativeSocket : null,
+          _modeHasStdio(_mode) ? _stderrNativeSocket : null,
+          _modeIsAttached(_mode) ? _exitHandler._nativeSocket : null,
           status);
       if (!success) {
         completer.completeError(new ProcessException(
@@ -420,7 +430,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
-      if (_mode == ProcessStartMode.NORMAL) {
+      if (_modeIsAttached(_mode)) {
         int exitDataRead = 0;
         final int EXIT_DATA_SIZE = 8;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
@@ -436,7 +446,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
             _ended = true;
             _exitCode.complete(exitCode(exitDataBuffer));
             // Kill stdin, helping hand if the user forgot to do it.
-            (_stdin._sink as _Socket).destroy();
+            if (_modeHasStdio(_mode)) {
+              (_stdin._sink as _Socket).destroy();
+            }
             _resourceInfo.stopped();
           }
 

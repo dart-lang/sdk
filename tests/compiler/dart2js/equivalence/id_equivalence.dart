@@ -27,6 +27,7 @@ enum IdKind {
 /// Id for a code point or element with type inference information.
 abstract class Id {
   IdKind get kind;
+  bool get isGlobal;
 }
 
 class IdValue {
@@ -67,6 +68,7 @@ class IdValue {
     throw new UnsupportedError("Unexpected id kind: ${id.kind}");
   }
 
+  static const String globalPrefix = "global#";
   static const String elementPrefix = "element: ";
   static const String classPrefix = "class: ";
   static const String invokePrefix = "invoke: ";
@@ -82,13 +84,23 @@ class IdValue {
       text = text.substring(elementPrefix.length);
       int colonPos = text.indexOf(':');
       if (colonPos == -1) throw "Invalid element id: '$text'";
-      id = new ElementId(text.substring(0, colonPos));
+      String name = text.substring(0, colonPos);
+      bool isGlobal = name.startsWith(globalPrefix);
+      if (isGlobal) {
+        name = name.substring(globalPrefix.length);
+      }
+      id = new ElementId(name, isGlobal: isGlobal);
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(classPrefix)) {
       text = text.substring(classPrefix.length);
       int colonPos = text.indexOf(':');
       if (colonPos == -1) throw "Invalid class id: '$text'";
-      id = new ClassId(text.substring(0, colonPos));
+      String name = text.substring(0, colonPos);
+      bool isGlobal = name.startsWith(globalPrefix);
+      if (isGlobal) {
+        name = name.substring(globalPrefix.length);
+      }
+      id = new ClassId(name, isGlobal: isGlobal);
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(invokePrefix)) {
       id = new NodeId(offset, IdKind.invoke);
@@ -117,18 +129,19 @@ class IdValue {
 class ElementId implements Id {
   final String className;
   final String memberName;
+  final bool isGlobal;
 
-  factory ElementId(String text) {
+  factory ElementId(String text, {bool isGlobal: false}) {
     int dotPos = text.indexOf('.');
     if (dotPos != -1) {
-      return new ElementId.internal(
-          text.substring(dotPos + 1), text.substring(0, dotPos));
+      return new ElementId.internal(text.substring(dotPos + 1),
+          className: text.substring(0, dotPos), isGlobal: isGlobal);
     } else {
-      return new ElementId.internal(text);
+      return new ElementId.internal(text, isGlobal: isGlobal);
     }
   }
 
-  ElementId.internal(this.memberName, [this.className]);
+  ElementId.internal(this.memberName, {this.className, this.isGlobal: false});
 
   int get hashCode => className.hashCode * 13 + memberName.hashCode * 17;
 
@@ -148,8 +161,9 @@ class ElementId implements Id {
 /// Id for a class.
 class ClassId implements Id {
   final String className;
+  final bool isGlobal;
 
-  ClassId(this.className);
+  ClassId(this.className, {this.isGlobal: false});
 
   int get hashCode => className.hashCode * 13;
 
@@ -173,6 +187,8 @@ class NodeId implements Id {
   final IdKind kind;
 
   const NodeId(this.value, this.kind);
+
+  bool get isGlobal => false;
 
   int get hashCode => value.hashCode * 13 + kind.hashCode * 17;
 
@@ -575,7 +591,7 @@ ElementId computeElementId(AstElement element) {
     memberName += '=';
   }
   String className = element.enclosingClass?.name;
-  return new ElementId.internal(memberName, className);
+  return new ElementId.internal(memberName, className: className);
 }
 
 /// Compute a canonical [Id] for kernel-based nodes.
@@ -588,7 +604,7 @@ Id computeEntityId(ir.Member node) {
   if (node is ir.Procedure && node.kind == ir.ProcedureKind.Setter) {
     memberName += '=';
   }
-  return new ElementId.internal(memberName, className);
+  return new ElementId.internal(memberName, className: className);
 }
 
 /// Abstract IR visitor for computing data corresponding to a node or element,

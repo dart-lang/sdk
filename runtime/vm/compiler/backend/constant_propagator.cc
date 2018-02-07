@@ -979,7 +979,7 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
+void ConstantPropagator::VisitInt64ToDouble(Int64ToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr,

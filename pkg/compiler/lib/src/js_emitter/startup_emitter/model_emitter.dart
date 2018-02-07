@@ -228,10 +228,14 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    String flavor = compiler.options.useContentSecurityPolicy
-        ? 'fast startup, CSP'
-        : 'fast startup';
-    return new js.Comment(generatedBy(compiler, flavor: flavor));
+    StringBuffer flavor = new StringBuffer();
+    flavor.write(compiler.options.useKernel ? 'kernel FE' : 'ast FE');
+    if (compiler.options.strongMode) flavor.write(', strong');
+    if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
+    if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
+    flavor.write(', fast startup emitter');
+    if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
+    return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
   }
 
   /// Writes all deferred fragment's code into files.

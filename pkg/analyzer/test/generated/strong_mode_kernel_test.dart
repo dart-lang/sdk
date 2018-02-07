@@ -212,14 +212,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31759')
-  test_inference_simplePolymorphicRecursion_function() async {
-    // Expected 0 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 2 (114, 99)
-    await super.test_inference_simplePolymorphicRecursion_function();
-  }
-
-  @override
-  @failingTest
   test_inferGenericInstantiation2() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
@@ -445,6 +437,12 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   test_setterWithOtherTypeIsError() async {
     // Expected 2 errors of type StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, found 0
     await super.test_setterWithOtherTypeIsError();
+  }
+
+  @override
+  @failingTest
+  test_returnOfInvalidType_object_void() async {
+    await super.test_returnOfInvalidType_object_void();
   }
 }
 

@@ -92,6 +92,7 @@ Thread::Thread(Isolate* isolate)
       deferred_interrupts_(0),
       stack_overflow_count_(0),
       cha_(NULL),
+      hierarchy_info_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       active_exception_(Object::null()),

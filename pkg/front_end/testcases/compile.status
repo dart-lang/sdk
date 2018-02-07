@@ -22,7 +22,7 @@ redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryCon
 redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparambounds_test: VerificationError # Incorrect references to class type parameters. Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
@@ -122,3 +122,4 @@ rasta/foo: RuntimeError # Expected, this file has no main method.
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+external_import: RuntimeError # Expected -- test uses import which doesn't exist.

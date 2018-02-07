@@ -44,7 +44,7 @@ intptr_t OS::ProcessId() {
 static zx_status_t GetTimeServicePtr(
     time_service::TimeServiceSyncPtr* time_svc) {
   zx::channel service_root = app::subtle::CreateStaticServiceRootHandle();
-  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).PassChannel();
+  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).TakeChannel();
   return fdio_service_connect_at(service_root.get(), kTimeServiceName,
                                  time_svc_channel.release());
 }
@@ -86,7 +86,7 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
   zx_status_t status = GetLocalAndDstOffsetInSeconds(
-      zx_time_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
+      zx_clock_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
 }
 
@@ -95,11 +95,11 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  return zx_time_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
+  return zx_clock_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return zx_time_get(ZX_CLOCK_MONOTONIC);
+  return zx_clock_get(ZX_CLOCK_MONOTONIC);
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
@@ -113,7 +113,7 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  return zx_time_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
+  return zx_clock_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
 }
 
 // TODO(5411554):  May need to hoist these architecture dependent code

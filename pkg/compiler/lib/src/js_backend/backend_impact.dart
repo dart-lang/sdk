@@ -8,6 +8,7 @@ import '../common/names.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
+import '../options.dart' show CompilerOptions;
 import '../universe/selector.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
@@ -66,7 +67,7 @@ class BackendImpact {
     }
     for (Selector selector in dynamicUses) {
       assert(selector != null);
-      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector, null));
+      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector));
     }
     for (InterfaceType instantiatedType in instantiatedTypes) {
       worldImpactBuilder
@@ -88,9 +89,10 @@ class BackendImpact {
 
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
+  final CompilerOptions _options;
   final CommonElements _commonElements;
 
-  BackendImpacts(this._commonElements);
+  BackendImpacts(this._options, this._commonElements);
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -126,15 +128,24 @@ class BackendImpacts {
   BackendImpact _asyncBody;
 
   BackendImpact get asyncBody {
-    return _asyncBody ??= new BackendImpact(staticUses: [
-      _commonElements.asyncHelperStart,
+    var staticUses = [
       _commonElements.asyncHelperAwait,
       _commonElements.asyncHelperReturn,
       _commonElements.asyncHelperRethrow,
-      _commonElements.syncCompleterConstructor,
       _commonElements.streamIteratorConstructor,
       _commonElements.wrapBody
-    ]);
+    ];
+    var instantiantedClasses = <ClassEntity>[];
+    if (_options.startAsyncSynchronously) {
+      staticUses.add(_commonElements.asyncAwaitCompleterConstructor);
+      staticUses.add(_commonElements.asyncHelperStartSync);
+      instantiantedClasses.add(_commonElements.asyncAwaitCompleter);
+    } else {
+      staticUses.add(_commonElements.syncCompleterConstructor);
+      staticUses.add(_commonElements.asyncHelperStart);
+    }
+    return _asyncBody ??= new BackendImpact(
+        staticUses: staticUses, instantiatedClasses: instantiantedClasses);
   }
 
   BackendImpact _syncStarBody;

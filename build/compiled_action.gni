@@ -74,7 +74,7 @@ if (host_os == "win") {
   _host_executable_suffix = ""
 }
 
-_dart_root = rebase_path("..")
+_dart_root = get_path_info("..", "abspath")
 
 template("compiled_action") {
   assert(defined(invoker.tool), "tool must be defined for $target_name")
@@ -118,6 +118,10 @@ template("compiled_action") {
     ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
+    }
+
+    if (defined(invoker.depfile)) {
+      depfile = invoker.depfile
     }
 
     # The script takes as arguments the binary to run, and then the arguments
@@ -171,6 +175,10 @@ template("compiled_action_foreach") {
     ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
+    }
+
+    if (defined(invoker.depfile)) {
+      depfile = invoker.depfile
     }
 
     # The script takes as arguments the binary to run, and then the arguments

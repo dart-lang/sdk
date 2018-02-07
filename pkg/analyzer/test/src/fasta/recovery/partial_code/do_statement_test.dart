@@ -11,6 +11,8 @@ main() {
 }
 
 class DoStatementTest extends PartialCodeTest {
+  final allExceptEof =
+      PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
   buildAll() {
     buildTests(
         'do_statement',
@@ -70,16 +72,16 @@ class DoStatementTest extends PartialCodeTest {
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN
+                ScannerErrorCode.EXPECTED_TOKEN
               ],
               "do {} while (_s_);",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'condition',
               'do {} while (a',
-              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
               "do {} while (a);",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor('rightParen', 'do {} while (a)',
               [ParserErrorCode.EXPECTED_TOKEN], "do {} while (a);"),
         ],

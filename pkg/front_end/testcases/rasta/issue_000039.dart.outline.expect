@@ -8,6 +8,6 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }

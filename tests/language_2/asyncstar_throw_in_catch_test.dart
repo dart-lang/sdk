@@ -40,9 +40,9 @@ foo1(Tracer tracer) async* {
     yield 3;
     tracer.trace("f");
   } finally {
-    tracer.trace("f");
+    tracer.trace("g");
   }
-  tracer.trace("g");
+  tracer.trace("h");
 }
 
 foo2(Tracer tracer) async* {
@@ -116,10 +116,10 @@ runTest(test, expectedTrace, expectedError, shouldCancel) {
 test() async {
   // TODO(sigurdm): These tests are too dependent on scheduling, and buffering
   // behavior.
-  await runTest(foo1, "abcdYefC", null, true);
+  await runTest(foo1, "abcYdgC", null, true);
   await runTest(foo2, "abcX", "Error", false);
   await runTest(foo3, "abcYX", "Error", false);
-  await runTest(foo4, "abcdYeYfX", "Error2", false);
+  await runTest(foo4, "abcYdYefX", "Error2", false);
 }
 
 void main() {

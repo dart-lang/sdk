@@ -219,7 +219,7 @@ class Listener {
     logEvent("ExpressionStatement");
   }
 
-  void beginFactoryMethod(Token token) {}
+  void beginFactoryMethod(Token lastConsumed) {}
 
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
@@ -612,7 +612,7 @@ class Listener {
     logEvent("StringJuxtaposition");
   }
 
-  void beginMember(Token token) {}
+  void beginMember() {}
 
   /// Handle an invalid member declaration. Substructures:
   /// - metadata
@@ -626,7 +626,7 @@ class Listener {
     logEvent("Member");
   }
 
-  void beginMethod(Token token, Token name) {}
+  void beginMethod() {}
 
   /// Handle the end of a method declaration.  Substructures:
   /// - metadata
@@ -638,7 +638,8 @@ class Listener {
   /// - initializers
   /// - async marker
   /// - body
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     logEvent("Method");
   }
 
@@ -809,7 +810,7 @@ class Listener {
     logEvent("TopLevelFields");
   }
 
-  void beginTopLevelMethod(Token token, Token name) {}
+  void beginTopLevelMethod(Token lastConsumed) {}
 
   /// Handle the end of a top level method.  Substructures:
   /// - metadata
@@ -939,7 +940,7 @@ class Listener {
 
   /// Called when the parser encounters a `?` operator and begins parsing a
   /// conditional expression.
-  void beginConditionalExpression() {}
+  void beginConditionalExpression(Token question) {}
 
   /// Called when the parser encounters a `:` operator in a conditional
   /// expression.
@@ -1071,7 +1072,7 @@ class Listener {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
-  void handleNoType(Token token) {
+  void handleNoType(Token lastConsumed) {
     logEvent("NoType");
   }
 

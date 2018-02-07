@@ -140,8 +140,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(Token token) {
-    listener?.beginFactoryMethod(token);
+  void beginFactoryMethod(Token lastConsumed) {
+    listener?.beginFactoryMethod(lastConsumed);
   }
 
   @override
@@ -265,8 +265,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMember(Token token) {
-    listener?.beginMember(token);
+  void beginMember() {
+    listener?.beginMember();
   }
 
   @override
@@ -280,8 +280,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMethod(Token token, Token name) {
-    listener?.beginMethod(token, name);
+  void beginMethod() {
+    listener?.beginMethod();
   }
 
   @override
@@ -365,8 +365,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
-    listener?.beginTopLevelMethod(token, name);
+  void beginTopLevelMethod(Token lastConsumed) {
+    listener?.beginTopLevelMethod(lastConsumed);
   }
 
   @override
@@ -707,8 +707,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
-    listener?.endMethod(getOrSet, beginToken, endToken);
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+    listener?.endMethod(getOrSet, beginToken, beginParam, endToken);
   }
 
   @override
@@ -911,8 +912,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginConditionalExpression() {
-    listener?.beginConditionalExpression();
+  void beginConditionalExpression(Token question) {
+    listener?.beginConditionalExpression(question);
   }
 
   @override
@@ -1150,8 +1151,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNoType(Token token) {
-    listener?.handleNoType(token);
+  void handleNoType(Token lastConsumed) {
+    listener?.handleNoType(lastConsumed);
   }
 
   @override

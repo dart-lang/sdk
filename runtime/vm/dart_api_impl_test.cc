@@ -23,7 +23,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, verify_acquired_data);
-DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
 DECLARE_FLAG(bool, use_dart_frontend);
 
 #ifndef PRODUCT
@@ -6319,120 +6318,6 @@ TEST_CASE(DartAPI_LoadPatch) {
   int64_t value = 0;
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(42, value);
-}
-
-TEST_CASE(DartAPI_LoadPatchSignatureMismatch) {
-  // This tests the sort of APIs with intentional signature mismatches we need
-  // for typed Dart-JavaScript interop where we emulated JavaScript semantics
-  // for optional arguments.
-  const char* kLibrary1Chars = "library library1_name;";
-  const char* kSourceChars =
-      "part of library1_name;\n"
-      "external int foo([int x]);\n"
-      "class Foo<T extends Foo> {\n"
-      "  external static int addDefault10([int x, int y]);\n"
-      "}";
-  const char* kPatchChars =
-      "const _UNDEFINED = const Object();\n"
-      "@patch foo([x=_UNDEFINED]) => identical(x, _UNDEFINED) ? 42 : x;\n"
-      "@patch class Foo<T> {\n"
-      "  static addDefault10([x=_UNDEFINED, y=_UNDEFINED]) {\n"
-      "    if (identical(x, _UNDEFINED)) x = 10;\n"
-      "    if (identical(y, _UNDEFINED)) y = 10;\n"
-      "    return x + y;\n"
-      "  }\n"
-      "}";
-
-  bool old_flag_value = FLAG_ignore_patch_signature_mismatch;
-  FLAG_ignore_patch_signature_mismatch = true;
-
-  // Load up a library.
-  Dart_Handle url = NewString("library1_url");
-  Dart_Handle source = NewString(kLibrary1Chars);
-  Dart_Handle lib = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
-  EXPECT_VALID(lib);
-  EXPECT(Dart_IsLibrary(lib));
-
-  url = NewString("source_url");
-  source = NewString(kSourceChars);
-
-  Dart_Handle result = Dart_LoadSource(lib, url, Dart_Null(), source, 0, 0);
-  EXPECT_VALID(result);
-
-  url = NewString("patch_url");
-  source = NewString(kPatchChars);
-
-  result = Dart_LibraryLoadPatch(lib, url, source);
-  EXPECT_VALID(result);
-  result = Dart_FinalizeLoading(false);
-  EXPECT_VALID(result);
-
-  // Test a top level method
-  {
-    result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
-    EXPECT_VALID(result);
-    EXPECT(Dart_IsInteger(result));
-    int64_t value = 0;
-    EXPECT_VALID(Dart_IntegerToInt64(result, &value));
-    EXPECT_EQ(42, value);
-  }
-
-  {
-    Dart_Handle dart_args[1];
-    dart_args[0] = Dart_Null();
-    result = Dart_Invoke(lib, NewString("foo"), 1, dart_args);
-    EXPECT_VALID(result);
-    EXPECT(Dart_IsNull(result));
-  }
-
-  {
-    Dart_Handle dart_args[1];
-    dart_args[0] = Dart_NewInteger(100);
-    result = Dart_Invoke(lib, NewString("foo"), 1, dart_args);
-    EXPECT_VALID(result);
-    EXPECT(Dart_IsInteger(result));
-    int64_t value = 0;
-    EXPECT_VALID(Dart_IntegerToInt64(result, &value));
-    EXPECT_EQ(100, value);
-  }
-
-  // Test static method
-  Dart_Handle type = Dart_GetType(lib, NewString("Foo"), 0, NULL);
-  EXPECT_VALID(type);
-
-  {
-    result = Dart_Invoke(type, NewString("addDefault10"), 0, NULL);
-    EXPECT_VALID(result);
-    EXPECT(Dart_IsInteger(result));
-    int64_t value = 0;
-    EXPECT_VALID(Dart_IntegerToInt64(result, &value));
-    EXPECT_EQ(20, value);
-  }
-
-  {
-    Dart_Handle dart_args[1];
-    dart_args[0] = Dart_NewInteger(100);
-    result = Dart_Invoke(type, NewString("addDefault10"), 1, dart_args);
-    EXPECT_VALID(result);
-    EXPECT(Dart_IsInteger(result));
-    int64_t value = 0;
-    EXPECT_VALID(Dart_IntegerToInt64(result, &value));
-    EXPECT_EQ(110, value);
-  }
-
-  {
-    Dart_Handle dart_args[2];
-    dart_args[0] = Dart_NewInteger(100);
-    dart_args[1] = Dart_NewInteger(100);
-    result = Dart_Invoke(type, NewString("addDefault10"), 2, dart_args);
-    EXPECT_VALID(result);
-    EXPECT(Dart_IsInteger(result));
-    int64_t value = 0;
-    EXPECT_VALID(Dart_IntegerToInt64(result, &value));
-    EXPECT_EQ(200, value);
-  }
-
-  FLAG_ignore_patch_signature_mismatch = old_flag_value;
 }
 
 static void PatchNativeFunction(Dart_NativeArguments args) {

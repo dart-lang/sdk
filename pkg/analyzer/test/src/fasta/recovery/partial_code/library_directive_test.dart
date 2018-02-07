@@ -26,7 +26,6 @@ class LibraryDirectivesTest extends PartialCodeTest {
       'getter',
       'setter'
     ];
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'library_directive',
         [

@@ -627,6 +627,8 @@ class ResolutionFunctionType extends ResolutionDartType
    */
   final List<ResolutionDartType> namedParameterTypes;
 
+  TypedefType get typedefType => null;
+
   factory ResolutionFunctionType(FunctionTypedElement element,
       [ResolutionDartType returnType = const ResolutionDynamicType(),
       List<ResolutionDartType> parameterTypes = const <ResolutionDartType>[],

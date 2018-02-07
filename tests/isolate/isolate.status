@@ -27,11 +27,12 @@ spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 
-[ $compiler == dartk ]
-message3_test/int32x4: Crash
-
-[ $compiler == dartkp ]
-message3_test/int32x4: Crash
+[ $compiler == fasta ]
+browser/compute_this_script_browser_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+browser/package_resolve_browser_hook2_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+browser/package_resolve_browser_hook_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+browser/package_resolve_browser_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+isolate_stress_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
 
 [ $mode == product ]
 issue_24243_parent_isolate_test: Skip # Requires checked mode
@@ -45,10 +46,19 @@ simple_message_test/01: Skip # Flutter Issue 9114
 browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 
+[ $fasta ]
+compile_time_error_test/01: MissingCompileTimeError
+
 [ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+# The isolate tests were moved to lib_2/isolate, and there they should be
+# made strong mode compliant. There's no sense in running the old versions
+# here.
+[ $strong ]
+*: SkipByDesign
+
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dart2js && $runtime == chrome ]
@@ -106,34 +116,6 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
-[ $compiler == dartk && $system == windows && $strong ]
-issue_22778_test: Fail
-message3_test/int32x4: Fail
-
-[ $compiler == dartk && $system == windows && !$strong ]
-message3_test/int32x4: Fail
-
-[ $compiler == dartk && $system != windows && $strong ]
-issue_22778_test: Crash
-
-[ $compiler == dartk && $strong ]
-issue_21398_parent_isolate1_test: RuntimeError
-message3_test/byteBuffer: RuntimeError
-message3_test/constInstance: RuntimeError
-message3_test/constList: RuntimeError
-message3_test/constList_identical: RuntimeError
-message3_test/constMap: RuntimeError
-message3_test/fun: RuntimeError
-message3_test/int32x4: RuntimeError
-message3_test/none: RuntimeError
-message_test: CompileTimeError
-mint_maker_test: CompileTimeError
-spawn_function_custom_class_test: CompileTimeError
-spawn_uri_nested_vm_test: CompileTimeError
-static_function_test: CompileTimeError, Timeout
-typed_message_test: CompileTimeError
-unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -183,7 +165,6 @@ static_function_test: Skip # Times out. Issue 31855
 [ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
 compile_time_error_test/01: Skip # Issue 12587
 kill3_test: Pass, Fail # Bad test: expects total message order
-message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 ping_pause_test: Skip # Resolve test issues
 ping_test: Skip # Resolve test issues
 
@@ -191,7 +172,6 @@ ping_test: Skip # Resolve test issues
 checked_test: Skip # Unsupported.
 
 [ $compiler == dartk || $compiler == dartkp ]
-compile_time_error_test/01: MissingCompileTimeError
 deferred_in_isolate2_test: Skip # Timeout. Deferred loading kernel issue 28335.
 deferred_in_isolate_test: Skip # Timeout. Deferred loading kernel issue 28335.
 issue_21398_parent_isolate2_test/01: Skip # Timeout. Deferred loading kernel issue 28335.

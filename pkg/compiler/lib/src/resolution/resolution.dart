@@ -582,14 +582,28 @@ class ResolverTask extends CompilerTask {
 
   // TODO(johnniwinther): Remove this queue when resolution has been split into
   // syntax and semantic resolution.
-  TypeDeclarationElement currentlyResolvedTypeDeclaration;
+  /// Whether or not we are currently resolving a type declaration.
+  ///
+  /// When we are resolving a type declaration, we want to avoid resolving
+  /// other type declarations that are encountered through type annotations
+  /// until after we finish resolving the current declaration.
+  bool isResolvingTypeDeclaration = false;
+
+  bool isPostProcessingTypeDeclaration = false;
+
+  /// Classes found in type annotations while resolving a type declaration.
+  ///
+  /// These are stored here so that they may be resolved after the original
+  /// type annotation.
   Queue<ClassElement> pendingClassesToBeResolved = new Queue<ClassElement>();
+
+  /// Classes to be post-processed after the type declaration is resolved.
   Queue<ClassElement> pendingClassesToBePostProcessed =
       new Queue<ClassElement>();
 
   /// Resolve [element] using [resolveTypeDeclaration].
   ///
-  /// This methods ensure that class declarations encountered through type
+  /// This method ensures that class declarations encountered through type
   /// annotations during the resolution of [element] are resolved after
   /// [element] has been resolved.
   // TODO(johnniwinther): Encapsulate this functionality in a
@@ -598,25 +612,29 @@ class ResolverTask extends CompilerTask {
       TypeDeclarationElement element, resolveTypeDeclaration()) {
     return reporter.withCurrentElement(element, () {
       return measure(() {
-        TypeDeclarationElement previousResolvedTypeDeclaration =
-            currentlyResolvedTypeDeclaration;
-        currentlyResolvedTypeDeclaration = element;
+        bool previouslyResolvingTypeDeclaration = isResolvingTypeDeclaration;
+        isResolvingTypeDeclaration = true;
         var result = resolveTypeDeclaration();
-        currentlyResolvedTypeDeclaration = previousResolvedTypeDeclaration;
-        if (currentlyResolvedTypeDeclaration == null) {
+        isResolvingTypeDeclaration = previouslyResolvingTypeDeclaration;
+        if (!isResolvingTypeDeclaration) {
           do {
-            while (!pendingClassesToBeResolved.isEmpty) {
+            while (pendingClassesToBeResolved.isNotEmpty) {
               pendingClassesToBeResolved
                   .removeFirst()
                   .ensureResolved(resolution);
             }
-            while (!pendingClassesToBePostProcessed.isEmpty) {
-              _postProcessClassElement(
-                  pendingClassesToBePostProcessed.removeFirst());
+            if (!isPostProcessingTypeDeclaration) {
+              isPostProcessingTypeDeclaration = true;
+              while (pendingClassesToBePostProcessed.isNotEmpty) {
+                _postProcessClassElement(
+                    pendingClassesToBePostProcessed.removeFirst());
+              }
+              isPostProcessingTypeDeclaration = false;
             }
-          } while (!pendingClassesToBeResolved.isEmpty);
+          } while (pendingClassesToBeResolved.isNotEmpty);
           assert(pendingClassesToBeResolved.isEmpty);
-          assert(pendingClassesToBePostProcessed.isEmpty);
+          assert(pendingClassesToBePostProcessed.isEmpty ||
+              isPostProcessingTypeDeclaration);
         }
         return result;
       });
@@ -645,7 +663,7 @@ class ResolverTask extends CompilerTask {
   }
 
   void ensureClassWillBeResolvedInternal(ClassElement element) {
-    if (currentlyResolvedTypeDeclaration == null) {
+    if (!isResolvingTypeDeclaration) {
       element.ensureResolved(resolution);
     } else {
       pendingClassesToBeResolved.add(element);

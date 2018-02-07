@@ -1,5 +1,23 @@
 {
   "filesets": {
+    "analyzer": [
+      "out/ReleaseX64/",
+      "xcodebuild/ReleaseX64/",
+      "tools/",
+      "tests/",
+      "pkg/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      ".packages"
+    ],
+    "dart2js": [
+      "out/ReleaseX64/",
+      "xcodebuild/ReleaseX64/",
+      "tools/",
+      "tests/",
+      "pkg/",
+      ".packages"
+    ],
     "vm_debug": [
       "out/DebugIA32/",
       "out/DebugX64/",
@@ -25,22 +43,41 @@
       "sdk/",
       ".packages"
     ],
-    "analyzer": [
+    "vm-kernel": [
+      "out/DebugIA32/",
+      "out/DebugSIMARM/",
+      "out/DebugSIMARM64/",
+      "out/DebugSIMDBC64/",
+      "out/DebugX64/",
+      "out/ReleaseIA32/",
+      "out/ReleaseSIMARM/",
+      "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMDBC64/",
       "out/ReleaseX64/",
+      "xcodebuild/DebugIA32/",
+      "xcodebuild/DebugX64/",
+      "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseX64/",
+      "samples/",
+      "samples-dev/",
       "tools/",
-      "tests/",
-      "pkg/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      ".packages"
-    ],
-    "dart2js": [
-      "out/ReleaseX64/",
-      "xcodebuild/ReleaseX64/",
-      "tools/",
+      "third_party/observatory_pub_packages/packages/unittest/",
+      "third_party/observatory_pub_packages/packages/web_components/",
       "tests/",
-      "pkg/",
+      "pkg/async_helper/",
+      "pkg/dart_internal/",
+      "pkg/expect/",
+      "pkg/front_end/",
+      "pkg/js/",
+      "pkg/kernel/",
+      "pkg/meta/",
+      "pkg/pkg.status",
+      "pkg/status_file/",
+      "pkg/vm/",
+      "runtime/",
+      "sdk/",
       ".packages"
     ]
   },
@@ -79,15 +116,11 @@
         },
         {
           "name": "vm tests",
-          "arguments": [],
-          "fileset": "vm_debug",
-          "shards": 3
+          "arguments": ["--builder-tag=swarming"]
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked"],
-          "fileset": "vm_debug",
-          "shards": 3
+          "arguments": ["--builder-tag=swarming", "--checked"]
         }
       ]
     },
@@ -116,13 +149,12 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-linux-release-x64",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm kernel release builder."
+        "description": "This configuration is used by the vm kernel precomp builders that require --use-blobs."
       },
       "steps": [
         {
@@ -135,9 +167,43 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartkp", "--runtime=dart_precompiled"],
-          "fileset": "vm_debug",
-          "shards": 6
+          "arguments": [
+            "--compiler=dartkp",
+            "--runtime=dart_precompiled",
+            "--use-blobs"
+          ]
+        },
+        {
+          "name": "strong vm tests",
+          "arguments": [
+            "--compiler=dartkp",
+            "--runtime=dart_precompiled",
+            "--strong",
+            "--use-blobs"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=dartkp","--runtime=dart_precompiled"]
         },
         {
           "name": "strong vm tests",
@@ -145,9 +211,7 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--strong"
-          ],
-          "fileset": "vm_debug",
-          "shards": 6
+          ]
         }
       ]
     },
@@ -173,9 +237,7 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks"
-          ],
-          "fileset": "vm_debug",
-          "shards": 6
+          ]
         },
         {
           "name": "strong vm tests",
@@ -184,9 +246,7 @@
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks",
             "--strong"
-          ],
-          "fileset": "vm_debug",
-          "shards": 6
+          ]
         }
       ]
     },
@@ -248,17 +308,21 @@
           "arguments": ["runtime_kernel"]
         },
         {
-          "name": "front-end tests",
-          "arguments": ["--compiler=none", "--checked"],
-          "tests": ["pkg/front_end"]
-        },
-        {
           "name": "vm tests",
           "arguments": ["--compiler=dartk"]
         },
         {
           "name": "strong vm tests",
           "arguments": ["--compiler=dartk", "--strong"]
+        },
+        {
+          "name": "front-end tests",
+          "arguments": [
+            "--compiler=none",
+            "--checked",
+            "--timeout=120"
+          ],
+          "tests": ["pkg/front_end"]
         }
       ]
     },
@@ -731,9 +795,14 @@
         "dart2js-win-x64-ie11"
       ],
       "meta": {
-        "description": "These builders are triggered by dart-sdk-linux and runs the dart2js tests."
+        "description": "These builders run dart2js tests."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "dart2js tests",
           "arguments": [
@@ -852,9 +921,14 @@
     {
       "builders": ["dart2js-minified-linux-x64-d8"],
       "meta": {
-        "description": "This builder is triggered by dart-sdk-linux and runs the dart2js tests with minified."
+        "description": "This builder runs the dart2js tests in minified mode."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "dart2js tests",
           "arguments": [
@@ -983,9 +1057,14 @@
     {
       "builders": ["dart2js-csp-minified-linux-x64-drt"],
       "meta": {
-        "description": "This builder is triggered by dart-sdk-linux and runs the dart2js tests with csp and minified."
+        "description": "This builder runs the dart2js tests in csp and minified mode."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "dart2js tests",
           "arguments": [
@@ -1135,15 +1214,6 @@
           "arguments": ["--arch=ia32,x64", "create_sdk" ]
         },
         {
-          "name": "trigger analyzer",
-          "trigger": [
-            "analyzer-linux-release",
-            "analyzer-strong-linux-release",
-            "analyzer-analysis-server-linux"
-          ],
-          "fileset": "analyzer"
-        },
-        {
           "name": "generate API docs",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [ "api_docs" ]
@@ -1153,7 +1223,7 @@
     {
       "builders": ["dart-sdk-mac"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for mac. The builder triggers the analyzer and dart2js mac builders."
+        "description": "This configuration is used by the sdk-builder for mac."
       },
       "steps": [
         {
@@ -1166,7 +1236,7 @@
     {
       "builders": ["dart-sdk-win"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for windows. The builder triggers the analyzer and dart2js windows builders."
+        "description": "This configuration is used by the sdk-builder for windows."
       },
       "steps": [
         {
@@ -1186,6 +1256,11 @@
         "description": "This configuration is used by the analyzer builders not running strong mode."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "analyze tests",
           "arguments": ["--compiler=dart2analyzer", "--use-sdk"]
@@ -1261,6 +1336,11 @@
       },
       "steps": [
         {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
           "name": "analyze tests strong",
           "arguments": ["--compiler=dart2analyzer", "--use-sdk", "--strong"]
         },
@@ -1278,6 +1358,11 @@
     {
       "builders": ["analyzer-analysis-server-linux"],
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "Analyze analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
@@ -1298,9 +1383,14 @@
     {
       "builders": ["pkg-linux-release","pkg-win-release","pkg-mac-release"],
       "meta": {
-        "description": "This configuration is used by the pkg builders. The builder is triggered by the SDK builders with the pkg fileset."
+        "description": "This configuration is used by the pkg builders."
       },
       "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
         {
           "name": "package unit tests",
           "arguments": [

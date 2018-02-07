@@ -8,7 +8,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../src/utilities/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
 main() {
@@ -252,12 +251,10 @@ class A { const A(int one, int two, int three, {int four, String five:
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 
 build() => new Row(
     ^
@@ -275,12 +272,10 @@ build() => new Row(
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
   build() => new Scaffold(
         appBar: new AppBar(
@@ -291,20 +286,18 @@ import 'package:flutter/src/widgets/framework.dart';
 
     await computeSuggestions();
 
-    assertSuggest('color: ,',
+    assertSuggest('backgroundColor: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null, // No default values.
-        selectionOffset: 7);
+        selectionOffset: 17);
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
 build() => new Row(
     key: null,
@@ -323,12 +316,10 @@ build() => new Row(
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code,
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
 build() => new Row(
     ^
@@ -349,17 +340,18 @@ build() => new Row(
   test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
     // type it's children.
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code +
-          '\nclass DynamicRow extends Widget { DynamicRow({List children: null}){}}'
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
 build() => new Container(
     child: new DynamicRow(^);
   );
+
+class DynamicRow extends Widget {
+  DynamicRow({List children: null});
+}
 ''');
 
     await computeSuggestions();
@@ -374,17 +366,18 @@ build() => new Container(
 
   test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
     // Ensure we don't generate Map params for a future API
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code +
-          '\nclass MapRow extends Widget { MapRow({Map<Object,Object> children: null}){}}'
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
 build() => new Container(
     child: new MapRow(^);
   );
+
+class MapRow extends Widget {
+  MapRow({Map<Object, Object> children: null});
+}
 ''');
 
     await computeSuggestions();
@@ -397,18 +390,18 @@ build() => new Container(
   }
 
   test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code +
-          '\nclass CustomScrollView extends Widget { CustomScrollView('
-          '\n{List<Widget> slivers}){}}'
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
 build() => new CustomScrollView(
     ^
   );
+
+class CustomScrollView extends Widget {
+  CustomScrollView({List<Widget> slivers});
+}
 ''');
 
     await computeSuggestions();
@@ -423,16 +416,15 @@ build() => new CustomScrollView(
 
   test_ArgumentList_Flutter_MethodExpression_children() async {
     // Ensure we don't generate params for a method call
-    configureFlutterPkg({
-      'src/widgets/framework.dart':
-          flutter_framework_code + '\nfoo({String children})'
-    });
+    addFlutterPackage();
 
     addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 
 main() {
 foo(^);
+
+foo({String children}) {}
 ''');
 
     await computeSuggestions();

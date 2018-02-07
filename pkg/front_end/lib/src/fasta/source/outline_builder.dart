@@ -145,11 +145,11 @@ class OutlineBuilder extends UnhandledListener {
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
     List<Combinator> combinators = pop();
-    List<Configuration> conditionalUris = pop();
+    List<Configuration> configurations = pop();
     int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addExport(metadata, uri, conditionalUris, combinators,
+    library.addExport(metadata, uri, configurations, combinators,
         exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
   }
@@ -348,13 +348,21 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void beginClassDeclaration(Token begin, Token name) {
     debugEvent("beginNamedMixinApplication");
-    library.currentDeclaration.name = name.lexeme;
+    List<TypeVariableBuilder> typeVariables = pop();
+    push(typeVariables ?? NullValue.TypeVariables);
+    library.currentDeclaration
+      ..name = name.lexeme
+      ..typeVariables = typeVariables;
   }
 
   @override
   void beginNamedMixinApplication(Token beginToken, Token name) {
     debugEvent("beginNamedMixinApplication");
-    library.currentDeclaration.name = name.lexeme;
+    List<TypeVariableBuilder> typeVariables = pop();
+    push(typeVariables ?? NullValue.TypeVariables);
+    library.currentDeclaration
+      ..name = name.lexeme
+      ..typeVariables = typeVariables;
   }
 
   @override
@@ -416,7 +424,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginTopLevelMethod(Token token, Token name) {
+  void beginTopLevelMethod(Token lastConsumed) {
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
@@ -499,12 +507,13 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginMethod(Token token, Token name) {
+  void beginMethod() {
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     debugEvent("Method");
     MethodBody bodyKind = pop();
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
@@ -937,7 +946,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginFactoryMethod(Token token) {
+  void beginFactoryMethod(Token lastConsumed) {
     library.beginNestedDeclaration("#factory_method", hasMembers: false);
   }
 

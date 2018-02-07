@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B<S extends core::Object> extends core::Object {
   final field core::List<self::A<self::B::S>> foo = <self::A<self::B::S>>[];
   final field core::List<self::A<core::num>> bar = <self::A<core::num>>[];
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

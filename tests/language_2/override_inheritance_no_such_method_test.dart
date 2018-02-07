@@ -31,7 +31,7 @@ class Class1 extends A implements I {
   noSuchMethod(_, [__]) => null; //# 04: ok
   method4(); //# 04: continued
 
-  noSuchMethod(_); //# 05: ok
+  noSuchMethod(_); //# 05: compile-time error
   method5(); //# 05: continued
 
   noSuchMethod(_) => null; //# 08: continued

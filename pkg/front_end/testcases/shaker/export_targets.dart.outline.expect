@@ -15,7 +15,7 @@ import "dart:core" as core;
 
 typedef MyFunctionTypeAlias = () → void;
 class MyClass extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
 }
 static field core::int myTopLevelVariable;

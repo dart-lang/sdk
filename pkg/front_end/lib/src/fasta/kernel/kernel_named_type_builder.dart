@@ -77,4 +77,18 @@ class KernelNamedTypeBuilder
     }
     return this;
   }
+
+  KernelNamedTypeBuilder clone(List<TypeBuilder> newTypes) {
+    List<KernelTypeBuilder> clonedArguments;
+    if (arguments != null) {
+      clonedArguments = new List<KernelTypeBuilder>(arguments.length);
+      for (int i = 0; i < clonedArguments.length; i++) {
+        clonedArguments[i] = arguments[i].clone(newTypes);
+      }
+    }
+    KernelNamedTypeBuilder newType =
+        new KernelNamedTypeBuilder(name, clonedArguments);
+    newTypes.add(newType);
+    return newType;
+  }
 }

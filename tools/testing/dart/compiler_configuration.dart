@@ -86,6 +86,7 @@ abstract class CompilerConfiguration {
         return new SpecParserCompilerConfiguration(configuration);
 
       case Compiler.none:
+      case Compiler.fasta: // TODO(ahe): Implement a real fasta compiler.
         return new NoneCompilerConfiguration(configuration);
     }
 
@@ -1065,6 +1066,7 @@ abstract class VMKernelCompilerMixin {
     final args = [
       _isAot ? '--aot' : '--no-aot',
       _isStrong ? '--strong-mode' : '--no-strong-mode',
+      _isStrong ? '--sync-async' : '--no-sync-async',
       '--platform=$vmPlatform',
       '-o',
       dillFile,

@@ -34,5 +34,6 @@ main(List<String> args) async {
     astFunction = computeMemberAstTypeMasks;
     kernelFunction = computeMemberIrTypeMasks;
   }
-  await show(results, astFunction, kernelFunction);
+  await show(results, astFunction, kernelFunction,
+      options: [stopAfterTypeInference]);
 }

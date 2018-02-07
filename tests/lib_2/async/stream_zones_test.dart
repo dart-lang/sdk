@@ -186,7 +186,7 @@ main() {
     test7(),
   ];
 
-  Future.wait(tests.map((l) => l.first)).then((_) {
+  Future.wait(tests.map((l) => l.first as Future)).then((_) {
     // Give time to complete all pending actions.
     Timer.run(() {
       tests.forEach((l) => (l.last)());

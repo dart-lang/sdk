@@ -95,7 +95,8 @@ Future<CompiledData> computeData(
     bool forUserLibrariesOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
-    ComputeClassDataFunction computeClassData}) async {
+    ComputeClassDataFunction computeClassData,
+    Iterable<Id> globalIds: const <Id>[]}) async {
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
@@ -111,8 +112,10 @@ Future<CompiledData> computeData(
   Compiler compiler = result.compiler;
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  CommonElements commonElements = closedWorld.commonElements;
 
   Map<Uri, Map<Id, ActualData>> actualMaps = <Uri, Map<Id, ActualData>>{};
+  Map<Id, ActualData> globalData = <Id, ActualData>{};
 
   Map<Id, ActualData> actualMapFor(Entity entity) {
     if (entity is Element) {
@@ -127,14 +130,15 @@ Future<CompiledData> computeData(
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData>{});
   }
 
-  void processMember(MemberEntity member) {
+  void processMember(MemberEntity member, Map<Id, ActualData> actualMap) {
     if (member.isAbstract) {
       return;
     }
     if (member is ConstructorElement && member.isRedirectingFactory) {
       return;
     }
-    if (!closedWorld.processedMembers.contains(member)) {
+    if (skipUnprocessedMembers &&
+        !closedWorld.processedMembers.contains(member)) {
       return;
     }
     if (member.enclosingClass != null) {
@@ -150,7 +154,14 @@ Future<CompiledData> computeData(
         return;
       }
     }
-    computeMemberData(compiler, member, actualMapFor(member), verbose: verbose);
+    computeMemberData(compiler, member, actualMap, verbose: verbose);
+  }
+
+  void processClass(ClassEntity cls, Map<Id, ActualData> actualMap) {
+    if (skipUnprocessedMembers && !closedWorld.isImplemented(cls)) {
+      return;
+    }
+    computeClassData(compiler, cls, actualMap, verbose: verbose);
   }
 
   bool excludeLibrary(LibraryEntity library) {
@@ -163,16 +174,71 @@ Future<CompiledData> computeData(
     for (LibraryEntity library in elementEnvironment.libraries) {
       if (excludeLibrary(library)) continue;
       elementEnvironment.forEachClass(library, (ClassEntity cls) {
-        computeClassData(compiler, cls, actualMapFor(cls), verbose: verbose);
+        processClass(cls, actualMapFor(cls));
       });
     }
   }
   for (MemberEntity member in closedWorld.processedMembers) {
     if (excludeLibrary(member.library)) continue;
-    processMember(member);
+    processMember(member, actualMapFor(member));
   }
 
-  return new CompiledData(compiler, elementEnvironment, entryPoint, actualMaps);
+  List<LibraryEntity> globalLibraries = <LibraryEntity>[
+    commonElements.coreLibrary,
+    elementEnvironment.lookupLibrary(Uri.parse('dart:collection')),
+    commonElements.interceptorsLibrary,
+    commonElements.jsHelperLibrary,
+  ];
+
+  ClassEntity getGlobalClass(String className) {
+    ClassEntity cls;
+    for (LibraryEntity library in globalLibraries) {
+      cls ??= elementEnvironment.lookupClass(library, className);
+    }
+    Expect.isNotNull(
+        cls,
+        "Global class '$className' not found in the global "
+        "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
+    return cls;
+  }
+
+  MemberEntity getGlobalMember(String memberName) {
+    MemberEntity member;
+    for (LibraryEntity library in globalLibraries) {
+      member ??= elementEnvironment.lookupLibraryMember(library, memberName);
+    }
+    Expect.isNotNull(
+        member,
+        "Global member '$member' not found in the global "
+        "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
+    return member;
+  }
+
+  for (Id id in globalIds) {
+    if (id is ElementId) {
+      MemberEntity member;
+      if (id.className != null) {
+        ClassEntity cls = getGlobalClass(id.className);
+        member = elementEnvironment.lookupClassMember(cls, id.memberName);
+        member ??= elementEnvironment.lookupConstructor(cls, id.memberName);
+        Expect.isNotNull(
+            member, "Global member '$member' not found in class $cls.");
+      } else {
+        member = getGlobalMember(id.memberName);
+      }
+      processMember(member, globalData);
+    } else if (id is ClassId) {
+      if (computeClassData != null) {
+        ClassEntity cls = getGlobalClass(id.className);
+        processClass(cls, globalData);
+      }
+    } else {
+      throw new UnsupportedError("Unexpected global id: $id");
+    }
+  }
+
+  return new CompiledData(
+      compiler, elementEnvironment, entryPoint, actualMaps, globalData);
 }
 
 class CompiledData {
@@ -180,9 +246,10 @@ class CompiledData {
   final ElementEnvironment elementEnvironment;
   final Uri mainUri;
   final Map<Uri, Map<Id, ActualData>> actualMaps;
+  final Map<Id, ActualData> globalData;
 
-  CompiledData(
-      this.compiler, this.elementEnvironment, this.mainUri, this.actualMaps);
+  CompiledData(this.compiler, this.elementEnvironment, this.mainUri,
+      this.actualMaps, this.globalData);
 
   Map<int, List<String>> computeAnnotations(Uri uri) {
     Map<Id, ActualData> thisMap = actualMaps[uri];
@@ -253,18 +320,19 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
 class IdData {
   final Map<Uri, AnnotatedCode> code;
   final MemberAnnotations<IdValue> expectedMaps;
-  final CompiledData compiledData;
+  final CompiledData _compiledData;
   final MemberAnnotations<ActualData> _actualMaps = new MemberAnnotations();
 
-  IdData(this.code, this.expectedMaps, this.compiledData) {
+  IdData(this.code, this.expectedMaps, this._compiledData) {
     for (Uri uri in code.keys) {
-      _actualMaps[uri] = compiledData.actualMaps[uri] ?? <Id, ActualData>{};
+      _actualMaps[uri] = _compiledData.actualMaps[uri] ?? <Id, ActualData>{};
     }
+    _actualMaps.globalData.addAll(_compiledData.globalData);
   }
 
-  Compiler get compiler => compiledData.compiler;
-  ElementEnvironment get elementEnvironment => compiledData.elementEnvironment;
-  Uri get mainUri => compiledData.mainUri;
+  Compiler get compiler => _compiledData.compiler;
+  ElementEnvironment get elementEnvironment => _compiledData.elementEnvironment;
+  Uri get mainUri => _compiledData.mainUri;
   MemberAnnotations<ActualData> get actualMaps => _actualMaps;
 
   String actualCode(Uri uri) {
@@ -320,6 +388,9 @@ class MemberAnnotations<DataType> {
   /// corresponding annotations.
   final Map<Uri, Map<Id, DataType>> _computedDataForEachFile =
       new Map<Uri, Map<Id, DataType>>();
+
+  /// Member or class annotations that don't refer to any of the user files.
+  final Map<Id, DataType> globalData = <Id, DataType>{};
 
   void operator []=(Uri file, Map<Id, DataType> computedData) {
     _computedDataForEachFile[file] = computedData;
@@ -384,10 +455,14 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
     List<String> testOptions = options.toList();
+    bool strongModeOnlyTest = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
     } else if (name.endsWith('_strong.dart')) {
+      strongModeOnlyTest = true;
       testOptions.add(Flags.strongMode);
+    } else if (name.endsWith('_checked.dart')) {
+      testOptions.add(Flags.enableCheckedMode);
     }
 
     print('----------------------------------------------------------------');
@@ -434,29 +509,33 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForAst.contains(name) || testOptions.contains(Flags.strongMode)) {
+    if (skipForAst.contains(name) || strongModeOnlyTest) {
       print('--skipped for ast-----------------------------------------------');
     } else {
       print('--from ast------------------------------------------------------');
+      MemberAnnotations<IdValue> annotations = expectedMaps[astMarker];
       CompiledData compiledData1 = await computeData(
           entryPoint, memorySourceFiles, computeFromAst,
           computeClassData: computeClassDataFromAst,
           options: testOptions,
           verbose: verbose,
-          forUserLibrariesOnly: forUserLibrariesOnly);
-      await checkCode(code, expectedMaps[astMarker], compiledData1);
+          forUserLibrariesOnly: forUserLibrariesOnly,
+          globalIds: annotations.globalData.keys);
+      await checkCode(code, annotations, compiledData1);
     }
     if (skipForKernel.contains(name)) {
       print('--skipped for kernel--------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
+      MemberAnnotations<IdValue> annotations = expectedMaps[kernelMarker];
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel,
           computeClassData: computeClassDataFromKernel,
           options: [Flags.useKernel]..addAll(testOptions),
           verbose: verbose,
-          forUserLibrariesOnly: forUserLibrariesOnly);
-      await checkCode(code, expectedMaps[kernelMarker], compiledData2,
+          forUserLibrariesOnly: forUserLibrariesOnly,
+          globalIds: annotations.globalData.keys);
+      await checkCode(code, annotations, compiledData2,
           filterActualData: filterActualData);
     }
   }
@@ -470,73 +549,101 @@ Future checkCode(Map<Uri, AnnotatedCode> code,
     MemberAnnotations<IdValue> expectedMaps, CompiledData compiledData,
     {bool filterActualData(IdValue expected, ActualData actualData)}) async {
   IdData data = new IdData(code, expectedMaps, compiledData);
+  bool hasFailure = false;
 
-  data.actualMaps.forEach((Uri uri, Map<Id, ActualData> actualMap) {
+  void checkActualMap(
+      Map<Id, ActualData> actualMap, Map<Id, IdValue> expectedMap,
+      [Uri uri]) {
+    bool hasLocalFailure = false;
     actualMap.forEach((Id id, ActualData actualData) {
       IdValue actual = actualData.value;
-      if (!data.expectedMaps[uri].containsKey(id)) {
+      if (!expectedMap.containsKey(id)) {
         if (actual.value != '') {
           reportHere(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Id $id = ${actual} for ${actualData.object} '
+              'Id $id = ${colors.red('$actual')} for ${actualData.object} '
               '(${actualData.object.runtimeType}) '
-              'not expected in ${data.expectedMaps[uri].keys}');
-          print('--annotations diff [${uri.pathSegments.last}]---------------');
-          print(data.diffCode(uri));
-          print('------------------------------------------------------------');
-        }
-        if (filterActualData == null || filterActualData(null, actualData)) {
-          Expect.equals('', actual.value);
+              'not expected in ${expectedMap.keys}');
+          if (filterActualData == null || filterActualData(null, actualData)) {
+            hasLocalFailure = true;
+          }
         }
       } else {
-        IdValue expected = data.expectedMaps[uri][id];
+        IdValue expected = expectedMap[id];
         if (actual != expected) {
           reportHere(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Object: ${actualData.object} (${actualData.object.runtimeType}), '
-              'expected: ${expected}, actual: ${actual}');
-          print('--annotations diff [${uri.pathSegments.last}]---------------');
-          print(data.diffCode(uri));
-          print('------------------------------------------------------------');
-        }
-        if (filterActualData == null ||
-            filterActualData(expected, actualData)) {
-          Expect.equals(expected, actual);
+              'Object: ${actualData.object} '
+              '(${actualData.object.runtimeType})\n '
+              'expected: ${colors.green('$expected')}\n '
+              'actual: ${colors.red('$actual')}');
+          if (filterActualData == null ||
+              filterActualData(expected, actualData)) {
+            hasLocalFailure = true;
+          }
         }
       }
     });
+    if (hasLocalFailure) {
+      hasFailure = true;
+      if (uri != null) {
+        print('--annotations diff [${uri.pathSegments.last}]-------------');
+        print(data.diffCode(uri));
+        print('----------------------------------------------------------');
+      }
+    }
+  }
+
+  data.actualMaps.forEach((Uri uri, Map<Id, ActualData> actualMap) {
+    checkActualMap(actualMap, data.expectedMaps[uri], uri);
   });
+  checkActualMap(data.actualMaps.globalData, data.expectedMaps.globalData);
 
   Set<Id> missingIds = new Set<Id>();
   StringBuffer combinedAnnotationsDiff = new StringBuffer();
-  data.expectedMaps.forEach((Uri uri, Map<Id, IdValue> expectedMap) {
+  void checkMissing(Map<Id, IdValue> expectedMap, Map<Id, ActualData> actualMap,
+      [Uri uri]) {
     expectedMap.forEach((Id id, IdValue expected) {
-      if (!data.actualMaps[uri].containsKey(id)) {
+      if (!actualMap.containsKey(id)) {
         missingIds.add(id);
         StringBuffer sb = new StringBuffer();
-        for (Id id
-            in data.actualMaps[uri].keys /*.where((d) => d.kind == id.kind)*/) {
+        for (Id id in actualMap.keys.where((d) => d.kind == id.kind)) {
           sb.write('\n  $id');
         }
-        reportHere(
-            data.compiler.reporter,
-            computeSpannable(data.elementEnvironment, uri, id),
-            'Expected $expected for id $id missing in${sb}');
+        if (uri != null) {
+          reportHere(
+              data.compiler.reporter,
+              computeSpannable(data.elementEnvironment, uri, id),
+              'Expected $expected for id $id missing in${sb}');
+        } else {
+          print('Expected $expected for id $id missing in${sb}');
+        }
       }
     });
-    if (missingIds.isNotEmpty) {
+    if (missingIds.isNotEmpty && uri != null) {
       combinedAnnotationsDiff.write('Missing in $uri:\n');
       combinedAnnotationsDiff.write('${data.diffCode(uri)}\n');
     }
+  }
+
+  data.expectedMaps.forEach((Uri uri, Map<Id, IdValue> expectedMap) {
+    checkMissing(expectedMap, data.actualMaps[uri], uri);
   });
+  checkMissing(data.expectedMaps.globalData, data.actualMaps.globalData);
   if (combinedAnnotationsDiff.isNotEmpty) {
     print('--annotations diff--------------------------------------------');
     print(combinedAnnotationsDiff.toString());
     print('--------------------------------------------------------------');
   }
-  Expect.isTrue(missingIds.isEmpty, "Ids not found: ${missingIds}.");
+  if (missingIds.isNotEmpty) {
+    print("Ids not found: ${missingIds}.");
+    hasFailure = true;
+  }
+  if (hasFailure) {
+    Expect.fail('Errors found.');
+  }
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].
@@ -613,11 +720,19 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
       IdValue idValue = IdValue.decode(annotation.offset, text);
-      Expect.isFalse(
-          expectedValues.containsKey(idValue.id),
-          "Duplicate annotations for ${idValue.id}: ${idValue} and "
-          "${expectedValues[idValue.id]}.");
-      expectedValues[idValue.id] = idValue;
+      if (idValue.id.isGlobal) {
+        Expect.isFalse(
+            fileAnnotations.globalData.containsKey(idValue.id),
+            "Duplicate annotations for ${idValue.id}: ${idValue} and "
+            "${fileAnnotations.globalData[idValue.id]}.");
+        fileAnnotations.globalData[idValue.id] = idValue;
+      } else {
+        Expect.isFalse(
+            expectedValues.containsKey(idValue.id),
+            "Duplicate annotations for ${idValue.id}: ${idValue} and "
+            "${expectedValues[idValue.id]}.");
+        expectedValues[idValue.id] = idValue;
+      }
     }
   });
 }
@@ -735,5 +850,48 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
   }
   if (hasErrors) {
     Expect.fail('Annotations mismatch');
+  }
+}
+
+/// Set of features used in annotations.
+class Features {
+  Map<String, String> _features = <String, String>{};
+
+  void add(String key, {var value: ''}) {
+    _features[key] = value;
+  }
+
+  bool containsKey(String key) {
+    return _features.containsKey(key);
+  }
+
+  void operator []=(String key, String value) {
+    _features[key] = value;
+  }
+
+  String operator [](String key) => _features[key];
+
+  String remove(String key) => _features.remove(key);
+
+  /// Returns a string containing all features in a comma-separated list sorted
+  /// by feature names.
+  String getText() {
+    StringBuffer sb = new StringBuffer();
+    bool needsComma = false;
+    for (String name in _features.keys.toList()..sort()) {
+      String value = _features[name];
+      if (value != null) {
+        if (needsComma) {
+          sb.write(',');
+        }
+        sb.write(name);
+        if (value != '') {
+          sb.write('=');
+          sb.write(value);
+        }
+        needsComma = true;
+      }
+    }
+    return sb.toString();
   }
 }

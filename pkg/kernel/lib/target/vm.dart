@@ -64,7 +64,7 @@ class VmTarget extends Target {
     logger?.call("Transformed mixin applications");
 
     // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformLibraries(coreTypes, libraries);
+    transformAsync.transformLibraries(coreTypes, libraries, flags.syncAsync);
     logger?.call("Transformed async methods");
   }
 

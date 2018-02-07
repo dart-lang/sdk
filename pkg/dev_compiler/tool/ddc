@@ -8,7 +8,51 @@
 # inspection, modification or rerunning the code.
 set -e
 
-DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+SDK_DIR="$( cd "${PROG_NAME%/*}/../../.."; pwd -P)"
+
+if [[ `uname` == 'Darwin' ]];
+then
+  OUT_DIR="$SDK_DIR"/xcodebuild
+else
+  OUT_DIR="$SDK_DIR"/out
+fi
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DIRS=$( ls "$OUT_DIR" )
+  # list of possible configurations in decreasing desirability
+  CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
+    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"
+    "DebugARM"      "DebugARM64"      "DebugARMV5TE")
+  DART_CONFIGURATION="None"
+  for CONFIG in ${CONFIGS[*]}
+  do
+    for DIR in $DIRS;
+    do
+      if [ "$CONFIG" = "$DIR" ];
+      then
+        # choose most desirable configuration that is available and break
+        DART_CONFIGURATION="$DIR"
+        break 2
+      fi
+    done
+  done
+  if [ "$DART_CONFIGURATION" = "None" ]
+  then
+    echo "No valid dart configuration found in $OUT_DIR"
+    exit 1
+  fi
+fi
+
+GEN_DIR="$OUT_DIR"/"$DART_CONFIGURATION"/gen/utils/dartdevc
 
 KERNEL=false
 if [ "$1" = "-k" ]; then
@@ -16,24 +60,40 @@ if [ "$1" = "-k" ]; then
   shift
 fi
 
+SYNC_ASYNC=false
+if [ "$1" = "--sync-async" ]; then
+  SYNC_ASYNC=true
+  shift
+fi
+
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 
-# TODO(vsm): Change this to use the regular built version of the summaries
-# and the SDK.
-export NODE_PATH=$DDC_PATH/gen/sdk/common:$LIBROOT:$NODE_PATH
-
-# Build the SDK in a place where we can find it if it's not already there.
-if [ ! -e $DDC_PATH/gen/sdk/ddc_sdk.sum ]; then
-  $DDC_PATH/tool/build_sdk.sh
-fi
+export NODE_PATH=$GEN_DIR/js/common:$LIBROOT:$NODE_PATH
 
 if [ "$KERNEL" = true ]; then
-  dart -c $DDC_PATH/bin/dartdevk.dart --modules=node \
+
+  if [ ! -e $GEN_DIR/kernel/ddc_sdk.dill ]; then
+    echo "DDC SDK must be built first, please run:"
+    echo "    pushd $SDKDIR"
+    echo "    ./tools/build.py -m release dartdevc_sdk_kernel_summary"
+    exit 1
+  fi
+
+  dart -c $SDK_DIR/pkg/dev_compiler/bin/dartdevk.dart --modules=node \
+      --dart-sdk-summary=$GEN_DIR/kernel/ddc_sdk.dill \
       -o $LIBROOT/$BASENAME.js $*
 else
-  dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
-      --dart-sdk-summary=$DDC_PATH/gen/sdk/ddc_sdk.sum \
+
+  if [ ! -e $GEN_DIR/ddc_sdk.sum ]; then
+    echo "DDC SDK must be built first, please run:"
+    echo "    pushd $SDKDIR"
+    echo "    ./tools/build.py -m release dartdevc_sdk"
+    exit 1
+  fi
+
+  dart -c $SDK_DIR/pkg/dev_compiler/bin/dartdevc.dart --modules=node \
+      --library-root=$LIBROOT --dart-sdk-summary=$GEN_DIR/ddc_sdk.sum \
       -o $LIBROOT/$BASENAME.js $*
 fi
 
@@ -50,6 +110,7 @@ echo "
     let sdk = require(\"dart_sdk\");
     let main = require(\"./$BASENAME\").$BASENAME.main;
     sdk.dart.ignoreWhitelistedErrors(false);
+    if ($SYNC_ASYNC) sdk.dart.setStartAsyncSynchronously();
     try {
       sdk._isolate_helper.startRootIsolate(main, []);
     } catch(e) {

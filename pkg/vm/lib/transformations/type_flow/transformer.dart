@@ -24,11 +24,20 @@ import '../../metadata/inferred_type.dart';
 
 const bool kDumpAllSummaries =
     const bool.fromEnvironment('global.type.flow.dump.all.summaries');
+const bool kDumpClassHierarchy =
+    const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program) {
-  final hierarchy = new ClassHierarchy(program);
+Program transformProgram(CoreTypes coreTypes, Program program,
+    // TODO(alexmarkov): Pass entry points descriptors from command line.
+    {List<String> entryPointsJSONFiles: const [
+      'pkg/vm/lib/transformations/type_flow/entry_points.json',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+    ]}) {
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+  final hierarchy = new ClassHierarchy(program,
+      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy, strongMode: true);
   final libraryIndex = new LibraryIndex.all(program);
 
@@ -42,11 +51,7 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
   final analysisStopWatch = new Stopwatch()..start();
 
   final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
-      // TODO(alexmarkov): Pass entry points descriptors from command line.
-      entryPointsJSONFiles: [
-        'pkg/vm/lib/transformations/type_flow/entry_points.json',
-        'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-      ]);
+      entryPointsJSONFiles: entryPointsJSONFiles);
 
   Procedure main = program.mainMethod;
   final Selector mainSelector = new DirectSelector(main);
@@ -54,6 +59,10 @@ Program transformProgram(CoreTypes coreTypes, Program program) {
   typeFlowAnalysis.process();
 
   analysisStopWatch.stop();
+
+  if (kDumpClassHierarchy) {
+    debugPrint(typeFlowAnalysis.hierarchyCache);
+  }
 
   final transformsStopWatch = new Stopwatch()..start();
 

@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class I extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator unary-() → core::bool
     return true;
 }
 abstract class C extends core::Object implements self::I {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

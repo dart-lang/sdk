@@ -8,8 +8,24 @@
   This allows libraries with no library declarations (and therefore no name)
   to have parts, and it allows tools to easily find the library of a part
   file.
+* Added support for starting `async` functions synchronously. All tools (VM,
+  dart2js, DDC) have now a flag `--sync-async` to enable this behavior.
+  Currently this behavior is opt-in. It will become the default.
 
 #### Strong Mode
+
+* Future flattening is now done only as specified in the Dart 2.0 spec, rather
+than more broadly.  This means that the following code will now have an error on
+the assignment to `y`.
+
+  ```dart
+    test() {
+      Future<int> f;
+      var x = f.then<Future<List<int>>>((x) => []);
+      Future<List<int>> y = x;
+    }
+    ```
+
 
 ### Core library changes
 
@@ -51,6 +67,22 @@
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
   * Added `Provisional` annotation to `dart:core`.
+  * Added static `escape` function to `RegExp` class.
+  * Added members `cast`, `followedBy`, `retype` and `whereType` to `Iterable`.
+  * Added `orElse` parameter to `Iterable.singleWhere`.
+  * Added `+` operator, `first` and `last` setters, and `indexWhere`
+    and `lastIndexWhere` methods to `List`.
+  * Added `addEntries`, `cast`, `entries`, `map`, `removeWhere`, `retype`,
+    `update` and `updateAll`  members to `Map`.
+  * If a class extends `IterableBase`, `ListBase`, `SetBase` or `MapBase`
+    (or uses the corresponding mixins), the new members are implemented
+    automatically.
+  * Added constructor `Map.fromEntries`.
+  * Added `MapEntry` class used by, e.g., `Map.entries`.
+  * Changed `LinkedHashMap` to not implement `HashMap`, and `LinkedHashSet`
+    to not implement `HashSet`. The "unlinked" version is a different
+    implementation class than the linked version, not an abstract interface
+    that the two share.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
@@ -90,6 +122,8 @@
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
   * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
+  * Added `ProcessStartMode.INHERIT_STDIO`, which allows a child process to
+    inherit the parent's stdio handles.
 
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
@@ -111,7 +145,13 @@
     `little`, `big` and `host`.
 
 ### Dart VM
+
 * Support for MIPS has been removed.
+
+* Dart `int` is now restricted to 64 bits. On overflow, arithmetic operations wrap
+  around, and integer literals larger than 64 bits are not allowed.
+  See https://github.com/dart-lang/sdk/blob/master/docs/language/informal/int64.md
+  for details.
 
 ### Tool Changes
 
@@ -171,6 +211,11 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
   configure the number of dartdevc/analyzer workers that are used when compiling
   with `--web-compiler=dartdevc`.
 
+* The Flutter `sdk` source will now look for packages in
+  `flutter/bin/cache/pkg/` as well as `flutter/packages/`. In particular, this
+  means that packages can depend on the `sky_engine` package from the `sdk`
+  source ([issue 1775][pub#1775]).
+
 * Pub will now automatically retry HTTP requests that fail with a 502, 503, of
   504 error code ([issue 1556][pub#1556]).
 
@@ -182,6 +227,7 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 [pub#1556]: https://github.com/dart-lang/pub/issues/1556
 [pub#1747]: https://github.com/dart-lang/pub/issues/1747
 [pub#1769]: https://github.com/dart-lang/pub/issues/1769
+[pub#1775]: https://github.com/dart-lang/pub/issues/1775
 
 ##### Bug Fixes
 

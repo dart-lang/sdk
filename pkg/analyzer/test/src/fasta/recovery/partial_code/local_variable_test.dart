@@ -209,15 +209,8 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "var a = _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
-              'varNameEqualsExpression',
-              'var a = b',
-              [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ],
-              "var a = b;",
-              allFailing: true),
+          new TestDescriptor('varNameEqualsExpression', 'var a = b',
+              [ParserErrorCode.EXPECTED_TOKEN], "var a = b;"),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() { ',

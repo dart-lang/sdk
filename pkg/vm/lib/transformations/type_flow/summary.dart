@@ -86,9 +86,6 @@ class Narrow extends Statement {
   Narrow(this.arg, this.type);
 
   @override
-  DartType get staticType => type.staticType;
-
-  @override
   void accept(StatementVisitor visitor) => visitor.visitNarrow(this);
 
   @override
@@ -133,9 +130,8 @@ class Join extends Statement {
 class Call extends Statement {
   final Selector selector;
   final Args<TypeExpr> args;
-  final DartType staticType;
 
-  Call(this.selector, this.args, this.staticType);
+  Call(this.selector, this.args);
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitCall(this);

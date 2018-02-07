@@ -822,10 +822,10 @@ class Assembler : public ValueObject {
     EmitMiscDP3Source(MSUB, rd, rn, rm, ra, kDoubleWord);
   }
   void smulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
+    EmitMiscDP3Source(SMULH, rd, rn, rm, R31, kDoubleWord);
   }
   void umulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(UMULH, rd, rn, rm, R0, kDoubleWord);
+    EmitMiscDP3Source(UMULH, rd, rn, rm, R31, kDoubleWord);
   }
   void umaddl(Register rd, Register rn, Register rm, Register ra) {
     EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, kDoubleWord);
@@ -1777,11 +1777,13 @@ class Assembler : public ValueObject {
                               Register rt,
                               int64_t imm,
                               OperandSize sz) {
+    // EncodeImm19BranchOffset will longjump out if the offset does not fit in
+    // 19 bits.
+    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding = op | size | Arm64Encode::Rt(rt) | encoded_offset;
     Emit(encoding);
   }
@@ -1790,11 +1792,13 @@ class Assembler : public ValueObject {
                            Register rt,
                            intptr_t bit_number,
                            int64_t imm) {
+    // EncodeImm14BranchOffset will longjump out if the offset does not fit in
+    // 14 bits.
+    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
     ASSERT((bit_number >= 0) && (bit_number <= 63));
     ASSERT(Utils::IsInt(16, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
-    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
     const int32_t encoding = op | (static_cast<int32_t>(bit_number) << 19) |
                              (static_cast<int32_t>(crt) << kRtShift) |
                              encoded_offset;
@@ -1833,6 +1837,9 @@ class Assembler : public ValueObject {
         } else {
           EmitConditionalBranchOp(op, InvertCondition(cond),
                                   2 * Instr::kInstrSize);
+          // Make a new dest that takes the new position into account after the
+          // inverted test.
+          const int64_t dest = label->Position() - buffer_.Size();
           b(dest);
         }
       } else {
@@ -1863,6 +1870,9 @@ class Assembler : public ValueObject {
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
         EmitCompareAndBranchOp(op == CBZ ? CBNZ : CBZ, rt,
                                2 * Instr::kInstrSize, sz);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
         b(dest);
       } else {
         EmitCompareAndBranchOp(op, rt, dest, sz);
@@ -1889,12 +1899,15 @@ class Assembler : public ValueObject {
       if (use_far_branches() && !CanEncodeImm14BranchOffset(dest)) {
         EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
                             2 * Instr::kInstrSize);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
         b(dest);
       } else {
         EmitTestAndBranchOp(op, rt, bit_number, dest);
       }
     } else {
-      const int64_t position = buffer_.Size();
+      int64_t position = buffer_.Size();
       if (use_far_branches()) {
         EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
                             2 * Instr::kInstrSize);
@@ -1960,7 +1973,8 @@ class Assembler : public ValueObject {
     ASSERT((rt != kNoRegister) && (rt != ZR));
 
     const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
-                             Arm64Encode::Rn(rn) | Arm64Encode::Rt(rt);
+                             Arm64Encode::Rt2(R31) | Arm64Encode::Rn(rn) |
+                             Arm64Encode::Rt(rt);
 
     Emit(encoding);
   }

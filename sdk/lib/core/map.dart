@@ -5,7 +5,7 @@
 part of dart.core;
 
 /**
- * An collection of key-value pairs, from which you retrieve a value
+ * A collection of key/value pairs, from which you retrieve a value
  * using its associated key.
  *
  * There is a finite number of keys in the map,
@@ -42,7 +42,7 @@ abstract class Map<K, V> {
   external factory Map();
 
   /**
-   * Creates a [LinkedHashMap] instance that contains all key-value pairs of
+   * Creates a [LinkedHashMap] instance that contains all key/value pairs of
    * [other].
    *
    * The keys must all be assignable to [K] and the values to [V].
@@ -87,7 +87,7 @@ abstract class Map<K, V> {
    * `operator==` and `hashCode`, and it allows null as a key.
    * It iterates in key insertion order.
    *
-   * For each element of the [iterable] this constructor computes a key-value
+   * For each element of the [iterable] this constructor computes a key/value
    * pair, by applying [key] and [value] respectively.
    *
    * The example below creates a new Map from a List. The keys of `map` are
@@ -160,6 +160,45 @@ abstract class Map<K, V> {
       new CastMap<K, V, K2, V2>(source);
 
   /**
+   * Creates a new map and adds all entries.
+   *
+   * Creates a new map like `new Map<K, V>()` and then adds the key
+   * and value of eacy entry in [entries] in iteration order.
+   */
+  factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
+      <K, V>{}..addEntries(entries);
+
+  /**
+   * Provides a view of this map as having [RK] keys and [RV] instances,
+   * if necessary.
+   *
+   * If this set contains only keys of type [RK] and values of type [RV],
+   * all read operations will work correctly.
+   * If any operation exposes a non-[RK] key or non-[RV] value,
+   * the operation will throw instead.
+   *
+   * Entries added to the map must be valid for both a `Map<K, V>` and a
+   * `Map<RK, RV>`.
+   */
+  Map<RK, RV> cast<RK, RV>();
+
+  /**
+   * Provides a view of this map as having [RK] keys and [RV] instances,
+   * if necessary.
+   *
+   * If this map is already a `Map<RK, RV>`, it is returned unchanged.
+   *
+   * If this set contains only keys of type [RK] and values of type [RV],
+   * all read operations will work correctly.
+   * If any operation exposes a non-[RK] key or non-[RV] value,
+   * the operation will throw instead.
+   *
+   * Entries added to the map must be valid for both a `Map<K, V>` and a
+   * `Map<RK, RV>`.
+   */
+  Map<RK, RV> retype<RK, RV>();
+
+  /**
    * Returns true if this map contains the given [value].
    *
    * Returns true if any of the values in the map are equal to `value`
@@ -191,9 +230,59 @@ abstract class Map<K, V> {
    * Associates the [key] with the given [value].
    *
    * If the key was already in the map, its associated value is changed.
-   * Otherwise the key-value pair is added to the map.
+   * Otherwise the key/value pair is added to the map.
    */
   void operator []=(K key, V value);
+
+  /**
+   * The map entries of [this].
+   */
+  Iterable<MapEntry<K, V>> get entries;
+
+  /**
+   * Returns a new map where all entries of this map are transformed by
+   * the given [f] function.
+   */
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> f(K key, V value));
+
+  /**
+   * Adds all key/value pairs of [newEntries] to this map.
+   *
+   * If a key of [other] is already in this map,
+   * the corresponding value is overwritten.
+   *
+   * The operation is equivalent to doing `this[entry.key] = entry.value`
+   * for each [MapEntry] of the iterable.
+   */
+  void addEntries(Iterable<MapEntry<K, V>> newEntries);
+
+  /**
+   * Updates the value for the provided [key].
+   *
+   * Returns the new value of the key.
+   *
+   * If the key is present, invokes [update] with the current value and stores
+   * the new value in the map.
+   *
+   * If the key is not present and [ifAbsent] is provided, calls [ifAbsent]
+   * and adds the key with the returned value to the map.
+   *
+   * It's an error if the key is not present and [ifAbsent] is not provided.
+   */
+  V update(K key, V update(V value), {V ifAbsent()});
+
+  /**
+   * Updates all values.
+   *
+   * Iterates over all entries in the map and updates them with the result
+   * of invoking [update].
+   */
+  void updateAll(V update(K key, V value));
+
+  /**
+   * Removes all entries of this map that satisfy the given [predicate].
+   */
+  void removeWhere(bool predicate(K key, V value));
 
   /**
    * Look up the value of [key], or add a new value if it isn't there.
@@ -215,7 +304,7 @@ abstract class Map<K, V> {
   V putIfAbsent(K key, V ifAbsent());
 
   /**
-   * Adds all key-value pairs of [other] to this map.
+   * Adds all key/value pairs of [other] to this map.
    *
    * If a key of [other] is already in this map, its value is overwritten.
    *
@@ -244,7 +333,7 @@ abstract class Map<K, V> {
   void clear();
 
   /**
-   * Applies [f] to each key-value pair of the map.
+   * Applies [f] to each key/value pair of the map.
    *
    * Calling `f` must not add or remove keys from the map.
    */
@@ -281,17 +370,33 @@ abstract class Map<K, V> {
   Iterable<V> get values;
 
   /**
-   * The number of key-value pairs in the map.
+   * The number of key/value pairs in the map.
    */
   int get length;
 
   /**
-   * Returns true if there is no key-value pair in the map.
+   * Returns true if there is no key/value pair in the map.
    */
   bool get isEmpty;
 
   /**
-   * Returns true if there is at least one key-value pair in the map.
+   * Returns true if there is at least one key/value pair in the map.
    */
   bool get isNotEmpty;
+}
+
+/**
+ * A key/value pair representing an entry in a [Map].
+ */
+class MapEntry<K, V> {
+  /** The key of the entry. */
+  final K key;
+
+  /** The value associated to [key] in the map. */
+  final V value;
+
+  /** Creates an entry with [key] and [value]. */
+  const factory MapEntry(K key, V value) = MapEntry<K, V>._;
+
+  const MapEntry._(this.key, this.value);
 }

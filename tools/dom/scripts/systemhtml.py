@@ -1125,6 +1125,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddDirectNativeOperation(info, html_name)
 
   def _AddDirectNativeOperation(self, info, html_name):
+    force_optional = True if html_name.startswith('_') else False
     self._members_emitter.Emit(
         '\n'
         '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
@@ -1134,7 +1135,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=html_name,
-        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType, force_optional))
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
@@ -1183,12 +1184,16 @@ class Dart2JSBackend(HtmlDartGenerator):
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
+    # private methods don't need named arguments.
+    full_name = '%s.%s' % (self._interface.id, info.declared_name)
+    force_optional = False if hasNamedFormals(full_name) and not(html_name.startswith('_')) else True
+
     declaration = '%s%s%s %s(%s)' % (
         self._Metadata(info.type_name, info.declared_name, return_type),
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
-        info.ParametersAsDeclaration(InputType))
+        info.ParametersAsDeclaration(InputType, force_optional))
     self._GenerateDispatcherBody(
         info,
         operations,

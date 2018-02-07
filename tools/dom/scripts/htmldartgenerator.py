@@ -672,6 +672,9 @@ class HtmlDartGenerator(object):
     callback_info = GetCallbackInfo(
         self._database.GetInterface(info.callback_args[0].type_id))
 
+    # Generated private members never have named arguments.
+    ignore_named_parameters = True if html_name.startswith('_') else False
+
     # If more than one callback then the second argument is the error callback.
     # Some error callbacks have 2 args (e.g., executeSql) where the second arg
     # is the error - this is the argument we want.
@@ -687,7 +690,7 @@ class HtmlDartGenerator(object):
       error_callback = (',\n        %s(%s) { completer.completeError(%s); }' %
                         (('%s : ' % info.callback_args[1].name
                           if info.requires_named_arguments and
-                             info.callback_args[1].is_optional else ''),
+                             info.callback_args[1].is_optional and not(ignore_named_parameters) else ''),
                          errorCallbackVariables, errorName))
 
     extensions = GetDDC_Extension(self._interface, info.declared_name)
@@ -717,7 +720,7 @@ class HtmlDartGenerator(object):
       completerVariable = callbackNames[-1]
       future_generic = '<%s>' % self._DartType(callback_info.param_infos[-1].type_id)
 
-    param_list = info.ParametersAsArgumentList()
+    param_list = info.ParametersAsArgumentList(None, ignore_named_parameters)
     metadata = ''
     if '_RenamingAnnotation' in dir(self):
       metadata = (self._RenamingAnnotation(info.declared_name, html_name) +
@@ -742,7 +745,7 @@ class HtmlDartGenerator(object):
         PARAMS_LIST='' if param_list == '' else param_list + ',',
         NAMED_PARAM=('%s : ' % info.callback_args[0].name
             if info.requires_named_arguments and
-              info.callback_args[0].is_optional else ''),
+              info.callback_args[0].is_optional and not(ignore_named_parameters) else ''),
         VARIABLE_NAME=callbackVariables,
         COMPLETER_NAME=completerVariable,
         DDC_EXTENSION=ddc_extensions,

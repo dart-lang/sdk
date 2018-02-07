@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef Foo<S extends core::Object> = <T extends core::Object>(T) → S;
 class A extends core::Object {
   field <T extends core::Object>(T) → core::int f = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method test() → void {

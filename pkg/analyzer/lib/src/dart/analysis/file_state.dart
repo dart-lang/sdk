@@ -598,6 +598,7 @@ class FileState {
 
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
+    parser.enableOptionalNewAndConst = analysisOptions.previewDart2;
     parser.parseGenericMethodComments = analysisOptions.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
@@ -785,7 +786,7 @@ class FileSystemState {
       // We are given all required unlinked and linked summaries for it.
       if (externalSummaries != null) {
         String uriStr = uri.toString();
-        if (externalSummaries.hasUnlinkedUnit(uriStr)) {
+        if (externalSummaries.hasLinkedLibrary(uriStr)) {
           file = new FileState._external(this, uri);
           _uriToFile[uri] = file;
           return file;

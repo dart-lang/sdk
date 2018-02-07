@@ -236,7 +236,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
 }
 
 File* File::OpenStdio(int fd) {
-  return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
+  return new File(new FileHandle(fd));
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
@@ -620,7 +620,6 @@ const char* File::StringEscapedPathSeparator() {
 }
 
 File::StdioHandleType File::GetStdioHandleType(int fd) {
-  ASSERT((0 <= fd) && (fd <= 2));
   struct stat64 buf;
   int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
   if (result == -1) {

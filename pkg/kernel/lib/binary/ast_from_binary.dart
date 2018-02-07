@@ -623,8 +623,10 @@ class BinaryBuilder {
       library.fileUri = fileUri;
     }
 
-    assert(((_) => true)(debugPath
-        .add(library.name ?? library.importUri?.toString() ?? 'library')));
+    assert(() {
+      debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
+      return true;
+    }());
 
     if (shouldWriteData) {
       _fillTreeNodeList(
@@ -778,7 +780,10 @@ class BinaryBuilder {
     var name = readStringOrNullIfEmpty();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    assert(((_) => true)(debugPath.add(node.name ?? 'normal-class')));
+    assert(() {
+      debugPath.add(node.name ?? 'normal-class');
+      return true;
+    }());
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
@@ -840,7 +845,10 @@ class BinaryBuilder {
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    assert(((_) => true)(debugPath.add(node.name?.name ?? 'field')));
+    assert(() {
+      debugPath.add(node.name?.name ?? 'field');
+      return true;
+    }());
     var type = readDartType();
     var initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
@@ -877,7 +885,10 @@ class BinaryBuilder {
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    assert(((_) => true)(debugPath.add(node.name?.name ?? 'constructor')));
+    assert(() {
+      debugPath.add(node.name?.name ?? 'constructor');
+      return true;
+    }());
     var function = readFunctionNode(false, -1);
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
@@ -920,15 +931,18 @@ class BinaryBuilder {
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    assert(((_) => true)(debugPath.add(node.name?.name ?? 'procedure')));
+    assert(() {
+      debugPath.add(node.name?.name ?? 'procedure');
+      return true;
+    }());
     int functionNodeSize = endOffset - _byteOffset;
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    var forwardingStubSuperTarget =
+    var forwardingStubSuperTargetReference =
         readAndCheckOptionTag() ? readMemberReference() : null;
-    var forwardingStubInterfaceTarget =
+    var forwardingStubInterfaceTargetReference =
         readAndCheckOptionTag() ? readMemberReference() : null;
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
@@ -944,10 +958,12 @@ class BinaryBuilder {
       node.function = function;
       function?.parent = node;
       node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
-      node.forwardingStubSuperTarget = forwardingStubSuperTarget;
-      node.forwardingStubInterfaceTarget = forwardingStubInterfaceTarget;
+      node.forwardingStubSuperTargetReference =
+          forwardingStubSuperTargetReference;
+      node.forwardingStubInterfaceTargetReference =
+          forwardingStubInterfaceTargetReference;
 
-      assert((node.forwardingStubSuperTarget != null) ||
+      assert((node.forwardingStubSuperTargetReference != null) ||
           !(node.isForwardingStub && node.function.body != null));
     }
     _byteOffset = endOffset;

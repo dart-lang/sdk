@@ -444,6 +444,9 @@ class FixProcessor {
       if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
       }
+      if (errorCode.name == LintNames.prefer_const_declarations) {
+        await _addFix_replaceFinalWithConst();
+      }
       if (name == LintNames.prefer_is_not_empty) {
         await _addFix_isNotEmpty();
       }
@@ -1578,7 +1581,8 @@ class FixProcessor {
     }
     // name
     builder.write(element.displayName);
-    builder.writeTypeParameters(element.typeParameters);
+    builder.writeTypeParameters(element.typeParameters,
+        methodBeingCopied: element);
     // parameters + body
     if (isGetter) {
       builder.write(' => null;');
@@ -2197,6 +2201,17 @@ class FixProcessor {
       builder.addDeletion(utils.getLinesRange(range.node(importDirective)));
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
+  }
+
+  Future<Null> _addFix_replaceFinalWithConst() async {
+    if (node is VariableDeclarationList) {
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(
+            range.token((node as VariableDeclarationList).keyword), 'const');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_FINAL_WITH_CONST);
+    }
   }
 
   Future<Null> _addFix_replaceVarWithDynamic() async {
@@ -3250,6 +3265,7 @@ class LintNames {
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
+  static const String prefer_const_declarations = 'prefer_const_declarations';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String type_init_formals = 'type_init_formals';
   static const String unnecessary_brace_in_string_interp =

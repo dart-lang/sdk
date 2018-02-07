@@ -56,7 +56,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(GenericCheckBound)                                                         \
   M(CheckNull)                                                                 \
   M(IndirectGoto)                                                              \
-  M(MintToDouble)                                                              \
+  M(Int64ToDouble)                                                             \
   M(BinaryInt64Op)                                                             \
   M(ShiftInt64Op)                                                              \
   M(UnaryInt64Op)                                                              \

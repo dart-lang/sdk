@@ -37,6 +37,58 @@ class RegExp {
     return value.regexp;
   }
 
+  /**
+   * Finds the index of the first RegExp-significant char in [text].
+   *
+   * Starts looking from [start]. Returns `text.length` if no character
+   * is found that has special meaning in RegExp syntax.
+   */
+  static int _findEscapeChar(String text, int start) {
+    // Table where each character in the range U+0000 to U+007f is represented
+    // by whether it needs to be escaped in a regexp.
+    // The \x00 characters means escacped, and \x01 means non-escaped.
+    const escapes =
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+        //                 $               (   )   *   +           .
+        "\x01\x01\x01\x01\x00\x01\x01\x01\x00\x00\x00\x00\x01\x01\x00\x01"
+        //                                                             ?
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00"
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+        //                                             [   \   ]   ^
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x01"
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+        //                                             {   |   }
+        "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x01\x01";
+    for (int i = start; i < text.length; i++) {
+      int char = text.codeUnitAt(i);
+      if (char <= 0x7f && escapes.codeUnitAt(char) == 0) return i;
+    }
+    return text.length;
+  }
+
+  @patch
+  static String escape(String text) {
+    int escapeCharIndex = _findEscapeChar(text, 0);
+    // If the text contains no characters needing escape, return it directly.
+    if (escapeCharIndex == text.length) return text;
+
+    var buffer = new StringBuffer();
+    int previousSliceEndIndex = 0;
+    do {
+      // Copy characters from previous escape to current escape into result.
+      // This includes the previously escaped character.
+      buffer.write(text.substring(previousSliceEndIndex, escapeCharIndex));
+      // Prepare the current character to be escaped by prefixing it with a '\'.
+      buffer.write(r"\");
+      previousSliceEndIndex = escapeCharIndex;
+      escapeCharIndex = _findEscapeChar(text, escapeCharIndex + 1);
+    } while (escapeCharIndex < text.length);
+    // Copy tail of string into result.
+    buffer.write(text.substring(previousSliceEndIndex, escapeCharIndex));
+    return buffer.toString();
+  }
+
   // Regular expression objects are stored in a cache of up to _MAX_CACHE_SIZE
   // elements using an LRU eviction strategy.
   // TODO(zerny): Do not impose a fixed limit on the number of cached objects.

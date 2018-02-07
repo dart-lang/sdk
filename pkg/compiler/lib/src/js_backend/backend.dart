@@ -597,11 +597,9 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(
-                closedWorld, codegenWorldBuilder, compiler.options)
-            : new MinifyNamer(
-                closedWorld, codegenWorldBuilder, compiler.options)
-        : new Namer(closedWorld, codegenWorldBuilder, compiler.options);
+            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(closedWorld, codegenWorldBuilder)
+        : new Namer(closedWorld, codegenWorldBuilder);
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -700,7 +698,8 @@ class JavaScriptBackend {
     NativeBasicData nativeBasicData = compiler.frontendStrategy.nativeBasicData;
     RuntimeTypesNeedBuilder rtiNeedBuilder =
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts = new BackendImpacts(commonElements);
+    BackendImpacts impacts =
+        new BackendImpacts(compiler.options, commonElements);
     TypeVariableResolutionAnalysis typeVariableResolutionAnalysis =
         new TypeVariableResolutionAnalysis(
             compiler.frontendStrategy.elementEnvironment,
@@ -753,7 +752,6 @@ class JavaScriptBackend {
             nativeBasicData,
             interceptorDataBuilder,
             _backendUsageBuilder,
-            rtiNeedBuilder,
             mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
@@ -784,7 +782,8 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts = new BackendImpacts(commonElements);
+    BackendImpacts impacts =
+        new BackendImpacts(compiler.options, commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         closedWorld.elementEnvironment, this, commonElements, mirrorsData);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
@@ -982,7 +981,8 @@ class JavaScriptBackend {
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
+    BackendImpacts impacts =
+        new BackendImpacts(compiler.options, closedWorld.commonElements);
     if (compiler.options.disableRtiOptimization) {
       _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(
           closedWorld.elementEnvironment, closedWorld.dartTypes);
@@ -990,7 +990,9 @@ class JavaScriptBackend {
           new TrivialRuntimeTypesChecksBuilder(closedWorld, _rtiSubstitutions);
     } else {
       RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(
-          closedWorld.elementEnvironment, closedWorld.dartTypes);
+          closedWorld.commonElements,
+          closedWorld.elementEnvironment,
+          closedWorld.dartTypes);
       _rtiChecksBuilder = runtimeTypesImpl;
       _rtiSubstitutions = runtimeTypesImpl;
     }
@@ -1166,13 +1168,20 @@ class JavaScriptBackend {
       jsAst.Expression code,
       SourceInformation bodySourceInformation,
       SourceInformation exitSourceInformation) {
+    bool startAsyncSynchronously = compiler.options.startAsyncSynchronously;
+
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
+        var startFunction = startAsyncSynchronously
+            ? commonElements.asyncHelperStartSync
+            : commonElements.asyncHelperStart;
+        var completerConstructor = startAsyncSynchronously
+            ? commonElements.asyncAwaitCompleterConstructor
+            : commonElements.syncCompleterConstructor;
         rewriter = new AsyncRewriter(reporter, element,
-            asyncStart:
-                emitter.staticFunctionAccess(commonElements.asyncHelperStart),
+            asyncStart: emitter.staticFunctionAccess(startFunction),
             asyncAwait:
                 emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
             asyncReturn:
@@ -1180,8 +1189,8 @@ class JavaScriptBackend {
             asyncRethrow:
                 emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-            completerFactory: emitter
-                .staticFunctionAccess(commonElements.syncCompleterConstructor),
+            completerFactory:
+                emitter.staticFunctionAccess(completerConstructor),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
         break;

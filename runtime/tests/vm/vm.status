@@ -46,8 +46,11 @@ dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # app-jit lacks
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
 
 [ $compiler == dart2analyzer ]
+dart/byte_array_optimized_test: CompileTimeError # int64
+dart/byte_array_test: CompileTimeError # int64
 dart/optimized_stacktrace_line_and_column_test: StaticWarning
 dart/optimized_stacktrace_line_test: StaticWarning
+dart/truncating_ints_test: CompileTimeError # int64
 
 [ $compiler == dart2js ]
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
@@ -60,12 +63,21 @@ dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
 
+[ $compiler == dartk ]
+cc/DartAPI_New: Crash
+cc/DartAPI_TypeGetParameterizedTypes: Crash
+dart/redirection_type_shuffling_test/00: Crash
+dart/redirection_type_shuffling_test/none: Crash
+
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: Skip
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: Skip
 cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
+
+[ $compiler == fasta ]
+dart/data_uri_import_test/badencodeddate: CompileTimeError
 
 [ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
@@ -95,6 +107,9 @@ dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
 cc/Service_Profile: Skip
+
+[ !$strong ]
+dart/callee_side_type_checks_test: SkipByDesign
 
 # Following tests are failing in a weird way on macos/ia32/debug builds
 # need to investigate.
@@ -143,7 +158,7 @@ cc/Profiler_TypedArrayAllocation: Pass, Fail # Issue 31137
 [ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
 cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
@@ -324,8 +339,6 @@ cc/IsolateReload_TypeIdentityGeneric: Fail
 cc/IsolateReload_TypeIdentityParameter: Fail
 
 [ $compiler == dartk && $system == windows ]
-cc/DartAPI_New: Fail
-cc/DartAPI_TypeGetParameterizedTypes: Fail
 cc/IsolateReload_DanglingGetter_Class: Crash
 cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_LibraryLookup: Crash
@@ -340,19 +353,12 @@ cc/IsolateReload_TypeIdentityGeneric: Crash
 cc/IsolateReload_TypeIdentityParameter: Crash
 cc/Profiler_BasicSourcePosition: Fail
 cc/Profiler_CodeTicks: Fail
+cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail
 cc/Profiler_ToggleRecordAllocation: Fail
 cc/Profiler_TrivialRecordAllocation: Fail
 cc/Service_Address: Fail
 cc/Service_Code: Fail
-dart/redirection_type_shuffling_test/00: Fail
-dart/redirection_type_shuffling_test/none: Fail
-
-[ $compiler == dartk && $system != windows ]
-cc/DartAPI_New: Crash
-cc/DartAPI_TypeGetParameterizedTypes: Crash
-dart/redirection_type_shuffling_test/00: Crash
-dart/redirection_type_shuffling_test/none: Crash
 
 [ $compiler == dartk && $strong ]
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
@@ -375,6 +381,9 @@ dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
+
+[ $mode == debug && $system == windows ]
+dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
 
 [ $mode == product && $runtime == vm ]
 cc/DartAPI_IsolateSetCheckedMode: Fail, OK # Checked mode disabled in product mode.

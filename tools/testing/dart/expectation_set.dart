@@ -15,28 +15,37 @@ import 'environment.dart';
 /// For any given file path, returns the expected test results for that file.
 /// A set can be loaded from a collection of status files. A file path may
 /// exist in multiple files (or even multiple sections within the file). When
-/// that happens, all of the expectations of every entry are combined.
+/// that happens, all of the expectations of every entry are unioned together
+/// and the test is considered to pass if the outcome is any of those
+/// expectations.
 class ExpectationSet {
+  static final _passSet = [Expectation.pass].toSet();
+
+  /// A cache of path component glob strings (like "b*r") that we've previously
+  /// converted to regexes. This ensures we collapse multiple globs from the
+  /// same string to the same map key in [_PathNode.regExpChildren].
+  final Map<String, RegExp> _globCache = {};
+
+  /// The root of the expectation tree.
+  final _PathNode _tree = new _PathNode();
+
   /// Reads the expectations defined by the status files at [statusFilePaths]
   /// when in [configuration].
-  static ExpectationSet read(
+  ExpectationSet.read(
       List<String> statusFilePaths, Configuration configuration) {
     try {
       var environment = new ConfigurationEnvironment(configuration);
-      var expectations = new ExpectationSet._();
       for (var path in statusFilePaths) {
         var file = new StatusFile.read(path);
         file.validate(environment);
         for (var section in file.sections) {
           if (section.isEnabled(environment)) {
             for (var entry in section.entries) {
-              expectations.addEntry(entry);
+              addEntry(entry);
             }
           }
         }
       }
-
-      return expectations;
     } on SyntaxError catch (error) {
       stderr.writeln(error.toString());
       exit(1);
@@ -45,29 +54,21 @@ class ExpectationSet {
     }
   }
 
-  // Only create one copy of each Set<Expectation>.
-  // We just use .toString as a key, so we may make a few
-  // sets that only differ in their toString element order.
-  static Map<String, Set<Expectation>> _cachedSets = {};
-
-  Map<String, Set<Expectation>> _map = {};
-  Map<String, List<RegExp>> _keyToRegExps;
-
-  /// Create a TestExpectations object. See the [expectations] method
-  /// for an explanation of matching.
-  ExpectationSet._();
-
   /// Add [entry] to the set of expectations.
   void addEntry(StatusEntry entry) {
-    // Once we have started using the expectations we cannot add more
-    // rules.
-    if (_keyToRegExps != null) {
-      throw new StateError("Cannot add entries after it is already in use.");
+    var tree = _tree;
+    for (var part in entry.path.split('/')) {
+      if (part.contains("*")) {
+        var regExp = _globCache.putIfAbsent(part, () {
+          return new RegExp("^" + part.replaceAll("*", ".*") + r"$");
+        });
+        tree = tree.regExpChildren.putIfAbsent(regExp, () => new _PathNode());
+      } else {
+        tree = tree.stringChildren.putIfAbsent(part, () => new _PathNode());
+      }
     }
 
-    _map
-        .putIfAbsent(entry.path, () => new Set<Expectation>())
-        .addAll(entry.expectations);
+    tree.expectations.addAll(entry.expectations);
   }
 
   /// Get the expectations for the test at [path].
@@ -80,53 +81,71 @@ class ExpectationSet {
   /// the corresponding filename component.
   Set<Expectation> expectations(String path) {
     var result = new Set<Expectation>();
-    var parts = path.split('/');
+    _tree.walk(path.split('/'), 0, result);
 
-    // Create mapping from keys to list of RegExps once and for all.
-    _preprocessForMatching();
+    // If no status files modified the expectation, default to the test passing.
+    if (result.isEmpty) return _passSet;
 
-    _map.forEach((key, expectations) {
-      var regExps = _keyToRegExps[key];
-      if (regExps.length > parts.length) return;
-
-      for (var i = 0; i < regExps.length; i++) {
-        if (!regExps[i].hasMatch(parts[i])) return;
-      }
-
-      // If all components of the status file key matches the filename
-      // add the expectations to the result.
-      result.addAll(expectations);
-    });
-
-    // If no expectations were found the expectation is that the test
-    // passes.
-    if (result.isEmpty) {
-      result.add(Expectation.pass);
-    }
-    return _cachedSets.putIfAbsent(result.toString(), () => result);
+    return result;
   }
+}
 
-  /// Preprocesses the expectations for matching against filenames. Generates
-  /// lists of regular expressions once and for all for each key.
-  void _preprocessForMatching() {
-    if (_keyToRegExps != null) return;
+/// A single file system path component in the tree of expectations.
+///
+/// Given a list of status file entry paths (which may contain globs at various
+/// parts), we parse it into a tree of nodes. Then, later, when looking up the
+/// status for a single test, this lets us quickly consider only the status
+/// file entries that relate to that test.
+class _PathNode {
+  /// The non-glob child directory and file paths within this directory.
+  final Map<String, _PathNode> stringChildren = {};
 
-    _keyToRegExps = {};
-    var regExpCache = <String, RegExp>{};
+  /// The glob child directory and file paths within this directory.
+  final Map<RegExp, _PathNode> regExpChildren = {};
 
-    _map.forEach((key, expectations) {
-      if (_keyToRegExps[key] != null) return;
-      var splitKey = key.split('/');
-      var regExps = new List<RegExp>(splitKey.length);
+  /// The test expectatations that any test within this directory should
+  /// include.
+  final Set<Expectation> expectations = new Set();
 
-      for (var i = 0; i < splitKey.length; i++) {
-        var component = splitKey[i];
-        var regExp = regExpCache.putIfAbsent(component,
-            () => new RegExp("^${splitKey[i]}\$".replaceAll('*', '.*')));
-        regExps[i] = regExp;
+  /// Walks the list of path [parts], starting at [index] adding any
+  /// expectations to [result] from this node and any of its matching children.
+  ///
+  /// We need to include all matching children because multiple children may
+  /// match a single test, as in:
+  ///
+  ///     foo/bar/baz: Timeout
+  ///     foo/b*r/baz: Skip
+  ///     foo/*ar/baz: SkipByDesign
+  ///
+  /// Assuming this node is for "foo" and we are walking ["bar", "baz"], all
+  /// three of the above should match and the resulting expectation set should
+  /// include all three.
+  ///
+  /// Also if a status file entry is a prefix of the test's path, that matches
+  /// too:
+  ///
+  ///     foo/bar: Skip
+  ///
+  /// If the test path is "foo/baz/baz", the above entry will match it.
+  void walk(List<String> parts, int index, Set<Expectation> result) {
+    // We've reached this node itself, so add its expectations.
+    result.addAll(expectations);
+
+    // If this is a leaf node, stop traversing.
+    if (index >= parts.length) return;
+
+    var part = parts[index];
+
+    // Look for a non-glob child directory.
+    if (stringChildren.containsKey(part)) {
+      stringChildren[part].walk(parts, index + 1, result);
+    }
+
+    // Look for any matching glob directories.
+    for (var regExp in regExpChildren.keys) {
+      if (regExp.hasMatch(part)) {
+        regExpChildren[regExp].walk(parts, index + 1, result);
       }
-
-      _keyToRegExps[key] = regExps;
-    });
+    }
   }
 }

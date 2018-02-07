@@ -3,21 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract method f1(generic-covariant-impl generic-covariant-interface self::I::T x) → void;
   abstract method f2(generic-covariant-impl generic-covariant-interface self::I::T x) → void;
 }
 class C<U extends core::Object> extends core::Object implements self::I<core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method f1(generic-covariant-impl core::int x) → void {}
   method f2(generic-covariant-impl core::int x, [generic-covariant-impl generic-covariant-interface self::C::U y = null]) → void {}
 }
 class D<U extends core::Object> extends self::C<self::D::U> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
   method f1(generic-covariant-impl core::int x) → void {}

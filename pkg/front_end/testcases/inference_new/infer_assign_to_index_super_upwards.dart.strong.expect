@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator [](core::String s) → self::Base::T
@@ -14,7 +14,7 @@ abstract class Base<T extends core::Object, U extends core::Object> extends core
   abstract method setValue(core::String s, generic-covariant-impl generic-covariant-interface self::Base::U v) → void;
 }
 abstract class Test1 extends self::Base<core::int, core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -31,7 +31,7 @@ abstract class Test1 extends self::Base<core::int, core::int> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test2 extends self::Base<core::int, core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -51,7 +51,7 @@ abstract class Test2 extends self::Base<core::int, core::num> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test3 extends self::Base<core::int, core::double> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -69,7 +69,7 @@ abstract class Test3 extends self::Base<core::int, core::double> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 abstract class Test4 extends self::Base<core::num, core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -86,7 +86,7 @@ abstract class Test4 extends self::Base<core::num, core::int> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test5 extends self::Base<core::num, core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -106,7 +106,7 @@ abstract class Test5 extends self::Base<core::num, core::num> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test6 extends self::Base<core::num, core::double> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -124,7 +124,7 @@ abstract class Test6 extends self::Base<core::num, core::double> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::double v) → void;
 }
 abstract class Test7 extends self::Base<core::double, core::int> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -141,7 +141,7 @@ abstract class Test7 extends self::Base<core::double, core::int> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::int v) → void;
 }
 abstract class Test8 extends self::Base<core::double, core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {
@@ -161,7 +161,7 @@ abstract class Test8 extends self::Base<core::double, core::num> {
   abstract forwarding-stub method setValue(core::String s, generic-covariant-impl core::num v) → void;
 }
 abstract class Test9 extends self::Base<core::double, core::double> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::Base::•()
     ;
   method test() → void {

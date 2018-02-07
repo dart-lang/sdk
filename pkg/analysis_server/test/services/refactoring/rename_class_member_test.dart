@@ -126,6 +126,31 @@ class C extends A {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkFinalConditions_OK_noShadow_nullVisibleRange() async {
+    await indexTestUnit('''
+class A {
+  int foo;
+
+  A(this.foo);
+}
+
+class B {
+  int bar; // declaration
+
+  B(this.bar);
+
+  void referenceField() {
+    bar;
+  }
+}
+''');
+    createRenameRefactoringAtString('bar; // declaration');
+    // check status
+    refactoring.newName = 'foo';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
   test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
 class A {

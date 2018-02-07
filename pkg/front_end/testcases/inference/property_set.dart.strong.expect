@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
   generic-covariant-impl generic-covariant-interface field core::List<self::A::T> x = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   set y(generic-covariant-impl generic-covariant-interface core::List<self::A::T> value) → void {}

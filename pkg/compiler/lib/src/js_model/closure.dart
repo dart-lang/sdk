@@ -372,7 +372,9 @@ class KernelScopeInfo {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('this=$hasThisLocal,');
+    sb.write('freeVriables=$freeVariables,');
     sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
+    sb.write('freeVariablesForRti={${freeVariablesForRti.join(', ')}}');
     return sb.toString();
   }
 }
@@ -818,6 +820,10 @@ class ScopeModel {
   /// Collected [ScopeInfo] data for nodes.
   Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
       <ir.TreeNode, KernelScopeInfo>{};
+
+  String toString() {
+    return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
+  }
 }
 
 enum TypeVariableKind { cls, method, local, function }

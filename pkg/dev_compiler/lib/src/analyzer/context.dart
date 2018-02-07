@@ -63,7 +63,9 @@ class AnalyzerOptions {
       String dartSdkSummaryPath,
       List<String> summaryPaths}) {
     var contextBuilderOptions = new ContextBuilderOptions()
-      ..defaultOptions = (new AnalysisOptionsImpl()..strongMode = true)
+      ..defaultOptions = (new AnalysisOptionsImpl()
+        ..strongMode = true
+        ..previewDart2 = true)
       ..dartSdkSummaryPath = dartSdkSummaryPath;
 
     return new AnalyzerOptions._(
@@ -76,6 +78,8 @@ class AnalyzerOptions {
       {String dartSdkSummaryPath, List<String> summaryPaths}) {
     var contextBuilderOptions = createContextBuilderOptions(args,
         strongMode: true, trackCacheDependencies: false);
+    (contextBuilderOptions.defaultOptions as AnalysisOptionsImpl).previewDart2 =
+        true;
 
     var dartSdkPath = args['dart-sdk'] ?? getSdkDir().path;
 
@@ -164,12 +168,13 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
     {ResourceProvider resourceProvider}) {
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   UriResolver packageResolver() {
-    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    var builderOptions = new ContextBuilderOptions();
     if (options.packageRoot != null) {
       builderOptions.defaultPackagesDirectoryPath = options.packageRoot;
     }
-    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
+    var builder = new ContextBuilder(resourceProvider, null, null,
         options: builderOptions);
+
     return new PackageMapUriResolver(resourceProvider,
         builder.convertPackagesToMap(builder.createPackageMap('')));
   }

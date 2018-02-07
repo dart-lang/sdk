@@ -9,7 +9,6 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 
 [ $runtime == dart_precompiled ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
@@ -176,6 +175,13 @@ LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail # Issue 28269, These tests are
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
 
+[ $fasta ]
+Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
+Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
+Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
+Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
+Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
+
 [ $arch == arm64 && ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
@@ -192,6 +198,10 @@ LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26
 
 [ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
 Language/Types/Interface_Types/subtype_t27: Skip # Issue 21174.
+
+[ $compiler != dart2js && !$strong ]
+LibTest/typed_data/Float32x4List/first_A01_t02: RuntimeError # co19 issue 130 + type error
+LibTest/typed_data/Float32x4List/last_A01_t02: RuntimeError # co19 issue 130 + type error
 
 [ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
@@ -237,6 +247,9 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 
 [ $mode == release && $runtime == vm && $system == linux && ($arch == ia32 || $arch == x64) ]
 LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
+
+[ $runtime == dart_precompiled && !$fasta ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
 
 # Obfuscated mode expectations
 [ $runtime == dart_precompiled && $minified ]
@@ -293,6 +306,9 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
 Language/Types/Type_Void/syntax_t01: MissingCompileTimeError # Issue co19/30264
+Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # Issue co19/30264
+Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # Issue co19/30264
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # Issue co19/30264
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Large integers
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Large integers

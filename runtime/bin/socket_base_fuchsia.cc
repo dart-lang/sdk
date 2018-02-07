@@ -287,13 +287,22 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     return NULL;
   }
 
-  // Call the ioctl.
+  // Call the ioctls.
   netc_get_if_info_t get_if_info;
-  const ssize_t size = ioctl_netc_get_if_info(fd, &get_if_info);
+  const ssize_t size = ioctl_netc_get_num_ifs(fd, &get_if_info.n_info);
   if (size < 0) {
-    LOG_ERR("ListInterfaces: ioctl_netc_get_if_info() failed");
+    LOG_ERR("ListInterfaces: ioctl_netc_get_num_ifs() failed");
     close(fd);
     return NULL;
+  }
+  for (uint32_t i = 0; i < get_if_info.n_info; i++) {
+    const ssize_t size =
+        ioctl_netc_get_if_info_at(fd, &i, &get_if_info.info[i]);
+    if (size < 0) {
+      LOG_ERR("ListInterfaces: ioctl_netc_get_if_info_at() failed");
+      close(fd);
+      return NULL;
+    }
   }
 
   // Process the results.

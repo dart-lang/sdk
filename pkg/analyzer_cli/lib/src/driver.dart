@@ -873,6 +873,7 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.previewDart2 = options.previewDart2;
     if (options.useCFE) {
       contextOptions.useFastaParser = true;
     }

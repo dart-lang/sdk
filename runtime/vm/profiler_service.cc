@@ -2396,6 +2396,8 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   }
 }
 
+static const intptr_t kRootFrameId = 0;
+
 void Profile::PrintTimelineFrameJSON(JSONObject* frames,
                                      ProfileTrieNode* current,
                                      ProfileTrieNode* parent,
@@ -2406,7 +2408,7 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
   current->set_frame_id(id);
   ASSERT(current->frame_id() != -1);
 
-  {
+  if (id != kRootFrameId) {
     // The samples from many isolates may be merged into a single timeline,
     // so prefix frames id with the isolate.
     intptr_t isolate_id = reinterpret_cast<intptr_t>(isolate_);
@@ -2416,7 +2418,7 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
     frame.AddProperty("category", "Dart");
     ProfileFunction* func = GetFunction(current->table_index());
     frame.AddProperty("name", func->Name());
-    if (parent != NULL) {
+    if ((parent != NULL) && (parent->frame_id() != kRootFrameId)) {
       ASSERT(parent->frame_id() != -1);
       frame.AddPropertyF("parent", "%" Pd "-%" Pd, isolate_id,
                          parent->frame_id());
@@ -2437,7 +2439,7 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
   {
     JSONObject frames(&obj, "stackFrames");
     ProfileTrieNode* root = GetTrieRoot(kInclusiveFunction);
-    intptr_t next_id = 0;
+    intptr_t next_id = kRootFrameId;
     PrintTimelineFrameJSON(&frames, root, NULL, &next_id);
   }
   {

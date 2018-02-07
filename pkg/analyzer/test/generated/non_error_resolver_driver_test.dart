@@ -16,4 +16,7 @@ main() {
 class NonErrorResolverTest_Driver extends NonErrorResolverTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @override // Passes with driver
+  test_infer_mixin() => super.test_infer_mixin();
 }

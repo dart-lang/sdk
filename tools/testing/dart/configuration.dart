@@ -183,9 +183,10 @@ class Configuration {
   /// as the first stage of compilation.
   bool get usesFasta {
     var fastaCompilers = const [
+      Compiler.dartdevk,
       Compiler.dartk,
       Compiler.dartkp,
-      Compiler.dartdevk
+      Compiler.fasta,
     ];
     return fastaCompilers.contains(compiler) ||
         compiler == Compiler.dart2js && useDart2JSWithKernel;
@@ -252,6 +253,7 @@ class Configuration {
     if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
+    if (isStrong) args.add("--strong");
     return args;
   }
 
@@ -540,6 +542,7 @@ class Compiler {
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
   static const specParser = const Compiler._('spec_parser');
+  static const fasta = const Compiler._('fasta');
 
   static final List<String> names = _all.keys.toList();
 
@@ -554,6 +557,7 @@ class Compiler {
     dartk,
     dartkp,
     specParser,
+    fasta,
   ], key: (compiler) => (compiler as Compiler).name);
 
   static Compiler find(String name) {
@@ -609,6 +613,8 @@ class Compiler {
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
       case Compiler.specParser:
+        return const [Runtime.none];
+      case Compiler.fasta:
         return const [Runtime.none];
       case Compiler.none:
         return const [

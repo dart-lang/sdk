@@ -50,6 +50,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
         return;
+      case "BREAK_OUTSIDE_OF_LOOP":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, offset, length);
+        return;
       case "BUILT_IN_IDENTIFIER_AS_TYPE":
         String name = stringOrTokenLexeme();
         errorReporter?.reportErrorForOffset(
@@ -94,6 +98,14 @@ class FastaErrorReporter {
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
+        return;
+      case "CONTINUE_OUTSIDE_OF_LOOP":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, offset, length);
+        return;
+      case "CONTINUE_WITHOUT_LABEL_IN_CASE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, offset, length);
         return;
       case "COVARIANT_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(

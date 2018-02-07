@@ -228,9 +228,13 @@ ProcessedOptions analyzeCommandLine(
   final bool strongMode =
       options.containsKey("--strong-mode") || options.containsKey("--strong");
 
+  final bool syncAsync = options.containsKey("--sync-async");
+
   final String targetName = options["-t"] ?? options["--target"] ?? "vm";
 
-  final TargetFlags flags = new TargetFlags(strongMode: strongMode);
+  final TargetFlags flags =
+      new TargetFlags(strongMode: strongMode, syncAsync: syncAsync);
+
   final Target target = getTarget(targetName, flags);
   if (target == null) {
     return throw new CommandLineProblem.deprecated(

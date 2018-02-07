@@ -4,22 +4,6 @@
 
 part of analyzer.parser;
 
-class _Builder implements Builder {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _KernelLibraryBuilder implements KernelLibraryBuilder {
-  @override
-  final uri;
-
-  _KernelLibraryBuilder(this.uri);
-
-  @override
-  Uri get fileUri => uri;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /**
  * Proxy implementation of the analyzer parser, implemented in terms of the
  * Fasta parser.
@@ -57,6 +41,17 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  bool get enableOptionalNewAndConst => false;
+
+  @override
+  void set enableOptionalNewAndConst(bool enable) {}
+
+  @override
+  void set parseFunctionBodies(bool parseFunctionBodies) {
+    // ignored
+  }
+
+  @override
   bool get parseGenericMethodComments => astBuilder.parseGenericMethodComments;
 
   @override
@@ -65,9 +60,7 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
-  void set parseFunctionBodies(bool parseFunctionBodies) {
-    // ignored
-  }
+  Expression parseAdditiveExpression() => parseExpression2();
 
   @override
   Annotation parseAnnotation() {
@@ -89,9 +82,6 @@ abstract class ParserAdapter implements Parser {
   @override
   Expression parseAssignableExpression(bool primaryAllowed) =>
       parseExpression2();
-
-  @override
-  Expression parseAdditiveExpression() => parseExpression2();
 
   @override
   Expression parseBitwiseAndExpression() => parseExpression2();
@@ -119,9 +109,7 @@ abstract class ParserAdapter implements Parser {
       <ClassMember>[],
       null /* rightBracket */,
     );
-    currentToken = fastaParser
-        .parseClassMember(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+    currentToken = fastaParser.parseClassMember(currentToken);
     ClassDeclaration declaration = astBuilder.classDeclaration;
     astBuilder.classDeclaration = null;
     return declaration.members[0];
@@ -335,6 +323,22 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Expression parseUnaryExpression() => parseExpression2();
+}
+
+class _Builder implements Builder {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _KernelLibraryBuilder implements KernelLibraryBuilder {
+  @override
+  final uri;
+
+  _KernelLibraryBuilder(this.uri);
+
+  @override
+  Uri get fileUri => uri;
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**

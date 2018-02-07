@@ -128,7 +128,8 @@ Node parseFunction(String text, MockCompiler compiler) {
 }
 
 Node parseMember(String text, {DiagnosticReporter reporter}) {
-  return parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens),
+  return parseBodyCode(
+      text, (parser, tokens) => parser.parseClassMember(tokens),
       reporter: reporter);
 }
 

@@ -115,22 +115,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_breakOutsideOfLoop_breakInIfStatement() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
-    super.test_breakOutsideOfLoop_breakInIfStatement();
-  }
-
-  @override
-  @failingTest
-  void test_breakOutsideOfLoop_functionExpression_inALoop() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
-    super.test_breakOutsideOfLoop_functionExpression_inALoop();
-  }
-
-  @override
-  @failingTest
   void test_constConstructorWithBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
@@ -161,30 +145,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, found 0
     super.test_constructorWithReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_continueOutsideOfLoop_continueInIfStatement() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_continueOutsideOfLoop_continueInIfStatement();
-  }
-
-  @override
-  @failingTest
-  void test_continueOutsideOfLoop_functionExpression_inALoop() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_continueOutsideOfLoop_functionExpression_inALoop();
-  }
-
-  @override
-  @failingTest
-  void test_continueWithoutLabelInCase_error() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, found 0
-    super.test_continueWithoutLabelInCase_error();
   }
 
   @override
@@ -647,20 +607,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, found 0
     super.test_invalidLiteralInConfiguration();
-  }
-
-  @override
-  @failingTest
-  void test_invalidOperator_unary() {
-    // TODO(danrubel) Wrong errors
-    super.test_invalidOperator_unary();
-  }
-
-  void test_invalidOperator_unary_noErrors() {
-    // TODO(danrubel): remove this test once test_invalidOperator_unary passes.
-    createParser('int operator unary- => 0;');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
   }
 
   @override
@@ -1381,17 +1327,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_typedef_namedFunction() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
-    // 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_EXECUTABLE, found 0
-    super.test_typedef_namedFunction();
-  }
-
-  @override
-  @failingTest
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0
@@ -1654,6 +1589,10 @@ class FastaParserTestCase extends Object
     }
   }
 
+  set enableOptionalNewAndConst(bool enable) {
+    // ignored
+  }
+
   @override
   set enableUriInPartOf(bool value) {
     if (value == false) {
@@ -1769,19 +1708,10 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
-    // Scan tokens
-    var source = new StringSource(content, 'parser_test_StringSource.dart');
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
-    var scanner = new Scanner.fasta(source, listener);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
-    _fastaTokens = scanner.tokenize();
 
-    // Run parser
-    analyzer.Parser parser =
-        new analyzer.Parser(source, listener, useFasta: true);
-    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
-    expect(unit, isNotNull);
+    CompilationUnit unit = parseCompilationUnit2(content, listener);
 
     // Assert and return result
     if (codes != null) {
@@ -1792,6 +1722,22 @@ class FastaParserTestCase extends Object
     } else {
       listener.assertNoErrors();
     }
+    return unit;
+  }
+
+  CompilationUnit parseCompilationUnit2(
+      String content, GatheringErrorListener listener) {
+    // Scan tokens
+    var source = new StringSource(content, 'parser_test_StringSource.dart');
+    var scanner = new Scanner.fasta(source, listener);
+    scanner.scanGenericMethodComments = enableGenericMethodComments;
+    _fastaTokens = scanner.tokenize();
+
+    // Run parser
+    analyzer.Parser parser =
+        new analyzer.Parser(source, listener, useFasta: true);
+    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    expect(unit, isNotNull);
     return unit;
   }
 
@@ -2359,13 +2305,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incomplete_constructorInitializers_empty() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_constructorInitializers_empty();
-  }
-
-  @override
-  @failingTest
   void test_incomplete_constructorInitializers_missingEquals() {
     // TODO(brianwilkerson) exception:
     //   NoSuchMethodError: The getter 'thisKeyword' was called on null.
@@ -2492,6 +2431,18 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
   @override
   @failingTest
+  void test_parseInstanceCreation_noKeyword_noPrefix() {
+    super.test_parseInstanceCreation_noKeyword_noPrefix();
+  }
+
+  @override
+  @failingTest
+  void test_parseInstanceCreation_noKeyword_prefix() {
+    super.test_parseInstanceCreation_noKeyword_prefix();
+  }
+
+  @override
+  @failingTest
   void test_parseTypeParameterList_single() {
     // TODO(brianwilkerson) Does not use all tokens.
     super.test_parseTypeParameterList_single();
@@ -2504,30 +2455,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
-  @override
-  @failingTest
-  void test_parseBreakStatement_noLabel() {
-    // TODO(brianwilkerson)
-    // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
-    super.test_parseBreakStatement_noLabel();
-  }
-
-  @override
-  @failingTest
-  void test_parseContinueStatement_label() {
-    // TODO(brianwilkerson)
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_parseContinueStatement_label();
-  }
-
-  @override
-  @failingTest
-  void test_parseContinueStatement_noLabel() {
-    // TODO(brianwilkerson)
-    // Expected 1 errors of type ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, found 0
-    super.test_parseContinueStatement_noLabel();
-  }
-
   @override
   void test_parseFunctionDeclarationStatement_typeParameterComments() {
     // Ignored: Fasta does not support the generic comment syntax.

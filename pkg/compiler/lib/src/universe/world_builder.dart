@@ -187,4 +187,72 @@ abstract class WorldBuilder {
   /// instantiated classes.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes;
+
+  /// Set of methods in instantiated classes that are potentially closurized.
+  Iterable<FunctionEntity> get closurizedMembers;
+
+  /// Set of static or top level methods that are closurized.
+  Iterable<FunctionEntity> get closurizedStatics;
+
+  /// Call [f] for each generic [function] with the type arguments passed
+  /// through static calls to [function].
+  void forEachStaticTypeArgument(
+      void f(Entity function, Set<DartType> typeArguments));
+
+  /// Call [f] for each generic [selector] with the type arguments passed
+  /// through dynamic calls to [selector].
+  void forEachDynamicTypeArgument(
+      void f(Selector selector, Set<DartType> typeArguments));
+}
+
+abstract class WorldBuilderBase {
+  final Map<Entity, Set<DartType>> _staticTypeArgumentDependencies =
+      <Entity, Set<DartType>>{};
+
+  final Map<Selector, Set<DartType>> _dynamicTypeArgumentDependencies =
+      <Selector, Set<DartType>>{};
+
+  /// Set of methods in instantiated classes that are potentially closurized.
+  final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
+
+  /// Set of static or top level methods that are closurized.
+  final Set<FunctionEntity> closurizedStatics = new Set<FunctionEntity>();
+
+  void _registerStaticTypeArgumentDependency(
+      Entity element, List<DartType> typeArguments) {
+    _staticTypeArgumentDependencies.putIfAbsent(
+        element, () => new Set<DartType>())
+      ..addAll(typeArguments);
+  }
+
+  void _registerDynamicTypeArgumentDependency(
+      Selector selector, List<DartType> typeArguments) {
+    _dynamicTypeArgumentDependencies.putIfAbsent(
+        selector, () => new Set<DartType>())
+      ..addAll(typeArguments);
+  }
+
+  void registerStaticInvocation(StaticUse staticUse) {
+    if (staticUse.typeArguments == null || staticUse.typeArguments.isEmpty) {
+      return;
+    }
+    _registerStaticTypeArgumentDependency(
+        staticUse.element, staticUse.typeArguments);
+  }
+
+  void registerDynamicInvocation(DynamicUse dynamicUse) {
+    if (dynamicUse.typeArguments.isEmpty) return;
+    _registerDynamicTypeArgumentDependency(
+        dynamicUse.selector, dynamicUse.typeArguments);
+  }
+
+  void forEachStaticTypeArgument(
+      void f(Entity function, Set<DartType> typeArguments)) {
+    _staticTypeArgumentDependencies.forEach(f);
+  }
+
+  void forEachDynamicTypeArgument(
+      void f(Selector selector, Set<DartType> typeArguments)) {
+    _dynamicTypeArgumentDependencies.forEach(f);
+  }
 }

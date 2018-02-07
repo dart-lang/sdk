@@ -79,7 +79,8 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
       [Comparator<ConstantValue> preSortCompare]);
 }
 
-abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
+abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
+    implements CodegenWorldBuilder {
   final ElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
   final ClosedWorld _world;
@@ -157,9 +158,6 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
-
-  /// Set of methods in instantiated classes that are potentially closurized.
-  final Set<FunctionEntity> closurizedMembers = new Set<FunctionEntity>();
 
   CodegenWorldBuilderImpl(this._elementEnvironment, this._nativeBasicData,
       this._world, this.selectorConstraintsStrategy);
@@ -268,6 +266,7 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
 
     switch (dynamicUse.kind) {
       case DynamicUseKind.INVOKE:
+        registerDynamicInvocation(dynamicUse);
         if (_registerNewSelector(dynamicUse, _invokedNames)) {
           _process(_instanceMembersByName, (m) => m.invoke());
           return true;
@@ -359,6 +358,7 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.FIELD_SET:
       case StaticUseKind.DIRECT_USE:
       case StaticUseKind.CLOSURE:
+      case StaticUseKind.CLOSURE_CALL:
       case StaticUseKind.CALL_METHOD:
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
@@ -390,20 +390,25 @@ abstract class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
+        closurizedStatics.add(element);
         useSet.addAll(usage.tearOff());
         break;
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.FIELD_SET:
       case StaticUseKind.CLOSURE:
+      case StaticUseKind.CLOSURE_CALL:
       case StaticUseKind.CALL_METHOD:
         // TODO(johnniwinther): Avoid this. Currently [FIELD_GET] and
         // [FIELD_SET] contains [BoxFieldElement]s which we cannot enqueue.
         // Also [CLOSURE] contains [LocalFunctionElement] which we cannot
         // enqueue.
         break;
+      case StaticUseKind.INVOKE:
+        registerStaticInvocation(staticUse);
+        useSet.addAll(usage.normalUse());
+        break;
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.SUPER_TEAR_OFF:
-      case StaticUseKind.INVOKE:
       case StaticUseKind.GET:
       case StaticUseKind.SET:
       case StaticUseKind.INIT:

@@ -15,11 +15,6 @@ html/custom/element_upgrade_failure_test: MissingCompileTimeError
 html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/debugger_test: CompileTimeError # Issue 30900
-html/fileapi_directory_reader_test: Pass, Timeout # Roll 50 failure
-html/fileapi_directory_test: Pass, Timeout # Roll 50 failure
-html/fileapi_entry_test: Pass, Timeout # Roll 50 failure
-html/fileapi_file_entry_test: Pass, Timeout # Roll 50 failure
-html/fileapi_file_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
 html/indexeddb_2_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_3_test: Pass, Timeout # Roll 50 failure
@@ -85,9 +80,6 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/element_classes_test: RuntimeError # Issue 30291
 html/element_types_keygen_test: RuntimeError # Issue 29055
 html/file_sample_test: Pass, RuntimeError
-html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failure.
-html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
-html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
@@ -128,6 +120,7 @@ html/js_interop_constructor_name_error1_test: Fail # Issue 26838
 html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
 [ $compiler == dart2js && $runtime == drt ]
+html/fileapi_entry_test: RuntimeError # DRT before DomError repl'd DomException
 html/request_animation_frame_test: Skip # Async test hangs.
 html/speechrecognition_test: RuntimeError # Please triage.
 html/svg_test: RuntimeError # Please triage.
@@ -268,6 +261,7 @@ html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
+html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
 
@@ -278,6 +272,7 @@ html/interactive_geolocation_test: Skip # Requires allowing geo location.
 html/custom/created_callback_test: RuntimeError
 html/fontface_loaded_test: Fail # Support for promises.
 html/js_typed_interop_lazy_test/01: RuntimeError
+html/notification_permission_test: Timeout, Pass # Issue 32002
 html/private_extension_member_test: RuntimeError
 isolate/isolate_stress_test: Pass, Slow # Issue 10697
 js/null_test: RuntimeError # Issue 30652
@@ -393,8 +388,8 @@ html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': 
 html/js_array_test: CompileTimeError
 html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dart_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_dispatch_property_test: CompileTimeError
 html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_dispatch_property_test: CompileTimeError
 html/js_function_getter_test: CompileTimeError
 html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_trust_types_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
@@ -574,11 +569,8 @@ html/element_types_track_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
 html/exceptions_test: RuntimeError
-html/fileapi_directory_reader_test: RuntimeError
-html/fileapi_directory_test: RuntimeError
+html/file_sample_test: RuntimeError
 html/fileapi_entry_test: RuntimeError
-html/fileapi_file_entry_test: RuntimeError
-html/fileapi_file_test: RuntimeError
 html/fileapi_supported_test: RuntimeError
 html/filereader_test: RuntimeError
 html/filteredelementlist_test: RuntimeError
@@ -771,10 +763,6 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
-html/fileapi_directory_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
-html/fileapi_entry_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
-html/fileapi_file_entry_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
-html/fileapi_file_test: Fail, Pass # TODO(dart2js-team): Please triage this failure.
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]

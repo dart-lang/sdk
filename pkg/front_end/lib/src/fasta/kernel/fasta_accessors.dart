@@ -13,7 +13,9 @@ import '../fasta_codes.dart'
         messageInvalidInitializer,
         messageLoadLibraryTakesNoArguments,
         messageSuperAsExpression,
-        templateIntegerLiteralIsOutOfRange;
+        templateDeferredTypeAnnotation,
+        templateIntegerLiteralIsOutOfRange,
+        templateNotAType;
 
 import '../messages.dart' show Message;
 
@@ -139,7 +141,8 @@ abstract class BuilderHelper {
   StaticGet makeStaticGet(Member readTarget, Token token,
       {String prefixName, int targetOffset: -1, Class targetClass});
 
-  Expression makeDeferredCheck(Expression expression, PrefixBuilder prefix);
+  Expression wrapInDeferredCheck(
+      Expression expression, PrefixBuilder prefix, int charOffset);
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
@@ -153,8 +156,19 @@ abstract class BuilderHelper {
       bool isSuper,
       Member interfaceTarget});
 
+  Expression buildConstructorInvocation(
+      TypeDeclarationBuilder type,
+      Token nameToken,
+      Arguments arguments,
+      String name,
+      List<DartType> typeArguments,
+      int charOffset,
+      bool isConst);
+
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
+
+  void addProblem(Message message, int charOffset);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -218,6 +232,13 @@ abstract class FastaAccessor implements Accessor {
       return PropertyAccessor.make(helper, send.token, buildSimpleRead(),
           send.name, null, null, isNullAware);
     }
+  }
+
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(
+        templateNotAType.withArguments(token.lexeme), token.charOffset);
+    return const InvalidType();
   }
 
   /* Expression | FastaAccessor */ buildThrowNoSuchMethodError(
@@ -830,7 +851,7 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
 
 class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
   DeferredAccessor(BuilderHelper helper, Token token, PrefixBuilder builder,
-      StaticAccessor expression)
+      FastaAccessor expression)
       : super(helper, token, builder, expression);
 
   String get plainNameForRead {
@@ -838,11 +859,35 @@ class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
         "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
   }
 
-  StaticAccessor get staticAccessor => super.staticAccessor;
+  FastaAccessor get accessor => super.accessor;
+
+  buildPropertyAccess(
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
+    var propertyAccess =
+        accessor.buildPropertyAccess(send, operatorOffset, isNullAware);
+    if (propertyAccess is FastaAccessor) {
+      return new DeferredAccessor(helper, token, builder, propertyAccess);
+    } else {
+      Expression expression = propertyAccess;
+      return helper.wrapInDeferredCheck(expression, builder, token.charOffset);
+    }
+  }
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(
+        templateDeferredTypeAnnotation.withArguments(
+            accessor.buildTypeWithBuiltArguments(arguments,
+                nonInstanceAccessIsError: nonInstanceAccessIsError),
+            builder.name),
+        token.charOffset);
+    return const InvalidType();
+  }
 
   Expression doInvocation(int offset, Arguments arguments) {
-    return helper.makeDeferredCheck(
-        staticAccessor.doInvocation(offset, arguments), builder);
+    return helper.wrapInDeferredCheck(
+        accessor.doInvocation(offset, arguments), builder, token.charOffset);
   }
 }
 
@@ -1107,9 +1152,19 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
       FastaAccessor accessor;
       if (builder == null) {
-        // If we find a setter, [builder] is an
-        // [AccessErrorBuilder], not null.
-        accessor = new UnresolvedAccessor(helper, name, send.token);
+        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+        if (send is IncompletePropertyAccessor) {
+          accessor = new UnresolvedAccessor(helper, name, send.token);
+        } else {
+          return helper.buildConstructorInvocation(
+              declaration,
+              send.token,
+              arguments,
+              name.name,
+              null,
+              token.charOffset,
+              helper.constantExpressionRequired);
+        }
       } else {
         Builder setter;
         if (builder.isSetter) {
@@ -1136,6 +1191,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
     }
   }
 
+  @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false}) {
     if (arguments != null) {
@@ -1230,6 +1286,12 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
           type, offsetForToken(token), nonInstanceAccessIsError);
     }
     return type;
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildConstructorInvocation(declaration, token, arguments, "",
+        null, token.charOffset, helper.constantExpressionRequired);
   }
 }
 

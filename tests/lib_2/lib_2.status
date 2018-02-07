@@ -1,6 +1,7 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
+html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
@@ -115,16 +116,6 @@ async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ $strong ]
-mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
-
-[ !$strong ]
-isolate/isolate_import_test/01: MissingCompileTimeError
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
-typed_data/float32x4_static_test: MissingCompileTimeError
-typed_data/int32x4_static_test/01: MissingCompileTimeError
-typed_data/int32x4_static_test/02: MissingCompileTimeError
-
 [ $builder_tag == mac10_7 && $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -163,6 +154,16 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ !$checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/multiple_timer_test: Pass, Fail # Timing related
+
+[ !$fasta && $strong ]
+mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
+
+[ !$fasta && !$strong ]
+isolate/isolate_import_test/01: MissingCompileTimeError
+mirrors/top_level_accessors_test/01: MissingCompileTimeError
+typed_data/float32x4_static_test: MissingCompileTimeError
+typed_data/int32x4_static_test/01: MissingCompileTimeError
+typed_data/int32x4_static_test/02: MissingCompileTimeError
 
 [ ($compiler != precompiler || $runtime != dart_precompiled) && ($runtime != vm || $compiler != dartk && $compiler != none) ]
 isolate/vm_rehash_test: SkipByDesign

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get x() → core::int {
@@ -20,7 +20,7 @@ class B extends core::Object {
   }
 }
 abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract get x() → self::I::T;
@@ -31,12 +31,12 @@ abstract class I<T extends core::Object> extends core::Object {
 class M extends core::Object {
   field core::int x = null;
   field core::int y = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class C = self::B with self::M implements self::I<core::int> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
 }

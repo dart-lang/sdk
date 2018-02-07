@@ -671,7 +671,7 @@ class ProgramBuilder {
 
   Class _buildClass(ClassEntity cls) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(cls);
-    bool hasRtiField = _rtiNeed.classNeedsRtiField(cls);
+    bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     if (_nativeData.isJsInteropClass(cls)) {
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.

@@ -400,7 +400,10 @@ f() async {
 g() {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -441,7 +444,10 @@ f() async {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -1064,7 +1070,7 @@ const x = const C().t;''');
     Source source = addSource(r'''
 class A {
   const A();
-  m() {}
+  int m() => 0;
 }
 final a = const A();
 const C = a.m;''');
@@ -1174,11 +1180,21 @@ var x = const C(2);
   test_constEvalTypeBool_binary_leftTrue() async {
     Source source = addSource("const C = (true || 0);");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND,
-      HintCode.DEAD_CODE
-    ]);
+    assertErrors(
+        source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_constEvalTypeBool_logicalOr_trueLeftOperand() async {
+    Source source = addSource(r'''
+class C {
+  final int x;
+  const C({this.x}) : assert(x == null || x >= 0);
+}
+const c = const C();
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2888,7 +2904,7 @@ class A {
     Source source = addSource(r'''
 class A {
   static var F = m();
-  m() {}
+  int m() => 0;
 }''');
     await computeAnalysisResult(source);
     assertErrors(
@@ -3202,6 +3218,18 @@ E e(String name) {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
     verify([source]);
+  }
+
+  test_integerLiteralOutOfRange_negative() async {
+    Source source = addSource('int x = -9223372036854775809;');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
+  }
+
+  test_integerLiteralOutOfRange_positive() async {
+    Source source = addSource('int x = 9223372036854775808;');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
   }
 
   test_invalidAnnotation_getter() async {
@@ -3707,7 +3735,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
@@ -3719,7 +3748,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
@@ -3930,6 +3960,108 @@ class C extends B with M {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS]);
     verify([source]);
+  }
+
+  test_mixinInference_matchingClass() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends A<int> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_matchingClass_inPreviousMixin() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M1 implements A<B> {}
+class M2<T> extends A<T> {}
+class C extends Object with M1, M2 {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M implements A<B> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_namedMixinApplication() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C = Object with M;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass_typeParametersSupplied() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M<int> {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
   }
 
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {

@@ -6,10 +6,15 @@ library ElementTest;
 
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
 import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 import 'utils.dart';
+
+T Function(A) expectAsync1<T, A>(T Function(A) callback,
+        {int count: 1, int max: 0}) =>
+    new ExpectedFunction<T>(callback, count, max).max1;
 
 expectLargeRect(Rectangle rect) {
   expect(rect.top, 0);
@@ -126,7 +131,8 @@ main() {
 
     test('.html caption', () {
       var table = new TableElement();
-      TableCaptionElement node = table.createFragment('<caption><p>Table 1.').nodes.single;
+      TableCaptionElement node =
+          table.createFragment('<caption><p>Table 1.').nodes.single;
       expect(
           node,
           predicate(
@@ -150,7 +156,8 @@ main() {
     test('.html tbody', () {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
       var table = new TableElement();
-      TableSectionElement node = table.createFragment('<tbody>$innerHtml').nodes.single;
+      TableSectionElement node =
+          table.createFragment('<tbody>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -165,7 +172,8 @@ main() {
     test('.html thead', () {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
       var table = new TableElement();
-      TableSectionElement node = table.createFragment('<thead>$innerHtml').nodes.single;
+      TableSectionElement node =
+          table.createFragment('<thead>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -180,7 +188,8 @@ main() {
     test('.html tfoot', () {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
       var table = new TableElement();
-      TableSectionElement node = table.createFragment('<tfoot>$innerHtml').nodes.single;
+      TableSectionElement node =
+          table.createFragment('<tfoot>$innerHtml').nodes.single;
       expect(
           node,
           predicate(
@@ -196,7 +205,8 @@ main() {
       var table = new TableElement();
       document.body.append(table);
       var tBody = table.createTBody();
-      TableRowElement node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
+      TableRowElement node =
+          tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
       expect(
           node, predicate((x) => x is TableRowElement, 'is a TableRowElement'));
       expect(node.tagName, 'TR');
@@ -801,7 +811,7 @@ main() {
 
       document.body.onClick
           .matches('.selector')
-          .listen(expectAsync((Event event) {
+          .listen(expectAsync1((Event event) {
         expect(event.currentTarget, document.body);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
@@ -809,7 +819,7 @@ main() {
 
       selectorOne.onClick
           .matches('.selector')
-          .listen(expectAsync((Event event) {
+          .listen(expectAsync1((Event event) {
         expect(event.currentTarget, selectorOne);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);

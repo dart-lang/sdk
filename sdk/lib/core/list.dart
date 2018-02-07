@@ -172,6 +172,38 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   static List<T> castFrom<S, T>(List<S> source) => new CastList<S, T>(source);
 
   /**
+   * Returns a view of this list as a list of [R] instances, if necessary.
+   *
+   * If this list is already a `List<R>`, it is returned unchanged.
+   *
+   * If this list contains only instances of [R], all read operations
+   * will work correctly. If any operation tries to access an element
+   * that is not an instance of [R], the access will throw instead.
+   *
+   * Elements added to the list (e.g., by using [add] or [addAll])
+   * must be instance of [R] to be valid arguments to the adding function,
+   * and they must be instances of [E] as well to be accepted by
+   * this list as well.
+   */
+  List<R> cast<R>();
+
+  /**
+   * Returns a view of this list as a list of [R] instances.
+   *
+   * If this list contains only instances of [R], all read operations
+   * will work correctly. If any operation tries to access an element
+   * that is not an instance of [R], the access will throw instead.
+   *
+   * Elements added to the list (e.g., by using [add] or [addAll])
+   * must be instance of [R] to be valid arguments to the adding function,
+   * and they must be instances of [E] as well to be accepted by
+   * this list as well.
+   *
+   * Typically implemented as `List.castFrom<E, R>(this)`.
+   */
+  List<R> retype<R>();
+
+  /**
    * Returns the object at the given [index] in the list
    * or throws a [RangeError] if [index] is out of bounds.
    */
@@ -182,6 +214,24 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * or throws a [RangeError] if [index] is out of bounds.
    */
   void operator []=(int index, E value);
+
+  /**
+   * Updates the first position of the list to contain [value].
+   *
+   * Equivalent to `theList[0] = value;`.
+   *
+   * The list must be non-empty.
+   */
+  void set first(E value);
+
+  /**
+   * Updates the last position of the list to contain [value].
+   *
+   * Equivalent to `theList[theList.length - 1] = value;`.
+   *
+   * The list must be non-empty.
+   */
+  void set last(E value);
 
   /**
    * Returns the number of objects in this list.
@@ -270,6 +320,46 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     notes.indexOf('fa');    // -1
    */
   int indexOf(E element, [int start = 0]);
+
+  /**
+   * Returns the first index in the list that satisfies the provided [test].
+   *
+   * Searches the list from index [start] to the end of the list.
+   * The first time an object `o` is encountered so that `test(o)` is true,
+   * the index of `o` is returned.
+   *
+   * ```
+   * List<String> notes = ['do', 're', 'mi', 're'];
+   * notes.indexWhere((note) => note.startsWith('r'));       // 1
+   * notes.indexWhere((note) => note.startsWith('r'), 2);    // 3
+   * ```
+   *
+   * Returns -1 if [element] is not found.
+   * ```
+   * notes.indexWhere((note) => note.startsWith('k'));    // -1
+   * ```
+   */
+  int indexWhere(bool test(E element), [int start = 0]);
+
+  /**
+   * Returns the last index in the list that satisfies the provided [test].
+   *
+   * Searches the list from index [start] to 0.
+   * The first time an object `o` is encountered so that `test(o)` is true,
+   * the index of `o` is returned.
+   *
+   * ```
+   * List<String> notes = ['do', 're', 'mi', 're'];
+   * notes.lastIndexWhere((note) => note.startsWith('r'));       // 3
+   * notes.lastIndexWhere((note) => note.startsWith('r'), 2);    // 1
+   * ```
+   *
+   * Returns -1 if [element] is not found.
+   * ```
+   * notes.lastIndexWhere((note) => note.startsWith('k'));    // -1
+   * ```
+   */
+  int lastIndexWhere(bool test(E element), [int start]);
 
   /**
    * Returns the last index of [element] in this list.
@@ -410,6 +500,18 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Throws an [UnsupportedError] if this is a fixed-length list.
    */
   void retainWhere(bool test(E element));
+
+  /**
+   * Returns the concatenation of this list and [other].
+   *
+   * Returns a new list containing the elements of this list followed by
+   * the elements of [other].
+   *
+   * The default behavior is to return a normal growable list.
+   * Some list types may choose to return a list of the same type as themselves
+   * (see [Uint8List.+]);
+   */
+  List<E> operator +(List<E> other);
 
   /**
    * Returns a new list containing the objects from [start] inclusive to [end]

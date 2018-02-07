@@ -8,21 +8,28 @@
 import 'package:expect/expect.dart';
 
 typedef Args0();
-typedef Args1(a);
-typedef Args2(a, b);
-typedef Args3(a, b, c);
-typedef Args4(a, b, c, d);
-typedef Args5(a, b, c, d, e);
-typedef Args6(a, b, c, d, e, f);
-typedef Args7(a, b, c, d, e, f, g);
-typedef Args8(a, b, c, d, e, f, g, h);
-typedef Args9(a, b, c, d, e, f, g, h, i);
-typedef Args10(a, b, c, d, e, f, g, h, i, j);
-typedef Args11(a, b, c, d, e, f, g, h, i, j, k);
-typedef Args12(a, b, c, d, e, f, g, h, i, j, k, l);
-typedef Args13(a, b, c, d, e, f, g, h, i, j, k, l, m);
-typedef Args14(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
-typedef Args15(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+typedef Args1(Null a);
+typedef Args2(Null a, Null b);
+typedef Args3(Null a, Null b, Null c);
+typedef Args4(Null a, Null b, Null c, Null d);
+typedef Args5(Null a, Null b, Null c, Null d, Null e);
+typedef Args6(Null a, Null b, Null c, Null d, Null e, Null f);
+typedef Args7(Null a, Null b, Null c, Null d, Null e, Null f, Null g);
+typedef Args8(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h);
+typedef Args9(
+    Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h, Null i);
+typedef Args10(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h,
+    Null i, Null j);
+typedef Args11(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h,
+    Null i, Null j, Null k);
+typedef Args12(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h,
+    Null i, Null j, Null k, Null l);
+typedef Args13(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h,
+    Null i, Null j, Null k, Null l, Null m);
+typedef Args14(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h,
+    Null i, Null j, Null k, Null l, Null m, Null n);
+typedef Args15(Null a, Null b, Null c, Null d, Null e, Null f, Null g, Null h,
+    Null i, Null j, Null k, Null l, Null m, Null n, Null o);
 
 void args0() {}
 void args1(int a) {}

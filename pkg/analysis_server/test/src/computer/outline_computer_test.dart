@@ -37,7 +37,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
     newFile(testPath, content: code);
     AnalysisResult analysisResult = await driver.getResult(testPath);
     return new DartUnitOutlineComputer(
-            testPath, analysisResult.lineInfo, analysisResult.unit)
+            testPath, analysisResult.lineInfo, analysisResult.unit,
+            withBasicFlutter: true)
         .compute();
   }
 }

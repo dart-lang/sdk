@@ -17,7 +17,7 @@ inference/inference1_test: Slow, Pass
 inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
 inference/simple_inferrer_const_closure_test: Fail # Issue 16507
 inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
-inference/swarm_test: Slow, Pass
+inference/swarm_test: Slow, Pass, Fail #
 inlining/inlining_test: Slow, Pass
 kernel/*: Slow, Pass
 kernel/compile_from_dill_fast_startup_test: RuntimeError # Test must be updated to support FE with patching.
@@ -25,7 +25,7 @@ kernel/compile_from_dill_test: RuntimeError # Test must be updated to support FE
 mirrors/library_exports_hidden_test: Fail
 mirrors/library_exports_shown_test: Fail
 mirrors/library_imports_hidden_test: Fail
-mirrors/library_imports_prefixed_show_hide_test: Fail
+mirrors/library_imports_prefixed_show_hide_test: Fail # Issue 32057
 mirrors/library_imports_prefixed_test: Fail
 mirrors/library_imports_shown_test: Fail
 no_such_method_enabled_test: Pass, Slow
@@ -36,6 +36,7 @@ old_frontend/compile_with_empty_libraries_test: Fail # Issue 24223
 old_frontend/patch_test/bug: RuntimeError # Issue 21132
 packages/*: Skip # Skip packages folder
 quarantined/http_test: Pass, Slow
+rti/rti_need_test: Pass, Slow, Fail # Issue 32055
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.

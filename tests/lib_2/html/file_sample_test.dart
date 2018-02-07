@@ -35,6 +35,8 @@ Logger testLog = new Logger();
 
 Future<FileSystem> _fileSystem;
 
+DirectoryEntry _myDirectory;
+
 Future<FileSystem> get fileSystem async {
   if (_fileSystem != null) return _fileSystem;
 
@@ -55,11 +57,13 @@ Future<FileSystem> get fileSystem async {
 Future<FileEntry> createFile() async {
   var fs = await fileSystem;
 
-  FileEntry fileEntry = await fs.root.createFile('log.txt');
+  _myDirectory = await fs.root.createDirectory('my_directory');
+
+  FileEntry fileEntry = await _myDirectory.createFile('log.txt');
 
   expect(fileEntry.isFile, true);
   expect(fileEntry.name, 'log.txt');
-  expect(fileEntry.fullPath, '/log.txt');
+  expect(fileEntry.fullPath, '/my_directory/log.txt');
 
   FileWriter writer = await fileEntry.createWriter();
 
@@ -90,6 +94,12 @@ Future<FileEntry> createFile() async {
   return new Future<FileEntry>.value(fileEntry);
 }
 
+Future<List<Entry>> readEntries(DirectoryEntry directory) async {
+  DirectoryReader reader = directory.createReader();
+  List<Entry> entries = await reader.readEntries();
+  return entries;
+}
+
 main() {
   useHtmlConfiguration();
 
@@ -117,6 +127,16 @@ main() {
 
       FileEntry fileEntry = await createFile();
       expect(fileEntry.name, 'log.txt');
+
+      List<Entry> entries = await readEntries(fs.root);
+      expect(entries.length > 0, true);
+      expect(entries[0].isDirectory, true);
+      expect(entries[0].name, 'my_directory');
+
+      List<Entry> myEntries = await readEntries(_myDirectory);
+      expect(myEntries.length, 1);
+      expect(myEntries[0].isFile, true);
+      expect(myEntries[0].name, 'log.txt');
 
       // Validate every function, async and event mechanism successfully ran.
       expect(testLog.contents, log_results);

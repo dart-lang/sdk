@@ -9,20 +9,20 @@ class W extends core::Object {
     ;
 }
 class X extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method native() → core::String
     return "method";
 }
 class Y1 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract get native() → core::String;
 }
 class Y2 extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   @core::override
@@ -31,7 +31,7 @@ class Y2 extends core::Object {
 }
 class Z extends core::Object {
   field core::String f = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   set native(core::String s) → dynamic

@@ -738,22 +738,28 @@ abstract class LoadLibraryAccessor extends Accessor {
 
 abstract class DeferredAccessor extends Accessor {
   final PrefixBuilder builder;
-  final StaticAccessor staticAccessor;
+  final Accessor accessor;
 
   DeferredAccessor(
-      BuilderHelper helper, Token token, this.builder, this.staticAccessor)
+      BuilderHelper helper, Token token, this.builder, this.accessor)
       : super(helper, token);
 
+  Expression _makeSimpleRead() {
+    return helper.wrapInDeferredCheck(
+        accessor._makeSimpleRead(), builder, token.charOffset);
+  }
+
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return helper.makeDeferredCheck(
-        staticAccessor._makeRead(complexAssignment), builder);
+    return helper.wrapInDeferredCheck(
+        accessor._makeRead(complexAssignment), builder, token.charOffset);
   }
 
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
-    return helper.makeDeferredCheck(
-        staticAccessor._makeWrite(value, voidContext, complexAssignment),
-        builder);
+    return helper.wrapInDeferredCheck(
+        accessor._makeWrite(value, voidContext, complexAssignment),
+        builder,
+        token.charOffset);
   }
 }
 

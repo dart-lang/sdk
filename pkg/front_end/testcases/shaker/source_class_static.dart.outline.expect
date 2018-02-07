@@ -9,7 +9,7 @@ import "lib/sources.dart" as sou;
 
 class C extends core::Object {
   static field sou::A2 publicField;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•();
   static method publicMethod() → sou::A4;
   static get publicGetter() → sou::A6;

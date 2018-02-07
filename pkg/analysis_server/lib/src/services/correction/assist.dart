@@ -47,6 +47,8 @@ class DartAssistKind {
       "Convert into line documentation comment");
   static const CONVERT_FLUTTER_CHILD =
       const AssistKind('CONVERT_FLUTTER_CHILD', 30, "Convert to children:");
+  static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
+      'CONVERT_INTO_ASYNC_BODY', 30, "Convert into async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
@@ -93,6 +95,14 @@ class DartAssistKind {
       const AssistKind("REPARENT_FLUTTER_LIST", 30, "Wrap with new widget");
   static const REPARENT_FLUTTER_WIDGET =
       const AssistKind("REPARENT_FLUTTER_WIDGET", 30, "Wrap with new widget");
+  static const REPARENT_FLUTTER_WIDGET_CENTER =
+      const AssistKind("REPARENT_FLUTTER_WIDGET_CENTER", 29, "Center widget");
+  static const REPARENT_FLUTTER_WIDGET_PADDING = const AssistKind(
+      "REPARENT_FLUTTER_WIDGET_PADDING", 29, "Add widget padding");
+  static const REPARENT_FLUTTER_WIDGETS_COLUMN = const AssistKind(
+      "REPARENT_FLUTTER_WIDGETS_COLUMN", 29, "Wrap with Column");
+  static const REPARENT_FLUTTER_WIDGETS_ROW =
+      const AssistKind("REPARENT_FLUTTER_WIDGETS_ROW", 29, "Wrap with Row");
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(

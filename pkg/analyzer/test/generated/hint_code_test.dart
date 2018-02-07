@@ -2014,6 +2014,22 @@ class C {
     verify([source, source2, source3]);
   }
 
+  test_invalidUseOfVisibleForTestingMember_OK_export() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@visibleForTesting
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+export 'lib1.dart' show fn0;
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
   test_invalidUseOfVisibleForTestingMember_propertyAccess() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
@@ -2059,22 +2075,6 @@ void main() {
     await computeAnalysisResult(source);
     await computeAnalysisResult(source2);
     assertErrors(source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER]);
-    verify([source, source2]);
-  }
-
-  test_invalidUseOfVisibleForTestingMember_OK_export() async {
-    Source source = addNamedSource('/lib1.dart', r'''
-import 'package:meta/meta.dart';
-
-@visibleForTesting
-int fn0() => 1;
-''');
-    Source source2 = addNamedSource('/lib2.dart', r'''
-export 'lib1.dart' show fn0;
-''');
-    await computeAnalysisResult(source);
-    await computeAnalysisResult(source2);
-    assertNoErrors(source2);
     verify([source, source2]);
   }
 
@@ -2250,6 +2250,26 @@ Future<int> f() async {}
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_no_missingReturn_async_futureVoid() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<void> f() async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_no_missingReturn_async_futureOrVoid() async {
+    Source source = addSource('''
+import 'dart:async';
+FutureOr<void> f(Future f) async {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -3065,6 +3085,377 @@ var b = a.g;
     verify([source]);
   }
 
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_fn() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+int f<T>(x) => 0;
+var a = new A();
+var b = f(a.x);
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
+    // generic, so the type of a.x might affect the type of b.
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_fn_explicit_type_params() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+int f<T>(x) => 0;
+var a = new A();
+var b = f<int>(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_fn_not_generic() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+int f(x) => 0;
+var a = new A();
+var b = f(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_indexExpression() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+  int operator[](int value) => 0;
+}
+var a = new A();
+var b = a[a.x];
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+var a = new A();
+var b = (<T>(y) => 0)(a.x);
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the
+    // closure is generic, so the type of a.x might affect the type of b.
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+var a = new A();
+var b = (<T>(y) => 0)<int>(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+var a = new A();
+var b = ((y) => 0)(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_method() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+  int f<T>(int x) => 0;
+}
+var a = new A();
+var b = a.f(a.x);
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
+    // generic, so the type of a.x might affect the type of b.
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_method_explicit_type_params() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+  int f<T>(x) => 0;
+}
+var a = new A();
+var b = a.f<int>(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_method_not_generic() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+  int f(x) => 0;
+}
+var a = new A();
+var b = a.f(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+class B<T> {
+  B(x);
+}
+var a = new A();
+var b = new B(a.x);
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
+    // generic, so the type of a.x might affect the type of b.
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+class B<T> {
+  B(x);
+}
+var a = new A();
+var b = new B<int>(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_named() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+class B<T> {
+  B.named(x);
+}
+var a = new A();
+var b = new B<int>.named(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource('/lib1.dart', '''
+class B<T> {
+  B(x);
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart' as foo;
+class A {
+  var x = 0;
+}
+var a = new A();
+var b = new foo.B<int>(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_named() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+class B<T> {
+  B.named(x);
+}
+var a = new A();
+var b = new B.named(a.x);
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
+    // generic, so the type of a.x might affect the type of b.
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+class B {
+  B(x);
+}
+var a = new A();
+var b = new B(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_named() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = 0;
+}
+class B {
+  B.named(x);
+}
+var a = new A();
+var b = new B.named(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource('/lib1.dart', '''
+class B {
+  B(x);
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart' as foo;
+class A {
+  var x = 0;
+}
+var a = new A();
+var b = new foo.B(a.x);
+''');
+    // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
+    // it can't possibly affect the type of b.
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    addNamedSource('/lib1.dart', '''
+class B<T> {
+  B(x);
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart' as foo;
+class A {
+  var x = 0;
+}
+var a = new A();
+var b = new foo.B(a.x);
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
+    // generic, so the type of a.x might affect the type of b.
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
   test_strongMode_topLevelInstanceGetter_implicitlyTyped_prefixedIdentifier() async {
     resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource('''
@@ -3074,6 +3465,30 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_propertyAccessLhs() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  var x = new B();
+  int operator[](int value) => 0;
+}
+class B {
+  int y;
+}
+var a = new A();
+var b = (a.x).y;
+''');
+    // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the type
+    // of a.x affects the lookup of y, which in turn affects the type of b.
     await computeAnalysisResult(source);
     if (enableKernelDriver) {
       assertNoErrors(source);
@@ -3096,6 +3511,126 @@ var b = a.g;
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
     expect(b.variables.variables[0].element.type.toString(), 'int');
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  f() => 0;
+}
+var x = new A().f();
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_parameter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f(v) => 0;
+}
+var x = new A().f(0);
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_parameter_generic() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f<T>(v) => 0;
+}
+var x = new A().f(0);
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_parameter_generic_explicit() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f<T>(v) => 0;
+}
+var x = new A().f<int>(0);
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_static() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  static f() => 0;
+}
+var x = A.f();
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_tearoff() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  f() => 0;
+}
+var x = new A().f;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_tearoff_parameter() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  int f(v) => 0;
+}
+var x = new A().f;
+''');
+    await computeAnalysisResult(source);
+    if (enableKernelDriver) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+    }
+    verify([source]);
+  }
+
+  test_strongMode_topLevelInstanceMethod_tearoff_static() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+class A {
+  static f() => 0;
+}
+var x = A.f;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -4454,6 +4989,33 @@ class B {}''');
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
+  }
+
+  test_unusedLabel_inSwitch() async {
+    Source source = addSource(r'''
+f(x) {
+  switch (x) {
+    label: case 0:
+      break;
+    default:
+      break;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LABEL]);
+    verify([source]);
+  }
+
+  test_unusedLabel_onWhile() async {
+    Source source = addSource(r'''
+f(condition()) {
+  label: while (condition()) {
+    break;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.UNUSED_LABEL]);
+    verify([source]);
   }
 
   test_unusedLocalVariable_inCatch_exception() async {

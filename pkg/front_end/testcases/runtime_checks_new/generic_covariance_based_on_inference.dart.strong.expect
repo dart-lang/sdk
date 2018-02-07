@@ -5,13 +5,13 @@ import "dart:core" as core;
 class B<T extends core::Object> extends core::Object {
   generic-covariant-impl generic-covariant-interface field self::B::T x = null;
   generic-covariant-impl generic-covariant-interface field self::B::T y = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class C<T extends core::Object> extends core::Object implements self::B<core::num> {
   generic-covariant-impl field core::num x = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract get y() → core::num;
@@ -19,7 +19,7 @@ class C<T extends core::Object> extends core::Object implements self::B<core::nu
 }
 class D<T extends core::Object> extends core::Object implements self::B<self::D::T> {
   generic-covariant-impl generic-covariant-interface field self::D::T x = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract get y() → self::D::T;

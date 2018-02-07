@@ -81,7 +81,7 @@ int64_t TimerUtils::GetCurrentMonotonicMillis() {
 }
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-  int64_t ticks = zx_time_get(ZX_CLOCK_MONOTONIC);
+  int64_t ticks = zx_clock_get(ZX_CLOCK_MONOTONIC);
   return ticks / kNanosecondsPerMicrosecond;
 }
 

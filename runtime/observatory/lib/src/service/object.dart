@@ -304,7 +304,7 @@ abstract class ServiceObject {
     if (obj == null) {
       obj = new ServiceMap._empty(owner);
     }
-    obj.update(map);
+    obj.updateFromServiceMap(map);
     return obj;
   }
 
@@ -353,7 +353,7 @@ abstract class ServiceObject {
         } else {
           // TODO(turnidge): Check for vmType changing as well?
           assert(mapType == _type);
-          update(map);
+          updateFromServiceMap(map);
           completer.complete(this);
         }
       }).catchError((e, st) {
@@ -369,7 +369,7 @@ abstract class ServiceObject {
   }
 
   /// Update [this] using [map] as a source. [map] can be a reference.
-  void update(Map map) {
+  void updateFromServiceMap(Map map) {
     assert(_isServiceMap(map));
 
     // Don't allow the type to change on an object update.
@@ -694,7 +694,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   }
 
   VM() : super._empty(null) {
-    update({'name': 'vm', 'type': '@VM'});
+    updateFromServiceMap({'name': 'vm', 'type': '@VM'});
   }
 
   void postServiceEvent(String streamId, Map response, ByteData data) {
@@ -782,7 +782,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     var type = _stripRef(map['type']);
     if (type == 'VM') {
       // Update this VM object.
-      update(map);
+      updateFromServiceMap(map);
       return this;
     }
 
@@ -801,7 +801,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
           Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
         });
       } else {
-        isolate.update(map);
+        isolate.updateFromServiceMap(map);
       }
       return isolate;
     }
@@ -1483,7 +1483,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     String mapId = map['id'];
     var obj = (mapId != null) ? _cache[mapId] : null;
     if (obj != null) {
-      obj.update(map);
+      obj.updateFromServiceMap(map);
       return obj;
     }
     // Build the object from the map directly.

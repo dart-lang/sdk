@@ -117,6 +117,8 @@ class KernelTarget extends TargetImplementation {
 
   bool get disableTypeInference => backendTarget.disableTypeInference;
 
+  final bool excludeSource = !CompilerContext.current.options.embedSourceText;
+
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
       {Map<Uri, Source> uriToSource, MetadataCollector metadataCollector})
@@ -350,10 +352,16 @@ class KernelTarget extends TargetImplementation {
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
   Program link(List<Library> libraries, {CanonicalName nameRoot}) {
-    Map<Uri, Source> uriToSource = new Map<Uri, Source>.from(this.uriToSource);
-
     libraries.addAll(dillTarget.loader.libraries);
-    uriToSource.addAll(dillTarget.loader.uriToSource);
+
+    Map<Uri, Source> uriToSource = new Map<Uri, Source>();
+    void copySource(Uri uri, Source source) {
+      uriToSource[uri] =
+          excludeSource ? new Source(source.lineStarts, const <int>[]) : source;
+    }
+
+    this.uriToSource.forEach(copySource);
+    dillTarget.loader.uriToSource.forEach(copySource);
 
     Program program = new Program(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
@@ -511,7 +519,9 @@ class KernelTarget extends TargetImplementation {
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
     return new Constructor(function,
-        name: constructor.name, initializers: <Initializer>[initializer]);
+        name: constructor.name,
+        initializers: <Initializer>[initializer],
+        isSynthetic: true);
   }
 
   Constructor makeDefaultConstructor() {

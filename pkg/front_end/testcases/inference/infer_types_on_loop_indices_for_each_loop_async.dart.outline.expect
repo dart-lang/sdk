@@ -5,17 +5,17 @@ import "dart:async" as asy;
 
 class Foo extends core::Object {
   field core::int bar;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class Bar<T extends asy::Stream<core::String>> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method foo(self::Bar::T t) → dynamic
     ;
 }
 class Baz<T extends core::Object, E extends asy::Stream<self::Baz::T>, S extends self::Baz::E> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method foo(self::Baz::S t) → dynamic
     ;

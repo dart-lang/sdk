@@ -18,7 +18,7 @@ import '../results/status_files.dart';
 import '../util.dart';
 import '../workflow.dart';
 
-final RegExp toggleSectionRegExp = new RegExp(r"^t(\d+)$");
+final RegExp toggleSectionRegExp = new RegExp(r"^(\d+)$");
 
 /// This is the main workflow step, where the user is asked what to do with the
 /// failure and input comments etc. For every test, [onShow] is called with the
@@ -29,10 +29,10 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
   List<FailingTest> _remainingTests;
 
   // These fields are mutated to persist user input.
-  String _lastComment = null;
+  String _lastComment;
+  Set<_CustomSection> _customSections = new Set<_CustomSection>();
   FixWorkingItem _lastWorkingItem;
-  List<StatusSectionWithFile> _customSections = [];
-  bool _fixIfPossible = false;
+  StatusExpectations _statusExpectations;
 
   FixFailingTest(this._testResult);
 
@@ -46,45 +46,19 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     }
     // We have to compute status files on every show, because we modify the
     // status files on every fix.
-    var statusExpectations = new StatusExpectations(_testResult);
-    await statusExpectations.loadStatusFiles();
+    _statusExpectations = new StatusExpectations(_testResult);
+    await _statusExpectations.loadStatusFiles();
 
     _remainingTests = payload.sublist(1);
     var failingTest = payload.first;
 
-    if (!failingTest.stillFailing(statusExpectations)) {
+    if (!failingTest.stillFailing(_statusExpectations)) {
       return new NavigateStepWorkflowAction(this, _remainingTests);
     }
 
     _currentWorkingItem = new FixWorkingItem(failingTest.result.name,
-        failingTest, statusExpectations, _lastComment, this._customSections);
+        failingTest, _statusExpectations, _lastComment, _customSections);
     _currentWorkingItem.init();
-
-    if (_lastWorkingItem != null && _fixIfPossible) {
-      // Outcome may be larger from the previous one, but current newOutcome
-      // will always be a singleton list. So we check by matching first
-      // element.
-      var outcomeIsSame = _currentWorkingItem.newOutcome.first ==
-          _lastWorkingItem.newOutcome.first;
-      var lastConfigurations =
-          _lastWorkingItem.failingTest.failingConfigurations;
-      var currentConfigurations =
-          _currentWorkingItem.failingTest.failingConfigurations;
-      var sameConfigurations = lastConfigurations.length ==
-              currentConfigurations.length &&
-          lastConfigurations.every(
-              (configuration) => currentConfigurations.contains(configuration));
-      if (outcomeIsSame && sameConfigurations) {
-        _lastWorkingItem.currentSections.forEach((section) {
-          addExpressionToCustomSections(
-              section.section.condition, section.statusFile.path);
-        });
-        print("Auto-fixing ${_currentWorkingItem.name}");
-        await fixFailingTest();
-        return new NavigateStepWorkflowAction(this, _remainingTests);
-      }
-    }
-
     print("");
     print("${_remainingTests.length + 1} tests remaining.");
     askAboutTest();
@@ -111,9 +85,8 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
       _lastComment = _currentWorkingItem.comment;
     } else if (input == "f") {
       // Fix failing tests and try to fix the coming ones.
-      _fixIfPossible = true;
       await fixFailingTest();
-      return new NavigateStepWorkflowAction(this, _remainingTests);
+      return _fixAllSimilarTests();
     } else if (input == "o") {
       // Case change new outcome.
       _currentWorkingItem.newOutcome = getNewOutcome();
@@ -139,6 +112,43 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     return new WaitForInputWorkflowAction();
   }
 
+  Future<WorkflowAction> _fixAllSimilarTests() async {
+    var unhandledTests = <FailingTest>[];
+    for (FailingTest similarTest in _remainingTests) {
+      _currentWorkingItem = new FixWorkingItem(similarTest.result.name,
+          similarTest, _statusExpectations, _lastComment, this._customSections);
+      _currentWorkingItem.init();
+      // Outcome may be larger from the previous one, but current newOutcome
+      // will always be a singleton list. So we check by matching first
+      // element.
+      var outcomeIsSame = _currentWorkingItem.newOutcome.first ==
+          _lastWorkingItem.newOutcome.first;
+      var lastConfigurations =
+          _lastWorkingItem.failingTest.failingConfigurations;
+      var currentConfigurations =
+          _currentWorkingItem.failingTest.failingConfigurations;
+      var sameConfigurations = lastConfigurations.length ==
+              currentConfigurations.length &&
+          lastConfigurations.every(
+              (configuration) => currentConfigurations.contains(configuration));
+      var sameFiles = _lastWorkingItem.statusFiles().every((last) {
+        return _currentWorkingItem.statusFiles().any((current) {
+          return current.path == last.path;
+        });
+      });
+      if (outcomeIsSame && sameConfigurations && sameFiles) {
+        _currentWorkingItem.currentSections = _lastWorkingItem.currentSections;
+        print("Auto-fixing ${_currentWorkingItem.name}");
+        var realLast = _lastWorkingItem;
+        await fixFailingTest(); // Sets _lastWorkingItem to _currentWorkingItem
+        _lastWorkingItem = realLast; // Might not be needed
+      } else {
+        unhandledTests.add(similarTest);
+      }
+    }
+    return new NavigateStepWorkflowAction(this, unhandledTests);
+  }
+
   @override
   Future<bool> onLeave() {
     return new Future.value(false);
@@ -158,16 +168,16 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     print("o       : Modify outcomes.");
     print("r       : Reset to initial state.");
     print("s       : Skip this failure.");
-    print("ti      : Toggle selection of section, where i is the index.");
+    print("<n>     : Toggle selection of the section with the index <n>.");
   }
 
   /// Fixes the failing test based on the data in [_currentWorkingItem].
   Future fixFailingTest() async {
     // Delete all existing entries that are wrong.
-    var statusFiles = new Set<StatusFile>();
+    var changedFiles = new Set<StatusFile>();
     for (var statusEntry in _currentWorkingItem.statusEntries) {
       statusEntry.section.entries.remove(statusEntry.entry);
-      statusFiles.add(statusEntry.statusFile);
+      changedFiles.add(statusEntry.statusFile);
     }
     // Add new expectations to status sections.
     var path = getQualifiedNameForTest(_currentWorkingItem.name);
@@ -184,12 +194,12 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         currentSection.statusFile.sections.add(currentSection.section);
       }
       currentSection.section.entries.add(statusEntry);
-      statusFiles.add(currentSection.statusFile);
+      changedFiles.add(currentSection.statusFile);
     }
     // Save the modified status files.
-    for (var statusFile in statusFiles) {
-      var normalized = normalizeStatusFile(statusFile);
-      await new File(statusFile.path).writeAsString(normalized.toString());
+    for (var file in changedFiles) {
+      await new File(file.path)
+          .writeAsString(normalizeStatusFile(file).toString());
     }
     _lastWorkingItem = _currentWorkingItem;
   }
@@ -210,8 +220,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         orElse: () => null);
     sectionToAdd ??= new StatusSection(expression, 0, []);
     var section = new StatusSectionWithFile(statusFile, sectionToAdd);
-    // This mutates the
-    _customSections.add(section);
+    _customSections.add(new _CustomSection(section));
     _currentWorkingItem.currentSections.add(section);
   }
 }
@@ -237,13 +246,16 @@ Expression getNewExpressionFromCommandLine() {
 /// user to pick the correct file.
 StatusFile getStatusFile(FixWorkingItem workingItem) {
   var statusFiles = workingItem.statusFiles();
+  if (statusFiles.length == 1) {
+    return statusFiles.first;
+  }
   print("Which status file should the section be added to/exists in?");
   int i = 0;
   for (var statusFile in statusFiles) {
     print("  ${i++}: ${statusFile.path}");
   }
   var input = stdin.readLineSync();
-  var index = int.parse(input, onError: (_) => null);
+  var index = int.parse(input, onError: (_) => -1);
   if (index >= 0 && index < statusFiles.length) {
     return statusFiles[index];
   }
@@ -290,8 +302,8 @@ class FixWorkingItem {
   final String name;
   final FailingTest failingTest;
   final StatusExpectations statusExpectations;
-  final List<StatusSectionWithFile> customSections;
 
+  Iterable<StatusSectionWithFile> customSections;
   List<StatusSectionWithFile> currentSections;
   List<SectionsSuggestion> suggestedSections;
   List<String> newOutcome;
@@ -299,7 +311,22 @@ class FixWorkingItem {
   String comment;
 
   FixWorkingItem(this.name, this.failingTest, this.statusExpectations,
-      this.comment, this.customSections) {}
+      this.comment, Iterable<_CustomSection> customSections) {
+    var files = statusFiles();
+    this.customSections = customSections.expand((customSection) {
+      var sectionWithFile = customSection._findSection(currentSections);
+      if (sectionWithFile != null) {
+        return [sectionWithFile];
+      }
+      var file = customSection._findStatusFile(files);
+      if (file != null) {
+        var section = customSection._findSectionInFile(file);
+        section ??= new StatusSection(customSection.condition, 0, []);
+        return [new StatusSectionWithFile(file, section)];
+      }
+      return [];
+    });
+  }
 
   /// init resets all custom data to the standard values from the failing test,
   /// except the comment and custom added sections.
@@ -382,7 +409,6 @@ class FixWorkingItem {
     print("Sections to add the new outcome to. The selected sections are "
         "marked by *:");
     int groupCounter = "A".codeUnitAt(0);
-    ;
     int sectionCounter = 0;
     suggestedSections.forEach((suggestedSection) {
       print("  ${new String.fromCharCode(groupCounter++)} "
@@ -390,7 +416,7 @@ class FixWorkingItem {
       suggestedSection.sections
           .forEach((section) => _printSection(section, sectionCounter++));
     });
-    print("  ${new String.fromCharCode(groupCounter)}: Added sections");
+    print("  ${new String.fromCharCode(groupCounter)}: Added/Used sections");
     customSections
         .forEach((section) => _printSection(section, sectionCounter++));
   }
@@ -408,5 +434,43 @@ class FixWorkingItem {
       print("      line ${entry.entry.lineNumber}: ${entry.entry.path} : "
           "${entry.entry.expectations} ${entry.entry.comment ?? ""}");
     }
+  }
+}
+
+class _CustomSection {
+  final String path;
+  final Expression condition;
+
+  _CustomSection(StatusSectionWithFile section)
+      : path = section.statusFile.path,
+        condition = section.section.condition;
+
+  StatusFile _findStatusFile(Iterable<StatusFile> files) {
+    return files.firstWhere((f) => f.path == path, orElse: () => null);
+  }
+
+  StatusSection _findSectionInFile(StatusFile file) {
+    return file.sections
+        .firstWhere((s) => s.condition == condition, orElse: () => null);
+  }
+
+  StatusSectionWithFile _findSection(Iterable<StatusSectionWithFile> sections) {
+    return sections.firstWhere((s) => s.section.condition == condition,
+        orElse: () => null);
+  }
+
+  @override
+  String toString() {
+    return "{$path} [{$condition}]";
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is _CustomSection && toString() == other.toString();
+  }
+
+  @override
+  int get hashCode {
+    return toString().hashCode;
   }
 }

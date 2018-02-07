@@ -53,10 +53,7 @@ main() {
 
   void foo2(FutureOr<String> x) {}
 
-  // In is-checks `dynamic` is treat specially (counting as bottom in parameter
-  // positions).
-  Expect.isTrue(foo2 is FunTakes<dynamic>);
-
+  Expect.isFalse(foo2 is FunTakes<dynamic>);
   Expect.isFalse(foo2 is FunTakes<Object>);
   Expect.isFalse(foo2 is FunTakes<int>);
   Expect.isTrue(foo2 is FunTakes<String>);
@@ -86,10 +83,7 @@ main() {
 
   void foo3(String x) {}
 
-  // In is-checks `dynamic` is treat specially (counting as bottom in parameter
-  // positions).
-  Expect.isTrue(foo3 is FunTakes<dynamic>);
-
+  Expect.isFalse(foo3 is FunTakes<dynamic>);
   Expect.isFalse(foo3 is FunTakes<Object>);
   Expect.isFalse(foo3 is FunTakes<int>);
   Expect.isTrue(foo3 is FunTakes<String>);

@@ -475,6 +475,14 @@ class SummaryDataStore {
   }
 
   /**
+   * Return `true` if the store contains the linked summary for the library
+   * with the given absolute [uri].
+   */
+  bool hasLinkedLibrary(String uri) {
+    return linkedMap.containsKey(uri);
+  }
+
+  /**
    * Return `true` if the store contains the unlinked summary for the unit
    * with the given absolute [uri].
    */

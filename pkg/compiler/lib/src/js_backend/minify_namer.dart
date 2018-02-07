@@ -12,9 +12,8 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder,
-      CompilerOptions options)
-      : super(closedWorld, codegenWorldBuilder, options) {
+  MinifyNamer(ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+      : super(closedWorld, codegenWorldBuilder) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
@@ -385,7 +384,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
     String prefix =
         selector.isGetter ? r"$get" : selector.isSetter ? r"$set" : "";
     String callSuffix = selector.isCall
-        ? callSuffixForStructure(selector.callStructure).join()
+        ? Namer.callSuffixForStructure(selector.callStructure).join()
         : "";
     String suffix = suffixForGetInterceptor(classes);
     String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";

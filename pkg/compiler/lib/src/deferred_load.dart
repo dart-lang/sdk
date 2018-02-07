@@ -15,7 +15,8 @@ import 'constants/values.dart'
         ConstantValue,
         ConstructedConstantValue,
         DeferredConstantValue,
-        DeferredGlobalConstantValue;
+        DeferredGlobalConstantValue,
+        TypeConstantValue;
 import 'elements/types.dart';
 import 'elements/elements.dart'
     show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
@@ -370,6 +371,12 @@ abstract class DeferredLoadTask extends CompilerTask {
         ClassEntity cls = constant.type.element;
         _updateElementRecursive(cls, oldSet, newSet, queue);
       }
+      if (constant is TypeConstantValue) {
+        var type = constant.representedType;
+        if (type is TypedefType) {
+          _updateElementRecursive(type.element, oldSet, newSet, queue);
+        }
+      }
       constant.getDependencies().forEach((ConstantValue dependency) {
         if (dependency is DeferredConstantValue) {
           /// New deferred-imports are only discovered when we are visiting the
@@ -508,8 +515,9 @@ abstract class DeferredLoadTask extends CompilerTask {
       String result = computeImportDeferName(import, compiler);
       assert(result != null);
       // Note: tools that process the json file to build multi-part initial load
-      // bundles depend on the fact that makeUnique appends only digits.
-      _importDeferName[import] = makeUnique(result, usedImportNames);
+      // bundles depend on the fact that makeUnique appends only digits, or a
+      // period followed by digits.
+      _importDeferName[import] = makeUnique(result, usedImportNames, '.');
     }
 
     // Sort the output units in descending order of the number of imports they

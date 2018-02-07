@@ -23,6 +23,13 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
+  test_assertion_throws() async {
+    // Not yet generating errors in kernel mode.
+    await super.test_assertion_throws();
+  }
+
+  @failingTest
+  @override
   test_fieldFormalParameterAssignableToField_fieldType_unresolved_null() async {
     // Expected 1 errors of type StaticWarningCode.UNDEFINED_CLASS, found 0
     await super

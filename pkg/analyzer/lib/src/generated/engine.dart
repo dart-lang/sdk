@@ -652,7 +652,7 @@ class AnalysisDelta {
    * A mapping from source to what type of analysis should be performed on that
    * source.
    */
-  HashMap<Source, AnalysisLevel> _analysisMap =
+  Map<Source, AnalysisLevel> _analysisMap =
       new HashMap<Source, AnalysisLevel>();
 
   /**
@@ -1297,6 +1297,11 @@ abstract class AnalysisOptions {
   bool get preserveComments;
 
   /**
+   * Return `true` if analyzer should enable the use of Dart 2.0 features.
+   */
+  bool get previewDart2;
+
+  /**
    * Return the opaque signature of the options.
    *
    * The length of the list is guaranteed to equal [signatureLength].
@@ -1466,6 +1471,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool useFastaParser = false;
 
   @override
+  bool previewDart2 = false;
+
+  @override
   bool disableCacheFlushing = false;
 
   /**
@@ -1522,6 +1530,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
     useFastaParser = options.useFastaParser;
+    previewDart2 = options.previewDart2;
     if (options is AnalysisOptionsImpl) {
       declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
@@ -2058,7 +2067,7 @@ class ChangeSet {
    * A table mapping the sources whose content has been changed to the current
    * content of those sources.
    */
-  HashMap<Source, String> _changedContent = new HashMap<Source, String>();
+  Map<Source, String> _changedContent = new HashMap<Source, String>();
 
   /**
    * A table mapping the sources whose content has been changed within a single
@@ -2212,7 +2221,7 @@ class ChangeSet {
    * [label] and a separator if [needsSeparator] is `true`. Return `true` if
    * future lists of sources will need a separator.
    */
-  bool _appendSources2(StringBuffer buffer, HashMap<Source, dynamic> sources,
+  bool _appendSources2(StringBuffer buffer, Map<Source, dynamic> sources,
       bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;

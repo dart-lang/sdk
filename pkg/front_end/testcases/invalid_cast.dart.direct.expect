@@ -20,7 +20,7 @@ class C extends core::Object {
   static method staticFunction(core::int i) → void {}
 }
 class D extends self::C {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::C::•()
     ;
 }

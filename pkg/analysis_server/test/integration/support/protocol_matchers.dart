@@ -436,6 +436,88 @@ final Matcher isFileKind = new MatchesEnum("FileKind", ["LIBRARY", "PART"]);
 final Matcher isFilePath = isString;
 
 /**
+ * FlutterOutline
+ *
+ * {
+ *   "kind": FlutterOutlineKind
+ *   "offset": int
+ *   "length": int
+ *   "label": optional String
+ *   "dartElement": optional Element
+ *   "attributes": optional List<FlutterOutlineAttribute>
+ *   "className": optional String
+ *   "parentAssociationLabel": optional String
+ *   "variableName": optional String
+ *   "children": optional List<FlutterOutline>
+ * }
+ */
+final Matcher isFlutterOutline =
+    new LazyMatcher(() => new MatchesJsonObject("FlutterOutline", {
+          "kind": isFlutterOutlineKind,
+          "offset": isInt,
+          "length": isInt
+        }, optionalFields: {
+          "label": isString,
+          "dartElement": isElement,
+          "attributes": isListOf(isFlutterOutlineAttribute),
+          "className": isString,
+          "parentAssociationLabel": isString,
+          "variableName": isString,
+          "children": isListOf(isFlutterOutline)
+        }));
+
+/**
+ * FlutterOutlineAttribute
+ *
+ * {
+ *   "name": String
+ *   "label": String
+ *   "literalValueBoolean": optional bool
+ *   "literalValueInteger": optional int
+ *   "literalValueString": optional String
+ * }
+ */
+final Matcher isFlutterOutlineAttribute =
+    new LazyMatcher(() => new MatchesJsonObject("FlutterOutlineAttribute", {
+          "name": isString,
+          "label": isString
+        }, optionalFields: {
+          "literalValueBoolean": isBool,
+          "literalValueInteger": isInt,
+          "literalValueString": isString
+        }));
+
+/**
+ * FlutterOutlineKind
+ *
+ * enum {
+ *   DART_ELEMENT
+ *   GENERIC
+ *   NEW_INSTANCE
+ *   INVOCATION
+ *   VARIABLE
+ *   PLACEHOLDER
+ * }
+ */
+final Matcher isFlutterOutlineKind = new MatchesEnum("FlutterOutlineKind", [
+  "DART_ELEMENT",
+  "GENERIC",
+  "NEW_INSTANCE",
+  "INVOCATION",
+  "VARIABLE",
+  "PLACEHOLDER"
+]);
+
+/**
+ * FlutterService
+ *
+ * enum {
+ *   OUTLINE
+ * }
+ */
+final Matcher isFlutterService = new MatchesEnum("FlutterService", ["OUTLINE"]);
+
+/**
  * FoldingKind
  *
  * enum {
@@ -2321,6 +2403,34 @@ final Matcher isExtractMethodOptions =
           "parameters": isListOf(isRefactoringMethodParameter),
           "extractAll": isBool
         }));
+
+/**
+ * flutter.outline params
+ *
+ * {
+ *   "file": FilePath
+ *   "outline": FlutterOutline
+ * }
+ */
+final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
+    new MatchesJsonObject("flutter.outline params",
+        {"file": isFilePath, "outline": isFlutterOutline}));
+
+/**
+ * flutter.setSubscriptions params
+ *
+ * {
+ *   "subscriptions": Map<FlutterService, List<FilePath>>
+ * }
+ */
+final Matcher isFlutterSetSubscriptionsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("flutter.setSubscriptions params",
+        {"subscriptions": isMapOf(isFlutterService, isListOf(isFilePath))}));
+
+/**
+ * flutter.setSubscriptions result
+ */
+final Matcher isFlutterSetSubscriptionsResult = isNull;
 
 /**
  * inlineLocalVariable feedback

@@ -1,0 +1,49 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → core::int;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  method foo() → core::int
+    return 1.{core::num::+}([@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::C::";
+  method foo() → core::int
+    throw "TFA Error: #lib::C::foo";
+}
+class Base extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → core::int
+    return 3.{core::num::+}([@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
+  method doCall(dynamic x) → core::int
+    return x.call() as{TypeError} core::int;
+}
+class TearOffSuperMethod extends self::Base {
+  synthetic constructor •() → void
+    : super self::Base::•()
+    ;
+  method foo() → core::int
+    throw "TFA Error: #lib::TearOffSuperMethod::foo";
+  method bar() → core::int
+    return [@vm.direct-call.metadata=#lib::Base::doCall] this.{self::Base::doCall}(super.{self::Base::foo});
+}
+static field self::A aa = new self::B::•();
+static method knownResult() → dynamic
+  return new self::B::•();
+static method main(core::List<core::String> args) → dynamic {
+  [@vm.direct-call.metadata=#lib::TearOffSuperMethod::bar] new self::TearOffSuperMethod::•().{self::TearOffSuperMethod::bar}();
+  [@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=#lib::B] self::aa.{self::A::foo}();
+}

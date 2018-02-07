@@ -9,6 +9,7 @@ html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 mirrors/deferred_type_test: StaticWarning, OK # Deliberately refers to a deferred type in a declaration.
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
+mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK
 mirrors/mirrors_nsm_test: StaticWarning, OK
 mirrors/mirrors_nsm_test/dart2js: StaticWarning, OK

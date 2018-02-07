@@ -160,6 +160,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
+  }
+  for (int i = 0; i < typeParameters.length; ++i) {
     freshParameters[i].bound = substitute(typeParameters[i].bound, map);
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
@@ -171,7 +173,19 @@ class FreshTypeParameters {
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
+  FunctionType applyToFunctionType(FunctionType type) => new FunctionType(
+      type.positionalParameters.map(substitute).toList(),
+      substitute(type.returnType),
+      namedParameters: type.namedParameters.map(substituteNamed).toList(),
+      typeParameters: freshTypeParameters,
+      requiredParameterCount: type.requiredParameterCount,
+      positionalParameterNames: type.positionalParameterNames,
+      typedefReference: type.typedefReference);
+
   DartType substitute(DartType type) => substitution.substituteType(type);
+
+  NamedType substituteNamed(NamedType type) =>
+      new NamedType(type.name, substitute(type.type));
 
   Supertype substituteSuper(Supertype type) {
     return substitution.substituteSupertype(type);

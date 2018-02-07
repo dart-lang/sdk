@@ -565,6 +565,30 @@ StaticOperator:
   script:
     - "class C { static operator +(int x) => x + 1; }"
 
+BreakOutsideOfLoop:
+  template: "A break statement can't be used outside of a loop or switch statement."
+  tip: "Try removing the break statement."
+  analyzerCode: BREAK_OUTSIDE_OF_LOOP
+  dart2jsCode: "*ignored*"
+  script:
+    - "main() { break; }"
+
+ContinueOutsideOfLoop:
+  template: "A continue statement can't be used outside of a loop or switch statement."
+  tip: "Try removing the continue statement."
+  analyzerCode: CONTINUE_OUTSIDE_OF_LOOP
+  dart2jsCode: "*ignored*"
+  script:
+    - "main() { continue; }"
+
+ContinueWithoutLabelInCase:
+  template: "A continue statement in a switch statement must have a label as a target."
+  tip: "Try adding a label associated with one of the case clauses to the continue statement."
+  analyzerCode: CONTINUE_WITHOUT_LABEL_IN_CASE
+  dart2jsCode: "*ignored*"
+  script:
+    - "main() { switch (x) {case 1: continue;} }"
+
 InvalidAwaitFor:
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
   tip: "Try removing the keyword, or use a for-each statement."
@@ -1041,12 +1065,6 @@ InternalProblemUnimplemented:
   template: "Unimplemented #string."
   severity: INTERNAL_PROBLEM
 
-UnimplementedBoundsOnTypeVariables:
-  # Has its own message to make it just a warning.
-  # TODO(askesc): Remove when no longer needed.
-  template: "Unimplemented bounds on type variables."
-  severity: WARNING
-
 InternalProblemUnexpected:
   template: "Expected '#string', but got '#string2'."
   severity: INTERNAL_PROBLEM
@@ -1149,6 +1167,13 @@ DuplicateDeferred:
   template: "An import directive can only have one 'deferred' keyword."
   tip: "Try removing all but one 'deferred' keyword."
   analyzerCode: DUPLICATE_DEFERRED
+  dart2jsCode: "*fatal*"
+
+DeferredTypeAnnotation:
+  template: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
+  tip: "Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_ANNOTATION_DEFERRED_CLASS
   dart2jsCode: "*fatal*"
 
 DuplicatePrefix:
@@ -1398,7 +1423,7 @@ FactoryTopLevelDeclaration:
   template: "Top-level declarations can't be declared to be 'factory'."
   tip: "Try removing the keyword 'factory'."
   analyzerCode: FACTORY_TOP_LEVEL_DECLARATION
-  dart2jsCode: "*ignored*"
+  dart2jsCode: "*fatal*"
   script:
     - "factory class C {}"
 
@@ -1414,7 +1439,7 @@ TopLevelOperator:
   template: "Operators must be declared within a class."
   tip: "Try removing the operator, moving it to a class, or converting it to be a function."
   analyzerCode: TOP_LEVEL_OPERATOR
-  dart2jsCode: "*ignored*"
+  dart2jsCode: "*fatal*"
   script:
     - "operator +(bool x, bool y) => x | y;"
     - "bool operator +(bool x, bool y) => x | y;"
@@ -1675,6 +1700,8 @@ InterpolationInUri:
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."
   tip: "Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
+  analyzerCode: INTEGER_LITERAL_OUT_OF_RANGE
+  dart2jsCode: "*fatal*"
 
 ColonInPlaceOfIn:
   template: "For-in loops use 'in' rather than a colon."
@@ -1826,4 +1853,9 @@ CantInferTypeDueToCircularity:
 
 AmbiguousSupertypes:
   template: "'#name' can't implement both '#type' and '#type2'"
+  severity: ERROR
+
+CantUseSuperBoundedTypeForInstanceCreation:
+  template: "Can't use a super-bounded type for instance creation. Got '#type'."
+  tip: "Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference."
   severity: ERROR

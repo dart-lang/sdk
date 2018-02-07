@@ -72,6 +72,7 @@ enum SnapshotKind {
   kScript,
   kAppAOTBlobs,
   kAppAOTAssembly,
+  kVMAOTAssembly,
 };
 static SnapshotKind snapshot_kind = kCore;
 
@@ -128,7 +129,13 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 }
 
 static const char* kSnapshotKindNames[] = {
-    "core", "core-jit", "script", "app-aot-blobs", "app-aot-assembly", NULL,
+    "core",
+    "core-jit",
+    "script",
+    "app-aot-blobs",
+    "app-aot-assembly",
+    "vm-aot-assembly",
+    NULL,
 };
 
 #define STRING_OPTIONS_LIST(V)                                                 \
@@ -169,7 +176,9 @@ DEFINE_STRING_OPTION_CB(url_mapping,
 DEFINE_CB_OPTION(ProcessEnvironmentOption);
 
 static bool IsSnapshottingForPrecompilation() {
-  return (snapshot_kind == kAppAOTBlobs) || (snapshot_kind == kAppAOTAssembly);
+  return (snapshot_kind == kAppAOTBlobs) ||
+         (snapshot_kind == kAppAOTAssembly) ||
+         (snapshot_kind == kVMAOTAssembly);
 }
 
 static bool SnapshotKindAllowedFromKernel() {
@@ -276,13 +285,15 @@ static int ParseArguments(int argc,
       }
       break;
     }
-  }
-
-  if (IsSnapshottingForPrecompilation() && (entry_points_files->count() == 0)) {
-    Log::PrintErr(
-        "Building an AOT snapshot requires at least one embedder "
-        "entry points manifest.\n\n");
-    return -1;
+    case kVMAOTAssembly: {
+      if ((assembly_filename == NULL) || (*script_name != NULL)) {
+        Log::PrintErr(
+            "Building an AOT snapshot as assembly requires specifying "
+            "an output file for --assembly and a Dart script.\n\n");
+        return -1;
+      }
+      break;
+    }
   }
 
   if (!obfuscate && obfuscation_map_filename != NULL) {
@@ -504,6 +515,8 @@ class DependenciesFileWriter : public ValueObject {
         // WriteDependenciesWithTarget(isolate_snapshot_data_filename);
         // WriteDependenciesWithTarget(isolate_snapshot_instructions_filename);
         break;
+      default:
+        UNREACHABLE();
     }
 
     if (!success_) {
@@ -795,27 +808,12 @@ static void PrintUsage() {
 }
 // clang-format on
 
-static const char StubNativeFunctionName[] = "StubNativeFunction";
+static void LoadEntryPoint(size_t lib_index,
+                           const Dart_QualifiedFunctionName* entry) {
+  if (strcmp(entry->library_uri, "::") == 0) {
+    return;  // Root library always loaded; can't `import '::';`.
+  }
 
-void StubNativeFunction(Dart_NativeArguments arguments) {
-  // This is a stub function for the resolver
-  Dart_SetReturnValue(
-      arguments, Dart_NewApiError("<EMBEDDER DID NOT SETUP NATIVE RESOLVER>"));
-}
-
-static Dart_NativeFunction StubNativeLookup(Dart_Handle name,
-                                            int argument_count,
-                                            bool* auto_setup_scope) {
-  return &StubNativeFunction;
-}
-
-static const uint8_t* StubNativeSymbol(Dart_NativeFunction nf) {
-  return reinterpret_cast<const uint8_t*>(StubNativeFunctionName);
-}
-
-static void SetupStubNativeResolver(size_t lib_index,
-                                    const Dart_QualifiedFunctionName* entry) {
-  // TODO(24686): Remove this.
   Dart_Handle library_string = Dart_NewStringFromCString(entry->library_uri);
   DART_CHECK_VALID(library_string);
   Dart_Handle library = Dart_LookupLibrary(library_string);
@@ -842,29 +840,6 @@ static void SetupStubNativeResolver(size_t lib_index,
   }
 
   DART_CHECK_VALID(library);
-  Dart_Handle result =
-      Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
-  DART_CHECK_VALID(result);
-}
-
-// Iterate over all libraries and setup the stub native lookup. This must be
-// run after |SetupStubNativeResolversForPrecompilation| because the former
-// loads some libraries.
-static void SetupStubNativeResolvers() {
-  Dart_Handle libraries = Dart_GetLoadedLibraries();
-  intptr_t libraries_length;
-  Dart_ListLength(libraries, &libraries_length);
-  for (intptr_t i = 0; i < libraries_length; i++) {
-    Dart_Handle library = Dart_ListGetAt(libraries, i);
-    DART_CHECK_VALID(library);
-    Dart_NativeEntryResolver old_resolver = NULL;
-    Dart_GetNativeResolver(library, &old_resolver);
-    if (old_resolver == NULL) {
-      Dart_Handle result =
-          Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
-      DART_CHECK_VALID(result);
-    }
-  }
 }
 
 static void ImportNativeEntryPointLibrariesIntoRoot(
@@ -880,17 +855,18 @@ static void ImportNativeEntryPointLibrariesIntoRoot(
       // The termination sentinel has null members.
       break;
     }
-    Dart_Handle entry_library =
-        Dart_LookupLibrary(Dart_NewStringFromCString(entry.library_uri));
-    DART_CHECK_VALID(entry_library);
-    Dart_Handle import_result = Dart_LibraryImportLibrary(
-        entry_library, Dart_RootLibrary(), Dart_EmptyString());
-    DART_CHECK_VALID(import_result);
+    if (strcmp(entry.library_uri, "::") != 0) {
+      Dart_Handle entry_library =
+          Dart_LookupLibrary(Dart_NewStringFromCString(entry.library_uri));
+      DART_CHECK_VALID(entry_library);
+      Dart_Handle import_result = Dart_LibraryImportLibrary(
+          entry_library, Dart_RootLibrary(), Dart_EmptyString());
+      DART_CHECK_VALID(import_result);
+    }
   }
 }
 
-static void SetupStubNativeResolversForPrecompilation(
-    const Dart_QualifiedFunctionName* entries) {
+static void LoadEntryPoints(const Dart_QualifiedFunctionName* entries) {
   if (entries == NULL) {
     return;
   }
@@ -903,8 +879,8 @@ static void SetupStubNativeResolversForPrecompilation(
       // The termination sentinel has null members.
       break;
     }
-    // Setup stub resolvers on loaded libraries
-    SetupStubNativeResolver(index, &entry);
+    // Ensure library named in entry point is loaded.
+    LoadEntryPoint(index, &entry);
   }
 }
 
@@ -1439,8 +1415,7 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
 
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
-    SetupStubNativeResolversForPrecompilation(entry_points);
-    SetupStubNativeResolvers();
+
     CreateAndWritePrecompiledSnapshot(entry_points);
 
     CreateAndWriteDependenciesFile();
@@ -1601,6 +1576,20 @@ int main(int argc, char** argv) {
   Dart_Handle library;
   Dart_EnterScope();
 
+  if (snapshot_kind == kVMAOTAssembly) {
+    uint8_t* assembly_buffer = NULL;
+    intptr_t assembly_size = 0;
+    result =
+        Dart_CreateVMAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
+    CHECK_RESULT(result);
+
+    WriteFile(assembly_filename, assembly_buffer, assembly_size);
+
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return 0;
+  }
+
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
@@ -1667,17 +1656,18 @@ int main(int argc, char** argv) {
       AddDependency(commandline_packages_file);
     }
 
-    SetupStubNativeResolversForPrecompilation(entry_points);
+    ASSERT(kernel_program == NULL);
 
-    SetupStubNativeResolvers();
+    // Load any libraries named in the entry points. Do this before loading the
+    // user's script to ensure conditional imports see the embedder-specific
+    // dart: libraries.
+    LoadEntryPoints(entry_points);
 
-    if (kernel_program == NULL) {
-      // Load the specified script.
-      library = LoadSnapshotCreationScript(app_script_name);
-      CHECK_RESULT(library);
+    // Load the specified script.
+    library = LoadSnapshotCreationScript(app_script_name);
+    CHECK_RESULT(library);
 
-      ImportNativeEntryPointLibrariesIntoRoot(entry_points);
-    }
+    ImportNativeEntryPointLibrariesIntoRoot(entry_points);
 
     // Ensure that we mark all libraries as loaded.
     result = Dart_FinalizeLoading(false);

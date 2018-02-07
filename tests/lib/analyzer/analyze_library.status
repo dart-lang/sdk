@@ -25,7 +25,7 @@ lib/web_gl/dartium/web_gl_dartium: Skip # TODO: Remove Dartium
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError # Issue 16522
 lib/web_sql/dartium/web_sql_dartium: Skip # TODO: Remove Dartium
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dart2analyzer && $use_sdk ]

@@ -112,6 +112,47 @@ abstract class _IntListMixin implements List<int> {
 
   List<int> _createList(int length);
 
+  List<R> cast<R>() {
+    List<Object> self = this;
+    return self is List<R> ? self : List.castFrom<int, R>(this);
+  }
+
+  List<R> retype<R>() => List.castFrom<int, R>(this);
+
+  void set first(int value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[0] = value;
+  }
+
+  void set last(int value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[this.length - 1] = value;
+  }
+
+  int indexWhere(bool test(int element), [int start = 0]) {
+    if (start < 0) start = 0;
+    for (int i = start; i < length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(int element), [int start]) {
+    if (start == null || start >= this.length) start = this.length - 1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  List<int> operator +(List<int> other) {
+    int totalLength = this.length + other.length;
+    return <int>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
+
   bool contains(Object element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
@@ -298,7 +339,7 @@ abstract class _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int singleWhere(bool test(int element)) {
+  int singleWhere(bool test(int element), {int orElse()}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -313,6 +354,7 @@ abstract class _IntListMixin implements List<int> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -423,6 +465,47 @@ abstract class _DoubleListMixin implements List<double> {
   _ByteBuffer get buffer;
 
   List<double> _createList(int length);
+
+  List<R> cast<R>() {
+    List<Object> self = this;
+    return self is List<R> ? self : List.castFrom<double, R>(this);
+  }
+
+  List<R> retype<R>() => List.castFrom<double, R>(this);
+
+  void set first(double value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[0] = value;
+  }
+
+  void set last(double value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[this.length - 1] = value;
+  }
+
+  int indexWhere(bool test(double element), [int start = 0]) {
+    if (start < 0) start = 0;
+    for (int i = start; i < length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(double element), [int start]) {
+    if (start == null || start >= this.length) start = this.length - 1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  List<double> operator +(List<double> other) {
+    int totalLength = this.length + other.length;
+    return <double>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
 
   bool contains(Object element) {
     var len = this.length;
@@ -613,7 +696,7 @@ abstract class _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element)) {
+  double singleWhere(bool test(double element), {double orElse()}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -628,6 +711,7 @@ abstract class _DoubleListMixin implements List<double> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -738,6 +822,47 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   _ByteBuffer get buffer;
 
   List<Float32x4> _createList(int length);
+
+  List<R> cast<R>() {
+    List<Object> self = this;
+    return self is List<R> ? self : List.castFrom<Float32x4, R>(this);
+  }
+
+  List<R> retype<R>() => List.castFrom<Float32x4, R>(this);
+
+  void set first(Float32x4 value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[0] = value;
+  }
+
+  void set last(Float32x4 value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[this.length - 1] = value;
+  }
+
+  int indexWhere(bool test(Float32x4 element), [int start = 0]) {
+    if (start < 0) start = 0;
+    for (int i = start; i < length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(Float32x4 element), [int start]) {
+    if (start == null || start >= this.length) start = this.length - 1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  List<Float32x4> operator +(List<Float32x4> other) {
+    int totalLength = this.length + other.length;
+    return <Float32x4>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
 
   bool contains(Object element) {
     var len = this.length;
@@ -929,7 +1054,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 singleWhere(bool test(Float32x4 element)) {
+  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -944,6 +1069,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -1057,6 +1183,47 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   _ByteBuffer get buffer;
 
   List<Int32x4> _createList(int length);
+
+  List<R> cast<R>() {
+    List<Object> self = this;
+    return self is List<R> ? self : List.castFrom<Int32x4, R>(this);
+  }
+
+  List<R> retype<R>() => List.castFrom<Int32x4, R>(this);
+
+  void set first(Int32x4 value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[0] = value;
+  }
+
+  void set last(Int32x4 value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[this.length - 1] = value;
+  }
+
+  int indexWhere(bool test(Int32x4 element), [int start = 0]) {
+    if (start < 0) start = 0;
+    for (int i = start; i < length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(Int32x4 element), [int start]) {
+    if (start == null || start >= this.length) start = this.length - 1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  List<Int32x4> operator +(List<Int32x4> other) {
+    int totalLength = this.length + other.length;
+    return <Int32x4>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
 
   bool contains(Object element) {
     var len = this.length;
@@ -1247,7 +1414,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 singleWhere(bool test(Int32x4 element)) {
+  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1262,6 +1429,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -1375,6 +1543,47 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   _ByteBuffer get buffer;
 
   List<Float64x2> _createList(int length);
+
+  List<R> cast<R>() {
+    List<Object> self = this;
+    return self is List<R> ? self : List.castFrom<Float64x2, R>(this);
+  }
+
+  List<R> retype<R>() => List.castFrom<Float64x2, R>(this);
+
+  void set first(Float64x2 value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[0] = value;
+  }
+
+  void set last(Float64x2 value) {
+    if (this.length == 0) throw new RangeError.index(0, this);
+    this[this.length - 1] = value;
+  }
+
+  int indexWhere(bool test(Float64x2 element), [int start = 0]) {
+    if (start < 0) start = 0;
+    for (int i = start; i < length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(Float64x2 element), [int start]) {
+    if (start == null || start >= this.length) start = this.length - 1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  List<Float64x2> operator +(List<Float64x2> other) {
+    int totalLength = this.length + other.length;
+    return <Float64x2>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
 
   bool contains(Object element) {
     var len = this.length;
@@ -1566,7 +1775,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 singleWhere(bool test(Float64x2 element)) {
+  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1581,6 +1790,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 

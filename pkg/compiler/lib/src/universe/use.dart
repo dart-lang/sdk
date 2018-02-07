@@ -23,7 +23,7 @@ import '../elements/types.dart';
 import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../js_model/closure.dart';
-import '../util/util.dart' show Hashing;
+import '../util/util.dart' show equalElements, Hashing;
 import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
@@ -40,14 +40,15 @@ enum DynamicUseKind {
 /// the property is accessed.
 class DynamicUse {
   final Selector selector;
-  final ReceiverConstraint mask;
 
-  DynamicUse(this.selector, this.mask);
+  DynamicUse(this.selector);
 
   bool appliesUnnamed(MemberEntity element, World world) {
     return selector.appliesUnnamed(element) &&
         (mask == null || mask.canHit(element, selector, world));
   }
+
+  ReceiverConstraint get mask => null;
 
   DynamicUseKind get kind {
     if (selector.isGetter) {
@@ -59,15 +60,57 @@ class DynamicUse {
     }
   }
 
-  int get hashCode => selector.hashCode * 13 + mask.hashCode * 17;
+  List<DartType> get typeArguments => const <DartType>[];
+
+  int get hashCode =>
+      Hashing.listHash(typeArguments, Hashing.objectsHash(selector, mask));
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! DynamicUse) return false;
-    return selector == other.selector && mask == other.mask;
+    return selector == other.selector &&
+        mask == other.mask &&
+        equalElements(typeArguments, other.typeArguments);
   }
 
   String toString() => '$selector,$mask';
+}
+
+class GenericDynamicUse extends DynamicUse {
+  final List<DartType> _typeArguments;
+
+  GenericDynamicUse(Selector selector, [this._typeArguments])
+      : super(selector) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${typeArguments?.length ?? 0} were passed.");
+  }
+
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
+}
+
+/// A dynamic use with a receiver constraint.
+///
+/// This is used in the codegen phase where receivers are constrained to a
+/// type mask or similar.
+class ConstrainedDynamicUse extends DynamicUse {
+  final ReceiverConstraint mask;
+  final List<DartType> _typeArguments;
+
+  ConstrainedDynamicUse(Selector selector, this.mask, this._typeArguments)
+      : super(selector) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${_typeArguments?.length ?? 0} were passed.");
+  }
+
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
 enum StaticUseKind {
@@ -77,6 +120,7 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CLOSURE_CALL,
   CALL_METHOD,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
@@ -98,31 +142,35 @@ class StaticUse {
   final Entity element;
   final StaticUseKind kind;
   final int hashCode;
-  final DartType type;
+  final InterfaceType type;
   final CallStructure callStructure;
 
-  StaticUse.internal(Entity element, this.kind, {this.type, this.callStructure})
+  StaticUse.internal(Entity element, this.kind,
+      {this.type, this.callStructure, typeArgumentsHash: 0})
       : this.element = element,
-        this.hashCode =
-            Hashing.objectsHash(element, kind, type, callStructure) {
+        this.hashCode = Hashing.objectsHash(
+            element, kind, type, typeArgumentsHash, callStructure) {
     assert(
         !(element is Element && !element.isDeclaration),
         failedAt(element,
             "Static use element $element must be the declaration element."));
   }
 
+  List<DartType> get typeArguments => null;
+
   /// Invocation of a static or top-level [element] with the given
   /// [callStructure].
   factory StaticUse.staticInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+      FunctionEntity element, CallStructure callStructure,
+      [List<DartType> typeArguments]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
             element,
             "Static invoke element $element must be a top-level "
             "or static method."));
-    return new StaticUse.internal(element, StaticUseKind.INVOKE,
-        callStructure: callStructure);
+    return new GenericStaticUse(
+        element, StaticUseKind.INVOKE, callStructure, typeArguments);
   }
 
   /// Closurization of a static or top-level function [element].
@@ -307,8 +355,8 @@ class StaticUse {
 
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
-  factory StaticUse.typedConstructorInvoke(
-      ConstructorEntity element, CallStructure callStructure, DartType type) {
+  factory StaticUse.typedConstructorInvoke(ConstructorEntity element,
+      CallStructure callStructure, InterfaceType type) {
     assert(type != null,
         failedAt(element, "No type provided for constructor invocation."));
     assert(
@@ -323,8 +371,8 @@ class StaticUse {
 
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
-  factory StaticUse.constConstructorInvoke(
-      ConstructorEntity element, CallStructure callStructure, DartType type) {
+  factory StaticUse.constConstructorInvoke(ConstructorEntity element,
+      CallStructure callStructure, InterfaceType type) {
     assert(type != null,
         failedAt(element, "No type provided for constructor invocation."));
     assert(
@@ -387,6 +435,14 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
   }
 
+  /// An invocation of a local function [element] with the provided
+  /// [callStructure] and [typeArguments].
+  factory StaticUse.closureCall(Local element, CallStructure callStructure,
+      List<DartType> typeArguments) {
+    return new GenericStaticUse(
+        element, StaticUseKind.CLOSURE_CALL, callStructure, typeArguments);
+  }
+
   /// Read of a call [method] on a closureClass.
   factory StaticUse.callMethod(FunctionEntity method) {
     return new StaticUse.internal(method, StaticUseKind.CALL_METHOD);
@@ -421,10 +477,30 @@ class StaticUse {
     return element == other.element &&
         kind == other.kind &&
         type == other.type &&
-        callStructure == other.callStructure;
+        callStructure == other.callStructure &&
+        equalElements(typeArguments, other.typeArguments);
   }
 
-  String toString() => 'StaticUse($element,$kind,$type,$callStructure)';
+  String toString() =>
+      'StaticUse($element,$kind,$type,' '$typeArguments,$callStructure)';
+}
+
+class GenericStaticUse extends StaticUse {
+  final List<DartType> typeArguments;
+
+  GenericStaticUse(Entity entity, StaticUseKind kind,
+      CallStructure callStructure, this.typeArguments)
+      : super.internal(entity, kind,
+            callStructure: callStructure,
+            typeArgumentsHash: Hashing.listHash(typeArguments)) {
+    assert(
+        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
+        failedAt(
+            element,
+            "Type argument count mismatch. Call structure has "
+            "${callStructure?.typeArgumentCount ?? 0} but "
+            "${typeArguments?.length ?? 0} were passed."));
+  }
 }
 
 enum TypeUseKind {
@@ -438,7 +514,7 @@ enum TypeUseKind {
   NATIVE_INSTANTIATION,
 }
 
-/// Use of a [ResolutionDartType].
+/// Use of a [DartType].
 class TypeUse {
   final DartType type;
   final TypeUseKind kind;

@@ -29,11 +29,10 @@ class InstanceCreationTest extends PartialCodeTest {
           '$keyword',
           [
             ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
-          "$keyword _s_()",
-          allFailing: true),
+          "$keyword _s_()"),
       new TestDescriptor(
           '${keyword}_name_unnamed',
           '$keyword A',

@@ -2703,6 +2703,7 @@ typedef enum {
   Dart_kSourceTag,
   Dart_kImportTag,
   Dart_kKernelTag,
+  Dart_kImportResolvedExtensionTag,
 } Dart_LibraryTag;
 
 /**
@@ -2751,6 +2752,13 @@ typedef enum {
  * The dart front end typically compiles all the scripts, imports and part
  * files into one intermediate file hence we don't use the source/import or
  * script tags.
+ *
+ * Dart_kImportResolvedExtensionTag
+ *
+ * This tag is used to load an external import (shared object file) without
+ * performing path resolution first. The 'url' provided should be an absolute
+ * path with the 'file://' schema. It doesn't require the service isolate to be
+ * available and will not initialize a Loader for the isolate.
  */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(
     Dart_LibraryTag tag,
@@ -3127,7 +3135,9 @@ DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
 DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernel(const char* script_uri, const char* platform_kernel);
+Dart_CompileToKernel(const char* script_uri,
+                     const uint8_t* platform_kernel,
+                     const intptr_t platform_kernel_size);
 
 typedef struct {
   const char* uri;
@@ -3135,7 +3145,8 @@ typedef struct {
 } Dart_SourceFile;
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileSourcesToKernel(const char* script_uri,
-                            const char* platform_kernel,
+                            const uint8_t* platform_kernel,
+                            intptr_t platform_kernel_size,
                             int source_files_count,
                             Dart_SourceFile source_files[],
                             bool incremental_compile);

@@ -1559,153 +1559,6 @@ class C implements A, B {
     verify([source]);
   }
 
-  test_instanceMethodNameCollidesWithSuperclassStatic_field() async {
-    Source source = addSource(r'''
-class A {
-  static var n;
-}
-class B extends A {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_field2() async {
-    Source source = addSource(r'''
-class A {
-  static var n;
-}
-class B extends A {
-}
-class C extends B {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_getter() async {
-    Source source = addSource(r'''
-class A {
-  static get n {return 0;}
-}
-class B extends A {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_getter2() async {
-    Source source = addSource(r'''
-class A {
-  static get n {return 0;}
-}
-class B extends A {
-}
-class C extends B {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_interface() async {
-    Source source = addSource(r'''
-class Base {
-  static foo() {}
-}
-abstract class Ifc {
-  foo();
-}
-class C extends Base implements Ifc {
-  foo() {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
-    Source source = addSource(r'''
-class A {
-  static n () {}
-}
-class B extends A {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_method2() async {
-    Source source = addSource(r'''
-class A {
-  static n () {}
-}
-class B extends A {
-}
-class C extends B {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_setter() async {
-    Source source = addSource(r'''
-class A {
-  static set n(int x) {}
-}
-class B extends A {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_instanceMethodNameCollidesWithSuperclassStatic_setter2() async {
-    Source source = addSource(r'''
-class A {
-  static set n(int x) {}
-}
-class B extends A {
-}
-class C extends B {
-  void n() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-    ]);
-    verify([source]);
-  }
-
   test_invalidGetterOverrideReturnType() async {
     Source source = addSource(r'''
 class A {
@@ -2649,6 +2502,53 @@ class C extends A {
     Source source = addSource(r'''
 class I {
   m(p) {}
+}
+class C implements I {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractNSM() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class I {
+  m(p) {}
+}
+class C implements I {
+  noSuchMethod(v);
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
+
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractOverrideNSM() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class I {
+  m(p) {}
+}
+class B {
+  noSuchMethod(v) => null;
+}
+class C extends B implements I {
+  noSuchMethod(v);
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_ifcNSM() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource(r'''
+class I {
+  m(p) {}
+  noSuchMethod(v) => null;
 }
 class C implements I {
 }''');

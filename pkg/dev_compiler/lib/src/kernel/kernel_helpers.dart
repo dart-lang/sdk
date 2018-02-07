@@ -259,3 +259,8 @@ bool isInlineJS(Member e) =>
     e is Procedure &&
     e.name.name == 'JS' &&
     e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
+
+// Check whether we have any covariant parameters.
+// Usually we don't, so we can use the same type.
+bool isCovariant(VariableDeclaration p) =>
+    p.isCovariant || p.isGenericCovariantImpl;

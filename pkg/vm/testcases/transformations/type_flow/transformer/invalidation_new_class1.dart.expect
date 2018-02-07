@@ -1,0 +1,56 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class T1 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class T2 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::T2::";
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method foo() → dynamic;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  method foo() → dynamic
+    return new self::T1::•();
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    throw "TFA Error: #lib::C::";
+  method foo() → dynamic
+    throw "TFA Error: #lib::C::foo";
+}
+class Intermediate extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method bar(self::A aa) → dynamic
+    return [@vm.direct-call.metadata=#lib::B::foo??] [@vm.inferred-type.metadata=#lib::T1] aa.{self::A::foo}();
+}
+static field core::Function unknown;
+static method use1(self::Intermediate i, self::A aa) → dynamic
+  return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=#lib::T1] i.{self::Intermediate::bar}(aa);
+static method use2(self::Intermediate i, self::A aa) → dynamic
+  return [@vm.direct-call.metadata=#lib::Intermediate::bar] [@vm.inferred-type.metadata=#lib::T1] i.{self::Intermediate::bar}(aa);
+static method getDynamic() → dynamic
+  return self::unknown.call();
+static method allocateB() → dynamic {
+  new self::B::•();
+}
+static method main(core::List<core::String> args) → dynamic {
+  self::use1(new self::Intermediate::•(), self::getDynamic() as{TypeError} self::A);
+  self::allocateB();
+  self::use2(new self::Intermediate::•(), self::getDynamic() as{TypeError} self::A);
+}

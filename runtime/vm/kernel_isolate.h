@@ -21,6 +21,7 @@ class KernelIsolate : public AllStatic {
 
   static void Run();
 
+  static bool NameEquals(const char* name);
   static bool Exists();
   static bool IsRunning();
   static bool IsKernelIsolate(const Isolate* isolate);
@@ -29,7 +30,8 @@ class KernelIsolate : public AllStatic {
 
   static Dart_KernelCompilationResult CompileToKernel(
       const char* script_uri,
-      const char* platform_kernel = NULL,
+      const uint8_t* platform_kernel,
+      intptr_t platform_kernel_size,
       int source_files_count = 0,
       Dart_SourceFile source_files[] = NULL,
       bool incremental_compile = false);

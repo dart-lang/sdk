@@ -835,11 +835,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_extendsDisallowedClass_class_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, found 0;
-    //          1 errors of type CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, found 0
     await super.test_extendsDisallowedClass_class_Null();
   }
 
@@ -1078,19 +1074,25 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_implementsDisallowedClass_class_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
     await super.test_implementsDisallowedClass_class_Null();
   }
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
+  test_implementsDisallowedClass_class_String_num() async {
+    await super.test_implementsDisallowedClass_class_String_num();
+  }
+
+  @override
   test_implementsDisallowedClass_classTypeAlias_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, found 0
     await super.test_implementsDisallowedClass_classTypeAlias_Null();
+  }
+
+  @override
+  @failingTest
+  test_implementsDisallowedClass_classTypeAlias_String_num() async {
+    await super.test_implementsDisallowedClass_classTypeAlias_String_num();
   }
 
   @override
@@ -1346,6 +1348,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_instantiateEnum_new() async {
     // Bad state: No type information for E at 47
     await super.test_instantiateEnum_new();
+  }
+
+  @override
+  @failingTest
+  test_integerLiteralOutOfRange_negative() async {
+    // Expected 1 errors of type CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, found 0
+    await super.test_integerLiteralOutOfRange_negative();
+  }
+
+  @override
+  @failingTest
+  test_integerLiteralOutOfRange_positive() async {
+    // Expected 1 errors of type CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE, found 0
+    await super.test_integerLiteralOutOfRange_positive();
   }
 
   @override
@@ -1707,6 +1723,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_mixinInference_matchingClass() =>
+      super.test_mixinInference_matchingClass();
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass() =>
+      super.test_mixinInference_noMatchingClass();
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() =>
+      super
+          .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_namedMixinApplication() =>
+      super.test_mixinInference_noMatchingClass_namedMixinApplication();
+
+  @override
+  @failingTest
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {
     // Expected 1 errors of type CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, found 0
     await super.test_mixinInheritsFromNotObject_classDeclaration_extends();
@@ -1734,18 +1771,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_mixinOfDisallowedClass_class_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
     await super.test_mixinOfDisallowedClass_class_Null();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31817')
   test_mixinOfDisallowedClass_classTypeAlias_Null() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, found 0
     await super.test_mixinOfDisallowedClass_classTypeAlias_Null();
   }
 
@@ -3086,18 +3117,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_yieldInNonGenerator_async() async {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_class_String_num() async {
-    await super.test_implementsDisallowedClass_class_String_num();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_String_num() async {
-    await super.test_implementsDisallowedClass_classTypeAlias_String_num();
   }
 }
 

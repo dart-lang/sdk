@@ -12,7 +12,6 @@ main() {
 
 class ImportDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'import_directive',
         [

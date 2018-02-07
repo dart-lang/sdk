@@ -86,12 +86,11 @@ class UnrelatedClass extends Bar {}
 ''');
   }
 
-  @failingTest
   void test_typing_extends_identifier() {
     testRecovery('''
 class Foo extends CurrentlyTypingHere
 class UnrelatedClass extends Bar {}
-''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+''', [ParserErrorCode.MISSING_CLASS_BODY], '''
 class Foo extends CurrentlyTypingHere {}
 class UnrelatedClass extends Bar {}
 ''');

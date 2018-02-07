@@ -4036,6 +4036,23 @@ main() {
     expectInitializerType('foo', 'int', isNull);
   }
 
+  test_generalizedVoid_assignToVoidOk() async {
+    Source source = addSource(r'''
+void main() {
+  void x;
+  x = 42;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_returnOfInvalidType_object_void() async {
+    await assertErrorsInCode(
+        "Object f() { void voidFn() => null; return voidFn(); }",
+        [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+  }
+
   Future<Null> _objectMethodOnFunctions_helper2(String code) async {
     await resolveTestUnit(code);
     expectIdentifierType('t0', "String");

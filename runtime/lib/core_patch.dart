@@ -36,7 +36,9 @@ import "dart:collection"
         LinkedList,
         LinkedListEntry,
         ListBase,
+        MapBase,
         Maps,
+        UnmodifiableMapBase,
         UnmodifiableMapView;
 
 import "dart:convert" show ascii, Encoding, json, latin1, utf8;
@@ -45,12 +47,14 @@ import "dart:isolate" show Isolate;
 
 import "dart:math" show Random;
 
-import "dart:typed_data" show Uint8List, Int64List, Uint16List, Uint32List;
+import "dart:typed_data"
+    show Endian, Uint8List, Int64List, Uint16List, Uint32List;
 
 /// These are the additional parts of this patch library:
 // part "array.dart";
 // part "array_patch.dart";
 // part "bigint.dart";
+// part "bigint_patch.dart";
 // part "bool_patch.dart";
 // part "date_patch.dart";
 // part "double.dart";

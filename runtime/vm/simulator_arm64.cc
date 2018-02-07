@@ -2091,8 +2091,10 @@ void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
   const Register rs = instr->RsField();
   const Register rn = instr->RnField();
   const Register rt = instr->RtField();
+  ASSERT(instr->Rt2Field() == R31);  // Should-Be-One
   const bool is_load = instr->Bit(22) == 1;
   if (is_load) {
+    ASSERT(rs == R31);  // Should-Be-One
     // Format(instr, "ldxr 'rt, 'rn");
     if (size == 3) {
       const int64_t addr = get_register(rn, R31IsSP);
@@ -2541,6 +2543,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     }
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 2) &&
              (instr->Bit(15) == 0)) {
+    ASSERT(ra == R31);  // Should-Be-One
     // Format(instr, "smulh 'rd, 'rn, 'rm");
     const int64_t rn_val = get_register(rn, R31IsZR);
     const int64_t rm_val = get_register(rm, R31IsZR);
@@ -2556,6 +2559,7 @@ void Simulator::DecodeMiscDP3Source(Instr* instr) {
     set_register(instr, rd, alu_out, R31IsZR);
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(21, 3) == 6) &&
              (instr->Bit(15) == 0)) {
+    ASSERT(ra == R31);  // Should-Be-One
     // Format(instr, "umulh 'rd, 'rn, 'rm");
     const uint64_t rn_val = get_register(rn, R31IsZR);
     const uint64_t rm_val = get_register(rm, R31IsZR);

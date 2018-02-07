@@ -5,3 +5,8 @@
 dynamic m(x) => null;
 
 var x = 0;
+
+class C {
+  static int y = 1;
+  static int m() => 2;
+}

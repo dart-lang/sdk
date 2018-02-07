@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef fn = (dynamic) → dynamic;
 typedef fn2 = (dynamic, dynamic) → dynamic;
 class X extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }

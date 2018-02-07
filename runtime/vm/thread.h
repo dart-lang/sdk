@@ -31,6 +31,7 @@ class Function;
 class GrowableObjectArray;
 class HandleScope;
 class Heap;
+class HierarchyInfo;
 class Instance;
 class Isolate;
 class Library;
@@ -333,6 +334,18 @@ class Thread : public BaseThread {
   void set_cha(CHA* value) {
     ASSERT(isolate_ != NULL);
     cha_ = value;
+  }
+
+  HierarchyInfo* hierarchy_info() const {
+    ASSERT(isolate_ != NULL);
+    return hierarchy_info_;
+  }
+
+  void set_hierarchy_info(HierarchyInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((hierarchy_info_ == NULL && value != NULL) ||
+           (hierarchy_info_ != NULL && value == NULL));
+    hierarchy_info_ = value;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -774,6 +787,7 @@ class Thread : public BaseThread {
 
   // Compiler state:
   CHA* cha_;
+  HierarchyInfo* hierarchy_info_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 

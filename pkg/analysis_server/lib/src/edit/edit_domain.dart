@@ -177,6 +177,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       try {
         AssistProcessor processor = new AssistProcessor(dartAssistContext);
         List<Assist> assists = await processor.compute();
+        assists.sort(Assist.SORT_BY_RELEVANCE);
         for (Assist assist in assists) {
           changes.add(assist.change);
         }

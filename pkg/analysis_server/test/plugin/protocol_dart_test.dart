@@ -168,6 +168,56 @@ class A {
     expect(element.flags, Element.FLAG_CONST);
   }
 
+  test_fromElement_CONSTRUCTOR_required_parameters_1() async {
+    addMetaPackageSource();
+    engine.Source source = addSource('/test.dart', '''
+import 'package:meta/meta.dart';    
+class A {
+  const A.myConstructor(int a, {int b, @required int c});
+}''');
+
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.parameters, '(int a, {int c, int b})');
+  }
+
+  // Verify parameter re-ordering for required params
+  test_fromElement_CONSTRUCTOR_required_parameters_2() async {
+    addMetaPackageSource();
+    engine.Source source = addSource('/test.dart', '''
+import 'package:meta/meta.dart';    
+class A {
+  const A.myConstructor(int a, {int b, @required int d, @required int c});
+}''');
+
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.parameters, '(int a, {int d, int c, int b})');
+  }
+
+  // Verify parameter re-ordering for required params
+  test_fromElement_CONSTRUCTOR_required_parameters_3() async {
+    addMetaPackageSource();
+    engine.Source source = addSource('/test.dart', '''
+import 'package:meta/meta.dart';    
+class A {
+  const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
+}''');
+
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.parameters, '(int a, {int d, int c, int b, int a})');
+  }
+
   void test_fromElement_dynamic() {
     var engineElement = engine.DynamicElementImpl.instance;
     // create notification Element

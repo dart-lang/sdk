@@ -297,19 +297,13 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
     if ($typeArgs == null) {
       $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
-      // TODO(jmesserly): is this the right error?
-      $throwTypeError(
-          'incorrect number of arguments to generic function ' +
-          $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
-          formalCount + '.');
+      return callNSM();
     } else {
       $ftype.checkBounds($typeArgs);
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
-    $throwTypeError(
-        'got type arguments to non-generic function ' + $typeName($ftype) +
-        ', got <' + $typeArgs + '> expected none.');
+    return callNSM();
   }
 
   if ($_checkApply($ftype, $args)) {
@@ -445,10 +439,7 @@ final _ignoreTypeFailure = JS('', '''(() => {
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
         !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
         !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
-        $_isFunctionType(type) && $_isFunctionType(actual) ||
-        !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||
-        !!$isSubtype(type, $StreamSubscription) &&
-        !!$isSubtype(actual, $StreamSubscription)) {
+        !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream)) {
       console.warn('Ignoring cast fail from ' + $typeName(actual) +
                    ' to ' + $typeName(type));
       return true;

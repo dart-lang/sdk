@@ -459,7 +459,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.hasNoSupertype = isCoreLibrary && name == 'Object';
     }
     if (withClause != null) {
-      b.mixins = withClause.mixinTypes.map(serializeType).toList();
+      b.mixins = withClause.mixinTypes.map(serializeMixedInType).toList();
     }
     if (implementsClause != null) {
       b.interfaces = implementsClause.interfaces.map(serializeType).toList();
@@ -919,6 +919,19 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
       return b;
     }
+  }
+
+  /**
+   * Serialize a type name that appears in a "with" clause to an [EntityRef].
+   */
+  EntityRefBuilder serializeMixedInType(TypeAnnotation node) {
+    var builder = serializeType(node);
+    if (builder != null && builder.typeArguments.isEmpty) {
+      // Type arguments may get inferred so we need to assign a slot to hold the
+      // complete inferred mixed in type.
+      builder.refinedSlot = assignSlot();
+    }
+    return builder;
   }
 
   /**

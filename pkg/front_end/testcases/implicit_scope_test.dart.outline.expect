@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class ImplicitScopeTest extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   static method alwaysTrue() → core::bool
     ;

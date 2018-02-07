@@ -10,11 +10,11 @@ class A extends core::Object {
 }
 class M1 extends core::Object {
   field core::num v2;
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class C = self::A with self::M1 {
-  constructor •(core::bool v1, core::num v2) → void
+  synthetic constructor •(core::bool v1, core::num v2) → void
     : super self::A::•(v1, v2)
     ;
 }

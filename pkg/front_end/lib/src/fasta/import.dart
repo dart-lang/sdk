@@ -37,6 +37,10 @@ class Import {
 
   final int prefixCharOffset;
 
+  // The LibraryBuilder for the imported library ('imported') may be null when
+  // this field is set.
+  final Uri nativeImportUri;
+
   Import(
       this.importer,
       this.imported,
@@ -45,13 +49,15 @@ class Import {
       this.combinators,
       this.configurations,
       this.charOffset,
-      this.prefixCharOffset)
+      this.prefixCharOffset,
+      {this.nativeImportUri})
       : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
             combinators, deferred, charOffset, prefixCharOffset);
 
   Uri get fileUri => importer.fileUri;
 
   void finalizeImports(LibraryBuilder importer) {
+    if (nativeImportUri != null) return;
     AddToScope add;
     if (prefixBuilder == null) {
       add = (String name, Builder member) {

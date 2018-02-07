@@ -348,7 +348,8 @@ class MiniAstBuilder extends StackListener {
     push(popList(count) ?? NullValue.Metadata);
   }
 
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     debugEvent("Method");
     pop(); // Body
     pop(); // Initializers

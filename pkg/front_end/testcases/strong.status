@@ -55,7 +55,7 @@ redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryCon
 redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparambounds_test: VerificationError # Incorrect references to class type parameters. Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 statements: Fail
 stringliteral: Fail
 super_rasta_copy: TypeCheckError
@@ -67,7 +67,6 @@ uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
 warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
-check_deferred_read: Fail
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/conflicts_can_happen: TypeCheckError
@@ -180,7 +179,6 @@ rasta/super: TypeCheckError
 rasta/super_initializer: Fail
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: Fail
-rasta/supports_reflection: VerificationError
 rasta/switch_execution_case_t02: Fail
 rasta/switch_fall_through: Fail
 rasta/this_invoke: Fail
@@ -200,6 +198,7 @@ regress/issue_29982: Fail # Issue 29982.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31155: Crash # Issue 31155.
 regress/issue_31184: TypeCheckError
+regress/issue_31299: TypeCheckError
 
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
@@ -219,3 +218,5 @@ rasta/foo: RuntimeError # Expected, this file has no main method.
 incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+
+external_import: RuntimeError # The native extension to import doesn't exist. This is ok.

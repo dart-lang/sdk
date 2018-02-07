@@ -28,7 +28,8 @@ import '../options.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
+import '../universe/use.dart'
+    show ConstantUse, ConstrainedDynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
@@ -1828,7 +1829,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      _registry.registerDynamicUse(new DynamicUse(call, null));
+      _registry.registerDynamicUse(
+          new ConstrainedDynamicUse(call, null, node.typeArguments));
     }
     if (target != null) {
       // This is a dynamic invocation which we have found to have a single
@@ -1841,7 +1843,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new StaticUse.directInvoke(target, selector.callStructure));
     } else {
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-      _registry.registerDynamicUse(new DynamicUse(selector, mask));
+      _registry.registerDynamicUse(
+          new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
   }
 
@@ -1855,7 +1858,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Selector selector = node.selector;
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-      _registry.registerDynamicUse(new DynamicUse(selector, mask));
+      _registry.registerDynamicUse(
+          new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
   }
 
@@ -1871,7 +1875,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       Selector selector = node.selector;
       TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-      _registry.registerDynamicUse(new DynamicUse(selector, mask));
+      _registry.registerDynamicUse(
+          new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
   }
 
@@ -1900,7 +1905,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .propertyCall(
             pop(), _namer.invocationName(call), visitArguments(node.inputs))
         .withSourceInformation(node.sourceInformation));
-    _registry.registerDynamicUse(new DynamicUse(call, null));
+    // TODO(kasperl): If we have a typed selector for the call, we
+    // may know something about the types of closures that need
+    // the specific closure call method.
+    _registry.registerDynamicUse(
+        new ConstrainedDynamicUse(call, null, node.typeArguments));
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1939,10 +1948,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       push(js.js('# || #', [arguments[0], right]).withSourceInformation(
           node.sourceInformation));
     } else {
-      CallStructure callStructure = new CallStructure.unnamed(arguments.length);
+      CallStructure callStructure = new CallStructure.unnamed(
+          arguments.length, node.typeArguments.length);
       _registry.registerStaticUse(element.isConstructor
           ? new StaticUse.constructorInvoke(element, callStructure)
-          : new StaticUse.staticInvoke(element, callStructure));
+          : new StaticUse.staticInvoke(
+              element, callStructure, node.typeArguments));
       push(_emitter.staticFunctionAccess(element));
       push(new js.Call(pop(), arguments,
           sourceInformation: node.sourceInformation));
@@ -1979,7 +1990,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // dispatch to ensure the super method is invoked.
           FunctionEntity helper = _commonElements.closureFromTearOff;
           _registry.registerStaticUse(new StaticUse.staticInvoke(
-              helper, new CallStructure.unnamed(node.inputs.length)));
+              helper,
+              new CallStructure.unnamed(
+                  node.inputs.length, node.typeArguments.length),
+              node.typeArguments));
           _registry.registerStaticUse(new StaticUse.superTearOff(node.element));
           methodName = _namer.invocationName(selector);
         } else {

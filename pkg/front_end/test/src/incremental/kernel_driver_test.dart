@@ -1020,14 +1020,14 @@ import 'b.dart';
         if (result.library.importUri == uri) return result.library;
       }
     }
-    throw fail('No library found with URI "$uri"');
+    fail('No library found with URI "$uri"');
   }
 
   Library _getLibraryFromProgram(Program program, Uri uri) {
     for (var library in program.libraries) {
       if (library.importUri == uri) return library;
     }
-    throw fail('No library found with URI "$uri"');
+    fail('No library found with URI "$uri"');
   }
 
   String _getLibraryText(Library library) {

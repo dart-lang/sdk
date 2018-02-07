@@ -129,7 +129,7 @@ dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 dart/optimized_stacktrace_line_test: StaticWarning
 dart/optimized_stacktrace_line_and_column_test: StaticWarning
 
-[ $compiler == dart2analyzer && $builder_tag == strong ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == app_jit ]

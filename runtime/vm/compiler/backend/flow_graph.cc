@@ -1457,8 +1457,8 @@ static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
 
-static bool CanConvertUnboxedMintToDouble() {
-  return FlowGraphCompiler::CanConvertUnboxedMintToDouble();
+static bool CanConvertInt64ToDouble() {
+  return FlowGraphCompiler::CanConvertInt64ToDouble();
 }
 
 void FlowGraph::InsertConversion(Representation from,
@@ -1488,12 +1488,12 @@ void FlowGraph::InsertConversion(Representation from,
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
   } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&
-             CanConvertUnboxedMintToDouble()) {
+             CanConvertInt64ToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
                                   : Thread::kNoDeoptId;
     ASSERT(CanUnboxDouble());
-    converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
+    converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()

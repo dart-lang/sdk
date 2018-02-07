@@ -81,3 +81,7 @@ server calls. This file is validated by `coverage_test.dart`.
 
 ## kythe domain
 - [x] kythe.getKytheEntries
+
+## flutter domain
+- [ ] flutter.setSubscriptions
+- [ ] flutter.outline

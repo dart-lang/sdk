@@ -9605,6 +9605,12 @@ class DirectoryEntry extends Entry {
         options: {'create': true, 'exclusive': exclusive});
   }
 
+  DirectoryReader createReader() {
+    DirectoryReader reader = _createReader();
+    applyExtension('DirectoryReader', reader);
+    return reader;
+  }
+
   /**
    * Retrieve an already existing directory entry. The returned future will
    * result in an error if a directory at `path` does not exist or if the item
@@ -9637,16 +9643,17 @@ class DirectoryEntry extends Entry {
     throw new UnsupportedError("Not supported");
   }
 
+  @JSName('createReader')
   @DomName('DirectoryEntry.createReader')
   @DocsEditable()
-  DirectoryReader createReader() native;
+  DirectoryReader _createReader() native;
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable()
   void __getDirectory(String path,
-      {Map options,
+      [Map options,
       _EntryCallback successCallback,
-      _ErrorCallback errorCallback}) {
+      _ErrorCallback errorCallback]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -9689,9 +9696,9 @@ class DirectoryEntry extends Entry {
   @DocsEditable()
   Future<Entry> _getDirectory(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    __getDirectory(path, options: options, successCallback: (value) {
+    __getDirectory(path, options, (value) {
       completer.complete(value);
-    }, errorCallback: (error) {
+    }, (error) {
       completer.completeError(error);
     });
     return completer.future;
@@ -9700,9 +9707,9 @@ class DirectoryEntry extends Entry {
   @DomName('DirectoryEntry.getFile')
   @DocsEditable()
   void __getFile(String path,
-      {Map options,
+      [Map options,
       _EntryCallback successCallback,
-      _ErrorCallback errorCallback}) {
+      _ErrorCallback errorCallback]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getFile_1(path, options_1, successCallback, errorCallback);
@@ -9745,10 +9752,10 @@ class DirectoryEntry extends Entry {
   @DocsEditable()
   Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    __getFile(path, options: options, successCallback: (value) {
+    __getFile(path, options, (value) {
       applyExtension('FileEntry', value);
       completer.complete(value);
-    }, errorCallback: (error) {
+    }, (error) {
       completer.completeError(error);
     });
     return completer.future;
@@ -9773,11 +9780,10 @@ class DirectoryEntry extends Entry {
     return completer.future;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
 @DomName('DirectoryReader')
 // http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
 @Experimental()
@@ -9794,16 +9800,16 @@ class DirectoryReader extends Interceptor {
   void _readEntries(_EntriesCallback successCallback,
       [_ErrorCallback errorCallback]) native;
 
-  @JSName('readEntries')
   @DomName('DirectoryReader.readEntries')
   @DocsEditable()
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
     _readEntries((value) {
-      completer.complete(value);
+      completer.complete(new List<Entry>.from(value));
     }, (error) {
       completer.completeError(error);
     });
+
     return completer.future;
   }
 }
@@ -16304,18 +16310,18 @@ class Entry extends Interceptor {
   @DomName('Entry.copyTo')
   @DocsEditable()
   void _copyTo(DirectoryEntry parent,
-      {String name,
+      [String name,
       _EntryCallback successCallback,
-      _ErrorCallback errorCallback}) native;
+      _ErrorCallback errorCallback]) native;
 
   @JSName('copyTo')
   @DomName('Entry.copyTo')
   @DocsEditable()
   Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
-    _copyTo(parent, name: name, successCallback: (value) {
+    _copyTo(parent, name, (value) {
       completer.complete(value);
-    }, errorCallback: (error) {
+    }, (error) {
       completer.completeError(error);
     });
     return completer.future;
@@ -16333,6 +16339,7 @@ class Entry extends Interceptor {
   Future<Metadata> getMetadata() {
     var completer = new Completer<Metadata>();
     _getMetadata((value) {
+      applyExtension('Metadata', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -16363,18 +16370,18 @@ class Entry extends Interceptor {
   @DomName('Entry.moveTo')
   @DocsEditable()
   void _moveTo(DirectoryEntry parent,
-      {String name,
+      [String name,
       _EntryCallback successCallback,
-      _ErrorCallback errorCallback}) native;
+      _ErrorCallback errorCallback]) native;
 
   @JSName('moveTo')
   @DomName('Entry.moveTo')
   @DocsEditable()
   Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
-    _moveTo(parent, name: name, successCallback: (value) {
+    _moveTo(parent, name, (value) {
       completer.complete(value);
-    }, errorCallback: (error) {
+    }, (error) {
       completer.completeError(error);
     });
     return completer.future;
@@ -17213,6 +17220,16 @@ class File extends Blob {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+@DomName('FileCallback')
+// http://www.w3.org/TR/file-system-api/#the-filecallback-interface
+@Experimental()
+typedef void _FileCallback(File file);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 @DocsEditable()
 @DomName('FileEntry')
 // http://www.w3.org/TR/file-system-api/#the-fileentry-interface
@@ -17247,16 +17264,16 @@ class FileEntry extends Entry {
   @JSName('file')
   @DomName('FileEntry.file')
   @DocsEditable()
-  void _file(BlobCallback successCallback, [_ErrorCallback errorCallback])
+  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback])
       native;
 
   @JSName('file')
   @DomName('FileEntry.file')
   @DocsEditable()
-  Future<Blob> file() {
-    var completer = new Completer<Blob>();
+  Future<File> file() {
+    var completer = new Completer<File>();
     _file((value) {
-      applyExtension('Blob', value);
+      applyExtension('File', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -33064,7 +33081,7 @@ class SpeechSynthesisVoice extends Interceptor {
 @DomName('Storage')
 @Unstable()
 @Native("Storage")
-class Storage extends Interceptor implements Map<String, String> {
+class Storage extends Interceptor with MapMixin<String, String> {
   void addAll(Map<String, String> other) {
     other.forEach((k, v) {
       this[k] = v;
@@ -41436,7 +41453,7 @@ abstract class _WorkletGlobalScope extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class _AttributeMap implements Map<String, String> {
+abstract class _AttributeMap extends MapBase<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
@@ -41446,6 +41463,13 @@ abstract class _AttributeMap implements Map<String, String> {
       this[k] = v;
     });
   }
+
+  Map<K, V> cast<K, V>() {
+    Map<Object, Object> self = this;
+    return self is Map<K, V> ? self : Map.castFrom<String, String, K, V>(this);
+  }
+
+  Map<K, V> retype<K, V>() => Map.castFrom<String, String, K, V>(this);
 
   bool containsValue(Object value) {
     for (var v in this.values) {
@@ -41594,7 +41618,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap implements Map<String, String> {
+class _DataAttributeMap extends MapBase<String, String> {
   final Map<String, String> _attributes;
 
   _DataAttributeMap(this._attributes);
@@ -41606,6 +41630,13 @@ class _DataAttributeMap implements Map<String, String> {
       this[k] = v;
     });
   }
+
+  Map<K, V> cast<K, V>() {
+    Map<Object, Object> self = this;
+    return self is Map<K, V> ? self : Map.castFrom<String, String, K, V>(this);
+  }
+
+  Map<K, V> retype<K, V>() => Map.castFrom<String, String, K, V>(this);
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object value) => values.any((v) => v == value);
@@ -43623,7 +43654,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     return new FixedSizeListIterator<E>(this);
   }
 
-  // From Collection<E>:
+  // From List<E>:
   void add(E value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -43632,7 +43663,6 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<E>:
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }

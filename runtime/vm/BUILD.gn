@@ -17,7 +17,6 @@ import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
 import("../../utils/compile_platform.gni")
-import("../../utils/generate_patch_sdk.gni")
 import("../bin/io_sources.gni")
 import("../bin/cli_sources.gni")
 import("../lib/async_sources.gni")
@@ -38,10 +37,7 @@ import("vm_sources.gni")
 
 config("libdart_vm_config") {
   if (is_fuchsia) {
-    libs = [
-      "zircon",
-      "trace-engine",
-    ]
+    libs = [ "zircon" ]
   } else if (is_win) {
     libs = [
       "advapi32.lib",
@@ -80,7 +76,8 @@ template("build_libdart_vm") {
 
         # TODO(zra): When the platform-specific timeline code is moved out to
         # the embedder, this can go away.
-        "//zircon/system/ulib/fbl",
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
       ]
     }
     public_configs = [ ":libdart_vm_config" ]
@@ -455,133 +452,6 @@ generate_core_libraries("core_libraries") {
                typed_data_runtime_sources + vmservice_runtime_sources
 }
 
-template("concatenate_patch") {
-  assert(defined(invoker.libsources), "Need a sources in $target_name")
-  assert(defined(invoker.output), "Need an output in $target_name")
-
-  process_library_source(target_name) {
-    libsources = invoker.libsources
-    inputs = []
-    output = invoker.output
-    script = "../tools/concatenate_patches.py"
-    args = [
-      "--output",
-      rebase_path(output, root_build_dir),
-    ]
-  }
-}
-
-template("generate_vm_patched_sdk") {
-  assert(defined(invoker.libraries), "Need libraries in $target_name")
-
-  concatenation_target_names = []
-
-  # Concatenate vm library patches.
-  foreach(library, invoker.libraries) {
-    name = library[0]
-
-    target_output = "$target_gen_dir/patches/${name}_patch.dart"
-    concatenate_patch("concatenate_${name}_patch") {
-      libsources = rebase_path(library[1], ".", library[2])
-      output = target_output
-    }
-    concatenation_target_names += [ ":concatenate_${name}_patch" ]
-  }
-
-  patched_sdk_dir = "patched_sdk"
-
-  other_outputs = [
-    # Instead of listing all outputs we list those consumed by
-    # other BUILD rules.
-    "$root_out_dir/$patched_sdk_dir/lib/libraries.json",
-  ]
-
-  # Build the patched sdk out of the concatenated patches and the special
-  # libraries.
-  generate_patched_sdk(target_name) {
-    mode = "vm"
-    deps = concatenation_target_names
-    input_patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = patched_sdk_dir
-    outputs = other_outputs
-  }
-}
-
-generate_vm_patched_sdk("patched_sdk") {
-  libraries = [
-    [
-      "async",
-      async_runtime_sources,
-      "../lib",
-    ],
-    [
-      "collection",
-      collection_runtime_sources,
-      "../lib",
-    ],
-    [
-      "convert",
-      convert_runtime_sources,
-      "../lib",
-    ],
-    [
-      "core",
-      core_runtime_sources,
-      "../lib",
-    ],
-    [
-      "developer",
-      developer_runtime_sources,
-      "../lib",
-    ],
-    [
-      "internal",
-      internal_runtime_sources,
-      "../lib",
-    ],
-    [
-      "isolate",
-      isolate_runtime_sources,
-      "../lib",
-    ],
-    [
-      "math",
-      math_runtime_sources,
-      "../lib",
-    ],
-    [
-      "mirrors",
-      mirrors_runtime_sources,
-      "../lib",
-    ],
-    [
-      "profiler",
-      profiler_runtime_sources,
-      "../lib",
-    ],
-    [
-      "typed_data",
-      typed_data_runtime_sources,
-      "../lib",
-    ],
-    [
-      "vmservice",
-      vmservice_runtime_sources,
-      "../lib",
-    ],
-    [
-      "io",
-      io_runtime_sources,
-      "../bin",
-    ],
-    [
-      "cli",
-      cli_runtime_sources,
-      "../bin",
-    ],
-  ]
-}
-
 compile_platform("vm_legacy_platform") {
   sources = [
     "../../sdk/lib/libraries.json",
@@ -601,16 +471,12 @@ compile_platform("vm_legacy_platform") {
 
 compile_platform("vm_platform") {
   sources = [
-    "$root_out_dir/patched_sdk/lib/libraries.json",
+    "../../sdk/lib/libraries.json",
   ]
 
   outputs = [
     "$root_out_dir/vm_platform_strong.dill",
     "$root_out_dir/vm_outline_strong.dill",
-  ]
-
-  deps = [
-    ":patched_sdk",
   ]
 
   args = [

@@ -10,7 +10,7 @@ class Bad extends core::Object {
 abstract class _lib.Supertype&lib.Mixin = lib::Supertype with lib::Mixin {
 }
 class WithMixin extends self::_lib.Supertype&lib.Mixin {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super lib::Supertype::•()
     ;
 }

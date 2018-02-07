@@ -41,7 +41,7 @@ class LoadLibraryBuilder extends Builder {
     String prefix = expression.import.name;
     tearoff = new Procedure(new Name('__loadLibrary_$prefix', parent.target),
         ProcedureKind.Method, new FunctionNode(new ReturnStatement(expression)),
-        fileUri: parent.target.fileUri)
+        fileUri: parent.target.fileUri, isStatic: true)
       ..fileOffset = charOffset;
     return tearoff;
   }

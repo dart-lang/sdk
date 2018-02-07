@@ -11,10 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  // Revisit this contributor and these tests
-  // once DartChangeBuilder API has solidified.
-  // initializeTestEnvironment();
-  // defineReflectiveTests(InheritedContributorTest);
+  defineReflectiveTests(OverrideContributorTest);
 }
 
 @reflectiveTest

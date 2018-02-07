@@ -16,8 +16,10 @@ class A<T> {
 }
 
 main() {
-  Expect.isTrue(bar is F);
-  Expect.isTrue(baz is F);
+  Expect.isTrue(bar is! F);
+  Expect.isTrue(baz is! F);
+  Expect.isTrue(bar is! F<Object>);
+  Expect.isTrue(baz is! F<Object>);
   Expect.isTrue(bar is F<bool>);
   Expect.isTrue(baz is F<int>);
   Expect.isTrue(bar is! F<int>);
@@ -25,8 +27,12 @@ main() {
 
   var b = new A<bool>();
   var i = new A<int>();
-  Expect.isTrue(b.foo is F);
-  Expect.isTrue(i.foo is F);
+  Expect.isTrue(b.foo is F, 'runtime type of covaraint parameters is Object');
+  Expect.isTrue(i.foo is F, 'runtime type of covaraint parameters is Object');
+  Expect.isTrue(
+      b.foo is F<Object>, 'runtime type of covaraint parameters is Object');
+  Expect.isTrue(
+      i.foo is F<Object>, 'runtime type of covaraint parameters is Object');
   Expect.isTrue(b.foo is F<bool>);
   Expect.isTrue(i.foo is F<int>);
   Expect.isTrue(b.foo is! F<int>);

@@ -9,10 +9,12 @@ import 'package:expect/minitest.dart';
 main() {
   check(String name, bool fn(), [bool supported = true]) {
     test(name, () {
-      var expectation = supported ? returnsNormally : throws;
-      expect(() {
-        expect(fn(), isTrue);
-      }, expectation);
+      if (supported) {
+        expect(fn(), supported);
+      } else {
+        // Can either throw or return false.
+        expect(() => (fn() || (throw "false")), throws);
+      }
     });
   }
 

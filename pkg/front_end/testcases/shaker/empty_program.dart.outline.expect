@@ -326,8 +326,12 @@ abstract class Invocation extends self::Object {
 }
 abstract class Iterable<E extends self::Object> extends self::Object {
   abstract get iterator() → self::Iterator<self::Iterable::E>;
+  method cast<R extends self::Object>() → self::Iterable<self::Iterable::cast::R>;
+  method retype<R extends self::Object>() → self::Iterable<self::Iterable::retype::R>;
+  method followedBy(self::Iterable<self::Iterable::E> other) → self::Iterable<self::Iterable::E>;
   method map<T extends self::Object>((self::Iterable::E) → self::Iterable::map::T f) → self::Iterable<self::Iterable::map::T>;
   method where((self::Iterable::E) → self::bool test) → self::Iterable<self::Iterable::E>;
+  method whereType<T extends self::Object>() → self::Iterable<self::Iterable::whereType::T>;
   method expand<T extends self::Object>((self::Iterable::E) → self::Iterable<self::Iterable::expand::T> f) → self::Iterable<self::Iterable::expand::T>;
   method contains(self::Object element) → self::bool;
   method forEach((self::Iterable::E) → void f) → void;
@@ -350,7 +354,7 @@ abstract class Iterable<E extends self::Object> extends self::Object {
   get single() → self::Iterable::E;
   method firstWhere((self::Iterable::E) → self::bool test, {() → self::Iterable::E orElse}) → self::Iterable::E;
   method lastWhere((self::Iterable::E) → self::bool test, {() → self::Iterable::E orElse}) → self::Iterable::E;
-  method singleWhere((self::Iterable::E) → self::bool test) → self::Iterable::E;
+  method singleWhere((self::Iterable::E) → self::bool test, {() → self::Iterable::E orElse}) → self::Iterable::E;
   method elementAt(self::int index) → self::Iterable::E;
   method toString() → self::String;
 }
@@ -363,8 +367,12 @@ abstract class Iterator<E extends self::Object> extends self::Object {
 }
 abstract class List<E extends self::Object> extends self::Object implements _in::EfficientLengthIterable<self::List::E> {
   external static factory from<E extends self::Object>(self::Iterable<dynamic> elements, {self::bool growable}) → self::List<self::List::from::E>;
+  abstract method cast<R extends self::Object>() → self::List<self::List::cast::R>;
+  abstract method retype<R extends self::Object>() → self::List<self::List::retype::R>;
   abstract operator [](self::int index) → self::List::E;
   abstract operator []=(self::int index, self::List::E value) → void;
+  abstract set first(self::List::E value) → void;
+  abstract set last(self::List::E value) → void;
   abstract get length() → self::int;
   abstract set length(self::int newLength) → dynamic;
   abstract method add(self::List::E value) → void;
@@ -373,6 +381,8 @@ abstract class List<E extends self::Object> extends self::Object implements _in:
   abstract method sort([(self::List::E, self::List::E) → self::int compare]) → void;
   abstract method shuffle([math::Random random]) → void;
   abstract method indexOf(self::List::E element, [self::int start]) → self::int;
+  abstract method indexWhere((self::List::E) → self::bool test, [self::int start]) → self::int;
+  abstract method lastIndexWhere((self::List::E) → self::bool test, [self::int start]) → self::int;
   abstract method lastIndexOf(self::List::E element, [self::int start]) → self::int;
   abstract method clear() → void;
   abstract method insert(self::int index, self::List::E element) → void;
@@ -383,6 +393,7 @@ abstract class List<E extends self::Object> extends self::Object implements _in:
   abstract method removeLast() → self::List::E;
   abstract method removeWhere((self::List::E) → self::bool test) → void;
   abstract method retainWhere((self::List::E) → self::bool test) → void;
+  abstract operator +(self::List<self::List::E> other) → self::List<self::List::E>;
   abstract method sublist(self::int start, [self::int end]) → self::List<self::List::E>;
   abstract method getRange(self::int start, self::int end) → self::Iterable<self::List::E>;
   abstract method setRange(self::int start, self::int end, self::Iterable<self::List::E> iterable, [self::int skipCount]) → void;
@@ -392,10 +403,18 @@ abstract class List<E extends self::Object> extends self::Object implements _in:
   abstract method asMap() → self::Map<self::int, self::List::E>;
 }
 abstract class Map<K extends self::Object, V extends self::Object> extends self::Object {
+  abstract method cast<RK extends self::Object, RV extends self::Object>() → self::Map<self::Map::cast::RK, self::Map::cast::RV>;
+  abstract method retype<RK extends self::Object, RV extends self::Object>() → self::Map<self::Map::retype::RK, self::Map::retype::RV>;
   abstract method containsValue(self::Object value) → self::bool;
   abstract method containsKey(self::Object key) → self::bool;
   abstract operator [](self::Object key) → self::Map::V;
   abstract operator []=(self::Map::K key, self::Map::V value) → void;
+  abstract get entries() → self::Iterable<self::MapEntry<self::Map::K, self::Map::V>>;
+  abstract method map<K2 extends self::Object, V2 extends self::Object>((self::Map::K, self::Map::V) → self::MapEntry<self::Map::map::K2, self::Map::map::V2> f) → self::Map<self::Map::map::K2, self::Map::map::V2>;
+  abstract method addEntries(self::Iterable<self::MapEntry<self::Map::K, self::Map::V>> newEntries) → void;
+  abstract method update(self::Map::K key, (self::Map::V) → self::Map::V update, {() → self::Map::V ifAbsent}) → self::Map::V;
+  abstract method updateAll((self::Map::K, self::Map::V) → self::Map::V update) → void;
+  abstract method removeWhere((self::Map::K, self::Map::V) → self::bool predicate) → void;
   abstract method putIfAbsent(self::Map::K key, () → self::Map::V ifAbsent) → self::Map::V;
   abstract method addAll(self::Map<self::Map::K, self::Map::V> other) → void;
   abstract method remove(self::Object key) → self::Map::V;
@@ -406,6 +425,10 @@ abstract class Map<K extends self::Object, V extends self::Object> extends self:
   abstract get length() → self::int;
   abstract get isEmpty() → self::bool;
   abstract get isNotEmpty() → self::bool;
+}
+class MapEntry<K extends self::Object, V extends self::Object> extends self::Object {
+  final field self::MapEntry::K key;
+  final field self::MapEntry::V value;
 }
 class Null extends self::Object {
   external get hashCode() → self::int;
@@ -482,6 +505,8 @@ abstract class Match extends self::Object {
   abstract get pattern() → self::Pattern;
 }
 abstract class Set<E extends self::Object> extends _in::EfficientLengthIterable<self::Set::E> {
+  abstract method cast<R extends self::Object>() → self::Set<self::Set::cast::R>;
+  abstract method retype<R extends self::Object>() → self::Set<self::Set::retype::R>;
   abstract get iterator() → self::Iterator<self::Set::E>;
   abstract method contains(self::Object value) → self::bool;
   abstract method add(self::Set::E value) → self::bool;

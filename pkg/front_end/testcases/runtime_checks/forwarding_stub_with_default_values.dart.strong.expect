@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class B extends core::Object {
   field core::Object _x = null;
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   method f([core::num x = 10]) → void {
@@ -20,14 +20,14 @@ class B extends core::Object {
   }
 }
 abstract class I<T extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   abstract method f([generic-covariant-impl generic-covariant-interface self::I::T x = null]) → void;
   abstract method g({generic-covariant-impl generic-covariant-interface self::I::T x = null}) → void;
 }
 class C extends self::B implements self::I<core::num> {
-  default constructor •() → void
+  synthetic constructor •() → void
     : super self::B::•()
     ;
   forwarding-stub method f([generic-covariant-impl core::num x]) → void

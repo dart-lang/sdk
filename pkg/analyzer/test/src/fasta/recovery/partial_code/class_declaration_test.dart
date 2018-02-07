@@ -23,7 +23,6 @@ class ClassDeclarationTest extends PartialCodeTest {
       'getter',
       'setter'
     ];
-    List<String> onlyConstAndFinal = <String>['const', 'final'];
     buildTests(
         'class_declaration',
         [

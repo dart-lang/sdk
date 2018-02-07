@@ -8,14 +8,13 @@ recursive_import_test: Skip # Issue 27441
 [ $compiler == dart2js ]
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
-dummy_compiler_test: Slow, Pass
 local_function_call_test: RuntimeError # Issue 31879
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
+generic_class_is_test: Fail # Issue 32004
 no_such_method_test: Fail # Wrong Invocation.memberName.
-recursive_import_test: Slow, Pass
 statements_test: Fail
-typed_locals_test: Fail
+typed_locals_test: Pass, Fail
 
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
@@ -24,7 +23,7 @@ timer_test: Fail # Issue 7728.
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $strong && $compiler == dart2analyzer ]
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
 
@@ -44,9 +43,17 @@ deferred_split_test: Pass, Slow # Issue 25940
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 
-[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+[ $compiler == dart2js && !$host_checked ]
+dummy_compiler_test: Slow, Pass
+recursive_import_test: Slow, Pass
+
+[ $compiler == dart2js && $host_checked ]
 dummy_compiler_test: Skip # Issue 30773
 recursive_import_test: Skip # Issue 30773
+
+[ $compiler == dart2js && $browser ]
+dummy_compiler_test: Skip
+recursive_import_test: Skip
 
 [ $compiler == dart2js && $runtime == drt && $csp ]
 deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
@@ -59,10 +66,6 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == safari ]
 deferred_fail_and_retry_worker_test: Timeout # Issue 22106
-
-[ $compiler == dart2js && $browser ]
-dummy_compiler_test: Skip
-recursive_import_test: Skip
 
 [ $compiler == dart2js && $checked ]
 variable_type_test/01: Fail, OK
@@ -82,7 +85,6 @@ deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
 invalid_annotation2_test/none: RuntimeError
-label_test/06: MissingCompileTimeError
 minus_zero_test/01: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
 mirror_invalid_field_access3_test: RuntimeError
@@ -109,7 +111,6 @@ private_symbol_literal_test/03: MissingCompileTimeError
 private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
-recursive_import_test: CompileTimeError
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
@@ -121,11 +122,6 @@ deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loadin
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 js_interop_test: RuntimeError # Issue 31082
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
-dummy_compiler_test: Crash # Issue 31715
-recursive_import_test: Crash # Issue 31715
-typevariable_typedef_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.foo#func)) for j:constructor(B.).
-
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 23056_test: Pass
 closure_capture2_test: RuntimeError
@@ -136,8 +132,6 @@ deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: Kerne
 deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
-dummy_compiler_test: CompileTimeError
-label_test/06: MissingCompileTimeError
 mirror_enqueuer_regression_test: Pass
 private_symbol_literal_test/01: MissingCompileTimeError
 private_symbol_literal_test/02: MissingCompileTimeError
@@ -145,7 +139,6 @@ private_symbol_literal_test/03: MissingCompileTimeError
 private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
-recursive_import_test: CompileTimeError
 regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
@@ -153,6 +146,7 @@ unconditional_dartio_import_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: CompileTimeError
 23056_test: CompileTimeError
+23264_test: RuntimeError
 closure_capture2_test: RuntimeError
 closure_type_reflection2_test: CompileTimeError
 closure_type_reflection_test: CompileTimeError
@@ -165,7 +159,6 @@ deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
 inference_nsm_mirrors_test: CompileTimeError
 invalid_annotation2_test/none: CompileTimeError
-label_test/06: MissingCompileTimeError
 mirror_enqueuer_regression_test: CompileTimeError
 mirror_invalid_field_access2_test: CompileTimeError
 mirror_invalid_field_access3_test: CompileTimeError
@@ -201,6 +194,7 @@ unconditional_dartio_import_test: RuntimeError # Issue 30902
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 21666_test: CompileTimeError
 23056_test: CompileTimeError
+23264_test: RuntimeError
 closure_type_reflection2_test: CompileTimeError
 closure_type_reflection_test: CompileTimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
@@ -213,7 +207,6 @@ deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
 inference_nsm_mirrors_test: CompileTimeError
 invalid_annotation2_test/none: CompileTimeError
-label_test/06: MissingCompileTimeError
 mirror_enqueuer_regression_test: CompileTimeError
 mirror_invalid_field_access2_test: CompileTimeError
 mirror_invalid_field_access3_test: CompileTimeError
@@ -240,7 +233,6 @@ private_symbol_literal_test/03: MissingCompileTimeError
 private_symbol_literal_test/04: MissingCompileTimeError
 private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
-recursive_import_test: CompileTimeError
 reflect_native_types_test: CompileTimeError
 regress/4562_test/none: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
@@ -296,7 +288,7 @@ deferred/reflect_multiple_default_arg_test: Fail
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.
-typevariable_typedef_test: Fail, OK # Tests extected output of Type.toString().
+typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate2_test/01: Fail # Issue 14458.

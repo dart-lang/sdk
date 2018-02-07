@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C<E extends core::Object> extends core::Object {
-  default constructor •() → void
+  synthetic constructor •() → void
     ;
   method barA([(self::C::E, self::C::E) → core::int cmp]) → void
     ;

@@ -2127,33 +2127,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return this;
     }
 
-    if (isDartAsyncFuture && newTypeArguments.isNotEmpty) {
-      //
-      // In strong mode interpret Future< T > as Future< flatten(T) >
-      //
-      // For example, Future<Future<T>> will flatten to Future<T>.
-      //
-      // In the Dart 3rd edition spec, this flatten operation is used for
-      // `async` and `await`. In strong mode, we extend it to all Future<T>
-      // instantiations. This allows typing of Future-related operations
-      // in dart:async in a way that matches their runtime behavior and provides
-      // precise return types for users of these APIs.
-      //
-      // For example:
-      //
-      //     abstract class Future<T> {
-      //       Future<S> then<S>(S onValue(T value), ...);
-      //     }
-      //
-      // Given a call where S <: Future<R> for some R, we will need to flatten
-      // the return type so it is Future< flatten(S) >, yielding Future<R>.
-      //
-      if (element.library.context.analysisOptions.strongMode) {
-        TypeImpl t = newTypeArguments[0];
-        newTypeArguments[0] = t.flattenFutures(new StrongTypeSystemImpl(null));
-      }
-    }
-
     InterfaceTypeImpl newType = new InterfaceTypeImpl(element, prune);
     newType.typeArguments = newTypeArguments;
     return newType;

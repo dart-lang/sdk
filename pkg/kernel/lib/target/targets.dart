@@ -15,16 +15,20 @@ import 'vmreify.dart' show VmGenericTypesReifiedTarget;
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  bool strongMode;
-  bool treeShake;
-  List<ProgramRoot> programRoots;
-  Uri kernelRuntime;
+  final bool strongMode;
+  final bool treeShake;
+
+  /// Whether `async` functions start synchronously.
+  final bool syncAsync;
+  final List<ProgramRoot> programRoots;
+  final Uri kernelRuntime;
 
   TargetFlags(
       {this.strongMode: false,
       this.treeShake: false,
+      this.syncAsync: false,
       this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime}) {}
+      this.kernelRuntime});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -71,6 +75,22 @@ abstract class Target {
   /// This is intended for profiling, to ensure that type inference and type
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
+
+  /// A derived class may change this to `true` to enable Flutter specific
+  /// "super-mixins" semantics.
+  ///
+  /// This semantics relaxes a number of constraint previously imposed on
+  /// mixins. Importantly it imposes the following change:
+  ///
+  ///     An abstract class may contain a member with a super-invocation that
+  ///     corresponds to a member of the superclass interface, but where the
+  ///     actual superclass does not declare or inherit a matching method.
+  ///     Since no amount of overriding can change this property, such a class
+  ///     cannot be extended to a class that is not abstract, it can only be
+  ///     used to derive a mixin from.
+  ///
+  /// See dartbug.com/31542 for details of the semantics.
+  bool get enableSuperMixins => false;
 
   /// Perform target-specific transformations on the outlines stored in
   /// [Program] when generating summaries.

@@ -45,10 +45,10 @@ front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
-front_end/tool/_fasta/compile_platform_test: Fail
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
+vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
@@ -70,6 +70,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/test/dependency_grapher_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_kernel_generator_test: SkipByDesign # Uses dart:io
+front_end/test/incremental_load_from_dill_test: SkipByDesign # Uses dart:io
 front_end/test/incremental_resolved_ast_generator_test: SkipByDesign # Uses dart:io
 front_end/test/memory_file_system_test: CompileTimeError # Issue 23773
 front_end/test/src/base/file_repository_test: SkipByDesign # Uses dart:io
@@ -112,9 +113,12 @@ mutation_observer: Skip # Skip tests on the VM if the package depends on dart:ht
 [ $runtime != vm ]
 dev_compiler/test/options/*: SkipByDesign
 front_end/test/src/incremental/hot_reload_e2e_test: Skip
+vm/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
+front_end/test/fasta/ast_builder_test: Pass, Slow, Timeout
 front_end/test/fasta/bootstrap_test: Skip # Issue 31902
+front_end/test/fasta/strong_test: Pass, Slow, Timeout
 front_end/test/src/incremental/hot_reload_e2e_test: Skip # Issue 31901
 front_end/test/whole_program_test: Skip # Issue 31902
 
@@ -149,7 +153,7 @@ analyzer/test/*: Skip # Issue 26813
 analyzer/tool/*: Skip # Issue 26813
 
 # Don't analyze tests in strong mode yet
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 # Analyze dev_compiler but only run its tests on the vm
@@ -206,7 +210,7 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/edit/sort_members_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
-analyzer/test/generated/non_error_resolver_kernel_test: Skip # Timing out even with Pass, Slow: Issue 30796
+analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 

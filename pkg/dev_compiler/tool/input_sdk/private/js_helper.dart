@@ -95,12 +95,12 @@ class Primitives {
   static int parseInt(
       @nullCheck String source, int _radix, int handleError(String source)) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    var/*=JSArray<String>*/ match =
-        JS('JSExtendableArray|Null', '#.exec(#)', re, source);
+    // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
+    // long as we use it locally and don't expose it to user code.
+    List<String> match = JS('', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
-    int nonDecimalHexIndex = 4;
     if (match == null) {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching

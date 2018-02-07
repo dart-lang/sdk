@@ -119,6 +119,13 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
+  List<R> cast<R>() {
+    List<Object> self = this;
+    return self is List<R> ? self : List.castFrom<E, R>(this);
+  }
+
+  List<R> retype<R>() => List.castFrom<E, R>(this);
+
   void add(E value) {
     checkGrowable('add');
     JS('void', r'#.push(#)', this, value);
@@ -337,7 +344,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     E match = null;
     bool matchFound = false;
@@ -357,6 +364,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
       }
     }
     if (matchFound) return match;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -625,6 +633,54 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   Map<int, E> asMap() {
     return new ListMapView<E>(this);
+  }
+
+  Iterable<E> followedBy(Iterable<E> other) sync* {
+    yield* this;
+    yield* other;
+  }
+
+  Iterable<T> whereType<T>() sync* {
+    for (var i = 0; i < this.length; i++) {
+      var element = this[i];
+      if (element is T) yield element;
+    }
+  }
+
+  List<E> operator +(List<E> other) {
+    int totalLength = this.length + other.length;
+    return <E>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
+
+  int indexWhere(bool test(E element), [int start = 0]) {
+    if (start >= this.length) return -1;
+    if (start < 0) start = 0;
+    for (int i = start; i < this.length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(E element), [int start]) {
+    if (start == null) start = this.length - 1;
+    if (start < 0) return -1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  void set first(E element) {
+    if (this.isEmpty) throw IterableElementError.noElement();
+    this[0] = element;
+  }
+
+  void set last(E element) {
+    if (this.isEmpty) throw IterableElementError.noElement();
+    this[this.length - 1] = element;
   }
 }
 

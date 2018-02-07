@@ -6806,6 +6806,53 @@ var a = new A();
     expect(result.errors, isEmpty);
   }
 
+  test_externalSummaries_partReuse() async {
+    var a = _p('/a.dart');
+    var b = _p('/b.dart');
+    var c = _p('/c.dart');
+    provider.newFile(a, r'''
+library a;
+part 'b.dart';
+class A {}
+''');
+    provider.newFile(b, r'''
+part of a;
+class _B {}
+''');
+    provider.newFile(c, r'''
+library a;
+import 'a.dart';
+part 'b.dart';
+var a = new A();
+var b = new _B();
+''');
+
+    // Prepare the store with a.dart and everything it needs.
+    SummaryDataStore summaryStore =
+        await createAnalysisDriver().test.getSummaryStore(a);
+
+    String aUri = provider.pathContext.toUri(a).toString();
+    String bUri = provider.pathContext.toUri(b).toString();
+    // There are unlinked units for a.dart and b.dart files.
+    expect(summaryStore.hasUnlinkedUnit(aUri), isTrue);
+    expect(summaryStore.hasUnlinkedUnit(bUri), isTrue);
+    // Only a.dart is linked, because b.dart is not a library.
+    expect(summaryStore.hasLinkedLibrary(aUri), isTrue);
+    expect(summaryStore.hasLinkedLibrary(bUri), isFalse);
+
+    // Remove a.dart from the file system.
+    // Keep b.dart, because we (re)use it as a part.
+    provider.deleteFile(a);
+
+    // We don't need a.dart file when we analyze with the summary store.
+    // We can instantiate the class A the library a.dart.
+    // We can instantiate the class _A the part b.dart.
+    AnalysisDriver driver =
+        createAnalysisDriver(externalSummaries: summaryStore);
+    AnalysisResult result = await driver.getResult(c);
+    expect(result.errors, isEmpty);
+  }
+
   test_generatedFile() async {
     Uri uri = Uri.parse('package:aaa/foo.dart');
     String templatePath = _p('/aaa/lib/foo.dart');
