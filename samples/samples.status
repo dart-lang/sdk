@@ -2,39 +2,40 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[$runtime == vm && $compiler == none && $system == fuchsia]
-*: Skip  # Not yet triaged.
-
-[ $browser ]
-# Skip tests that uses dart:io
-build_dart: Skip
-build_dart_simple: Skip
-sample_extension: Skip
-
-[ $compiler == dart2js && $runtime == none ]
-*: Fail, Pass # TODO(ahe): Triage these tests.
+[ $arch == arm ]
+sample_extension/test/*: Skip # Issue 14705
 
 [ $compiler == dart2analyzer ]
 build_dart: Skip
 
-[ $compiler == dart2analyzer && $builder_tag == strong ]
-*: Skip # Issue 28649
-
-[ $arch == arm ]
-sample_extension/test/*: Skip # Issue 14705
+[ $compiler == dartkp ]
+sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
+sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
+sample_extension/test/sample_extension_test: RuntimeError
 
 [ $compiler == precompiler ]
 sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
-[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
-sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
+# Skip tests that use dart:io
+[ $browser ]
+build_dart: Skip
+build_dart_simple: Skip
+sample_extension: Skip
+
+[ $builder_tag == strong && $compiler == dart2analyzer ]
+*: Skip # Issue 28649
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dartk && $strong ]
 sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
 sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
 sample_extension/test/sample_extension_test: RuntimeError
 
-[ $compiler == dartkp ]
-sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
-sample_extension/test/sample_extension_test: RuntimeError
+[ $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
+sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842
+
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Not yet triaged.
+
