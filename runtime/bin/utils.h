@@ -95,9 +95,6 @@ class ShellUtils {
   // each of the arguments need to be deallocated using free.
   static bool GetUtf8Argv(int argc, char** argv);
 
-  // Convert given uri to a file path.
-  static const char* UriToPath(const char* uri);
-
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ShellUtils);

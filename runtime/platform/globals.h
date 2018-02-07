@@ -25,6 +25,10 @@
 #define NOKERNEL
 #endif
 
+#if !defined(NOUSER)
+#define NOUSER
+#endif
+
 #if !defined(NOSERVICE)
 #define NOSERVICE
 #endif
