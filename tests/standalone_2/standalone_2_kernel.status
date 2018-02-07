@@ -24,6 +24,8 @@ io/socket_port_test: Pass, Crash
 io/compile_all_test: Crash
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
+io/platform_resolved_executable_test/03: Pass, RuntimeError
+io/platform_resolved_executable_test/04: Pass, RuntimeError
 io/secure_builtin_roots_test: Timeout
 io/socket_finalizer_test: Pass, Timeout
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
