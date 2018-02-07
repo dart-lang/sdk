@@ -68,6 +68,21 @@ the assignment to `y`.
     `ZERO` to `zero`.
   * Added `Provisional` annotation to `dart:core`.
   * Added static `escape` function to `RegExp` class.
+  * Added members `cast`, `followedBy`, `retype` and `whereType` to `Iterable`.
+  * Added `orElse` parameter to `Iterable.singleWhere`.
+  * Added `+` operator, `first` and `last` setters, and `indexWhere`
+    and `lastIndexWhere` methods to `List`.
+  * Added `addEntries`, `cast`, `entries`, `map`, `removeWhere`, `retype`,
+    `update` and `updateAll`  members to `Map`.
+  * If a class extends `IterableBase`, `ListBase`, `SetBase` or `MapBase`
+    (or uses the corresponding mixins), the new members are implemented
+    automatically.
+  * Added constructor `Map.fromEntries`.
+  * Added `MapEntry` class used by, e.g., `Map.entries`.
+  * Changed `LinkedHashMap` to not implement `HashMap`, and `LinkedHashSet`
+    to not implement `HashSet`. The "unlinked" version is a different
+    implementation class than the linked version, not an abstract interface
+    that the two share.
 
 * `dart:convert`
   * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
