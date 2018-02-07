@@ -30,7 +30,6 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js_model/closure.dart';
-import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -502,7 +501,6 @@ class Namer {
 
   final ClosedWorld _closedWorld;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final CompilerOptions _options;
 
   RuntimeTypesEncoder _rtiEncoder;
   RuntimeTypesEncoder get rtiEncoder {
@@ -573,7 +571,7 @@ class Namer {
   final Map<LibraryEntity, String> _libraryKeys =
       new HashMap<LibraryEntity, String>();
 
-  Namer(this._closedWorld, this._codegenWorldBuilder, this._options) {
+  Namer(this._closedWorld, this._codegenWorldBuilder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
@@ -808,13 +806,18 @@ class Namer {
 
   /// The suffix list for the pattern:
   ///
-  ///     $<N>$namedParam1...$namedParam<M>
+  ///     $<T>$<N>$namedParam1...$namedParam<M>
+  ///
+  /// Where <T> is the number of type arguments, <N> is the number of positional
+  /// arguments and <M> is the number of named arguments.
+  ///
+  /// If there are no type arguments the `$<T>` is omitted.
   ///
   /// This is used for the annotated names of `call`, and for the proposed name
   /// for other instance methods.
-  List<String> callSuffixForStructure(CallStructure callStructure) {
+  static List<String> callSuffixForStructure(CallStructure callStructure) {
     List<String> suffixes = [];
-    if (_options.strongMode) {
+    if (callStructure.typeArgumentCount > 0) {
       suffixes.add('${callStructure.typeArgumentCount}');
     }
     suffixes.add('${callStructure.argumentCount}');
