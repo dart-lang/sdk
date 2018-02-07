@@ -149,10 +149,11 @@
     {
       "builders": [
         "vm-kernel-precomp-linux-release-simarm",
-        "vm-kernel-precomp-linux-release-simarm64"
+        "vm-kernel-precomp-linux-release-simarm64",
+        "vm-kernel-precomp-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm kernel release builder."
+        "description": "This configuration is used by the vm kernel precomp builders that require --use-blobs."
       },
       "steps": [
         {
@@ -188,8 +189,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-linux-release-x64",
-        "vm-kernel-precomp-win-release-x64"
+        "vm-kernel-precomp-linux-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp builders."
