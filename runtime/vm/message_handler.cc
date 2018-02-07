@@ -786,7 +786,7 @@ void IdleNotifier::Update(MessageHandler* handler, int64_t expirary) {
 
   if (task_running_) {
     ml.Notify();
-  } else if (queue_ != NULL) {
+  } else if ((queue_ != NULL) && (expirary != 0)) {
     Task* task = new Task();
     task_running_ = Dart::thread_pool()->Run(task);
     if (!task_running_) {
