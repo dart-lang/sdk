@@ -160,6 +160,39 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
     SAVE_ERROR_AND_EXIT(result);                                               \
   }
 
+static void WriteDepsFile(Dart_Isolate isolate) {
+  if (Options::snapshot_deps_filename() == NULL) {
+    return;
+  }
+  Loader::ResolveDependenciesAsFilePaths();
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
+  ASSERT(isolate_data != NULL);
+  MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
+  ASSERT(dependencies != NULL);
+  File* file =
+      File::Open(NULL, Options::snapshot_deps_filename(), File::kWriteTruncate);
+  if (file == NULL) {
+    ErrorExit(kErrorExitCode, "Error: Unable to open snapshot depfile: %s\n\n",
+              Options::snapshot_deps_filename());
+  }
+  bool success = true;
+  success &= file->Print("%s: ", Options::snapshot_filename());
+  for (intptr_t i = 0; i < dependencies->length(); i++) {
+    char* dep = dependencies->At(i);
+    success &= file->Print("%s ", dep);
+    free(dep);
+  }
+  success &= file->Print("\n");
+  if (!success) {
+    ErrorExit(kErrorExitCode, "Error: Unable to write snapshot depfile: %s\n\n",
+              Options::snapshot_deps_filename());
+  }
+  file->Release();
+  isolate_data->set_dependencies(NULL);
+  delete dependencies;
+}
+
 static void SnapshotOnExitHook(int64_t exit_code) {
   if (Dart_CurrentIsolate() != main_isolate) {
     Log::PrintErr(
@@ -170,6 +203,7 @@ static void SnapshotOnExitHook(int64_t exit_code) {
   }
   if (exit_code == 0) {
     Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    WriteDepsFile(main_isolate);
   }
 }
 
@@ -916,37 +950,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
   }
 
-  if (Options::snapshot_deps_filename() != NULL) {
-    Loader::ResolveDependenciesAsFilePaths();
-    IsolateData* isolate_data =
-        reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
-    ASSERT(isolate_data != NULL);
-    MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
-    ASSERT(dependencies != NULL);
-    File* file = File::Open(NULL, Options::snapshot_deps_filename(),
-                            File::kWriteTruncate);
-    if (file == NULL) {
-      ErrorExit(kErrorExitCode,
-                "Error: Unable to open snapshot depfile: %s\n\n",
-                Options::snapshot_deps_filename());
-    }
-    bool success = true;
-    success &= file->Print("%s: ", Options::snapshot_filename());
-    for (intptr_t i = 0; i < dependencies->length(); i++) {
-      char* dep = dependencies->At(i);
-      success &= file->Print("%s ", dep);
-      free(dep);
-    }
-    success &= file->Print("\n");
-    if (!success) {
-      ErrorExit(kErrorExitCode,
-                "Error: Unable to write snapshot depfile: %s\n\n",
-                Options::snapshot_deps_filename());
-    }
-    file->Release();
-    isolate_data->set_dependencies(NULL);
-    delete dependencies;
-  }
+  WriteDepsFile(isolate);
 
   Dart_ExitScope();
 
