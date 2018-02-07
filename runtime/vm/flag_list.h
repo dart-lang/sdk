@@ -122,7 +122,7 @@
     "Max size of new gen semi space in MB")                                    \
   P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
-  P(old_gen_heap_size, int, (kWordSize <= 4) ? 1536 : 0,                       \
+  P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
     "Max size of old gen heap size in MB, or 0 for unlimited,"                 \
     "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap")          \
   R(pause_isolates_on_start, false, bool, false,                               \

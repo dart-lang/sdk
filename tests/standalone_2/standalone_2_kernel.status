@@ -43,9 +43,6 @@ io/process_non_ascii_test: RuntimeError # Issue 31904
 io/regress_7679_test: RuntimeError # Issue 31904
 map_insert_remove_oom_test: Skip # Timeout
 
-[ $compiler == dartk && $system != windows && $strong ]
-map_insert_remove_oom_test: Crash
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -107,7 +104,6 @@ io/socket_many_connections_test: Skip # Flaky
 io/web_socket_error_test: Skip # Flaky
 io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
-map_insert_remove_oom_test: Crash
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError

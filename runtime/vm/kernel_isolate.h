@@ -21,6 +21,7 @@ class KernelIsolate : public AllStatic {
 
   static void Run();
 
+  static bool NameEquals(const char* name);
   static bool Exists();
   static bool IsRunning();
   static bool IsKernelIsolate(const Isolate* isolate);

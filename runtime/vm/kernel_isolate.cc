@@ -207,8 +207,7 @@ void KernelIsolate::InitCallback(Isolate* I) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
-  ASSERT(I->name() != NULL);
-  if (strcmp(I->name(), DART_KERNEL_ISOLATE_NAME) != 0) {
+  if (!NameEquals(I->name())) {
     // Not kernel isolate.
     return;
   }
@@ -227,6 +226,11 @@ bool KernelIsolate::IsKernelIsolate(const Isolate* isolate) {
 bool KernelIsolate::IsRunning() {
   MonitorLocker ml(monitor_);
   return (kernel_port_ != ILLEGAL_PORT) && (isolate_ != NULL);
+}
+
+bool KernelIsolate::NameEquals(const char* name) {
+  ASSERT(name != NULL);
+  return (strcmp(name, DART_KERNEL_ISOLATE_NAME) == 0);
 }
 
 bool KernelIsolate::Exists() {
