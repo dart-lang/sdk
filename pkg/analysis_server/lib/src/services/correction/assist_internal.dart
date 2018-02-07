@@ -2641,8 +2641,8 @@ class AssistProcessor {
           return utils.getText(startOffset, curOffset - startOffset);
         }
 
-        String outerIndent = utils.getNodePrefix(exprGoingDown.parent);
-        String innerIndent = utils.getNodePrefix(exprGoingUp.parent);
+        String outerIndent = utils.getLinePrefix(exprGoingDown.offset);
+        String innerIndent = utils.getLinePrefix(exprGoingUp.offset);
         exprGoingUp.argumentList.arguments.forEach((arg) {
           if (arg is NamedExpression && arg.name.label.name == 'child') {
             if (stableChild != arg) {
@@ -2655,8 +2655,7 @@ class AssistProcessor {
             lnOffset = lineInfo.getOffsetOfLine(currLn - 1);
             argSrc = utils.getText(
                 lnOffset, stableChild.expression.offset - lnOffset);
-            argSrc = argSrc.replaceAll(
-                new RegExp("^$innerIndent", multiLine: true), "$outerIndent");
+            argSrc = _replaceSourceIndent(argSrc, innerIndent, outerIndent);
             builder.write(argSrc);
             int nextLn = lineInfo.getLocation(exprGoingDown.offset).lineNumber;
             lnOffset = lineInfo.getOffsetOfLine(nextLn);
@@ -2675,9 +2674,7 @@ class AssistProcessor {
                 }
               } else {
                 argSrc = getSrc(val);
-                argSrc = argSrc.replaceAll(
-                    new RegExp("^$outerIndent", multiLine: true),
-                    "$innerIndent");
+                argSrc = _replaceSourceIndent(argSrc, outerIndent, innerIndent);
                 builder.write(argSrc);
               }
             });
@@ -2688,8 +2685,7 @@ class AssistProcessor {
             builder.write('),$eol');
           } else {
             argSrc = getSrc(arg);
-            argSrc = argSrc.replaceAll(
-                new RegExp("^$innerIndent", multiLine: true), "$outerIndent");
+            argSrc = _replaceSourceIndent(argSrc, innerIndent, outerIndent);
             builder.write(argSrc);
           }
         });

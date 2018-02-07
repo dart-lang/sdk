@@ -3540,6 +3540,55 @@ startResize() {}
 ''');
   }
 
+  test_moveFlutterWidgetUp_OK_outerIsInChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: [
+      new Column(
+        children: [
+          new Padding(
+            padding: new EdgeInsets.all(16.0),
+            child: new /*caret*/Center(
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.MOVE_FLUTTER_WIDGET_UP, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: [
+      new Column(
+        children: [
+          new /*caret*/Center(
+            child: new Padding(
+              padding: new EdgeInsets.all(16.0),
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+''');
+  }
+
   test_removeTypeAnnotation_classField_OK() async {
     await resolveTestUnit('''
 class A {
