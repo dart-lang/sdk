@@ -1680,17 +1680,9 @@ class ShadowReturnStatement extends ReturnStatement implements ShadowStatement {
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.returnStatementEnter(this);
     var closureContext = inferrer.closureContext;
-    DartType typeContext;
-    if (!closureContext.isGenerator) {
-      typeContext = closureContext.unwrappedReturnOrYieldContext;
-      if (closureContext.isAsync) {
-        // In a non-generator async function, the type appearing on the RHS of
-        // a `return` statement may either be the closure context or Future<>
-        // applied to the closure context.  We represent this using a context of
-        // `FutureOr<X>`.
-        typeContext = inferrer.wrapFutureOrType(typeContext);
-      }
-    }
+    var typeContext = !closureContext.isGenerator
+        ? closureContext.returnOrYieldContext
+        : null;
     var inferredType = expression != null
         ? inferrer.inferExpression(expression, typeContext, true)
         : const VoidType();
@@ -2479,9 +2471,8 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.yieldStatementEnter(this);
     var closureContext = inferrer.closureContext;
-    var typeContext = closureContext.isGenerator
-        ? closureContext.unwrappedReturnOrYieldContext
-        : null;
+    var typeContext =
+        closureContext.isGenerator ? closureContext.returnOrYieldContext : null;
     if (isYieldStar && typeContext != null) {
       typeContext = inferrer.wrapType(
           typeContext,
