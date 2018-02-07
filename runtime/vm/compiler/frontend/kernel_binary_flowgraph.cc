@@ -1014,9 +1014,10 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         result_->this_variable = variable;
       }
       if (is_setter) {
-        result_->setter_value =
-            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::Value(), AbstractType::dynamic_type());
+        result_->setter_value = MakeVariable(
+            TokenPosition::kNoSource, TokenPosition::kNoSource,
+            Symbols::Value(),
+            AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
         scope_->InsertParameterAt(pos++, result_->setter_value);
       }
       break;
@@ -3675,10 +3676,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
   if (is_setter) {
     if (is_method) {
       body += LoadLocal(scopes()->this_variable);
-      body += LoadLocal(setter_value);
+    }
+    body += LoadLocal(setter_value);
+    if (I->argument_type_checks() && setter_value->needs_type_check()) {
+      body += CheckArgumentType(setter_value, setter_value->type());
+    }
+    if (is_method) {
       body += flow_graph_builder_->StoreInstanceFieldGuarded(field, false);
     } else {
-      body += LoadLocal(setter_value);
       body += StoreStaticField(TokenPosition::kNoSource, field);
     }
     body += NullConstant();
