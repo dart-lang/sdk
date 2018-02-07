@@ -2409,7 +2409,6 @@ class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
-classes_static_method_clash_test: RuntimeError
 closure_in_constructor_test: RuntimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
@@ -2476,7 +2475,6 @@ covariant_subtyping_unsafe_call3_test: RuntimeError
 ct_const_test: CompileTimeError
 custom_await_stack_trace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 cyclic_constructor_test/01: Crash # Issue 30856
-cyclic_default_values_test: RuntimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
@@ -2986,6 +2984,7 @@ regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 regress_31591_test: RuntimeError
+regress_32012_test: Crash # Issue 32078
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: CompileTimeError

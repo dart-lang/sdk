@@ -269,9 +269,7 @@ uri_base_test: RuntimeError
 *: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
-apply2_test: RuntimeError
 apply3_test: CompileTimeError
-apply_test: RuntimeError
 cast_test: RuntimeError
 collection_length_test: Crash # Wrong number of template arguments, given 2, expected 1
 collection_removes_test: RuntimeError
