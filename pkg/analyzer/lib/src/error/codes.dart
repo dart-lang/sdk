@@ -4761,20 +4761,6 @@ class StaticWarningCode extends ErrorCode {
           "defining the setter in a superclass of '{1}'.");
 
   /**
-   * It is a static warning to assign void to any non-void type in dart.
-   * compile-time error). Report that error specially for a better user
-   * experience.
-   *
-   * Parameters: none
-   */
-  static const StaticWarningCode USE_OF_VOID_RESULT = const StaticWarningCode(
-      'USE_OF_VOID_RESULT',
-      "The expression here has a type of 'void', and therefore cannot be used.",
-      'Check if you are using the correct API; there may be a function or'
-      " call that returns void you didn't expect. Also check type parameters"
-      ' and variables which, in rare cases, may be void as well.');
-
-  /**
    * A flag indicating whether this warning is an error when running with strong
    * mode enabled.
    */

@@ -25,7 +25,7 @@ import 'dart:async';
 
 import 'package:expect/expect.dart';
 
-typedef dynamic _Action();
+typedef void _Action();
 typedef void _ExpectationFunction(Object actual);
 
 final List<_Group> _groups = [new _Group()];

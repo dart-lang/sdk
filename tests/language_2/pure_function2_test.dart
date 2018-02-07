@@ -30,7 +30,7 @@ main() {
   var t1 = f(trace);
   var t2 = b(trace);
   var t3 = identical(t2, "foo");
-  trace.add(t1);
+  var t4 = trace.add(t1);
   trace.add(t3);
   trace.add(t3);
   Expect.listEquals(["foo", "bar", "foo", false, false], trace);

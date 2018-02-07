@@ -21,12 +21,12 @@ void f_f() {
   return f();
 }
 
-void test(int n, void func()) {
+void test(int n, void func(), bool must_get_error) {
   // Test as closure call.
   {
     bool got_type_error = false;
     try {
-      func();
+      var x = func();
     } on TypeError catch (error) {
       got_type_error = true;
     }
@@ -39,16 +39,16 @@ void test(int n, void func()) {
       var x;
       switch (n) {
         case 0:
-          x = f() as dynamic;
+          x = f();
           break;
         case 1:
-          x = f_null() as dynamic;
+          x = f_null();
           break;
         case 2:
-          x = f_dyn_null() as dynamic;
+          x = f_dyn_null();
           break;
         case 3:
-          x = f_f() as dynamic;
+          x = f_f();
           break;
       }
     } on TypeError catch (error) {
@@ -59,8 +59,8 @@ void test(int n, void func()) {
 }
 
 main() {
-  test(0, f);
-  test(1, f_null);
-  test(2, f_dyn_null);
-  test(3, f_f);
+  test(0, f, false);
+  test(1, f_null, false);
+  test(2, f_dyn_null, false);
+  test(3, f_f, false);
 }

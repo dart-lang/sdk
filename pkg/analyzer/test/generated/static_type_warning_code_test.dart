@@ -1546,6 +1546,14 @@ f() => A?.hashCode;
 ''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  test_undefinedGetter_void() async {
+    await assertErrorsInCode(r'''
+class T {
+  void m() {}
+}
+f(T e) { return e.m().f; }''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
     await assertErrorsInCode(r'''
 class A<K, V> {
@@ -1777,6 +1785,14 @@ class T {
 main() {
   T..foo = 42;
 }''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  test_undefinedSetter_void() async {
+    await assertErrorsInCode(r'''
+class T {
+  void m() {}
+}
+f(T e) { e.m().f = 0; }''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
 
   test_undefinedSuperGetter() async {

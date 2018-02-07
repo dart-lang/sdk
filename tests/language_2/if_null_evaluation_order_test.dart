@@ -10,7 +10,7 @@
 
 import "package:expect/expect.dart";
 
-bad() {
+void bad() {
   throw new Exception();
 }
 

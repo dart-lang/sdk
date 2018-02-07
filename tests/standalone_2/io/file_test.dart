@@ -873,7 +873,7 @@ class FileTest {
     ;
 
     write([start, end]) {
-      openedFile.writeFromSync(buffer, start, end);
+      var returnValue = openedFile.writeFromSync(buffer, start, end);
       result.addAll(buffer.sublist(start, end));
     }
 

@@ -390,7 +390,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     }
-    _checkForUseOfVoidResult(node.leftOperand);
     return super.visitBinaryExpression(node);
   }
 
@@ -548,9 +547,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitConditionalExpression(ConditionalExpression node) {
     _checkForNonBoolCondition(node.condition);
-    // TODO(mfairhurst) Enable this and get code compliant.
-    //_checkForUseOfVoidResult(node.thenExpression);
-    //_checkForUseOfVoidResult(node.elseExpression);
     return super.visitConditionalExpression(node);
   }
 
@@ -793,8 +789,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression functionExpression = node.function;
     DartType expressionType = functionExpression.staticType;
-    if (!_checkForUseOfVoidResult(functionExpression) &&
-        !_isFunctionType(expressionType)) {
+    if (!_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
@@ -929,7 +924,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
-    _checkForUseOfVoidResult(node.expression);
     return super.visitIsExpression(node);
   }
 
@@ -948,7 +942,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     _checkForImplicitDynamicTypedLiteral(node);
     _checkForListElementTypeNotAssignable(node);
-
     return super.visitListLiteral(node);
   }
 
@@ -1182,7 +1175,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
-    _checkForUseOfVoidResult(node.expression);
     return super.visitThrowExpression(node);
   }
 
@@ -2430,8 +2422,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
    * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.USE_OF_VOID_RESULT].
+   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
   void _checkForArgumentTypeNotAssignable(
       Expression expression,
@@ -2440,10 +2431,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       ErrorCode errorCode) {
     // Warning case: test static type information
     if (actualStaticType != null && expectedStaticType != null) {
-      if (!expectedStaticType.isVoid && _checkForUseOfVoidResult(expression)) {
-        return;
-      }
-
       _checkForAssignableExpressionAtType(
           expression, actualStaticType, expectedStaticType, errorCode);
     }
@@ -2462,7 +2449,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (argument == null) {
       return;
     }
-
     ParameterElement staticParameterElement = argument.staticParameterElement;
     DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
@@ -4281,10 +4267,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
 
-    if (_checkForUseOfVoidResult(node.iterable)) {
-      return;
-    }
-
     DartType iterableType = getStaticType(node.iterable);
     if (iterableType.isDynamic) {
       return;
@@ -4293,9 +4275,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // The type of the loop variable.
     SimpleIdentifier variable = node.identifier ?? node.loopVariable.identifier;
     DartType variableType = getStaticType(variable);
-
-    // TODO(mfairhurst) Check and guard against `for(void x in _)`?
-    //_checkForUseOfVoidResult(variable);
 
     DartType loopType = node.awaitKeyword != null
         ? _typeProvider.streamType
@@ -4413,11 +4392,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType leftType = (leftVariableElement == null)
         ? getStaticType(lhs)
         : leftVariableElement.type;
-
-    if (_checkForUseOfVoidResult(rhs)) {
-      return;
-    }
-
     _checkForAssignableExpression(
         rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT,
         isDeclarationCast: isDeclarationCast);
@@ -5182,8 +5156,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForNonBoolCondition(Expression condition) {
     DartType conditionType = getStaticType(condition);
-    if (!_checkForUseOfVoidResult(condition) &&
-        conditionType != null &&
+    if (conditionType != null &&
         !_typeSystem.isAssignableTo(conditionType, _boolType)) {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
@@ -5701,12 +5674,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
    */
   void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
-    Expression expression = statement.expression;
-    if (_checkForUseOfVoidResult(expression)) {
-      return;
-    }
-
     // prepare 'switch' expression type
+    Expression expression = statement.expression;
     DartType expressionType = getStaticType(expression);
     if (expressionType == null) {
       return;
@@ -6292,31 +6261,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, keyword);
       }
     }
-  }
-
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'. Or, in rare cases, when other types of expressions are
-   * void, such as identifiers.
-   *
-   * See [StaticWarningCode.USE_OF_VOID_RESULT].
-   */
-  bool _checkForUseOfVoidResult(Expression expression) {
-    if (expression == null ||
-        !identical(expression.staticType, VoidTypeImpl.instance)) {
-      return false;
-    }
-
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, methodName, []);
-    } else {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, expression, []);
-    }
-
-    return true;
   }
 
   DartType _computeReturnTypeForMethod(Expression returnExpression) {

@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 var _str = new StringBuffer();
 
-T run<T>(T f()) {
+/*=T*/ run/*<T>*/(/*=T*/ f()) {
   _str.write("+");
   var t = f();
   _str.write("-");
@@ -20,12 +20,12 @@ void writeV() {
 
 main() {
   {
-    var x = run<dynamic>(writeV);
+    var x = run/*<dynamic>*/(writeV);
     Expect.equals('+V-', _str.toString());
     Expect.equals(null, x);
     _str.clear();
 
-    var y = run(writeV) as dynamic;
+    var y = run(writeV);
     Expect.equals('+V-', _str.toString());
     Expect.equals(null, y);
     _str.clear();
@@ -34,7 +34,7 @@ main() {
   // implicit cast
   {
     dynamic d = writeV;
-    var x = run<dynamic>(d);
+    var x = run/*<dynamic>*/(d);
     Expect.equals('+V-', _str.toString());
     Expect.equals(null, x);
     _str.clear();
@@ -48,7 +48,7 @@ main() {
   // dynamic dispatch
   {
     dynamic d = run;
-    var x = d<dynamic>(writeV);
+    var x = d/*<dynamic>*/(writeV);
     Expect.equals('+V-', _str.toString());
     Expect.equals(null, x);
     _str.clear();
