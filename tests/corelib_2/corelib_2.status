@@ -325,7 +325,7 @@ list_unmodifiable_test: Crash # Wrong number of template arguments, given 2, exp
 map_from_iterable_test: RuntimeError
 map_from_iterables_test: RuntimeError
 map_keys2_test: RuntimeError
-map_test: Crash # tests/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
+map_test: RuntimeError
 map_values2_test: RuntimeError
 map_values3_test: RuntimeError
 map_values4_test: RuntimeError
