@@ -103,7 +103,7 @@ abstract class TypeBuilder {
       {SourceInformation sourceInformation}) {
     assert(assertTypeInContext(type));
     if (type.element.typeDeclaration is! ClassEntity &&
-        !builder.options.strongMode) {
+        (!builder.options.strongMode || !builder.options.useKernel)) {
       // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
@@ -218,9 +218,10 @@ abstract class TypeBuilder {
 
     List<HInstruction> inputs = <HInstruction>[];
     argument.forEachTypeVariable((TypeVariableType variable) {
-      if (variable.element.typeDeclaration is ClassEntity) {
-        // GENERIC_METHODS: We currently only reify class type variables but not
-        // method type variables.
+      if (variable.element.typeDeclaration is ClassEntity ||
+          (builder.options.strongMode && builder.options.useKernel)) {
+        // TODO(johnniwinther): Also make this conditional on whether we have
+        // calculated we need that particular method signature.
         inputs.add(analyzeTypeArgument(variable, sourceElement));
       }
     });

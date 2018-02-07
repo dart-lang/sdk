@@ -73,8 +73,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
         _compiler.reporter, _compiler.environment, strategy.elementMap);
     _elementEnvironment = _elementMap.elementEnvironment;
     _commonElements = _elementMap.commonElements;
-    _closureDataLookup = new KernelClosureConversionTask(_compiler.measurer,
-        _elementMap, _globalLocalsMap, _compiler.options.enableTypeAssertions);
+    _closureDataLookup = new KernelClosureConversionTask(
+        _compiler.measurer,
+        _elementMap,
+        _globalLocalsMap,
+        _compiler.options.enableTypeAssertions,
+        _compiler.options.strongMode);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap, _closureDataLookup, _compiler.options);
     return closedWorldBuilder._convertClosedWorld(

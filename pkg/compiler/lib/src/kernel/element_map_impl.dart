@@ -2501,7 +2501,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         localsMap, recordFieldsVisibleInScope, memberMap);
 
-    if (options.addMethodSignatures) {
+    if (options.strongMode) {
       _constructSignatureMethod(closureClassInfo, memberMap, node,
           memberThisType, location, typeVariableAccess);
     }

@@ -1401,9 +1401,10 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   final CommonElements commonElements;
   final TypeRepresentationGenerator _representationGenerator;
 
-  RuntimeTypesEncoderImpl(
-      this.namer, this._elementEnvironment, this.commonElements)
-      : _representationGenerator = new TypeRepresentationGenerator(namer);
+  RuntimeTypesEncoderImpl(this.namer, this._elementEnvironment,
+      this.commonElements, bool strongMode)
+      : _representationGenerator =
+            new TypeRepresentationGenerator(namer, strongMode);
 
   @override
   bool isSimpleFunctionType(FunctionType type) {
@@ -1427,8 +1428,6 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   jsAst.Expression getTypeRepresentation(
       Emitter emitter, DartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
-    // GENERIC_METHODS: When generic method support is complete enough to
-    // include a runtime value for method type variables this must be updated.
     return _representationGenerator.getTypeRepresentation(
         emitter, type, onVariable, shouldEncodeTypedef);
   }
@@ -1578,12 +1577,14 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 class TypeRepresentationGenerator
     implements ResolutionDartTypeVisitor<jsAst.Expression, Emitter> {
   final Namer namer;
+  // If true, compile using strong mode.
+  final bool _strongMode;
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this.namer);
+  TypeRepresentationGenerator(this.namer, this._strongMode);
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide
@@ -1618,10 +1619,7 @@ class TypeRepresentationGenerator
 
   jsAst.Expression visitTypeVariableType(
       TypeVariableType type, Emitter emitter) {
-    if (type.element.typeDeclaration is! ClassEntity) {
-      /// A [TypeVariableType] from a generic method is replaced by a
-      /// [DynamicType].
-      /// GENERIC_METHODS: Temporary, only used with '--generic-method-syntax'.
+    if (!_strongMode && type.element.typeDeclaration is! ClassEntity) {
       return getDynamicValue();
     }
     if (typedefBindings != null) {

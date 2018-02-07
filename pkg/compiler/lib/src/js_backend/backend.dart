@@ -977,7 +977,10 @@ class JavaScriptBackend {
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
-        namer, closedWorld.elementEnvironment, closedWorld.commonElements);
+        namer,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        compiler.options.strongMode);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
