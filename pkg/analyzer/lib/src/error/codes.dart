@@ -5071,12 +5071,6 @@ class StrongModeCode extends ErrorCode {
       "method, '{1}', which has an implicit type.",
       "Add an explicit type for either '{0}' or '{1}'.");
 
-  static const StrongModeCode TOP_LEVEL_TYPE_ARGUMENTS = const StrongModeCode(
-      ErrorType.HINT,
-      'TOP_LEVEL_TYPE_ARGUMENTS',
-      "The type of '{0}' can't be inferred because type arguments were not given for '{1}'.",
-      "Try adding type arguments for '{1}', or add an explicit type for '{0}'.");
-
   static const StrongModeCode TOP_LEVEL_UNSUPPORTED = const StrongModeCode(
       ErrorType.HINT,
       'TOP_LEVEL_UNSUPPORTED',
