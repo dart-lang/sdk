@@ -573,7 +573,7 @@ function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-generic_function_bounds_test: Crash # Issue 32012
+generic_function_bounds_test: RuntimeError # Issue 32076
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -1254,7 +1254,7 @@ function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-generic_function_bounds_test: Crash # Issue 32012
+generic_function_bounds_test: RuntimeError # Issue 32076
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError

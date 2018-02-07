@@ -795,6 +795,7 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
       type_translator_(builder_, /*finalize=*/true) {
   H.InitFromScript(builder_->script());
   type_translator_.active_class_ = &active_class_;
+  builder_->type_translator_.active_class_ = &active_class_;
 }
 
 StreamingScopeBuilder::~StreamingScopeBuilder() {
@@ -9351,7 +9352,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
   if (!parameterized_function.IsNull()) {
     enclosing = &parameterized_function;
   }
-  ActiveTypeParametersScope(active_class, enclosing, type_parameters, Z);
+  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
