@@ -1645,7 +1645,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     InterfaceType classType = classElement.type;
     if (node.typeArguments != null) {
       int parameterCount = classType.typeParameters.length;
-      int argumentCount = node.typeArguments.length;
+      int argumentCount = node.typeArguments.arguments.length;
       if (parameterCount == argumentCount) {
         // TODO(brianwilkerson) More gracefully handle the case where the counts
         // are different.
@@ -1740,7 +1740,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     InterfaceType classType = classElement.type;
     if (node.typeArguments != null) {
       int parameterCount = classType.typeParameters.length;
-      int argumentCount = node.typeArguments.length;
+      int argumentCount = node.typeArguments.arguments.length;
       if (parameterCount == argumentCount) {
         // TODO(brianwilkerson) More gracefully handle the case where the counts
         // are different.

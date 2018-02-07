@@ -931,7 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitListLiteral(ListLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      if (!_options.strongMode && node.constKeyword != null) {
+      if (!_options.strongMode && node.isConst) {
         NodeList<TypeAnnotation> arguments = typeArguments.arguments;
         if (arguments.isNotEmpty) {
           _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
@@ -951,7 +951,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (typeArguments != null) {
       NodeList<TypeAnnotation> arguments = typeArguments.arguments;
       if (!_options.strongMode && arguments.isNotEmpty) {
-        if (node.constKeyword != null) {
+        if (node.isConst) {
           _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
               CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
         }
@@ -4506,8 +4506,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType listElementType = typeArguments[0];
 
     // Check every list element.
+    bool isConst = literal.isConst;
     for (Expression element in literal.elements) {
-      if (literal.constKeyword != null) {
+      if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
         _checkForArgumentTypeNotAssignableWithExpectedTypes(
@@ -4546,11 +4547,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType keyType = typeArguments[0];
     DartType valueType = typeArguments[1];
 
+    bool isConst = literal.isConst;
     NodeList<MapLiteralEntry> entries = literal.entries;
     for (MapLiteralEntry entry in entries) {
       Expression key = entry.key;
       Expression value = entry.value;
-      if (literal.constKeyword != null) {
+      if (isConst) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
         _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType,
