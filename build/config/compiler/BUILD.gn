@@ -517,7 +517,7 @@ if (is_win) {
     "-Wno-unused-parameter",  # Unused function parameters.
   ]
 
-  if (is_clang) {
+  if (is_clang && !is_chromeos) {
     default_warning_flags += [ "-Wno-tautological-constant-compare" ]
   }
 
