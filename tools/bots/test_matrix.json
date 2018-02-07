@@ -115,15 +115,11 @@
         },
         {
           "name": "vm tests",
-          "arguments": [],
-          "fileset": "vm_debug",
-          "shards": 3
+          "arguments": ["--builder-tag=swarming"]
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked"],
-          "fileset": "vm_debug",
-          "shards": 3
+          "arguments": ["--builder-tag=swarming", "--checked"]
         }
       ]
     },
