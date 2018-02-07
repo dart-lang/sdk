@@ -14,8 +14,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show OutputUnit, OutputUnitData;
-import '../elements/elements.dart'
-    show ClassElement, MethodElement, MixinApplicationElement;
+import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -322,7 +321,7 @@ class RuntimeTypeGenerator {
       supertypesNeedSubstitutions = true;
     }
 
-    if (cls is MixinApplicationElement) {
+    if (_elementEnvironment.isMixinApplication(cls)) {
       supertypesNeedSubstitutions = true;
     }
 
