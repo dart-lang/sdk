@@ -30,7 +30,7 @@ verbose_gc_to_bmu_test: Skip
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
-[ $compiler == dart2analyzer && ($builder_tag == strong || $strong) ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dartk && $strong ]

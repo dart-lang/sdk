@@ -119,9 +119,6 @@ int_parse_radix_test/*: Pass, Slow
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
-
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
 # null) because it is expected that the user will supply a value when
@@ -134,6 +131,9 @@ from_environment_const_type_undefined_test/12: CompileTimeError
 from_environment_const_type_undefined_test/13: CompileTimeError
 from_environment_const_type_undefined_test/14: CompileTimeError
 from_environment_const_type_undefined_test/16: CompileTimeError
+
+[ $compiler == dart2analyzer && $strong ]
+*: Skip # Issue 28649
 
 [ $compiler != dart2analyzer && $runtime != dart_precompiled && $runtime != vm ]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).

@@ -153,7 +153,7 @@ analyzer/test/*: Skip # Issue 26813
 analyzer/tool/*: Skip # Issue 26813
 
 # Don't analyze tests in strong mode yet
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 # Analyze dev_compiler but only run its tests on the vm

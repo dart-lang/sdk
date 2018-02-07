@@ -155,7 +155,7 @@ cc/Profiler_TypedArrayAllocation: Pass, Fail # Issue 31137
 [ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
 cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]

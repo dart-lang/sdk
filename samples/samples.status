@@ -22,7 +22,7 @@ build_dart: Skip
 build_dart_simple: Skip
 sample_extension: Skip
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dart2js && $runtime == none ]

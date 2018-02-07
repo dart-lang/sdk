@@ -69,7 +69,7 @@ get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -124,3 +124,4 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
 *: SkipByDesign # The service tests should run without being reloaded.
+

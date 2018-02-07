@@ -48,7 +48,7 @@ spawn_uri_multi_test/none: RuntimeError # Issue 13544
 [ $strong ]
 *: SkipByDesign
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dart2js && $runtime == chrome ]

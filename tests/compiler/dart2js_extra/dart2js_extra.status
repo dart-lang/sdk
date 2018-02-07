@@ -23,7 +23,7 @@ timer_test: Fail # Issue 7728.
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $strong && $compiler == dart2analyzer ]
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
 

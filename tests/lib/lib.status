@@ -207,11 +207,11 @@ typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
-
 [ $compiler == dart2analyzer && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
+
+[ $compiler == dart2analyzer && $strong ]
+*: Skip # Issue 28649
 
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
