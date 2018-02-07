@@ -63,6 +63,7 @@
       "tools/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
+      "third_party/observatory_pub_packages/packages/unittest/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "tests/",
       "pkg/async_helper/",
