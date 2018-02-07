@@ -419,7 +419,7 @@ void Precompiler::PrecompileStaticInitializers() {
       for (intptr_t j = 0; j < fields_.Length(); j++) {
         field_ ^= fields_.At(j);
         if (field_.is_static() && field_.is_final() &&
-            field_.has_initializer()) {
+            field_.has_initializer() && !field_.is_const()) {
           if (FLAG_trace_precompiler) {
             THR_Print("Precompiling initializer for %s\n", field_.ToCString());
           }

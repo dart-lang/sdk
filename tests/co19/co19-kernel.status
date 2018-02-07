@@ -21,10 +21,6 @@ Language/Classes/Constructors/Generative_Constructors/execution_of_an_initialize
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Classes/definition_t23: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.

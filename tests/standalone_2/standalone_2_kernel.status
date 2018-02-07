@@ -97,7 +97,6 @@ io/platform_test: Crash
 io/raw_datagram_socket_test: Skip # Flaky.
 io/raw_secure_server_closing_test: Skip # Flaky
 io/raw_socket_test: Crash
-io/secure_builtin_roots_test: Timeout, RuntimeError
 io/secure_multiple_client_server_test: Skip # Flaky.
 io/secure_server_closing_test: Skip # Flaky.
 io/secure_server_socket_test: Skip # Flaky.
