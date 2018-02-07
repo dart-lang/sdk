@@ -171,9 +171,7 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--use-blobs"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         },
         {
           "name": "strong vm tests",
@@ -182,9 +180,7 @@
             "--runtime=dart_precompiled",
             "--strong",
             "--use-blobs"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         }
       ]
     },
@@ -207,9 +203,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "--compiler=dartkp","--runtime=dart_precompiled"],
-          "fileset": "vm-kernel",
-          "shards": 10
+            "--compiler=dartkp","--runtime=dart_precompiled"]
         },
         {
           "name": "strong vm tests",
@@ -217,9 +211,7 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--strong"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         }
       ]
     },
@@ -245,9 +237,7 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         },
         {
           "name": "strong vm tests",
@@ -256,9 +246,7 @@
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks",
             "--strong"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         }
       ]
     },
@@ -321,15 +309,11 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartk"],
-          "fileset": "vm-kernel",
-          "shards": 10
+          "arguments": ["--compiler=dartk"]
         },
         {
           "name": "strong vm tests",
-          "arguments": ["--compiler=dartk", "--strong"],
-          "fileset": "vm-kernel",
-          "shards": 10
+          "arguments": ["--compiler=dartk", "--strong"]
         },
         {
           "name": "front-end tests",
@@ -605,9 +589,7 @@
           "arguments": [
             "--compiler=dartk",
             "--vm-options=--optimization-counter-threshold=5"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         },
         {
           "name": "strong vm tests",
@@ -615,9 +597,7 @@
             "--compiler=dartk",
             "--strong",
             "--vm-options=--optimization-counter-threshold=5"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
+          ]
         }
       ]
     },
