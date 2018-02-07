@@ -2571,6 +2571,23 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
   return Api::NewHandle(T, arr.raw());
 }
 
+DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
+                                           intptr_t length) {
+  DARTSCOPE(Thread::Current());
+  CHECK_LENGTH(length, Array::kMaxElements);
+  CHECK_CALLBACK_STATE(T);
+  const Type& type = Api::UnwrapTypeHandle(Z, element_type);
+  if (type.IsNull()) {
+    RETURN_TYPE_ERROR(Z, element_type, Type);
+  }
+  if (!type.IsFinalized()) {
+    return Api::NewError(
+        "%s expects argument 'type' to be a fully resolved type.",
+        CURRENT_FUNC);
+  }
+  return Api::NewHandle(T, Array::New(length, type));
+}
+
 #define GET_LIST_LENGTH(zone, type, obj, len)                                  \
   type& array = type::Handle(zone);                                            \
   array ^= obj.raw();                                                          \

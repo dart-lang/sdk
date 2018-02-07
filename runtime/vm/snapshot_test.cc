@@ -604,14 +604,8 @@ TEST_CASE(SerializeArray) {
 TEST_CASE(SerializeArrayWithTypeArgument) {
   // Write snapshot with object content.
   const int kArrayLength = 10;
-  Array& array = Array::Handle(Array::New(kArrayLength));
-
-  TypeArguments& type_args = TypeArguments::Handle();
-  type_args ^= TypeArguments::New(1);
-  type_args.SetTypeAt(0, Type::Handle(Type::ObjectType()));
-  type_args = type_args.Canonicalize();
-
-  array.SetTypeArguments(type_args);
+  Array& array =
+      Array::Handle(Array::New(kArrayLength, Type::Handle(Type::ObjectType())));
 
   Smi& smi = Smi::Handle();
   for (int i = 0; i < kArrayLength; i++) {

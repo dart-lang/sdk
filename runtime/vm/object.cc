@@ -21616,6 +21616,19 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
   return New(kClassId, len, space);
 }
 
+RawArray* Array::New(intptr_t len,
+                     const AbstractType& element_type,
+                     Heap::Space space) {
+  const Array& result = Array::Handle(Array::New(len, space));
+  if (!element_type.IsDynamicType()) {
+    TypeArguments& type_args = TypeArguments::Handle(TypeArguments::New(1));
+    type_args.SetTypeAt(0, element_type);
+    type_args = type_args.Canonicalize();
+    result.SetTypeArguments(type_args);
+  }
+  return result.raw();
+}
+
 RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
   if ((len < 0) || (len > Array::kMaxElements)) {
     // This should be caught before we reach here.

@@ -483,12 +483,8 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const intptr_t len = type_arguments.Length();
-  const Array& type_list = Array::Handle(zone, Array::New(len));
-  TypeArguments& type_list_type_args =
-      TypeArguments::Handle(zone, TypeArguments::New(1));
-  type_list_type_args.SetTypeAt(0, Type::Handle(zone, Type::DartTypeType()));
-  type_list_type_args = type_list_type_args.Canonicalize();
-  type_list.SetTypeArguments(type_list_type_args);
+  const Array& type_list = Array::Handle(
+      zone, Array::New(len, Type::Handle(zone, Type::DartTypeType())));
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < len; i++) {
     type = type_arguments.TypeAt(i);

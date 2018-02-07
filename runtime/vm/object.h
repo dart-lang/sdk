@@ -7834,6 +7834,9 @@ class Array : public Instance {
   void MakeImmutable() const;
 
   static RawArray* New(intptr_t len, Heap::Space space = Heap::kNew);
+  static RawArray* New(intptr_t len,
+                       const AbstractType& element_type,
+                       Heap::Space space = Heap::kNew);
 
   // Creates and returns a new array with 'new_length'. Copies all elements from
   // 'source' to the new array. 'new_length' must be greater than or equal to
