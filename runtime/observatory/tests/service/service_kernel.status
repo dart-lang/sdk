@@ -12,13 +12,11 @@ async_star_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_step_out_test: RuntimeError # Issue 29158, Async debugging
 awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
 complex_reload_test: RuntimeError
-developer_extension_test: CompileTimeError
 eval_internal_class_test: RuntimeError
 evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError
 evaluate_activation_test/scope: RuntimeError
 evaluate_in_sync_star_activation_test: RuntimeError
-get_isolate_after_language_error_test: CompileTimeError
 library_dependency_test: CompileTimeError # Deferred loading kernel issue 28335.
 pause_on_unhandled_async_exceptions2_test: RuntimeError # --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 pause_on_unhandled_async_exceptions_test: RuntimeError #  --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
@@ -27,6 +25,10 @@ unused_changes_in_last_reload_test: RuntimeError
 
 [ $compiler == dartkp ]
 *: Skip # Non-kernel also skips precompiled mode.
+
+[ $fasta ]
+developer_extension_test: CompileTimeError
+get_isolate_after_language_error_test: CompileTimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
 pause_on_unhandled_async_exceptions2_test: RuntimeError, Timeout # Issue 31765
@@ -98,3 +100,4 @@ step_through_arithmetic_test: RuntimeError
 
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
 async_single_step_exception_test: RuntimeError
+

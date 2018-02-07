@@ -23,7 +23,6 @@ unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dartk && $strong ]
 unsorted/invocation_errors_test: CompileTimeError
-unsorted/loop_test: RuntimeError
 unsorted/nsm_dispatcher_test: CompileTimeError
 unsorted/super_mixin_test: CompileTimeError
 unsorted/types_test: RuntimeError
@@ -31,7 +30,7 @@ unsorted/types_test: RuntimeError
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.
 
-[ $runtime == dart_precompiled || $runtime == vm || $compiler == dart2js && $dart2js_with_kernel ]
-unsorted/loop_test: CompileTimeError # Large integer literal
-unsorted/simple_literal_test: CompileTimeError # Large integer literal
+[ $runtime == dart_precompiled || $runtime == vm || $fasta ]
+unsorted/loop_test: CompileTimeError
+unsorted/simple_literal_test: CompileTimeError
 

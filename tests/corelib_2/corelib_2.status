@@ -19,11 +19,6 @@ int_modulo_arith_test/none: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
 string_from_environment3_test/03: Crash
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler == precompiler ]
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
@@ -68,6 +63,13 @@ unicode_test: Fail
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $fasta ]
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
@@ -186,12 +188,6 @@ list_test/01: Crash # Unsupported operation: Unsupported type parameter type nod
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel && !$strong ]
 *: SkipByDesign
@@ -208,12 +204,6 @@ list_test/01: Crash # Unsupported operation: Unsupported type parameter type nod
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && !$strong ]
@@ -273,11 +263,6 @@ stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information 
 string_replace_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 uri_base_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked && !$strong ]
@@ -341,11 +326,6 @@ string_split_test/checkedstore: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 uri_base_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && !$strong ]
@@ -385,6 +365,10 @@ map_keys2_test: RuntimeError # needs Dart 2 is checks
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && ($compiler != dart2analyzer || !$strong) ]
 iterable_mapping_test/01: MissingCompileTimeError
 
+[ $compiler != dart2js && $fasta ]
+bool_from_environment2_test/03: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+
 [ $compiler == dartdevc && $runtime != none ]
 compare_to2_test: CompileTimeError # invalid test
 symbol_operator_test: RuntimeError # Issue 29921
@@ -410,42 +394,34 @@ bigint_test: Pass, Timeout # Please triage.
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
-bool_from_environment2_test/03: MissingCompileTimeError
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/01: CompileTimeError # Issue 31533
+iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
-string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/04: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/07: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/10: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_test/02: MissingCompileTimeError # Issue 31936 - throwing const constructors.
-symbol_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-bool_from_environment2_test/03: MissingCompileTimeError
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/01: CompileTimeError # Issue 31533
+iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
-string_from_environment3_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/04: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/07: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/10: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_test/02: MissingCompileTimeError # Issue 31936 - throwing const constructors.
-symbol_test/03: MissingCompileTimeError # Issue 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
@@ -603,6 +579,43 @@ string_static_test: MissingCompileTimeError
 # checked mode, which is mostly Dart2-compatible.
 [ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign
+
+[ $fasta && !$strong ]
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+bool_from_environment2_test/05: MissingCompileTimeError
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_from_environment3_test/05: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_test/01: MissingCompileTimeError
 
 # Sections for dartk and dartkp.
 #

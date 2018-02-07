@@ -10,6 +10,16 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+[ $fasta ]
+deferred_transitive_import_error_test: CompileTimeError
+package/package1_test: CompileTimeError
+package/package_isolate_test: Crash
+package/package_test: CompileTimeError
+package/scenarios/invalid/invalid_utf8_test: CompileTimeError
+package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
+package/scenarios/invalid/same_package_twice_test: CompileTimeError
+regress_29350_test/none: MissingCompileTimeError
+
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 io/file_lock_test: Slow, Pass
 io/raw_socket_test: Crash
@@ -29,11 +39,6 @@ io/platform_resolved_executable_test/04: Pass, RuntimeError
 io/secure_builtin_roots_test: Timeout
 io/socket_finalizer_test: Pass, Timeout
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-package/package1_test: CompileTimeError
-package/package_test: CompileTimeError
-package/scenarios/invalid/invalid_utf8_test: CompileTimeError
-package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
-package/scenarios/invalid/same_package_twice_test: CompileTimeError
 regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 
@@ -56,8 +61,6 @@ io/platform_test: RuntimeError # Please triage.
 io/test_extension_fail_test: RuntimeError # Please traige.
 io/test_extension_test: RuntimeError # Please traige.
 map_insert_remove_oom_test: Crash # Please triage.
-package/scenarios/invalid/invalid_utf8_test: Pass # Please triage.
-package/scenarios/invalid/non_existent_packages_file_test: Pass # Please triage.
 package/scenarios/packages_file_strange_formatting/empty_lines_test: CompileTimeError # Please triage.
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: CompileTimeError # Please triage.
 package/scenarios/packages_option_only/packages_option_only_test: CompileTimeError # Please triage.
@@ -108,11 +111,6 @@ io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
 map_insert_remove_oom_test: Crash
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-package/package1_test: CompileTimeError
-package/package_test: CompileTimeError
-package/scenarios/invalid/invalid_utf8_test: CompileTimeError
-package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
-package/scenarios/invalid/same_package_twice_test: CompileTimeError
 regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 

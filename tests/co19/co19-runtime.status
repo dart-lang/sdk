@@ -9,7 +9,6 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 
 [ $runtime == dart_precompiled ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
@@ -248,6 +247,9 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 
 [ $mode == release && $runtime == vm && $system == linux && ($arch == ia32 || $arch == x64) ]
 LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
+
+[ $runtime == dart_precompiled && !$fasta ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
 
 # Obfuscated mode expectations
 [ $runtime == dart_precompiled && $minified ]

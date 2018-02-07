@@ -27,6 +27,13 @@ spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 
+[ $compiler == fasta ]
+browser/compute_this_script_browser_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+browser/package_resolve_browser_hook2_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+browser/package_resolve_browser_hook_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+browser/package_resolve_browser_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+isolate_stress_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+
 [ $mode == product ]
 issue_24243_parent_isolate_test: Skip # Requires checked mode
 
@@ -38,6 +45,9 @@ simple_message_test/01: Skip # Flutter Issue 9114
 [ $csp ]
 browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
+
+[ $fasta ]
+compile_time_error_test/01: MissingCompileTimeError
 
 [ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
@@ -162,7 +172,6 @@ ping_test: Skip # Resolve test issues
 checked_test: Skip # Unsupported.
 
 [ $compiler == dartk || $compiler == dartkp ]
-compile_time_error_test/01: MissingCompileTimeError
 deferred_in_isolate2_test: Skip # Timeout. Deferred loading kernel issue 28335.
 deferred_in_isolate_test: Skip # Timeout. Deferred loading kernel issue 28335.
 issue_21398_parent_isolate2_test/01: Skip # Timeout. Deferred loading kernel issue 28335.
