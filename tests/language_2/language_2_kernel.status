@@ -12,6 +12,23 @@
 
 [ $compiler == dartkp ]
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
+mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
+mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
+mixin_type_parameter_inference_test/01: CompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/06: DartkCrash
+mixin_type_parameter_inference_test/07: DartkCrash
+mixin_type_parameter_inference_test/08: DartkCrash
+mixin_type_parameter_inference_test/09: DartkCrash
+mixin_type_parameter_inference_test/10: DartkCrash
+mixin_type_parameter_inference_test/12: DartkCrash
+mixin_type_parameter_inference_test/13: DartkCrash
+mixin_type_parameter_inference_test/16: DartkCrash
+mixin_type_parameter_inference_test/none: DartkCrash
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
@@ -677,6 +694,18 @@ mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: I
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
+mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
+mixin_type_parameter_inference_test/01: CompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/06: MissingCompileTimeError
+mixin_type_parameter_inference_test/07: MissingCompileTimeError
+mixin_type_parameter_inference_test/08: RuntimeError
+mixin_type_parameter_inference_test/09: RuntimeError
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
 mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError

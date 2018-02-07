@@ -1319,6 +1319,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkImplementsSuperClass(implementsClause);
       _checkImplementsFunctionWithoutCall(node.name);
       _checkForMixinHasNoConstructors(node);
+      _checkMixinInference(node, withClause);
 
       if (_options.strongMode) {
         _checkForMixinWithConflictingPrivateMember(withClause, superclass);
@@ -6170,6 +6171,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  void _checkMixinInference(
+      NamedCompilationUnitMember node, WithClause withClause) {
+    if (withClause == null) return;
+    if (!_options.enableSuperMixins) return;
+    ClassElement classElement = node.element;
+    var type = classElement.type;
+    var supertype = classElement.supertype;
+    List<InterfaceType> supertypesForMixinInference = <InterfaceType>[];
+    ClassElementImpl.collectAllSupertypes(
+        supertypesForMixinInference, supertype, type);
+    for (var typeName in withClause.mixinTypes) {
+      if (typeName.typeArguments != null) continue;
+      var mixinElement = typeName.name.staticElement;
+      if (mixinElement is ClassElement) {
+        var mixinSupertypeConstraint = mixinElement.supertype;
+        if (mixinSupertypeConstraint.element.typeParameters.isNotEmpty) {
+          _findInterfaceTypeForMixin(
+              typeName, mixinSupertypeConstraint, supertypesForMixinInference);
+        }
+        ClassElementImpl.collectAllSupertypes(
+            supertypesForMixinInference, mixinElement.type, type);
+      }
+    }
+  }
+
   /**
    * Verify that the given [typeArguments] are all within their bounds, as
    * defined by the given [element].
@@ -6264,6 +6290,32 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
         isDeclarationCast: isDeclarationCast);
+  }
+
+  void _findInterfaceTypeForMixin(TypeName mixin,
+      InterfaceType supertypeConstraint, List<InterfaceType> interfaceTypes) {
+    var element = supertypeConstraint.element;
+    InterfaceType foundInterfaceType;
+    for (var interfaceType in interfaceTypes) {
+      if (interfaceType.element != element) continue;
+      if (foundInterfaceType == null) {
+        foundInterfaceType = interfaceType;
+      } else {
+        if (interfaceType != foundInterfaceType) {
+          _errorReporter.reportErrorForToken(
+              CompileTimeErrorCode
+                  .MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES,
+              mixin.name.beginToken,
+              [mixin, supertypeConstraint]);
+        }
+      }
+    }
+    if (foundInterfaceType == null) {
+      _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
+          mixin.name.beginToken,
+          [mixin, supertypeConstraint]);
+    }
   }
 
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {

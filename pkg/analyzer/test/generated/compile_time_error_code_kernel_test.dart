@@ -1079,8 +1079,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
+  @failingTest
+  test_implementsDisallowedClass_class_String_num() async {
+    await super.test_implementsDisallowedClass_class_String_num();
+  }
+
+  @override
   test_implementsDisallowedClass_classTypeAlias_Null() async {
     await super.test_implementsDisallowedClass_classTypeAlias_Null();
+  }
+
+  @override
+  @failingTest
+  test_implementsDisallowedClass_classTypeAlias_String_num() async {
+    await super.test_implementsDisallowedClass_classTypeAlias_String_num();
   }
 
   @override
@@ -1708,6 +1720,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Expected 1 errors of type CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS, found 0
     await super.test_mixinHasNoConstructors_mixinClass_namedSuperCall();
   }
+
+  @override
+  @failingTest
+  test_mixinInference_matchingClass() =>
+      super.test_mixinInference_matchingClass();
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass() =>
+      super.test_mixinInference_noMatchingClass();
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() =>
+      super
+          .test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause();
+
+  @override
+  @failingTest
+  test_mixinInference_noMatchingClass_namedMixinApplication() =>
+      super.test_mixinInference_noMatchingClass_namedMixinApplication();
 
   @override
   @failingTest
@@ -3084,18 +3117,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_yieldInNonGenerator_async() async {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_class_String_num() async {
-    await super.test_implementsDisallowedClass_class_String_num();
-  }
-
-  @override
-  @failingTest
-  test_implementsDisallowedClass_classTypeAlias_String_num() async {
-    await super.test_implementsDisallowedClass_classTypeAlias_String_num();
   }
 }
 

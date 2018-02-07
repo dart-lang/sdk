@@ -1659,6 +1659,12 @@ class _UnitResynthesizer {
         return DynamicTypeImpl.instance;
       }
     }
+    if (type.refinedSlot != 0) {
+      var refinedType = linkedTypeMap[type.refinedSlot];
+      if (refinedType != null) {
+        type = refinedType;
+      }
+    }
     if (type.paramReference != 0) {
       return context.typeParameterContext
           .getTypeParameterType(type.paramReference);

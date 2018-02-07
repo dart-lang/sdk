@@ -1686,6 +1686,21 @@ class CompileTimeErrorCode extends ErrorCode {
           "This mixin application is invalid because all of the constructors "
           "in the base class '{0}' have optional parameters.");
 
+  static const CompileTimeErrorCode
+      MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES =
+      const CompileTimeErrorCode(
+          'MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES',
+          "Type parameters could not be inferred for the mixin '{0}' because "
+          "the base class implements the mixin's supertype constraint "
+          "'{1}' in multiple conflicting ways");
+
+  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_MATCHING_CLASS =
+      const CompileTimeErrorCode(
+          'MIXIN_INFERENCE_NO_MATCHING_CLASS',
+          "Type parameters could not be inferred for the mixin '{0}' because "
+          "the base class does not implement the mixin's supertype "
+          "constraint '{1}'");
+
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class
    * whose superclass is not Object.

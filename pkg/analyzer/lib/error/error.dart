@@ -170,6 +170,8 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
   CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+  CompileTimeErrorCode.MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES,
+  CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
   CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
   CompileTimeErrorCode.MIXIN_OF_ENUM,

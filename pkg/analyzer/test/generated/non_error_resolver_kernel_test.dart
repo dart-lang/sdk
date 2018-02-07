@@ -198,6 +198,11 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31984')
+  test_infer_mixin() => super.test_infer_mixin();
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_integerLiteralOutOfRange_negative_valid() async {
     return super.test_integerLiteralOutOfRange_negative_valid();
