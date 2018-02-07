@@ -1,3 +1,9 @@
+# 0.1.43
+
+* new `prefer_const_declarations.dart` lint
+* new `prefer_const_literals_to_create_immutables` lint
+* miscellaneous documentation improvements
+
 # 0.1.42
 
 * added support for external constructors in `avoid_unused_constructor_parameters`
