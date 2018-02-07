@@ -5915,7 +5915,7 @@ Dart_CompileToKernel(const char* script_uri,
   return result;
 #else
   return KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                        platform_kernel_size);
+                                        platform_kernel_size, 0, NULL, true);
 #endif
 }
 

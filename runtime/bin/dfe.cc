@@ -278,7 +278,7 @@ void* DFE::ReadScript(const char* script_uri) const {
 
 bool DFE::TryReadKernelFile(const char* script_uri,
                             const uint8_t** kernel_ir,
-                            intptr_t* kernel_ir_size) const {
+                            intptr_t* kernel_ir_size) {
   if (strlen(script_uri) >= 8 && strncmp(script_uri, "file:///", 8) == 0) {
     script_uri = script_uri + 7;
   }

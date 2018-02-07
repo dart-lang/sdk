@@ -879,6 +879,7 @@ assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
+export_ambiguous_main_test: MissingCompileTimeError
 hello_dart_test: Crash
 recursive_mixin_test: Crash
 redirecting_factory_reflection_test: Crash
@@ -1120,7 +1121,7 @@ dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 enum_mirror_test: SkipByDesign
 example_constructor_test: Fail, OK
-export_ambiguous_main_negative_test: Skip # Issue 29895 Fail Issue 14763
+export_ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
 export_double_same_main_test: Skip # Issue 29895 Crash Issue 29895
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.

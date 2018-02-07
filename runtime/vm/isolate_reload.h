@@ -232,6 +232,10 @@ class IsolateReloadContext {
 
   bool ScriptModifiedSince(const Script& script, int64_t since);
   BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
+  void FindModifiedSources(Thread* thread,
+                           bool force_reload,
+                           Dart_SourceFile** modified_sources,
+                           intptr_t* count);
 
   void CheckpointLibraries();
 

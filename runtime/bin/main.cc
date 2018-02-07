@@ -525,19 +525,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
   if (!isolate_run_app_snapshot) {
     kernel_program = dfe.ReadScript(script_uri);
-    if (dfe.UseDartFrontend() && (kernel_program == NULL)) {
-      if (!dfe.CanUseDartFrontend()) {
-        *error = OS::SCreate(NULL, "Dart frontend unavailable to compile %s.",
-                             script_uri);
-        return NULL;
-      }
-      kernel_program =
-          dfe.CompileAndReadScript(script_uri, error, exit_code, flags->strong);
-      if (kernel_program == NULL) {
-        // Error message would have been set by DFE::CompileAndReadScript.
-        return NULL;
-      }
-    }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -548,26 +535,48 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
 
   Dart_Isolate isolate = NULL;
-  if (kernel_program != NULL) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return NULL;
-#else
-    isolate_data->kernel_program = kernel_program;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (dfe.UseDartFrontend()) {
     void* platform_program = dfe.platform_program(flags->strong) != NULL
                                  ? dfe.platform_program(flags->strong)
                                  : kernel_program;
+
+    if (platform_program == NULL) {
+      FATAL("platform_program cannot be NULL.");
+    }
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
     isolate = Dart_CreateIsolateFromKernel(script_uri, main, platform_program,
                                            flags, isolate_data, error);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+    if (!isolate_run_app_snapshot && kernel_program == NULL) {
+      if (!dfe.CanUseDartFrontend()) {
+        *error = OS::SCreate(NULL, "Dart frontend unavailable to compile %s.",
+                             script_uri);
+        return NULL;
+      }
+
+      kernel_program =
+          dfe.CompileAndReadScript(script_uri, error, exit_code, flags->strong);
+      if (kernel_program == NULL) {
+        if (Dart_CurrentIsolate() != NULL) {
+          Dart_ShutdownIsolate();
+        }
+        return NULL;
+      }
+    }
+    isolate_data->kernel_program = kernel_program;
   } else {
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data,
                                  isolate_snapshot_instructions, flags,
                                  isolate_data, error);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;

@@ -18,6 +18,9 @@ namespace dart {
 class KernelIsolate : public AllStatic {
  public:
   static const char* kName;
+  static const int kCompileTag;
+  static const int kUpdateSourcesTag;
+  static const int kTrainTag;
 
   static void Run();
 
@@ -34,7 +37,11 @@ class KernelIsolate : public AllStatic {
       intptr_t platform_kernel_size,
       int source_files_count = 0,
       Dart_SourceFile source_files[] = NULL,
-      bool incremental_compile = false);
+      bool incremental_compile = true);
+
+  static Dart_KernelCompilationResult UpdateInMemorySources(
+      int source_files_count,
+      Dart_SourceFile source_files[]);
 
  protected:
   static Monitor* monitor_;

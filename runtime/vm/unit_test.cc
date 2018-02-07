@@ -18,6 +18,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel_isolate.h"
 #include "vm/parser.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
@@ -164,7 +165,10 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
 }
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
+
+#ifndef PRODUCT
 static ThreadLocalKey kernel_reload_key = kUnsetThreadLocalKey;
+#endif
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
@@ -217,38 +221,6 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
-  if (FLAG_use_dart_frontend) {
-    // Reload request.
-
-    ASSERT(tag == Dart_kKernelTag);
-    const char* urlstr = NULL;
-    Dart_Handle result = Dart_StringToCString(url, &urlstr);
-    if (Dart_IsError(result)) {
-      return Dart_NewApiError("accessing url characters failed");
-    }
-
-    // Updated library either arrives as dart source or as
-    // a precompiled kernel binary.
-    void* kernel_pgm;
-    if (script_reload_key != kUnsetThreadLocalKey) {
-      const char* script_source = reinterpret_cast<const char*>(
-          OSThread::GetThreadLocal(script_reload_key));
-      ASSERT(script_source != NULL);
-      OSThread::SetThreadLocal(script_reload_key, 0);
-      char* error = TestCase::CompileTestScriptWithDFE(urlstr, script_source,
-                                                       &kernel_pgm);
-      if (error != NULL) {
-        return Dart_NewApiError(error);
-      }
-    } else {
-      ASSERT(kernel_reload_key != kUnsetThreadLocalKey);
-      kernel_pgm =
-          reinterpret_cast<void*>(OSThread::GetThreadLocal(kernel_reload_key));
-      OSThread::SetThreadLocal(kernel_reload_key, 0);
-    }
-    ASSERT(kernel_pgm != NULL);
-    return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_pgm, 1);
-  }
   if (tag == Dart_kCanonicalizeUrl) {
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
@@ -488,7 +460,13 @@ Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
-  SetReloadTestScript(script);
+  if (FLAG_use_dart_frontend) {
+    Dart_SourceFile sourcefiles[] = {{RESOLVED_USER_TEST_URI, script}};
+    KernelIsolate::UpdateInMemorySources(
+        sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles);
+  } else {
+    SetReloadTestScript(script);
+  }
 
   Dart_Handle result = TriggerReload();
   if (Dart_IsError(result)) {

@@ -187,7 +187,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
   {
     void* kernel_pgm = NULL;
     char* error = TestCase::CompileTestScriptWithDFE(
-        "file:///test-app",
+        "file:///test-app.dart",
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
         updated_sourcefiles, &kernel_pgm, true /* incrementally */);
     EXPECT(error == NULL);
@@ -262,7 +262,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
   {
     void* kernel_pgm = NULL;
     char* error = TestCase::CompileTestScriptWithDFE(
-        "file:///test-app",
+        "file:///test-app.dart",
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
         updated_sourcefiles, &kernel_pgm, true /* incrementally */);
     EXPECT(error == NULL);
