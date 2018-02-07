@@ -272,7 +272,9 @@ template("build_libdart_builtin") {
     ]
     if (is_fuchsia) {
       deps += [ "//zircon/public/lib/launchpad" ]
-      public_deps = [ "//zircon/public/lib/fdio" ]
+      public_deps = [
+        "//zircon/public/lib/fdio",
+      ]
     }
     include_dirs = [ ".." ]
     set_sources_assignment_filter([
@@ -380,6 +382,7 @@ template("build_gen_snapshot") {
         "psapi.lib",
         "ws2_32.lib",
         "Rpcrt4.lib",
+        "shlwapi.lib",
         "winmm.lib",
       ]
     }
@@ -422,7 +425,9 @@ template("build_gen_snapshot_dart_io") {
 
     if (is_fuchsia) {
       deps += [ "//garnet/public/lib/netstack/c" ]
-      public_deps = [ "//zircon/public/lib/fdio" ]
+      public_deps = [
+        "//zircon/public/lib/fdio",
+      ]
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
@@ -523,7 +528,9 @@ template("dart_io") {
         "//garnet/public/lib/netstack/c",
         "//zircon/public/lib/launchpad",
       ]
-      public_deps = [ "//zircon/public/lib/fdio" ]
+      public_deps = [
+        "//zircon/public/lib/fdio",
+      ]
     }
 
     sources = io_impl_sources + builtin_impl_sources + cli_impl_sources
@@ -849,6 +856,7 @@ template("dart_executable") {
         "psapi.lib",
         "ws2_32.lib",
         "Rpcrt4.lib",
+        "shlwapi.lib",
         "winmm.lib",
       ]
     }
@@ -1148,6 +1156,7 @@ executable("run_vm_tests") {
       "psapi.lib",
       "ws2_32.lib",
       "Rpcrt4.lib",
+      "shlwapi.lib",
       "winmm.lib",
     ]
   }

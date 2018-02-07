@@ -175,6 +175,10 @@ class File : public ReferenceCounted<File> {
   // mode contains kTruncate. Assumes we are in an API scope.
   static File* Open(Namespace* namespc, const char* path, FileOpenMode mode);
 
+  // Same as [File::Open], but attempts to convert uri to path before opening
+  // the file. If conversion fails, uri is treated as a path.
+  static File* OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode);
+
   // Create a file object for the specified stdio file descriptor
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);
