@@ -2718,7 +2718,7 @@ abstract class A {
 
 class B extends A {
   @override
-  forEach(int f(double p1, String p2)) {
+  forEach(int Function(double p1, String p2) f) {
     // TODO: implement forEach
   }
 }

@@ -337,9 +337,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     writeln('@override');
     write(prefix);
     // return type
-    bool shouldReturn = writeType(member.type.returnType,
+    DartType returnType = member.type.returnType;
+    bool typeWritten = writeType(returnType,
         groupName: returnTypeGroupName, methodBeingCopied: member);
-    if (shouldReturn) {
+    if (typeWritten) {
       write(' ');
     }
     if (isGetter) {
@@ -365,7 +366,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // TO-DO
       write(prefix2);
       writeln('// TODO: implement ${member.displayName}');
-      if (shouldReturn) {
+      if (typeWritten && !returnType.isVoid) {
         write(prefix2);
         writeln('return null;');
       }
@@ -792,10 +793,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // type parameter
     type = _getVisibleType(type, enclosingClass, enclosingExecutable,
         methodBeingCopied: methodBeingCopied);
-    if (type == null ||
-        type.isDynamic ||
-        type.isBottom ||
-        type.isDartCoreNull) {
+    if (type == null || type.isDynamic || type.isBottom) {
       if (parameterName != null) {
         return parameterName;
       }
@@ -816,6 +814,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (parameterName == null) {
         return 'Function';
       }
+      // TODO(brianwilkerson) Using a buffer here means that we cannot re-use
+      // the existing `write*` functions. Refactor this code to remove the
+      // duplication.
       StringBuffer buffer = new StringBuffer();
       String returnType = _getTypeSource(
           type.returnType, enclosingClass, enclosingExecutable,
@@ -824,7 +825,32 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         buffer.write(returnType);
         buffer.write(' ');
       }
-      buffer.write(parameterName);
+      if (element is GenericFunctionTypeElement) {
+        buffer.write('Function');
+        if (element.typeParameters.isNotEmpty) {
+          buffer.write('<');
+          bool isFirst = true;
+          for (TypeParameterElement typeParameter in element.typeParameters) {
+            if (!isFirst) {
+              buffer.write(', ');
+            }
+            isFirst = false;
+            buffer.write(typeParameter.name);
+            if (typeParameter.bound != null) {
+              String bound = _getTypeSource(
+                  typeParameter.bound, enclosingClass, enclosingExecutable,
+                  methodBeingCopied: methodBeingCopied);
+              if (bound != null) {
+                buffer.write(' extends ');
+                buffer.write(bound);
+              }
+            }
+          }
+          buffer.write('>');
+        }
+      } else {
+        buffer.write(parameterName);
+      }
       buffer.write('(');
       int count = type.parameters.length;
       for (int i = 0; i < count; i++) {
@@ -839,6 +865,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         buffer.write(parameterType);
       }
       buffer.write(')');
+      if (element is GenericFunctionTypeElement) {
+        buffer.write(' ');
+        buffer.write(parameterName);
+      }
       return buffer.toString();
     }
     // prepare element
@@ -970,6 +1000,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterParent = parameterElement.enclosingElement;
+      while (parameterParent is GenericFunctionTypeElement ||
+          parameterParent is ParameterElement) {
+        parameterParent = parameterParent.enclosingElement;
+      }
       // TODO(brianwilkerson) This needs to compare the parameterParent with
       // each of the parents of the enclosingExecutable. (That means that we
       // only need the most closely enclosing element.)
