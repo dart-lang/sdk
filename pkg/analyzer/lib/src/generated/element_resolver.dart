@@ -166,15 +166,26 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
+    Expression leftHandSide = node.leftHandSide;
+    DartType staticType = _getStaticType(leftHandSide, read: true);
+
+    // For any compound assignments to a void variable, report bad void usage.
+    // Example: `y += voidFn()`, not allowed.
+    if (operatorType != TokenType.EQ &&
+        staticType != null &&
+        staticType.isVoid) {
+      _recordUndefinedToken(
+          null, StaticWarningCode.USE_OF_VOID_RESULT, operator, []);
+      return null;
+    }
+
     if (operatorType != TokenType.AMPERSAND_AMPERSAND_EQ &&
         operatorType != TokenType.BAR_BAR_EQ &&
         operatorType != TokenType.EQ &&
         operatorType != TokenType.QUESTION_QUESTION_EQ) {
       operatorType = _operatorFromCompoundAssignment(operatorType);
-      Expression leftHandSide = node.leftHandSide;
       if (leftHandSide != null) {
         String methodName = operatorType.lexeme;
-        DartType staticType = _getStaticType(leftHandSide, read: true);
         MethodElement staticMethod =
             _lookUpMethod(leftHandSide, staticType, methodName);
         node.staticElement = staticMethod;
@@ -888,6 +899,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
           methodName,
           [methodName.name, targetTypeName]);
+    } else if (identical(errorCode, StaticWarningCode.USE_OF_VOID_RESULT)) {
+      _resolver.errorReporter.reportErrorForNode(
+          StaticWarningCode.USE_OF_VOID_RESULT, target ?? methodName, []);
     }
     return null;
   }
@@ -1304,9 +1318,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       FunctionType getterType = element.type;
       if (getterType != null) {
         DartType returnType = getterType.returnType;
-        if (!_isExecutableType(returnType)) {
-          return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-        }
+        return _getErrorCodeForExecuting(returnType);
       }
     } else if (element is ExecutableElement) {
       return null;
@@ -1328,15 +1340,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         FunctionType getterType = getter.type;
         if (getterType != null) {
           DartType returnType = getterType.returnType;
-          if (!_isExecutableType(returnType)) {
-            return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-          }
+          return _getErrorCodeForExecuting(returnType);
         }
       } else if (element is VariableElement) {
         DartType variableType = element.type;
-        if (!_isExecutableType(variableType)) {
-          return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
-        }
+        return _getErrorCodeForExecuting(variableType);
       } else {
         if (target == null) {
           ClassElement enclosingClass = _resolver.enclosingClass;
@@ -1365,6 +1373,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               return null;
             }
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
+          } else if (targetType.isVoid) {
+            return StaticWarningCode.USE_OF_VOID_RESULT;
           } else if (!targetType.isDynamic && target is! NullLiteral) {
             // Proxy-conditional warning, based on state of
             // targetType.getElement()
@@ -1403,25 +1413,29 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Token leftBracket = expression.leftBracket;
       Token rightBracket = expression.rightBracket;
       ErrorCode errorCode;
+      DartType type =
+          shouldReportMissingMember_static ? staticType : propagatedType;
+      var errorArguments = [methodName, type.displayName];
       if (shouldReportMissingMember_static) {
         if (target is SuperExpression) {
           errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR;
+        } else if (staticType != null && staticType.isVoid) {
+          errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
+          errorArguments = [];
         } else {
           errorCode = StaticTypeWarningCode.UNDEFINED_OPERATOR;
         }
       } else {
         errorCode = HintCode.UNDEFINED_OPERATOR;
       }
-      DartType type =
-          shouldReportMissingMember_static ? staticType : propagatedType;
       if (leftBracket == null || rightBracket == null) {
-        _recordUndefinedNode(type.element, errorCode, expression,
-            [methodName, type.displayName]);
+        _recordUndefinedNode(
+            type.element, errorCode, expression, errorArguments);
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
-        _recordUndefinedOffset(type.element, errorCode, offset, length,
-            [methodName, type.displayName]);
+        _recordUndefinedOffset(
+            type.element, errorCode, offset, length, errorArguments);
       }
       return true;
     }
@@ -1870,6 +1884,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  /**
+   * Return an error if the [type], which is presumably being invoked, is not a
+   * function. The errors for non functions may be broken up by type; currently,
+   * it returns a special value for when the type is `void`.
+   */
+  ErrorCode _getErrorCodeForExecuting(DartType type) {
+    if (_isExecutableType(type)) {
+      return null;
+    }
+
+    return type.isVoid
+        ? StaticWarningCode.USE_OF_VOID_RESULT
+        : StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
   }
 
   /**
@@ -2636,6 +2665,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           staticType.isVoid ? null : staticOrPropagatedEnclosingElt;
       if (propertyName.inSetterContext()) {
         ErrorCode errorCode;
+        var arguments = [propertyName.name, displayType.displayName];
         if (shouldReportMissingMember_static) {
           if (target is SuperExpression) {
             if (isStaticProperty && !staticType.isVoid) {
@@ -2644,7 +2674,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_SETTER;
             }
           } else {
-            if (isStaticProperty && !staticType.isVoid) {
+            if (staticType.isVoid) {
+              errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
+              arguments = [];
+            } else if (isStaticProperty) {
               errorCode = StaticWarningCode.UNDEFINED_SETTER;
             } else {
               errorCode = StaticTypeWarningCode.UNDEFINED_SETTER;
@@ -2653,10 +2686,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           errorCode = HintCode.UNDEFINED_SETTER;
         }
-        _recordUndefinedNode(declaringElement, errorCode, propertyName,
-            [propertyName.name, displayType.displayName]);
+        _recordUndefinedNode(
+            declaringElement, errorCode, propertyName, arguments);
       } else if (propertyName.inGetterContext()) {
         ErrorCode errorCode;
+        var arguments = [propertyName.name, displayType.displayName];
         if (shouldReportMissingMember_static) {
           if (target is SuperExpression) {
             if (isStaticProperty && !staticType.isVoid) {
@@ -2665,7 +2699,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_GETTER;
             }
           } else {
-            if (isStaticProperty && !staticType.isVoid) {
+            if (staticType.isVoid) {
+              errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
+              arguments = [];
+            } else if (isStaticProperty) {
               errorCode = StaticWarningCode.UNDEFINED_GETTER;
             } else {
               errorCode = StaticTypeWarningCode.UNDEFINED_GETTER;
@@ -2674,8 +2711,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           errorCode = HintCode.UNDEFINED_GETTER;
         }
-        _recordUndefinedNode(declaringElement, errorCode, propertyName,
-            [propertyName.name, displayType.displayName]);
+        _recordUndefinedNode(
+            declaringElement, errorCode, propertyName, arguments);
       } else {
         _recordUndefinedNode(
             declaringElement,

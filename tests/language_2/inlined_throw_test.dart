@@ -126,7 +126,7 @@ interpoleCallThrow() => "inter${callMeTrue()}...${kast('tada!')}pole";
 call1() => ternary(0, kast("call1"), 1);
 call2() => ternary(kast("call2"), 0, 1);
 call3() => ternary(0, 1, kast("call3"));
-call1c() => ternary(callMe(), kast("call1"), 1);
+call1c() => ternary(callMe() as dynamic, kast("call1"), 1);
 call3c() => ternary(callMeTrue(), 1, kast("call3"));
 call4c() => ternary(0, callMeTrue(), kast("call3"));
 
@@ -135,7 +135,7 @@ sendSet() {
 }
 
 sendSetCallThrow() {
-  var x = callMe(), y = kast("sendSet");
+  var x = callMe() as dynamic, y = kast("sendSet");
 }
 
 isSend() => kast("isSend") is int;

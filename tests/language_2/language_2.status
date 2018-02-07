@@ -22,6 +22,9 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $compiler != dart2analyzer && $compiler != spec_parser && !$strong ]
+void_block_return_test/00: MissingCompileTimeError # Requires strong mode
+
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
 first_class_types_literals_test/01: Crash
 first_class_types_literals_test/02: Crash
@@ -191,7 +194,6 @@ vm/type_vm_test/24: MissingCompileTimeError
 vm/type_vm_test/25: MissingCompileTimeError
 vm/type_vm_test/26: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
-void_block_return_test/00: MissingCompileTimeError # Requires strong mode
 void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
 void_type_override_test: Skip # Requires strong mode

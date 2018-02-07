@@ -496,4 +496,40 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_no_missingReturn_async_futureOrVoid() async {
     await super.test_no_missingReturn_async_futureOrVoid();
   }
+
+  @failingTest
+  @override
+  test_useOfVoidResult_assignmentExpression_function() async {
+    return super.test_useOfVoidResult_assignmentExpression_function();
+  }
+
+  @failingTest
+  @override
+  test_useOfVoidResult_assignmentExpression_method() async {
+    return super.test_useOfVoidResult_assignmentExpression_method();
+  }
+
+  @failingTest
+  @override
+  test_useOfVoidResult_inForLoop() async {
+    return super.test_useOfVoidResult_inForLoop();
+  }
+
+  @failingTest
+  @override
+  test_useOfVoidResult_variableDeclaration_function() async {
+    return super.test_useOfVoidResult_variableDeclaration_function();
+  }
+
+  @failingTest
+  @override
+  test_useOfVoidResult_variableDeclaration_method() async {
+    return super.test_useOfVoidResult_variableDeclaration_method();
+  }
+
+  @failingTest
+  @override
+  test_useOfVoidResult_variableDeclaration_method2() async {
+    return super.test_useOfVoidResult_variableDeclaration_method2();
+  }
 }
