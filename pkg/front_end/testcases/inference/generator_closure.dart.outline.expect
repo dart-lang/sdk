@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method foo(() → asy::Stream<core::int> values) → void
+  ;
+static method main() → void
+  ;
