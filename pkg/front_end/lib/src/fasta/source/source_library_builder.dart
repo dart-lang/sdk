@@ -192,17 +192,26 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void addExport(
       List<MetadataBuilder> metadata,
       String uri,
-      List<Configuration> conditionalUris,
+      List<Configuration> configurations,
       List<Combinator> combinators,
       int charOffset,
       int uriOffset) {
+    if (configurations != null) {
+      for (Configuration config in configurations) {
+        if (lookupImportCondition(config.dottedName) == config.condition) {
+          uri = config.importUri;
+          break;
+        }
+      }
+    }
+
     var exportedLibrary = loader
         .read(resolve(this.uri, uri, uriOffset), charOffset, accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
 
-  String _lookupImportCondition(String dottedName) {
+  String lookupImportCondition(String dottedName) {
     const String prefix = "dart.library.";
     if (!dottedName.startsWith(prefix)) return "";
     dottedName = dottedName.substring(prefix.length);
@@ -226,7 +235,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int uriOffset) {
     if (configurations != null) {
       for (Configuration config in configurations) {
-        if (_lookupImportCondition(config.dottedName) == config.condition) {
+        if (lookupImportCondition(config.dottedName) == config.condition) {
           uri = config.importUri;
           break;
         }

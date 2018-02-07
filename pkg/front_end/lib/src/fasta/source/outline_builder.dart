@@ -145,11 +145,11 @@ class OutlineBuilder extends UnhandledListener {
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
     List<Combinator> combinators = pop();
-    List<Configuration> conditionalUris = pop();
+    List<Configuration> configurations = pop();
     int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addExport(metadata, uri, conditionalUris, combinators,
+    library.addExport(metadata, uri, configurations, combinators,
         exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
   }
