@@ -281,7 +281,7 @@ Comparator<K> _defaultCompare<K>() {
  * value is a [K].
  */
 class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
-    implements Map<K, V> {
+    with MapMixin<K, V> {
   _SplayTreeMapNode<K, V> _root;
   final _SplayTreeMapNode<K, V> _dummy =
       new _SplayTreeMapNode<K, V>(null, null);
@@ -454,10 +454,6 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   Iterable<K> get keys => new _SplayTreeKeyIterable<K>(this);
 
   Iterable<V> get values => new _SplayTreeValueIterable<K, V>(this);
-
-  String toString() {
-    return Maps.mapToString(this);
-  }
 
   /**
    * Get the first key in the map. Returns [:null:] if the map is empty.
@@ -736,6 +732,16 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
     }
     return result;
   }
+
+  Set<T> _newSet<T>() =>
+      new SplayTreeSet<T>((T a, T b) => _comparator(a as E, b as E), _validKey);
+
+  Set<R> cast<R>() {
+    Set<Object> self = this;
+    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newSet);
+  }
+
+  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
 
   int _compare(E e1, E e2) => _comparator(e1, e2);
 

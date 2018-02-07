@@ -101,6 +101,9 @@ string_from_environment_test: Fail # Flutter Issue 9111
 string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 
+[ $runtime != none ]
+map_from_test: Fail # Assumes LinkedHashMap implements HashMap.
+
 [ $runtime == safari ]
 double_round3_test: RuntimeError
 double_round_to_double2_test: Pass, Fail, OK
@@ -330,7 +333,6 @@ integer_to_string_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError

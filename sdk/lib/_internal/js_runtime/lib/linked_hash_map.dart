@@ -9,7 +9,8 @@ part of _js_helper;
 
 const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
 
-class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
+class JsLinkedHashMap<K, V> extends MapBase<K, V>
+    implements LinkedHashMap<K, V>, InternalMap {
   int _length = 0;
 
   // The hash map contents are divided into three parts: one part for

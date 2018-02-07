@@ -20,7 +20,36 @@ part of dart.collection;
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
  */
-abstract class MapBase<K, V> = Object with MapMixin<K, V>;
+abstract class MapBase<K, V> extends MapMixin<K, V> {
+  static String mapToString(Map m) {
+    // Reuses the list in IterableBase for detecting toString cycles.
+    if (_isToStringVisiting(m)) {
+      return '{...}';
+    }
+
+    var result = new StringBuffer();
+    try {
+      _toStringVisiting.add(m);
+      result.write('{');
+      bool first = true;
+      m.forEach((k, v) {
+        if (!first) {
+          result.write(', ');
+        }
+        first = false;
+        result.write(k);
+        result.write(': ');
+        result.write(v);
+      });
+      result.write('}');
+    } finally {
+      assert(identical(_toStringVisiting.last, m));
+      _toStringVisiting.removeLast();
+    }
+
+    return result.toString();
+  }
+}
 
 /**
  * Mixin implementing a [Map].
@@ -46,6 +75,13 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   // The `clear` operation should not be based on `remove`.
   // It should clear the map even if some keys are not equal to themselves.
   void clear();
+
+  Map<RK, RV> cast<RK, RV>() {
+    Map<Object, Object> self = this;
+    return self is Map<RK, RV> ? self : Map.castFrom<K, V, RK, RV>(this);
+  }
+
+  Map<RK, RV> retype<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
 
   void forEach(void action(K key, V value)) {
     for (K key in keys) {
@@ -73,12 +109,57 @@ abstract class MapMixin<K, V> implements Map<K, V> {
     return this[key] = ifAbsent();
   }
 
+  V update(K key, V update(V value), {V ifAbsent()}) {
+    if (this.containsKey(key)) {
+      return this[key] = update(this[key]);
+    }
+    if (ifAbsent == null) {
+      return this[key] = ifAbsent();
+    }
+    throw new ArgumentError.value(key, "key", "Key not in map.");
+  }
+
+  void updateAll(V update(K key, V value)) {
+    for (var key in this.keys) {
+      this[key] = update(key, this[key]);
+    }
+  }
+
+  Iterable<MapEntry<K, V>> get entries {
+    return keys.map((K key) => new MapEntry<K, V>(key, this[key]));
+  }
+
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) {
+    var result = <K2, V2>{};
+    for (var key in this.keys) {
+      var entry = transform(key, this[key]);
+      result[entry.key] = entry.value;
+    }
+    return result;
+  }
+
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    for (var entry in entries) {
+      this[entry.key] = entry.value;
+    }
+  }
+
+  void removeWhere(bool test(K key, V value)) {
+    var keysToRemove = <K>[];
+    for (var key in keys) {
+      if (test(key, this[key])) keysToRemove.add(key);
+    }
+    for (var key in keysToRemove) {
+      this.remove(key);
+    }
+  }
+
   bool containsKey(Object key) => keys.contains(key);
   int get length => keys.length;
   bool get isEmpty => keys.isEmpty;
   bool get isNotEmpty => keys.isNotEmpty;
   Iterable<V> get values => new _MapBaseValueIterable<K, V>(this);
-  String toString() => Maps.mapToString(this);
+  String toString() => MapBase.mapToString(this);
 }
 
 /**
@@ -193,6 +274,10 @@ class MapView<K, V> implements Map<K, V> {
   final Map<K, V> _map;
   const MapView(Map<K, V> map) : _map = map;
 
+  Map<RK, RV> cast<RK, RV>() => _map.cast<RK, RV>();
+
+  Map<RK, RV> retype<RK, RV>() => _map.retype<RK, RV>();
+
   V operator [](Object key) => _map[key];
   void operator []=(K key, V value) {
     _map[key] = value;
@@ -220,6 +305,26 @@ class MapView<K, V> implements Map<K, V> {
   V remove(Object key) => _map.remove(key);
   String toString() => _map.toString();
   Iterable<V> get values => _map.values;
+
+  Iterable<MapEntry<K, V>> get entries => _map.entries;
+
+  void addEntries(Iterable<Object> entries) {
+    _map.addEntries(entries);
+  }
+
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) =>
+      _map.map<K2, V2>(transform);
+
+  V update(K key, V update(V value), {V ifAbsent()}) =>
+      _map.update(key, update, ifAbsent: ifAbsent);
+
+  void updateAll(V update(K key, V value)) {
+    _map.updateAll(update);
+  }
+
+  void removeWhere(bool test(K key, V value)) {
+    _map.removeWhere(test);
+  }
 }
 
 /**
@@ -237,6 +342,8 @@ class UnmodifiableMapView<K, V> = MapView<K, V>
  * in term of basic ones ([Map.keys], [Map.[]],
  * [Map.[]=] and [Map.remove].)  Not all methods are
  * necessary to implement each particular operation.
+ *
+ * Deprecated. Will be removed in Dart 2.
  */
 class Maps {
   static bool containsValue(Map map, Object value) {
@@ -289,49 +396,11 @@ class Maps {
   static bool isNotEmpty(Map map) => map.keys.isNotEmpty;
 
   /**
-   * Returns a string representing the specified map. The returned string
-   * looks like this: [:'{key0: value0, key1: value1, ... keyN: valueN}':].
-   * The value returned by its [toString] method is used to represent each
-   * key or value.
+   * Do not use. This entire class will be removed.
    *
-   * If the map collection contains a reference to itself, either
-   * directly as a key or value, or indirectly through other collections
-   * or maps, the contained reference is rendered as [:'{...}':]. This
-   * prevents the infinite regress that would otherwise occur. So, for example,
-   * calling this method on a map whose sole entry maps the string key 'me'
-   * to a reference to the map would return [:'{me: {...}}':].
-   *
-   * A typical implementation of a map's [toString] method will
-   * simply return the results of this method applied to the collection.
+   * Use [MapBase.mapToString] instead.
    */
-  static String mapToString(Map m) {
-    // Reuse the list in IterableBase for detecting toString cycles.
-    if (_isToStringVisiting(m)) {
-      return '{...}';
-    }
-
-    var result = new StringBuffer();
-    try {
-      _toStringVisiting.add(m);
-      result.write('{');
-      bool first = true;
-      m.forEach((k, v) {
-        if (!first) {
-          result.write(', ');
-        }
-        first = false;
-        result.write(k);
-        result.write(': ');
-        result.write(v);
-      });
-      result.write('}');
-    } finally {
-      assert(identical(_toStringVisiting.last, m));
-      _toStringVisiting.removeLast();
-    }
-
-    return result.toString();
-  }
+  static String mapToString(Map m) => MapBase.mapToString(m);
 
   static _id(x) => x;
 

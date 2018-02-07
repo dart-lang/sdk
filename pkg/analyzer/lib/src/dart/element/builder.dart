@@ -32,7 +32,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
-  HashMap<String, FieldElement> _fieldMap;
+  Map<String, FieldElement> _fieldMap;
 
   /**
    * Whether the class being built has a constant constructor.

@@ -4,7 +4,7 @@
 
 part of html;
 
-abstract class _AttributeMap implements Map<String, String> {
+abstract class _AttributeMap extends MapBase<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
@@ -14,6 +14,13 @@ abstract class _AttributeMap implements Map<String, String> {
       this[k] = v;
     });
   }
+
+  Map<K, V> cast<K, V>() {
+    Map<Object, Object> self = this;
+    return self is Map<K, V> ? self : Map.castFrom<String, String, K, V>(this);
+  }
+
+  Map<K, V> retype<K, V>() => Map.castFrom<String, String, K, V>(this);
 
   bool containsValue(Object value) {
     for (var v in this.values) {
@@ -162,7 +169,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap implements Map<String, String> {
+class _DataAttributeMap extends MapBase<String, String> {
   final Map<String, String> _attributes;
 
   _DataAttributeMap(this._attributes);
@@ -174,6 +181,13 @@ class _DataAttributeMap implements Map<String, String> {
       this[k] = v;
     });
   }
+
+  Map<K, V> cast<K, V>() {
+    Map<Object, Object> self = this;
+    return self is Map<K, V> ? self : Map.castFrom<String, String, K, V>(this);
+  }
+
+  Map<K, V> retype<K, V>() => Map.castFrom<String, String, K, V>(this);
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object value) => values.any((v) => v == value);

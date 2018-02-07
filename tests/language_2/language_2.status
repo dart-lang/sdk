@@ -22,6 +22,13 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
+first_class_types_literals_test/01: Crash
+first_class_types_literals_test/02: Crash
+first_class_types_literals_test/none: Crash
+first_class_types_test: Crash
+runtime_type_function_test: Crash
+
 [ $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 

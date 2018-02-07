@@ -652,7 +652,7 @@ class AnalysisDelta {
    * A mapping from source to what type of analysis should be performed on that
    * source.
    */
-  HashMap<Source, AnalysisLevel> _analysisMap =
+  Map<Source, AnalysisLevel> _analysisMap =
       new HashMap<Source, AnalysisLevel>();
 
   /**
@@ -2067,7 +2067,7 @@ class ChangeSet {
    * A table mapping the sources whose content has been changed to the current
    * content of those sources.
    */
-  HashMap<Source, String> _changedContent = new HashMap<Source, String>();
+  Map<Source, String> _changedContent = new HashMap<Source, String>();
 
   /**
    * A table mapping the sources whose content has been changed within a single
@@ -2221,7 +2221,7 @@ class ChangeSet {
    * [label] and a separator if [needsSeparator] is `true`. Return `true` if
    * future lists of sources will need a separator.
    */
-  bool _appendSources2(StringBuffer buffer, HashMap<Source, dynamic> sources,
+  bool _appendSources2(StringBuffer buffer, Map<Source, dynamic> sources,
       bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;

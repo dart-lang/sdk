@@ -400,7 +400,7 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
 // and checks for concurrent modification.
-class _CompactIterable<E> extends IterableBase<E> {
+class _CompactIterable<E> extends Iterable<E> {
   final _table;
   final List _data;
   final int _len;
@@ -455,6 +455,15 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   _CompactLinkedHashSet() : super(_HashBase._INITIAL_INDEX_SIZE >> 1) {
     assert(_HashBase._UNUSED_PAIR == 0);
   }
+
+  static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
+
+  Set<R> cast<R>() {
+    Set<Object> self = this;
+    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newEmpty);
+  }
+
+  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
   int get length => _usedData - _deletedKeys;
 
@@ -589,6 +598,15 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>
     with _IdenticalAndIdentityHashCode {
   Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
+
+  static Set<R> _newEmpty<R>() => new _CompactLinkedIdentityHashSet<R>();
+
+  Set<R> cast<R>() {
+    Set<Object> self = this;
+    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newEmpty);
+  }
+
+  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 }
 
 class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
@@ -605,6 +623,13 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
 
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
+
+  Set<R> cast<R>() {
+    Set<Object> self = this;
+    return self is Set<R> ? self : Set.castFrom<E, R>(this);
+  }
+
+  Set<R> retype<R>() => Set.castFrom<E, R>(this);
 
   Set<E> toSet() =>
       new _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)

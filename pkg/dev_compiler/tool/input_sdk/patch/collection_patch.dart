@@ -141,7 +141,8 @@ class LinkedHashSet<E> {
   factory LinkedHashSet.identity() = _IdentityHashSet<E>;
 }
 
-class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
+class _HashSet<E> extends _InternalSet<E>
+    implements HashSet<E>, LinkedHashSet<E> {
   /// The backing store for this set.
   ///
   /// Keys that use identity equality are stored directly. For other types of
@@ -173,6 +174,8 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
   _HashSet();
 
   Set<E> _newSet() => new _HashSet<E>();
+
+  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
 
   bool contains(Object key) {
     if (key == null) {
@@ -299,7 +302,8 @@ class _HashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
   }
 }
 
-class _IdentityHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
+class _IdentityHashSet<E> extends _InternalSet<E>
+    implements HashSet<E>, LinkedHashSet<E> {
   /// The backing store for this set.
   @notNull
   final _map = JS('', 'new Set()');
@@ -310,6 +314,8 @@ class _IdentityHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
   _IdentityHashSet();
 
   Set<E> _newSet() => new _IdentityHashSet<E>();
+
+  Set<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
 
   bool contains(Object element) {
     return JS('', '#.has(#)', _map, element);
@@ -362,6 +368,8 @@ class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
 
   Set<E> _newSet() => new _CustomKeyHashSet<E>(_equals, _hashCode, _validKey);
 
+  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
+
   bool contains(Object element) {
     // TODO(jmesserly): there is a subtle difference here compared to Dart 1.
     // See the comment on CustomKeyHashMap.containsKey for more information.
@@ -382,7 +390,8 @@ class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
   }
 }
 
-class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
+class _CustomHashSet<E> extends _InternalSet<E>
+    implements HashSet<E>, LinkedHashSet<E> {
   _Equality<E> _equals;
   _Hasher<E> _hashCode;
 
@@ -409,6 +418,7 @@ class _CustomHashSet<E> extends _InternalSet<E> implements LinkedHashSet<E> {
   _CustomHashSet(this._equals, this._hashCode);
 
   Set<E> _newSet() => new _CustomHashSet<E>(_equals, _hashCode);
+  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
 
   bool contains(Object key) {
     if (key is E) {

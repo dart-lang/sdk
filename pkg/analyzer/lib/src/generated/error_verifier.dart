@@ -250,26 +250,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [visitClassDeclaration], and [_checkForAllFinalInitializedErrorCodes].
    */
-  HashMap<FieldElement, INIT_STATE> _initialFieldElementsMap;
+  Map<FieldElement, INIT_STATE> _initialFieldElementsMap;
 
   /**
    * A table mapping name of the library to the export directive which export
    * this library.
    */
-  HashMap<String, LibraryElement> _nameToExportElement =
+  Map<String, LibraryElement> _nameToExportElement =
       new HashMap<String, LibraryElement>();
 
   /**
    * A table mapping name of the library to the import directive which import
    * this library.
    */
-  HashMap<String, LibraryElement> _nameToImportElement =
+  Map<String, LibraryElement> _nameToImportElement =
       new HashMap<String, LibraryElement>();
 
   /**
    * A table mapping names to the exported elements.
    */
-  HashMap<String, Element> _exportedElements = new HashMap<String, Element>();
+  Map<String, Element> _exportedElements = new HashMap<String, Element>();
 
   /**
    * A set of the names of the variable initializers we are visiting now.
@@ -1603,7 +1603,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
 
-    HashMap<FieldElement, INIT_STATE> fieldElementsMap =
+    Map<FieldElement, INIT_STATE> fieldElementsMap =
         new HashMap<FieldElement, INIT_STATE>.from(_initialFieldElementsMap);
     // Visit all of the field formal parameters
     NodeList<FormalParameter> formalParameters =
@@ -2939,8 +2939,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // members in the class to construct the HashMap, at the same time,
     // look for violations.  Don't add members if they are part of a conflict,
     // this prevents multiple warnings for one issue.
-    HashMap<String, ClassMember> memberHashMap =
-        new HashMap<String, ClassMember>();
+    Map<String, ClassMember> memberHashMap = new HashMap<String, ClassMember>();
     for (ClassMember member in classMembers) {
       if (member is MethodDeclaration) {
         if (member.isStatic) {
@@ -3446,7 +3445,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     NodeList<Directive> directives = unit.directives;
     int count = directives.length;
     if (count > 0) {
-      HashMap<PrefixElement, List<ImportDirective>> prefixToDirectivesMap =
+      Map<PrefixElement, List<ImportDirective>> prefixToDirectivesMap =
           new HashMap<PrefixElement, List<ImportDirective>>();
       for (int i = 0; i < count; i++) {
         Directive directive = directives[i];

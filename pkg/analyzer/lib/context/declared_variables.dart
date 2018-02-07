@@ -20,7 +20,7 @@ class DeclaredVariables {
   /**
    * A table mapping the names of declared variables to their values.
    */
-  HashMap<String, String> _declaredVariables = new HashMap<String, String>();
+  Map<String, String> _declaredVariables = new HashMap<String, String>();
 
   /**
    * Return the names of the variables for which a value has been defined.

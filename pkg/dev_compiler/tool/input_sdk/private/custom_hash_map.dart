@@ -186,8 +186,6 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
-
-  String toString() => Maps.mapToString(this);
 }
 
 typedef bool _Equality<K>(K a, K b);
