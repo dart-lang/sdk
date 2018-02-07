@@ -14,8 +14,10 @@ import '../metadata/direct_call.dart';
 /// Devirtualization of method invocations based on the class hierarchy
 /// analysis. Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
-  new CHADevirtualization(coreTypes, program, new ClassHierarchy(program))
-      .visitProgram(program);
+  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+  final hierarchy = new ClassHierarchy(program,
+      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+  new CHADevirtualization(coreTypes, program, hierarchy).visitProgram(program);
   return program;
 }
 

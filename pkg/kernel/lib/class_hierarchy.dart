@@ -4,6 +4,7 @@
 library kernel.class_hierarchy;
 
 import 'ast.dart';
+import 'dart:collection' show IterableBase;
 import 'dart:math';
 import 'dart:typed_data';
 import 'src/heap.dart';
@@ -338,9 +339,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   final Map<Class, _ClassInfo> _infoFor = <Class, _ClassInfo>{};
 
+  /// All classes ordered by [_ClassInfo.topDownIndex].
+  final List<Class> _classesByTopDownIndex;
+
   ClosedWorldClassHierarchy._internal(
       this._program, int numberOfClasses, this._onAmbiguousSupertypes)
-      : classes = new List<Class>(numberOfClasses);
+      : classes = new List<Class>(numberOfClasses),
+        _classesByTopDownIndex = new List<Class>(numberOfClasses);
 
   @override
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
@@ -558,9 +563,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     Name name = interfaceTarget.name;
     Member target = null;
     ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass);
-    // TODO(alexmarkov): Implement more efficient way to iterate subtypes.
-    for (Class c in classes) {
-      if (subtypes.contains(c) && !c.isAbstract) {
+    for (Class c in subtypes) {
+      if (!c.isAbstract) {
         Member candidate = getDispatchTarget(c, name, setter: setter);
         if ((candidate != null) && !candidate.isAbstract) {
           if (target == null) {
@@ -989,6 +993,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     bool isMixedIn = info.directMixers.isNotEmpty;
     int index = _topDownSortIndex++;
     info.topDownIndex = index;
+    _classesByTopDownIndex[index] = info.classNode;
     var subclassSetBuilder = new _IntervalListBuilder()..addSingleton(index);
     var submixtureSetBuilder =
         isMixedIn ? (new _IntervalListBuilder()..addSingleton(index)) : null;
@@ -1256,7 +1261,7 @@ class _ClassInfo {
 }
 
 /// An immutable set of classes, internally represented as an interval list.
-class ClassSet {
+class ClassSet extends IterableBase<Class> {
   final ClosedWorldClassHierarchy _hierarchy;
   final Uint32List _intervalList;
 
@@ -1269,9 +1274,10 @@ class ClassSet {
     return list.length == 2 && list[0] + 1 == list[1];
   }
 
-  bool contains(Class class_) {
+  @override
+  bool contains(Object class_) {
     return _intervalListContains(
-        _intervalList, _hierarchy._infoFor[class_].topDownIndex);
+        _intervalList, _hierarchy._infoFor[class_ as Class].topDownIndex);
   }
 
   ClassSet union(ClassSet other) {
@@ -1282,6 +1288,51 @@ class ClassSet {
     builder.addIntervalList(other._intervalList);
     return new ClassSet(_hierarchy, builder.buildIntervalList());
   }
+
+  @override
+  Iterator<Class> get iterator =>
+      new _ClassSetIterator(_hierarchy, _intervalList);
+}
+
+/// Iterator for [ClassSet].
+class _ClassSetIterator implements Iterator<Class> {
+  final ClosedWorldClassHierarchy _hierarchy;
+  final Uint32List _intervalList;
+  int _intervalIndex;
+  int _classIndex;
+  int _classIndexLimit;
+
+  // Interval list is a list of pairs (start, end).
+  static const int _intervalIndexStep = 2;
+
+  _ClassSetIterator(this._hierarchy, this._intervalList)
+      : _intervalIndex = -_intervalIndexStep,
+        _classIndex = -1,
+        _classIndexLimit = -1;
+
+  @override
+  bool moveNext() {
+    if (_classIndex + 1 < _classIndexLimit) {
+      _classIndex++;
+      return true;
+    }
+
+    if (_intervalIndex + _intervalIndexStep < _intervalList.length) {
+      _intervalIndex += _intervalIndexStep;
+      _classIndex = _intervalList[_intervalIndex];
+      _classIndexLimit = _intervalList[_intervalIndex + 1];
+      assert(_classIndex < _classIndexLimit);
+      return true;
+    }
+
+    _classIndex = _classIndexLimit = -1;
+    return false;
+  }
+
+  @override
+  Class get current => (_classIndex >= 0)
+      ? _hierarchy._classesByTopDownIndex[_classIndex]
+      : null;
 }
 
 /// Heap for use in computing least upper bounds.

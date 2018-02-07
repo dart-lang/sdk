@@ -92,6 +92,53 @@ abstract class E implements self::C {
     expect(cwch.getSingleTargetForInterfaceInvocation(methodInE),
         null); // no concrete subtypes
   }
+
+  void test_getSubtypesOf() {
+    var a = addClass(new Class(name: 'A', supertype: objectSuper));
+    var b = addClass(new Class(name: 'B', supertype: objectSuper));
+    var c = addClass(new Class(name: 'C', supertype: objectSuper));
+
+    var d = addClass(new Class(name: 'D', supertype: a.asThisSupertype));
+
+    var e = addClass(new Class(
+        name: 'E',
+        supertype: b.asThisSupertype,
+        implementedTypes: [c.asThisSupertype]));
+
+    var f = addClass(new Class(
+        name: 'F',
+        supertype: e.asThisSupertype,
+        implementedTypes: [a.asThisSupertype]));
+
+    var g = addClass(new Class(name: 'G', supertype: objectSuper));
+
+    var h = addClass(new Class(
+        name: 'H',
+        supertype: g.asThisSupertype,
+        implementedTypes: [c.asThisSupertype, a.asThisSupertype]));
+
+    _assertTestLibraryText('''
+class A {}
+class B {}
+class C {}
+class D extends self::A {}
+class E extends self::B implements self::C {}
+class F extends self::E implements self::A {}
+class G {}
+class H extends self::G implements self::C, self::A {}
+''');
+
+    ClosedWorldClassHierarchy cwch = hierarchy as ClosedWorldClassHierarchy;
+
+    expect(cwch.getSubtypesOf(a), unorderedEquals([a, d, f, h]));
+    expect(cwch.getSubtypesOf(b), unorderedEquals([b, e, f]));
+    expect(cwch.getSubtypesOf(c), unorderedEquals([c, e, f, h]));
+    expect(cwch.getSubtypesOf(d), unorderedEquals([d]));
+    expect(cwch.getSubtypesOf(e), unorderedEquals([e, f]));
+    expect(cwch.getSubtypesOf(f), unorderedEquals([f]));
+    expect(cwch.getSubtypesOf(g), unorderedEquals([g, h]));
+    expect(cwch.getSubtypesOf(h), unorderedEquals([h]));
+  }
 }
 
 abstract class _ClassHierarchyTest {
