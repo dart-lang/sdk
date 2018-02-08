@@ -38,6 +38,9 @@ class FlutterOutlineComputer {
   /// Flutter attribute, add it to the [attributes].
   void _addAttribute(List<protocol.FlutterOutlineAttribute> attributes,
       Expression argument, ParameterElement parameter) {
+    if (parameter == null) {
+      return;
+    }
     if (argument is NamedExpression) {
       argument = (argument as NamedExpression).expression;
     }
@@ -88,8 +91,6 @@ class FlutterOutlineComputer {
       var attributes = <protocol.FlutterOutlineAttribute>[];
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
-        ParameterElement parameter = argument.staticParameterElement;
-
         bool isWidgetArgument = isWidgetType(argument.staticType);
         bool isWidgetListArgument = isListOfWidgetsType(argument.staticType);
 
@@ -119,6 +120,7 @@ class FlutterOutlineComputer {
             }
           }
         } else {
+          ParameterElement parameter = argument.staticParameterElement;
           _addAttribute(attributes, argument, parameter);
         }
       }

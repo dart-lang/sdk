@@ -159,6 +159,24 @@ class MyWidget extends StatelessWidget {
     expect(attribute.literalValueString, 'my text');
   }
 
+  test_attributes_unresolved() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Row(1, foo: 2)
+  }
+}
+''');
+    var myWidget = unitOutline.children[0];
+    var build = myWidget.children[0];
+
+    var rowOutline = build.children[0];
+    expect(rowOutline.attributes, isEmpty);
+  }
+
   test_children() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
