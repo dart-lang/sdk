@@ -5998,6 +5998,9 @@ class AbstractType : public Instance {
   // type.
   RawString* ClassName() const;
 
+  // Check if this type is a still uninitialized TypeRef.
+  bool IsNullTypeRef() const;
+
   // Check if this type represents the 'dynamic' type or if it is malformed,
   // since a malformed type is mapped to 'dynamic'.
   // Call IsMalformed() first, if distinction is required.
@@ -6287,7 +6290,8 @@ class TypeRef : public AbstractType {
   }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
-    return AbstractType::Handle(type()).HasResolvedTypeClass();
+    return (type() != AbstractType::null()) &&
+           AbstractType::Handle(type()).HasResolvedTypeClass();
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;

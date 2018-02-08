@@ -238,9 +238,6 @@ implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK
 
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
-cyclic_type_test/03: Pass, Fail, Crash # Issue 31944
-
 [ $hot_reload || $hot_reload_rollback ]
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
