@@ -293,6 +293,26 @@ f(x) {
     testUserDefinableOperatorWithSuper('-');
   }
 
+  @failingTest
+  void test_parameterList_leftParen() {
+    // https://github.com/dart-lang/sdk/issues/22938
+    testRecovery('''
+int f int x, int y) {}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+int f (int x, int y) {}
+''');
+  }
+
+  @failingTest
+  void test_parentheses_aroundThrow() {
+    // https://github.com/dart-lang/sdk/issues/24892
+    testRecovery('''
+f(x) => x ?? throw 0;
+''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
+f(x) => x ?? (throw 0);
+''');
+  }
+
   void test_percent() {
     testBinaryExpression('%');
   }
@@ -339,15 +359,7 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
-  void test_tildeSlash() {
-    testBinaryExpression('~/');
-  }
-
-  void test_tildeSlash_super() {
-    testUserDefinableOperatorWithSuper('~/');
-  }
-
-  void test_unclosedStringInterpolation() {
+  void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson) Try to recover better. Ideally there would be a
     // single error about an unterminated interpolation block.
@@ -367,6 +379,14 @@ f() {
   print("${42}");
 }
 ''');
+  }
+
+  void test_tildeSlash() {
+    testBinaryExpression('~/');
+  }
+
+  void test_tildeSlash_super() {
+    testUserDefinableOperatorWithSuper('~/');
   }
 
   void testBinaryExpression(String operator) {
