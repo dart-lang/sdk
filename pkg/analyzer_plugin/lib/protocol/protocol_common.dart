@@ -5207,6 +5207,7 @@ class RemoveContentOverlay implements HasToJson {
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -5219,6 +5220,8 @@ class SourceChange implements HasToJson {
   List<LinkedEditGroup> _linkedEditGroups;
 
   Position _selection;
+
+  String _id;
 
   /**
    * A human-readable description of the change to be applied.
@@ -5273,10 +5276,25 @@ class SourceChange implements HasToJson {
     this._selection = value;
   }
 
+  /**
+   * The optional identifier of the change kind. The identifier remains stable
+   * even if the message changes, or is parameterized.
+   */
+  String get id => _id;
+
+  /**
+   * The optional identifier of the change kind. The identifier remains stable
+   * even if the message changes, or is parameterized.
+   */
+  void set id(String value) {
+    this._id = value;
+  }
+
   SourceChange(String message,
       {List<SourceFileEdit> edits,
       List<LinkedEditGroup> linkedEditGroups,
-      Position selection}) {
+      Position selection,
+      String id}) {
     this.message = message;
     if (edits == null) {
       this.edits = <SourceFileEdit>[];
@@ -5289,6 +5307,7 @@ class SourceChange implements HasToJson {
       this.linkedEditGroups = linkedEditGroups;
     }
     this.selection = selection;
+    this.id = id;
   }
 
   factory SourceChange.fromJson(
@@ -5329,10 +5348,15 @@ class SourceChange implements HasToJson {
         selection = new Position.fromJson(
             jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
+      String id;
+      if (json.containsKey("id")) {
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
+      }
       return new SourceChange(message,
           edits: edits,
           linkedEditGroups: linkedEditGroups,
-          selection: selection);
+          selection: selection,
+          id: id);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceChange", json);
     }
@@ -5349,6 +5373,9 @@ class SourceChange implements HasToJson {
         .toList();
     if (selection != null) {
       result["selection"] = selection.toJson();
+    }
+    if (id != null) {
+      result["id"] = id;
     }
     return result;
   }
@@ -5389,7 +5416,8 @@ class SourceChange implements HasToJson {
               (SourceFileEdit a, SourceFileEdit b) => a == b) &&
           listEqual(linkedEditGroups, other.linkedEditGroups,
               (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
-          selection == other.selection;
+          selection == other.selection &&
+          id == other.id;
     }
     return false;
   }
@@ -5401,6 +5429,7 @@ class SourceChange implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
     hash = JenkinsSmiHash.combine(hash, selection.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
