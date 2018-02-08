@@ -213,6 +213,8 @@ async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
 async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/multiple_timer_test: RuntimeError, OK # Needs Timer to run.
+async/periodic_timer2_test: Fail # Timer interface not supported: Issue 7728.
+async/periodic_timer3_test: Fail # Timer interface not supported: Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/schedule_microtask3_test: RuntimeError

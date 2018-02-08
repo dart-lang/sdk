@@ -1352,6 +1352,7 @@ class TimerImpl implements Timer {
   final bool _once;
   bool _inEventLoop = false;
   int _handle;
+  int _tick = 0;
 
   TimerImpl(int milliseconds, void callback()) : _once = true {
     if (milliseconds == 0 && (!hasTimer() || _globalState.isWorker)) {
@@ -1377,6 +1378,7 @@ class TimerImpl implements Timer {
       void internalCallback() {
         _handle = null;
         leaveJsAsync();
+        _tick = 1;
         callback();
       }
 
@@ -1394,13 +1396,24 @@ class TimerImpl implements Timer {
       : _once = false {
     if (hasTimer()) {
       enterJsAsync();
+      int start = JS('int', 'Date.now()');
       _handle = JS('int', '#.setInterval(#, #)', global, () {
+        int tick = this._tick + 1;
+        if (milliseconds > 0) {
+          int duration = JS('int', 'Date.now()') - start;
+          if (duration > (tick + 1) * milliseconds) {
+            tick = duration ~/ milliseconds;
+          }
+        }
+        this._tick = tick;
         callback(this);
       }, milliseconds);
     } else {
       throw new UnsupportedError("Periodic timer.");
     }
   }
+
+  int get tick => _tick;
 
   void cancel() {
     if (hasTimer()) {
