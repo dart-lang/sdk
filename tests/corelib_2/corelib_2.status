@@ -288,7 +288,6 @@ iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was call
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
