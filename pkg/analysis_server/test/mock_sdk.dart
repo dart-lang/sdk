@@ -163,6 +163,9 @@ class Uri {
     return null;
   }
 }
+
+class _Override { const _Override(); }
+const Object override = const _Override();
 ''');
 
   static const MockSdkLibrary LIB_ASYNC =

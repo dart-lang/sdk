@@ -2267,6 +2267,95 @@ class A {
 ''');
   }
 
+  test_convertToStatefulWidget_BAD_notClass() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+/*caret*/main() {}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_convertToStatefulWidget_BAD_notStatelessWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class /*caret*/MyWidget extends Text {
+  MyWidget() : super('');
+}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_convertToStatefulWidget_BAD_notWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class /*caret*/MyWidget {}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_convertToStatefulWidget_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  final String aaa;
+  final String bbb;
+
+  const MyWidget(this.aaa, this.bbb);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(aaa),
+        new Text(bbb),
+        new Text('$aaa'),
+        new Text('${bbb}'),
+      ],
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  final String aaa;
+  final String bbb;
+
+  const MyWidget(this.aaa, this.bbb);
+
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(widget.aaa),
+        new Text(widget.bbb),
+        new Text('${widget.aaa}'),
+        new Text('${widget.bbb}'),
+      ],
+    );
+  }
+}
+''');
+  }
+
   test_encapsulateField_BAD_alreadyPrivate() async {
     await resolveTestUnit('''
 class A {
