@@ -166,7 +166,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     if (operatorType == TokenType.EQ) {
-      _checkForUseOfVoidResult(node.rightHandSide);
       _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
     } else {
       _checkForDeprecatedMemberUse(node.bestElement, node);
@@ -370,7 +369,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    _checkForUseOfVoidResult(node.initializer);
     _checkForInvalidAssignment(node.name, node.initializer);
     return super.visitVariableDeclaration(node);
   }
@@ -1240,25 +1238,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
-  }
-
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'.
-   *
-   * See [HintCode.USE_OF_VOID_RESULT].
-   */
-  void _checkForUseOfVoidResult(Expression expression) {
-    // TODO(jwren) Many other situations of use could be covered. We currently
-    // cover the cases var x = m() and x = m(), but we could also cover cases
-    // such as m().x, m()[k], a + m(), f(m()), return m().
-    if (expression is MethodInvocation) {
-      if (identical(expression.staticType, VoidTypeImpl.instance)) {
-        SimpleIdentifier methodName = expression.methodName;
-        _errorReporter.reportErrorForNode(
-            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
-      }
-    }
   }
 
   void _checkRequiredParameter(FormalParameterList node) {

@@ -3751,7 +3751,7 @@ class A {
   void set d(y) => voidFn();
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) => 
-    /*error:RETURN_OF_INVALID_TYPE, info:DOWN_CAST_IMPLICIT*/voidFn();
+    /*error:RETURN_OF_INVALID_TYPE*/voidFn();
   set g(y) {return /*error:RETURN_OF_INVALID_TYPE*/4;}
   void set h(y) {return /*error:RETURN_OF_INVALID_TYPE*/4;}
   /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
@@ -4437,7 +4437,7 @@ class B extends A {
 typedef int Foo();
 void foo() {}
 void main () {
-  Foo x = /*info:USE_OF_VOID_RESULT, info:DOWN_CAST_COMPOSITE*/foo();
+  Foo x = /*error:USE_OF_VOID_RESULT*/foo();
 }
 ''');
   }

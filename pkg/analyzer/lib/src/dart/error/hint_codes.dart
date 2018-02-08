@@ -663,17 +663,6 @@ class HintCode extends ErrorCode {
       "Try removing the name from the list of shown members.");
 
   /**
-   * Hint for cases where the source expects a method or function to return a
-   * non-void result, but the method or function signature returns void.
-   *
-   * Parameters:
-   * 0: the name of the method or function that returns void
-   */
-  static const HintCode USE_OF_VOID_RESULT = const HintCode(
-      'USE_OF_VOID_RESULT',
-      "The result of '{0}' is being used, even though it is declared to be 'void'.");
-
-  /**
    * It will be a static type warning if <i>m</i> is not a generic method with
    * exactly <i>n</i> type parameters.
    *

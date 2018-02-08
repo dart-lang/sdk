@@ -1129,7 +1129,9 @@ class CodeChecker extends RecursiveAstVisitor {
 
   /// Returns true if we need an implicit cast of [expr] from [from] type to
   /// [to] type, returns false if no cast is needed, and returns null if the
-  /// types are statically incompatible.
+  /// types are statically incompatible, or the types are compatible but don't
+  /// allow implicit cast (ie, void, which is one form of Top which oill not
+  /// downcast implicitly).
   ///
   /// If [from] is omitted, uses the static type of [expr]
   bool _needsImplicitCast(Expression expr, DartType to,
@@ -1138,8 +1140,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
     if (!_checkNonNullAssignment(expr, to, from)) return false;
 
-    // We can use anything as void.
-    if (to.isVoid) return false;
+    // Void is considered Top, but may only be *explicitly* cast.
+    if (from.isVoid) return null;
 
     // fromT <: toT, no coercion needed.
     if (rules.isSubtypeOf(from, to)) return false;
