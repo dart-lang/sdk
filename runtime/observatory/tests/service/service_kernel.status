@@ -11,7 +11,6 @@ async_star_single_step_into_test: RuntimeError # Issue 29158, Async debugging
 async_star_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_step_out_test: RuntimeError # Issue 29158, Async debugging
 awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
-complex_reload_test: RuntimeError
 eval_internal_class_test: RuntimeError
 evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError
@@ -29,6 +28,9 @@ unused_changes_in_last_reload_test: RuntimeError
 [ $fasta ]
 developer_extension_test: CompileTimeError
 get_isolate_after_language_error_test: CompileTimeError
+
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
+complex_reload_test: RuntimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
 pause_on_unhandled_async_exceptions2_test: RuntimeError, Timeout # Issue 31765
@@ -56,6 +58,7 @@ next_through_multi_catch_test: Pass, Timeout
 next_through_simple_async_with_returns_test: Pass, Timeout
 next_through_simple_linear_2_test: Pass, Timeout
 regress_28443_test: Pass, Timeout
+reload_sources_test: RuntimeError
 step_test: Pass, Slow
 step_through_constructor_test: Pass, Slow
 step_through_function_2_test: Pass, Timeout
@@ -98,6 +101,5 @@ external_service_registration_via_notification_test: CompileTimeError # Issue 31
 external_service_synchronous_invocation_test: CompileTimeError # Issue 31696
 step_through_arithmetic_test: RuntimeError
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64) ]
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
 async_single_step_exception_test: RuntimeError
-

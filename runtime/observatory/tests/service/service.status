@@ -77,7 +77,8 @@ eval_test: Pass, Slow
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 async_generator_breakpoint_test: Pass, RuntimeError
-bad_reload_test: RuntimeError # Please triage.
+bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
@@ -87,6 +88,7 @@ positive_token_pos_test: Pass, RuntimeError
 reload_sources_test: Timeout, Skip # Please triage.
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
+unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.

@@ -208,6 +208,9 @@ LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
 
+[ $arch == simarm && $compiler == dartkp ]
+LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -298,6 +301,4 @@ LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 [ $compiler == dartkp || $compiler == fasta ]
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 

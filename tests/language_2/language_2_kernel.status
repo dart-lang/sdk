@@ -520,6 +520,12 @@ void_type_usage_test/paren_toString: MissingCompileTimeError
 void_type_usage_test/paren_void_init: MissingCompileTimeError
 void_type_usage_test/paren_while: MissingCompileTimeError
 
+[ $arch == simarm && $compiler == dartkp && $strong ]
+await_test: RuntimeError
+
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
+export_ambiguous_main_test: MissingCompileTimeError
+
 [ $compiler != dart2js && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
@@ -874,7 +880,6 @@ assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
-export_ambiguous_main_test: MissingCompileTimeError
 hello_dart_test: Crash
 recursive_mixin_test: Crash
 redirecting_factory_reflection_test: Crash

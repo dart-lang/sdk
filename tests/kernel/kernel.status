@@ -12,6 +12,18 @@ unsorted/super_mixin_test: CompileTimeError
 [ !$strong ]
 unsorted/invocation_errors_test: RuntimeError
 
+[ $arch == simarm && $compiler == dartkp && $strong ]
+unsorted/invocation_errors_test: CompileTimeError
+unsorted/nsm_dispatcher_test: CompileTimeError
+unsorted/super_mixin_test: CompileTimeError
+unsorted/types_test: RuntimeError
+
+[ $arch == simarm64 && $compiler == dartkp && $strong ]
+unsorted/invocation_errors_test: CompileTimeError
+unsorted/nsm_dispatcher_test: CompileTimeError
+unsorted/super_mixin_test: CompileTimeError
+unsorted/types_test: RuntimeError
+
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
 unsorted/loop_test: CompileTimeError # int64
