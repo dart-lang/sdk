@@ -30,7 +30,7 @@
       "third_party/pkg_tested/",
       "third_party/d8/",
       "third_party/firefox_jsshell/",
-      "third_party/observatory_pub_packages/packages/web_components/",
+      "third_party/observatory_pub_packages/packages/",
       "tests/",
       "pkg/async_helper/",
       "pkg/expect/",
@@ -63,9 +63,24 @@
       "tools/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      "third_party/observatory_pub_packages/packages/unittest/",
-      "third_party/observatory_pub_packages/packages/web_components/",
-      "tests/",
+      "third_party/observatory_pub_packages/packages/",
+      "tests/angular/",
+      "tests/co19/",
+      "tests/compiler/",
+      "tests/corelib/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/html/",
+      "tests/isolate/",
+      "tests/kernel/",
+      "tests/language/",
+      "tests/language_2/",
+      "tests/lib/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone/",
+      "tests/standalone_2/",
       "pkg/async_helper/",
       "pkg/dart_internal/",
       "pkg/expect/",
@@ -171,7 +186,9 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--use-blobs"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "strong vm tests",
@@ -180,7 +197,9 @@
             "--runtime=dart_precompiled",
             "--strong",
             "--use-blobs"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     },
@@ -203,7 +222,9 @@
         {
           "name": "vm tests",
           "arguments": [
-            "--compiler=dartkp","--runtime=dart_precompiled"]
+            "--compiler=dartkp","--runtime=dart_precompiled"],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "strong vm tests",
@@ -211,7 +232,9 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--strong"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     },
@@ -237,7 +260,9 @@
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "strong vm tests",
@@ -246,7 +271,9 @@
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks",
             "--strong"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     },
@@ -309,11 +336,15 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartk"]
+          "arguments": ["--compiler=dartk"],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "strong vm tests",
-          "arguments": ["--compiler=dartk", "--strong"]
+          "arguments": ["--compiler=dartk", "--strong"],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "front-end tests",
@@ -589,7 +620,9 @@
           "arguments": [
             "--compiler=dartk",
             "--vm-options=--optimization-counter-threshold=5"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         },
         {
           "name": "strong vm tests",
@@ -597,7 +630,9 @@
             "--compiler=dartk",
             "--strong",
             "--vm-options=--optimization-counter-threshold=5"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     },
