@@ -386,6 +386,9 @@ dart/spawn_shutdown_test: SkipSlow
 [ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
 
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
+
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
 
