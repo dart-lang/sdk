@@ -182,7 +182,8 @@ from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
+iterable_to_list_test/none: Crash # Wrong number of template arguments, given 2, expected 1
 list_replace_range_test: RuntimeError # Issue 32010
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -199,7 +200,8 @@ int_parse_radix_test/none: Pass # Issue 31762
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
-iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
+iterable_to_list_test/none: Crash # Wrong number of template arguments, given 2, expected 1
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
@@ -378,8 +380,6 @@ apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
@@ -394,8 +394,6 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
@@ -472,7 +470,6 @@ integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
-iterable_to_list_test/*: RuntimeError
 list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
 list_removeat_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
