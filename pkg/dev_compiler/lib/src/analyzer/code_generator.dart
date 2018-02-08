@@ -2463,16 +2463,14 @@ class CodeGenerator extends Object
     }
 
     var body = <JS.Statement>[];
-    emitFieldInit(FieldElement f, Expression initializer,
-        [AstNode sourceInfo]) {
+    emitFieldInit(FieldElement f, Expression initializer, AstNode hoverInfo) {
       var access =
           _classProperties.virtualFields[f] ?? _declareMemberName(f.getter);
       var jsInit = _visitInitializer(initializer, f);
       body.add(jsInit
-          .toAssignExpression(js.call('this.#', [access])
-            ..sourceInformation = sourceInfo == null ? f : null)
-          .toStatement()
-            ..sourceInformation = sourceInfo);
+          .toAssignExpression(
+              js.call('this.#', [access])..sourceInformation = hoverInfo)
+          .toStatement());
     }
 
     for (var field in fieldDecls) {
@@ -2485,21 +2483,23 @@ class CodeGenerator extends Object
               _constants.isFieldInitConstant(field)) {
         continue;
       }
-      emitFieldInit(f, init);
+      emitFieldInit(f, init, field.name);
     }
 
-    // Run constructor field initializers such as `: foo = bar.baz`
     if (ctor != null) {
+      // Run constructor parameter initializers such as `this.foo`
       for (var p in ctor.parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
-          emitFieldInit(element.field, p.identifier);
+          emitFieldInit(element.field, p.identifier, p.identifier);
         }
       }
 
+      // Run constructor field initializers such as `: foo = bar.baz`
       for (var init in ctor.initializers) {
         if (init is ConstructorFieldInitializer) {
-          emitFieldInit(init.fieldName.staticElement, init.expression, init);
+          var field = init.fieldName;
+          emitFieldInit(field.staticElement, init.expression, field);
         } else if (init is AssertInitializer) {
           body.add(_emitAssert(init.condition, init.message));
         }
@@ -3500,7 +3500,7 @@ class CodeGenerator extends Object
     }
 
     if (element is LocalVariableElement || element is ParameterElement) {
-      return _emitSetLocal(element, right);
+      return _emitSetLocal(element, right, node);
     }
 
     if (element.enclosingElement is CompilationUnitElement) {
@@ -3519,7 +3519,7 @@ class CodeGenerator extends Object
   }
 
   /// Emits assignment to a simple local variable or parameter.
-  JS.Expression _emitSetLocal(Element element, Expression rhs) {
+  JS.Expression _emitSetLocal(Element element, Expression rhs, AstNode left) {
     JS.Expression target;
     if (element is TemporaryVariableElement) {
       // If this is one of our compiler's temporary variables, use its JS form.
@@ -3529,7 +3529,7 @@ class CodeGenerator extends Object
     } else {
       target = new JS.Identifier(element.name);
     }
-    target.sourceInformation = element;
+    target.sourceInformation = left;
     return _visitExpression(rhs).toAssignExpression(target);
   }
 
@@ -4072,7 +4072,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitExpressionStatement(ExpressionStatement node) =>
-      node.expression.accept(this).toStatement()..sourceInformation = node;
+      node.expression.accept(this).toStatement();
 
   @override
   JS.EmptyStatement visitEmptyStatement(EmptyStatement node) =>
