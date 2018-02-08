@@ -4,6 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
 import '../type_test_helper.dart';
@@ -26,6 +27,10 @@ main() {
         .create(createTypedefs(existentialTypeData, additionalData: """
     class C1 {}
     class C2 {}
+    class C3<T> {
+      factory C3.fact() => C3.gen();
+      C3.gen();
+    }
   """), compileMode: CompileMode.kernel, options: [Flags.strongMode]);
 
     testToString(FunctionType type, String expectedToString) {
@@ -181,5 +186,16 @@ main() {
     testRelations(F1.typeVariables.first, F1.typeVariables.first,
         areEqual: true);
     testRelations(F1.typeVariables.first, F2.typeVariables.first);
+
+    ClassEntity cls = env.getClass('C3');
+    env.elementEnvironment.forEachConstructor(cls,
+        (ConstructorEntity constructor) {
+      List<TypeVariableType> functionTypeVariables =
+          env.elementEnvironment.getFunctionTypeVariables(constructor);
+      Expect.isTrue(
+          functionTypeVariables.isEmpty,
+          "Function type variables found on constructor $constructor: "
+          "$functionTypeVariables");
+    });
   });
 }

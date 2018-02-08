@@ -579,11 +579,18 @@ abstract class FunctionDataMixin implements FunctionData {
           !elementMap.options.strongMode) {
         _typeVariables = const <TypeVariableType>[];
       } else {
-        _typeVariables = functionNode.typeParameters
-            .map<TypeVariableType>((ir.TypeParameter typeParameter) {
-          return elementMap
-              .getDartType(new ir.TypeParameterType(typeParameter));
-        }).toList();
+        ir.TreeNode parent = functionNode.parent;
+        if (parent is ir.Constructor ||
+            (parent is ir.Procedure &&
+                parent.kind == ir.ProcedureKind.Factory)) {
+          _typeVariables = const <TypeVariableType>[];
+        } else {
+          _typeVariables = functionNode.typeParameters
+              .map<TypeVariableType>((ir.TypeParameter typeParameter) {
+            return elementMap
+                .getDartType(new ir.TypeParameterType(typeParameter));
+          }).toList();
+        }
       }
     }
     return _typeVariables;
