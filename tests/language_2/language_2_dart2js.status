@@ -1552,10 +1552,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-first_class_types_literals_test/01: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 52), HTypeInfoReadVariable(SubListIterable.E)].
-first_class_types_literals_test/02: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 52), HTypeInfoReadVariable(SubListIterable.E)].
-first_class_types_literals_test/none: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 52), HTypeInfoReadVariable(SubListIterable.E)].
-first_class_types_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 52), HTypeInfoReadVariable(SubListIterable.E)].
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1964,7 +1960,7 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 regress_31591_test: RuntimeError
 regress_32012_test: Crash # Unsupported operation: Unsupported type parameter type node B.
-runtime_type_function_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 52), HTypeInfoReadVariable(SubListIterable.E)].
+runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
@@ -3237,8 +3233,8 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_assignment_behavior_test/03: MissingCompileTimeError
-if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/13: MissingCompileTimeError
+if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 if_null_assignment_behavior_test/15: MissingCompileTimeError
 if_null_assignment_static_test/02: MissingCompileTimeError
