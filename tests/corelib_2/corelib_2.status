@@ -282,36 +282,24 @@ integer_to_string_test/01: RuntimeError
 iterable_empty_test: RuntimeError
 iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_generate_test/01: RuntimeError
-iterable_generate_test/none: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
-iterable_return_type_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: RuntimeError
-linked_hash_map_from_iterable_test: RuntimeError
-linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
-list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
 list_replace_range_test: RuntimeError # Issue 32010
 list_set_all_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
-map_from_iterable_test: RuntimeError
-map_from_iterables_test: RuntimeError
 map_keys2_test: RuntimeError
-map_test: RuntimeError
-map_values2_test: RuntimeError
-map_values3_test: RuntimeError
-map_values4_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
 queue_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
-splay_tree_from_iterables_test: RuntimeError
 stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 string_replace_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 string_split_test/checkedstore: RuntimeError
