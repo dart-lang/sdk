@@ -212,7 +212,6 @@ uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is e
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]
 apply3_test: CompileTimeError
 cast_test: RuntimeError
-collection_length_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 55), HRef(literal: NullConstant)].
 collection_removes_test: RuntimeError
 dynamic_nosuchmethod_test: CompileTimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -228,13 +227,12 @@ iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called
 iterable_generate_test/01: RuntimeError
 iterable_generate_test/none: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_return_type_test/01: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [literal: IntConstant(0), HTypeInfoExpression(COMPLETE, int)].
-iterable_return_type_test/02: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [literal: IntConstant(0), HTypeInfoExpression(COMPLETE, int)].
-iterable_return_type_test/none: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [literal: IntConstant(0), HTypeInfoExpression(COMPLETE, int)].
-iterable_to_list_test/01: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic getter: selector=Selector(getter, length, arity=0), mask=Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null), literal: NullConstant].
-iterable_to_list_test/none: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [HRef(phi 48), HRef(parameter E)].
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_return_type_test/none: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: RuntimeError
-json_map_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic getter: selector=Selector(getter, length, arity=0), mask=[subclass=ListIterable], HTypeInfoReadVariable(ListIterable.E)].
 linked_hash_map_from_iterable_test: RuntimeError
 linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
@@ -244,7 +242,6 @@ list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 list_test/01: RuntimeError
 list_test/none: RuntimeError
-list_unmodifiable_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic getter: selector=Selector(getter, length, arity=0), mask=[subtype=SetMixin], HTypeInfoReadVariable(SetMixin.E)].
 map_from_iterable_test: RuntimeError
 map_from_iterables_test: RuntimeError
 map_keys2_test: RuntimeError
@@ -271,7 +268,6 @@ uri_query_test: Crash # Assertion failure: Cannot find value local(testQueryPara
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
 apply3_test: CompileTimeError
 cast_test: RuntimeError
-collection_length_test: Crash # Wrong number of template arguments, given 2, expected 1
 collection_removes_test: RuntimeError
 dynamic_nosuchmethod_test: CompileTimeError
 error_stack_trace1_test: RuntimeError
@@ -288,13 +284,12 @@ iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called
 iterable_generate_test/01: RuntimeError
 iterable_generate_test/none: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-iterable_return_type_test/none: Crash
-iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
-iterable_to_list_test/none: Crash # Wrong number of template arguments, given 2, expected 1
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_return_type_test/none: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: RuntimeError
-json_map_test: Crash
 linked_hash_map_from_iterable_test: RuntimeError
 linked_hash_map_from_iterables_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
@@ -304,7 +299,6 @@ list_replace_range_test: RuntimeError # Issue 32010
 list_set_all_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
-list_unmodifiable_test: Crash # Wrong number of template arguments, given 2, expected 1
 map_from_iterable_test: RuntimeError
 map_from_iterables_test: RuntimeError
 map_keys2_test: RuntimeError
