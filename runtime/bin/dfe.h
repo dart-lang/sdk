@@ -95,7 +95,6 @@ class DFE {
   void* platform_strong_program_;
 
   // Kernel binary specified on the cmd line.
-  // Loaded instead of platform if --kernel-binaries is not specified.
   void* application_kernel_binary_;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);

@@ -552,7 +552,8 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
 
 bool isKernel() {
   for (String argument in Platform.executableArguments) {
-    if (argument.startsWith("--dfe=")) return true;
+    if (argument.startsWith("--preview_dart_2") || argument.startsWith("--dfe"))
+      return true;
   }
   return false;
 }

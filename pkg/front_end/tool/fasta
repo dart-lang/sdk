@@ -54,9 +54,7 @@ case "${1//_/-}" in
     PATCHED_SDK_DIR=$(
       ls -d {xcodebuild,out}/${DART_CONFIGURATION} 2>/dev/null \
         | head -1)
-    exec "${DART_VM}" -DDFE_VERBOSE=true \
-         --kernel-binaries=${PATCHED_SDK_DIR} \
-         --dfe="${REPO_DIR}/pkg/vm/bin/kernel_service.dart" "$@"
+    exec "${DART_VM}" --preview_dart_2 -DDFE_VERBOSE=true "$@"
     ;;
   testing)
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"

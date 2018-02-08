@@ -38,11 +38,10 @@ else
   DART_BINARY="$BUILD_DIR"/dart
   KERNEL_BINARIES_DIR="$BUILD_DIR"
 fi
-KERNEL_SERVICE_SNAPSHOT="$BUILD_DIR"/gen/kernel-service.dart.snapshot
 
 exec "$DART_BINARY"                                                            \
+     --preview_dart_2                                                          \
      --strong                                                                  \
      --reify-generic-functions                                                 \
      --limit-ints-to-64-bits                                                   \
-     --dfe="$KERNEL_SERVICE_SNAPSHOT"                                          \
      "$@"
