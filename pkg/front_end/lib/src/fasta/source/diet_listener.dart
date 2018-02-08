@@ -514,6 +514,9 @@ class DietListener extends StackListener {
   void endMethod(
       Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     debugEvent("Method");
+    // TODO(danrubel): Consider removing the beginParam parameter
+    // and using bodyToken, but pushing a NullValue on the stack
+    // in handleNoFormalParameters rather than the supplied token.
     pop(); // bodyToken
     Object name = pop();
     Token metadata = pop();

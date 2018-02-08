@@ -331,6 +331,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, offset, length);
         return;
+      case "MISSING_ASSIGNMENT_IN_INITIALIZER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, offset, length);
+        return;
       case "MISSING_CATCH_OR_FINALLY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
@@ -362,6 +366,10 @@ class FastaErrorReporter {
       case "MISSING_IDENTIFIER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_IDENTIFIER, offset, length);
+        return;
+      case "MISSING_INITIALIZER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_INITIALIZER, offset, length);
         return;
       case "MISSING_KEYWORD_OPERATOR":
         errorReporter?.reportErrorForOffset(
@@ -426,6 +434,10 @@ class FastaErrorReporter {
       case "PREFIX_AFTER_COMBINATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
+        return;
+      case "REDIRECTING_CONSTRUCTOR_WITH_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, offset, length);
         return;
       case "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(

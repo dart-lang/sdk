@@ -430,7 +430,6 @@ const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
-constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
 covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError

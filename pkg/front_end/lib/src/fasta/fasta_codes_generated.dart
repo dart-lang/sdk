@@ -1372,6 +1372,8 @@ const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedAnInitializer = const MessageCode(
     "ExpectedAnInitializer",
+    analyzerCode: "MISSING_INITIALIZER",
+    dart2jsCode: "*fatal*",
     message: r"""Expected an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3216,6 +3218,18 @@ Message _withArgumentsMethodNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingAssignmentInInitializer =
+    messageMissingAssignmentInInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingAssignmentInInitializer = const MessageCode(
+    "MissingAssignmentInInitializer",
+    analyzerCode: "MISSING_ASSIGNMENT_IN_INITIALIZER",
+    dart2jsCode: "*fatal*",
+    message: r"""Expected an assignment after the field name.""",
+    tip: r"""To initialize a field, use the syntax 'name = value'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingConstFinalVarOrType =
     messageMissingConstFinalVarOrType;
 
@@ -4199,6 +4213,19 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
     dart2jsCode: "*ignored*",
     message: r"""An optional named parameter can't start with '_'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRedirectingConstructorWithBody =
+    messageRedirectingConstructorWithBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
+    "RedirectingConstructorWithBody",
+    analyzerCode: "REDIRECTING_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*fatal*",
+    message: r"""Redirecting constructors can't have a body.""",
+    tip:
+        r"""Try removing the body, or not making this a redirecting constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;
