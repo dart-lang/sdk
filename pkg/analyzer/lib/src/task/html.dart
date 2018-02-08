@@ -4,8 +4,6 @@
 
 library analyzer.src.task.html;
 
-import 'dart:collection';
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
