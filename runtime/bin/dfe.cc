@@ -78,8 +78,11 @@ DFE::~DFE() {
   }
   frontend_filename_ = NULL;
 
-  delete reinterpret_cast<kernel::Program*>(kernel_service_program_);
-  kernel_service_program_ = NULL;
+  // Do NOT delete kernel_service_program_ in the destructor.
+  // It is always a full a dill file, hence it is used as
+  // argument to Dart_CreateIsolateFromKernel as well as loaded
+  // as the kernel program for the isolate. Hence, deleting here
+  // would lead to double deletion.
 
   delete reinterpret_cast<kernel::Program*>(platform_program_);
   platform_program_ = NULL;
