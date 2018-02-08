@@ -2768,6 +2768,10 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       value_check = Cids::CreateMonomorphic(Z, kFloat32x4Cid);
       break;
     }
+    case kTypedDataInt64ArrayCid:
+      // StoreIndexedInstr takes unboxed int64, so value
+      // is checked when unboxing.
+      break;
     default:
       // Array cids are already checked in the caller.
       UNREACHABLE();
@@ -3338,6 +3342,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kByteArrayBaseSetUint32:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataUint32ArrayCid,
+                                      entry, last);
+    case MethodRecognizer::kByteArrayBaseSetInt64:
+      if (!ShouldInlineInt64ArrayOps()) {
+        return false;
+      }
+      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
+                                      receiver_cid, kTypedDataInt64ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
       if (!CanUnboxDouble()) {
