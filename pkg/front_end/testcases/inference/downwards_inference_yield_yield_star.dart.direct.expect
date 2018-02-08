@@ -15,8 +15,8 @@ static method foo() → asy::Stream<core::List<core::int>> async* {
 }
 static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* {
   yield<dynamic, dynamic>{};
-  yield core::List::_internal<dynamic>();
+  yield core::List::•<dynamic>();
   yield*<dynamic, dynamic>{};
-  yield* core::List::_internal<dynamic>();
+  yield* core::List::•<dynamic>();
 }
 static method main() → dynamic {}

@@ -129,8 +129,6 @@ mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 31402 (Inv
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_shown_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_metadata_test: RuntimeError
-mirrors/list_constructor_test/01: Crash, RuntimeError
-mirrors/list_constructor_test/none: Crash, RuntimeError
 mirrors/load_library_test: CompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash, RuntimeError
@@ -240,8 +238,6 @@ mirrors/invocation_fuzz_test/smi: Crash, Pass # Crashes on opt counter builder (
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: Crash
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
-mirrors/list_constructor_test/01: Crash
-mirrors/list_constructor_test/none: Crash
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
 mirrors/null_test: RuntimeError

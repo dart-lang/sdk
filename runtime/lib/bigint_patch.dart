@@ -54,7 +54,7 @@ class BigInt implements Comparable<BigInt> {
       _BigIntImpl.parse(source, radix: radix);
 
   @patch
-  factory BigInt.from(num value) = _BigIntImpl.from;
+  factory BigInt.from(num value) => new _BigIntImpl.from(value);
 }
 
 int _max(int a, int b) => a > b ? a : b;

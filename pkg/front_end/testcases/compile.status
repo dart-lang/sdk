@@ -59,6 +59,7 @@ rasta/class_member: Fail
 rasta/constant_get_and_invoke: Fail
 rasta/deferred_lib: Fail
 rasta/deferred_load: Fail
+rasta/external_factory_redirection: Fail
 rasta/for_loop: Fail
 rasta/generic_factory: Fail
 rasta/issue_000001: Fail

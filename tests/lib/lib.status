@@ -131,8 +131,6 @@ typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $compiler == dartk ]
 mirrors/invoke_throws_test: Crash
-mirrors/list_constructor_test/01: Crash
-mirrors/list_constructor_test/none: Crash
 mirrors/mirrors_test: Crash
 mirrors/redirecting_factory_test/01: Crash
 mirrors/redirecting_factory_test/02: Crash

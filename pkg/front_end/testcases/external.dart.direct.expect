@@ -10,7 +10,7 @@ static method onData(dynamic x) → void {
 }
 static method main() → dynamic {
   dynamic string = core::String::fromCharCode(65);
-  dynamic port = new iso::_ReceivePortImpl::•();
+  dynamic port = iso::ReceivePort::•();
   self::subscription = port.listen(self::onData);
   port.sendPort.send(string);
 }
