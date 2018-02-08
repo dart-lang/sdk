@@ -215,6 +215,7 @@ async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/multiple_timer_test: RuntimeError, OK # Needs Timer to run.
 async/periodic_timer2_test: Fail # Timer interface not supported: Issue 7728.
 async/periodic_timer3_test: Fail # Timer interface not supported: Issue 7728.
+async/periodic_timer4_test: Fail # Timer interface not supported: Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/schedule_microtask3_test: RuntimeError
@@ -390,8 +391,8 @@ html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': 
 html/js_array_test: CompileTimeError
 html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dart_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dispatch_property_test: CompileTimeError
+html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_test: CompileTimeError
 html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_trust_types_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
@@ -763,6 +764,7 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 isolate/kill_self_synchronously_test: RuntimeError
+periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094.
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
