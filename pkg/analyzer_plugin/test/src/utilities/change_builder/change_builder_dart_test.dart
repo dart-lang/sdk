@@ -325,13 +325,13 @@ import 'aaa.dart';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeClassDeclaration('C',
-            memberWriter: () {
+            membersWriter: () {
           builder.write('/**/');
         });
       });
     });
     SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/ }'));
+    expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/}'));
   }
 
   test_writeClassDeclaration_mixins_noSuperclass() async {

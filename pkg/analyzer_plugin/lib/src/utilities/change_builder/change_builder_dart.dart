@@ -100,7 +100,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract: false,
-      void memberWriter(),
+      void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -126,10 +126,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     writeTypes(mixins, prefix: ' with ');
     writeTypes(interfaces, prefix: ' implements ');
     writeln(' {');
-    if (memberWriter != null) {
-      writeln();
-      memberWriter();
-      writeln();
+    if (membersWriter != null) {
+      membersWriter();
     }
     write('}');
   }
