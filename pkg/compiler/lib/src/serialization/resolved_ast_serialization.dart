@@ -523,10 +523,10 @@ class ResolvedAstDeserializer {
           return node;
         case AstKind.FACTORY:
           Token beginToken = readBeginToken();
-          return doParse((parser) => parser.parseMember(beginToken));
+          return doParse((parser) => parser.parseClassMember(beginToken));
         case AstKind.FIELD:
           Token beginToken = readBeginToken();
-          return doParse((parser) => parser.parseMember(beginToken));
+          return doParse((parser) => parser.parseClassMember(beginToken));
         case AstKind.FUNCTION:
           Token beginToken = readBeginToken();
           int getOrSetOffset =
@@ -542,7 +542,7 @@ class ResolvedAstDeserializer {
             }
           }
           return doParse((parser) {
-            parser.parseMember(beginToken);
+            parser.parseClassMember(beginToken);
           });
       }
     }

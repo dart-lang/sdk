@@ -12,6 +12,9 @@ class FlutterTarget extends VmTarget {
   @override
   String get name => 'flutter';
 
+  @override
+  bool get enableSuperMixins => true;
+
   // This is the order that bootstrap libraries are loaded according to
   // `runtime/vm/object_store.h`.
   @override

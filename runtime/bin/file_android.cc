@@ -236,6 +236,12 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
+      ? uri + 7 : uri;
+  return File::Open(namespc, path, mode);
+}
+
 File* File::OpenStdio(int fd) {
   return new File(new FileHandle(fd));
 }

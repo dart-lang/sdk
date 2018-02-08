@@ -267,8 +267,12 @@ library dart:core:
     - isAccessor
   - class Iterable
     - iterator
+    - cast
+    - retype
+    - followedBy
     - map
     - where
+    - whereType
     - expand
     - contains
     - forEach
@@ -301,8 +305,12 @@ library dart:core:
     - current
   - class List
     - from
+    - cast
+    - retype
     - []
     - []=
+    - first
+    - last
     - length
     - length
     - add
@@ -311,6 +319,8 @@ library dart:core:
     - sort
     - shuffle
     - indexOf
+    - indexWhere
+    - lastIndexWhere
     - lastIndexOf
     - clear
     - insert
@@ -321,6 +331,7 @@ library dart:core:
     - removeLast
     - removeWhere
     - retainWhere
+    - +
     - sublist
     - getRange
     - setRange
@@ -329,10 +340,18 @@ library dart:core:
     - replaceRange
     - asMap
   - class Map
+    - cast
+    - retype
     - containsValue
     - containsKey
     - []
     - []=
+    - entries
+    - map
+    - addEntries
+    - update
+    - updateAll
+    - removeWhere
     - putIfAbsent
     - addAll
     - remove
@@ -343,6 +362,9 @@ library dart:core:
     - length
     - isEmpty
     - isNotEmpty
+  - class MapEntry
+    - key
+    - value
   - class Null
     - hashCode
     - toString
@@ -413,6 +435,8 @@ library dart:core:
     - input
     - pattern
   - class Set
+    - cast
+    - retype
     - iterator
     - contains
     - add

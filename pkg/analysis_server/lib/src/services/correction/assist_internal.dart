@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -31,6 +32,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
@@ -67,6 +69,8 @@ class AssistProcessor {
   AstNode node;
 
   TypeProvider _typeProvider;
+
+  final Map<String, LibraryElement> libraryCache = {};
 
   AssistProcessor(DartAssistContext dartContext) {
     driver = dartContext.analysisDriver;
@@ -150,6 +154,7 @@ class AssistProcessor {
     await _addProposal_removeTypeAnnotation();
     await _addProposal_reparentFlutterList();
     await _addProposal_reparentFlutterWidget();
+    await _addProposal_reparentFlutterWidgets();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
     await _addProposal_splitAndCondition();
@@ -1868,11 +1873,11 @@ class AssistProcessor {
     await _addProposal_reparentFlutterWidgetImpl();
     await _addProposal_reparentFlutterWidgetImpl(
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER,
-        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Center');
     await _addProposal_reparentFlutterWidgetImpl(
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_PADDING,
-        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Padding',
         leadingLines: ['padding: const EdgeInsets.all(8.0),']);
   }
@@ -1882,28 +1887,23 @@ class AssistProcessor {
       String parentLibraryUri,
       String parentClassName,
       List<String> leadingLines: const []}) async {
-    InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
-    if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
+    Expression widgetExpr = flutter.identifyWidgetExpression(node);
+    if (widgetExpr == null) {
       _coverageMarker();
       return;
     }
-    String newExprSrc = utils.getNodeText(newExpr);
+    String widgetSrc = utils.getNodeText(widgetExpr);
 
     // If the wrapper class is specified, find its element.
     ClassElement parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
-      var parentLibrary = await session.getLibraryByUri(parentLibraryUri);
-      var element = parentLibrary.exportNamespace.get(parentClassName);
-      if (element is ClassElement) {
-        parentClassElement = element;
-      } else {
-        return;
-      }
+      parentClassElement =
+          await _getExportedClass(parentLibraryUri, parentClassName);
     }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(newExpr), (DartEditBuilder builder) {
+      builder.addReplacement(range.node(widgetExpr), (DartEditBuilder builder) {
         builder.write('new ');
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
@@ -1911,8 +1911,8 @@ class AssistProcessor {
           builder.writeType(parentClassElement.type);
         }
         builder.write('(');
-        if (newExprSrc.contains(eol) || leadingLines.isNotEmpty) {
-          String indentOld = utils.getLinePrefix(newExpr.offset);
+        if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
+          String indentOld = utils.getLinePrefix(widgetExpr.offset);
           String indentNew = '$indentOld${utils.getIndent(1)}';
 
           for (var leadingLine in leadingLines) {
@@ -1923,9 +1923,9 @@ class AssistProcessor {
 
           builder.write(eol);
           builder.write(indentNew);
-          newExprSrc = newExprSrc.replaceAll(
+          widgetSrc = widgetSrc.replaceAll(
               new RegExp("^$indentOld", multiLine: true), indentNew);
-          newExprSrc += ",$eol$indentOld";
+          widgetSrc += ",$eol$indentOld";
         }
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('CHILD', 'child');
@@ -1933,12 +1933,91 @@ class AssistProcessor {
           builder.write('child');
         }
         builder.write(': ');
-        builder.write(newExprSrc);
+        builder.write(widgetSrc);
         builder.write(')');
         builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, kind);
+  }
+
+  Future<Null> _addProposal_reparentFlutterWidgets() async {
+    var selectionRange = new SourceRange(selectionOffset, selectionLength);
+    var analyzer = new SelectionAnalyzer(selectionRange);
+    unit.accept(analyzer);
+
+    List<Expression> widgetExpressions = [];
+    if (analyzer.hasSelectedNodes) {
+      for (var selectedNode in analyzer.selectedNodes) {
+        if (!flutter.isWidgetExpression(selectedNode)) {
+          return;
+        }
+        widgetExpressions.add(selectedNode);
+      }
+    } else {
+      var widget = flutter.identifyWidgetExpression(analyzer.coveringNode);
+      if (widget != null) {
+        widgetExpressions.add(widget);
+      }
+    }
+    if (widgetExpressions.isEmpty) {
+      return;
+    }
+
+    var firstWidget = widgetExpressions.first;
+    var lastWidget = widgetExpressions.last;
+    var selectedRange = range.startEnd(firstWidget, lastWidget);
+    String src = utils.getRangeText(selectedRange);
+
+    Future<Null> addAssist(
+        {@required AssistKind kind,
+        @required String parentLibraryUri,
+        @required String parentClassName}) async {
+      ClassElement parentClassElement =
+          await _getExportedClass(parentLibraryUri, parentClassName);
+
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(selectedRange, (DartEditBuilder builder) {
+          builder.write('new ');
+          builder.writeType(parentClassElement.type);
+          builder.write('(');
+
+          String indentOld = utils.getLinePrefix(firstWidget.offset);
+          String indentNew1 = indentOld + utils.getIndent(1);
+          String indentNew2 = indentOld + utils.getIndent(2);
+
+          builder.write(eol);
+          builder.write(indentNew1);
+          builder.write('children: [');
+          builder.write(eol);
+
+          String newSrc = _replaceSourceIndent(src, indentOld, indentNew2);
+          builder.write(indentNew2);
+          builder.write(newSrc);
+
+          builder.write(',');
+          builder.write(eol);
+
+          builder.write(indentNew1);
+          builder.write('],');
+          builder.write(eol);
+
+          builder.write(indentOld);
+          builder.write(')');
+        });
+      });
+      _addAssistFromBuilder(changeBuilder, kind);
+    }
+
+    await addAssist(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Column');
+    await addAssist(
+        kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_ROW,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Row');
   }
 
   Future<Null> _addProposal_replaceConditionalWithIfElse() async {
@@ -2505,6 +2584,48 @@ class AssistProcessor {
     }
   }
 
+  /// Return the [ClassElement] with the given [className] that is exported
+  /// from the library with the given [libraryUri], or `null` if the libary
+  /// does not export a class with such name.
+  Future<ClassElement> _getExportedClass(
+      String libraryUri, String className) async {
+    var libraryElement = await _getLibraryByUri(libraryUri);
+    var element = libraryElement.exportNamespace.get(className);
+    if (element is ClassElement) {
+      return element;
+    } else {
+      return null;
+    }
+  }
+
+  /// Return the [LibraryElement] for the library with the given [uri].
+  Future<LibraryElement> _getLibraryByUri(String uri) async {
+    var libraryElement = libraryCache[uri];
+    if (libraryElement == null) {
+      void walkLibraries(LibraryElement library) {
+        var libraryUri = library.source.uri.toString();
+        if (libraryCache[libraryUri] == null) {
+          libraryCache[libraryUri] = library;
+          library.importedLibraries.forEach(walkLibraries);
+          library.exportedLibraries.forEach(walkLibraries);
+        }
+      }
+
+      // Fill the cache with all libraries referenced from the unit.
+      walkLibraries(unitLibraryElement);
+
+      // The library might be already in the cache.
+      libraryElement = libraryCache[uri];
+
+      // If still not found, build a new library element.
+      if (libraryElement == null) {
+        libraryElement = await session.getLibraryByUri(uri);
+        libraryCache[uri] = libraryElement;
+      }
+    }
+    return libraryElement;
+  }
+
   /**
    * Returns the text of the given node in the unit.
    */
@@ -2551,8 +2672,8 @@ class AssistProcessor {
           return utils.getText(startOffset, curOffset - startOffset);
         }
 
-        String outerIndent = utils.getNodePrefix(exprGoingDown.parent);
-        String innerIndent = utils.getNodePrefix(exprGoingUp.parent);
+        String outerIndent = utils.getLinePrefix(exprGoingDown.offset);
+        String innerIndent = utils.getLinePrefix(exprGoingUp.offset);
         exprGoingUp.argumentList.arguments.forEach((arg) {
           if (arg is NamedExpression && arg.name.label.name == 'child') {
             if (stableChild != arg) {
@@ -2565,8 +2686,7 @@ class AssistProcessor {
             lnOffset = lineInfo.getOffsetOfLine(currLn - 1);
             argSrc = utils.getText(
                 lnOffset, stableChild.expression.offset - lnOffset);
-            argSrc = argSrc.replaceAll(
-                new RegExp("^$innerIndent", multiLine: true), "$outerIndent");
+            argSrc = _replaceSourceIndent(argSrc, innerIndent, outerIndent);
             builder.write(argSrc);
             int nextLn = lineInfo.getLocation(exprGoingDown.offset).lineNumber;
             lnOffset = lineInfo.getOffsetOfLine(nextLn);
@@ -2585,9 +2705,7 @@ class AssistProcessor {
                 }
               } else {
                 argSrc = getSrc(val);
-                argSrc = argSrc.replaceAll(
-                    new RegExp("^$outerIndent", multiLine: true),
-                    "$innerIndent");
+                argSrc = _replaceSourceIndent(argSrc, outerIndent, innerIndent);
                 builder.write(argSrc);
               }
             });
@@ -2598,8 +2716,7 @@ class AssistProcessor {
             builder.write('),$eol');
           } else {
             argSrc = getSrc(arg);
-            argSrc = argSrc.replaceAll(
-                new RegExp("^$innerIndent", multiLine: true), "$outerIndent");
+            argSrc = _replaceSourceIndent(argSrc, innerIndent, outerIndent);
             builder.write(argSrc);
           }
         });
@@ -2645,6 +2762,12 @@ class AssistProcessor {
     // invalid selection (part of node, etc)
     _coverageMarker();
     return false;
+  }
+
+  static String _replaceSourceIndent(
+      String source, String indentOld, String indentNew) {
+    return source.replaceAll(
+        new RegExp('^$indentOld', multiLine: true), indentNew);
   }
 
   /**

@@ -932,7 +932,7 @@ class _LibraryResynthesizer {
    */
   Namespace buildExportNamespace(
       Namespace publicNamespace, List<LinkedExportName> exportNames) {
-    HashMap<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = new HashMap<String, Element>();
     // Start by populating all the public names from [publicNamespace].
     publicNamespace.definedNames.forEach((String name, Element element) {
       definedNames[name] = element;
@@ -1659,6 +1659,12 @@ class _UnitResynthesizer {
         return DynamicTypeImpl.instance;
       }
     }
+    if (type.refinedSlot != 0) {
+      var refinedType = linkedTypeMap[type.refinedSlot];
+      if (refinedType != null) {
+        type = refinedType;
+      }
+    }
     if (type.paramReference != 0) {
       return context.typeParameterContext
           .getTypeParameterType(type.paramReference);
@@ -1693,7 +1699,7 @@ class _UnitResynthesizer {
   }
 
   UnitExplicitTopLevelAccessors buildUnitExplicitTopLevelAccessors() {
-    HashMap<String, TopLevelVariableElementImpl> implicitVariables =
+    Map<String, TopLevelVariableElementImpl> implicitVariables =
         new HashMap<String, TopLevelVariableElementImpl>();
     UnitExplicitTopLevelAccessors accessorsData =
         new UnitExplicitTopLevelAccessors();

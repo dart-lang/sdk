@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.element_resolver;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -28,7 +26,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 
 /**
@@ -1648,7 +1645,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     InterfaceType classType = classElement.type;
     if (node.typeArguments != null) {
       int parameterCount = classType.typeParameters.length;
-      int argumentCount = node.typeArguments.length;
+      int argumentCount = node.typeArguments.arguments.length;
       if (parameterCount == argumentCount) {
         // TODO(brianwilkerson) More gracefully handle the case where the counts
         // are different.
@@ -1740,13 +1737,32 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (classElement == null) {
       return null;
     }
+    InterfaceType classType = classElement.type;
+    if (node.typeArguments != null) {
+      int parameterCount = classType.typeParameters.length;
+      int argumentCount = node.typeArguments.arguments.length;
+      if (parameterCount == argumentCount) {
+        // TODO(brianwilkerson) More gracefully handle the case where the counts
+        // are different.
+        List<DartType> typeArguments = node.typeArguments.arguments
+            .map((TypeAnnotation type) => type.type)
+            .toList();
+        classType = classType.instantiate(typeArguments);
+      }
+    } else {
+      int parameterCount = classType.typeParameters.length;
+      if (parameterCount > 0) {
+        List<DartType> typeArguments =
+            new List<DartType>.filled(parameterCount, _dynamicType);
+        classType = classType.instantiate(typeArguments);
+      }
+    }
     ConstructorElement constructorElt;
     if (isNamedConstructorCase) {
-      constructorElt = classElement.type
-          .lookUpConstructor(node.methodName.name, _definingLibrary);
-    } else {
       constructorElt =
-          classElement.type.lookUpConstructor(null, _definingLibrary);
+          classType.lookUpConstructor(node.methodName.name, _definingLibrary);
+    } else {
+      constructorElt = classType.lookUpConstructor(null, _definingLibrary);
     }
     // If the constructor was not looked up, return `null` so resulting
     // resolution, such as error messages, will proceed as a [MethodInvocation].
@@ -1761,18 +1777,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // p.A.n()
       // libraryPrefixId is a PrefixedIdentifier in this case
       typeName = _astFactory.typeName(libraryPrefixId, node.typeArguments);
-      typeName.type = classElement.type;
+      typeName.type = classType;
       constructorName =
           _astFactory.constructorName(typeName, node.operator, node.methodName);
     } else {
       // p.A()
       // libraryPrefixId is a SimpleIdentifier in this case
       PrefixedIdentifier prefixedIdentifier = _astFactory.prefixedIdentifier(
-          libraryPrefixId,
-          TokenFactory.tokenFromType(TokenType.PERIOD),
-          node.methodName);
+          libraryPrefixId, node.operator, node.methodName);
       typeName = _astFactory.typeName(prefixedIdentifier, node.typeArguments);
-      typeName.type = classElement.type;
+      typeName.type = classType;
       constructorName = _astFactory.constructorName(typeName, null, null);
     }
     InstanceCreationExpression instanceCreationExpression = _astFactory
@@ -1783,15 +1797,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     constructorName.staticElement = constructorElt;
     instanceCreationExpression.staticElement = constructorElt;
-    instanceCreationExpression.staticType = classElement.type;
+    instanceCreationExpression.staticType = classType;
 
     // Finally, do the node replacement, true is returned iff the replacement
     // was successful, only return the new node if it was successful.
     if (NodeReplacer.replace(node, instanceCreationExpression)) {
       return instanceCreationExpression;
-    } else {
-      return null;
     }
+    return null;
   }
 
   /**

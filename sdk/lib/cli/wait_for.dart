@@ -112,9 +112,11 @@ class _WaitForUtils {
 @provisional
 T waitFor<T>(Future<T> future, {Duration timeout}) {
   T result;
+  bool futureCompleted = false;
   Object error;
   StackTrace stacktrace;
   future.then((r) {
+    futureCompleted = true;
     result = r;
   }, onError: (e, st) {
     error = e;
@@ -126,7 +128,7 @@ T waitFor<T>(Future<T> future, {Duration timeout}) {
     s = new Stopwatch()..start();
   }
   Timer.run(() {}); // Enusre there is at least one message.
-  while ((result == null) && (error == null)) {
+  while (!futureCompleted && (error == null)) {
     Duration remaining;
     if (timeout != null) {
       if (s.elapsed >= timeout) {

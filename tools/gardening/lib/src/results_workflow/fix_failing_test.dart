@@ -18,7 +18,7 @@ import '../results/status_files.dart';
 import '../util.dart';
 import '../workflow.dart';
 
-final RegExp toggleSectionRegExp = new RegExp(r"^t(\d+)$");
+final RegExp toggleSectionRegExp = new RegExp(r"^(\d+)$");
 
 /// This is the main workflow step, where the user is asked what to do with the
 /// failure and input comments etc. For every test, [onShow] is called with the
@@ -30,8 +30,8 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
 
   // These fields are mutated to persist user input.
   String _lastComment;
+  Set<_CustomSection> _customSections = new Set<_CustomSection>();
   FixWorkingItem _lastWorkingItem;
-  List<StatusSectionWithFile> _customSections = [];
   StatusExpectations _statusExpectations;
 
   FixFailingTest(this._testResult);
@@ -57,9 +57,8 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     }
 
     _currentWorkingItem = new FixWorkingItem(failingTest.result.name,
-        failingTest, _statusExpectations, _lastComment, this._customSections);
+        failingTest, _statusExpectations, _lastComment, _customSections);
     _currentWorkingItem.init();
-
     print("");
     print("${_remainingTests.length + 1} tests remaining.");
     askAboutTest();
@@ -114,6 +113,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
   }
 
   Future<WorkflowAction> _fixAllSimilarTests() async {
+    var unhandledTests = <FailingTest>[];
     for (FailingTest similarTest in _remainingTests) {
       _currentWorkingItem = new FixWorkingItem(similarTest.result.name,
           similarTest, _statusExpectations, _lastComment, this._customSections);
@@ -131,15 +131,22 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
               currentConfigurations.length &&
           lastConfigurations.every(
               (configuration) => currentConfigurations.contains(configuration));
-      if (outcomeIsSame && sameConfigurations) {
+      var sameFiles = _lastWorkingItem.statusFiles().every((last) {
+        return _currentWorkingItem.statusFiles().any((current) {
+          return current.path == last.path;
+        });
+      });
+      if (outcomeIsSame && sameConfigurations && sameFiles) {
         _currentWorkingItem.currentSections = _lastWorkingItem.currentSections;
         print("Auto-fixing ${_currentWorkingItem.name}");
         var realLast = _lastWorkingItem;
         await fixFailingTest(); // Sets _lastWorkingItem to _currentWorkingItem
         _lastWorkingItem = realLast; // Might not be needed
+      } else {
+        unhandledTests.add(similarTest);
       }
     }
-    return new NavigateStepWorkflowAction(this, const <FailingTest>[]);
+    return new NavigateStepWorkflowAction(this, unhandledTests);
   }
 
   @override
@@ -161,7 +168,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
     print("o       : Modify outcomes.");
     print("r       : Reset to initial state.");
     print("s       : Skip this failure.");
-    print("ti      : Toggle selection of section, where i is the index.");
+    print("<n>     : Toggle selection of the section with the index <n>.");
   }
 
   /// Fixes the failing test based on the data in [_currentWorkingItem].
@@ -213,7 +220,7 @@ class FixFailingTest extends WorkflowStep<List<FailingTest>> {
         orElse: () => null);
     sectionToAdd ??= new StatusSection(expression, 0, []);
     var section = new StatusSectionWithFile(statusFile, sectionToAdd);
-    _customSections.add(section);
+    _customSections.add(new _CustomSection(section));
     _currentWorkingItem.currentSections.add(section);
   }
 }
@@ -248,7 +255,7 @@ StatusFile getStatusFile(FixWorkingItem workingItem) {
     print("  ${i++}: ${statusFile.path}");
   }
   var input = stdin.readLineSync();
-  var index = int.parse(input, onError: (_) => null);
+  var index = int.parse(input, onError: (_) => -1);
   if (index >= 0 && index < statusFiles.length) {
     return statusFiles[index];
   }
@@ -295,8 +302,8 @@ class FixWorkingItem {
   final String name;
   final FailingTest failingTest;
   final StatusExpectations statusExpectations;
-  final List<StatusSectionWithFile> customSections;
 
+  Iterable<StatusSectionWithFile> customSections;
   List<StatusSectionWithFile> currentSections;
   List<SectionsSuggestion> suggestedSections;
   List<String> newOutcome;
@@ -304,7 +311,22 @@ class FixWorkingItem {
   String comment;
 
   FixWorkingItem(this.name, this.failingTest, this.statusExpectations,
-      this.comment, this.customSections) {}
+      this.comment, Iterable<_CustomSection> customSections) {
+    var files = statusFiles();
+    this.customSections = customSections.expand((customSection) {
+      var sectionWithFile = customSection._findSection(currentSections);
+      if (sectionWithFile != null) {
+        return [sectionWithFile];
+      }
+      var file = customSection._findStatusFile(files);
+      if (file != null) {
+        var section = customSection._findSectionInFile(file);
+        section ??= new StatusSection(customSection.condition, 0, []);
+        return [new StatusSectionWithFile(file, section)];
+      }
+      return [];
+    });
+  }
 
   /// init resets all custom data to the standard values from the failing test,
   /// except the comment and custom added sections.
@@ -394,7 +416,7 @@ class FixWorkingItem {
       suggestedSection.sections
           .forEach((section) => _printSection(section, sectionCounter++));
     });
-    print("  ${new String.fromCharCode(groupCounter)}: Added sections");
+    print("  ${new String.fromCharCode(groupCounter)}: Added/Used sections");
     customSections
         .forEach((section) => _printSection(section, sectionCounter++));
   }
@@ -412,5 +434,43 @@ class FixWorkingItem {
       print("      line ${entry.entry.lineNumber}: ${entry.entry.path} : "
           "${entry.entry.expectations} ${entry.entry.comment ?? ""}");
     }
+  }
+}
+
+class _CustomSection {
+  final String path;
+  final Expression condition;
+
+  _CustomSection(StatusSectionWithFile section)
+      : path = section.statusFile.path,
+        condition = section.section.condition;
+
+  StatusFile _findStatusFile(Iterable<StatusFile> files) {
+    return files.firstWhere((f) => f.path == path, orElse: () => null);
+  }
+
+  StatusSection _findSectionInFile(StatusFile file) {
+    return file.sections
+        .firstWhere((s) => s.condition == condition, orElse: () => null);
+  }
+
+  StatusSectionWithFile _findSection(Iterable<StatusSectionWithFile> sections) {
+    return sections.firstWhere((s) => s.section.condition == condition,
+        orElse: () => null);
+  }
+
+  @override
+  String toString() {
+    return "{$path} [{$condition}]";
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is _CustomSection && toString() == other.toString();
+  }
+
+  @override
+  int get hashCode {
+    return toString().hashCode;
   }
 }

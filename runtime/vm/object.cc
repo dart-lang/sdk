@@ -4677,7 +4677,10 @@ intptr_t TypeArguments::ComputeHash() const {
     type = TypeAt(i);
     // The hash may be calculated during type finalization (for debugging
     // purposes only) while a type argument is still temporarily null.
-    result = CombineHashes(result, type.IsNull() ? 0 : type.Hash());
+    if (type.IsNull() || type.IsNullTypeRef()) {
+      return 0;  // Do not cache hash, since it will still change.
+    }
+    result = CombineHashes(result, type.Hash());
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
@@ -4728,7 +4731,8 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
   for (intptr_t i = from_index; i < from_index + len; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
-    if (!type.IsNull() && !type.IsEquivalent(other_type, trail)) {
+    // Still unfinalized vectors should not be considered equivalent.
+    if (type.IsNull() || !type.IsEquivalent(other_type, trail)) {
       return false;
     }
   }
@@ -4914,7 +4918,7 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (type.IsNull()) {
-      continue;
+      return false;  // Still unfinalized, too early to tell.
     }
     if (!type.IsTypeParameter()) {
       return false;
@@ -5307,8 +5311,8 @@ const char* TypeArguments::ToCString() const {
     return "TypeArguments: null";
   }
   Zone* zone = Thread::Current()->zone();
-  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (%" Pd ")",
-                                      Smi::Value(raw_ptr()->hash_));
+  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (@%p H%" Px ")",
+                                      raw(), Smi::Value(raw_ptr()->hash_));
   for (int i = 0; i < Length(); i++) {
     const AbstractType& type_at = AbstractType::Handle(zone, TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
@@ -16467,6 +16471,10 @@ RawString* AbstractType::ClassName() const {
   }
 }
 
+bool AbstractType::IsNullTypeRef() const {
+  return IsTypeRef() && (TypeRef::Cast(*this).type() == AbstractType::null());
+}
+
 bool AbstractType::IsDynamicType() const {
   if (IsCanonical()) {
     return raw() == Object::dynamic_type().raw();
@@ -17894,16 +17902,13 @@ const char* TypeRef::ToCString() const {
   if (ref_type.IsNull()) {
     return "TypeRef: null";
   }
-  const char* type_cstr =
-      String::Handle(Class::Handle(type_class()).Name()).ToCString();
+  const char* type_cstr = String::Handle(ref_type.Name()).ToCString();
   if (ref_type.IsFinalized()) {
     const intptr_t hash = ref_type.Hash();
-    return OS::SCreate(Thread::Current()->zone(),
-                       "TypeRef: %s<...> (@%p H%" Px ")", type_cstr,
-                       ref_type.raw(), hash);
+    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s (@%p H%" Px ")",
+                       type_cstr, ref_type.raw(), hash);
   } else {
-    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s<...>",
-                       type_cstr);
+    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s", type_cstr);
   }
 }
 
@@ -21614,6 +21619,19 @@ uword Array::ComputeCanonicalTableHash() const {
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
   return New(kClassId, len, space);
+}
+
+RawArray* Array::New(intptr_t len,
+                     const AbstractType& element_type,
+                     Heap::Space space) {
+  const Array& result = Array::Handle(Array::New(len, space));
+  if (!element_type.IsDynamicType()) {
+    TypeArguments& type_args = TypeArguments::Handle(TypeArguments::New(1));
+    type_args.SetTypeAt(0, element_type);
+    type_args = type_args.Canonicalize();
+    result.SetTypeArguments(type_args);
+  }
+  return result.raw();
 }
 
 RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {

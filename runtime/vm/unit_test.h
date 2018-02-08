@@ -309,12 +309,12 @@ class TestCase : TestCaseBase {
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
                                         void** kernel_pgm,
-                                        bool incrementally = false);
+                                        bool incrementally = true);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
                                         void** kernel_pgm,
-                                        bool incrementally = false);
+                                        bool incrementally = true);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
@@ -325,7 +325,7 @@ class TestCase : TestCaseBase {
       Dart_SourceFile sourcefiles[],
       Dart_NativeEntryResolver resolver = NULL,
       bool finalize = true,
-      bool incrementally = false);
+      bool incrementally = true);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();

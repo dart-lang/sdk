@@ -146,6 +146,8 @@ class _Timer implements Timer {
   var _indexOrNext; // Index if part of the TimerHeap, link otherwise.
   int _id; // Incrementing id to enable sorting of timers with same expiry.
 
+  int _tick = 0; // Backing for [tick],
+
   // Get the next available id. We accept collisions and reordering when the
   // _idCount overflows and the timers expire at the same millisecond.
   static int _nextId() {
@@ -196,6 +198,8 @@ class _Timer implements Timer {
   }
 
   bool get isActive => _callback != null;
+
+  int get tick => _tick;
 
   // Cancels a set timer. The timer is removed from the timer heap if it is a
   // non-zero timer. Zero timers are kept in the list as they need to consume
@@ -363,7 +367,18 @@ class _Timer implements Timer {
           if (!timer._repeating) {
             // Mark timer as inactive.
             timer._callback = null;
+          } else if (timer._milliSeconds > 0) {
+            var ms = timer._milliSeconds;
+            int overdue =
+                VMLibraryHooks.timerMillisecondClock() - timer._wakeupTime;
+            if (overdue > ms) {
+              int missedTicks = overdue ~/ ms;
+              timer._wakeupTime += missedTicks * ms;
+              timer._tick += missedTicks;
+            }
           }
+          timer._tick += 1;
+
           callback(timer);
           // Re-insert repeating timer if not canceled.
           if (timer._repeating && (timer._callback != null)) {

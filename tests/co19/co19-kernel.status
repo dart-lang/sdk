@@ -3,44 +3,213 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk ]
-Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Metadata/before_type_param_t01: RuntimeError
-Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t05: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # tests need fixing
 LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 
 [ $compiler == dartkp ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
-Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Classes/definition_t23: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/depending_on_itself_t03: Crash
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Overview/Scoping/hiding_declaration_t11: Crash
-Language/Overview/Scoping/hiding_declaration_t11: Pass
-Language/Overview/Scoping/hiding_declaration_t12: Crash
-Language/Overview/Scoping/hiding_declaration_t12: Pass
-Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t05: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # tests need fixing
-Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # tests need fixing
+Language/Overview/Scoping/hiding_declaration_t11: Crash, Pass
+Language/Overview/Scoping/hiding_declaration_t12: Crash, Pass
+
+[ $compiler == fasta ]
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
+Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
+Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
+Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
+Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t02: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t03: MissingCompileTimeError
+Language/Classes/same_name_instance_and_static_members_t04: MissingCompileTimeError
+Language/Expressions/Constants/bitwise_operators_t05: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
+Language/Expressions/Constants/exception_t01: MissingCompileTimeError
+Language/Expressions/Constants/exception_t03: MissingCompileTimeError
+Language/Expressions/Constants/exception_t05: MissingCompileTimeError
+Language/Expressions/Constants/logical_expression_t02: MissingCompileTimeError
+Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t02: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t03: MissingCompileTimeError
+Language/Expressions/Constants/no_other_constant_expressions_t11: MissingCompileTimeError
+Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError
+Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
+Language/Metadata/compilation_t03: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
+LayoutTests/*: CompileTimeError # TODO(ahe): Make dart:html available.
+LibTest/html/*: CompileTimeError # TODO(ahe): Make dart:html available.
+WebPlatformTest/*: CompileTimeError # TODO(ahe): Make dart:html available.
+WebPlatformTest/Utils/test/testFail_t01: Pass # TODO(ahe): Make dart:html available.
 
 [ $fasta ]
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
+Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError
+Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
+Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
+Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
+Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t01: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t03: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
+Language/Classes/Constructors/Factories/name_t05: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/redirection_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/redirection_t03: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/redirection_t07: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/redirection_t08: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
+Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
+Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
+Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
+Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
+Language/Classes/declarations_t06: MissingCompileTimeError
+Language/Classes/declarations_t08: MissingCompileTimeError
+Language/Classes/declarations_t33: MissingCompileTimeError
+Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
+Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
+Language/Expressions/Constants/bitwise_operators_t02: MissingCompileTimeError
+Language/Expressions/Constants/bitwise_operators_t03: MissingCompileTimeError
+Language/Expressions/Constants/bitwise_operators_t04: MissingCompileTimeError
+Language/Expressions/Constants/bitwise_operators_t06: MissingCompileTimeError
+Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError
+Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t03: MissingCompileTimeError
+Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
+Language/Expressions/Constants/exception_t04: MissingCompileTimeError
+Language/Expressions/Constants/literal_number_t01: CompileTimeError
+Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
+Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t01: CompileTimeError
+Language/Expressions/Constants/math_operators_t04: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t05: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t06: CompileTimeError
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
+Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
+Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
+Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
+Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
+Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
+Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError
+Language/Expressions/Numbers/syntax_t06: CompileTimeError
+Language/Expressions/Numbers/syntax_t09: CompileTimeError
+Language/Expressions/Numbers/syntax_t10: CompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError
+Language/Expressions/This/placement_t04: MissingCompileTimeError
+Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
+Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
+Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
+Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
+Language/Mixins/declaring_constructor_t05: MissingCompileTimeError
+Language/Mixins/declaring_constructor_t06: MissingCompileTimeError
+Language/Statements/Continue/label_t07: MissingCompileTimeError
+Language/Statements/For/syntax_t12: MissingCompileTimeError
+Language/Statements/For/syntax_t13: MissingCompileTimeError
+Language/Statements/For/syntax_t13: Crash
+Language/Statements/For/syntax_t19: MissingCompileTimeError
+Language/Statements/For/syntax_t20: Crash
+Language/Statements/For/syntax_t20: MissingCompileTimeError
+Language/Statements/Labels/scope_t05: MissingCompileTimeError
+Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
+Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
+Language/Statements/Switch/expressions_t01: MissingCompileTimeError
+Language/Statements/Switch/expressions_t02: MissingCompileTimeError
+Language/Statements/Switch/expressions_t03: MissingCompileTimeError
+Language/Statements/Switch/expressions_t04: MissingCompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
+Language/Types/Type_Void/syntax_t01: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t02: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t04: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t05: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
+Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
+Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
+LibTest/core/double/isInfinite_A01_t03: CompileTimeError
+LibTest/core/int/abs_A01_t01: CompileTimeError
+LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError
+LibTest/core/int/ceil_A01_t01: CompileTimeError
+LibTest/core/int/compareTo_A01_t01: CompileTimeError
+LibTest/core/int/floorToDouble_A01_t01: CompileTimeError
+LibTest/core/int/floor_A01_t01: CompileTimeError
+LibTest/core/int/isEven_A01_t01: CompileTimeError
+LibTest/core/int/isInfinite_A01_t01: CompileTimeError
+LibTest/core/int/isNaN_A01_t01: CompileTimeError
+LibTest/core/int/isNegative_A01_t01: CompileTimeError
+LibTest/core/int/isOdd_A01_t01: CompileTimeError
+LibTest/core/int/operator_AND_A01_t01: CompileTimeError
+LibTest/core/int/operator_GE_A01_t01: CompileTimeError
+LibTest/core/int/operator_GT_A01_t01: CompileTimeError
+LibTest/core/int/operator_LE_A01_t01: CompileTimeError
+LibTest/core/int/operator_LT_A01_t01: CompileTimeError
+LibTest/core/int/operator_NOT_A01_t01: CompileTimeError
+LibTest/core/int/operator_OR_A01_t01: CompileTimeError
+LibTest/core/int/operator_XOR_A01_t01: CompileTimeError
+LibTest/core/int/operator_addition_A01_t01: CompileTimeError
+LibTest/core/int/operator_division_A01_t01: CompileTimeError
+LibTest/core/int/operator_left_shift_A01_t01: CompileTimeError
+LibTest/core/int/operator_multiplication_A01_t01: CompileTimeError
+LibTest/core/int/operator_remainder_A01_t01: CompileTimeError
+LibTest/core/int/operator_remainder_A01_t02: CompileTimeError
+LibTest/core/int/operator_right_shift_A01_t01: CompileTimeError
+LibTest/core/int/operator_subtraction_A01_t01: CompileTimeError
+LibTest/core/int/operator_truncating_division_A01_t01: CompileTimeError
+LibTest/core/int/operator_truncating_division_A01_t02: CompileTimeError
+LibTest/core/int/operator_unary_minus_A01_t01: CompileTimeError
+LibTest/core/int/parse_A01_t01: CompileTimeError
+LibTest/core/int/remainder_A01_t01: CompileTimeError
+LibTest/core/int/remainder_A01_t02: CompileTimeError
+LibTest/core/int/roundToDouble_A01_t01: CompileTimeError
+LibTest/core/int/round_A01_t01: CompileTimeError
+LibTest/core/int/toDouble_A01_t01: CompileTimeError
+LibTest/core/int/toInt_A01_t01: CompileTimeError
+LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError
+LibTest/core/int/truncate_A01_t01: CompileTimeError
+LibTest/math/pow_A10_t01: CompileTimeError
+LibTest/typed_data/ByteData/getUint64_A01_t01: CompileTimeError
+LibTest/typed_data/ByteData/setUint64_A01_t01: CompileTimeError
+LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t01: CompileTimeError
+LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError
+LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
+
+[ $arch == simarm && $compiler == dartkp ]
+LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -94,75 +263,20 @@ Language/Types/Parameterized_Types/malbounded_t06: RuntimeError
 Language/Types/Static_Types/malformed_type_t04: RuntimeError
 
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
-Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
-Language/Classes/Constructors/Factories/name_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/name_t03: MissingCompileTimeError
-Language/Classes/Constructors/Factories/name_t04: MissingCompileTimeError
-Language/Classes/Constructors/Factories/name_t05: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/redirection_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/redirection_t03: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/redirection_t07: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/redirection_t08: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/syntax_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/syntax_t05: MissingCompileTimeError
-Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
-Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
-Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
-Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
-Language/Classes/declarations_t06: MissingCompileTimeError
-Language/Classes/declarations_t08: MissingCompileTimeError
-Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
 Language/Expressions/Constants/bitwise_operators_t03: Crash
 Language/Expressions/Constants/bitwise_operators_t04: Crash
 Language/Expressions/Constants/bitwise_operators_t06: Crash
-Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError
-Language/Expressions/Constants/exception_t04: MissingCompileTimeError
-Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError
-Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
-Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
-Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t19: CompileTimeError # Issue 31938
 Language/Expressions/Instance_Creation/New/evaluation_t20: CompileTimeError # Issue 31938
-Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
-Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
-Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Expressions/This/placement_t04: MissingCompileTimeError
-Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
-Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
-Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
-Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 Language/Metadata/before_export_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
@@ -178,29 +292,13 @@ Language/Metadata/before_param_t07: RuntimeError # Issue 28434: Kernel IR misses
 Language/Metadata/before_param_t08: RuntimeError # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_param_t09: RuntimeError # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_typedef_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
-Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
-Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
-Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Statements/Continue/label_t07: MissingCompileTimeError
-Language/Statements/For/syntax_t12: MissingCompileTimeError
-Language/Statements/For/syntax_t13: MissingCompileTimeError
-Language/Statements/For/syntax_t19: MissingCompileTimeError
-Language/Statements/For/syntax_t20: MissingCompileTimeError
-Language/Statements/Labels/scope_t05: MissingCompileTimeError
-Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError
-Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
-Language/Statements/Switch/expressions_t01: MissingCompileTimeError
-Language/Statements/Switch/expressions_t02: MissingCompileTimeError
-Language/Statements/Switch/expressions_t03: MissingCompileTimeError
-Language/Statements/Switch/expressions_t04: MissingCompileTimeError
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
-Language/Types/Dynamic_Type_System/deferred_type_error_t01: CompileTimeError # Issue 31938
+Language/Types/Dynamic_Type_System/deferred_type_error_t01: CompileTimeError
 Language/Types/Type_Void/syntax_t01: Pass # Issue 30470
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
+
+[ $compiler == dartkp || $compiler == fasta ]
+Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
+Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
 

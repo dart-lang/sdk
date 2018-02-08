@@ -28,7 +28,7 @@ main() {
   var c2 = (const [C.named(42)])[0]; // List element.
   var c3 = (const {C.named(42): 0}).keys.first; // Map key.
   var c4 = (const {0: C.named(42)}).values.first; // Map value.
-  var c5 = (const C(C.named(42))).x; // Constructor argument.
+  var c5 = (const C.named(C.named(42))).x; // Constructor argument.
 
   Expect.identical(c0, c1);
   Expect.identical(c0, c2);
@@ -48,7 +48,7 @@ main() {
 
   // Annotation argument.
   // (Cannot check that it's const, just that it's accepted).
-  @C(C.named(42))
+  @C.named(C.named(42))
   void foo() {}
   foo(); // avoid "unused" hints.
 }

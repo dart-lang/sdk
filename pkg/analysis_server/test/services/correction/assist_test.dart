@@ -3540,6 +3540,55 @@ startResize() {}
 ''');
   }
 
+  test_moveFlutterWidgetUp_OK_outerIsInChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: [
+      new Column(
+        children: [
+          new Padding(
+            padding: new EdgeInsets.all(16.0),
+            child: new /*caret*/Center(
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.MOVE_FLUTTER_WIDGET_UP, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: [
+      new Column(
+        children: [
+          new /*caret*/Center(
+            child: new Padding(
+              padding: new EdgeInsets.all(16.0),
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+''');
+  }
+
   test_removeTypeAnnotation_classField_OK() async {
     await resolveTestUnit('''
 class A {
@@ -3909,6 +3958,29 @@ class FakeFlutter {
 ''');
   }
 
+  test_reparentFlutterWidget_OK_variable() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/container;
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/new widget(child: container);
+  }
+}
+''');
+  }
+
   test_reparentFlutterWidgetCenter_OK() async {
     addFlutterPackage();
     await resolveTestUnit('''
@@ -3949,6 +4021,119 @@ class FakeFlutter {
       padding: const EdgeInsets.all(8.0),
       child: new Container(),
     );
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidgets_OK_column_coveredByWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: new /*caret*/Text('aaa'),
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: new Column(
+        children: [
+          new /*caret*/Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidgets_OK_column_coversWidgets() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      new Text('bbb'),
+      new Text('ccc'),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    _setStartEndSelection();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      new Column(
+        children: [
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidgets_OK_row() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      new Text('bbb'),
+      new Text('ccc'),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    _setStartEndSelection();
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGETS_ROW, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      new Row(
+        children: [
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
   }
 }
 ''');

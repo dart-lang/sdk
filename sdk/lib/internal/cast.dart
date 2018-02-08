@@ -180,14 +180,20 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   /// Creates a new empty set of the same *kind* as [_source],
   /// but with `<R>` as type argument.
-  /// Used by [toSet] (and indirectly by [union]).
+  /// Used by [toSet] and [union].
   final Set<R> Function<R>() _emptySet;
 
   CastSet(this._source, this._emptySet);
 
   static Set<R> _defaultEmptySet<R>() => new Set<R>();
 
-  Set<R> cast<R>() => new CastSet<S, R>(_source, _emptySet);
+  Set<R> cast<R>() {
+    Set<Object> self = this;
+    if (self is Set<R>) return self;
+    return this.retype<R>();
+  }
+
+  Set<R> retype<R>() => new CastSet<S, R>(_source, _emptySet);
 
   bool add(T value) => _source.add(value as S);
 
@@ -288,7 +294,7 @@ abstract class _CastQueueMixin<S, T> implements Queue<T> {
   }
 }
 
-class CastMap<SK, SV, K, V> implements Map<K, V> {
+class CastMap<SK, SV, K, V> extends MapBase<K, V> {
   final Map<SK, SV> _source;
 
   CastMap(this._source);
@@ -333,13 +339,43 @@ class CastMap<SK, SV, K, V> implements Map<K, V> {
   bool get isEmpty => _source.isEmpty;
 
   bool get isNotEmpty => _source.isNotEmpty;
+
+  V update(K key, V update(V value), {V ifAbsent()}) {
+    return _source.update(key as SK, (SV value) => update(value as V) as SV,
+        ifAbsent: (ifAbsent == null) ? null : () => ifAbsent() as SV) as V;
+  }
+
+  void updateAll(V update(K key, V value)) {
+    _source.updateAll((SK key, SV value) => update(key as K, value as V) as SV);
+  }
+
+  Iterable<MapEntry<K, V>> get entries {
+    return _source.entries.map<MapEntry<K, V>>(
+        (MapEntry<SK, SV> e) => new MapEntry<K, V>(e.key as K, e.value as V));
+  }
+
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    for (var entry in entries) {
+      _source[entry.key as SK] = entry.value as SV;
+    }
+  }
+
+  void removeWhere(bool test(K key, V value)) {
+    _source.removeWhere((SK key, SV value) => test(key as K, value as V));
+  }
 }
 
 class CastQueue<S, T> extends _CastIterableBase<S, T>
     with _CastQueueMixin<S, T> {
   final Queue<S> _source;
   CastQueue(this._source);
-  Queue<R> cast<R>() => new CastQueue<S, R>(_source);
+  Queue<R> cast<R>() {
+    Queue<Object> self = this;
+    if (self is Queue<R>) return self;
+    return retype<R>();
+  }
+
+  Queue<R> retype<R>() => new CastQueue<S, R>(_source);
 }
 
 // TODO(lrn): Use when ListQueue implements List.

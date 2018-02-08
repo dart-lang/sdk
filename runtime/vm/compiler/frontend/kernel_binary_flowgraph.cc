@@ -795,6 +795,7 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
       type_translator_(builder_, /*finalize=*/true) {
   H.InitFromScript(builder_->script());
   type_translator_.active_class_ = &active_class_;
+  builder_->type_translator_.active_class_ = &active_class_;
 }
 
 StreamingScopeBuilder::~StreamingScopeBuilder() {
@@ -1014,9 +1015,10 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         result_->this_variable = variable;
       }
       if (is_setter) {
-        result_->setter_value =
-            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::Value(), AbstractType::dynamic_type());
+        result_->setter_value = MakeVariable(
+            TokenPosition::kNoSource, TokenPosition::kNoSource,
+            Symbols::Value(),
+            AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
         scope_->InsertParameterAt(pos++, result_->setter_value);
       }
       break;
@@ -3675,10 +3677,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
   if (is_setter) {
     if (is_method) {
       body += LoadLocal(scopes()->this_variable);
-      body += LoadLocal(setter_value);
+    }
+    body += LoadLocal(setter_value);
+    if (I->argument_type_checks() && setter_value->needs_type_check()) {
+      body += CheckArgumentType(setter_value, setter_value->type());
+    }
+    if (is_method) {
       body += flow_graph_builder_->StoreInstanceFieldGuarded(field, false);
     } else {
-      body += LoadLocal(setter_value);
       body += StoreStaticField(TokenPosition::kNoSource, field);
     }
     body += NullConstant();
@@ -9346,7 +9352,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
   if (!parameterized_function.IsNull()) {
     enclosing = &parameterized_function;
   }
-  ActiveTypeParametersScope(active_class, enclosing, type_parameters, Z);
+  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {

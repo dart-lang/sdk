@@ -93,8 +93,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   /// with the stated type.
   final bool _addTypeChecks;
 
+  /// If true, we are compiling using strong mode, and therefore we will create
+  /// a "signatureMethod" for a closure that can output the type. In this
+  /// instance, we may need access to a type variable that has not otherwise
+  /// been captured, and therefore we need to mark it as being used so that the
+  /// RTI optimization doesn't optimize it away..
+  final bool _strongMode;
+
   KernelClosureConversionTask(Measurer measurer, this._elementMap,
-      this._globalLocalsMap, this._addTypeChecks)
+      this._globalLocalsMap, this._addTypeChecks, this._strongMode)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -110,13 +117,16 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   void _updateScopeBasedOnRtiNeed(
       KernelScopeInfo scope,
       ir.Node node,
-      bool Function(ir.Node) localFunctionNeedsSignature,
       bool Function(ClassEntity) classNeedsTypeArguments,
       bool Function(MemberEntity) methodNeedsTypeArguments,
       bool Function(ir.Node) localFunctionNeedsTypeArguments,
       MemberEntity outermostEntity) {
     if (scope.thisUsedAsFreeVariableIfNeedsRti &&
-        classNeedsTypeArguments(outermostEntity.enclosingClass)) {
+        (classNeedsTypeArguments(outermostEntity.enclosingClass) ||
+            // TODO(johnniwinther): Instead of _strongMode, make this branch test
+            // if an added signature method needs type arguments (see comment in
+            // TypeVariableKind.method branch below.
+            _strongMode)) {
       scope.thisUsedAsFreeVariable = true;
     }
     if (_addTypeChecks) {
@@ -133,7 +143,18 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             break;
           case TypeVariableKind.method:
             if (methodNeedsTypeArguments(
-                _elementMap.getMember(typeVariable.typeDeclaration))) {
+                    _elementMap.getMember(typeVariable.typeDeclaration)) ||
+                // In Dart 2, we have the notion of generic methods. This is
+                // partly implemented by adding a "method signature" function to
+                // closure classes. This signature reports the type of the
+                // method, and therefore may access the type variable of the
+                // parameter, which might otherwise not be used (and therefore
+                // isn't captured in the set that `methodNeedsTypeArguments`
+                // compares against.
+                // TODO(johnniwinther): Include this reasoning inside
+                // [methodNeedsTypeArguments] rather than an add on here.
+                _strongMode &&
+                    scope.freeVariablesForRti.contains(typeVariable)) {
               scope.freeVariables.add(typeVariable);
             }
             break;
@@ -168,14 +189,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
           .forEach((ir.Node node, KernelCapturedScope scope) {
         Map<Local, JRecordField> boxedVariables =
             _elementMap.makeRecordContainer(scope, member, localsMap);
-        _updateScopeBasedOnRtiNeed(
-            scope,
-            node,
-            localFunctionNeedsSignature,
-            classNeedsTypeArguments,
-            methodNeedsTypeArguments,
-            localFunctionNeedsTypeArguments,
-            member);
+        _updateScopeBasedOnRtiNeed(scope, node, classNeedsTypeArguments,
+            methodNeedsTypeArguments, localFunctionNeedsTypeArguments, member);
 
         if (scope is KernelCapturedLoopScope) {
           _capturedScopesMap[node] = new JsCapturedLoopScope.from(
@@ -204,7 +219,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             functionNode,
             closuresToGenerate[node],
             allBoxedVariables,
-            localFunctionNeedsSignature,
             classNeedsTypeArguments,
             methodNeedsTypeArguments,
             localFunctionNeedsTypeArguments);
@@ -229,18 +243,11 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ir.FunctionNode node,
       KernelScopeInfo info,
       Map<Local, JRecordField> boxedVariables,
-      bool Function(ir.Node) localFunctionNeedsSignature,
       bool Function(ClassEntity) classNeedsTypeArguments,
       bool Function(FunctionEntity) methodNeedsTypeArguments,
       bool Function(ir.Node) localFunctionNeedsTypeArguments) {
-    _updateScopeBasedOnRtiNeed(
-        info,
-        node.parent,
-        localFunctionNeedsSignature,
-        classNeedsTypeArguments,
-        methodNeedsTypeArguments,
-        localFunctionNeedsTypeArguments,
-        member);
+    _updateScopeBasedOnRtiNeed(info, node.parent, classNeedsTypeArguments,
+        methodNeedsTypeArguments, localFunctionNeedsTypeArguments, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClassInfo closureClassInfo =
         closedWorldBuilder.buildClosureClass(
@@ -372,7 +379,9 @@ class KernelScopeInfo {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('this=$hasThisLocal,');
+    sb.write('freeVriables=$freeVariables,');
     sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
+    sb.write('freeVariablesForRti={${freeVariablesForRti.join(', ')}}');
     return sb.toString();
   }
 }
@@ -818,6 +827,10 @@ class ScopeModel {
   /// Collected [ScopeInfo] data for nodes.
   Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
       <ir.TreeNode, KernelScopeInfo>{};
+
+  String toString() {
+    return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
+  }
 }
 
 enum TypeVariableKind { cls, method, local, function }

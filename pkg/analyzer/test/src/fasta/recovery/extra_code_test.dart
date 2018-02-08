@@ -60,31 +60,25 @@ class B = Object with A;
 ''');
   }
 
-  @failingTest
-  void test_extraParenInMapLiteral() {
-    // https://github.com/dart-lang/sdk/issues/12100
-    testRecovery('''
-class C {}
-final Map v = {
-  'a': () => new C(),
-  'b': () => new C()),
-  'c': () => new C(),
-};
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
-class C {}
-final Map v = {
-  'a': () => new C(),
-  'b': () => new C(),
-  'c': () => new C(),
-};
-''');
-  }
-
   void test_getter_parameters() {
     testRecovery('''
 int get g() => 0;
 ''', [ParserErrorCode.GETTER_WITH_PARAMETERS], '''
 int get g => 0;
+''');
+  }
+
+  @failingTest
+  void test_identifier_afterNamedArgument() {
+    // https://github.com/dart-lang/sdk/issues/30370
+    testRecovery('''
+a() {
+  b(c: c(d: d(e: null f,),),);
+}
+''', [], '''
+a() {
+  b(c: c(d: d(e: null,),),);
+}
 ''');
   }
 
@@ -94,6 +88,26 @@ f(x) {
   while (1 < x < 3) {}
 }
 ''', codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+  }
+
+  @failingTest
+  void test_listLiteralType() {
+    // https://github.com/dart-lang/sdk/issues/4348
+    testRecovery('''
+List<int> ints = List<int>[];
+''', [], '''
+List<int> ints = <int>[];
+''');
+  }
+
+  @failingTest
+  void test_mapLiteralType() {
+    // https://github.com/dart-lang/sdk/issues/4348
+    testRecovery('''
+Map<int, int> map = Map<int, int>{};
+''', [], '''
+Map<int, int> map = <int, int>{};
+''');
   }
 
   void test_multipleRedirectingInitializers() {
@@ -111,6 +125,26 @@ class A {
 }
 ''');
   }
+
+  @failingTest
+  void test_parenInMapLiteral() {
+    // https://github.com/dart-lang/sdk/issues/12100
+    testRecovery('''
+class C {}
+final Map v = {
+  'a': () => new C(),
+  'b': () => new C()),
+  'c': () => new C(),
+};
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+class C {}
+final Map v = {
+  'a': () => new C(),
+  'b': () => new C(),
+  'c': () => new C(),
+};
+''');
+  }
 }
 
 /**
@@ -126,6 +160,36 @@ class ModifiersTest extends AbstractRecoveryTest {
 static class A {}
 ''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''
 class A {}
+''');
+  }
+
+  void test_methodDeclaration_const_getter() {
+    testRecovery('''
+main() {}
+const int get foo => 499;
+''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''
+main() {}
+int get foo => 499;
+''');
+  }
+
+  void test_methodDeclaration_const_method() {
+    testRecovery('''
+main() {}
+const int foo() => 499;
+''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''
+main() {}
+int foo() => 499;
+''');
+  }
+
+  void test_methodDeclaration_const_setter() {
+    testRecovery('''
+main() {}
+const set foo(v) => 499;
+''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''
+main() {}
+set foo(v) => 499;
 ''');
   }
 }

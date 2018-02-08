@@ -101,10 +101,20 @@ string_from_environment_test: Fail # Flutter Issue 9111
 string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 
+[ $runtime != none ]
+map_from_test: Fail # Assumes LinkedHashMap implements HashMap.
+
 [ $runtime == safari ]
 double_round3_test: RuntimeError
 double_round_to_double2_test: Pass, Fail, OK
 string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
+
+[ $fasta ]
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
 
 [ $strong ]
 *: SkipByDesign # tests/corelib_2 has the strong mode versions of these tests.
@@ -115,9 +125,6 @@ int_parse_radix_test/*: Pass, Slow
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
-
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
 
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
@@ -131,6 +138,9 @@ from_environment_const_type_undefined_test/12: CompileTimeError
 from_environment_const_type_undefined_test/13: CompileTimeError
 from_environment_const_type_undefined_test/14: CompileTimeError
 from_environment_const_type_undefined_test/16: CompileTimeError
+
+[ $compiler == dart2analyzer && $strong ]
+*: Skip # Issue 28649
 
 [ $compiler != dart2analyzer && $runtime != dart_precompiled && $runtime != vm ]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
@@ -155,23 +165,9 @@ package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
 apply3_test: RuntimeError
-big_integer_arith_vm_test/add: RuntimeError
-big_integer_arith_vm_test/div: RuntimeError
-big_integer_arith_vm_test/gcd: RuntimeError
-big_integer_arith_vm_test/mod: RuntimeError
-big_integer_arith_vm_test/modInv: RuntimeError
-big_integer_arith_vm_test/modPow: RuntimeError
-big_integer_arith_vm_test/mul: RuntimeError
-big_integer_arith_vm_test/negate: RuntimeError
-big_integer_arith_vm_test/none: RuntimeError
-big_integer_arith_vm_test/overflow: RuntimeError
-big_integer_arith_vm_test/shift: RuntimeError
-big_integer_arith_vm_test/sub: RuntimeError
-big_integer_arith_vm_test/trunDiv: RuntimeError
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
-bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -194,27 +190,16 @@ from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
 hash_set_test/01: RuntimeError
-int_modulo_arith_test/bignum: RuntimeError
-int_modulo_arith_test/modPow: RuntimeError
 int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
-integer_to_radix_string_test: RuntimeError
-integer_to_string_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # tests/corelib/map_test.dart:866:7: Internal problem: Unhandled Null in installDefaultConstructor.
 nan_infinity_test/01: RuntimeError
-regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+[ $compiler == dart2js && $dart2js_with_kernel ]
 big_integer_arith_vm_test/add: RuntimeError
 big_integer_arith_vm_test/div: RuntimeError
 big_integer_arith_vm_test/gcd: RuntimeError
@@ -228,120 +213,66 @@ big_integer_arith_vm_test/overflow: RuntimeError
 big_integer_arith_vm_test/shift: RuntimeError
 big_integer_arith_vm_test/sub: RuntimeError
 big_integer_arith_vm_test/trunDiv: RuntimeError
+bit_twiddling_bigint_test: RuntimeError
+int_modulo_arith_test/bignum: RuntimeError
+int_modulo_arith_test/modPow: RuntimeError
+int_parse_radix_test/02: RuntimeError
+integer_to_radix_string_test: RuntimeError
+integer_to_string_test/01: RuntimeError
+regress_r21715_test: RuntimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
-bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
 hash_set_test/01: RuntimeError
-int_modulo_arith_test/bignum: RuntimeError
-int_modulo_arith_test/modPow: RuntimeError
 int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
-integer_to_radix_string_test: RuntimeError
-integer_to_string_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # tests/corelib/map_test.dart:866:7: Internal problem: Unhandled Null in installDefaultConstructor.
 nan_infinity_test/01: RuntimeError
-regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply3_test: CompileTimeError
-big_integer_arith_vm_test/add: RuntimeError
-big_integer_arith_vm_test/div: RuntimeError
-big_integer_arith_vm_test/gcd: RuntimeError
-big_integer_arith_vm_test/mod: RuntimeError
-big_integer_arith_vm_test/modInv: RuntimeError
-big_integer_arith_vm_test/modPow: RuntimeError
-big_integer_arith_vm_test/mul: RuntimeError
-big_integer_arith_vm_test/negate: RuntimeError
-big_integer_arith_vm_test/none: RuntimeError
-big_integer_arith_vm_test/overflow: RuntimeError
-big_integer_arith_vm_test/shift: RuntimeError
-big_integer_arith_vm_test/sub: RuntimeError
-big_integer_arith_vm_test/trunDiv: RuntimeError
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
-bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError
-int_modulo_arith_test/bignum: RuntimeError
-int_modulo_arith_test/modPow: RuntimeError
 int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
-integer_to_radix_string_test: RuntimeError
-integer_to_string_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
 map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: CompileTimeError
-big_integer_arith_vm_test/add: RuntimeError
-big_integer_arith_vm_test/div: RuntimeError
-big_integer_arith_vm_test/gcd: RuntimeError
-big_integer_arith_vm_test/mod: RuntimeError
-big_integer_arith_vm_test/modInv: RuntimeError
-big_integer_arith_vm_test/modPow: RuntimeError
-big_integer_arith_vm_test/mul: RuntimeError
-big_integer_arith_vm_test/negate: RuntimeError
-big_integer_arith_vm_test/none: RuntimeError
-big_integer_arith_vm_test/overflow: RuntimeError
-big_integer_arith_vm_test/shift: RuntimeError
-big_integer_arith_vm_test/sub: RuntimeError
-big_integer_arith_vm_test/trunDiv: RuntimeError
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
-bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
 error_stack_trace1_test: RuntimeError
 hash_set_test/01: RuntimeError
-int_modulo_arith_test/bignum: RuntimeError
-int_modulo_arith_test/modPow: RuntimeError
 int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
-integer_to_radix_string_test: RuntimeError
-integer_to_string_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
-regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 big_integer_*: Skip # VM specific test.
@@ -372,6 +303,63 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
+
+[ $compiler != dart2js && $fasta ]
+big_integer_arith_vm_test/add: CompileTimeError
+big_integer_arith_vm_test/div: CompileTimeError
+big_integer_arith_vm_test/gcd: CompileTimeError
+big_integer_arith_vm_test/mod: CompileTimeError
+big_integer_arith_vm_test/modInv: CompileTimeError
+big_integer_arith_vm_test/modPow: CompileTimeError
+big_integer_arith_vm_test/mul: CompileTimeError
+big_integer_arith_vm_test/negate: CompileTimeError
+big_integer_arith_vm_test/none: CompileTimeError
+big_integer_arith_vm_test/overflow: CompileTimeError
+big_integer_arith_vm_test/shift: CompileTimeError
+big_integer_arith_vm_test/sub: CompileTimeError
+big_integer_arith_vm_test/trunDiv: CompileTimeError
+bit_twiddling_bigint_test: CompileTimeError
+bit_twiddling_test: CompileTimeError
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+bool_from_environment2_test/05: MissingCompileTimeError
+double_ceil_test: CompileTimeError
+double_floor_test: CompileTimeError
+double_round_test: CompileTimeError
+double_truncate_test: CompileTimeError
+int_ceil_test: CompileTimeError
+int_ceil_to_double_test: CompileTimeError
+int_floor_test: CompileTimeError
+int_floor_to_double_test: CompileTimeError
+int_from_environment3_test/01: MissingCompileTimeError
+int_from_environment3_test/02: MissingCompileTimeError
+int_from_environment3_test/03: MissingCompileTimeError
+int_from_environment3_test/04: MissingCompileTimeError
+int_from_environment3_test/05: MissingCompileTimeError
+int_from_environment_test: CompileTimeError
+int_modulo_arith_test/bignum: CompileTimeError
+int_modulo_arith_test/modPow: CompileTimeError
+int_modulo_arith_test/none: CompileTimeError
+int_parse_radix_test/02: CompileTimeError
+int_round_test: CompileTimeError
+int_round_to_double_test: CompileTimeError
+int_to_int_test: CompileTimeError
+int_truncate_test: CompileTimeError
+int_truncate_to_double_test: CompileTimeError
+integer_to_radix_string_test: CompileTimeError
+integer_to_string_test/01: CompileTimeError
+num_parse_test/01: CompileTimeError
+num_parse_test/none: CompileTimeError
+num_sign_test: CompileTimeError
+regress_r21715_test: CompileTimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_from_environment3_test/05: MissingCompileTimeError
+symbol_test/01: MissingCompileTimeError
 
 [ $runtime != d8 && $runtime != dart_precompiled && $runtime != vm ]
 regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platforms yet.

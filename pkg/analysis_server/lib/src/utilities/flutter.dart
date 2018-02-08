@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
+const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
+
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 
@@ -229,6 +231,22 @@ InstanceCreationExpression identifyNewExpression(AstNode node) {
 }
 
 /**
+ * Attempt to find and return the closest expression that encloses the [node]
+ * and is a Flutter `Widget`.  Return `null` if nothing found.
+ */
+Expression identifyWidgetExpression(AstNode node) {
+  for (; node != null; node = node.parent) {
+    if (isWidgetExpression(node)) {
+      return node;
+    }
+    if (node is ArgumentList || node is Statement || node is FunctionBody) {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `Widget`, or its
  * subtype.
  */
@@ -273,6 +291,12 @@ bool isWidgetCreation(InstanceCreationExpression expr) {
  * subtype.
  */
 bool isWidgetExpression(AstNode node) {
+  if (node?.parent is TypeName || node?.parent?.parent is TypeName) {
+    return false;
+  }
+  if (node is NamedExpression) {
+    return false;
+  }
   if (node is Expression) {
     return isWidgetType(node.staticType);
   }

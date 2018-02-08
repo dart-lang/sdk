@@ -69,21 +69,26 @@ get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-bad_reload_test: RuntimeError # Please triage.
+async_generator_breakpoint_test: Pass, RuntimeError
+bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
 get_object_rpc_test: RuntimeError # Please triage.
 get_source_report_test: RuntimeError # Please triage.
 library_dependency_test: RuntimeError # Please triage.
+positive_token_pos_test: Pass, RuntimeError
 reload_sources_test: Timeout, Skip # Please triage.
+rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
+unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.

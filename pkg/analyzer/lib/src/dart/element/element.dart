@@ -561,7 +561,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
-    _collectAllSupertypes(list);
+    collectAllSupertypes(list, type, type);
     return list;
   }
 
@@ -946,7 +946,13 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   void set mixins(List<InterfaceType> mixins) {
     _assertNotResynthesized(_unlinkedClass);
-    _mixins = mixins;
+    // Note: if we are using kernel or the analysis driver, the set of
+    // mixins has already been computed, and it's more accurate (since mixin
+    // arguments have been inferred).  So we only store mixins if we are using
+    // the old task model.
+    if (_unlinkedClass == null && _kernel == null) {
+      _mixins = mixins;
+    }
   }
 
   @override
@@ -1166,32 +1172,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     safelyVisitChildren(constructors, visitor);
     safelyVisitChildren(methods, visitor);
     safelyVisitChildren(typeParameters, visitor);
-  }
-
-  void _collectAllSupertypes(List<InterfaceType> supertypes) {
-    List<InterfaceType> typesToVisit = new List<InterfaceType>();
-    List<ClassElement> visitedClasses = new List<ClassElement>();
-    typesToVisit.add(this.type);
-    while (!typesToVisit.isEmpty) {
-      InterfaceType currentType = typesToVisit.removeAt(0);
-      ClassElement currentElement = currentType.element;
-      if (!visitedClasses.contains(currentElement)) {
-        visitedClasses.add(currentElement);
-        if (!identical(currentType, this.type)) {
-          supertypes.add(currentType);
-        }
-        InterfaceType supertype = currentType.superclass;
-        if (supertype != null) {
-          typesToVisit.add(supertype);
-        }
-        for (InterfaceType type in currentType.interfaces) {
-          typesToVisit.add(type);
-        }
-        for (InterfaceType type in currentType.mixins) {
-          typesToVisit.add(type);
-        }
-      }
-    }
   }
 
   /**
@@ -1450,6 +1430,33 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return false;
+  }
+
+  static void collectAllSupertypes(List<InterfaceType> supertypes,
+      InterfaceType startingType, InterfaceType excludeType) {
+    List<InterfaceType> typesToVisit = new List<InterfaceType>();
+    List<ClassElement> visitedClasses = new List<ClassElement>();
+    typesToVisit.add(startingType);
+    while (!typesToVisit.isEmpty) {
+      InterfaceType currentType = typesToVisit.removeAt(0);
+      ClassElement currentElement = currentType.element;
+      if (!visitedClasses.contains(currentElement)) {
+        visitedClasses.add(currentElement);
+        if (!identical(currentType, excludeType)) {
+          supertypes.add(currentType);
+        }
+        InterfaceType supertype = currentType.superclass;
+        if (supertype != null) {
+          typesToVisit.add(supertype);
+        }
+        for (InterfaceType type in currentType.interfaces) {
+          typesToVisit.add(type);
+        }
+        for (InterfaceType type in currentType.mixins) {
+          typesToVisit.add(type);
+        }
+      }
+    }
   }
 
   /**

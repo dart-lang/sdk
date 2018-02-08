@@ -150,7 +150,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    if (node.constKeyword != null) {
+    if (node.isConst) {
       _find(node);
     } else {
       super.visitListLiteral(node);
@@ -159,7 +159,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
 
   @override
   void visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword != null) {
+    if (node.isConst) {
       _find(node);
     } else {
       super.visitMapLiteral(node);

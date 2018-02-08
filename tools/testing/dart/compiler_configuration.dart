@@ -86,6 +86,7 @@ abstract class CompilerConfiguration {
         return new SpecParserCompilerConfiguration(configuration);
 
       case Compiler.none:
+      case Compiler.fasta: // TODO(ahe): Implement a real fasta compiler.
         return new NoneCompilerConfiguration(configuration);
     }
 

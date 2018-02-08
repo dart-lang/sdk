@@ -25,6 +25,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
+        TypeBuilder,
         TypeVariableBuilder;
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
@@ -82,5 +83,22 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   @override
   buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);
+  }
+
+  KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
+    List<TypeVariableBuilder> clonedTypeVariables =
+        new List<TypeVariableBuilder>(typeVariables.length);
+    for (int i = 0; i < clonedTypeVariables.length; i++) {
+      clonedTypeVariables[i] = typeVariables[i].clone(newTypes);
+    }
+    List<FormalParameterBuilder> clonedFormals =
+        new List<FormalParameterBuilder>(formals.length);
+    for (int i = 0; i < clonedFormals.length; i++) {
+      clonedFormals[i] = formals[i].clone(newTypes);
+    }
+    KernelFunctionTypeBuilder newType = new KernelFunctionTypeBuilder(
+        returnType.clone(newTypes), clonedTypeVariables, clonedFormals);
+    newTypes.add(newType);
+    return newType;
   }
 }

@@ -76,6 +76,9 @@ cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 
+[ $compiler == fasta ]
+dart/data_uri_import_test/badencodeddate: CompileTimeError
+
 [ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
@@ -87,7 +90,6 @@ dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time f
 
 [ $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
-dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 
 [ $runtime != vm ]
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
@@ -155,7 +157,7 @@ cc/Profiler_TypedArrayAllocation: Pass, Fail # Issue 31137
 [ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
 cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
@@ -368,7 +370,12 @@ dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
 
+[ $compiler == dartkp && $strong ]
+dart/optimized_stacktrace_line_and_column_test: CompileTimeError
+dart/optimized_stacktrace_line_test: CompileTimeError
+
 [ $compiler == dartkp && !$strong ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]

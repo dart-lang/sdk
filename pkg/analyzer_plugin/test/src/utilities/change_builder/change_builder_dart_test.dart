@@ -325,13 +325,13 @@ import 'aaa.dart';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(0, (EditBuilder builder) {
         (builder as DartEditBuilder).writeClassDeclaration('C',
-            memberWriter: () {
+            membersWriter: () {
           builder.write('/**/');
         });
       });
     });
     SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/ }'));
+    expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/}'));
   }
 
   test_writeClassDeclaration_mixins_noSuperclass() async {
@@ -915,7 +915,6 @@ class B extends A {
 @override
 void perform(F f) {
   // TODO: implement perform
-  return null;
 }
 ''');
   }
@@ -930,7 +929,7 @@ class B extends A {
 }
 ''', '''
 @override
-forEach(int f(double p1, String p2)) {
+forEach(int Function(double p1, String p2) f) {
   // TODO: implement forEach
 }
 ''');
@@ -963,6 +962,57 @@ class B<K2, V2> implements A<K2, V2> {
 @override
 List<T> get<T extends V2>(K2 key) {
   // TODO: implement get
+  return null;
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_genericFunctionTypedParameter() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A {
+  int foo(T Function<T>() fn);
+}
+
+class B extends A {
+}
+''', '''
+@override
+int foo(T Function<T>() fn) {
+  // TODO: implement foo
+  return null;
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_nullAsTypeArgument() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A {
+  List<Null> foo();
+}
+
+class B extends A {
+}
+''', '''
+@override
+List<Null> foo() {
+  // TODO: implement foo
+  return null;
+}
+''');
+  }
+
+  test_writeOverrideOfInheritedMember_method_voidAsTypeArgument() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A {
+  List<void> foo();
+}
+
+class B extends A {
+}
+''', '''
+@override
+List<void> foo() {
+  // TODO: implement foo
   return null;
 }
 ''');

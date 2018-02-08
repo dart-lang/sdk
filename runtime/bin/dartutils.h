@@ -121,6 +121,7 @@ class DartUtils {
   static char* DirName(const char* url);
   static void* MapExecutable(const char* name, intptr_t* file_len);
   static void* OpenFile(const char* name, bool write);
+  static void* OpenFileUri(const char* uri, bool write);
   static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
   static void CloseFile(void* stream);

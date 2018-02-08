@@ -94,9 +94,9 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
       if (isClassMember) {
-        p.parseMember(beginToken);
+        p.parseClassMember(beginToken);
       } else {
-        p.parseTopLevelMember(p.syntheticPreviousToken(beginToken));
+        p.parseTopLevelMemberImpl(p.syntheticPreviousToken(beginToken));
       }
     }
 
@@ -242,7 +242,7 @@ class PartialFieldList extends VariableList with PartialElement {
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(element, () {
       definitions = parse(parsing, element, declarationSite,
-          (Parser parser) => parser.parseMember(beginToken));
+          (Parser parser) => parser.parseClassMember(beginToken));
 
       if (!hasParseError &&
           !definitions.modifiers.isVar &&

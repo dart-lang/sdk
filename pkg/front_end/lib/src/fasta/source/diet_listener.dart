@@ -511,16 +511,13 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     debugEvent("Method");
-    Token bodyToken = pop();
+    pop(); // bodyToken
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null) {
-      // TODO(ahe): Don't skip this. We need to compile metadata.
-      return;
-    }
     ProcedureBuilder builder;
     if (name is QualifiedName ||
         (getOrSet == null && name == currentClass.name)) {
@@ -529,7 +526,7 @@ class DietListener extends StackListener {
       builder = lookupBuilder(beginToken, getOrSet, name);
     }
     buildFunctionBody(
-        bodyToken,
+        beginParam,
         builder,
         builder.isStatic ? MemberKind.StaticMethod : MemberKind.NonStaticMethod,
         metadata);
@@ -729,13 +726,9 @@ class DietListener extends StackListener {
     Token token = startToken;
     Parser parser = new Parser(listener);
     if (isTopLevel) {
-      // There's a slight asymmetry between [parseTopLevelMember] and
-      // [parseMember] because the former doesn't call `parseMetadataStar`.
-      token = parser
-          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token));
-      token = parser.parseTopLevelMember(token).next;
+      token = parser.parseTopLevelMember(metadata ?? token);
     } else {
-      token = parser.parseMember(metadata ?? token).next;
+      token = parser.parseClassMember(metadata ?? token).next;
     }
     listenerFinishFields(listener, startToken, metadata, isTopLevel);
     listener.checkEmpty(token.charOffset);

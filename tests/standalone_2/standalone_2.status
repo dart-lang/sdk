@@ -62,6 +62,9 @@ io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
 
+[ $runtime == none ]
+io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
+
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
 

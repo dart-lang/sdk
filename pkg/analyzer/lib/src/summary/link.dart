@@ -656,8 +656,83 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
-  List<InterfaceType> get mixins =>
-      _mixins ??= _unlinkedClass.mixins.map(_computeInterfaceType).toList();
+  List<InterfaceType> get mixins {
+    if (_mixins == null) {
+      // Note: in the event of a loop in the class hierarchy, the calls to
+      // collectAllSupertypes below will wind up reentrantly calling
+      // this.mixins.  So to prevent infinite recursion we need to set _mixins
+      // to non-null now.  It's ok that we populate it gradually; in the event
+      // of a reentrant call, the user's code is known to have errors, so it's
+      // ok if the reentrant call doesn't return the complete set of mixins; we
+      // just need to ensure that analysis terminates.
+      _mixins = <InterfaceType>[];
+      List<InterfaceType> supertypesForMixinInference; // populated lazily
+      for (var entity in _unlinkedClass.mixins) {
+        var mixin = _computeInterfaceType(entity);
+        var mixinElement = mixin.element;
+        var slot = entity.refinedSlot;
+        if (slot != 0 && mixinElement.typeParameters.isNotEmpty) {
+          CompilationUnitElementForLink enclosingElement =
+              this.enclosingElement;
+          if (enclosingElement is CompilationUnitElementInBuildUnit) {
+            var mixinSupertypeConstraint = mixinElement.supertype;
+            if (mixinSupertypeConstraint.element.typeParameters.isNotEmpty) {
+              if (supertypesForMixinInference == null) {
+                supertypesForMixinInference = <InterfaceType>[];
+                ClassElementImpl.collectAllSupertypes(
+                    supertypesForMixinInference, supertype, type);
+                for (var previousMixin in _mixins) {
+                  ClassElementImpl.collectAllSupertypes(
+                      supertypesForMixinInference, previousMixin, type);
+                }
+              }
+              var matchingInterfaceType = _findInterfaceTypeForElement(
+                  mixinSupertypeConstraint.element,
+                  supertypesForMixinInference);
+              // TODO(paulberry): If matchingInterfaceType is null, that's an
+              // error.  Also, if there are multiple matching interface types
+              // that use different type parameters, that's also an error.  But
+              // we can't report errors from the linker, so we just use the
+              // first matching interface type (if there is one) and hope for
+              // the best.  The error detection logic will have to be
+              // implemented in the ErrorVerifier.
+              if (matchingInterfaceType != null) {
+                // TODO(paulberry): now we should pattern match
+                // matchingInterfaceType against mixinSupertypeConstraint to
+                // find the correct set of type parameters to apply to the
+                // mixin.  But as a quick hack, we assume that the mixin just
+                // passes its type parameters through to the supertype
+                // constraint (that is, each type in
+                // mixinSupertypeConstraint.typeParameters should be a
+                // TypeParameterType pointing to the corresponding element of
+                // mixinElement.typeParameters).  To avoid a complete disaster
+                // if this assumption is wrong, we only do the inference if the
+                // number of type arguments applied to mixinSupertypeConstraint
+                // matches the number of type parameters accepted by the mixin.
+                if (mixinSupertypeConstraint.typeArguments.length ==
+                    mixinElement.typeParameters.length) {
+                  mixin = mixinElement.type
+                      .instantiate(matchingInterfaceType.typeArguments);
+                  enclosingElement._storeLinkedType(slot, mixin, this);
+                }
+              }
+            }
+          } else {
+            var refinedMixin = enclosingElement.getLinkedType(this, slot);
+            if (refinedMixin is InterfaceType) {
+              mixin = refinedMixin;
+            }
+          }
+        }
+        _mixins.add(mixin);
+        if (supertypesForMixinInference != null) {
+          ClassElementImpl.collectAllSupertypes(
+              supertypesForMixinInference, mixin, type);
+        }
+      }
+    }
+    return _mixins;
+  }
 
   @override
   String get name => _unlinkedClass.name;
@@ -715,6 +790,11 @@ class ClassElementForLink_Class extends ClassElementForLink
 
   @override
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    // Force mixins to be inferred by calling this.mixins.  We don't need the
+    // return value from the getter; we just need it to execute and record the
+    // mixin inference results as a side effect.
+    this.mixins;
+
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(compilationUnit);
     }
@@ -749,6 +829,14 @@ class ClassElementForLink_Class extends ClassElementForLink
       // the supertype is `Object`.
     }
     return enclosingElement.enclosingElement._linker.typeProvider.objectType;
+  }
+
+  InterfaceType _findInterfaceTypeForElement(
+      ClassElement element, List<InterfaceType> interfaceTypes) {
+    for (var interfaceType in interfaceTypes) {
+      if (interfaceType.element == element) return interfaceType;
+    }
+    return null;
   }
 }
 

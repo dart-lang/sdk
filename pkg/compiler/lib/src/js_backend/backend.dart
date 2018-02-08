@@ -597,11 +597,9 @@ class JavaScriptBackend {
       ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(
-                closedWorld, codegenWorldBuilder, compiler.options)
-            : new MinifyNamer(
-                closedWorld, codegenWorldBuilder, compiler.options)
-        : new Namer(closedWorld, codegenWorldBuilder, compiler.options);
+            ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
+            : new MinifyNamer(closedWorld, codegenWorldBuilder)
+        : new Namer(closedWorld, codegenWorldBuilder);
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -979,7 +977,10 @@ class JavaScriptBackend {
     _namer = determineNamer(closedWorld, codegenWorldBuilder);
     tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
-        namer, closedWorld.elementEnvironment, closedWorld.commonElements);
+        namer,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        compiler.options.strongMode);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.

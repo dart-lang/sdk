@@ -1680,8 +1680,9 @@ class ShadowReturnStatement extends ReturnStatement implements ShadowStatement {
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.returnStatementEnter(this);
     var closureContext = inferrer.closureContext;
-    var typeContext =
-        !closureContext.isGenerator ? closureContext.returnContext : null;
+    var typeContext = !closureContext.isGenerator
+        ? closureContext.returnOrYieldContext
+        : null;
     var inferredType = expression != null
         ? inferrer.inferExpression(expression, typeContext, true)
         : const VoidType();
@@ -2471,7 +2472,7 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
     inferrer.listener.yieldStatementEnter(this);
     var closureContext = inferrer.closureContext;
     var typeContext =
-        closureContext.isGenerator ? closureContext.returnContext : null;
+        closureContext.isGenerator ? closureContext.returnOrYieldContext : null;
     if (isYieldStar && typeContext != null) {
       typeContext = inferrer.wrapType(
           typeContext,

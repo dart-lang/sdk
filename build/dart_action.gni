@@ -1,0 +1,92 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("compiled_action.gni")
+import("executable_suffix.gni")
+import("prebuilt_dart_sdk.gni")
+
+_dart_root = get_path_info("..", "abspath")
+
+# A template for running Dart scripts during the build. This should *not* be
+# used for generating snapshots. It uses the dart binary from the prebuilt
+# Dart SDK if one is available, and dart_bootstrap otherwise.
+#
+# Parameters:
+#  script:
+#    The un-rebased path to the Dart script.
+#
+#  args:
+#    The arguments to pass to the Dart script.
+
+#  packages (optional):
+#    The un-rebased path to the .packages file.
+#
+#  Forwarded to action() with the usual meaning:
+#    depfile
+#    deps
+#    inputs
+#    outputs
+#    visibility
+template("dart_action") {
+  assert(defined(invoker.script), "script must be defined for $target_name")
+  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
+  assert(defined(invoker.args), "args must be defined for $target_name")
+  assert(!defined(invoker.sources),
+         "dart_action doesn't take a sources arg. Use inputs instead.")
+
+  if (prebuilt_dart_exe_works) {
+    action(target_name) {
+      forward_variables_from(invoker, [
+          "inputs",
+          "outputs",
+          "deps",
+          "visibility",
+          "depfile",
+      ])
+      script = "$_dart_root/build/gn_run_binary.py"
+      prebuilt_dart_binary =
+          "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart$executable_suffix"
+
+      inputs += [ invoker.script ]
+      if (defined(invoker.packages)) {
+        inputs += [ invoker.packages ]
+      }
+
+      args = [
+        "compiled_action",
+        rebase_path(prebuilt_dart_binary),
+      ]
+      if (defined(invoker.packages)) {
+        args += [
+          "--packages=" + rebase_path(invoker.packages),
+        ]
+      }
+      args += [ rebase_path(invoker.script) ] + invoker.args
+    }
+  } else {
+    compiled_action(target_name) {
+      forward_variables_from(invoker, [
+          "inputs",
+          "outputs",
+          "deps",
+          "visibility",
+          "depfile",
+      ])
+
+      inputs += [ invoker.script ]
+      if (defined(invoker.packages)) {
+        inputs += [ invoker.packages ]
+      }
+
+      tool = "runtime/bin:dart_bootstrap"
+      args = []
+      if (defined(invoker.packages)) {
+        args += [
+          "--packages=" + rebase_path(invoker.packages),
+        ]
+      }
+      args += [ rebase_path(invoker.script) ] + invoker.args
+    }
+  }
+}

@@ -4783,6 +4783,66 @@ TEST_CASE(DartAPI_New_Issue2971) {
   EXPECT(Dart_IsList(list_obj));
 }
 
+TEST_CASE(DartAPI_NewListOfType) {
+  const char* kScriptChars =
+      "class ZXHandle {}\n"
+      "class ChannelReadResult {\n"
+      "  final List<ZXHandle> handles;\n"
+      "  ChannelReadResult(this.handles);\n"
+      "}\n"
+      "void expectListOfString(List<String> _) {}\n"
+      "void expectListOfDynamic(List<dynamic> _) {}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle zxhandle_type = Dart_GetType(lib, NewString("ZXHandle"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  Dart_Handle zxhandle = Dart_New(zxhandle_type, Dart_Null(), 0, NULL);
+  EXPECT_VALID(zxhandle);
+
+  Dart_Handle zxhandle_list = Dart_NewListOfType(zxhandle_type, 1);
+  EXPECT_VALID(zxhandle_list);
+
+  EXPECT_VALID(Dart_ListSetAt(zxhandle_list, 0, zxhandle));
+
+  Dart_Handle readresult_type =
+      Dart_GetType(lib, NewString("ChannelReadResult"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  args[0] = zxhandle_list;
+  EXPECT_VALID(Dart_New(readresult_type, Dart_Null(), kNumArgs, args));
+
+  EXPECT_ERROR(
+      Dart_NewListOfType(Dart_Null(), 1),
+      "Dart_NewListOfType expects argument 'element_type' to be non-null.");
+  EXPECT_ERROR(
+      Dart_NewListOfType(Dart_True(), 1),
+      "Dart_NewListOfType expects argument 'element_type' to be of type Type.");
+
+  Dart_Handle dart_core = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(dart_core);
+
+  Dart_Handle string_type =
+      Dart_GetType(dart_core, NewString("String"), 0, NULL);
+  EXPECT_VALID(string_type);
+  Dart_Handle string_list = Dart_NewListOfType(string_type, 0);
+  EXPECT_VALID(string_list);
+  args[0] = string_list;
+  EXPECT_VALID(
+      Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args));
+
+  Dart_Handle dynamic_type =
+      Dart_GetType(dart_core, NewString("dynamic"), 0, NULL);
+  EXPECT_VALID(dynamic_type);
+  Dart_Handle dynamic_list = Dart_NewListOfType(string_type, 0);
+  EXPECT_VALID(dynamic_list);
+  args[0] = dynamic_list;
+  EXPECT_VALID(
+      Dart_Invoke(lib, NewString("expectListOfDynamic"), kNumArgs, args));
+}
+
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
   EXPECT(Dart_IsLibrary(lib));
   Thread* thread = Thread::Current();

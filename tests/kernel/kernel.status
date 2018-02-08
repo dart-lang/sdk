@@ -12,8 +12,17 @@ unsorted/super_mixin_test: CompileTimeError
 [ !$strong ]
 unsorted/invocation_errors_test: RuntimeError
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
+[ $arch == simarm && $compiler == dartkp && $strong ]
+unsorted/invocation_errors_test: CompileTimeError
+unsorted/nsm_dispatcher_test: CompileTimeError
+unsorted/super_mixin_test: CompileTimeError
+unsorted/types_test: RuntimeError
+
+[ $arch == simarm64 && $compiler == dartkp && $strong ]
+unsorted/invocation_errors_test: CompileTimeError
+unsorted/nsm_dispatcher_test: CompileTimeError
+unsorted/super_mixin_test: CompileTimeError
+unsorted/types_test: RuntimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
@@ -21,9 +30,11 @@ unsorted/loop_test: CompileTimeError # int64
 unsorted/simple_literal_test: CompileTimeError # int64
 unsorted/super_mixin_test: CompileTimeError
 
+[ $compiler == dart2analyzer && $strong ]
+*: Skip # Issue 28649
+
 [ $compiler == dartk && $strong ]
 unsorted/invocation_errors_test: CompileTimeError
-unsorted/loop_test: RuntimeError
 unsorted/nsm_dispatcher_test: CompileTimeError
 unsorted/super_mixin_test: CompileTimeError
 unsorted/types_test: RuntimeError
@@ -31,7 +42,7 @@ unsorted/types_test: RuntimeError
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.
 
-[ $runtime == dart_precompiled || $runtime == vm || $compiler == dart2js && $dart2js_with_kernel ]
-unsorted/loop_test: CompileTimeError # Large integer literal
-unsorted/simple_literal_test: CompileTimeError # Large integer literal
+[ $runtime == dart_precompiled || $runtime == vm || $fasta ]
+unsorted/loop_test: CompileTimeError
+unsorted/simple_literal_test: CompileTimeError
 

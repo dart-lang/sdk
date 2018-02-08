@@ -207,6 +207,12 @@ void* DartUtils::OpenFile(const char* name, bool write) {
   return reinterpret_cast<void*>(file);
 }
 
+void* DartUtils::OpenFileUri(const char* uri, bool write) {
+  File* file =
+      File::OpenUri(NULL, uri, write ? File::kWriteTruncate : File::kRead);
+  return reinterpret_cast<void*>(file);
+}
+
 void DartUtils::ReadFile(const uint8_t** data, intptr_t* len, void* stream) {
   ASSERT(data != NULL);
   ASSERT(len != NULL);

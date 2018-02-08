@@ -52,6 +52,9 @@ svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 
+[ $compiler == fasta ]
+*: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
+
 [ $runtime == drt ]
 webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
 
@@ -159,7 +162,7 @@ worker_api_test: Skip # Issue 13221
 [ $strong ]
 *: SkipByDesign
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dart2js && $runtime == chrome ]

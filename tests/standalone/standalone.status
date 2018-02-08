@@ -30,17 +30,17 @@ verbose_gc_to_bmu_test: Skip
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
-[ $compiler == dart2analyzer && ($builder_tag == strong || $strong) ]
+[ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
 [ $compiler == dartk && $strong ]
 *: SkipByDesign
 
+[ $compiler != fasta && $compiler != none && $runtime != dart_precompiled && $runtime != vm ]
+no_assert_test: Fail, OK # This is testing a vm flag.
+
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
-
-[ $compiler != none && $runtime != dart_precompiled && $runtime != vm ]
-no_assert_test: Fail, OK # This is testing a vm flag.
 
 [ $mode == product && $runtime == dart_precompiled ]
 dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical code folding

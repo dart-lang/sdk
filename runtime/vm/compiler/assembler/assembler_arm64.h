@@ -822,10 +822,10 @@ class Assembler : public ValueObject {
     EmitMiscDP3Source(MSUB, rd, rn, rm, ra, kDoubleWord);
   }
   void smulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(SMULH, rd, rn, rm, R0, kDoubleWord);
+    EmitMiscDP3Source(SMULH, rd, rn, rm, R31, kDoubleWord);
   }
   void umulh(Register rd, Register rn, Register rm) {
-    EmitMiscDP3Source(UMULH, rd, rn, rm, R0, kDoubleWord);
+    EmitMiscDP3Source(UMULH, rd, rn, rm, R31, kDoubleWord);
   }
   void umaddl(Register rd, Register rn, Register rm, Register ra) {
     EmitMiscDP3Source(UMADDL, rd, rn, rm, ra, kDoubleWord);
@@ -1973,7 +1973,8 @@ class Assembler : public ValueObject {
     ASSERT((rt != kNoRegister) && (rt != ZR));
 
     const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
-                             Arm64Encode::Rn(rn) | Arm64Encode::Rt(rt);
+                             Arm64Encode::Rt2(R31) | Arm64Encode::Rn(rn) |
+                             Arm64Encode::Rt(rt);
 
     Emit(encoding);
   }

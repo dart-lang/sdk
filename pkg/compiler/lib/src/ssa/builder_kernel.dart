@@ -3130,11 +3130,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     if (isFixedListConstructorCall) {
       assert(
-          arguments.length == 1,
+          // Arguments may include the type.
+          arguments.length == 1 || arguments.length == 2,
           failedAt(
               function,
               "Unexpected arguments. "
-              "Expected 1 argument, actual: $arguments."));
+              "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
       if (!lengthInput.isNumber(closedWorld)) {
         HTypeConversion conversion = new HTypeConversion(
@@ -3167,7 +3168,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       resultType = inferredType.containsAll(closedWorld)
           ? commonMasks.fixedListType
           : inferredType;
-      HForeignCode foreign = new HForeignCode(code, resultType, arguments,
+      HForeignCode foreign = new HForeignCode(
+          code, resultType, <HInstruction>[lengthInput],
           nativeBehavior: behavior,
           throwBehavior: canThrow
               ? native.NativeThrowBehavior.MAY

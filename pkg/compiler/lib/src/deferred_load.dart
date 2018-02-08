@@ -515,8 +515,9 @@ abstract class DeferredLoadTask extends CompilerTask {
       String result = computeImportDeferName(import, compiler);
       assert(result != null);
       // Note: tools that process the json file to build multi-part initial load
-      // bundles depend on the fact that makeUnique appends only digits.
-      _importDeferName[import] = makeUnique(result, usedImportNames);
+      // bundles depend on the fact that makeUnique appends only digits, or a
+      // period followed by digits.
+      _importDeferName[import] = makeUnique(result, usedImportNames, '.');
     }
 
     // Sort the output units in descending order of the number of imports they

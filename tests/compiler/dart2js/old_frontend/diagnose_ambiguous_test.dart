@@ -28,11 +28,18 @@ void main() {
           "memory:library.dart:41:47:'hest' is defined here.:info",
       "MessageKind.DUPLICATE_IMPORT:"
           "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
+      "MessageKind.HIDDEN_WARNINGS:"
+          "null:null:null:1 warning(s) suppressed in dart:_interceptors.:hint",
+      "MessageKind.HIDDEN_WARNINGS_HINTS:"
+          "null:null:null:1 warning(s) and 1 hint(s) suppressed in dart:core.:hint",
+      "MessageKind.HIDDEN_WARNINGS_HINTS:"
+          "null:null:null:3 warning(s) and 1 hint(s) suppressed in dart:collection.:hint",
       "MessageKind.IMPORTED_HERE:"
           "memory:main.dart:0:22:'hest' is imported here.:info",
       "MessageKind.IMPORTED_HERE:"
           "memory:main.dart:23:46:'hest' is imported here.:info",
     ];
+    print(">>\n$diagnostics\n<<");
     Expect.listEquals(expected, diagnostics);
     Expect.isTrue(result.isSuccess);
   });

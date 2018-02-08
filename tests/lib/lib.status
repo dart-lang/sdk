@@ -131,8 +131,6 @@ typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $compiler == dartk ]
 mirrors/invoke_throws_test: Crash
-mirrors/list_constructor_test/01: Crash
-mirrors/list_constructor_test/none: Crash
 mirrors/mirrors_test: Crash
 mirrors/redirecting_factory_test/01: Crash
 mirrors/redirecting_factory_test/02: Crash
@@ -140,6 +138,12 @@ mirrors/redirecting_factory_test/none: Crash
 
 [ $compiler == dartkp ]
 mirrors/*: Skip # mirrors are not supported by under precompilation
+
+[ $compiler == fasta ]
+mirrors/library_imports_bad_metadata_test/01: Crash
+mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
+mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
 
 [ $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
@@ -174,8 +178,18 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeo
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
 [ $fasta ]
+convert/base64_test/01: CompileTimeError
+convert/utf82_test: CompileTimeError
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
+math/double_pow_test: CompileTimeError
+mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/03: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/04: MissingCompileTimeError
+mirrors/native_class_test: CompileTimeError
+mirrors/variable_is_const_test/01: MissingCompileTimeError
+typed_data/int32x4_bigint_test: CompileTimeError
 
 [ $hot_reload ]
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
@@ -207,11 +221,11 @@ typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 
-[ $builder_tag == strong && $compiler == dart2analyzer ]
-*: Skip # Issue 28649
-
 [ $compiler == dart2analyzer && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
+
+[ $compiler == dart2analyzer && $strong ]
+*: Skip # Issue 28649
 
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
@@ -422,8 +436,6 @@ mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/load_library_test: CompileTimeError
-mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash
 mirrors/metadata_scope_test/none: RuntimeError
@@ -472,7 +484,6 @@ mirrors/typedef_reflected_type_test/01: RuntimeError
 mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
-mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $runtime == chrome || $runtime == ff ]
 async/stream_timeout_test: SkipSlow # Times out. Issue 22050

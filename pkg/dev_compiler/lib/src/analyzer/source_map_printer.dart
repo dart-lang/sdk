@@ -4,10 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show AstNode, CompilationUnit, Identifier;
-import 'package:analyzer/dart/element/element.dart'
-    show Element, CompilationUnitElement;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, CompilationUnit;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
@@ -54,37 +51,9 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
   }
 
   void enterNode(JS.Node jsNode) {
-    var srcInfo = jsNode.sourceInformation;
-    if (srcInfo == null) return;
-
-    int offset;
-    int end;
-    CompilationUnitElement unit;
-    String identifier;
-    if (srcInfo is AstNode) {
-      if (srcInfo.isSynthetic) return;
-      offset = srcInfo.offset;
-      end = srcInfo.end;
-      if (srcInfo is Identifier) {
-        identifier = srcInfo.name;
-      }
-      if (_topLevelNode == null) {
-        unit = (srcInfo.getAncestor((n) => n is CompilationUnit)
-                as CompilationUnit)
-            ?.element;
-      }
-    } else {
-      var element = srcInfo as Element;
-      if (element.isSynthetic) return;
-      offset = element.nameOffset;
-      end = offset + element.nameLength;
-      identifier = element.name;
-      if (identifier == '') identifier = null;
-      if (_topLevelNode == null) {
-        unit = element.getAncestor((n) => n is CompilationUnitElement);
-      }
-    }
-
+    var srcInfo = jsNode.sourceInformation as AstNode;
+    if (srcInfo == null || srcInfo.isSynthetic) return;
+    int offset = srcInfo.offset;
     if (offset == -1) return;
 
     // Make sure source locations are associated with the correct source file.
@@ -96,6 +65,11 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       // This happens for synthetic nodes created by AstFactory.
       // We don't need to mark positions for them because we'll have a position
       // for the next thing down.
+
+      var unit =
+          (srcInfo.getAncestor((n) => n is CompilationUnit) as CompilationUnit)
+              ?.element;
+
       if (unit == null) return;
       if (unit.source.isInSystemLibrary) {
         _sourceUri = unit.source.uri;
@@ -115,8 +89,8 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       _lineInfo = unit.lineInfo;
     }
 
-    _mark(offset, identifier);
-    _ends[jsNode] = end;
+    _mark(offset);
+    _ends[jsNode] = srcInfo.end;
   }
 
   void exitNode(JS.Node jsNode) {
@@ -132,7 +106,7 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     }
   }
 
-  void _mark(int offset, [String identifier]) {
+  void _mark(int offset) {
     if (_previousColumn == _column && _previousLine == _line) return;
 
     var loc = _lineInfo.getLocation(offset);
@@ -145,17 +119,13 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     }
     _previousLine = _line;
     _previousColumn = _column;
-    // TODO(vsm): We suppress the identifier as it appears to confuse dev
-    // tools when the identifier is renamed.  Investigate if this is
-    // ever worth doing.
-    identifier = null;
     sourceMap.addLocation(
         new SourceLocation(offset,
             sourceUrl: _sourceUri,
             line: loc.lineNumber - 1,
             column: loc.columnNumber - 1),
         new SourceLocation(buffer.length, line: _line, column: _column),
-        identifier);
+        null);
   }
 }
 

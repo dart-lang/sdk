@@ -4,8 +4,6 @@
 
 library analyzer.src.task.html;
 
-import 'dart:collection';
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -134,7 +132,7 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
     List<DartScript> inlineScripts = <DartScript>[];
     List<Element> scripts = document.getElementsByTagName('script');
     for (Element script in scripts) {
-      LinkedHashMap<dynamic, String> attributes = script.attributes;
+      Map<dynamic, String> attributes = script.attributes;
       if (attributes['type'] == 'application/dart') {
         String src = attributes['src'];
         if (src == null) {

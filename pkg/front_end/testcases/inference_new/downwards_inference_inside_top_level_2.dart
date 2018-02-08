@@ -10,8 +10,7 @@ class A<T> {
 }
 
 var /*@topType=List<A<int>>*/ t2 = /*@typeArgs=A<int>*/ [
-  new
-      /*error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=int*/ A(2)
+  new /*@typeArgs=int*/ A(2)
 ];
 
 main() {}

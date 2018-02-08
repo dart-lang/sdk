@@ -78,8 +78,11 @@ DFE::~DFE() {
   }
   frontend_filename_ = NULL;
 
-  delete reinterpret_cast<kernel::Program*>(kernel_service_program_);
-  kernel_service_program_ = NULL;
+  // Do NOT delete kernel_service_program_ in the destructor.
+  // It is always a full a dill file, hence it is used as
+  // argument to Dart_CreateIsolateFromKernel as well as loaded
+  // as the kernel program for the isolate. Hence, deleting here
+  // would lead to double deletion.
 
   delete reinterpret_cast<kernel::Program*>(platform_program_);
   platform_program_ = NULL;
@@ -278,36 +281,32 @@ void* DFE::ReadScript(const char* script_uri) const {
 
 bool DFE::TryReadKernelFile(const char* script_uri,
                             const uint8_t** kernel_ir,
-                            intptr_t* kernel_ir_size) const {
-  if (strlen(script_uri) >= 8 && strncmp(script_uri, "file:///", 8) == 0) {
-    script_uri = script_uri + 7;
-  }
-
+                            intptr_t* kernel_ir_size) {
   *kernel_ir = NULL;
   *kernel_ir_size = -1;
-  void* script_file = DartUtils::OpenFile(script_uri, false);
-  if (script_file != NULL) {
-    const uint8_t* buffer = NULL;
-    DartUtils::ReadFile(&buffer, kernel_ir_size, script_file);
-    DartUtils::CloseFile(script_file);
-    if (*kernel_ir_size > 0 && buffer != NULL) {
-      if (DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) !=
-          DartUtils::kKernelMagicNumber) {
-        free(const_cast<uint8_t*>(buffer));
-        *kernel_ir = NULL;
-        *kernel_ir_size = -1;
-        return false;
-      } else {
-        // Do not free buffer if this is a kernel file - kernel_file will be
-        // backed by the same memory as the buffer and caller will own it.
-        // Caller is responsible for freeing the buffer when this function
-        // returns true.
-        *kernel_ir = buffer;
-        return true;
-      }
-    }
+  void* script_file = DartUtils::OpenFileUri(script_uri, false);
+  if (script_file == NULL) {
+    return false;
   }
-  return false;
+  const uint8_t* buffer = NULL;
+  DartUtils::ReadFile(&buffer, kernel_ir_size, script_file);
+  DartUtils::CloseFile(script_file);
+  if (*kernel_ir_size == 0 || buffer == NULL) {
+    return false;
+  }
+  if (DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) !=
+      DartUtils::kKernelMagicNumber) {
+    free(const_cast<uint8_t*>(buffer));
+    *kernel_ir = NULL;
+    *kernel_ir_size = -1;
+    return false;
+  }
+  // Do not free buffer if this is a kernel file - kernel_file will be
+  // backed by the same memory as the buffer and caller will own it.
+  // Caller is responsible for freeing the buffer when this function
+  // returns true.
+  *kernel_ir = buffer;
+  return true;
 }
 
 }  // namespace bin

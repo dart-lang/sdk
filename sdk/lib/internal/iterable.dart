@@ -120,7 +120,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     E match = null;
     bool matchFound = false;
@@ -138,6 +138,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
       }
     }
     if (matchFound) return match;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -210,7 +211,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
   List<E> toList({bool growable: true}) {
     List<E> result;
     if (growable) {
-      result = new List<E>()..length = length;
+      result = <E>[]..length = length;
     } else {
       result = new List<E>(length);
     }

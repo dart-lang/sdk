@@ -22,6 +22,7 @@
 #include "vm/heap.h"
 #include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
@@ -1050,11 +1051,19 @@ Isolate* Isolate::Init(const char* name_prefix,
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)
 
+  bool is_service_or_kernel_isolate = ServiceIsolate::NameEquals(name_prefix);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  is_service_or_kernel_isolate =
+      is_service_or_kernel_isolate || KernelIsolate::NameEquals(name_prefix);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   Heap::Init(result,
              is_vm_isolate
                  ? 0  // New gen size 0; VM isolate should only allocate in old.
                  : FLAG_new_gen_semi_max_size * MBInWords,
-             FLAG_old_gen_heap_size * MBInWords,
+             (is_service_or_kernel_isolate ? kDefaultMaxOldGenHeapSize
+                                           : FLAG_old_gen_heap_size) *
+                 MBInWords,
              FLAG_external_max_size * MBInWords);
 
   // TODO(5411455): For now just set the recently created isolate as

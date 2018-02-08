@@ -98,7 +98,11 @@ class DartAssistKind {
   static const REPARENT_FLUTTER_WIDGET_CENTER =
       const AssistKind("REPARENT_FLUTTER_WIDGET_CENTER", 29, "Center widget");
   static const REPARENT_FLUTTER_WIDGET_PADDING = const AssistKind(
-      "REPARENT_FLUTTER_WIDGET_CENTER", 29, "Add widget padding");
+      "REPARENT_FLUTTER_WIDGET_PADDING", 29, "Add widget padding");
+  static const REPARENT_FLUTTER_WIDGETS_COLUMN = const AssistKind(
+      "REPARENT_FLUTTER_WIDGETS_COLUMN", 29, "Wrap with Column");
+  static const REPARENT_FLUTTER_WIDGETS_ROW =
+      const AssistKind("REPARENT_FLUTTER_WIDGETS_ROW", 29, "Wrap with Row");
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(

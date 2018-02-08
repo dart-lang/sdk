@@ -120,6 +120,7 @@ html/js_interop_constructor_name_error1_test: Fail # Issue 26838
 html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
 [ $compiler == dart2js && $runtime == drt ]
+html/fileapi_entry_test: RuntimeError # DRT before DomError repl'd DomException
 html/request_animation_frame_test: Skip # Async test hangs.
 html/speechrecognition_test: RuntimeError # Please triage.
 html/svg_test: RuntimeError # Please triage.
@@ -212,6 +213,9 @@ async/catch_errors8_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
 async/future_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/multiple_timer_test: RuntimeError, OK # Needs Timer to run.
+async/periodic_timer2_test: Fail # Timer interface not supported: Issue 7728.
+async/periodic_timer3_test: Fail # Timer interface not supported: Issue 7728.
+async/periodic_timer4_test: Fail # Timer interface not supported: Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/run_zoned8_test: Fail # Timer interface not supported: Issue 7728.
 async/schedule_microtask3_test: RuntimeError
@@ -260,7 +264,7 @@ html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
-html/fileapi_supported_throws_test: skip # FileSystem not supported on Safari
+html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
 
@@ -568,6 +572,8 @@ html/element_types_track_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
 html/exceptions_test: RuntimeError
+html/file_sample_test: RuntimeError
+html/fileapi_entry_test: RuntimeError
 html/fileapi_supported_test: RuntimeError
 html/filereader_test: RuntimeError
 html/filteredelementlist_test: RuntimeError
@@ -758,6 +764,7 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 isolate/kill_self_synchronously_test: RuntimeError
+periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094.
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.

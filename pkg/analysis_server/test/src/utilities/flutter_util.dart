@@ -86,6 +86,16 @@ class GestureDetector extends StatelessWidget {
   void createRendering() {
     newFile('$flutterPkgLibPath/rendering.dart', r'''
 export 'painting.dart';
+export 'src/rendering/flex.dart';
+''');
+    newFile('$flutterPkgLibPath/src/rendering/flex.dart', r'''
+enum CrossAxisAlignment {
+  start,
+  end,
+  center,
+  stretch,
+  baseline,
+}
 ''');
   }
 
@@ -124,7 +134,8 @@ class EdgeInsets extends EdgeInsetsGeometry {
 import 'framework.dart';
 import 'rendering.dart';
 
-export 'painting.dart';
+export 'package:flutter/painting.dart';
+export 'package:flutter/rendering.dart';
 
 class Center extends StatelessWidget {
   const Center({Widget child, Key key});
@@ -133,6 +144,7 @@ class Center extends StatelessWidget {
 class Column extends Flex {
   Column({
     Key key,
+    CrossAxisAlignment crossAxisAlignment: CrossAxisAlignment.center,
     List<Widget> children: const <Widget>[],
   });
 }

@@ -157,8 +157,7 @@ class LibraryMap {
   /**
    * A table mapping Dart library URI's to the library.
    */
-  LinkedHashMap<String, SdkLibraryImpl> _libraryMap =
-      new LinkedHashMap<String, SdkLibraryImpl>();
+  Map<String, SdkLibraryImpl> _libraryMap = <String, SdkLibraryImpl>{};
 
   /**
    * Return a list containing all of the sdk libraries in this mapping.

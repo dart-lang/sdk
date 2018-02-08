@@ -94,13 +94,32 @@ class ClosureContext {
 
   final bool isGenerator;
 
-  final DartType returnContext;
+  /// The typing expectation for the subexpression of a `return` or `yield`
+  /// statement inside the function.
+  ///
+  /// For non-generator async functions, this will be a "FutureOr" type (since
+  /// it is permissible for such a function to return either a direct value or
+  /// a future).
+  ///
+  /// For generator functions containing a `yield*` statement, the expected type
+  /// for the subexpression of the `yield*` statement is the result of wrapping
+  /// this typing expectation in `Stream` or `Iterator`, as appropriate.
+  final DartType returnOrYieldContext;
 
   final bool _needToInferReturnType;
 
   final bool _needImplicitDowncasts;
 
-  DartType _inferredReturnType;
+  /// The type that actually appeared as the subexpression of `return` or
+  /// `yield` statements inside the function.
+  ///
+  /// For non-generator async functions, this is the "unwrapped" type (e.g. if
+  /// the function is expected to return `Future<int>`, this is `int`).
+  ///
+  /// For generator functions containing a `yield*` statement, the type that
+  /// appeared as the subexpression of the `yield*` statement was the result of
+  /// wrapping this type in `Stream` or `Iterator`, as appropriate.
+  DartType _inferredUnwrappedReturnOrYieldType;
 
   factory ClosureContext(
       TypeInferrerImpl inferrer,
@@ -128,7 +147,7 @@ class ClosureContext {
         needToInferReturnType, needImplicitDowncasts);
   }
 
-  ClosureContext._(this.isAsync, this.isGenerator, this.returnContext,
+  ClosureContext._(this.isAsync, this.isGenerator, this.returnOrYieldContext,
       this._needToInferReturnType, this._needImplicitDowncasts);
 
   /// Updates the inferred return type based on the presence of a return
@@ -149,24 +168,24 @@ class ClosureContext {
 
   DartType inferReturnType(TypeInferrerImpl inferrer) {
     assert(_needToInferReturnType);
-    DartType inferredReturnType = _wrapAsyncOrGenerator(
-        inferrer, inferrer.inferReturnType(_inferredReturnType));
-    if (returnContext != null &&
-        !_analyzerSubtypeOf(inferrer, inferredReturnType, returnContext)) {
+    DartType inferredType =
+        inferrer.inferReturnType(_inferredUnwrappedReturnOrYieldType);
+    if (returnOrYieldContext != null &&
+        !_analyzerSubtypeOf(inferrer, inferredType, returnOrYieldContext)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
-      return greatestClosure(inferrer.coreTypes, returnContext);
+      inferredType = returnOrYieldContext;
     }
 
-    return inferredReturnType;
+    return _wrapAsyncOrGenerator(inferrer, inferredType);
   }
 
   void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type,
       Expression expression, int fileOffset, bool isReturn, bool isYieldStar) {
     if (_needImplicitDowncasts) {
       var expectedType = isYieldStar
-          ? _wrapAsyncOrGenerator(inferrer, returnContext)
-          : returnContext;
+          ? _wrapAsyncOrGenerator(inferrer, returnOrYieldContext)
+          : returnOrYieldContext;
       if (expectedType != null) {
         expectedType = greatestClosure(inferrer.coreTypes, expectedType);
         if (inferrer.checkAssignability(
@@ -188,11 +207,12 @@ class ClosureContext {
           type;
     }
     if (_needToInferReturnType) {
-      if (_inferredReturnType == null) {
-        _inferredReturnType = unwrappedType;
+      if (_inferredUnwrappedReturnOrYieldType == null) {
+        _inferredUnwrappedReturnOrYieldType = unwrappedType;
       } else {
-        _inferredReturnType = inferrer.typeSchemaEnvironment
-            .getLeastUpperBound(_inferredReturnType, unwrappedType);
+        _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
+            .getLeastUpperBound(
+                _inferredUnwrappedReturnOrYieldType, unwrappedType);
       }
     }
   }

@@ -259,12 +259,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   final String experimentalAllocationsPath;
 
-  /// Add signatures to closures that return the type of the original closure
-  /// call. Currently hidden behind a flag because this interacts with generic
-  /// function types and strong mode, hitting some edge cases that have not yet
-  /// been implemented.
-  final bool addMethodSignatures;
-
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
@@ -345,7 +339,6 @@ class CompilerOptions implements DiagnosticOptions {
         sourceMapUri: _extractUriOption(options, '--source-map='),
         strips: _extractCsvOption(options, '--force-strip='),
         strongMode: _hasOption(options, Flags.strongMode),
-        addMethodSignatures: _hasOption(options, Flags.addMethodSignatures),
         testMode: _hasOption(options, Flags.testMode),
         trustJSInteropTypeAnnotations:
             _hasOption(options, Flags.trustJSInteropTypeAnnotations),
@@ -414,7 +407,6 @@ class CompilerOptions implements DiagnosticOptions {
       Uri sourceMapUri: null,
       List<String> strips: const [],
       bool strongMode: false,
-      bool addMethodSignatures: false,
       bool testMode: false,
       bool trustJSInteropTypeAnnotations: false,
       bool trustPrimitives: false,
@@ -498,7 +490,6 @@ class CompilerOptions implements DiagnosticOptions {
         sourceMapUri: sourceMapUri,
         strips: strips,
         strongMode: strongMode,
-        addMethodSignatures: addMethodSignatures,
         testMode: testMode,
         trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
         trustPrimitives: trustPrimitives,
@@ -554,7 +545,6 @@ class CompilerOptions implements DiagnosticOptions {
       this.sourceMapUri: null,
       this.strips: const [],
       this.strongMode: false,
-      this.addMethodSignatures: false,
       this.testMode: false,
       this.trustJSInteropTypeAnnotations: false,
       this.trustPrimitives: false,
@@ -618,7 +608,6 @@ class CompilerOptions implements DiagnosticOptions {
       sourceMapUri,
       strips,
       strongMode,
-      addMethodSignatures,
       testMode,
       trustJSInteropTypeAnnotations,
       trustPrimitives,
@@ -689,7 +678,6 @@ class CompilerOptions implements DiagnosticOptions {
         sourceMapUri: sourceMapUri ?? options.sourceMapUri,
         strips: strips ?? options.strips,
         strongMode: strongMode ?? options.strongMode,
-        addMethodSignatures: addMethodSignatures ?? options.addMethodSignatures,
         testMode: testMode ?? options.testMode,
         trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations ??
             options.trustJSInteropTypeAnnotations,

@@ -42,18 +42,11 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_list_test: CompileTimeError
-implicit_creation/implicit_const_context_map_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
+implicit_creation/implicit_new_or_const_composite_test: RuntimeError
 implicit_creation/implicit_new_or_const_generic_test: RuntimeError
 implicit_creation/implicit_new_or_const_test: RuntimeError
-implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
 import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
@@ -78,6 +71,17 @@ mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
+mixin_type_parameter_inference_test/01: CompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/06: MissingCompileTimeError
+mixin_type_parameter_inference_test/07: MissingCompileTimeError
+mixin_type_parameter_inference_test/08: RuntimeError
+mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
@@ -120,7 +124,6 @@ try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_literal_prefix_call_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
 type_promotion_functions_test/03: CompileTimeError # Issue 30895
 type_promotion_functions_test/04: CompileTimeError # Issue 30895
@@ -611,6 +614,23 @@ mixin_super_test: RuntimeError
 mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
+mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
+mixin_type_parameter_inference_test/01: CompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/06: Crash
+mixin_type_parameter_inference_test/07: Crash
+mixin_type_parameter_inference_test/08: Crash
+mixin_type_parameter_inference_test/09: Crash
+mixin_type_parameter_inference_test/10: Crash
+mixin_type_parameter_inference_test/12: Crash
+mixin_type_parameter_inference_test/13: Crash
+mixin_type_parameter_inference_test/16: Crash
+mixin_type_parameter_inference_test/none: Crash
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
 mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
@@ -812,6 +832,7 @@ type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool
 [ $compiler == dartdevk && $checked ]
 assertion_initializer_const_error2_test/*: MissingCompileTimeError
 assertion_initializer_const_error2_test/none: Pass
+implicit_creation/implicit_new_constructor_generic_test: Pass
 
 [ $compiler == dartdevk && !$checked ]
 assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.

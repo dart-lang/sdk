@@ -16,7 +16,7 @@ void printRunning() {
   print("running");
 }
 
-var /*@topType=void*/ y = /*info:USE_OF_VOID_RESULT, error:TOP_LEVEL_TYPE_ARGUMENTS*/ /*@typeArgs=void*/ run(
+var /*@topType=void*/ y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(
     printRunning);
 
 main() {}

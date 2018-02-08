@@ -4,7 +4,6 @@
 
 [ $compiler == dartdevc ]
 async/futures_test: RuntimeError # Issue 29922
-html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - investigate)
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 
 [ $compiler == dartdevk ]

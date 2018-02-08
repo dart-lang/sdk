@@ -30,7 +30,7 @@ part of $LIBRARYNAME;
  * section of the library tour.
  */
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
-    implements Map<String, String> {
+    with MapMixin<String, String> {
 
   void addAll(Map<String, String> other) {
     other.forEach((k, v) { this[k] = v; });

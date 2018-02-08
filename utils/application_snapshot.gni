@@ -56,7 +56,7 @@ template("application_snapshot") {
     ]
 
     abs_depfile = rebase_path(depfile)
-    abs_output = rebase_path(output)
+    abs_output = rebase_path(output, root_build_dir)
 
     args = [
       "--deterministic",

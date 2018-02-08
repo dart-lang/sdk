@@ -2286,6 +2286,7 @@ class EntityRefBuilder extends Object
   List<int> _implicitFunctionTypeIndices;
   int _paramReference;
   int _reference;
+  int _refinedSlot;
   int _slot;
   List<UnlinkedParamBuilder> _syntheticParams;
   EntityRefBuilder _syntheticReturnType;
@@ -2379,6 +2380,25 @@ class EntityRefBuilder extends Object
   }
 
   @override
+  int get refinedSlot => _refinedSlot ??= 0;
+
+  /**
+   * If this [EntityRef] appears in a syntactic context where its type arguments
+   * might need to be inferred by a method other than instantiate-to-bounds,
+   * and [typeArguments] is empty, a slot id (which is unique within the
+   * compilation unit).  If an entry appears in [LinkedUnit.types] whose [slot]
+   * matches this value, that entry will contain the complete inferred type.
+   *
+   * This is called `refinedSlot` to clarify that if it points to an inferred
+   * type, it points to a type that is a "refinement" of this one (one in which
+   * some type arguments have been inferred).
+   */
+  void set refinedSlot(int value) {
+    assert(value == null || value >= 0);
+    this._refinedSlot = value;
+  }
+
+  @override
   int get slot => _slot ??= 0;
 
   /**
@@ -2449,6 +2469,7 @@ class EntityRefBuilder extends Object
       List<int> implicitFunctionTypeIndices,
       int paramReference,
       int reference,
+      int refinedSlot,
       int slot,
       List<UnlinkedParamBuilder> syntheticParams,
       EntityRefBuilder syntheticReturnType,
@@ -2458,6 +2479,7 @@ class EntityRefBuilder extends Object
         _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
         _paramReference = paramReference,
         _reference = reference,
+        _refinedSlot = refinedSlot,
         _slot = slot,
         _syntheticParams = syntheticParams,
         _syntheticReturnType = syntheticReturnType,
@@ -2516,6 +2538,7 @@ class EntityRefBuilder extends Object
       }
     }
     signature.addInt(this._entityKind == null ? 0 : this._entityKind.index);
+    signature.addInt(this._refinedSlot ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -2557,6 +2580,9 @@ class EntityRefBuilder extends Object
     if (_reference != null && _reference != 0) {
       fbBuilder.addUint32(0, _reference);
     }
+    if (_refinedSlot != null && _refinedSlot != 0) {
+      fbBuilder.addUint32(9, _refinedSlot);
+    }
     if (_slot != null && _slot != 0) {
       fbBuilder.addUint32(2, _slot);
     }
@@ -2596,6 +2622,7 @@ class _EntityRefImpl extends Object
   List<int> _implicitFunctionTypeIndices;
   int _paramReference;
   int _reference;
+  int _refinedSlot;
   int _slot;
   List<idl.UnlinkedParam> _syntheticParams;
   idl.EntityRef _syntheticReturnType;
@@ -2626,6 +2653,12 @@ class _EntityRefImpl extends Object
   int get reference {
     _reference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _reference;
+  }
+
+  @override
+  int get refinedSlot {
+    _refinedSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+    return _refinedSlot;
   }
 
   @override
@@ -2676,6 +2709,7 @@ abstract class _EntityRefMixin implements idl.EntityRef {
       _result["implicitFunctionTypeIndices"] = implicitFunctionTypeIndices;
     if (paramReference != 0) _result["paramReference"] = paramReference;
     if (reference != 0) _result["reference"] = reference;
+    if (refinedSlot != 0) _result["refinedSlot"] = refinedSlot;
     if (slot != 0) _result["slot"] = slot;
     if (syntheticParams.isNotEmpty)
       _result["syntheticParams"] =
@@ -2697,6 +2731,7 @@ abstract class _EntityRefMixin implements idl.EntityRef {
         "implicitFunctionTypeIndices": implicitFunctionTypeIndices,
         "paramReference": paramReference,
         "reference": reference,
+        "refinedSlot": refinedSlot,
         "slot": slot,
         "syntheticParams": syntheticParams,
         "syntheticReturnType": syntheticReturnType,

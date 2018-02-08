@@ -10,6 +10,23 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+[ $fasta ]
+isolate/compile_time_error_test/01: MissingCompileTimeError
+mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
+mirrors/generic_bounded_test/01: MissingCompileTimeError
+mirrors/generic_bounded_test/02: MissingCompileTimeError
+mirrors/generic_interface_test/01: MissingCompileTimeError
+mirrors/generics_test/01: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
+mirrors/reflected_type_classes_test/01: MissingCompileTimeError
+mirrors/reflected_type_classes_test/02: MissingCompileTimeError
+mirrors/reflected_type_classes_test/03: MissingCompileTimeError
+mirrors/reflected_type_test/01: MissingCompileTimeError
+mirrors/reflected_type_test/02: MissingCompileTimeError
+mirrors/reflected_type_test/03: MissingCompileTimeError
+mirrors/variable_is_const_test/01: MissingCompileTimeError
+
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 mirrors/variable_is_const_test/01: Crash
@@ -25,6 +42,9 @@ mirrors/library_imports_prefixed_test: Crash # 31916
 mirrors/library_imports_shown_test: Crash # 31916
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
+[ $compiler == dartk && $mode == debug && $strong ]
+mirrors/instance_members_unimplemented_interface_test: Crash
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -35,12 +55,6 @@ mirrors/variable_is_const_test/01: Crash # Please triage.
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
-
-[ $compiler == dartk && $runtime == vm && !$checked && $strong ]
-mirrors/invocation_fuzz_test/emptyarray: Crash
-mirrors/invocation_fuzz_test/false: Crash
-mirrors/invocation_fuzz_test/none: Crash
-mirrors/invocation_fuzz_test/string: Crash
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
@@ -53,7 +67,6 @@ async/stream_subscription_as_future_test: CompileTimeError # Issue 31402 (Invoca
 async/timer_not_available_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
-isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate1_test: RuntimeError # Issue 31402 (List literal)
@@ -61,12 +74,9 @@ isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading 
 isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Pass, Timeout
-isolate/spawn_function_custom_class_test: Pass, Timeout
+isolate/spawn_function_custom_class_test: Pass, Crash, Timeout # Crashes with --no-enable-malloc-hooks vm option
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
-js/prototype_access_test: CompileTimeError
 mirrors/abstract_class_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/class_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
@@ -76,24 +86,17 @@ mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: Crash # 31916
-mirrors/deferred_mirrors_metadata_test: RuntimeError
-mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metadata_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: RuntimeError
 mirrors/deferred_mirrors_test: Crash # 31916
-mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_update_test: RuntimeError
+mirrors/deferred_mirrors_update_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
-mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
-mirrors/generic_bounded_test/01: MissingCompileTimeError
-mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
-mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
@@ -102,7 +105,6 @@ mirrors/generics_double_substitution_test/01: RuntimeError
 mirrors/generics_double_substitution_test/none: RuntimeError
 mirrors/generics_dynamic_test: RuntimeError
 mirrors/generics_substitution_test: RuntimeError
-mirrors/generics_test/01: MissingCompileTimeError
 mirrors/generics_test/none: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
@@ -110,27 +112,19 @@ mirrors/intercepted_object_test: RuntimeError # Issue 31402 (Invocation argument
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_enumeration_deferred_loading_test: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/library_exports_hidden_test: RuntimeError, Crash
-mirrors/library_exports_hidden_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_exports_shown_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError
+mirrors/library_exports_hidden_test: RuntimeError, Crash, CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/library_exports_shown_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_imports_bad_metadata_test/none: Crash
-mirrors/library_imports_deferred_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_imports_deferred_test: RuntimeError
+mirrors/library_imports_deferred_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_hidden_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_metadata_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_shown_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_metadata_test: RuntimeError
-mirrors/list_constructor_test/01: Crash, RuntimeError
-mirrors/list_constructor_test/none: Crash, RuntimeError
 mirrors/load_library_test: CompileTimeError
-mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash, RuntimeError
 mirrors/metadata_scope_test/none: RuntimeError
@@ -164,7 +158,6 @@ mirrors/private_field_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
 mirrors/private_types_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/01: Crash
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: Crash
 mirrors/redirecting_factory_test/02: Crash
 mirrors/redirecting_factory_test/none: Crash
@@ -197,10 +190,6 @@ mirrors/typedef_reflected_type_test/01: RuntimeError
 mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
-mirrors/variable_is_const_test/01: MissingCompileTimeError
-typed_data/float32x4_static_test: Pass # Issue 31402 (Invocation arguments)
-typed_data/int32x4_static_test/01: Pass # Issue 31402 (Invocation arguments)
-typed_data/int32x4_static_test/02: Pass # Issue 31402 (Invocation arguments)
 
 [ $compiler == dartk && $strong ]
 async/future_test/01: RuntimeError
@@ -244,8 +233,6 @@ mirrors/invocation_fuzz_test/smi: Crash, Pass # Crashes on opt counter builder (
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: Crash
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
-mirrors/list_constructor_test/01: Crash
-mirrors/list_constructor_test/none: Crash
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
 mirrors/null_test: RuntimeError
@@ -255,19 +242,10 @@ mirrors/parameter_test/01: RuntimeError
 mirrors/parameter_test/none: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: Crash
 mirrors/redirecting_factory_different_type_test/none: Crash
-mirrors/reflected_type_classes_test/01: MissingCompileTimeError
-mirrors/reflected_type_classes_test/02: MissingCompileTimeError
-mirrors/reflected_type_classes_test/03: MissingCompileTimeError
-mirrors/reflected_type_test/01: MissingCompileTimeError
-mirrors/reflected_type_test/02: MissingCompileTimeError
-mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/regress_16321_test/none: Crash
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 mirrors/type_argument_is_type_variable_test: RuntimeError
 mirrors/typearguments_mirror_test: RuntimeError
-typed_data/float32x4_static_test: MissingCompileTimeError
-typed_data/int32x4_static_test/01: MissingCompileTimeError
-typed_data/int32x4_static_test/02: MissingCompileTimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -293,11 +271,6 @@ isolate/spawn_uri_nested_vm_test: Skip # No support for Isolate.spawnUri in batc
 isolate/spawn_uri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/spawn_uri_vm_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
-mirrors/invocation_fuzz_test/emptyarray: CompileTimeError, Pass # Please triage.
-mirrors/invocation_fuzz_test/false: CompileTimeError, Pass # Please triage.
-mirrors/invocation_fuzz_test/none: CompileTimeError # Please triage.
-mirrors/invocation_fuzz_test/smi: CompileTimeError, DartkCrash, Crash, Pass # Please triage.
-mirrors/invocation_fuzz_test/string: CompileTimeError, Pass # Please triage.
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
 # ===== Skip dartk and darkp in !$strong mode ====
@@ -322,7 +295,6 @@ async/stream_subscription_as_future_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
-isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
@@ -332,11 +304,31 @@ isolate/ping_pause_test: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
-js/prototype_access_test: CompileTimeError
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartkp && !$strong ]
 *: SkipByDesign
+
+[ $fasta && $strong ]
+mirrors/top_level_accessors_test/01: MissingCompileTimeError
+
+[ $fasta && !$strong ]
+isolate/browser/compute_this_script_browser_test: CompileTimeError
+isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
+isolate/browser/package_resolve_browser_hook_test: CompileTimeError
+isolate/browser/package_resolve_browser_test: CompileTimeError
+isolate/isolate_stress_test: CompileTimeError
+mirrors/library_imports_bad_metadata_test/01: Crash
+mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
+mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
+mirrors/native_class_test: CompileTimeError
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+mirrors/reflect_class_test/01: MissingCompileTimeError
+mirrors/reflect_class_test/02: MissingCompileTimeError
+mirrors/regress_16321_test/01: MissingCompileTimeError
+
+[ $compiler == dartk || $compiler == dartkp || $compiler == fasta ]
+html/*: CompileTimeError # TODO(ahe): Make dart:html available.
+js/*: CompileTimeError # TODO(ahe): Make dart:js available.
 

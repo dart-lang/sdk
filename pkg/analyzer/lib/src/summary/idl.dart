@@ -465,6 +465,20 @@ abstract class EntityRef extends base.SummaryClass {
   int get reference;
 
   /**
+   * If this [EntityRef] appears in a syntactic context where its type arguments
+   * might need to be inferred by a method other than instantiate-to-bounds,
+   * and [typeArguments] is empty, a slot id (which is unique within the
+   * compilation unit).  If an entry appears in [LinkedUnit.types] whose [slot]
+   * matches this value, that entry will contain the complete inferred type.
+   *
+   * This is called `refinedSlot` to clarify that if it points to an inferred
+   * type, it points to a type that is a "refinement" of this one (one in which
+   * some type arguments have been inferred).
+   */
+  @Id(9)
+  int get refinedSlot;
+
+  /**
    * If this [EntityRef] is contained within [LinkedUnit.types], slot id (which
    * is unique within the compilation unit) identifying the target of type
    * propagation or type inference with which this [EntityRef] is associated.

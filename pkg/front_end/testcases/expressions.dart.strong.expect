@@ -43,7 +43,7 @@ static method main() → dynamic {
   core::print(let final core::int #t3 = i in let final core::int #t4 = i = #t3.{core::num::+}(1) in #t3);
   core::print(new core::Object::•());
   core::print(const core::Object::•());
-  core::print(core::List::_internal<core::String>(2).{core::Object::runtimeType});
+  core::print(core::List::•<core::String>(2).{core::Object::runtimeType});
   self::foo(fisk: "Blorp gulp");
   function f() → core::Null {
     core::print("f was called");

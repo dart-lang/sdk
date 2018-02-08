@@ -153,14 +153,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * the corresponding PendingFuture objects.  These sources will be analyzed
    * in the same way as priority sources, except with higher priority.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
+  Map<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
       new HashMap<AnalysisTarget, List<PendingFuture>>();
 
   /**
    * A table mapping sources to the change notices that are waiting to be
    * returned related to that source.
    */
-  HashMap<Source, ChangeNoticeImpl> _pendingNotices =
+  Map<Source, ChangeNoticeImpl> _pendingNotices =
       new HashMap<Source, ChangeNoticeImpl>();
 
   /**
@@ -447,7 +447,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Make _pendingFutureSources available to unit tests.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>>
+  Map<AnalysisTarget, List<PendingFuture>>
       get pendingFutureSources_forTesting => _pendingFutureTargets;
 
   @override
@@ -1955,7 +1955,7 @@ class PartitionManager {
   /**
    * A table mapping SDK's to the partitions used for those SDK's.
    */
-  HashMap<DartSdk, SdkCachePartition> _sdkPartitions =
+  Map<DartSdk, SdkCachePartition> _sdkPartitions =
       new HashMap<DartSdk, SdkCachePartition>();
 
   /**

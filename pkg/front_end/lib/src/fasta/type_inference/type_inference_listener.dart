@@ -34,11 +34,10 @@ class TypeInferenceDebugging implements TypeInferenceBase {
 
   String get _indent => '| ' * _indentLevel;
 
-  bool genericExpressionEnter(
+  void genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     _enter('genericExpressionEnter', '$expressionType($expression)',
         '(offset=${expression.fileOffset}, context=$typeContext)');
-    return true;
   }
 
   void genericExpressionExit(

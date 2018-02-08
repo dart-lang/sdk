@@ -3962,6 +3962,108 @@ class C extends B with M {
     verify([source]);
   }
 
+  test_mixinInference_matchingClass() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends A<int> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_matchingClass_inPreviousMixin() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M1 implements A<B> {}
+class M2<T> extends A<T> {}
+class C extends Object with M1, M2 {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M implements A<B> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_namedMixinApplication() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C = Object with M;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass_typeParametersSupplied() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M<int> {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {
     Source source = addSource(r'''
 class A {}

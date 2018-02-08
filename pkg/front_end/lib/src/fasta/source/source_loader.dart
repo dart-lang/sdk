@@ -41,8 +41,6 @@ import '../builder/builder.dart'
         NamedTypeBuilder,
         TypeBuilder;
 
-import '../compiler_context.dart' show CompilerContext;
-
 import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../problems.dart' show internalProblem;
@@ -100,8 +98,6 @@ class SourceLoader<L> extends Loader<L> {
   final bool includeComments;
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
-
-  final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
@@ -170,8 +166,6 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   List<int> getSource(List<int> bytes) {
-    if (excludeSource) return const <int>[];
-
     // bytes is 0-terminated. We don't want that included.
     if (bytes is Uint8List) {
       return new Uint8List.view(

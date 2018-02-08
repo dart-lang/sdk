@@ -2030,7 +2030,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+  void endMethod(
+      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     assert(getOrSet == null ||
         optional('get', getOrSet) ||
         optional('set', getOrSet));

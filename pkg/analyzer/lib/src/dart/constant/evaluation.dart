@@ -106,7 +106,7 @@ class ConstantEvaluationEngine {
   bool checkFromEnvironmentArguments(
       NodeList<Expression> arguments,
       List<DartObjectImpl> argumentValues,
-      HashMap<String, DartObjectImpl> namedArgumentValues,
+      Map<String, DartObjectImpl> namedArgumentValues,
       InterfaceType expectedDefaultValueType) {
     int argumentCount = arguments.length;
     if (argumentCount < 1 || argumentCount > 2) {
@@ -147,7 +147,7 @@ class ConstantEvaluationEngine {
   bool checkSymbolArguments(
       NodeList<Expression> arguments,
       List<DartObjectImpl> argumentValues,
-      HashMap<String, DartObjectImpl> namedArgumentValues) {
+      Map<String, DartObjectImpl> namedArgumentValues) {
     if (arguments.length != 1) {
       return false;
     }
@@ -386,7 +386,7 @@ class ConstantEvaluationEngine {
   DartObjectImpl computeValueFromEnvironment(
       DartObject environmentValue,
       DartObjectImpl builtInDefaultValue,
-      HashMap<String, DartObjectImpl> namedArgumentValues) {
+      Map<String, DartObjectImpl> namedArgumentValues) {
     DartObjectImpl value = environmentValue as DartObjectImpl;
     if (value.isUnknown || value.isNull) {
       // The name either doesn't exist in the environment or we couldn't parse
@@ -431,9 +431,9 @@ class ConstantEvaluationEngine {
         new List<DartObjectImpl>(argumentCount);
     List<DartObjectImpl> positionalArguments = <DartObjectImpl>[];
     List<Expression> argumentNodes = new List<Expression>(argumentCount);
-    HashMap<String, DartObjectImpl> namedArgumentValues =
+    Map<String, DartObjectImpl> namedArgumentValues =
         new HashMap<String, DartObjectImpl>();
-    HashMap<String, NamedExpression> namedArgumentNodes =
+    Map<String, NamedExpression> namedArgumentNodes =
         new HashMap<String, NamedExpression>();
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
@@ -532,7 +532,7 @@ class ConstantEvaluationEngine {
     //
     // They will be added to the lexical environment when evaluating
     // subexpressions.
-    HashMap<String, DartObjectImpl> typeArgumentMap;
+    Map<String, DartObjectImpl> typeArgumentMap;
     if (strongMode) {
       // Instantiate the constructor with the in-scope type arguments.
       definingClass = constantVisitor.evaluateType(definingClass);
@@ -609,7 +609,7 @@ class ConstantEvaluationEngine {
       }
     }
     // Now evaluate the constructor declaration.
-    HashMap<String, DartObjectImpl> parameterMap =
+    Map<String, DartObjectImpl> parameterMap =
         new HashMap<String, DartObjectImpl>();
     List<ParameterElement> parameters = constructor.parameters;
     int parameterCount = parameters.length;
@@ -789,7 +789,7 @@ class ConstantEvaluationEngine {
 
   void evaluateSuperConstructorCall(
       AstNode node,
-      HashMap<String, DartObjectImpl> fieldMap,
+      Map<String, DartObjectImpl> fieldMap,
       ConstructorElement superConstructor,
       List<Expression> superArguments,
       ConstantVisitor initializerVisitor,
@@ -1158,7 +1158,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   final ConstantEvaluationEngine evaluationEngine;
 
-  final HashMap<String, DartObjectImpl> _lexicalEnvironment;
+  final Map<String, DartObjectImpl> _lexicalEnvironment;
 
   /**
    * Error reporter that we use to report errors accumulated while computing the
@@ -1180,7 +1180,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * correct dependency analysis.
    */
   ConstantVisitor(this.evaluationEngine, this._errorReporter,
-      {HashMap<String, DartObjectImpl> lexicalEnvironment})
+      {Map<String, DartObjectImpl> lexicalEnvironment})
       : _lexicalEnvironment = lexicalEnvironment {
     this._dartObjectComputer =
         new DartObjectComputer(_errorReporter, evaluationEngine.typeProvider);
@@ -1392,7 +1392,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitListLiteral(ListLiteral node) {
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
       return null;
@@ -1424,14 +1424,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitMapLiteral(MapLiteral node) {
-    if (node.constKeyword == null) {
+    if (!node.isConst) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
       return null;
     }
     bool errorOccurred = false;
-    LinkedHashMap<DartObjectImpl, DartObjectImpl> map =
-        new LinkedHashMap<DartObjectImpl, DartObjectImpl>();
+    Map<DartObjectImpl, DartObjectImpl> map =
+        <DartObjectImpl, DartObjectImpl>{};
     for (MapLiteralEntry entry in node.entries) {
       DartObjectImpl keyResult = entry.key.accept(this);
       DartObjectImpl valueResult = entry.value.accept(this);
