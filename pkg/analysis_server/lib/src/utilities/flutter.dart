@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
+const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
+
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 

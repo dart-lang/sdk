@@ -70,6 +70,8 @@ class AssistProcessor {
 
   TypeProvider _typeProvider;
 
+  final Map<String, LibraryElement> libraryCache = {};
+
   AssistProcessor(DartAssistContext dartContext) {
     driver = dartContext.analysisDriver;
     // source
@@ -1871,11 +1873,11 @@ class AssistProcessor {
     await _addProposal_reparentFlutterWidgetImpl();
     await _addProposal_reparentFlutterWidgetImpl(
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER,
-        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Center');
     await _addProposal_reparentFlutterWidgetImpl(
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_PADDING,
-        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Padding',
         leadingLines: ['padding: const EdgeInsets.all(8.0),']);
   }
@@ -1895,13 +1897,8 @@ class AssistProcessor {
     // If the wrapper class is specified, find its element.
     ClassElement parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
-      var parentLibrary = await session.getLibraryByUri(parentLibraryUri);
-      var element = parentLibrary.exportNamespace.get(parentClassName);
-      if (element is ClassElement) {
-        parentClassElement = element;
-      } else {
-        return;
-      }
+      parentClassElement =
+          await _getExportedClass(parentLibraryUri, parentClassName);
     }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -1976,16 +1973,8 @@ class AssistProcessor {
         {@required AssistKind kind,
         @required String parentLibraryUri,
         @required String parentClassName}) async {
-      ClassElement parentClassElement;
-      {
-        var parentLibrary = await session.getLibraryByUri(parentLibraryUri);
-        var element = parentLibrary.exportNamespace.get(parentClassName);
-        if (element is ClassElement) {
-          parentClassElement = element;
-        } else {
-          return;
-        }
-      }
+      ClassElement parentClassElement =
+          await _getExportedClass(parentLibraryUri, parentClassName);
 
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2023,11 +2012,11 @@ class AssistProcessor {
 
     await addAssist(
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN,
-        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Column');
     await addAssist(
         kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_ROW,
-        parentLibraryUri: 'package:flutter/widgets.dart',
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Row');
   }
 
@@ -2593,6 +2582,48 @@ class AssistProcessor {
       newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);
     }
+  }
+
+  /// Return the [ClassElement] with the given [className] that is exported
+  /// from the library with the given [libraryUri], or `null` if the libary
+  /// does not export a class with such name.
+  Future<ClassElement> _getExportedClass(
+      String libraryUri, String className) async {
+    var libraryElement = await _getLibraryByUri(libraryUri);
+    var element = libraryElement.exportNamespace.get(className);
+    if (element is ClassElement) {
+      return element;
+    } else {
+      return null;
+    }
+  }
+
+  /// Return the [LibraryElement] for the library with the given [uri].
+  Future<LibraryElement> _getLibraryByUri(String uri) async {
+    var libraryElement = libraryCache[uri];
+    if (libraryElement == null) {
+      void walkLibraries(LibraryElement library) {
+        var libraryUri = library.source.uri.toString();
+        if (libraryCache[libraryUri] == null) {
+          libraryCache[libraryUri] = library;
+          library.importedLibraries.forEach(walkLibraries);
+          library.exportedLibraries.forEach(walkLibraries);
+        }
+      }
+
+      // Fill the cache with all libraries referenced from the unit.
+      walkLibraries(unitLibraryElement);
+
+      // The library might be already in the cache.
+      libraryElement = libraryCache[uri];
+
+      // If still not found, build a new library element.
+      if (libraryElement == null) {
+        libraryElement = await session.getLibraryByUri(uri);
+        libraryCache[uri] = libraryElement;
+      }
+    }
+    return libraryElement;
   }
 
   /**
