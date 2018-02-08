@@ -12,6 +12,8 @@ import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/text/ast_to_text.dart'
+    show globalDebuggingNames, NameSystem;
 import 'package:vm/kernel_front_end.dart' show compileToKernel, ErrorDetector;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
@@ -109,6 +111,10 @@ Future runBatchModeCompiler() async {
     //     report the compilation result accordingly.
     //
     final exitCode = await compile(arguments);
+
+    // Re-create global NameSystem to avoid accumulating garbage.
+    globalDebuggingNames = new NameSystem();
+
     switch (exitCode) {
       case 0:
         return batch_util.CompilerOutcome.Ok;
