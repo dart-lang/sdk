@@ -3233,8 +3233,8 @@ identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_assignment_behavior_test/03: MissingCompileTimeError
-if_null_assignment_behavior_test/13: MissingCompileTimeError
 if_null_assignment_behavior_test/13: Crash # Issue 23491
+if_null_assignment_behavior_test/13: MissingCompileTimeError
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 if_null_assignment_behavior_test/15: MissingCompileTimeError
 if_null_assignment_static_test/02: MissingCompileTimeError
