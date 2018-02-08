@@ -207,7 +207,7 @@ class Indexer {
    <head>
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="chrome=1">
-      <title>Dart Lint</title>
+      <title>Linter for Dart</title>
       <link rel="stylesheet" href="../stylesheets/styles.css">
       <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
       <script src="javascripts/scale.fix.js"></script>
@@ -220,7 +220,7 @@ class Indexer {
       <div class="wrapper">
          <header>
             <a href="http://dart-lang.github.io/linter/">
-               <h1>Dart Lint</h1>
+               <h1>Linter for Dart</h1>
             </a>
             <p>Lint Rules</p>
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dartlang/linter</small></a></p>
