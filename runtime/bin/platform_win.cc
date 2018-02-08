@@ -47,6 +47,9 @@ class PlatformWin {
     platform_win_mutex_ = new Mutex();
     saved_output_cp_ = -1;
     saved_input_cp_ = -1;
+    saved_stdout_mode_ = -1;
+    saved_stderr_mode_ = -1;
+    saved_stdin_mode_ = -1;
     // Set up a no-op handler so that CRT functions return an error instead of
     // hitting an assertion failure.
     // See: https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
@@ -83,6 +86,9 @@ class PlatformWin {
     // Set both the input and output code pages to UTF8.
     ASSERT(saved_output_cp_ == -1);
     ASSERT(saved_input_cp_ == -1);
+    ASSERT(saved_stdout_mode_ == -1);
+    ASSERT(saved_stderr_mode_ == -1);
+    ASSERT(saved_stdin_mode_ == -1);
     const int output_cp = GetConsoleOutputCP();
     const int input_cp = GetConsoleCP();
     if (output_cp != CP_UTF8) {
@@ -95,12 +101,11 @@ class PlatformWin {
     }
 
     // Try to set the bits for ANSI support, but swallow any failures.
-    HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD out_mode;
-    if ((out != INVALID_HANDLE_VALUE) && GetConsoleMode(out, &out_mode)) {
-      const DWORD request = out_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-      SetConsoleMode(out, request);
-    }
+    saved_stdout_mode_ =
+        ModifyMode(STD_OUTPUT_HANDLE, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    saved_stderr_mode_ = ModifyMode(STD_ERROR_HANDLE, 0);
+    saved_stdin_mode_ = ModifyMode(STD_INPUT_HANDLE, 0);
+
     // TODO(28984): Due to issue #29104, we cannot set
     // ENABLE_VIRTUAL_TERMINAL_INPUT here, as it causes ENABLE_PROCESSED_INPUT
     // to be ignored.
@@ -133,43 +138,54 @@ class PlatformWin {
   static Mutex* platform_win_mutex_;
   static int saved_output_cp_;
   static int saved_input_cp_;
+  static DWORD saved_stdout_mode_;
+  static DWORD saved_stderr_mode_;
+  static DWORD saved_stdin_mode_;
 
-  static void RestoreConsoleLocked() {
-    // STD_OUTPUT_HANDLE and STD_INPUT_HANDLE may have been closed or
-    // redirected. Therefore, we explicitly open the CONOUT$ and CONIN$
-    // devices, so that we can be sure that we are really unsetting
-    // ENABLE_VIRTUAL_TERMINAL_PROCESSING and ENABLE_VIRTUAL_TERMINAL_INPUT
-    // respectively.
+  static DWORD ModifyMode(DWORD handle, DWORD flags) {
+    HANDLE h = GetStdHandle(handle);
+    DWORD mode;
+    DWORD old_mode = 0;
+
+    if ((h != INVALID_HANDLE_VALUE) && GetConsoleMode(h, &mode)) {
+      old_mode = mode;
+      if (flags != 0) {
+        const DWORD request = mode | flags;
+        SetConsoleMode(h, request);
+      }
+    }
+    return old_mode;
+  }
+
+  static void CleanupDevices(const char* device,
+                             DWORD handle,
+                             DWORD orig_flags) {
     const intptr_t kWideBufLen = 64;
-    const char* conout = "CONOUT$";
     wchar_t widebuf[kWideBufLen];
     int result =
-        MultiByteToWideChar(CP_UTF8, 0, conout, -1, widebuf, kWideBufLen);
+        MultiByteToWideChar(CP_UTF8, 0, device, -1, widebuf, kWideBufLen);
     ASSERT(result != 0);
-    HANDLE out = CreateFileW(widebuf, GENERIC_READ | GENERIC_WRITE,
-                             FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if (out != INVALID_HANDLE_VALUE) {
-      SetStdHandle(STD_OUTPUT_HANDLE, out);
+    HANDLE h = CreateFileW(widebuf, GENERIC_READ | GENERIC_WRITE,
+                           FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if (h != INVALID_HANDLE_VALUE) {
+      SetStdHandle(STD_OUTPUT_HANDLE, h);
+      if (orig_flags != -1) {
+        SetConsoleMode(h, orig_flags);
+      }
     }
-    DWORD out_mode;
-    if ((out != INVALID_HANDLE_VALUE) && GetConsoleMode(out, &out_mode)) {
-      DWORD request = out_mode & ~ENABLE_VIRTUAL_TERMINAL_INPUT;
-      SetConsoleMode(out, request);
-    }
+  }
 
-    const char* conin = "CONIN$";
-    result = MultiByteToWideChar(CP_UTF8, 0, conin, -1, widebuf, kWideBufLen);
-    ASSERT(result != 0);
-    HANDLE in = CreateFileW(widebuf, GENERIC_READ | GENERIC_WRITE,
-                            FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if (in != INVALID_HANDLE_VALUE) {
-      SetStdHandle(STD_INPUT_HANDLE, in);
-    }
-    DWORD in_mode;
-    if ((in != INVALID_HANDLE_VALUE) && GetConsoleMode(in, &in_mode)) {
-      DWORD request = in_mode & ~ENABLE_VIRTUAL_TERMINAL_INPUT;
-      SetConsoleMode(in, request);
-    }
+  static void RestoreConsoleLocked() {
+    // STD_OUTPUT_HANDLE, STD_ERROR_HANDLE, and STD_INPUT_HANDLE may have been
+    // closed or redirected. Therefore, we explicitly open the CONOUT$, CONERR$
+    // and CONIN$ devices, so that we can be sure that we are really restoring
+    // the console to its original state.
+    CleanupDevices("CONOUT$", STD_OUTPUT_HANDLE, saved_stdout_mode_);
+    saved_stdout_mode_ = -1;
+    CleanupDevices("CONERR$", STD_ERROR_HANDLE, saved_stderr_mode_);
+    saved_stderr_mode_ = -1;
+    CleanupDevices("CONIN$", STD_INPUT_HANDLE, saved_stdin_mode_);
+    saved_stdin_mode_ = -1;
 
     if (saved_output_cp_ != -1) {
       SetConsoleOutputCP(saved_output_cp_);
@@ -196,11 +212,15 @@ class PlatformWin {
 
 int PlatformWin::saved_output_cp_ = -1;
 int PlatformWin::saved_input_cp_ = -1;
+DWORD PlatformWin::saved_stdout_mode_ = -1;
+DWORD PlatformWin::saved_stderr_mode_ = -1;
+DWORD PlatformWin::saved_stdin_mode_ = -1;
+
 Mutex* PlatformWin::platform_win_mutex_ = NULL;
 
 bool Platform::Initialize() {
   PlatformWin::InitOnce();
-  PlatformWin::SaveAndConfigureConsole();
+  SaveConsoleConfiguration();
   return true;
 }
 
@@ -385,10 +405,18 @@ void Platform::Exit(int exit_code) {
   // TODO(zra): Remove once VM shuts down cleanly.
   ::dart::private_flag_windows_run_tls_destructors = false;
   // Restore the console's output code page
-  PlatformWin::RestoreConsole();
+  RestoreConsoleConfiguration();
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
   ::ExitProcess(exit_code);
+}
+
+void Platform::SaveConsoleConfiguration() {
+  PlatformWin::SaveAndConfigureConsole();
+}
+
+void Platform::RestoreConsoleConfiguration() {
+  PlatformWin::RestoreConsole();
 }
 
 }  // namespace bin
