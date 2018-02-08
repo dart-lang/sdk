@@ -411,7 +411,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/always_require_non_null_named_parameters',
           '--rules=always_require_non_null_named_parameters'
-        ], new LinterOptions()..enableAssertInitializer = true);
+        ], new LinterOptions());
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -437,7 +437,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/prefer_asserts_in_initializer_lists',
           '--rules=prefer_asserts_in_initializer_lists'
-        ], new LinterOptions()..enableAssertInitializer = true);
+        ], new LinterOptions());
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -463,7 +463,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/prefer_const_constructors_in_immutables',
           '--rules=prefer_const_constructors_in_immutables'
-        ], new LinterOptions()..enableAssertInitializer = true);
+        ], new LinterOptions());
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
