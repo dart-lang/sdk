@@ -31,7 +31,7 @@ class Utils {
   static inline T Abs(T x) {
     // Note: as a general rule, it is not OK to use STL in Dart VM.
     // However, std::numeric_limits<T>::min() and max() are harmless
-    // and worthwile exception from this rule.
+    // and worthwhile exception from this rule.
     ASSERT(x != std::numeric_limits<T>::min());
     if (x < 0) return -x;
     return x;
@@ -45,7 +45,7 @@ class Utils {
     if (x < 0) {
       // Note: as a general rule, it is not OK to use STL in Dart VM.
       // However, std::numeric_limits<T>::min() and max() are harmless
-      // and worthwile exception from this rule.
+      // and worthwhile exception from this rule.
       if (x == std::numeric_limits<T>::min()) {
         return std::numeric_limits<T>::max();
       }
