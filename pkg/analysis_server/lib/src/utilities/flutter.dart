@@ -101,12 +101,21 @@ void convertChildToChildren2(
 }
 
 /**
- * Return the named expression representing the 'child' argument of the given
- * [newExpr], or null if none.
+ * Return the named expression representing the `child` argument of the given
+ * [newExpr], or `null` if none.
  */
 NamedExpression findChildArgument(InstanceCreationExpression newExpr) =>
     newExpr.argumentList.arguments.firstWhere(
         (arg) => arg is NamedExpression && arg.name.label.name == 'child',
+        orElse: () => null);
+
+/**
+ * Return the named expression representing the `children` argument of the
+ * given [newExpr], or `null` if none.
+ */
+NamedExpression findChildrenArgument(InstanceCreationExpression newExpr) =>
+    newExpr.argumentList.arguments.firstWhere(
+        (arg) => arg is NamedExpression && arg.name.label.name == 'children',
         orElse: () => null);
 
 /**

@@ -143,6 +143,8 @@ class AssistProcessor {
     await _addProposal_convertToStatefulWidget();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
+    await _addProposal_flutterReplaceWithChild();
+    await _addProposal_flutterReplaceWithChildren();
     await _addProposal_importAddShow();
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
@@ -1404,6 +1406,71 @@ class AssistProcessor {
       }
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.EXCHANGE_OPERANDS);
+  }
+
+  Future<Null> _addProposal_flutterReplaceWithChild() async {
+    var widgetCreation = flutter.identifyNewExpression(node);
+    if (widgetCreation == null) {
+      return;
+    }
+
+    var childArgument = flutter.findChildArgument(widgetCreation);
+    if (childArgument == null) {
+      return;
+    }
+
+    // child: new ThisWidget(child: ourChild)
+    // children: [foo, new ThisWidget(child: ourChild), bar]
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var childExpression = childArgument.expression;
+      var childText = utils.getNodeText(childExpression);
+      var indentOld = utils.getLinePrefix(childExpression.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = _replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
+  }
+
+  Future<Null> _addProposal_flutterReplaceWithChildren() async {
+    var widgetCreation = flutter.identifyNewExpression(node);
+    if (widgetCreation == null) {
+      return;
+    }
+
+    // We can inline the list of our children only into another list.
+    var widgetParentNode = widgetCreation.parent;
+    if (widgetParentNode is! ListLiteral) {
+      return;
+    }
+
+    // Prepare the list of our children.
+    List<Expression> childrenExpressions;
+    {
+      var childrenArgument = flutter.findChildrenArgument(widgetCreation);
+      var childrenExpression = childrenArgument?.expression;
+      if (childrenExpression is ListLiteral &&
+          childrenExpression.elements.isNotEmpty) {
+        childrenExpressions = childrenExpression.elements;
+      } else {
+        return;
+      }
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var firstChild = childrenExpressions.first;
+      var lastChild = childrenExpressions.last;
+      var childText = utils.getRangeText(range.startEnd(firstChild, lastChild));
+      var indentOld = utils.getLinePrefix(firstChild.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = _replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
   }
 
   Future<Null> _addProposal_importAddShow() async {

@@ -138,7 +138,7 @@ export 'package:flutter/painting.dart';
 export 'package:flutter/rendering.dart';
 
 class Center extends StatelessWidget {
-  const Center({Widget child, Key key});
+  const Center({Key key, double heightFactor, Widget child});
 }
 
 class Column extends Flex {
