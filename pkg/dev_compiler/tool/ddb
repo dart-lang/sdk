@@ -1,0 +1,209 @@
+#!/usr/bin/env dart
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+//
+// Compiles code with DDC and runs the resulting code with either node or
+// chrome.
+//
+// The first script supplied should be the one with `main()`.
+//
+// Saves the output in the same directory as the sources for convenient
+// inspection, modification or rerunning the code.
+
+import 'dart:async';
+import 'dart:io';
+
+import 'package:args/args.dart' show ArgParser;
+import 'package:path/path.dart' as path;
+
+void main(List<String> args) {
+  // Parse flags.
+  var parser = new ArgParser()
+    ..addFlag('kernel',
+        abbr: 'k', help: 'Compile with the new kernel-based front end.')
+    ..addFlag('debug',
+        abbr: 'd',
+        help: 'Use current source instead of built SDK.',
+        defaultsTo: false)
+    ..addOption('runtime',
+        abbr: 'r',
+        help: 'Platform to run on (node|d8|chrome).  Default is node.',
+        allowed: ['node', 'd8', 'chrome'],
+        defaultsTo: 'node')
+    ..addOption('binary', abbr: 'b', help: 'Runtime binary path.');
+
+  var options = parser.parse(args);
+  if (options.rest.length != 1) {
+    throw 'Expected a single dart entrypoint.';
+  }
+  var entry = options.rest.first;
+  var libRoot = path.dirname(entry);
+  var basename = path.basenameWithoutExtension(entry);
+
+  var debug = options['debug'] as bool;
+  var kernel = options['kernel'] as bool;
+  var binary = options['binary'] as String;
+
+  var dartBinary = Platform.resolvedExecutable;
+  var dartPath = path.dirname(dartBinary);
+  var dartSdk = path.dirname(dartPath);
+  var toolPath = Platform.script.normalizePath().toFilePath();
+  var ddcPath = path.dirname(path.dirname(toolPath));
+
+  ProcessResult runDdc(String command, List<String> args) {
+    if (debug) {
+      // Use unbuilt script.  This only works from a source checkout.
+      args.insertAll(0, ['-c', path.join(ddcPath, 'bin', '${command}.dart')]);
+      command = dartBinary;
+    } else {
+      // Use built snapshot.
+      command = path.join(dartPath, command);
+    }
+    return Process.runSync(command, args);
+  }
+
+  String mod;
+  bool chrome = false;
+  bool node = false;
+  bool d8 = false;
+  switch (options['runtime']) {
+    case 'node':
+      node = true;
+      mod = 'common';
+      break;
+    case 'd8':
+      d8 = true;
+      mod = 'es6';
+      break;
+    case 'chrome':
+      chrome = true;
+      mod = 'amd';
+      break;
+  }
+  var sdkJsPath = path.join(dartSdk, 'lib', 'dev_compiler', mod);
+
+  ProcessResult result;
+  if (kernel) {
+    var ddcSdk = path.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
+    result = runDdc('dartdevk', [
+      '--modules=$mod',
+      '--dart-sdk-summary=$ddcSdk',
+      '-o',
+      '$basename.js',
+      entry
+    ]);
+  } else {
+    result = runDdc('dartdevc', [
+      '--modules=$mod',
+      '--library-root=$libRoot',
+      '-o',
+      '$basename.js',
+      entry
+    ]);
+  }
+
+  print(result.stdout);
+  if (result.exitCode != 0) {
+    print(result.stderr);
+    exit(result.exitCode);
+  }
+
+  if (chrome) {
+    String chromeBinary;
+    if (binary != null) {
+      chromeBinary = binary;
+    } else if (Platform.isWindows) {
+      chromeBinary =
+          'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+    } else if (Platform.isMacOS) {
+      chromeBinary =
+          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+    } else {
+      // Assume Linux
+      chromeBinary = 'google-chrome';
+    }
+
+    var html = """
+<script src='$sdkJsPath/require.js'></script>
+<script>
+  require.config({
+    baseUrl: '$libRoot',
+    paths: {
+        'dart_sdk': '$sdkJsPath/dart_sdk'
+    },
+    waitSeconds: 15
+  });
+  require(['dart_sdk', '$basename'],
+        function(sdk, app) {
+    'use strict';
+    sdk._debugger.registerDevtoolsFormatter();
+    sdk.dart.ignoreWhitelistedErrors(false);
+    sdk._isolate_helper.startRootIsolate(() => {}, []);
+    app.$basename.main();
+  });
+</script>
+""";
+    var htmlFile = '$libRoot/$basename.html';
+    new File(htmlFile).writeAsStringSync(html);
+    var tmp = path.join(Directory.systemTemp.path, 'ddc');
+
+    result = Process.runSync(chromeBinary,
+        ['--auto-open-devtools-for-tabs', '--user-data-dir=$tmp', htmlFile]);
+  } else if (node) {
+    var nodePath = '$sdkJsPath:$libRoot';
+    var runjs = '''
+    let source_maps;
+    try {
+      source_maps = require('source-map-support');
+      source_maps.install();
+    } catch(e) {
+    }
+    let sdk = require(\"dart_sdk\");
+    let main = require(\"./$basename\").$basename.main;
+    sdk.dart.ignoreWhitelistedErrors(false);
+    try {
+      sdk._isolate_helper.startRootIsolate(main, []);
+    } catch(e) {
+      if (!source_maps) {
+        console.log('For Dart source maps: npm install source-map-support');
+      }
+      console.error(e.toString(), sdk.dart.stackTrace(e).toString());
+      process.exit(1);
+    }
+    ''';
+    var nodeFile = '$libRoot/$basename.run.js';
+    new File(nodeFile).writeAsStringSync(runjs);
+    var nodeBinary = binary ?? 'node';
+    result = Process
+        .runSync(nodeBinary, [nodeFile], environment: {'NODE_PATH': nodePath});
+    stdout
+      ..write(result.stdout)
+      ..flush();
+  } else if (d8) {
+    var runjs = '''
+    import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
+    import { $basename } from '$basename.js';
+    let main = $basename.main;
+    dart.ignoreWhitelistedErrors(false);
+    try {
+      _isolate_helper.startRootIsolate(() => {}, []);
+      main();
+    } catch(e) {
+      console.error(e.toString(), dart.stackTrace(e).toString());
+    }
+    ''';
+    var d8File = '$libRoot/$basename.d8.js';
+    new File(d8File).writeAsStringSync(runjs);
+    var d8Binary = binary ?? 'd8';
+    result = Process.runSync(binary, ['--module', d8File]);
+    stdout
+      ..write(result.stdout)
+      ..flush();
+  }
+  if (result.exitCode != 0) {
+    print(result.stderr);
+    exit(result.exitCode);
+  }
+}
