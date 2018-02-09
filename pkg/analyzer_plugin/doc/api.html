@@ -997,6 +997,14 @@ a:focus, a:hover {
           additionally insert a template for the parameters. The information
           required in order to do so is contained in other fields.
         </p>
+      </dd><dt class="field"><b>displayText: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          Text to be displayed in, for example, a completion pop-up. In many cases,
+          this will be the same as the completion but in some cases, such as
+          for overriding methods, this value will be different and tailored for
+          presenting and to be used to lookup against.
+        </p>
       </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
         
         <p>
@@ -1157,7 +1165,12 @@ a:focus, a:hover {
           suggestions of this kind, the completion is the named argument
           identifier including a trailing ':' and a space.
         </p>
-      </dd><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContextRoot">ContextRoot: object</a></dt><dd>
+      </dd><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">OVERRIDE</dt><dd>
+        
+        <p>
+          An overriding implementation of a class member is being suggested.
+        </p>
+      </dd><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContextRoot">ContextRoot: object</a></dt><dd>
     <p>
       A description of an analysis context.
     </p>

@@ -597,6 +597,7 @@ class ChangeContentOverlay implements HasToJson {
  *   "kind": CompletionSuggestionKind
  *   "relevance": int
  *   "completion": String
+ *   "displayText": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -625,6 +626,8 @@ class CompletionSuggestion implements HasToJson {
   int _relevance;
 
   String _completion;
+
+  String _displayText;
 
   int _selectionOffset;
 
@@ -707,6 +710,24 @@ class CompletionSuggestion implements HasToJson {
   void set completion(String value) {
     assert(value != null);
     this._completion = value;
+  }
+
+  /**
+   * Text to be displayed in, for example, a completion pop-up. In many cases,
+   * this will be the same as the completion but in some cases, such as for
+   * overriding methods, this value will be different and tailored for
+   * presenting and to be used to lookup against.
+   */
+  String get displayText => _displayText;
+
+  /**
+   * Text to be displayed in, for example, a completion pop-up. In many cases,
+   * this will be the same as the completion but in some cases, such as for
+   * overriding methods, this value will be different and tailored for
+   * presenting and to be used to lookup against.
+   */
+  void set displayText(String value) {
+    this._displayText = value;
   }
 
   /**
@@ -983,7 +1004,8 @@ class CompletionSuggestion implements HasToJson {
       int selectionLength,
       bool isDeprecated,
       bool isPotential,
-      {String docSummary,
+      {String displayText,
+      String docSummary,
       String docComplete,
       String declaringType,
       String defaultArgumentListString,
@@ -1000,6 +1022,7 @@ class CompletionSuggestion implements HasToJson {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
+    this.displayText = displayText;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -1046,6 +1069,11 @@ class CompletionSuggestion implements HasToJson {
             jsonPath + ".completion", json["completion"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "completion");
+      }
+      String displayText;
+      if (json.containsKey("displayText")) {
+        displayText = jsonDecoder.decodeString(
+            jsonPath + ".displayText", json["displayText"]);
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
@@ -1151,6 +1179,7 @@ class CompletionSuggestion implements HasToJson {
       }
       return new CompletionSuggestion(kind, relevance, completion,
           selectionOffset, selectionLength, isDeprecated, isPotential,
+          displayText: displayText,
           docSummary: docSummary,
           docComplete: docComplete,
           declaringType: declaringType,
@@ -1176,6 +1205,9 @@ class CompletionSuggestion implements HasToJson {
     result["kind"] = kind.toJson();
     result["relevance"] = relevance;
     result["completion"] = completion;
+    if (displayText != null) {
+      result["displayText"] = displayText;
+    }
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
     result["isDeprecated"] = isDeprecated;
@@ -1234,6 +1266,7 @@ class CompletionSuggestion implements HasToJson {
       return kind == other.kind &&
           relevance == other.relevance &&
           completion == other.completion &&
+          displayText == other.displayText &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength &&
           isDeprecated == other.isDeprecated &&
@@ -1265,6 +1298,7 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayText.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
@@ -1298,6 +1332,7 @@ class CompletionSuggestion implements HasToJson {
  *   KEYWORD
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
+ *   OVERRIDE
  *   PARAMETER
  * }
  *
@@ -1351,6 +1386,12 @@ class CompletionSuggestionKind implements Enum {
   static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
       const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
+  /**
+   * An overriding implementation of a class member is being suggested.
+   */
+  static const CompletionSuggestionKind OVERRIDE =
+      const CompletionSuggestionKind._("OVERRIDE");
+
   static const CompletionSuggestionKind PARAMETER =
       const CompletionSuggestionKind._("PARAMETER");
 
@@ -1366,6 +1407,7 @@ class CompletionSuggestionKind implements Enum {
     KEYWORD,
     NAMED_ARGUMENT,
     OPTIONAL_ARGUMENT,
+    OVERRIDE,
     PARAMETER
   ];
 
@@ -1390,6 +1432,8 @@ class CompletionSuggestionKind implements Enum {
         return NAMED_ARGUMENT;
       case "OPTIONAL_ARGUMENT":
         return OPTIONAL_ARGUMENT;
+      case "OVERRIDE":
+        return OVERRIDE;
       case "PARAMETER":
         return PARAMETER;
     }
