@@ -157,8 +157,8 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   Future<Response> waitForResponse(Request request) {
     String id = request.id;
-    return new Future<Response>(() => responseController.stream
-        .firstWhere((response) => response.id == id) as Future<Response>);
+    return responseController.stream
+        .firstWhere((response) => response.id == id);
   }
 }
 
