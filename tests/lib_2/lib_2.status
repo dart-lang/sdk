@@ -185,9 +185,9 @@ isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 html/webgl_1_test: Pass, Fail # Issue 8219
 
 [ $runtime == chrome || $runtime == ff ]
+async/periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 async/stream_timeout_test: SkipSlow # Times out. Issue 22050
-periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094.
 
 [ $runtime == dart_precompiled || $runtime == flutter ]
 isolate/count_test: Skip # Isolate.spawnUri
