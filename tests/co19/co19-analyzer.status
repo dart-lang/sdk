@@ -80,7 +80,7 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/pro
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t06: StaticWarning # Issue 15467
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t07: StaticWarning # Issue 15467
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t08: StaticWarning # Issue 15467
-Language/Functions/implicit_return_t01: CompileTimeError
+Language/Functions/implicit_return_t01: StaticWarning # invalid use of void for dart 2. Also see #32100
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t03: StaticWarning # Please triage this failure.
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t01: StaticWarning # uses void in a way not allowed in dart 2, see also #32100
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure.
