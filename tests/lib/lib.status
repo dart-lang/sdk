@@ -12,6 +12,7 @@ mirrors/mirrors_reader_test: Pass, Slow
 mirrors/*: Skip # Issue 27929: Triage
 
 [ $compiler == dart2analyzer ]
+async/stream_event_transformed_test: StaticWarning
 convert/base64_test/01: CompileTimeError # int64
 convert/utf82_test: CompileTimeError # int64
 math/double_pow_test: CompileTimeError # int64
@@ -27,6 +28,9 @@ mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional li
 profiler/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 typed_data/int32x4_bigint_test: CompileTimeError # int64
+
+[ $compiler != dart2analyzer ]
+async/stream_controller_async_test: StaticWarning
 
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
@@ -202,12 +206,8 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 
 [ $strong ]
 *: SkipByDesign # tests/lib_2 has the strong mode versions of these tests.
-async/stream_controller_async_test: CompileTimeError
-async/stream_first_where_test: CompileTimeError
-async/stream_last_where_test: CompileTimeError
 
 [ !$strong ]
-async/stream_controller_async_test: StaticWarning
 async/stream_first_where_test: RuntimeError
 async/stream_last_where_test: RuntimeError
 
