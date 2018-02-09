@@ -71,7 +71,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
-        throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
+        fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
     }
   }
@@ -4941,7 +4941,7 @@ main() {
         return assist;
       }
     }
-    throw fail('Expected to find assist $kind in\n${assists.join('\n')}');
+    fail('Expected to find assist $kind in\n${assists.join('\n')}');
   }
 
   void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,

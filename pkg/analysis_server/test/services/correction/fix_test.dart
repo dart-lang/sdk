@@ -100,7 +100,7 @@ bool test() {
     List<Fix> fixes = await _computeFixes(error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
-        throw fail('Unexpected fix $kind in\n${fixes.join('\n')}');
+        fail('Unexpected fix $kind in\n${fixes.join('\n')}');
       }
     }
   }
@@ -140,7 +140,7 @@ bool test() {
         return fix;
       }
     }
-    throw fail('Expected to find fix $kind in\n${fixes.join('\n')}');
+    fail('Expected to find fix $kind in\n${fixes.join('\n')}');
   }
 
   void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
