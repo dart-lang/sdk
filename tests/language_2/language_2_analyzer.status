@@ -58,7 +58,6 @@ interface_static_non_final_fields_negative_test: Fail # Issue 11594
 interface_test/00: MissingCompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
-issue15606_test/none: CompileTimeError
 issue1578_negative_test: CompileTimeError
 label2_negative_test: CompileTimeError
 label3_negative_test: CompileTimeError
@@ -1124,6 +1123,7 @@ import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 instantiate_type_variable_test/01: CompileTimeError
 interceptor6_test: CompileTimeError
 issue13673_test: StaticWarning # Issue 31925
+issue15606_test/none: CompileTimeError # invalid use of void for dart 2
 issue31596_implement_covariant_test: CompileTimeError
 issue31596_override_test/01: CompileTimeError
 issue31596_override_test/02: CompileTimeError
@@ -1414,6 +1414,7 @@ invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
 invocation_mirror_test: StaticWarning
 issue13179_test: StaticWarning
+issue15606_test/none: StaticWarning # invalid use of void for dart 2, see also #32100
 issue31596_override_test/05: MissingCompileTimeError
 issue31596_override_test/06: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError

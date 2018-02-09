@@ -82,7 +82,7 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/pro
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/proxy_annotation_t08: StaticWarning # Issue 15467
 Language/Functions/implicit_return_t01: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t03: StaticWarning # Please triage this failure.
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t01: CompileTimeError # uses void in a way not allowed in dart 2
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t01: StaticWarning # uses void in a way not allowed in dart 2, see also #32100
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure.
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure.
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError # Please triage this failure.
@@ -123,7 +123,7 @@ Language/Types/Type_Void/syntax_t01: MissingCompileTimeError # Issue co19/30264
 Language/Types/Type_Void/syntax_t02: MissingCompileTimeError # Issue co19/30264
 Language/Types/Type_Void/syntax_t04: MissingCompileTimeError # Issue co19/30264
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError # Issue 30177: `print(v)` is an error.
-Language/Types/Type_Void/using_t03: CompileTimeError # invalid usage of void for dart 2
+Language/Types/Type_Void/using_t03: StaticWarning # invalid usage of void for dart 2, see also #32100
 Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError # Please triage this failure
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError # Please triage this failure
 Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError # Please triage this failure
@@ -136,7 +136,7 @@ LayoutTests/fast/backgrounds/001_t01: StaticWarning # Please triage this failure
 LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: StaticWarning # Issue 20939
 LayoutTests/fast/canvas/canvas-createImageBitmap-animated_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-specific_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/css/unicode-bidi-computed-value_t01: CompileTimeError # uses void in a way not allowed in dart 2
+LayoutTests/fast/css/unicode-bidi-computed-value_t01: StaticWarning # uses void in a way not allowed in dart 2, see also #32100
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/DOMImplementation/createDocumentType-err_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: StaticWarning # Please triage this failure.
@@ -231,8 +231,9 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: Skip # Roll 45 clipboard
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: StaticWarning # co19 issue 703
 LibTest/async/StreamController/EventSink_class_A01_t01: StaticWarning # Please triage this failure.
 LibTest/async/StreamController/StreamConsumer_class_A01_t01: StaticWarning # Please triage this failure.
-LibTest/async/Zone/runBinaryGuarded_A01_t01: CompileTimeError # uses void in a way not allowed in dart 2
-LibTest/async/Zone/runUnaryGuarded_A01_t01: CompileTimeError # uses void in a way not allowed in dart 2
+LibTest/async/Zone/runBinaryGuarded_A01_t01: StaticWarning # uses void in a way not allowed in dart 2, see also #32100
+LibTest/async/Zone/runGuarded_A01_t01: StaticWarning # get the build green #32100
+LibTest/async/Zone/runUnaryGuarded_A01_t01: StaticWarning # uses void in a way not allowed in dart 2, see also #32100
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK # co19 issue 642, The argument type 'int' cannot be assigned to the parameter type 'Iterable'
 LibTest/collection/HashMap/HashMap_class_A01_t01: StaticWarning # Please triage this failure.
 LibTest/collection/HashSet/HashSet_class_A01_t01: StaticWarning # Imports libraries with static warnings
@@ -380,7 +381,7 @@ WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # Please 
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # Please triage this failure.
 WebPlatformTest/dom/nodes/Node-appendChild_t02: StaticWarning # Please triage this failure.
 WebPlatformTest/dom/nodes/Node-contains_t01: StaticWarning # Please triage this failure.
-WebPlatformTest/dom/nodes/Node-insertBefore_t01: CompileTimeError # Uses void in a way not allowed in dart 2
+WebPlatformTest/dom/nodes/Node-insertBefore_t01: StaticWarning # Uses void in a way not allowed in dart 2, see also #32100
 WebPlatformTest/dom/nodes/Node-isEqualNode_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: StaticWarning # Please triage this failure.
@@ -396,7 +397,7 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: StaticWarni
 WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: StaticWarning # Please triage this failure.
-WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: CompileTimeError # uses void in a way not allowed in dart 2
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: StaticWarning # uses void in a way not allowed in dart 2, see also #32100
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: StaticWarning # Please triage this failure.
@@ -513,4 +514,3 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t0
 
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
-
