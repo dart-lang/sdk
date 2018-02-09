@@ -28,7 +28,10 @@ class InliningNode : public ZoneAllocated {
         end_pc_offset(-1),
         children_head(NULL),
         children_tail(NULL),
-        children_next(NULL) {}
+        children_next(NULL) {
+    ASSERT(!function.IsNull());
+    ASSERT(function.IsNotTemporaryScopedHandle());
+  }
 
   void AppendChild(InliningNode* child) {
     if (children_tail == NULL) {
@@ -86,7 +89,7 @@ intptr_t Dwarf::AddCode(const Code& code) {
 }
 
 intptr_t Dwarf::AddFunction(const Function& function) {
-  ASSERT(!function.IsNull());
+  RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
   if (pair != NULL) {
     return pair->index_;
@@ -349,7 +352,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
     return NULL;
   }
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
-  const Function& root_function = Function::Handle(zone_, code.function());
+  const Function& root_function = Function::ZoneHandle(zone_, code.function());
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
   GrowableArray<TokenPosition> token_positions(zone_, 4);
@@ -380,7 +383,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
       case CodeSourceMapBuilder::kPushFunction: {
         int32_t func = stream.Read<int32_t>();
         const Function& child_func =
-            Function::Handle(zone_, Function::RawCast(functions.At(func)));
+            Function::ZoneHandle(zone_, Function::RawCast(functions.At(func)));
         TokenPosition call_pos = token_positions.Last();
         InliningNode* child_node =
             new (zone_) InliningNode(child_func, call_pos, current_pc_offset);
