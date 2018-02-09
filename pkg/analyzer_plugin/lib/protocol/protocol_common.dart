@@ -713,18 +713,16 @@ class CompletionSuggestion implements HasToJson {
   }
 
   /**
-   * Text to be displayed in, for example, a completion pop-up. In many cases,
-   * this will be the same as the completion but in some cases, such as for
-   * overriding methods, this value will be different and tailored for
-   * presenting and to be used to lookup against.
+   * Text to be displayed in, for example, a completion pop-up. This field is
+   * only defined if the displayed text should be different than the
+   * completion. Otherwise it is omitted.
    */
   String get displayText => _displayText;
 
   /**
-   * Text to be displayed in, for example, a completion pop-up. In many cases,
-   * this will be the same as the completion but in some cases, such as for
-   * overriding methods, this value will be different and tailored for
-   * presenting and to be used to lookup against.
+   * Text to be displayed in, for example, a completion pop-up. This field is
+   * only defined if the displayed text should be different than the
+   * completion. Otherwise it is omitted.
    */
   void set displayText(String value) {
     this._displayText = value;
@@ -788,14 +786,14 @@ class CompletionSuggestion implements HasToJson {
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
-   * suggested, This field is omitted if there is no Dartdoc associated with
+   * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
   String get docSummary => _docSummary;
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
-   * suggested, This field is omitted if there is no Dartdoc associated with
+   * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
   void set docSummary(String value) {
