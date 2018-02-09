@@ -303,6 +303,13 @@ class ProcessedOptions {
     return _sdkSummaryProgram;
   }
 
+  void set sdkSummaryComponent(Program platform) {
+    if (_sdkSummaryProgram != null) {
+      throw new StateError("sdkSummary already loaded.");
+    }
+    _sdkSummaryProgram = platform;
+  }
+
   /// Get the summary programs for each of the underlying `inputSummaries`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".

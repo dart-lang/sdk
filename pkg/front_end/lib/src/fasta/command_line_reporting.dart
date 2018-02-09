@@ -176,6 +176,22 @@ void _printAndThrowIfDebugging(
   }
 }
 
+bool isCompileTimeError(Severity severity) {
+  switch (severity) {
+    case Severity.error:
+    case Severity.internalProblem:
+      return true;
+
+    case Severity.errorLegacyWarning:
+      return CompilerContext.current.options.strongMode;
+
+    case Severity.nit:
+    case Severity.warning:
+      return false;
+  }
+  return unexpected("$severity", "isCompileTimeError", -1, null);
+}
+
 /// Report [message] unless [severity] is suppressed (see [isHidden]). Throws
 /// an exception if [severity] is fatal (see [isFatal]).
 ///
@@ -183,6 +199,9 @@ void _printAndThrowIfDebugging(
 /// [CompilerContext.report] instead.
 void report(LocatedMessage message, Severity severity) {
   if (isHidden(severity)) return;
+  if (isCompileTimeError(severity)) {
+    CompilerContext.current.logError(message, severity);
+  }
   _printAndThrowIfDebugging(
       format(message, severity), severity, message.uri, message.charOffset);
 }
@@ -193,6 +212,9 @@ void report(LocatedMessage message, Severity severity) {
 /// [CompilerContext.reportWithoutLocation] instead.
 void reportWithoutLocation(Message message, Severity severity) {
   if (isHidden(severity)) return;
+  if (isCompileTimeError(severity)) {
+    CompilerContext.current.logError(message, severity);
+  }
   _printAndThrowIfDebugging(
       formatWithoutLocation(message, severity), severity, null, -1);
 }

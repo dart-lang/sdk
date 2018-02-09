@@ -47,6 +47,8 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
+  final List errors = <Object>[];
+
   FileSystem get fileSystem => options.fileSystem;
 
   bool enableColorsCached = null;
@@ -75,6 +77,11 @@ class CompilerContext {
   /// Format [message] as a text string that can be included in generated code.
   String formatWithoutLocation(Message message, Severity severity) {
     return command_line_reporting.formatWithoutLocation(message, severity);
+  }
+
+  void logError(Object message, Severity severity) {
+    errors.add(message);
+    errors.add(severity);
   }
 
   static CompilerContext get current {
