@@ -300,7 +300,7 @@ bool isWidget(ClassElement element) {
  * class that has the Flutter class `Widget` as a superclass.
  */
 bool isWidgetCreation(InstanceCreationExpression expr) {
-  ClassElement element = expr.staticElement?.enclosingElement;
+  ClassElement element = expr?.staticElement?.enclosingElement;
   return isWidget(element);
 }
 

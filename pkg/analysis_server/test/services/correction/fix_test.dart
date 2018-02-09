@@ -614,9 +614,7 @@ build() {
 }
 ''');
 
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -627,8 +625,38 @@ class MyWidget extends Widget {
 build() {
   return new MyWidget(children: <Widget>[],);
 }
-''',
-        target: '/test.dart');
+''');
+  }
+
+  test_addMissingRequiredArg_cons_flutter_hasTrailingComma() async {
+    addFlutterPackage();
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required int a, @required int b});
+}
+
+build() {
+  return new MyWidget(a: 1,);
+}
+''');
+
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required int a, @required int b});
+}
+
+build() {
+  return new MyWidget(a: 1, b: null,);
+}
+''');
   }
 
   test_addMissingRequiredArg_cons_single() async {
@@ -649,16 +677,13 @@ main() {
   A a = new A();
 }
 ''');
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'libA.dart';
 
 main() {
   A a = new A(a: null);
 }
-''',
-        target: '/test.dart');
+''');
   }
 
   test_addMissingRequiredArg_cons_single_closure() async {
@@ -682,16 +707,13 @@ main() {
   A a = new A();
 }
 ''');
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'libA.dart';
 
 main() {
   A a = new A(onPressed: () {});
 }
-''',
-        target: '/test.dart');
+''');
   }
 
   test_addMissingRequiredArg_cons_single_closure_2() async {
@@ -715,16 +737,13 @@ main() {
   A a = new A();
 }
 ''');
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'libA.dart';
 
 main() {
   A a = new A(callback: (e) {});
 }
-''',
-        target: '/test.dart');
+''');
   }
 
   test_addMissingRequiredArg_cons_single_closure_3() async {
@@ -748,16 +767,13 @@ main() {
   A a = new A();
 }
 ''');
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'libA.dart';
 
 main() {
   A a = new A(callback: (a, b, c) {});
 }
-''',
-        target: '/test.dart');
+''');
   }
 
   test_addMissingRequiredArg_cons_single_closure_4() async {
@@ -781,16 +797,13 @@ main() {
   A a = new A();
 }
 ''');
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'libA.dart';
 
 main() {
   A a = new A(callback: (int a, String b, c) {});
 }
-''',
-        target: '/test.dart');
+''');
   }
 
   test_addMissingRequiredArg_cons_single_list() async {
@@ -812,16 +825,13 @@ main() {
   A a = new A();
 }
 ''');
-    await assertHasFix(
-        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-        '''
+    await assertHasFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, '''
 import 'libA.dart';
 
 main() {
   A a = new A(names: <String>[]);
 }
-''',
-        target: '/test.dart');
+''');
   }
 
   test_addMissingRequiredArg_multiple() async {

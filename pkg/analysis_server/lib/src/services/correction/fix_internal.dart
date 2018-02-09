@@ -602,6 +602,7 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_addMissingRequiredArgument() async {
+    InstanceCreationExpression creation;
     Element targetElement;
     ArgumentList argumentList;
 
@@ -611,50 +612,59 @@ class FixProcessor {
         targetElement = invocation.methodName.bestElement;
         argumentList = invocation.argumentList;
       } else {
-        AstNode ancestor =
+        creation =
             invocation.getAncestor((p) => p is InstanceCreationExpression);
-        if (ancestor is InstanceCreationExpression) {
-          targetElement = ancestor.staticElement;
-          argumentList = ancestor.argumentList;
+        if (creation != null) {
+          targetElement = creation.staticElement;
+          argumentList = creation.argumentList;
         }
       }
     }
 
     if (targetElement is ExecutableElement) {
       // Format: "Missing required argument 'foo"
-      List<String> parts = error.message.split("'");
-      if (parts.length < 2) {
+      List<String> messageParts = error.message.split("'");
+      if (messageParts.length < 2) {
+        return;
+      }
+      String missingParameterName = messageParts[1];
+
+      ParameterElement missingParameter = targetElement.parameters.firstWhere(
+          (p) => p.name == missingParameterName,
+          orElse: () => null);
+      if (missingParameter == null) {
         return;
       }
 
-      // add proposal
-      String paramName = parts[1];
-      final List<Expression> args = argumentList.arguments;
-      int offset =
-          args.isEmpty ? argumentList.leftParenthesis.end : args.last.end;
+      int offset;
+      bool hasTrailingComma = false;
+      List<Expression> arguments = argumentList.arguments;
+      if (arguments.isEmpty) {
+        offset = argumentList.leftParenthesis.end;
+      } else {
+        Expression lastArgument = arguments.last;
+        offset = lastArgument.end;
+        hasTrailingComma = lastArgument.endToken.next.type == TokenType.COMMA;
+      }
+
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(offset, (DartEditBuilder builder) {
-          if (args.isNotEmpty) {
+          if (arguments.isNotEmpty) {
             builder.write(', ');
           }
-          List<ParameterElement> parameters =
-              (targetElement as ExecutableElement).parameters;
-          ParameterElement element = parameters
-              .firstWhere((p) => p.name == paramName, orElse: () => null);
-          String defaultValue = getDefaultStringParameterValue(element);
-          builder.write('$paramName: $defaultValue');
+          String defaultValue =
+              getDefaultStringParameterValue(missingParameter);
+          builder.write('$missingParameterName: $defaultValue');
           // Insert a trailing comma after Flutter instance creation params.
-          InstanceCreationExpression newExpr =
-              flutter.identifyNewExpression(node);
-          if (newExpr != null && flutter.isWidgetCreation(newExpr)) {
+          if (!hasTrailingComma && flutter.isWidgetExpression(creation)) {
             builder.write(',');
           }
         });
       });
       _addFixFromBuilder(
           changeBuilder, DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
-          args: [paramName]);
+          args: [missingParameterName]);
     }
   }
 
