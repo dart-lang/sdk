@@ -36,6 +36,7 @@ class C extends B {
 }
 ''');
     await computeSuggestions();
+    // TODO(pquitslund): test displayText
     _assertOverride('''@override
   A suggested1(int x) {
     // TODO: implement suggested1
@@ -75,6 +76,7 @@ class C extends B {
     // assume information for context.getLibrariesContaining has been cached
     await computeLibrariesContaining();
     await computeSuggestions();
+    // TODO(pquitslund): test displayText
     _assertOverride('''@override
   A suggested1(int x) {
     // TODO: implement suggested1
@@ -88,15 +90,16 @@ class C extends B {
         '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
   }
 
-  CompletionSuggestion _assertOverride(String completion) {
+  CompletionSuggestion _assertOverride(String completion,
+      {String displayText}) {
     CompletionSuggestion cs = getSuggest(
         completion: completion,
-        csKind: CompletionSuggestionKind.IDENTIFIER,
+        csKind: CompletionSuggestionKind.OVERRIDE,
         elemKind: null);
     if (cs == null) {
       failedCompletion('expected $completion', suggestions);
     }
-    expect(cs.kind, equals(CompletionSuggestionKind.IDENTIFIER));
+    expect(cs.kind, equals(CompletionSuggestionKind.OVERRIDE));
     expect(cs.relevance, equals(DART_RELEVANCE_HIGH));
     expect(cs.importUri, null);
 //    expect(cs.selectionOffset, equals(completion.length));
@@ -104,6 +107,7 @@ class C extends B {
     expect(cs.isDeprecated, isFalse);
     expect(cs.isPotential, isFalse);
     expect(cs.element, isNotNull);
+    expect(cs.displayText, displayText);
     return cs;
   }
 }

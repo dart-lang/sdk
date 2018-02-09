@@ -657,41 +657,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_invalidTopLevelVar() {
-    // TODO(danrubel) Does not recover.
-    //  'package:analyzer/src/fasta/ast_builder.dart': Failed assertion:
-    //      line 238 pos 12: 'token.isKeywordOrIdentifier': is not true.
-    //  dart:core-patch/errors_patch.dart 35                               _AssertionError._doThrowNew
-    //  dart:core-patch/errors_patch.dart 31                               _AssertionError._throwNew
-    //  package:analyzer/src/fasta/ast_builder.dart 238:12                 AstBuilder.handleIdentifier
-    //  package:front_end/src/fasta/parser/parser.dart 1639:14             Parser.ensureIdentifier
-    //  package:front_end/src/fasta/parser/parser.dart 2594:13             Parser.parseFields
-    //  package:front_end/src/fasta/parser/parser.dart 2565:11             Parser.parseTopLevelMember
-    //  package:front_end/src/fasta/parser/parser.dart 377:14              Parser.parseTopLevelDeclarationImpl
-    //  package:front_end/src/fasta/parser/parser.dart 300:15              Parser.parseUnit
-    //  package:analyzer/src/generated/parser_fasta.dart 85:33             _Parser2.parseCompilationUnit2
-    super.test_invalidTopLevelVar();
-  }
-
-  @failingTest
-  void test_invalidTypedef() {
-    // TODO(danrubel) Does not recover.
-    //  'package:analyzer/src/fasta/ast_builder.dart': Failed assertion:
-    //      line 238 pos 12: 'token.isKeywordOrIdentifier': is not true.
-    //  dart:core-patch/errors_patch.dart 35                               _AssertionError._doThrowNew
-    //  dart:core-patch/errors_patch.dart 31                               _AssertionError._throwNew
-    //  package:analyzer/src/fasta/ast_builder.dart 238:12                 AstBuilder.handleIdentifier
-    //  package:front_end/src/fasta/parser/parser.dart 1639:14             Parser.ensureIdentifier
-    //  package:front_end/src/fasta/parser/parser.dart 2594:13             Parser.parseFields
-    //  package:front_end/src/fasta/parser/parser.dart 2565:11             Parser.parseTopLevelMember
-    //  package:front_end/src/fasta/parser/parser.dart 377:14              Parser.parseTopLevelDeclarationImpl
-    //  package:front_end/src/fasta/parser/parser.dart 300:15              Parser.parseUnit
-    //  package:analyzer/src/generated/parser_fasta.dart 85:33             _Parser2.parseCompilationUnit2
-    super.test_invalidTypedef();
-  }
-
-  @override
-  @failingTest
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
@@ -1262,22 +1227,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
     // TODO(brianwilkerson) Testing at too low a level.
     super.test_parseCascadeSection_missingIdentifier_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_redirectingConstructorWithBody_named() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, found 0
-    super.test_redirectingConstructorWithBody_named();
-  }
-
-  @override
-  @failingTest
-  void test_redirectingConstructorWithBody_unnamed() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, found 0
-    super.test_redirectingConstructorWithBody_unnamed();
   }
 
   @override
@@ -2301,31 +2250,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Unhandled compile-time error:
     // A function expression can't have a name.
     super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_constructorInitializers_missingEquals() {
-    // TODO(brianwilkerson) exception:
-    //   NoSuchMethodError: The getter 'thisKeyword' was called on null.
-    //   Receiver: null
-    //   Tried calling: thisKeyword
-    //   dart:core                                                          Object.noSuchMethod
-    //   package:analyzer/src/fasta/ast_builder.dart 440:42                 AstBuilder.endInitializers
-    //   test/generated/parser_fasta_listener.dart 872:14                   ForwardingTestListener.endInitializers
-    //   package:front_end/src/fasta/parser/parser.dart 1942:14             Parser.parseInitializers
-    //   package:front_end/src/fasta/parser/parser.dart 1923:14             Parser.parseInitializersOpt
-    //   package:front_end/src/fasta/parser/parser.dart 2412:13             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2316:11             Parser.parseMember
-    super.test_incomplete_constructorInitializers_missingEquals();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_constructorInitializers_variable() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, found 0
-    super.test_incomplete_constructorInitializers_variable();
   }
 
   @override

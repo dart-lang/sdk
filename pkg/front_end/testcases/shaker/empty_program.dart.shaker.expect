@@ -62,6 +62,8 @@ library dart:async:
     - any
     - length
     - isEmpty
+    - cast
+    - retype
     - toList
     - toSet
     - drain
@@ -99,6 +101,8 @@ library dart:async:
     - done
   - class StreamTransformer
     - bind
+    - cast
+    - retype
   - class StreamIterator
     - moveNext
     - current

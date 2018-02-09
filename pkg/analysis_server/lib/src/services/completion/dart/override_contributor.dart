@@ -87,7 +87,7 @@ class OverrideContributor implements DartCompletionContributor {
       return null;
     }
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
+        CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
         completion,
         targetId.offset,

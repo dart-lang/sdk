@@ -75,6 +75,10 @@ class DartAssistKind {
       const AssistKind('EXCHANGE_OPERANDS', 30, "Exchange operands");
   static const EXTRACT_CLASS =
       const AssistKind('EXTRACT_CLASS', 30, "Extract class into file '{0}'");
+  static const FLUTTER_CONVERT_TO_STATEFUL_WIDGET = const AssistKind(
+      "FLUTTER_CONVERT_TO_STATEFUL_WIDGET", 30, "Convert to StatefulWidget");
+  static const FLUTTER_REPLACE_WITH_CHILDREN = const AssistKind(
+      "FLUTTER_REPLACE_WITH_CHILDREN", 30, "Replace with children");
   static const IMPORT_ADD_SHOW =
       const AssistKind('IMPORT_ADD_SHOW', 30, "Add explicit 'show' combinator");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(

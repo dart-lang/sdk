@@ -1281,6 +1281,7 @@ final Matcher isServerService = new MatchesEnum("ServerService", ["STATUS"]);
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  */
 final Matcher isSourceChange =
@@ -1289,7 +1290,8 @@ final Matcher isSourceChange =
           "edits": isListOf(isSourceFileEdit),
           "linkedEditGroups": isListOf(isLinkedEditGroup)
         }, optionalFields: {
-          "selection": isPosition
+          "selection": isPosition,
+          "id": isString
         }));
 
 /**

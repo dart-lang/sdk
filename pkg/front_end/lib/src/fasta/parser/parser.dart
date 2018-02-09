@@ -1420,7 +1420,7 @@ class Parser {
           // Return the newly inserted synthetic token
           // as the end of the type reference.
           return token.next;
-        } else if (identical(value, '<') || identical(value, 'Function')) {
+        } else if (identical(value, '<')) {
           // Found a type reference, but missing an identifier after the period.
           rewriteAndRecover(
               token,
@@ -3294,12 +3294,57 @@ class Parser {
     } else if (optional('super', next)) {
       token = parseExpression(token);
     } else if (optional('this', next)) {
-      token = parseExpression(token);
+      if (!optional('(', next.next)) {
+        if (!optional('.', next.next)) {
+          // Recovery
+          reportRecoverableError(
+              next.next, fasta.templateExpectedButGot.withArguments('.'));
+          rewriter.insertTokenAfter(
+              next, new SyntheticToken(TokenType.PERIOD, next.next.offset));
+        }
+        next = next.next;
+        if (!next.next.isIdentifier) {
+          // Recovery
+          insertSyntheticIdentifier(next, IdentifierContext.fieldInitializer);
+        }
+        next = next.next;
+      }
+      if (optional('(', next.next)) {
+        token = parseExpression(token);
+        next = token.next;
+        if (optional('{', next) || optional('=>', next)) {
+          reportRecoverableError(
+              next, fasta.messageRedirectingConstructorWithBody);
+        }
+      } else {
+        if (!optional('=', next.next)) {
+          // Recovery
+          reportRecoverableError(
+              token.next, fasta.messageMissingAssignmentInInitializer);
+          next = rewriter
+              .insertTokenAfter(
+                  next, new SyntheticToken(TokenType.EQ, next.next.offset))
+              .next;
+          rewriter.insertTokenAfter(next,
+              new SyntheticStringToken(TokenType.IDENTIFIER, '', next.offset));
+        }
+        token = parseExpression(token);
+      }
     } else if (next.isIdentifier) {
+      if (!optional('=', next.next)) {
+        // Recovery
+        next = insertSyntheticIdentifier(
+            token, IdentifierContext.fieldInitializer,
+            message: fasta.messageMissingAssignmentInInitializer,
+            messageOnToken: next);
+        rewriter.insertTokenAfter(
+            next, new SyntheticToken(TokenType.EQ, next.offset));
+      }
       token = parseExpression(token);
     } else {
       // Recovery
-      insertSyntheticIdentifier(token, IdentifierContext.fieldInitializer);
+      insertSyntheticIdentifier(token, IdentifierContext.fieldInitializer,
+          message: fasta.messageExpectedAnInitializer, messageOnToken: token);
       token = parseExpression(token);
     }
     listener.endInitializer(token.next);

@@ -2429,7 +2429,7 @@ class B {
 class C extends B {
   f() {}
 }
-var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*info:USE_OF_VOID_RESULT*/f();
+var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*error:USE_OF_VOID_RESULT*/f();
 ''');
   }
 
@@ -3516,7 +3516,7 @@ test() {
   test_inferVariableVoid() async {
     var mainUnit = await checkFileElement('''
 void f() {}
-var x = /*info:USE_OF_VOID_RESULT*/f();
+var x = /*error:USE_OF_VOID_RESULT*/f();
   ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.name, 'x');
@@ -4309,12 +4309,12 @@ T run<T>(T f()) {
 
 void printRunning() { print("running"); }
 var x = run<dynamic>(printRunning);
-var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
+var y = /*error:USE_OF_VOID_RESULT*/run(printRunning);
 
 main() {
   void printRunning() { print("running"); }
   var x = run<dynamic>(printRunning);
-  var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
+  var y = /*error:USE_OF_VOID_RESULT*/run(printRunning);
   x = 123;
   x = 'hi';
   y = 123;

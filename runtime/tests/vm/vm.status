@@ -62,6 +62,7 @@ dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type
 dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
+dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
 cc/DartAPI_New: Crash
@@ -385,6 +386,9 @@ dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == none && $runtime == drt ]
 dart/truncating_ints_test: Skip # Issue 14651
+
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError, OK # AOT lacks column information
 
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.

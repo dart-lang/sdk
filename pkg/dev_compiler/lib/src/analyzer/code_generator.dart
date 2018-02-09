@@ -2476,14 +2476,12 @@ class CodeGenerator extends Object
     for (var field in fieldDecls) {
       var f = field.element;
       if (f.isStatic) continue;
-      var init = field.initializer;
-      if (init == null ||
-          ctorFields != null &&
-              ctorFields.contains(f) &&
-              _constants.isFieldInitConstant(field)) {
+      if (ctorFields != null &&
+          ctorFields.contains(f) &&
+          _constants.isFieldInitConstant(field)) {
         continue;
       }
-      emitFieldInit(f, init, field.name);
+      emitFieldInit(f, field.initializer, field.name);
     }
 
     if (ctor != null) {

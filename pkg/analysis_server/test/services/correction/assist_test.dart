@@ -71,7 +71,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     List<Assist> assists = await _computeAssists();
     for (Assist assist in assists) {
       if (assist.kind == kind) {
-        throw fail('Unexpected assist $kind in\n${assists.join('\n')}');
+        fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
     }
   }
@@ -2267,6 +2267,95 @@ class A {
 ''');
   }
 
+  test_convertToStatefulWidget_BAD_notClass() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+/*caret*/main() {}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_convertToStatefulWidget_BAD_notStatelessWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class /*caret*/MyWidget extends Text {
+  MyWidget() : super('');
+}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_convertToStatefulWidget_BAD_notWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class /*caret*/MyWidget {}
+''');
+    _setCaretLocation();
+    assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  test_convertToStatefulWidget_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  final String aaa;
+  final String bbb;
+
+  const MyWidget(this.aaa, this.bbb);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(aaa),
+        new Text(bbb),
+        new Text('$aaa'),
+        new Text('${bbb}'),
+      ],
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET, r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatefulWidget {
+  final String aaa;
+  final String bbb;
+
+  const MyWidget(this.aaa, this.bbb);
+
+  @override
+  MyWidgetState createState() {
+    return new MyWidgetState();
+  }
+}
+
+class MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: [
+        new Text(widget.aaa),
+        new Text(widget.bbb),
+        new Text('${widget.aaa}'),
+        new Text('${widget.bbb}'),
+      ],
+    );
+  }
+}
+''');
+  }
+
   test_encapsulateField_BAD_alreadyPrivate() async {
     await resolveTestUnit('''
 class A {
@@ -2535,6 +2624,182 @@ main() {
     await assertHasAssistAt('+ 2', DartAssistKind.EXCHANGE_OPERANDS, '''
 main() {
   2 + 1;
+}
+''');
+  }
+
+  test_flutterReplaceWithChild_OK_childIntoChild_multiLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Center(
+        child: new /*caret*/Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: new Center(
+            heightFactor: 0.5,
+            child: new Text('foo'),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Center(
+        child: new Center(
+          heightFactor: 0.5,
+          child: new Text('foo'),
+        ),
+      ),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterReplaceWithChild_OK_childIntoChild_singleLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: new /*caret*/Center(
+      heightFactor: 0.5,
+      child: new Text('foo'),
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+import 'package:flutter/material.dart';
+main() {
+  new Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: new Text('foo'),
+  );
+}
+''');
+  }
+
+  test_flutterReplaceWithChild_OK_childIntoChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('foo'),
+      new /*caret*/Center(
+        heightFactor: 0.5,
+        child: new Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: new Text('bar'),
+        ),
+      ),
+      new Text('baz'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('foo'),
+      new Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: new Text('bar'),
+      ),
+      new Text('baz'),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterReplaceWithChildren_BAD_parentChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: new /*caret*/Row(
+      children: [
+        new Text('aaa'),
+        new Text('bbb'),
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
+  }
+
+  test_flutterReplaceWithChildren_OK_intoChildren() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      new /*caret*/Column(
+        children: [
+          new Row(
+            children: [
+              new Text('bbb'),
+              new Text('ccc'),
+            ],
+          ),
+          new Row(
+            children: [
+              new Text('ddd'),
+              new Text('eee'),
+            ],
+          ),
+        ],
+      ),
+      new Text('fff'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      new Row(
+        children: [
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+      new Row(
+        children: [
+          new Text('ddd'),
+          new Text('eee'),
+        ],
+      ),
+      new Text('fff'),
+    ],
+  );
 }
 ''');
   }
@@ -4676,7 +4941,7 @@ main() {
         return assist;
       }
     }
-    throw fail('Expected to find assist $kind in\n${assists.join('\n')}');
+    fail('Expected to find assist $kind in\n${assists.join('\n')}');
   }
 
   void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,

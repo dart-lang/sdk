@@ -139,7 +139,7 @@ void computeKernelOutputUnitData(
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     if (node is ir.ConstructorInvocation ||
         node is ir.ListLiteral ||
-        node is ir.MapLiteral) {
+        (node is ir.MapLiteral && node.keyType == null)) {
       // Adjust the source-span to match the AST-based location. The kernel FE
       // skips the "const" keyword for the expression offset and any prefix in
       // front of the constructor. The "-6" is an approximation assuming that

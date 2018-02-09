@@ -258,6 +258,8 @@ import 'package:flutter/widgets.dart';
 var a = new Object();
 var b = new Text('bbb');
 ''');
+    expect(isWidgetCreation(null), isFalse);
+
     InstanceCreationExpression a = _getTopVariableCreation('a');
     expect(isWidgetCreation(a), isFalse);
 

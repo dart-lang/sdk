@@ -34,8 +34,10 @@ struct ScriptIndexPair {
     return pair.script_->raw() == key->raw();
   }
 
-  ScriptIndexPair(const Script* s, intptr_t index)
-      : script_(s), index_(index) {}
+  ScriptIndexPair(const Script* s, intptr_t index) : script_(s), index_(index) {
+    ASSERT(!s->IsNull());
+    ASSERT(s->IsNotTemporaryScopedHandle());
+  }
 
   ScriptIndexPair() : script_(NULL), index_(-1) {}
 
@@ -64,7 +66,10 @@ struct FunctionIndexPair {
   }
 
   FunctionIndexPair(const Function* f, intptr_t index)
-      : function_(f), index_(index) {}
+      : function_(f), index_(index) {
+    ASSERT(!f->IsNull());
+    ASSERT(f->IsNotTemporaryScopedHandle());
+  }
 
   FunctionIndexPair() : function_(NULL), index_(-1) {}
 
@@ -95,7 +100,10 @@ struct CodeIndexPair {
     return pair.code_->raw() == key->raw();
   }
 
-  CodeIndexPair(const Code* c, intptr_t index) : code_(c), index_(index) {}
+  CodeIndexPair(const Code* c, intptr_t index) : code_(c), index_(index) {
+    ASSERT(!c->IsNull());
+    ASSERT(c->IsNotTemporaryScopedHandle());
+  }
 
   CodeIndexPair() : code_(NULL), index_(-1) {}
 

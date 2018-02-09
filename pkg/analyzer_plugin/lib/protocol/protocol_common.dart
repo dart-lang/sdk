@@ -597,6 +597,7 @@ class ChangeContentOverlay implements HasToJson {
  *   "kind": CompletionSuggestionKind
  *   "relevance": int
  *   "completion": String
+ *   "displayText": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -625,6 +626,8 @@ class CompletionSuggestion implements HasToJson {
   int _relevance;
 
   String _completion;
+
+  String _displayText;
 
   int _selectionOffset;
 
@@ -710,6 +713,22 @@ class CompletionSuggestion implements HasToJson {
   }
 
   /**
+   * Text to be displayed in, for example, a completion pop-up. This field is
+   * only defined if the displayed text should be different than the
+   * completion. Otherwise it is omitted.
+   */
+  String get displayText => _displayText;
+
+  /**
+   * Text to be displayed in, for example, a completion pop-up. This field is
+   * only defined if the displayed text should be different than the
+   * completion. Otherwise it is omitted.
+   */
+  void set displayText(String value) {
+    this._displayText = value;
+  }
+
+  /**
    * The offset, relative to the beginning of the completion, of where the
    * selection should be placed after insertion.
    */
@@ -767,14 +786,14 @@ class CompletionSuggestion implements HasToJson {
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
-   * suggested, This field is omitted if there is no Dartdoc associated with
+   * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
   String get docSummary => _docSummary;
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
-   * suggested, This field is omitted if there is no Dartdoc associated with
+   * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
   void set docSummary(String value) {
@@ -983,7 +1002,8 @@ class CompletionSuggestion implements HasToJson {
       int selectionLength,
       bool isDeprecated,
       bool isPotential,
-      {String docSummary,
+      {String displayText,
+      String docSummary,
       String docComplete,
       String declaringType,
       String defaultArgumentListString,
@@ -1000,6 +1020,7 @@ class CompletionSuggestion implements HasToJson {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
+    this.displayText = displayText;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -1046,6 +1067,11 @@ class CompletionSuggestion implements HasToJson {
             jsonPath + ".completion", json["completion"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "completion");
+      }
+      String displayText;
+      if (json.containsKey("displayText")) {
+        displayText = jsonDecoder.decodeString(
+            jsonPath + ".displayText", json["displayText"]);
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
@@ -1151,6 +1177,7 @@ class CompletionSuggestion implements HasToJson {
       }
       return new CompletionSuggestion(kind, relevance, completion,
           selectionOffset, selectionLength, isDeprecated, isPotential,
+          displayText: displayText,
           docSummary: docSummary,
           docComplete: docComplete,
           declaringType: declaringType,
@@ -1176,6 +1203,9 @@ class CompletionSuggestion implements HasToJson {
     result["kind"] = kind.toJson();
     result["relevance"] = relevance;
     result["completion"] = completion;
+    if (displayText != null) {
+      result["displayText"] = displayText;
+    }
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
     result["isDeprecated"] = isDeprecated;
@@ -1234,6 +1264,7 @@ class CompletionSuggestion implements HasToJson {
       return kind == other.kind &&
           relevance == other.relevance &&
           completion == other.completion &&
+          displayText == other.displayText &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength &&
           isDeprecated == other.isDeprecated &&
@@ -1265,6 +1296,7 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayText.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
@@ -1298,6 +1330,7 @@ class CompletionSuggestion implements HasToJson {
  *   KEYWORD
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
+ *   OVERRIDE
  *   PARAMETER
  * }
  *
@@ -1351,6 +1384,12 @@ class CompletionSuggestionKind implements Enum {
   static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
       const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
+  /**
+   * An overriding implementation of a class member is being suggested.
+   */
+  static const CompletionSuggestionKind OVERRIDE =
+      const CompletionSuggestionKind._("OVERRIDE");
+
   static const CompletionSuggestionKind PARAMETER =
       const CompletionSuggestionKind._("PARAMETER");
 
@@ -1366,6 +1405,7 @@ class CompletionSuggestionKind implements Enum {
     KEYWORD,
     NAMED_ARGUMENT,
     OPTIONAL_ARGUMENT,
+    OVERRIDE,
     PARAMETER
   ];
 
@@ -1390,6 +1430,8 @@ class CompletionSuggestionKind implements Enum {
         return NAMED_ARGUMENT;
       case "OPTIONAL_ARGUMENT":
         return OPTIONAL_ARGUMENT;
+      case "OVERRIDE":
+        return OVERRIDE;
       case "PARAMETER":
         return PARAMETER;
     }
@@ -5207,6 +5249,7 @@ class RemoveContentOverlay implements HasToJson {
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -5219,6 +5262,8 @@ class SourceChange implements HasToJson {
   List<LinkedEditGroup> _linkedEditGroups;
 
   Position _selection;
+
+  String _id;
 
   /**
    * A human-readable description of the change to be applied.
@@ -5273,10 +5318,25 @@ class SourceChange implements HasToJson {
     this._selection = value;
   }
 
+  /**
+   * The optional identifier of the change kind. The identifier remains stable
+   * even if the message changes, or is parameterized.
+   */
+  String get id => _id;
+
+  /**
+   * The optional identifier of the change kind. The identifier remains stable
+   * even if the message changes, or is parameterized.
+   */
+  void set id(String value) {
+    this._id = value;
+  }
+
   SourceChange(String message,
       {List<SourceFileEdit> edits,
       List<LinkedEditGroup> linkedEditGroups,
-      Position selection}) {
+      Position selection,
+      String id}) {
     this.message = message;
     if (edits == null) {
       this.edits = <SourceFileEdit>[];
@@ -5289,6 +5349,7 @@ class SourceChange implements HasToJson {
       this.linkedEditGroups = linkedEditGroups;
     }
     this.selection = selection;
+    this.id = id;
   }
 
   factory SourceChange.fromJson(
@@ -5329,10 +5390,15 @@ class SourceChange implements HasToJson {
         selection = new Position.fromJson(
             jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
+      String id;
+      if (json.containsKey("id")) {
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
+      }
       return new SourceChange(message,
           edits: edits,
           linkedEditGroups: linkedEditGroups,
-          selection: selection);
+          selection: selection,
+          id: id);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceChange", json);
     }
@@ -5349,6 +5415,9 @@ class SourceChange implements HasToJson {
         .toList();
     if (selection != null) {
       result["selection"] = selection.toJson();
+    }
+    if (id != null) {
+      result["id"] = id;
     }
     return result;
   }
@@ -5389,7 +5458,8 @@ class SourceChange implements HasToJson {
               (SourceFileEdit a, SourceFileEdit b) => a == b) &&
           listEqual(linkedEditGroups, other.linkedEditGroups,
               (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
-          selection == other.selection;
+          selection == other.selection &&
+          id == other.id;
     }
     return false;
   }
@@ -5401,6 +5471,7 @@ class SourceChange implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
     hash = JenkinsSmiHash.combine(hash, selection.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

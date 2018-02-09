@@ -1664,6 +1664,26 @@ AnnotationOnEnumConstant:
 
 ExpectedAnInitializer:
   template: "Expected an initializer."
+  analyzerCode: MISSING_INITIALIZER
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C() : {} }"
+
+MissingAssignmentInInitializer:
+  template: "Expected an assignment after the field name."
+  tip: "To initialize a field, use the syntax 'name = value'."
+  analyzerCode: MISSING_ASSIGNMENT_IN_INITIALIZER
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C() : x(3) {} }"
+
+RedirectingConstructorWithBody:
+  template: "Redirecting constructors can't have a body."
+  tip: "Try removing the body, or not making this a redirecting constructor."
+  analyzerCode: REDIRECTING_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C() : this.x() {} }"
 
 NotAnLvalue:
   template: "Can't assign to this."

@@ -62,11 +62,9 @@ class _CompressionMaxWindowBits {
  * socket will be closed when the processor encounter an error. Not using it
  * will lead to undefined behaviour.
  */
-class _WebSocketProtocolTransformer
-    implements
-        EventSink<List<int>>,
-        StreamTransformer<List<int>,
-            dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/ > {
+class _WebSocketProtocolTransformer extends StreamTransformerBase<List<int>,
+        dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/ >
+    implements EventSink<List<int>> {
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -406,7 +404,9 @@ class _WebSocketPong {
 
 typedef /*String|Future<String>*/ _ProtocolSelector(List<String> protocols);
 
-class _WebSocketTransformerImpl implements WebSocketTransformer {
+class _WebSocketTransformerImpl
+    extends StreamTransformerBase<HttpRequest, WebSocket>
+    implements WebSocketTransformer {
   final StreamController<WebSocket> _controller =
       new StreamController<WebSocket>(sync: true);
   final _ProtocolSelector _protocolSelector;
@@ -655,7 +655,7 @@ class _WebSocketPerMessageDeflate {
 
 // TODO(ajohnsen): Make this transformer reusable.
 class _WebSocketOutgoingTransformer
-    implements StreamTransformer<dynamic, List<int>>, EventSink {
+    extends StreamTransformerBase<dynamic, List<int>> implements EventSink {
   final _WebSocketImpl webSocket;
   EventSink<List<int>> _eventSink;
 

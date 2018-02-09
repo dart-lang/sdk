@@ -28,7 +28,6 @@ const_switch2_test/01: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor_redirect1_negative_test: Fail
 constructor_redirect2_negative_test: Fail
-constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError

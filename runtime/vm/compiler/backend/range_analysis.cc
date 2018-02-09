@@ -1785,6 +1785,7 @@ RangeBoundary RangeBoundary::FromDefinition(Definition* defn, int64_t offs) {
   if (defn->IsConstant() && defn->AsConstant()->value().IsSmi()) {
     return FromConstant(Smi::Cast(defn->AsConstant()->value()).Value() + offs);
   }
+  ASSERT(IsValidOffsetForSymbolicRangeBoundary(offs));
   return RangeBoundary(kSymbol, reinterpret_cast<intptr_t>(defn), offs);
 }
 
@@ -1846,6 +1847,10 @@ bool RangeBoundary::SymbolicAdd(const RangeBoundary& a,
 
     const int64_t offset = a.offset() + b.ConstantValue();
 
+    if (!IsValidOffsetForSymbolicRangeBoundary(offset)) {
+      return false;
+    }
+
     *result = RangeBoundary::FromDefinition(a.symbol(), offset);
     return true;
   } else if (b.IsSymbol() && a.IsConstant()) {
@@ -1863,6 +1868,10 @@ bool RangeBoundary::SymbolicSub(const RangeBoundary& a,
     }
 
     const int64_t offset = a.offset() - b.ConstantValue();
+
+    if (!IsValidOffsetForSymbolicRangeBoundary(offset)) {
+      return false;
+    }
 
     *result = RangeBoundary::FromDefinition(a.symbol(), offset);
     return true;
@@ -1959,6 +1968,10 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
     }
   } while (changed);
 
+  if (!RangeBoundary::IsValidOffsetForSymbolicRangeBoundary(offset)) {
+    return overflow;
+  }
+
   return RangeBoundary::FromDefinition(symbol, offset);
 }
 
@@ -1974,6 +1987,11 @@ static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
   }
 
   const int64_t offset = range->max().offset() + a->offset();
+
+  if (!RangeBoundary::IsValidOffsetForSymbolicRangeBoundary(offset)) {
+    *a = RangeBoundary::PositiveInfinity();
+    return true;
+  }
 
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->max().symbol(), offset),
@@ -1994,6 +2012,11 @@ static bool CanonicalizeMinBoundary(RangeBoundary* a) {
   }
 
   const int64_t offset = range->min().offset() + a->offset();
+
+  if (!RangeBoundary::IsValidOffsetForSymbolicRangeBoundary(offset)) {
+    *a = RangeBoundary::NegativeInfinity();
+    return true;
+  }
 
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->min().symbol(), offset),

@@ -4,15 +4,21 @@
 
 library fasta.tool.entry_points;
 
-import 'dart:async' show Future;
+import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show JSON, LineSplitter, UTF8;
 
-import 'dart:io' show File, exitCode;
+import 'dart:io' show File, exitCode, stderr, stdin, stdout;
 
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
+import 'package:kernel/kernel.dart'
+    show CanonicalName, Library, Program, Source, loadProgramFromBytes;
+
 import 'package:kernel/target/targets.dart' show TargetFlags, targets;
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -32,8 +38,6 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
-import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 
 import 'command_line.dart' show withGlobalOptions;
 
@@ -70,6 +74,78 @@ outlineEntryPoint(List<String> arguments) async {
       print("\n");
     }
     await outline(arguments);
+  }
+}
+
+batchEntryPoint(List<String> arguments) {
+  return new BatchCompiler(
+          stdin.transform(UTF8.decoder).transform(new LineSplitter()))
+      .run();
+}
+
+class BatchCompiler {
+  final Stream lines;
+
+  Uri platformUri;
+
+  Program platformComponent;
+
+  BatchCompiler(this.lines);
+
+  run() async {
+    await for (String line in lines) {
+      try {
+        if (await batchCompile(line)) {
+          stdout.writeln(">>> TEST OK");
+        } else {
+          stdout.writeln(">>> TEST FAIL");
+        }
+      } catch (e, trace) {
+        stderr.writeln("Unhandled exception:\n  $e");
+        stderr.writeln(trace);
+        stdout.writeln(">>> TEST CRASH");
+      }
+      await stdout.flush();
+      stderr.writeln(">>> EOF STDERR");
+      await stderr.flush();
+    }
+  }
+
+  Future<bool> batchCompile(String line) async {
+    List<String> arguments = new List<String>.from(JSON.decode(line));
+    try {
+      return await withGlobalOptions("compile", arguments, true,
+          (CompilerContext c, _) async {
+        ProcessedOptions options = c.options;
+        bool verbose = options.verbose;
+        Ticker ticker = new Ticker(isVerbose: verbose);
+        if (verbose) {
+          print("Compiling directly to Kernel: $line");
+        }
+        if (platformComponent == null || platformUri != options.sdkSummary) {
+          platformUri = options.sdkSummary;
+          platformComponent = await options.loadSdkSummary(null);
+        } else {
+          options.sdkSummaryComponent = platformComponent;
+        }
+        CompileTask task = new CompileTask(c, ticker);
+        await task.compile(sansPlatform: true);
+        CanonicalName root = platformComponent.root;
+        for (Library library in platformComponent.libraries) {
+          library.parent = platformComponent;
+          CanonicalName name = library.reference.canonicalName;
+          if (name != null && name.parent != root) {
+            root.adoptChild(name);
+          }
+        }
+        root.unbindAll();
+        return c.errors.isEmpty;
+      });
+    } on deprecated_InputError catch (e) {
+      CompilerContext.runWithDefaultOptions(
+          (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
+      return false;
+    }
   }
 }
 
@@ -159,13 +235,26 @@ class CompileTask {
     return kernelTarget;
   }
 
-  Future<Uri> compile() async {
+  Future<Uri> compile({bool sansPlatform: false}) async {
     KernelTarget kernelTarget = await buildOutline();
     if (exitCode != 0) return null;
     Uri uri = c.options.output;
-    var program = await kernelTarget.buildProgram(verify: c.options.verify);
+    Program program = await kernelTarget.buildProgram(verify: c.options.verify);
     if (c.options.debugDump) {
       printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
+    }
+    if (sansPlatform) {
+      program.computeCanonicalNames();
+      Program userCode = new Program(
+          nameRoot: program.root,
+          uriToSource: new Map<Uri, Source>.from(program.uriToSource));
+      userCode.mainMethodName = program.mainMethodName;
+      for (Library library in program.libraries) {
+        if (library.importUri.scheme != "dart") {
+          userCode.libraries.add(library);
+        }
+      }
+      program = userCode;
     }
     await writeProgramToFile(program, uri);
     ticker.logMs("Wrote program to ${uri.toFilePath()}");

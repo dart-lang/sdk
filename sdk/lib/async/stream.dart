@@ -270,7 +270,7 @@ abstract class Stream<T> {
    *       void close() { _outputSink.close(); }
    *     }
    *
-   *     class DuplicationTransformer implements StreamTransformer<String, String> {
+   *     class DuplicationTransformer extends StreamTransformerBase<String, String> {
    *       // Some generic types omitted for brevity.
    *       Stream bind(Stream stream) => new Stream<String>.eventTransformed(
    *           stream,
@@ -285,6 +285,17 @@ abstract class Stream<T> {
       Stream source, EventSink mapSink(EventSink<T> sink)) {
     return new _BoundSinkStream(source, mapSink);
   }
+
+  /**
+   * Adapts [source] to be a `Stream<T>`.
+   *
+   * This allows [source] to be used at the new type, but at run-time it
+   * must satisfy the requirements of both the new type and its original type.
+   *
+   * Data events created by the source stream must also be instances of [T].
+   */
+  static Stream<T> castFrom<S, T>(Stream<S> source) =>
+      new CastStream<S, T>(source);
 
   /**
    * Whether this stream is a broadcast stream.
@@ -922,6 +933,26 @@ abstract class Stream<T> {
   }
 
   /**
+   * Adapt this stream to be a `Stream<R>`.
+   *
+   * If this stream already has the desired type, its returned directly.
+   * Otherwise it is wrapped as a `Stream<R>` which checks at run-time that
+   * each data event emitted by this stream is also an instance of [R].
+   */
+  Stream<R> cast<R>() {
+    Stream<Object> self = this;
+    return self is Stream<R> ? self : retype<R>();
+  }
+
+  /**
+   * Adapt this stream to be a `Stream<R>`.
+   *
+   * This stream is wrapped as a `Stream<R>` which checks at run-time that
+   * each data event emitted by this stream is also an instance of [R].
+   */
+  Stream<R> retype<R>() => Stream.castFrom<T, R>(this);
+
+  /**
    * Collects all elements of this stream in a [List].
    *
    * Creates a `List<T>` and adds all elements of the stream to the list
@@ -1225,8 +1256,8 @@ abstract class Stream<T> {
    * that [test] returns `true` for.
    *
    * If no such element is found before this stream is done, and a
-   * [defaultValue] function is provided, the result of calling [defaultValue]
-   * becomes the value of the future. If [defaultValue] throws, the returned
+   * [orElse] function is provided, the result of calling [orElse]
+   * becomes the value of the future. If [orElse] throws, the returned
    * future is completed with that error.
    *
    * If this stream emits an error before the first matching element,
@@ -1240,11 +1271,12 @@ abstract class Stream<T> {
    * streams are closed and cannot be reused after a call to this method.
    *
    * If an error occurs, or if this stream ends without finding a match and
-   * with no [defaultValue] function provided,
+   * with no [orElse] function provided,
    * the returned future is completed with an error.
    */
-  Future<dynamic> firstWhere(bool test(T element), {Object defaultValue()}) {
-    _Future<dynamic> future = new _Future();
+  Future<T> firstWhere(bool test(T element),
+      {dynamic defaultValue(), T orElse()}) {
+    _Future<T> future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen(
         (T value) {
@@ -1256,8 +1288,11 @@ abstract class Stream<T> {
         },
         onError: future._completeError,
         onDone: () {
-          if (defaultValue != null) {
-            _runUserCode(defaultValue, future._complete, future._completeError);
+          if (orElse == null && defaultValue != null) {
+            orElse = () => defaultValue() as T;
+          }
+          if (orElse != null) {
+            _runUserCode(orElse, future._complete, future._completeError);
             return;
           }
           try {
@@ -1281,8 +1316,9 @@ abstract class Stream<T> {
    * That means that a non-error result cannot be provided before this stream
    * is done.
    */
-  Future<dynamic> lastWhere(bool test(T element), {Object defaultValue()}) {
-    _Future<dynamic> future = new _Future();
+  Future<T> lastWhere(bool test(T element),
+      {dynamic defaultValue(), T orElse()}) {
+    _Future<T> future = new _Future();
     T result = null;
     bool foundResult = false;
     StreamSubscription subscription;
@@ -1301,8 +1337,11 @@ abstract class Stream<T> {
             future._complete(result);
             return;
           }
-          if (defaultValue != null) {
-            _runUserCode(defaultValue, future._complete, future._completeError);
+          if (orElse == null && defaultValue != null) {
+            orElse = () => defaultValue() as T;
+          }
+          if (orElse != null) {
+            _runUserCode(orElse, future._complete, future._completeError);
             return;
           }
           try {
@@ -1321,7 +1360,7 @@ abstract class Stream<T> {
    * Like [lastWhere], except that it is an error if more than one
    * matching element occurs in the stream.
    */
-  Future<T> singleWhere(bool test(T element)) {
+  Future<T> singleWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future<T>();
     T result = null;
     bool foundResult = false;
@@ -1350,6 +1389,10 @@ abstract class Stream<T> {
             return;
           }
           try {
+            if (orElse != null) {
+              _runUserCode(orElse, future._complete, future._completeError);
+              return;
+            }
             throw IterableElementError.noElement();
           } catch (e, s) {
             _completeWithErrorCallback(future, e, s);
@@ -1948,6 +1991,21 @@ abstract class StreamTransformer<S, T> {
       void handleDone(EventSink<T> sink)}) = _StreamHandlerTransformer<S, T>;
 
   /**
+   * Adapts [source] to be a `StreamTransfomer<TS, TT>`.
+   *
+   * This allows [source] to be used at the new type, but at run-time it
+   * must satisfy the requirements of both the new type and its original type.
+   *
+   * Data events passed into the returned transformer must also be instances
+   * of [SS], and data events produced by [source] for those events must
+   * also be instances of [TT].
+   */
+  static StreamTransformer<TS, TT> castFrom<SS, ST, TS, TT>(
+      StreamTransformer<SS, ST> source) {
+    return new CastStreamTransformer<SS, ST, TS, TT>(source);
+  }
+
+  /**
    * Transforms the provided [stream].
    *
    * Returns a new stream with events that are computed from events of the
@@ -1969,6 +2027,25 @@ abstract class StreamTransformer<S, T> {
    * duration. Others might not delay them at all, or just by a microtask.
    */
   Stream<T> bind(Stream<S> stream);
+
+  /**
+   * Provides a `StreamTransformer<RS, RT>` view of this stream transformer.
+   *
+   * If this transformer already has the desired type, or a subtype,
+   * it is returned directly,
+   * otherwise returns the result of `retype<RS, RT>()`.
+   */
+  StreamTransformer<RS, RT> cast<RS, RT>();
+
+  /**
+   * Provides a `StreamTrasformer<RS, RT>` view of this stream transformer.
+   *
+   * The resulting transformer will check at run-time that all data events
+   * of the stream it transforms are actually instances of [S],
+   * and it will check that all data events produced by this transformer
+   * are acually instances of [RT].
+   */
+  StreamTransformer<RS, RT> retype<RS, RT>();
 }
 
 /**
@@ -1978,6 +2055,14 @@ abstract class StreamTransformer<S, T> {
  */
 abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
   const StreamTransformerBase();
+
+  StreamTransformer<RS, RT> cast<RS, RT>() {
+    StreamTransformer<Object, Object> self = this;
+    return self is StreamTransformer<RS, RT> ? self : retype<RS, RT>();
+  }
+
+  StreamTransformer<RS, RT> retype<RS, RT>() =>
+      StreamTransformer.castFrom<S, T, RS, RT>(this);
 }
 
 /**

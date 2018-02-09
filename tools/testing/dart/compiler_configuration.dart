@@ -169,11 +169,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       // correct arguments to VM binary. No need to pass any additional
       // arguments.
       if (!_isStrong) {
-        args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-        args.add('--kernel-binaries=' +
-            (_useSdk
-                ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-                : '${buildDir}'));
+        args.add('--preview_dart_2');
       }
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes

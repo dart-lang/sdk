@@ -11,6 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 
 const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
 
+const _STATELESS_WIDGET_NAME = "StatelessWidget";
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
 
@@ -100,12 +101,21 @@ void convertChildToChildren2(
 }
 
 /**
- * Return the named expression representing the 'child' argument of the given
- * [newExpr], or null if none.
+ * Return the named expression representing the `child` argument of the given
+ * [newExpr], or `null` if none.
  */
 NamedExpression findChildArgument(InstanceCreationExpression newExpr) =>
     newExpr.argumentList.arguments.firstWhere(
         (arg) => arg is NamedExpression && arg.name.label.name == 'child',
+        orElse: () => null);
+
+/**
+ * Return the named expression representing the `children` argument of the
+ * given [newExpr], or `null` if none.
+ */
+NamedExpression findChildrenArgument(InstanceCreationExpression newExpr) =>
+    newExpr.argumentList.arguments.firstWhere(
+        (arg) => arg is NamedExpression && arg.name.label.name == 'children',
         orElse: () => null);
 
 /**
@@ -247,6 +257,14 @@ Expression identifyWidgetExpression(AstNode node) {
 }
 
 /**
+ * Return `true` if the given [type] is the Flutter class `StatelessWidget`.
+ */
+bool isExactlyStatelessWidgetType(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _STATELESS_WIDGET_NAME, _WIDGET_URI);
+}
+
+/**
  * Return `true` if the given [type] is the Flutter class `Widget`, or its
  * subtype.
  */
@@ -282,7 +300,7 @@ bool isWidget(ClassElement element) {
  * class that has the Flutter class `Widget` as a superclass.
  */
 bool isWidgetCreation(InstanceCreationExpression expr) {
-  ClassElement element = expr.staticElement?.enclosingElement;
+  ClassElement element = expr?.staticElement?.enclosingElement;
   return isWidget(element);
 }
 

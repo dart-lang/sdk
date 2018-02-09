@@ -3897,16 +3897,28 @@ class Wrong<T> {
   }
 
   void test_invalidTopLevelVar() {
-    parseCompilationUnit("var Function(var arg);", errors: [
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 21, 2),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 2),
-    ]);
+    parseCompilationUnit("var Function(var arg);",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.VAR_RETURN_TYPE, 0, 3),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 21, 1),
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 21, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 2),
+              ]);
   }
 
   void test_invalidTypedef() {
     parseCompilationUnit("typedef var Function(var arg);",
         errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.VAR_AS_TYPE_NAME, 8, 3)]
+            ? [
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 7),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
+                expectedError(ParserErrorCode.VAR_RETURN_TYPE, 8, 3),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 1),
+              ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
                 expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
@@ -4793,7 +4805,8 @@ class Wrong<T> {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, 15, 2)
+      expectedError(ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, 15,
+          usingFastaParser ? 1 : 2)
     ]);
   }
 
@@ -4802,7 +4815,8 @@ class Wrong<T> {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, 15, 2)
+      expectedError(ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, 15,
+          usingFastaParser ? 1 : 2)
     ]);
   }
 
@@ -10544,9 +10558,8 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     createParser('C() : {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)]
-        : [expectedError(ParserErrorCode.MISSING_INITIALIZER, 4, 1)]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_INITIALIZER, 4, 1)]);
   }
 
   void test_incomplete_constructorInitializers_missingEquals() {
@@ -10554,7 +10567,8 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 11, 1)
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
+          usingFastaParser ? 6 : 11, 1)
     ]);
     expect(member, new isInstanceOf<ConstructorDeclaration>());
     NodeList<ConstructorInitializer> initializers =
@@ -10565,7 +10579,53 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     Expression expression =
         (initializer as ConstructorFieldInitializer).expression;
     expect(expression, isNotNull);
-    expect(expression, new isInstanceOf<ParenthesizedExpression>());
+    expect(
+        expression,
+        usingFastaParser
+            ? new isInstanceOf<MethodInvocation>()
+            : new isInstanceOf<ParenthesizedExpression>());
+  }
+
+  void test_incomplete_constructorInitializers_this() {
+    createParser('C() : this {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+      usingFastaParser
+          ? expectedError(
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
+          : expectedError(
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 11, 1)
+    ]);
+  }
+
+  void test_incomplete_constructorInitializers_thisField() {
+    createParser('C() : this.g {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([
+      usingFastaParser
+          ? expectedError(
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
+          : expectedError(
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 8, 1)
+    ]);
+  }
+
+  void test_incomplete_constructorInitializers_thisPeriod() {
+    createParser('C() : this. {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
+      usingFastaParser
+          ? expectedError(
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
+          : expectedError(
+              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 11, 1)
+    ]);
   }
 
   void test_incomplete_constructorInitializers_variable() {
@@ -10573,7 +10633,8 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 8, 1)
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
+          usingFastaParser ? 6 : 8, 1)
     ]);
   }
 
@@ -15535,8 +15596,9 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
     for (Keyword keyword in Keyword.values) {
-      if (keyword.isBuiltIn) {
+      if (keyword.isBuiltIn || keyword.isPseudo) {
         String lexeme = keyword.lexeme;
+        if (lexeme == 'Function' && !usingFastaParser) continue;
         parseCompilationUnit('$lexeme(x) => 0;');
         parseCompilationUnit('class C {$lexeme(x) => 0;}');
       }
@@ -15546,7 +15608,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
   void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
     if (usingFastaParser) {
       for (Keyword keyword in Keyword.values) {
-        if (keyword.isBuiltIn) {
+        if (keyword.isBuiltIn || keyword.isPseudo) {
           String lexeme = keyword.lexeme;
           parseCompilationUnit('$lexeme<T>(x) => 0;');
           parseCompilationUnit('class C {$lexeme<T>(x) => 0;}');
@@ -15557,7 +15619,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
 
   void test_parseCompilationUnit_builtIn_asGetter() {
     for (Keyword keyword in Keyword.values) {
-      if (keyword.isBuiltIn) {
+      if (keyword.isBuiltIn || keyword.isPseudo) {
         String lexeme = keyword.lexeme;
         parseCompilationUnit('get $lexeme => 0;');
         parseCompilationUnit('class C {get $lexeme => 0;}');
@@ -15638,6 +15700,16 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_pseudo_prefixed() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isPseudo) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('M.$lexeme f;');
+        parseCompilationUnit('class C {M.$lexeme f;}');
+      }
+    }
   }
 
   void test_parseCompilationUnit_script() {

@@ -140,8 +140,11 @@ class AssistProcessor {
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToNormalParameter();
+    await _addProposal_convertToStatefulWidget();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
+    await _addProposal_flutterReplaceWithChild();
+    await _addProposal_flutterReplaceWithChildren();
     await _addProposal_importAddShow();
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
@@ -1179,6 +1182,100 @@ class AssistProcessor {
     }
   }
 
+  Future<Null> _addProposal_convertToStatefulWidget() async {
+    ClassDeclaration widgetClass =
+        node.getAncestor((n) => n is ClassDeclaration);
+    TypeName superclass = widgetClass?.extendsClause?.superclass;
+    if (widgetClass == null || superclass == null) {
+      _coverageMarker();
+      return;
+    }
+
+    // Don't spam, activate only from the `class` keyword to the class body.
+    if (selectionOffset < widgetClass.classKeyword.offset ||
+        selectionOffset > widgetClass.leftBracket.end) {
+      _coverageMarker();
+      return;
+    }
+
+    // Find the build() method.
+    MethodDeclaration buildMethod;
+    for (var member in widgetClass.members) {
+      if (member is MethodDeclaration &&
+          member.name.name == 'build' &&
+          member.parameters != null &&
+          member.parameters.parameters.length == 1) {
+        buildMethod = member;
+        break;
+      }
+    }
+    if (buildMethod == null) {
+      _coverageMarker();
+      return;
+    }
+
+    // Must be a StatelessWidget subclasses.
+    ClassElement widgetClassElement = widgetClass.element;
+    if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
+      _coverageMarker();
+      return;
+    }
+
+    String widgetName = widgetClassElement.displayName;
+    String stateName = widgetName + 'State';
+
+    var buildLinesRange = utils.getLinesRange(range.node(buildMethod));
+    var buildText = utils.getRangeText(buildLinesRange);
+
+    // Update the build() text to insert `widget.` before references to
+    // the widget class members.
+    final List<SourceEdit> buildTextEdits = [];
+    buildMethod.body.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+      if (node.staticElement?.enclosingElement == widgetClassElement) {
+        var offset = node.offset - buildLinesRange.offset;
+        AstNode parent = node.parent;
+        if (parent is InterpolationExpression &&
+            parent.leftBracket.type ==
+                TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+          buildTextEdits.add(new SourceEdit(offset, 0, '{widget.'));
+          buildTextEdits.add(new SourceEdit(offset + node.length, 0, '}'));
+        } else {
+          buildTextEdits.add(new SourceEdit(offset, 0, 'widget.'));
+        }
+      }
+    }));
+    buildText = SourceEdit.applySequence(buildText, buildTextEdits.reversed);
+
+    var statefulWidgetClass =
+        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
+    var stateClass =
+        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'State');
+    var stateType = stateClass.type.instantiate([widgetClassElement.type]);
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) async {
+      builder.addReplacement(range.node(superclass), (builder) {
+        builder.writeType(statefulWidgetClass.type);
+      });
+      builder.addReplacement(buildLinesRange, (builder) {
+        builder.writeln('  @override');
+        builder.writeln('  $stateName createState() {');
+        builder.writeln('    return new $stateName();');
+        builder.writeln('  }');
+      });
+      builder.addInsertion(widgetClass.end, (builder) {
+        builder.writeln();
+        builder.writeln();
+        builder.writeClassDeclaration(stateName, superclass: stateType,
+            membersWriter: () {
+          builder.write(buildText);
+        });
+      });
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
   Future<Null> _addProposal_encapsulateField() async {
     // find FieldDeclaration
     FieldDeclaration fieldDeclaration =
@@ -1309,6 +1406,71 @@ class AssistProcessor {
       }
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.EXCHANGE_OPERANDS);
+  }
+
+  Future<Null> _addProposal_flutterReplaceWithChild() async {
+    var widgetCreation = flutter.identifyNewExpression(node);
+    if (widgetCreation == null) {
+      return;
+    }
+
+    var childArgument = flutter.findChildArgument(widgetCreation);
+    if (childArgument == null) {
+      return;
+    }
+
+    // child: new ThisWidget(child: ourChild)
+    // children: [foo, new ThisWidget(child: ourChild), bar]
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var childExpression = childArgument.expression;
+      var childText = utils.getNodeText(childExpression);
+      var indentOld = utils.getLinePrefix(childExpression.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = _replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
+  }
+
+  Future<Null> _addProposal_flutterReplaceWithChildren() async {
+    var widgetCreation = flutter.identifyNewExpression(node);
+    if (widgetCreation == null) {
+      return;
+    }
+
+    // We can inline the list of our children only into another list.
+    var widgetParentNode = widgetCreation.parent;
+    if (widgetParentNode is! ListLiteral) {
+      return;
+    }
+
+    // Prepare the list of our children.
+    List<Expression> childrenExpressions;
+    {
+      var childrenArgument = flutter.findChildrenArgument(widgetCreation);
+      var childrenExpression = childrenArgument?.expression;
+      if (childrenExpression is ListLiteral &&
+          childrenExpression.elements.isNotEmpty) {
+        childrenExpressions = childrenExpression.elements;
+      } else {
+        return;
+      }
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var firstChild = childrenExpressions.first;
+      var lastChild = childrenExpressions.last;
+      var childText = utils.getRangeText(range.startEnd(firstChild, lastChild));
+      var indentOld = utils.getLinePrefix(firstChild.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = _replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
   }
 
   Future<Null> _addProposal_importAddShow() async {

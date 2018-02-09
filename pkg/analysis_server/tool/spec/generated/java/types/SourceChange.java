@@ -56,13 +56,20 @@ public class SourceChange {
   private final Position selection;
 
   /**
+   * The optional identifier of the change kind. The identifier remains stable even if the message
+   * changes, or is parameterized.
+   */
+  private final String id;
+
+  /**
    * Constructor for {@link SourceChange}.
    */
-  public SourceChange(String message, List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection) {
+  public SourceChange(String message, List<SourceFileEdit> edits, List<LinkedEditGroup> linkedEditGroups, Position selection, String id) {
     this.message = message;
     this.edits = edits;
     this.linkedEditGroups = linkedEditGroups;
     this.selection = selection;
+    this.id = id;
   }
 
   @Override
@@ -73,7 +80,8 @@ public class SourceChange {
         ObjectUtilities.equals(other.message, message) &&
         ObjectUtilities.equals(other.edits, edits) &&
         ObjectUtilities.equals(other.linkedEditGroups, linkedEditGroups) &&
-        ObjectUtilities.equals(other.selection, selection);
+        ObjectUtilities.equals(other.selection, selection) &&
+        ObjectUtilities.equals(other.id, id);
     }
     return false;
   }
@@ -83,7 +91,8 @@ public class SourceChange {
     List<SourceFileEdit> edits = SourceFileEdit.fromJsonArray(jsonObject.get("edits").getAsJsonArray());
     List<LinkedEditGroup> linkedEditGroups = LinkedEditGroup.fromJsonArray(jsonObject.get("linkedEditGroups").getAsJsonArray());
     Position selection = jsonObject.get("selection") == null ? null : Position.fromJson(jsonObject.get("selection").getAsJsonObject());
-    return new SourceChange(message, edits, linkedEditGroups, selection);
+    String id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsString();
+    return new SourceChange(message, edits, linkedEditGroups, selection, id);
   }
 
   public static List<SourceChange> fromJsonArray(JsonArray jsonArray) {
@@ -103,6 +112,14 @@ public class SourceChange {
    */
   public List<SourceFileEdit> getEdits() {
     return edits;
+  }
+
+  /**
+   * The optional identifier of the change kind. The identifier remains stable even if the message
+   * changes, or is parameterized.
+   */
+  public String getId() {
+    return id;
   }
 
   /**
@@ -133,6 +150,7 @@ public class SourceChange {
     builder.append(edits);
     builder.append(linkedEditGroups);
     builder.append(selection);
+    builder.append(id);
     return builder.toHashCode();
   }
 
@@ -152,6 +170,9 @@ public class SourceChange {
     if (selection != null) {
       jsonObject.add("selection", selection.toJson());
     }
+    if (id != null) {
+      jsonObject.addProperty("id", id);
+    }
     return jsonObject;
   }
 
@@ -166,7 +187,9 @@ public class SourceChange {
     builder.append("linkedEditGroups=");
     builder.append(StringUtils.join(linkedEditGroups, ", ") + ", ");
     builder.append("selection=");
-    builder.append(selection);
+    builder.append(selection + ", ");
+    builder.append("id=");
+    builder.append(id);
     builder.append("]");
     return builder.toString();
   }

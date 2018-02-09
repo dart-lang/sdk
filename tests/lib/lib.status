@@ -12,6 +12,7 @@ mirrors/mirrors_reader_test: Pass, Slow
 mirrors/*: Skip # Issue 27929: Triage
 
 [ $compiler == dart2analyzer ]
+async/stream_event_transformed_test: StaticWarning
 convert/base64_test/01: CompileTimeError # int64
 convert/utf82_test: CompileTimeError # int64
 math/double_pow_test: CompileTimeError # int64
@@ -27,6 +28,9 @@ mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional li
 profiler/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 typed_data/int32x4_bigint_test: CompileTimeError # int64
+
+[ $compiler != dart2analyzer ]
+async/stream_controller_async_test: StaticWarning
 
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
@@ -166,6 +170,10 @@ async/stream_empty_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
 mirrors/*: Skip # Flutter does not support mirrors.
 
+[ $runtime != none ]
+async/stream_controller_async_test: RuntimeError # Library changed.
+async/stream_from_iterable_test: RuntimeError # Library changed.
+
 [ $runtime == safari ]
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
@@ -198,6 +206,10 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 
 [ $strong ]
 *: SkipByDesign # tests/lib_2 has the strong mode versions of these tests.
+
+[ !$strong ]
+async/stream_first_where_test: RuntimeError
+async/stream_last_where_test: RuntimeError
 
 [ $arch == ia32 && $mode == debug && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
@@ -502,6 +514,11 @@ math/double_pow_test: CompileTimeError # Large integer literal
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 typed_data/int32x4_bigint_test: CompileTimeError # Large integer literal
+
+[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || $compiler == dart2js && $dart2js_with_kernel ]
+convert/base64_test/01: CompileTimeError # Large integer literal
+convert/utf82_test: CompileTimeError # Large integer literal
+math/double_pow_test: CompileTimeError # Large integer literal
 
 [ $hot_reload || $hot_reload_rollback ]
 async/stream_transformer_test: Pass, Fail # Closure identity
