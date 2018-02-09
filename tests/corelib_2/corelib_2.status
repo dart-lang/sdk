@@ -190,9 +190,6 @@ list_test/none: Crash # Unsupported operation: Unsupported type parameter type n
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError
 
-[ $compiler == dart2js && $checked && $dart2js_with_kernel && !$strong ]
-*: SkipByDesign
-
 [ $compiler == dart2js && $dart2js_with_kernel ]
 int_from_environment_test: Pass # Issue 31762
 int_parse_radix_test/none: Pass # Issue 31762
@@ -207,9 +204,6 @@ list_test/none: Crash # Unsupported operation: Unsupported type parameter type n
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-
-[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && !$strong ]
-*: SkipByDesign
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]
 apply3_test: CompileTimeError
@@ -264,9 +258,6 @@ symbol_reserved_word_test/03: RuntimeError
 uri_base_test: RuntimeError
 uri_query_test: Crash # Assertion failure: Cannot find value local(testQueryParameters#normalizedQuery) in (BoxLocal(_box_0)) for j:signature(testQueryParameters_test.$signature).
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked && !$strong ]
-*: SkipByDesign
-
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
 apply3_test: CompileTimeError
 cast_test: RuntimeError
@@ -310,7 +301,7 @@ symbol_reserved_word_test/03: RuntimeError
 uri_base_test: RuntimeError
 uri_query_test: Crash # Assertion failure: Cannot find value local(testQueryParameters#normalizedQuery) in (BoxLocal(_box_0)) for j:signature(testQueryParameters_test.$signature).
 
-[ $compiler == dart2js && $dart2js_with_kernel && $minified && !$strong ]
+[ $compiler == dart2js && $dart2js_with_kernel && !$strong ]
 *: SkipByDesign
 
 [ $compiler == dart2js && !$dart2js_with_kernel ]
@@ -333,6 +324,11 @@ list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 map_keys2_test: RuntimeError # needs Dart 2 is checks
 string_base_vm_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
+
+# Dart2JS does not support strong mode without the new front end, though it
+# does support checked mode which is partly compatible.
+[ $compiler == dart2js && !$dart2js_with_kernel && $strong ]
+*: SkipByDesign
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
