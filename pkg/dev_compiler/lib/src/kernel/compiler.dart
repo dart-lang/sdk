@@ -1470,10 +1470,9 @@ class ProgramCompiler
     for (var f in fields) {
       if (f.isStatic) continue;
       var init = f.initializer;
-      if (init == null ||
-          ctorFields != null &&
-              ctorFields.contains(f) &&
-              _constants.isConstant(init)) {
+      if (ctorFields != null &&
+          ctorFields.contains(f) &&
+          (init == null || _constants.isConstant(init))) {
         continue;
       }
       emitFieldInit(f, init);
