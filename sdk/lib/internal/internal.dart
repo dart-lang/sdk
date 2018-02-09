@@ -6,10 +6,19 @@ library dart._internal;
 
 import 'dart:collection';
 
+import 'dart:async'
+    show
+        Future,
+        Stream,
+        StreamSubscription,
+        StreamTransformer,
+        StreamTransformerBase;
+import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:math' show Random;
 
+part 'async_cast.dart';
 part 'cast.dart';
 part 'iterable.dart';
 part 'list.dart';

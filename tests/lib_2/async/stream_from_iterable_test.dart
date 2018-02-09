@@ -105,29 +105,6 @@ main() {
     });
   });
 
-  test("regression-14334-a", () {
-    var from = new Stream.fromIterable([1, 2, 3, 4, 5]);
-
-    // odd numbers as data events, even numbers as error events
-    from = from.map((x) => x.isOdd ? x : throw x);
-
-    var c = new StreamController();
-    var sink = c.sink;
-
-    var done = expectAsync(() {}, count: 2);
-
-    var data = [], errors = [];
-    c.stream.listen(data.add, onError: errors.add, onDone: () {
-      Expect.listEquals([1], data);
-      Expect.listEquals([2], errors);
-      done();
-    });
-    sink.addStream(from).then((_) {
-      c.close();
-      done();
-    });
-  });
-
   test("regression-14334-b", () {
     var from = new Stream.fromIterable([1, 2, 3, 4, 5]);
 
@@ -144,7 +121,7 @@ main() {
       Expect.listEquals([2, 4], errors);
       done();
     });
-    c.addStream(from, cancelOnError: false).then((_) {
+    c.addStream(from).then((_) {
       c.close();
       done();
     });

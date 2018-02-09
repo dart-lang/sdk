@@ -155,8 +155,7 @@ testExtraMethods() {
 
   test("firstWhere 3", () {
     StreamController c = new StreamController();
-    Future f =
-        c.stream.firstWhere((x) => (x % 4) == 0, defaultValue: () => 999);
+    Future f = c.stream.firstWhere((x) => (x % 4) == 0, orElse: () => 999);
     f.then(expectAsync((v) {
       Expect.equals(999, v);
     }));
@@ -181,7 +180,7 @@ testExtraMethods() {
 
   test("lastWhere 3", () {
     StreamController c = new StreamController();
-    Future f = c.stream.lastWhere((x) => (x % 4) == 0, defaultValue: () => 999);
+    Future f = c.stream.lastWhere((x) => (x % 4) == 0, orElse: () => 999);
     f.then(expectAsync((v) {
       Expect.equals(999, v);
     }));
@@ -813,7 +812,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
       ..error("BAD")
       ..close();
     StreamController sourceController = new StreamController();
-    c.addStream(sourceController.stream).then((_) {
+    c.addStream(sourceController.stream, cancelOnError: true).then((_) {
       c.close().then((_) {
         Expect.listEquals(expected.events, actual.events);
         done();
@@ -843,7 +842,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
       ..close();
 
     StreamController sourceController = new StreamController();
-    c.addStream(sourceController.stream, cancelOnError: false).then((_) {
+    c.addStream(sourceController.stream).then((_) {
       c.close().then((_) {
         Expect.listEquals(source.events, actual.events);
         done();
@@ -881,7 +880,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
       ..add(5);
     expected..close();
 
-    c.addStream(s1).then((_) {
+    c.addStream(s1, cancelOnError: true).then((_) {
       c.addStream(s2, cancelOnError: false).then((_) {
         c.close().then((_) {
           Expect.listEquals(expected.events, actual.events);

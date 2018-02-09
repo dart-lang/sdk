@@ -271,7 +271,7 @@ abstract class StreamController<T> implements StreamSink<T> {
    * forwarded to the controller's stream, and the `addStream` ends
    * after this. If [cancelOnError] is false, all errors are forwarded
    * and only a done event will end the `addStream`.
-   * If [cancelOnError] is omitted, it defaults to true.
+   * If [cancelOnError] is omitted, it defaults to false.
    */
   Future addStream(Stream<T> source, {bool cancelOnError});
 }
@@ -555,7 +555,7 @@ abstract class _StreamController<T>
     if (_isCanceled) return new _Future.immediate(null);
     _StreamControllerAddStreamState<T> addState =
         new _StreamControllerAddStreamState<T>(
-            this, _varData, source, cancelOnError ?? true);
+            this, _varData, source, cancelOnError ?? false);
     _varData = addState;
     _state |= _STATE_ADDSTREAM;
     return addState.addStreamFuture;
@@ -863,8 +863,9 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
   }
 
   Future close() => _target.close();
-  Future addStream(Stream<T> source, {bool cancelOnError}) =>
-      _target.addStream(source, cancelOnError: cancelOnError);
+
+  Future addStream(Stream<T> source) => _target.addStream(source);
+
   Future get done => _target.done;
 }
 

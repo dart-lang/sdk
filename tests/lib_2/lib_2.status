@@ -116,6 +116,10 @@ async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
+[ !$strong ]
+async/stream_first_where_test/badType: MissingCompileTimeError
+async/stream_last_where_test/badType: MissingCompileTimeError
+
 [ $builder_tag == mac10_7 && $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set

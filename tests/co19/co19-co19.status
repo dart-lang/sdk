@@ -62,6 +62,8 @@ Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fai
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co19 issue 66
 Language/Expressions/Instance_Creation/Const/abstract_class_t03: Pass, Fail # co19 issue 66
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
+LibTest/async/StreamController/addStream_A03_t01: RuntimeError # Issue <TODO>
+LibTest/async/StreamSink/addStream_A01_t02: RuntimeError # Issue <TODO>
 LibTest/async/Zone/runBinaryGuarded_A01_t01: Fail # co19 issue 126
 LibTest/async/Zone/runGuarded_A01_t01: Fail # co19 issue 126
 LibTest/async/Zone/runUnaryGuarded_A01_t01: Fail # co19 issue 126
