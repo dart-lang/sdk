@@ -1,3 +1,8 @@
+## 0.31.1
+
+* Update to reflect that `_InternalLinkedHashMap` is not a subtype of `HashMap`
+  in sdk 2.0.0-dev.22.0.
+
 ## 0.31.0+1
 
 * Update SDK constraint to require Dart v2-dev release.
