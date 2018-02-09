@@ -3113,7 +3113,20 @@ class B extends A {
 ''');
   }
 
-  test_createNoSuchMethod() async {
+  test_createNoSuchMethod_BAD_classTypeAlias() async {
+    await resolveTestUnit('''
+abstract class A {
+  m();
+}
+
+class B = Object with A;
+''');
+    await assertNoFix(
+      DartFixKind.CREATE_NO_SUCH_METHOD,
+    );
+  }
+
+  test_createNoSuchMethod_OK() async {
     await resolveTestUnit('''
 abstract class A {
   m1();
