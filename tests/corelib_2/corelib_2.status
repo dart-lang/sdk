@@ -250,7 +250,6 @@ string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 type_hashcode_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 uri_base_test: RuntimeError
-uri_query_test: Crash # Assertion failure: Cannot find value local(testQueryParameters#normalizedQuery) in (BoxLocal(_box_0)) for j:signature(testQueryParameters_test.$signature).
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
 apply3_test: CompileTimeError
@@ -293,7 +292,6 @@ symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 uri_base_test: RuntimeError
-uri_query_test: Crash # Assertion failure: Cannot find value local(testQueryParameters#normalizedQuery) in (BoxLocal(_box_0)) for j:signature(testQueryParameters_test.$signature).
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$strong ]
 *: SkipByDesign
