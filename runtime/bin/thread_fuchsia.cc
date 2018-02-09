@@ -9,7 +9,6 @@
 #include "bin/thread_fuchsia.h"
 
 #include <errno.h>         // NOLINT
-#include <sys/resource.h>  // NOLINT
 #include <sys/time.h>      // NOLINT
 
 #include "platform/assert.h"
