@@ -26,6 +26,7 @@ abstract class ClassHierarchy {
     }
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
       if (!cls.isSyntheticMixinImplementation) {
+        // See https://github.com/dart-lang/sdk/issues/32091
         throw "$cls can't implement both $a and $b";
       }
     };
@@ -945,27 +946,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _ClassInfo superInfo = _infoFor[supertype.classNode];
     if (supertype.typeArguments.isEmpty) {
       if (superInfo.genericSuperTypes == null) return;
-      // Since the immediate super type is not generic, all entries in its
-      // super type map are also valid entries for this class.
-      if (subInfo.genericSuperTypes == null &&
-          superInfo.ownsGenericSuperTypeMap) {
-        // Instead of copying the map, take ownership of the map object.
-        // This may result in more entries being added to the map later. Those
-        // are not valid for the super type, but it works out because all
-        // lookups in the map are guarded by a subtype check, so the super type
-        // will not be bothered by the extra entries.
-        subInfo.genericSuperTypes = superInfo.genericSuperTypes;
-        superInfo.ownsGenericSuperTypeMap = false;
-      } else {
-        // Copy over the super type entries.
-        subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
-        superInfo.genericSuperTypes
-            ?.forEach((Class key, List<Supertype> types) {
-          for (Supertype type in types) {
-            subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
-          }
-        });
-      }
+      // Copy over the super type entries.
+      subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
+        for (Supertype type in types) {
+          subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
+        }
+      });
     } else {
       // Copy over all transitive generic super types, and substitute the
       // free variables with those provided in [supertype].
@@ -1066,10 +1053,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   int getSuperTypeHashTableSize() {
     int sum = 0;
     for (Class class_ in classes) {
-      _ClassInfo info = _infoFor[class_];
-      if (info.ownsGenericSuperTypeMap) {
-        sum += _infoFor[class_].genericSuperTypes?.length ?? 0;
-      }
+      sum += _infoFor[class_].genericSuperTypes?.length ?? 0;
     }
     return sum;
   }
@@ -1204,28 +1188,7 @@ class _ClassInfo {
   ///
   /// E.g. `List` maps to `List<String>` for a class that directly of indirectly
   /// implements `List<String>`.
-  ///
-  /// However, the map may contain additional entries for classes that are not
-  /// supertypes of this class, so that a single map object can be shared
-  /// between different classes.  Lookups into the map should therefore be
-  /// guarded by a subtype check.
-  ///
-  /// For example:
-  ///
-  ///     class Q<T>
-  ///     class A<T>
-  ///
-  ///     class B extends A<String>
-  ///     class C extends B implements Q<int>
-  ///
-  /// In this case, a single map object `{A: A<String>, Q: Q<int>}` may be
-  /// shared by the classes `B` and `C`.
   Map<Class, List<Supertype>> genericSuperTypes;
-
-  /// If true, this is the current "owner" of [genericSuperTypes], meaning
-  /// we may add additional entries to the map or transfer ownership to another
-  /// class.
-  bool ownsGenericSuperTypeMap = true;
 
   /// Instance fields, getters, methods, and operators declared in this class
   /// or its mixed-in class, sorted according to [_compareMembers].

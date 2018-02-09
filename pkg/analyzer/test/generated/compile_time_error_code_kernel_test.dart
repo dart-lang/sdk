@@ -1728,6 +1728,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/32091')
+  test_mixinInference_matchingClass_inPreviousMixin() =>
+      super.test_mixinInference_matchingClass_inPreviousMixin();
+
+  @override
+  @failingTest
   test_mixinInference_noMatchingClass() =>
       super.test_mixinInference_noMatchingClass();
 
