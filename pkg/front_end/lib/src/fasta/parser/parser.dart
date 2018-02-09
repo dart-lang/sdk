@@ -1420,7 +1420,7 @@ class Parser {
           // Return the newly inserted synthetic token
           // as the end of the type reference.
           return token.next;
-        } else if (identical(value, '<') || identical(value, 'Function')) {
+        } else if (identical(value, '<')) {
           // Found a type reference, but missing an identifier after the period.
           rewriteAndRecover(
               token,

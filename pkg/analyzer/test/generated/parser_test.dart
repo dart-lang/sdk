@@ -15596,8 +15596,9 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
     for (Keyword keyword in Keyword.values) {
-      if (keyword.isBuiltIn) {
+      if (keyword.isBuiltIn || keyword.isPseudo) {
         String lexeme = keyword.lexeme;
+        if (lexeme == 'Function' && !usingFastaParser) continue;
         parseCompilationUnit('$lexeme(x) => 0;');
         parseCompilationUnit('class C {$lexeme(x) => 0;}');
       }
@@ -15607,7 +15608,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
   void test_parseCompilationUnit_builtIn_asFunctionName_withTypeParameter() {
     if (usingFastaParser) {
       for (Keyword keyword in Keyword.values) {
-        if (keyword.isBuiltIn) {
+        if (keyword.isBuiltIn || keyword.isPseudo) {
           String lexeme = keyword.lexeme;
           parseCompilationUnit('$lexeme<T>(x) => 0;');
           parseCompilationUnit('class C {$lexeme<T>(x) => 0;}');
@@ -15618,7 +15619,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
 
   void test_parseCompilationUnit_builtIn_asGetter() {
     for (Keyword keyword in Keyword.values) {
-      if (keyword.isBuiltIn) {
+      if (keyword.isBuiltIn || keyword.isPseudo) {
         String lexeme = keyword.lexeme;
         parseCompilationUnit('get $lexeme => 0;');
         parseCompilationUnit('class C {get $lexeme => 0;}');
@@ -15699,6 +15700,16 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_pseudo_prefixed() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isPseudo) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('M.$lexeme f;');
+        parseCompilationUnit('class C {M.$lexeme f;}');
+      }
+    }
   }
 
   void test_parseCompilationUnit_script() {
