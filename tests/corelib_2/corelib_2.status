@@ -208,6 +208,7 @@ uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is e
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked && $strong ]
 apply3_test: CompileTimeError
 cast_test: RuntimeError
+collection_length_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 collection_removes_test: RuntimeError
 dynamic_nosuchmethod_test: CompileTimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -221,40 +222,33 @@ integer_to_string_test/01: RuntimeError
 iterable_empty_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
 iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_generate_test/01: RuntimeError
-iterable_generate_test/none: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_return_type_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError
-iterable_return_type_test/none: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
+iterable_return_type_test/01: Crash # Assertion failure: Only 2 of 4 arguments have been read from: [HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int)]
+iterable_return_type_test/02: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+iterable_return_type_test/none: Crash # Assertion failure: Only 2 of 4 arguments have been read from: [HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int)]
+iterable_to_list_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+iterable_to_list_test/none: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 iterable_to_set_test: RuntimeError
-linked_hash_map_from_iterable_test: RuntimeError
-linked_hash_map_from_iterables_test: RuntimeError
+json_map_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 list_concurrent_modify_test: RuntimeError
-list_filled_type_argument_test: RuntimeError
 list_insert_all_test: RuntimeError
 list_replace_range_test: RuntimeError
 list_set_all_test: RuntimeError
 list_test/01: RuntimeError
 list_test/none: RuntimeError
-map_from_iterable_test: RuntimeError
-map_from_iterables_test: RuntimeError
+list_unmodifiable_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 map_keys2_test: RuntimeError
-map_test: RuntimeError
-map_values2_test: RuntimeError
-map_values3_test: RuntimeError
-map_values4_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
+null_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 queue_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
 splay_tree_from_iterable_test: RuntimeError
-splay_tree_from_iterables_test: RuntimeError
 stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 string_replace_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
+type_hashcode_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 uri_base_test: RuntimeError
 uri_query_test: Crash # Assertion failure: Cannot find value local(testQueryParameters#normalizedQuery) in (BoxLocal(_box_0)) for j:signature(testQueryParameters_test.$signature).
 
