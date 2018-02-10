@@ -3289,64 +3289,81 @@ class Parser {
   Token parseInitializer(Token token) {
     Token next = token.next;
     listener.beginInitializer(next);
+    Token beforeExpression = token;
     if (optional('assert', next)) {
       token = parseAssert(token, Assert.Initializer);
+      listener.endInitializer(token.next);
+      return token;
     } else if (optional('super', next)) {
-      token = parseExpression(token);
+      return parseInitializerExpressionRest(token);
     } else if (optional('this', next)) {
-      if (!optional('(', next.next)) {
-        if (!optional('.', next.next)) {
+      token = next;
+      next = token.next;
+      if (optional('.', next)) {
+        token = next;
+        next = token.next;
+        if (next.isIdentifier) {
+          token = next;
+        } else {
           // Recovery
-          reportRecoverableError(
-              next.next, fasta.templateExpectedButGot.withArguments('.'));
-          rewriter.insertTokenAfter(
-              next, new SyntheticToken(TokenType.PERIOD, next.next.offset));
+          token = insertSyntheticIdentifier(
+              token, IdentifierContext.fieldInitializer);
         }
-        next = next.next;
-        if (!next.next.isIdentifier) {
-          // Recovery
-          insertSyntheticIdentifier(next, IdentifierContext.fieldInitializer);
+        next = token.next;
+        if (optional('=', next)) {
+          return parseInitializerExpressionRest(beforeExpression);
         }
-        next = next.next;
       }
-      if (optional('(', next.next)) {
-        token = parseExpression(token);
+      if (optional('(', next)) {
+        token = parseInitializerExpressionRest(beforeExpression);
         next = token.next;
         if (optional('{', next) || optional('=>', next)) {
           reportRecoverableError(
               next, fasta.messageRedirectingConstructorWithBody);
         }
-      } else {
-        if (!optional('=', next.next)) {
-          // Recovery
-          reportRecoverableError(
-              token.next, fasta.messageMissingAssignmentInInitializer);
-          next = rewriter
-              .insertTokenAfter(
-                  next, new SyntheticToken(TokenType.EQ, next.next.offset))
-              .next;
-          rewriter.insertTokenAfter(next,
-              new SyntheticStringToken(TokenType.IDENTIFIER, '', next.offset));
-        }
-        token = parseExpression(token);
+        return token;
       }
-    } else if (next.isIdentifier) {
-      if (!optional('=', next.next)) {
-        // Recovery
-        next = insertSyntheticIdentifier(
-            token, IdentifierContext.fieldInitializer,
-            message: fasta.messageMissingAssignmentInInitializer,
-            messageOnToken: next);
+      // Recovery
+      if (optional('this', token)) {
+        // TODO(danrubel): Consider a better error message indicating that
+        // `this.<fieldname>=` is expected.
+        reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments('.'));
         rewriter.insertTokenAfter(
-            next, new SyntheticToken(TokenType.EQ, next.offset));
+            token, new SyntheticToken(TokenType.PERIOD, next.offset));
+        token = token.next;
+        rewriter.insertTokenAfter(token,
+            new SyntheticStringToken(TokenType.IDENTIFIER, '', next.offset));
+        token = token.next;
+        next = token.next;
       }
-      token = parseExpression(token);
+      // Fall through to recovery
+    } else if (next.isIdentifier) {
+      if (optional('=', next.next)) {
+        return parseInitializerExpressionRest(token);
+      }
+      // Fall through to recovery
     } else {
       // Recovery
       insertSyntheticIdentifier(token, IdentifierContext.fieldInitializer,
           message: fasta.messageExpectedAnInitializer, messageOnToken: token);
-      token = parseExpression(token);
+      return parseInitializerExpressionRest(beforeExpression);
     }
+    // Recovery
+    // Insert a sythetic assignment to ensure that the expression is indeed
+    // an assignment. Failing to do so causes this test to fail:
+    // pkg/front_end/testcases/regress/issue_31192.dart
+    // TODO(danrubel): Investigate better recovery.
+    token = insertSyntheticIdentifier(
+        beforeExpression, IdentifierContext.fieldInitializer,
+        message: fasta.messageMissingAssignmentInInitializer);
+    rewriter.insertTokenAfter(
+        token, new SyntheticToken(TokenType.EQ, token.offset));
+    return parseInitializerExpressionRest(beforeExpression);
+  }
+
+  Token parseInitializerExpressionRest(Token token) {
+    token = parseExpression(token);
     listener.endInitializer(token.next);
     return token;
   }
