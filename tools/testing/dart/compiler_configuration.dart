@@ -161,7 +161,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var buildDir = _configuration.buildDirectory;
     var args = <String>[];
     if (useDfe) {
       // DFE+strong configuration is a Dart 2.0 configuration which uses
