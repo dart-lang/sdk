@@ -58,16 +58,6 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (node.variables.isConst) return;
-    if (!node.variables.isFinal) return;
-    if (node.variables.variables
-        .every((declaration) => _isConst(declaration.initializer))) {
-      rule.reportLint(node.variables);
-    }
-  }
-
-  @override
   visitFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic) return;
     if (node.fields.isConst) return;
@@ -75,6 +65,16 @@ class _Visitor extends SimpleAstVisitor {
     if (node.fields.variables
         .every((declaration) => _isConst(declaration.initializer))) {
       rule.reportLint(node.fields);
+    }
+  }
+
+  @override
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (node.variables.isConst) return;
+    if (!node.variables.isFinal) return;
+    if (node.variables.variables
+        .every((declaration) => _isConst(declaration.initializer))) {
+      rule.reportLint(node.variables);
     }
   }
 
@@ -86,7 +86,6 @@ class _Visitor extends SimpleAstVisitor {
         expression is DoubleLiteral ||
         expression is SimpleStringLiteral ||
         expression is InstanceCreationExpression && expression.isConst ||
-        expression is ListLiteral && expression.constKeyword != null ||
-        expression is MapLiteral && expression.constKeyword != null;
+        expression is TypedLiteral && expression.isConst;
   }
 }
