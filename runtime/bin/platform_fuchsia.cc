@@ -150,14 +150,12 @@ void Platform::Exit(int exit_code) {
   exit(exit_code);
 }
 
-bool Platform::SaveConsoleConfiguration() {
+void Platform::SaveConsoleConfiguration() {
   UNIMPLEMENTED();
-  return false;
 }
 
-bool Platform::RestoreConsoleConfiguration() {
+void Platform::RestoreConsoleConfiguration() {
   UNIMPLEMENTED();
-  return false;
 }
 
 }  // namespace bin
