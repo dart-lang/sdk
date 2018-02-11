@@ -41,16 +41,41 @@ A a2 = new A(const {});
 
 ''';
 
-/// The name of `meta` library, used to define analysis annotations.
-String _META_LIB_NAME = 'meta';
-
 /// The name of the top-level variable used to mark a immutable class.
 String _IMMUTABLE_VAR_NAME = 'immutable';
+
+/// The name of `meta` library, used to define analysis annotations.
+String _META_LIB_NAME = 'meta';
 
 bool _isImmutable(Element element) =>
     element is PropertyAccessorElement &&
     element.name == _IMMUTABLE_VAR_NAME &&
     element.library?.name == _META_LIB_NAME;
+
+class MyAnalysisErrorListener extends AnalysisErrorListener {
+  bool hasConstError = false;
+  @override
+  void onError(AnalysisError error) {
+    switch (error.errorCode) {
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+      case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
+      case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
+      case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
+      case CompileTimeErrorCode
+          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+      case CompileTimeErrorCode.INVALID_CONSTANT:
+      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        hasConstError = true;
+    }
+  }
+}
 
 class PreferConstLiteralsToCreateImmutables extends LintRule {
   PreferConstLiteralsToCreateImmutables()
@@ -75,8 +100,25 @@ class Visitor extends SimpleAstVisitor {
   @override
   void visitMapLiteral(MapLiteral node) => _visitTypedLiteral(node);
 
+  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
+    InterfaceType current = type;
+    while (current != null) {
+      yield current;
+      current = current.superclass;
+    }
+  }
+
+  bool _hasImmutableAnnotation(ClassElement clazz) {
+    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
+    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
+        .map((type) => type.element)
+        .expand((c) => c.metadata)
+        .map((m) => m.element);
+    return inheritedAndSelfAnnotations.any(_isImmutable);
+  }
+
   void _visitTypedLiteral(TypedLiteral literal) {
-    if (literal.constKeyword != null) return;
+    if (literal.isConst) return;
 
     // looking for parent instance creation to check if class is immutable
     var node = literal;
@@ -113,48 +155,6 @@ class Visitor extends SimpleAstVisitor {
 
     if (!listener.hasConstError) {
       rule.reportLint(literal);
-    }
-  }
-
-  bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
-    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
-        .map((type) => type.element)
-        .expand((c) => c.metadata)
-        .map((m) => m.element);
-    return inheritedAndSelfAnnotations.any(_isImmutable);
-  }
-
-  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
-    InterfaceType current = type;
-    while (current != null) {
-      yield current;
-      current = current.superclass;
-    }
-  }
-}
-
-class MyAnalysisErrorListener extends AnalysisErrorListener {
-  bool hasConstError = false;
-  @override
-  void onError(AnalysisError error) {
-    switch (error.errorCode) {
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-      case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
-      case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
-      case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
-      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
-      case CompileTimeErrorCode
-          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-      case CompileTimeErrorCode.INVALID_CONSTANT:
-      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
-        hasConstError = true;
     }
   }
 }
