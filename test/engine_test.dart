@@ -134,7 +134,7 @@ void defineLinterEngineTests() {
         var reporter = new MockReporter();
         new SourceLinter(new LinterOptions([rule]), reporter: reporter)
           ..lintPubspecSource(contents: 'author: foo');
-        verify(reporter.exception(any)).called(1);
+        expect(reporter.exceptions, hasLength(1));
       });
     });
 

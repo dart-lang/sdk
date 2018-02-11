@@ -52,7 +52,23 @@ class MockLinterOptions extends Mock implements LinterOptions {}
 
 class MockPubVisitor extends Mock implements PubspecVisitor {}
 
-class MockReporter extends Mock implements Reporter {}
+class MockReporter implements Reporter {
+  List<LinterException> exceptions = <LinterException>[];
+
+  List<String> warnings = <String>[];
+
+  MockReporter();
+
+  @override
+  void exception(LinterException exception) {
+    exceptions.add(exception);
+  }
+
+  @override
+  void warn(String message) {
+    warnings.add(message);
+  }
+}
 
 class MockRule extends Mock implements LintRule {}
 
