@@ -5,33 +5,22 @@
 import 'dart:io';
 
 import 'package:grinder/grinder.dart';
-import 'package:unscripted/unscripted.dart';
 
 import 'doc.dart';
 import 'rule.dart';
 
-main([List<String> args]) {
-  _addTask('rule',
-      parser: (String name) =>
-          generateRule(name, outDir: Directory.current.path),
-      description: 'Generate a lint rule stub.',
-      valueHelp: 'Name of rule to generate.');
+main(args) => grind(args);
 
-  _addTask('docs',
-      parser: generateDocs,
-      description: 'Generate lint rule docs.',
-      valueHelp: 'Documentation `lints/` directory.');
-
-  grind(args);
+@Task('Generate lint rule docs.')
+docs() {
+  TaskArgs args = context.invocation.arguments;
+  String dir = args.getOption('dir');
+  generateDocs(dir);
 }
 
-_addTask(String name, {String description, Parser parser, String valueHelp}) {
-  addTask(new GrinderTask(name, taskFunction: () {
-    String value = context.invocation.positionals.first;
-    parser(value);
-  },
-      description: description,
-      positionals: [new Positional(valueHelp: valueHelp)]));
+@Task('Generate a lint rule stub.')
+rule() {
+  TaskArgs args = context.invocation.arguments;
+  String name = args.getOption('name');
+  generateRule(name, outDir: Directory.current.path);
 }
-
-typedef void Parser(String s);
