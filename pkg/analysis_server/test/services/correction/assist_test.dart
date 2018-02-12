@@ -1896,6 +1896,98 @@ main(List<String> items) {
 ''');
   }
 
+  test_convertToFunctionSyntax_BAD_functionTypeAlias_insideParameterList() async {
+    await resolveTestUnit('''
+typedef String F(int x, int y);
+''');
+    await assertNoAssistAt(
+        'x,', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_BAD_functionTypeAlias_noParameterTypes() async {
+    await resolveTestUnit('''
+typedef String F(x);
+''');
+    await assertNoAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_BAD_functionTypedParameter_insideParameterList() async {
+    await resolveTestUnit('''
+g(String f(int x, int y)) {}
+''');
+    await assertNoAssistAt(
+        'x,', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_BAD_functionTypedParameter_noParameterTypes() async {
+    await resolveTestUnit('''
+g(String f(x)) {}
+''');
+    await assertNoAssistAt(
+        'f(', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_noReturnType_noTypeParameters() async {
+    await resolveTestUnit('''
+typedef String F(int x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F = String Function(int x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_noReturnType_typeParameters() async {
+    await resolveTestUnit('''
+typedef F<P, R>(P x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F<P, R> = Function(P x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_returnType_noTypeParameters() async {
+    await resolveTestUnit('''
+typedef String F(int x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F = String Function(int x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypeAlias_returnType_typeParameters() async {
+    await resolveTestUnit('''
+typedef R F<P, R>(P x);
+''');
+    await assertHasAssistAt(
+        'def', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+typedef F<P, R> = R Function(P x);
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypedParameter_noReturnType_noTypeParameters() async {
+    await resolveTestUnit('''
+g(f(int x)) {}
+''');
+    await assertHasAssistAt(
+        'f(', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+g(Function(int x) f) {}
+''');
+  }
+
+  test_convertToFunctionSyntax_OK_functionTypedParameter_returnType() async {
+    await resolveTestUnit('''
+g(String f(int x)) {}
+''');
+    await assertHasAssistAt(
+        'f(', DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX, '''
+g(String Function(int x) f) {}
+''');
+  }
+
   test_convertToGetter_BAD_noInitializer() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
