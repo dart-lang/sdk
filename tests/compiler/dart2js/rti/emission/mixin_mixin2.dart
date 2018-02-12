@@ -11,10 +11,10 @@ class M<T> {
   }
 }
 
-/*class: A:checks=[$asM]*/
+/*class: A:checks=[]*/
 class A<U> = Object with M<U>;
 
-/*class: B:checks=[$asM]*/
+/*class: B:checks=[]*/
 class B<V> = Object with A<V>;
 
 /*class: C:checks=[$asM]*/

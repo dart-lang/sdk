@@ -2,12 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:*/
-/*class: global#LinkedHashMap:deps=[Map]*/
-/*class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
-/*class: global#double:explicit=[double]*/
-/*class: global#JSDouble:*/
+/*class: A:deps=[B],exp,needsArgs*/
+class A<T> {
+  method1() => T;
+}
+
+/*class: B:needsArgs*/
+class B<S> {
+  method2() => new A<S>().method1();
+}
 
 main() {
-  <int, double>{}[0] = 0.5;
+  var b = new B<int>();
+  b.method2();
 }

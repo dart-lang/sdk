@@ -20,15 +20,19 @@ class M<T> {
 
 class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 
-/*class: C:checks=[$asA,$asI,$asJ,$asM,$asS,$isA,$isI,$isJ,$isM]*/
+/*class: C:checks=[$asA,$asI,$asJ,$asM,$asS,$isA,$isI,$isJ]*/
 class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
-main() {
-  var c = new C<int, bool>();
+@NoInline()
+test(c) {
   Expect.equals("Map<int, List<bool>>", c.t().toString());
   Expect.isTrue(c is I<List<bool>>);
   Expect.isTrue(c is J<bool>);
   Expect.isTrue(c is S<int>);
   Expect.isTrue(c is A<int, List<bool>>);
   Expect.isTrue(c is M<Map<int, List<bool>>>);
+}
+
+main() {
+  test(new C<int, bool>());
 }

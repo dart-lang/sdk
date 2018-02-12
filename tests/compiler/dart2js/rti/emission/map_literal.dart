@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*class: global#Map:*/
-/*class: global#LinkedHashMap:deps=[Map]*/
-/*class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
-/*class: global#double:explicit=[double]*/
-/*class: global#JSDouble:*/
+/*class: global#LinkedHashMap:*/
+/*class: global#JsLinkedHashMap:checks=[]*/
+/*class: global#double:checks=[]*/
+/*class: global#JSDouble:checks=[]*/
 
 main() {
   <int, double>{}[0] = 0.5;

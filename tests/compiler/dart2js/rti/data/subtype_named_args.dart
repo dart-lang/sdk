@@ -6,30 +6,28 @@
 
 import 'package:expect/expect.dart';
 
-/*ast.class: A:arg,checks=[A,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
-/*kernel.class: A:arg,checks=[A,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*ast.class: A:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*kernel.class: A:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
 class A {}
 
-/*class: A1:arg,checks=[A1,Object]*/
 class A1 {}
 
-/*class: A2:arg,checks=[A2,Object]*/
 class A2 {}
 
-/*ast.class: B:arg,checks=[A,A1,A2,B,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
-/*kernel.class: B:arg,checks=[A,A1,A2,B,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*ast.class: B:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*kernel.class: B:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
 class B implements A, A1, A2 {}
 
-/*ast.class: C:arg,checks=[A,A1,A2,B,C,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
-/*kernel.class: C:arg,checks=[A,A1,A2,B,C,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*ast.class: C:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*kernel.class: C:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
 class C implements B {}
 
-/*ast.class: D:arg,checks=[A,A1,A2,B,C,D,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
-/*kernel.class: D:arg,checks=[A,A1,A2,B,C,D,Object],explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*ast.class: D:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*kernel.class: D:explicit=[dynamic Function({a:A,b:B,c:C,d:D}),dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
 class D implements C {}
 
-/*ast.class: G:arg,checks=[G,Object],explicit=[dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
-/*kernel.class: G:arg,checks=[G,Object],explicit=[dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*ast.class: G:explicit=[dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
+/*kernel.class: G:explicit=[dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]*/
 class G<T, S, U, W> {}
 
 typedef classesFunc({A a, B b, C c, D d});

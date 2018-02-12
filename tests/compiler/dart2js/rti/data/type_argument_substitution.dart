@@ -7,16 +7,14 @@
 
 import 'package:expect/expect.dart';
 
-/*class: K:arg*/
 class K {}
 
-/*class: A:arg,checks=[A],explicit=[X<A<String>>]*/
+/*class: A:explicit=[X<A<String>>]*/
 class A<T> {}
 
-/*class: B:arg,checks=[A]*/
 class B extends A<K> {}
 
-/*class: X:checked,explicit=[X<A<String>>],needsArgs*/
+/*class: X:explicit=[X<A<String>>],needsArgs*/
 class X<T> {}
 
 main() {

@@ -5,7 +5,7 @@
 /*class: global#Map:deps=[Class],needsArgs*/
 /*class: global#LinkedHashMap:deps=[Map],needsArgs*/
 /*class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
-/*class: global#double:arg,explicit=[double]*/
+/*class: global#double:explicit=[double]*/
 /*class: global#JSDouble:*/
 
 main() {
