@@ -169,8 +169,11 @@ abstract class DartEditBuilder implements EditBuilder {
 
   /**
    * Append a placeholder for an override of the specified inherited [member].
+   * If provided, write a string value suitable for display (e.g., in a
+   * completion popup) in the given [displayTextBuffer].
    */
-  void writeOverrideOfInheritedMember(ExecutableElement member);
+  void writeOverrideOfInheritedMember(ExecutableElement member,
+      {StringBuffer displayTextBuffer});
 
   /**
    * Write the code for a parameter that would match the given [argument]. The

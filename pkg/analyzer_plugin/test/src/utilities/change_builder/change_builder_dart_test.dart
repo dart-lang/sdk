@@ -985,20 +985,25 @@ int foo(T Function<T>() fn) {
   }
 
   test_writeOverrideOfInheritedMember_method_nullAsTypeArgument() async {
-    await _assertWriteOverrideOfInheritedMethod('''
+    await _assertWriteOverrideOfInheritedMethod(
+      '''
 abstract class A {
   List<Null> foo();
 }
 
 class B extends A {
 }
-''', '''
+''',
+      '''
 @override
 List<Null> foo() {
   // TODO: implement foo
   return null;
 }
-''');
+''',
+      // TODO(pquitslund): Add tests once implemented.
+      //displayText: 'foo() { ... }'
+    );
   }
 
   test_writeOverrideOfInheritedMember_method_voidAsTypeArgument() async {
@@ -1440,20 +1445,26 @@ f(int i, String s) {
    * an inherited method is to be added, assert that the text of the overridden
    * member matches the [expected] text (modulo white space).
    */
-  _assertWriteOverrideOfInheritedMethod(String content, String expected) async {
+  _assertWriteOverrideOfInheritedMethod(String content, String expected,
+      {String displayText}) async {
     String path = provider.convertPath('/test.dart');
     addSource(path, content);
     ClassElement classA = await _getClassElement(path, 'A');
 
+    StringBuffer displayBuffer =
+        displayText != null ? new StringBuffer() : null;
+
     DartChangeBuilderImpl builder = new DartChangeBuilder(session);
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 2, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeOverrideOfInheritedMember(classA.methods[0]);
+        (builder as DartEditBuilder).writeOverrideOfInheritedMember(
+            classA.methods[0],
+            displayTextBuffer: displayBuffer);
       });
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace(expected));
+    expect(displayBuffer?.toString(), displayText);
   }
 
   Future<ClassElement> _getClassElement(String path, String name) async {

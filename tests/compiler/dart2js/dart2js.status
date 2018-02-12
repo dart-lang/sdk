@@ -37,7 +37,8 @@ old_frontend/patch_test/bug: RuntimeError # Issue 21132
 old_frontend/resolver_test: RuntimeError # Test must be updated given new parser recovery
 packages/*: Skip # Skip packages folder
 quarantined/http_test: Pass, Slow
-rti/rti_need_test: Pass, Slow, Fail # Issue 32055
+rti/rti_emission_test: Pass, Slow
+rti/rti_need_test: Pass, Slow
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.

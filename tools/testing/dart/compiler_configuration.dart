@@ -85,8 +85,10 @@ abstract class CompilerConfiguration {
       case Compiler.specParser:
         return new SpecParserCompilerConfiguration(configuration);
 
+      case Compiler.fasta:
+        return new FastaCompilerConfiguration(configuration);
+
       case Compiler.none:
-      case Compiler.fasta: // TODO(ahe): Implement a real fasta compiler.
         return new NoneCompilerConfiguration(configuration);
     }
 
@@ -161,7 +163,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var buildDir = _configuration.buildDirectory;
     var args = <String>[];
     if (useDfe) {
       // DFE+strong configuration is a Dart 2.0 configuration which uses
@@ -1078,5 +1079,119 @@ abstract class VMKernelCompilerMixin {
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);
+  }
+}
+
+class FastaCompilerConfiguration extends CompilerConfiguration {
+  static const String mimeType = "application/x.dill";
+
+  final Uri _compilerLocation;
+
+  final Uri _plaformDill;
+
+  final Uri _vmExecutable;
+
+  final bool _isLegacy;
+
+  FastaCompilerConfiguration(Configuration configuration)
+      : this._(
+            Uri.base.resolve("pkg/front_end/tool/_fasta/compile.dart"),
+            Uri.base
+                .resolveUri(new Uri.directory(configuration.buildDirectory)),
+            !configuration.isStrong,
+            configuration.useSdk,
+            configuration);
+
+  FastaCompilerConfiguration._(this._compilerLocation, Uri buildDirectory,
+      this._isLegacy, bool useSdk, Configuration configuration)
+      : _plaformDill = (useSdk
+                ? buildDirectory.resolve("dart-sdk/lib/_internal/")
+                : buildDirectory)
+            .resolve(
+                _isLegacy ? "vm_platform.dill" : "vm_platform_strong.dill"),
+        _vmExecutable = useSdk
+            ? buildDirectory.resolve("dart-sdk/bin/dart")
+            : buildDirectory.resolve("dart"),
+        super._subclass(configuration);
+
+  @override
+  bool get useDfe => true;
+
+  @override
+  bool get runRuntimeDespiteMissingCompileTimeError => true;
+
+  @override
+  int get timeoutMultiplier => 1;
+
+  @override
+  bool get hasCompiler => true;
+
+  @override
+  List<Uri> bootstrapDependencies() => <Uri>[_plaformDill];
+
+  @override
+  Command createCommand(String inputFile, String outputFile,
+      List<String> sharedOptions, Map<String, String> environment) {
+    throw "not implemented yet";
+  }
+
+  @override
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    Uri output =
+        Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
+    String outputFileName = output.toFilePath();
+    String vmPath = _vmExecutable.toFilePath();
+    if (Platform.isWindows) {
+      vmPath += ".exe";
+    }
+    List<String> compilerArguments = <String>[
+      "-o",
+      outputFileName,
+      "--platform",
+      _plaformDill.toFilePath(),
+    ]..addAll(arguments);
+
+    return new CommandArtifact(
+      [
+        Command.fasta(
+          _compilerLocation,
+          output,
+          bootstrapDependencies(),
+          _vmExecutable,
+          compilerArguments,
+          environmentOverrides,
+          Uri.base,
+        )
+      ],
+      outputFileName,
+      mimeType,
+    );
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> dart2jsOptions,
+      List<String> args) {
+    List<String> arguments = <String>[];
+    for (String argument in args) {
+      if (argument != "--ignore-unrecognized-flags") {
+        arguments.add(argument);
+      }
+    }
+    return arguments;
+  }
+
+  @override
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return <String>[];
   }
 }

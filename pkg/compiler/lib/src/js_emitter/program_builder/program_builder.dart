@@ -32,11 +32,7 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/runtime_types.dart'
-    show
-        RuntimeTypesChecks,
-        RuntimeTypesNeed,
-        RuntimeTypesEncoder,
-        RuntimeTypesSubstitutions;
+    show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
@@ -82,7 +78,6 @@ class ProgramBuilder {
   final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
-  final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JsInteropAnalysis _jsInteropAnalysis;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
@@ -130,7 +125,6 @@ class ProgramBuilder {
       this._superMemberData,
       this._rtiChecks,
       this._rtiEncoder,
-      this._rtiSubstitutions,
       this._jsInteropAnalysis,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
@@ -248,13 +242,9 @@ class ProgramBuilder {
 
     Set<ClassEntity> interceptorClassesNeededByConstants =
         collector.computeInterceptorsReferencedFromConstants();
-    Set<ClassEntity> classesModifiedByEmitRTISupport =
-        _task.typeTestRegistry.computeClassesModifiedByEmitRuntimeTypeSupport();
 
     _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
-        nativeClasses,
-        interceptorClassesNeededByConstants,
-        classesModifiedByEmitRTISupport);
+        nativeClasses, interceptorClassesNeededByConstants);
 
     _addJsInteropStubs(_registry.mainLibrariesMap);
 
@@ -688,17 +678,12 @@ class ProgramBuilder {
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _elementEnvironment,
         _commonElements,
-        _types,
-        _closedWorld,
         _closureDataLookup,
         _outputUnitData,
         _task,
         _namer,
-        _nativeData,
         _rtiChecks,
         _rtiEncoder,
-        _rtiNeed,
-        _rtiSubstitutions,
         _jsInteropAnalysis);
 
     void visitMember(MemberEntity member) {

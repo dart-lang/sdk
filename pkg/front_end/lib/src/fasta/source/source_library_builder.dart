@@ -216,10 +216,17 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     if (!dottedName.startsWith(prefix)) return "";
     dottedName = dottedName.substring(prefix.length);
 
-    LibraryBuilder coreLibrary =
-        loader.read(resolve(this.uri, "dart:core", -1), -1);
     LibraryBuilder imported =
-        coreLibrary.loader.builders[new Uri(scheme: 'dart', path: dottedName)];
+        loader.builders[new Uri(scheme: "dart", path: dottedName)];
+
+    if (imported == null) {
+      LibraryBuilder coreLibrary = loader.read(
+          resolve(
+              this.uri, new Uri(scheme: "dart", path: "core").toString(), -1),
+          -1);
+      imported = coreLibrary
+          .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
+    }
     return imported != null ? "true" : "";
   }
 

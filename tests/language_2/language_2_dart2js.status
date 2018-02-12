@@ -263,9 +263,6 @@ implicit_downcast_during_variable_declaration_test: RuntimeError
 implicit_downcast_during_while_statement_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 type_parameter_test/05: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
@@ -637,8 +634,6 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: RuntimeError
@@ -646,7 +641,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1229,8 +1223,6 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: RuntimeError
@@ -1238,7 +1230,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
@@ -1798,9 +1789,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_regress_13688_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 mixin_super_2_test/none: CompileTimeError
@@ -2567,7 +2555,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_bound_test/01: MissingCompileTimeError
@@ -3437,9 +3424,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
-mixin_mixin2_test: RuntimeError # Issue 13109.
-mixin_mixin3_test: RuntimeError # Issue 13109.
-mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_bound2_test: CompileTimeError # Issue 23773
@@ -3873,6 +3857,7 @@ mixin_mixin5_test: RuntimeError # Issue 31054
 mixin_mixin6_test: RuntimeError # Issue 31054
 mixin_mixin_bound2_test: RuntimeError # Issue 31054
 mixin_mixin_bound_test: RuntimeError # Issue 31054
+mixin_mixin_type_arguments_test: RuntimeError # Issue 31054
 
 [ $compiler == dart2js && !$strong ]
 dynamic_test: RuntimeError

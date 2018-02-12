@@ -63,13 +63,17 @@ class OverrideContributor implements DartCompletionContributor {
    * Return a template for an override of the given [element]. If selected, the
    * template will replace [targetId].
    */
-  Future<String> _buildReplacementText(AnalysisResult result,
-      SimpleIdentifier targetId, ExecutableElement element) async {
+  Future<String> _buildReplacementText(
+      AnalysisResult result,
+      SimpleIdentifier targetId,
+      ExecutableElement element,
+      StringBuffer displayTextBuffer) async {
     DartChangeBuilder builder =
         new DartChangeBuilder(result.driver.currentSession);
     await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
-        builder.writeOverrideOfInheritedMember(element);
+        builder.writeOverrideOfInheritedMember(element,
+            displayTextBuffer: displayTextBuffer);
       });
     });
     return builder.sourceChange.edits[0].edits[0].replacement.trim();
@@ -81,11 +85,14 @@ class OverrideContributor implements DartCompletionContributor {
    */
   Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
       SimpleIdentifier targetId, ExecutableElement element) async {
-    String completion =
-        await _buildReplacementText(request.result, targetId, element);
+    StringBuffer displayTextBuffer = new StringBuffer();
+    String completion = await _buildReplacementText(
+        request.result, targetId, element, displayTextBuffer);
     if (completion == null || completion.length == 0) {
       return null;
     }
+    String displayText =
+        displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
@@ -93,7 +100,8 @@ class OverrideContributor implements DartCompletionContributor {
         targetId.offset,
         0,
         element.isDeprecated,
-        false);
+        false,
+        displayText: displayText);
     suggestion.element = protocol.convertElement(element);
     return suggestion;
   }

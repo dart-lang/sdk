@@ -413,16 +413,31 @@ class ExpressionLifter extends Transformer {
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
     if (shouldName) result = name(result);
-    statements.add(R.createContinuationPoint()..fileOffset = expr.fileOffset);
     Arguments arguments = new Arguments(<Expression>[
       expr.operand,
       new VariableGet(R.thenContinuationVariable),
       new VariableGet(R.catchErrorContinuationVariable),
       new VariableGet(R.nestedClosureVariable),
     ]);
-    statements.add(new ExpressionStatement(
-        new StaticInvocation(R.helper.awaitHelper, arguments)
-          ..fileOffset = expr.fileOffset));
+
+    // We are building
+    //
+    //     [yield] (let _ = _awaitHelper(...) in null)
+    //
+    // to ensure that :await_jump_var and :await_jump_ctx are updated
+    // before _awaitHelper is invoked (see BuildYieldStatement in
+    // StreamingFlowGraphBuilder for details of how [yield] is translated to
+    // IL). This guarantees that recursive invocation of the current function
+    // would continue from the correct "jump" position. Recursive invocations
+    // arise if future we are awaiting completes synchronously. Builtin Future
+    // implementation don't complete synchronously, but Flutter's
+    // SynchronousFuture do (see bug http://dartbug.com/32098 for more details).
+    statements.add(R.createContinuationPoint(new Let(
+        new VariableDeclaration(null,
+            initializer: new StaticInvocation(R.helper.awaitHelper, arguments)
+              ..fileOffset = expr.fileOffset),
+        new NullLiteral()))
+      ..fileOffset = expr.fileOffset);
 
     seenAwait = false;
     var index = nameIndex;

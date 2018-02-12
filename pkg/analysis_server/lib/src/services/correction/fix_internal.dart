@@ -1466,7 +1466,9 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_createMissingOverrides() async {
-    // prepare target
+    if (node.parent is! ClassDeclaration) {
+      return;
+    }
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.element;
     utils.targetClassElement = targetClassElement;
@@ -1613,6 +1615,9 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_createNoSuchMethod() async {
+    if (node.parent is! ClassDeclaration) {
+      return;
+    }
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     // prepare environment
     String prefix = utils.getIndent(1);

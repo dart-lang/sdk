@@ -13,9 +13,7 @@ class A<T> {
   }
 }
 
-// TODO(johnniwinther): Should include 'arg'. Update the 'checkedArguments'
-// computation to take method type arguments into account.
-/*class: BB:checked,implicit=[BB]*/
+/*class: BB:implicit=[BB]*/
 class BB {}
 
 /*element: method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/

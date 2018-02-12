@@ -101,11 +101,13 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   buildTests(String groupName, List<TestDescriptor> descriptors,
       List<TestSuffix> suffixes,
-      {String head, String tail}) {
+      {String head, bool includeEof: true, String tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
-        _buildTestForDescriptorAndSuffix(
-            descriptor, TestSuffix.eof, 0, head, tail);
+        if (includeEof) {
+          _buildTestForDescriptorAndSuffix(
+              descriptor, TestSuffix.eof, 0, head, tail);
+        }
         for (int i = 0; i < suffixes.length; i++) {
           _buildTestForDescriptorAndSuffix(
               descriptor, suffixes[i], i + 1, head, tail);
@@ -113,9 +115,13 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         if (descriptor.failing != null) {
           test('${descriptor.name}_failingList', () {
             Set<String> failing = new Set.from(descriptor.failing);
-            failing.remove('eof');
+            if (includeEof) {
+              failing.remove('eof');
+            }
             failing.removeAll(suffixes.map((TestSuffix suffix) => suffix.name));
-            expect(failing, isEmpty);
+            expect(failing, isEmpty,
+                reason:
+                    'There are tests marked as failing that are not being run');
           });
         }
       }
@@ -155,8 +161,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         base.write(tail);
       }
       //
-      // Determine the existing errors in the code
-      // without either valid or invalid code.
+      // Determine the existing errors in the code without either valid or
+      // invalid code.
       //
       GatheringErrorListener listener =
           new GatheringErrorListener(checkRanges: true);
@@ -181,7 +187,6 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       if (descriptor.errorCodes != null) {
         expectedInvalidCodeErrors.addAll(descriptor.errorCodes);
       }
-
       //
       // Run the test.
       //
@@ -255,6 +260,17 @@ class TestDescriptor {
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
       {this.allFailing: false, this.failing, this.expectedErrorsInValidCode});
+
+  /**
+   * Return a new description that is exactly like this descriptor except with
+   * the given [expectedErrorsInValidCode].
+   */
+  TestDescriptor withExpectedErrorsInValidCode(
+          List<ErrorCode> expectedErrorsInValidCode) =>
+      new TestDescriptor(name, invalid, errorCodes, valid,
+          allFailing: allFailing,
+          failing: failing,
+          expectedErrorsInValidCode: expectedErrorsInValidCode);
 }
 
 /**

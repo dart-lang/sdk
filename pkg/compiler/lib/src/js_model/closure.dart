@@ -260,6 +260,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     _memberClosureRepresentationMap[closureClassInfo.signatureMethod] =
         closureClassInfo;
     _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
+    if (_strongMode) {
+      _globalLocalsMap.setLocalsMap(
+          closureClassInfo.signatureMethod, localsMap);
+    }
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
       _memberClosureRepresentationMap[member] = closureClassInfo;

@@ -314,6 +314,19 @@ class CompletionTarget {
   }
 
   /**
+   * Return `true` if the target is a double or int literal.
+   */
+  bool isDoubleOrIntLiteral() {
+    var entity = this.entity;
+    if (entity is Token) {
+      TokenType previousTokenType = entity.previous?.type;
+      return previousTokenType == TokenType.DOUBLE ||
+          previousTokenType == TokenType.INT;
+    }
+    return false;
+  }
+
+  /**
    * Return `true` if the target is a functional argument in an argument list.
    * The target [AstNode] hierarchy *must* be resolved for this to work.
    * See [maybeFunctionalArgument].

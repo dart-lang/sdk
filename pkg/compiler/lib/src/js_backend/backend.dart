@@ -987,15 +987,11 @@ class JavaScriptBackend {
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, closedWorld.commonElements);
     if (compiler.options.disableRtiOptimization) {
-      _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(
-          closedWorld.elementEnvironment, closedWorld.dartTypes);
+      _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
           new TrivialRuntimeTypesChecksBuilder(closedWorld, _rtiSubstitutions);
     } else {
-      RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(
-          closedWorld.commonElements,
-          closedWorld.elementEnvironment,
-          closedWorld.dartTypes);
+      RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(closedWorld);
       _rtiChecksBuilder = runtimeTypesImpl;
       _rtiSubstitutions = runtimeTypesImpl;
     }

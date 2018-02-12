@@ -68,6 +68,7 @@ profiler/metrics_num_test: Skip # Because of an int / double type test.
 typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
+typed_data/unmodifiable_typed_data_test: RuntimeError # Issue 10275
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip # JS-integration only test

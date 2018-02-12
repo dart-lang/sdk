@@ -316,7 +316,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeOverrideOfInheritedMember(ExecutableElement member,
-      {String returnTypeGroupName}) {
+      {StringBuffer, displayTextBuffer, String returnTypeGroupName}) {
     // prepare environment
     String prefix = getIndent(1);
     // may be property

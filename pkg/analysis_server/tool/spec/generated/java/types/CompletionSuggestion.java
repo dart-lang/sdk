@@ -54,6 +54,12 @@ public class CompletionSuggestion {
   private final String completion;
 
   /**
+   * Text to be displayed in, for example, a completion pop-up. This field is only defined if the
+   * displayed text should be different than the completion. Otherwise it is omitted.
+   */
+  private final String displayText;
+
+  /**
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
@@ -76,7 +82,7 @@ public class CompletionSuggestion {
   private final boolean isPotential;
 
   /**
-   * An abbreviated version of the Dartdoc associated with the element being suggested, This field is
+   * An abbreviated version of the Dartdoc associated with the element being suggested. This field is
    * omitted if there is no Dartdoc associated with the element.
    */
   private final String docSummary;
@@ -163,10 +169,11 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, String importUri) {
+  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, String importUri) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
+    this.displayText = displayText;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -195,6 +202,7 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.kind, kind) &&
         other.relevance == relevance &&
         ObjectUtilities.equals(other.completion, completion) &&
+        ObjectUtilities.equals(other.displayText, displayText) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
         other.isDeprecated == isDeprecated &&
@@ -221,6 +229,7 @@ public class CompletionSuggestion {
     String kind = jsonObject.get("kind").getAsString();
     int relevance = jsonObject.get("relevance").getAsInt();
     String completion = jsonObject.get("completion").getAsString();
+    String displayText = jsonObject.get("displayText") == null ? null : jsonObject.get("displayText").getAsString();
     int selectionOffset = jsonObject.get("selectionOffset").getAsInt();
     int selectionLength = jsonObject.get("selectionLength").getAsInt();
     boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
@@ -239,7 +248,7 @@ public class CompletionSuggestion {
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
     String importUri = jsonObject.get("importUri") == null ? null : jsonObject.get("importUri").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, importUri);
+    return new CompletionSuggestion(kind, relevance, completion, displayText, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, importUri);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -290,6 +299,14 @@ public class CompletionSuggestion {
   }
 
   /**
+   * Text to be displayed in, for example, a completion pop-up. This field is only defined if the
+   * displayed text should be different than the completion. Otherwise it is omitted.
+   */
+  public String getDisplayText() {
+    return displayText;
+  }
+
+  /**
    * The Dartdoc associated with the element being suggested. This field is omitted if there is no
    * Dartdoc associated with the element.
    */
@@ -298,7 +315,7 @@ public class CompletionSuggestion {
   }
 
   /**
-   * An abbreviated version of the Dartdoc associated with the element being suggested, This field is
+   * An abbreviated version of the Dartdoc associated with the element being suggested. This field is
    * omitted if there is no Dartdoc associated with the element.
    */
   public String getDocSummary() {
@@ -426,6 +443,7 @@ public class CompletionSuggestion {
     builder.append(kind);
     builder.append(relevance);
     builder.append(completion);
+    builder.append(displayText);
     builder.append(selectionOffset);
     builder.append(selectionLength);
     builder.append(isDeprecated);
@@ -452,6 +470,9 @@ public class CompletionSuggestion {
     jsonObject.addProperty("kind", kind);
     jsonObject.addProperty("relevance", relevance);
     jsonObject.addProperty("completion", completion);
+    if (displayText != null) {
+      jsonObject.addProperty("displayText", displayText);
+    }
     jsonObject.addProperty("selectionOffset", selectionOffset);
     jsonObject.addProperty("selectionLength", selectionLength);
     jsonObject.addProperty("isDeprecated", isDeprecated);
@@ -523,6 +544,8 @@ public class CompletionSuggestion {
     builder.append(relevance + ", ");
     builder.append("completion=");
     builder.append(completion + ", ");
+    builder.append("displayText=");
+    builder.append(displayText + ", ");
     builder.append("selectionOffset=");
     builder.append(selectionOffset + ", ");
     builder.append("selectionLength=");

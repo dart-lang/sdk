@@ -289,6 +289,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setUseKernel(String argument) {
     useKernel = true;
+    // TODO(sigmund): reenable hints (Issue #32111)
+    showHints = false;
     passThrough(argument);
   }
 

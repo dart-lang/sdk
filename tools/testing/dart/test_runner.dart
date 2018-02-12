@@ -572,6 +572,10 @@ class RunningProcess {
 }
 
 class BatchRunnerProcess {
+  /// When true, the command line is passed to the test runner as a
+  /// JSON-encoded list of strings.
+  final bool _jsonCommandLine;
+
   Completer<CommandOutput> _completer;
   ProcessCommand _command;
   List<String> _arguments;
@@ -592,6 +596,8 @@ class BatchRunnerProcess {
   DateTime _startTime;
   Timer _timer;
   int _testCount = 0;
+
+  BatchRunnerProcess(this._jsonCommandLine);
 
   Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
       int timeout, List<String> arguments) {
@@ -664,7 +670,11 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
-    return arguments.join(' ') + '\n';
+    if (_jsonCommandLine) {
+      return "${JSON.encode(arguments)}\n";
+    } else {
+      return arguments.join(' ') + '\n';
+    }
   }
 
   void _reportResult() {
@@ -1161,7 +1171,8 @@ class CommandExecutorImpl implements CommandExecutor {
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
         (command.displayName == 'dartdevc' ||
-            command.displayName == 'dartdevk') &&
+            command.displayName == 'dartdevk' ||
+            command.displayName == 'fasta') &&
         globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
@@ -1269,7 +1280,7 @@ class CommandExecutorImpl implements CommandExecutor {
     if (runners == null) {
       runners = new List<BatchRunnerProcess>(maxProcesses);
       for (int i = 0; i < maxProcesses; i++) {
-        runners[i] = new BatchRunnerProcess();
+        runners[i] = new BatchRunnerProcess(identifier == "fasta");
       }
       _batchProcesses[identifier] = runners;
     }

@@ -10567,8 +10567,7 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
-          usingFastaParser ? 6 : 11, 1)
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 1)
     ]);
     expect(member, new isInstanceOf<ConstructorDeclaration>());
     NodeList<ConstructorInitializer> initializers =
@@ -10590,15 +10589,18 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     createParser('C() : this {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
-      usingFastaParser
-          ? expectedError(
-              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
-          : expectedError(
-              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 11, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
+            expectedError(
+                ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
+          ]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+            expectedError(
+                ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 11, 1)
+          ]);
   }
 
   void test_incomplete_constructorInitializers_thisField() {
@@ -10606,11 +10608,7 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      usingFastaParser
-          ? expectedError(
-              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
-          : expectedError(
-              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 8, 1)
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
     ]);
   }
 
@@ -10620,11 +10618,7 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
-      usingFastaParser
-          ? expectedError(
-              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
-          : expectedError(
-              ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 11, 1)
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 4)
     ]);
   }
 
@@ -10633,8 +10627,7 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
-          usingFastaParser ? 6 : 8, 1)
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 6, 1)
     ]);
   }
 

@@ -11,6 +11,10 @@
 * Added support for starting `async` functions synchronously. All tools (VM,
   dart2js, DDC) have now a flag `--sync-async` to enable this behavior.
   Currently this behavior is opt-in. It will become the default.
+* The type `void` is now a Top type like `dynamic`, and `Object`. It also now
+  has new errors for being used where not allowed (such as being assigned to any
+  non-`void`-typed parameter). Some libraries (importantly, mockito) may need to
+  be updated to accept void values to keep their APIs working.
 
 #### Strong Mode
 

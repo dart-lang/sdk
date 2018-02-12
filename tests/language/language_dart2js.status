@@ -277,8 +277,6 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: RuntimeError
@@ -286,7 +284,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -642,8 +639,6 @@ mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_issue10216_2_test: RuntimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
 mixin_mixin4_test: RuntimeError
 mixin_mixin5_test: RuntimeError
 mixin_mixin6_test: RuntimeError
@@ -651,7 +646,6 @@ mixin_mixin7_test: RuntimeError
 mixin_mixin_bound2_test: RuntimeError
 mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -949,9 +943,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_mixin2_test: RuntimeError
-mixin_mixin3_test: RuntimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -1259,7 +1250,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/01: CompileTimeError
 mixin_of_mixin_test/02: CompileTimeError
 mixin_of_mixin_test/03: CompileTimeError
@@ -1460,9 +1450,6 @@ mint_arithmetic_test: RuntimeError # Issue 1533
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
-mixin_mixin2_test: RuntimeError # Issue 13109.
-mixin_mixin3_test: RuntimeError # Issue 13109.
-mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
 mixin_of_mixin_test: CompileTimeError # Issue 23773
 mixin_super_2_test: CompileTimeError # Issue 23773
 mixin_super_bound2_test: CompileTimeError # Issue 23773
@@ -1585,18 +1572,19 @@ regress_26855_test/4: Crash # Issue 26867
 symbol_conflict_test: RuntimeError # Issue 23857
 
 [ $compiler == dart2js && $minified ]
-cyclic_type2_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-cyclic_type_test/0*: RuntimeError, OK # runtimeType.toString not preserved in minified code. 
-f_bounded_quantification4_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-generic_closure_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_generic_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin2_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin3_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin4_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin5_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin6_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin_bound2_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-mixin_mixin_bound_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
-regress_21795_test: RuntimeError, OK # runtimeType.toString not preserved in minified code.
+cyclic_type2_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+cyclic_type_test/0*: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+f_bounded_quantification4_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+generic_closure_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_generic_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin2_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin3_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin4_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin5_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin6_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin_bound2_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin_bound_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+mixin_mixin_type_arguments_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
+regress_21795_test: RuntimeError, OK # Issue 31054: runtimeType.toString not preserved in minified code.
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 

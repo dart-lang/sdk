@@ -837,6 +837,18 @@ class C {
     assertSuggestKeywords([]);
   }
 
+  test_constructor_initializers_first() async {
+    addTestSource('class A { int f; A() : ^, f = 1; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT]);
+  }
+
+  test_constructor_initializers_last() async {
+    addTestSource('class A { A() : ^; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT, Keyword.SUPER, Keyword.THIS]);
+  }
+
   test_constructor_param() async {
     addTestSource('class A { A(^) {});}');
     await computeSuggestions();
@@ -1409,6 +1421,18 @@ class A {
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_integerLiteral_inArgumentList() async {
+    addTestSource('main() { print(42^); }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
+  test_integerLiteral_inListLiteral() async {
+    addTestSource('main() { var items = [42^]; }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
   }
 
   test_is_expression() async {

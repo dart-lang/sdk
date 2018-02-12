@@ -2808,6 +2808,13 @@ a:focus, a:hover {
           additionally insert a template for the parameters. The information
           required in order to do so is contained in other fields.
         </p>
+      </dd><dt class="field"><b>displayText: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          Text to be displayed in, for example, a completion pop-up. This field
+          is only defined if the displayed text should be different than the
+          completion.  Otherwise it is omitted.
+        </p>
       </dd><dt class="field"><b>selectionOffset: int</b></dt><dd>
         
         <p>
@@ -2834,7 +2841,7 @@ a:focus, a:hover {
         
         <p>
           An abbreviated version of the Dartdoc associated with the element
-          being suggested, This field is omitted if there is no Dartdoc
+          being suggested. This field is omitted if there is no Dartdoc
           associated with the element.
         </p>
       </dd><dt class="field"><b>docComplete: String<span style="color:#999999"> (optional)</span></b></dt><dd>
@@ -2968,7 +2975,12 @@ a:focus, a:hover {
           suggestions of this kind, the completion is the named argument
           identifier including a trailing ':' and a space.
         </p>
-      </dd><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContextData">ContextData: object</a></dt><dd>
+      </dd><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">OVERRIDE</dt><dd>
+        
+        <p>
+          An overriding implementation of a class member is being suggested.
+        </p>
+      </dd><dt class="value">PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContextData">ContextData: object</a></dt><dd>
     <p>
       Information about an analysis context.
     </p>

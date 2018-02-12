@@ -12,7 +12,7 @@ class A<T> {
   }
 }
 
-/*class: BB:arg,checked,implicit=[BB]*/
+/*class: BB:implicit=[BB]*/
 class BB {}
 
 /*class: B:implicit=[B.T],indirect,needsArgs*/

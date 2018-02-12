@@ -36,7 +36,7 @@ class ProgramLookup {
   }
 
   Class getClass(ClassEntity element) {
-    return getClassData(element).cls;
+    return getClassData(element)?.cls;
   }
 
   Method getMethod(FunctionEntity function) {
