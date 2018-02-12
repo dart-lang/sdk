@@ -45,10 +45,6 @@ class DartAssistKind {
       'dart.assist.convert.lineComment',
       30,
       "Convert to line documentation comment");
-  static const CONVERT_FLUTTER_CHILD = const AssistKind(
-      'dart.assist.flutter.convert.childToChildren',
-      30,
-      "Convert to children:");
   static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
       'dart.assist.convert.bodyToAsync', 30, "Convert to async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
@@ -85,12 +81,30 @@ class DartAssistKind {
       const AssistKind('dart.assist.exchangeOperands', 30, "Exchange operands");
   static const EXTRACT_CLASS = const AssistKind(
       'dart.assist.extractClass', 30, "Extract class into file '{0}'");
+  static const FLUTTER_CONVERT_TO_CHILDREN = const AssistKind(
+      'dart.assist.flutter.convert.childToChildren',
+      30,
+      "Convert to children:");
   static const FLUTTER_CONVERT_TO_STATEFUL_WIDGET = const AssistKind(
       'dart.assist.flutter.convert.toStatefulWidget',
       30,
       "Convert to StatefulWidget");
   static const FLUTTER_REPLACE_WITH_CHILDREN = const AssistKind(
       'dart.assist.flutter.replaceWithChildren', 30, "Replace with children");
+  static const FLUTTER_SWAP_WITH_CHILD = const AssistKind(
+      'dart.assist.flutter.swap.withChild', 30, "Swap with child");
+  static const FLUTTER_SWAP_WITH_PARENT = const AssistKind(
+      'dart.assist.flutter.swap.withParent', 30, "Swap with parent");
+  static const FLUTTER_WRAP_CENTER =
+      const AssistKind('dart.assist.flutter.wrap.center', 30, "Center widget");
+  static const FLUTTER_WRAP_COLUMN = const AssistKind(
+      'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
+  static const FLUTTER_WRAP_GENERIC = const AssistKind(
+      'dart.assist.flutter.wrap.generic', 31, "Wrap with new widget");
+  static const FLUTTER_WRAP_PADDING = const AssistKind(
+      'dart.assist.flutter.wrap.padding', 30, "Add widget padding");
+  static const FLUTTER_WRAP_ROW =
+      const AssistKind('dart.assist.flutter.wrap.row', 30, "Wrap with Row");
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
@@ -109,20 +123,6 @@ class DartAssistKind {
       "Join 'if' statement with outer 'if' statement");
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'dart.assist.joinVariableDeclaration', 30, "Join variable declaration");
-  static const MOVE_FLUTTER_WIDGET_DOWN = const AssistKind(
-      'dart.assist.flutter.swap.withChild', 30, "Swap with child");
-  static const MOVE_FLUTTER_WIDGET_UP = const AssistKind(
-      'dart.assist.flutter.swap.withParent', 30, "Swap with parent");
-  static const REPARENT_FLUTTER_WIDGET = const AssistKind(
-      'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
-  static const REPARENT_FLUTTER_WIDGET_CENTER =
-      const AssistKind('dart.assist.flutter.wrap.center', 29, "Center widget");
-  static const REPARENT_FLUTTER_WIDGET_PADDING = const AssistKind(
-      'dart.assist.flutter.wrap.padding', 29, "Add widget padding");
-  static const REPARENT_FLUTTER_WIDGETS_COLUMN = const AssistKind(
-      'dart.assist.flutter.wrap.column', 29, "Wrap with Column");
-  static const REPARENT_FLUTTER_WIDGETS_ROW =
-      const AssistKind('dart.assist.flutter.wrap.row', 29, "Wrap with Row");
   static const REMOVE_TYPE_ANNOTATION = const AssistKind(
       'dart.assist.removeTypeAnnotation', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
