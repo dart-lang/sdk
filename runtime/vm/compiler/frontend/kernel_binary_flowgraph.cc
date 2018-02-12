@@ -5827,13 +5827,10 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     const Array& argument_names,
     ICData::RebindRule rebind_rule,
     const InferredTypeMetadata* result_type,
-    intptr_t type_args_count,
-    intptr_t argument_check_bits,
-    intptr_t type_argument_check_bits) {
+    intptr_t type_args_count) {
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,
-      result_type, type_args_count, argument_check_bits,
-      type_argument_check_bits);
+      result_type, type_args_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -5857,13 +5854,10 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     const Array& argument_names,
     intptr_t checked_argument_count,
     const Function& interface_target,
-    const InferredTypeMetadata* result_type,
-    intptr_t argument_check_bits,
-    intptr_t type_argument_check_bits) {
+    const InferredTypeMetadata* result_type) {
   return flow_graph_builder_->InstanceCall(
       position, name, kind, type_args_len, argument_count, argument_names,
-      checked_argument_count, interface_target, result_type,
-      argument_check_bits, type_argument_check_bits);
+      checked_argument_count, interface_target, result_type);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -6291,7 +6285,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  uint8_t flags = ReadFlags();  // read flags
+  ReadFlags();  // skip flags
 
   instructions += BuildExpression();  // read receiver.
 
@@ -6319,12 +6313,6 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     ASSERT(setter_name.raw() == interface_target->name());
   }
 
-  intptr_t argument_check_bits = 0;
-  if (I->strong()) {
-    argument_check_bits = ArgumentCheckBitsForSetter(
-        *interface_target, static_cast<DispatchCategory>(flags & 3));
-  }
-
   if (direct_call.check_receiver_for_null_) {
     instructions += CheckNull(position, receiver);
   }
@@ -6333,15 +6321,14 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     ASSERT(FLAG_precompiled_mode);
     instructions +=
         StaticCall(position, direct_call.target_, 2, Array::null_array(),
-                   ICData::kNoRebind, /* result_type = */ NULL,
-                   /*type_args_len=*/0, argument_check_bits);
+                   ICData::kNoRebind, /* result_type = */ NULL);
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
     instructions +=
         InstanceCall(position, setter_name, Token::kSET, kTypeArgsLen, 2,
                      Array::null_array(), kNumArgsChecked, *interface_target,
-                     /* result_type = */ NULL, argument_check_bits);
+                     /* result_type = */ NULL);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
@@ -6624,7 +6611,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  uint8_t flags = ReadFlags();  // read flags.
+  ReadFlags();  // skip flags.
 
   Fragment instructions(NullConstant());
   LocalVariable* value = MakeTemporary();
@@ -6643,9 +6630,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   instructions += StoreLocal(TokenPosition::kNoSource, value);
   instructions += PushArgument();
 
-  intptr_t argument_check_bits = ArgumentCheckBitsForSetter(
-      target, static_cast<DispatchCategory>(flags & 3));
-
   // Static calls are marked as "no-rebind", which is currently safe because
   // DirectPropertyGet are only used in enums (index in toString) and enums
   // can't change their structure during hot reload.
@@ -6653,9 +6637,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   // have to be adjusted.
   instructions +=
       StaticCall(position, target, 2, Array::null_array(), ICData::kNoRebind,
-                 /* result_type = */ NULL,
-                 /*type_args_len=*/0, argument_check_bits,
-                 /*type_argument_check_bits=*/0);
+                 /* result_type = */ NULL);
 
   return instructions + Drop();
 }
@@ -6752,177 +6734,6 @@ static bool IsNumberLiteral(Tag tag) {
          tag == kSpecialIntLiteral || tag == kDoubleLiteral;
 }
 
-intptr_t StreamingFlowGraphBuilder::ArgumentCheckBitsForSetter(
-    const Function& interface_target,
-    DispatchCategory category) {
-  intptr_t argument_check_bits = 0;
-
-  switch (category) {
-    case DynamicDispatch:
-      argument_check_bits = 2;  // 1 for value, 0 for receiver
-      break;
-    case Closure:
-      // A property set cannot be a closure call.
-      UNREACHABLE();
-    case ViaThis:
-      // All bits are 0.
-      break;
-    case Interface: {
-      // TODO(sjindel): Revise checking interface target for null.
-      if (interface_target.IsNull() ||
-          !interface_target.IsImplicitGetterOrSetter()) {
-        intptr_t type_argument_check_bits_unused;
-        ArgumentCheckBitsForInvocation(
-            1, 0, 1, Array::null_array(), interface_target, category,
-            &argument_check_bits, &type_argument_check_bits_unused);
-        break;
-      }
-
-      const Field& target_field =
-          Field::Handle(interface_target.LookupImplicitGetterSetterField());
-      ASSERT(!target_field.IsNull());
-      TypedData& kernel_data = TypedData::Handle(Z, target_field.KernelData());
-      ASSERT(!kernel_data.IsNull());
-      AlternativeReadingScope r(reader_, &kernel_data,
-                                target_field.kernel_offset());
-      AlternativeScriptScope s(&translation_helper_,
-                               Script::Handle(target_field.Script()), script());
-
-      FieldHelper helper(this);
-      helper.ReadUntilIncluding(FieldHelper::kFlags);
-
-      argument_check_bits = 1;  // indicate dispatch category
-      if (helper.IsGenericCovariantInterface()) {
-        argument_check_bits |= 1 << 1;
-      }
-    }
-  }
-
-  return argument_check_bits;
-}
-
-void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
-    intptr_t argument_count,  // excluding receiver
-    intptr_t type_argument_count,
-    intptr_t positional_argument_count,
-    const Array& argument_names,
-    const Function& interface_target,
-    DispatchCategory category,
-    intptr_t* argument_bits /*out*/,
-    intptr_t* type_argument_bits /*out*/) {
-  intptr_t argument_check_bits = 0;
-  intptr_t type_argument_check_bits = 0;
-
-  // If there are more than 'kBitsPerWord - 1' arguments, the rest will be
-  // assumed to be marked as 1 (the '-1' is because of the receiver).
-  int strong_checked_arguments =
-      Utils::Minimum<intptr_t>(argument_count, kBitsPerWord - 1);
-  int strong_checked_type_arguments =
-      Utils::Minimum<intptr_t>(type_argument_count, kBitsPerWord);
-
-  switch (category) {
-    case DynamicDispatch:
-      // All bits are 1 except the receiver which is 0.
-      argument_check_bits = Utils::SignedNBitMask(strong_checked_arguments)
-                            << 1;
-      type_argument_check_bits =
-          Utils::SignedNBitMask(strong_checked_type_arguments);
-    case ViaThis:
-      // All bits are 0.
-      break;
-    case Closure:
-      // All bits at 1.
-      argument_check_bits = Utils::SignedNBitMask(strong_checked_arguments + 1);
-      type_argument_check_bits =
-          Utils::SignedNBitMask(strong_checked_type_arguments);
-      break;
-    case Interface: {
-      ASSERT(!interface_target.IsNull() || !I->strong());
-      if (interface_target.IsNull()) {
-        argument_check_bits =
-            Utils::SignedNBitMask(strong_checked_arguments + 1);
-        type_argument_check_bits =
-            Utils::SignedNBitMask(strong_checked_type_arguments);
-        break;
-      }
-      argument_check_bits = 1;
-      TypedData& kernel_data =
-          TypedData::Handle(Z, interface_target.KernelData());
-      ASSERT(!kernel_data.IsNull());
-      AlternativeReadingScope _r(reader_, &kernel_data,
-                                 interface_target.kernel_offset());
-      AlternativeScriptScope _s(&translation_helper_,
-                                Script::Handle(interface_target.script()),
-                                script());
-      ReadUntilFunctionNode();
-
-      FunctionNodeHelper fn_helper(this);
-      fn_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-      intptr_t num_interface_type_params = ReadListLength();
-      // Maybe this can be ==?
-      ASSERT(num_interface_type_params >= type_argument_count);
-
-      for (intptr_t i = 0; i < num_interface_type_params; ++i) {
-        uint8_t flags = ReadFlags();
-        SkipListOfExpressions();
-        SkipStringReference();
-        SkipDartType();
-        if (i >= strong_checked_type_arguments) continue;
-        if (flags & TypeParameterHelper::kIsGenericCovariantInterface) {
-          type_argument_check_bits |= Utils::Bit(i);
-        }
-      }
-
-      fn_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
-      fn_helper.ReadUntilExcluding(FunctionNodeHelper::kPositionalParameters);
-      intptr_t num_interface_pos_params = ReadListLength();
-      ASSERT(num_interface_pos_params >= positional_argument_count);
-
-      intptr_t arg = 0;
-      for (; arg < num_interface_pos_params; ++arg) {
-        VariableDeclarationHelper var_helper(this);
-        var_helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
-        if (arg >= strong_checked_arguments) continue;
-        if (var_helper.IsGenericCovariantInterface()) {
-          argument_check_bits |= Utils::Bit(arg + 1);  // +1 for the receiver
-        }
-      }
-
-      fn_helper.SetJustRead(FunctionNodeHelper::kPositionalParameters);
-      if (argument_names.IsNull()) break;
-
-      fn_helper.ReadUntilExcluding(FunctionNodeHelper::kNamedParameters);
-      intptr_t num_interface_named_params = ReadListLength();
-      for (intptr_t i = 0;
-           i < argument_names.Length() && arg <= strong_checked_arguments;
-           ++i, ++arg) {
-        const String& arg_name =
-            String::Handle(Z, String::RawCast(argument_names.At(i)));
-
-        // Scan through the named parameters of the interface target to find
-        // the right one.
-        AlternativeReadingScope _(reader_);
-        for (intptr_t j = 0; j < num_interface_named_params; ++j) {
-          VariableDeclarationHelper var_helper(this);
-          var_helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
-          const String& param_name = H.DartSymbol(var_helper.name_index_);
-          if (!param_name.Equals(arg_name)) continue;
-          if (var_helper.IsGenericCovariantInterface()) {
-            argument_check_bits |= Utils::NBitMask(arg + 1);
-          }
-          break;
-        }
-      }
-      break;
-    }
-    default:
-      UNREACHABLE();
-  }
-
-  *argument_bits = argument_check_bits;
-  *type_argument_bits = type_argument_check_bits;
-}
-
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
   const TokenPosition position = ReadPosition();  // read position.
@@ -6933,7 +6744,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  uint8_t flags = ReadFlags();  // read flags.
+  ReadFlags();  // skip flags.
 
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
   if (IsNumberLiteral(receiver_tag) &&
@@ -7068,27 +6879,15 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     instructions += CheckNull(position, receiver_temp);
   }
 
-  intptr_t argument_check_bits = 0;
-  intptr_t type_argument_check_bits = 0;
-  if (I->strong()) {
-    ArgumentCheckBitsForInvocation(
-        argument_count - 1, type_args_len, positional_argument_count,
-        argument_names, *interface_target,
-        static_cast<DispatchCategory>(flags & 3), &argument_check_bits,
-        &type_argument_check_bits);
-  }
-
   if (!direct_call.target_.IsNull()) {
     ASSERT(FLAG_precompiled_mode);
     instructions += StaticCall(position, direct_call.target_, argument_count,
                                argument_names, ICData::kNoRebind, &result_type,
-                               type_args_len, argument_check_bits,
-                               type_argument_check_bits);
+                               type_args_len);
   } else {
     instructions += InstanceCall(
         position, name, token_kind, type_args_len, argument_count,
-        argument_names, checked_argument_count, *interface_target, &result_type,
-        argument_check_bits, type_argument_check_bits);
+        argument_names, checked_argument_count, *interface_target, &result_type);
   }
 
   // Drop temporaries preserving result on the top of the stack.
@@ -7120,7 +6919,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  uint8_t flags = ReadFlags();  // read flags.
+  ReadFlags();  // skip flags.
 
   Tag receiver_tag = PeekTag();  // peek tag for receiver.
 
@@ -7177,16 +6976,9 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
                      &positional_argument_count);  // read arguments.
   ++argument_count;
 
-  intptr_t argument_check_bits, type_argument_check_bits;
-  ArgumentCheckBitsForInvocation(
-      argument_count, type_args_len, positional_argument_count, argument_names,
-      target, static_cast<DispatchCategory>(flags & 3), &argument_check_bits,
-      &type_argument_check_bits);
-
   return instructions +
          StaticCall(position, target, argument_count, argument_names,
-                    ICData::kNoRebind, &result_type, type_args_len,
-                    argument_check_bits, type_argument_check_bits);
+                    ICData::kNoRebind, &result_type, type_args_len);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(

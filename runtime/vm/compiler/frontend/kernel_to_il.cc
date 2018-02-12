@@ -1235,15 +1235,13 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         const Array& argument_names,
                                         intptr_t checked_argument_count,
                                         const Function& interface_target,
-                                        const InferredTypeMetadata* result_type,
-                                        intptr_t argument_bits,
-                                        intptr_t type_argument_bits) {
+                                        const InferredTypeMetadata* result_type) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position, name, kind, arguments, type_args_len, argument_names,
       checked_argument_count, ic_data_array_, GetNextDeoptId(),
-      interface_target, argument_bits, type_argument_bits);
+      interface_target);
   if (result_type != NULL) {
     call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
                                                        result_type->cid));
@@ -1512,15 +1510,12 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
                                       const InferredTypeMetadata* result_type,
-                                      intptr_t type_args_count,
-                                      intptr_t argument_bits,
-                                      intptr_t type_argument_check_bits) {
+                                      intptr_t type_args_count) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z)
       StaticCallInstr(position, target, type_args_count, argument_names,
-                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule,
-                      argument_bits, type_argument_check_bits);
+                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {
