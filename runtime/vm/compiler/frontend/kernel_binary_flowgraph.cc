@@ -1766,7 +1766,7 @@ void StreamingScopeBuilder::VisitStatement() {
     case kYieldStatement: {
       builder_->ReadPosition();           // read position.
       word flags = builder_->ReadByte();  // read flags.
-      builder_->SkipExpression();         // read expression.
+      VisitExpression();                  // read expression.
 
       ASSERT(flags == kNativeYieldFlags);
       if (depth_.function_ == 0) {
