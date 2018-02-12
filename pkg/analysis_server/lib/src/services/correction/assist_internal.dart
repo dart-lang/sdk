@@ -209,6 +209,7 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     assists.add(new Assist(kind, change));
   }
@@ -2047,7 +2048,8 @@ class AssistProcessor {
         builder.selectHere();
       });
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.REPARENT_FLUTTER_LIST);
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.REPARENT_FLUTTER_WIDGET);
   }
 
   Future<Null> _addProposal_reparentFlutterWidget() async {

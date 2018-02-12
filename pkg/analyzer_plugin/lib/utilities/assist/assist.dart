@@ -83,9 +83,9 @@ class AssistGenerator {
  */
 class AssistKind {
   /**
-   * The name of this kind of assist, used for debugging.
+   * The unique identifier of this kind of assist.
    */
-  final String name;
+  final String id;
 
   /**
    * The priority of this kind of assist for the kind of error being addressed.
@@ -101,13 +101,13 @@ class AssistKind {
   final String message;
 
   /**
-   * Initialize a newly created kind of assist to have the given [name],
-   * [relevance] and [message].
+   * Initialize a newly created kind of assist to have the given [id],
+   * [priority] and [message].
    */
-  const AssistKind(this.name, this.priority, this.message);
+  const AssistKind(this.id, this.priority, this.message);
 
   @override
-  String toString() => name;
+  String toString() => id;
 }
 
 /**

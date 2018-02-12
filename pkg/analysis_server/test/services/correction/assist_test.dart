@@ -47,6 +47,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   assertHasAssist(AssistKind kind, String expected) async {
     assist = await _assertHasAssist(kind);
     change = assist.change;
+    expect(change.id, kind.id);
     // apply to "file"
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
@@ -4072,7 +4073,16 @@ final V = 1;
 ''');
   }
 
-  test_reparentFlutterList_BAD_multiLine() async {
+  test_reparentFlutterWidget_BAD_minimal() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+/*caret*/x(){}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
+  }
+
+  test_reparentFlutterWidget_BAD_multiLine() async {
     verifyNoTestUnitErrors = false;
     addFlutterPackage();
     await resolveTestUnit('''
@@ -4092,10 +4102,10 @@ build() {
 }
 ''');
     _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_LIST);
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
   }
 
-  test_reparentFlutterList_BAD_singleLine() async {
+  test_reparentFlutterWidget_BAD_singleLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -4109,10 +4119,10 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_LIST);
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
   }
 
-  test_reparentFlutterList_OK_multiLine() async {
+  test_reparentFlutterWidget_OK_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -4131,7 +4141,7 @@ build() {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_LIST, '''
+    await assertHasAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, '''
 import 'package:flutter/widgets.dart';
 build() {
   return new Container(
@@ -4151,32 +4161,6 @@ build() {
   );
 }
 ''');
-  }
-
-  test_reparentFlutterWidget_BAD_minimal() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
-/*caret*/x(){}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
-  }
-
-  test_reparentFlutterWidget_BAD_singleLine() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
-import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  main() {
-  var obj;
-// start
-    return new Container(child: obj.xyz./*caret*/abc);
-// end
-  }
-}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
   }
 
   test_reparentFlutterWidget_OK_multiLines() async {
