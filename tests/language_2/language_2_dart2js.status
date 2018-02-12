@@ -1352,7 +1352,11 @@ argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d06a: RuntimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
 async_await_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -1362,16 +1366,25 @@ async_congruence_local_test/none: RuntimeError
 async_congruence_method_test/none: RuntimeError
 async_congruence_top_level_test: RuntimeError
 async_congruence_unnamed_test/none: RuntimeError
+async_error_timing_test: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
+async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
+async_star_no_cancel2_test: RuntimeError
+async_star_no_cancel_test: RuntimeError
+async_star_pause_test: RuntimeError
 async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_23116_test: RuntimeError
+async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_take_reyield_test: RuntimeError
 async_star_test/01: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
 async_star_test/02: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
 async_star_test/03: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
@@ -1379,9 +1392,15 @@ async_star_test/04: Crash # Assertion failure: Unexpected arguments. Expected 1 
 async_star_test/05: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
 async_star_test/none: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
 async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_concat_test: RuntimeError
 asyncstar_throw_in_catch_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_yield_test: RuntimeError
+asyncstar_yieldstar_test: RuntimeError
+await_for_cancel_test: RuntimeError
 await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_test: RuntimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -1460,6 +1479,7 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
+constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
@@ -1469,6 +1489,7 @@ covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/runtime_check_test: RuntimeError
+covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
@@ -1503,7 +1524,6 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_invoke_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 dynamic_prefix_core_test/none: CompileTimeError
-dynamic_test: RuntimeError
 emit_const_fields_test: CompileTimeError
 enum_mirror_test: CompileTimeError
 example_constructor_test: RuntimeError
@@ -1549,7 +1569,8 @@ full_stacktrace1_test: RuntimeError
 full_stacktrace2_test: RuntimeError
 full_stacktrace3_test: RuntimeError
 function_propagation_test: CompileTimeError
-function_subtype_bound_closure1_test: RuntimeError
+function_subtype2_test: RuntimeError
+function_subtype3_test: RuntimeError
 function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
@@ -1559,41 +1580,31 @@ function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_cast2_test: RuntimeError
-function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_subtype_local1_test: RuntimeError
 function_subtype_local2_test: RuntimeError
 function_subtype_local5_test: RuntimeError
-function_subtype_named1_test: RuntimeError
-function_subtype_named2_test: RuntimeError
-function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_not2_test: RuntimeError
-function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_top_level1_test: RuntimeError
-function_subtype_typearg2_test: RuntimeError
-function_subtype_typearg3_test: RuntimeError
+function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in (local(B.#)) for j:signature(B_closure.$signature).
 function_type_alias10_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 function_type_alias2_test: RuntimeError
-function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
-fuzzy_arrows_test/03: RuntimeError
+generic_async_star_test: RuntimeError
 generic_closure_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 generic_closure_test/none: RuntimeError
 generic_creation_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
@@ -1603,8 +1614,11 @@ generic_function_dcall_test: Crash # Unsupported operation: Unsupported type par
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_type_as_type_argument_test/03: RuntimeError
+generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
+generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
+generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_method_types_test/03: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -1614,8 +1628,6 @@ generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 generic_methods_generic_function_result_test/none: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-generic_methods_named_parameters_test: RuntimeError
-generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/metadata_collector.dart': Failed assertion: line 100 pos 12: 'isBound': is not true.
@@ -1651,7 +1663,6 @@ infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
-instanceof2_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -1681,18 +1692,21 @@ issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
+known_identifier_usage_error_test/none: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
-list_is_test: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
 local_function_test/02: MissingCompileTimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
+main_test/20: RuntimeError
+main_test/22: RuntimeError
+main_test/44: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -1704,20 +1718,17 @@ malbounded_type_cast2_test: MissingCompileTimeError
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
 malbounded_type_cast_test/02: MissingCompileTimeError
-malbounded_type_cast_test/none: RuntimeError
 malbounded_type_literal_test/00: MissingCompileTimeError
 malbounded_type_test2_test/00: MissingCompileTimeError
 malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
-malbounded_type_test_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: CompileTimeError
 map_literal11_test/none: MissingRuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-map_literal7_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
@@ -1826,10 +1837,6 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mixin_type_parameters_mixin_extends_test: RuntimeError
-mixin_type_parameters_mixin_test: RuntimeError
-mixin_type_parameters_super_extends_test: RuntimeError
-mixin_type_parameters_super_test: RuntimeError
 modulo_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -1839,6 +1846,7 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_default_eq_test/none: RuntimeError
 named_parameters_test/02: MissingCompileTimeError
 named_parameters_test/04: MissingCompileTimeError
 named_parameters_test/06: MissingCompileTimeError
@@ -1937,7 +1945,9 @@ regress_13462_1_test: CompileTimeError
 regress_18535_test: CompileTimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
+regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
+regress_24935_test/none: RuntimeError
 regress_25550_test: CompileTimeError
 regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -1959,6 +1969,7 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+shadow_parameter_and_local_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
@@ -2044,10 +2055,11 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
-type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+typedef_is_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/causal_async_exception_stack2_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
 vm/causal_async_exception_stack_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
 vm/debug_break_enabled_vm_test/01: CompileTimeError
@@ -2068,9 +2080,6 @@ vm/regress_28325_test: RuntimeError
 vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/28: MissingRuntimeError
-vm/type_vm_test/30: MissingRuntimeError
-vm/type_vm_test/31: MissingRuntimeError
-vm/type_vm_test/32: MissingRuntimeError
 vm/uint32_right_shift_test: RuntimeError
 vm/uint32_shift_test: RuntimeError
 vm/unaligned_integer_access_literal_index_test: RuntimeError
@@ -2117,6 +2126,7 @@ void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/ty
 void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $strong ]
 abstract_factory_constructor_test/00: MissingCompileTimeError
@@ -2134,7 +2144,11 @@ argument_assignability_function_typed_test/05: RuntimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
+async_await_syntax_test/d06a: RuntimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
 async_await_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -2144,17 +2158,25 @@ async_congruence_local_test/none: RuntimeError
 async_congruence_method_test/none: RuntimeError
 async_congruence_top_level_test: RuntimeError
 async_congruence_unnamed_test/none: RuntimeError
-async_error_timing_test: Pass
+async_error_timing_test: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
+async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 async_star_await_pauses_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
+async_star_no_cancel2_test: RuntimeError
+async_star_no_cancel_test: RuntimeError
+async_star_pause_test: RuntimeError
 async_star_regression_2238_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_regression_23116_test: RuntimeError
+async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+async_star_take_reyield_test: RuntimeError
 async_star_test/01: Crash # Wrong number of template arguments, given 2, expected 1
 async_star_test/02: Crash # Wrong number of template arguments, given 2, expected 1
 async_star_test/03: Crash # Wrong number of template arguments, given 2, expected 1
@@ -2162,9 +2184,15 @@ async_star_test/04: Crash # Wrong number of template arguments, given 2, expecte
 async_star_test/05: Crash # Wrong number of template arguments, given 2, expected 1
 async_star_test/none: Crash # Wrong number of template arguments, given 2, expected 1
 async_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_concat_test: RuntimeError
 asyncstar_throw_in_catch_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+asyncstar_yield_test: RuntimeError
+asyncstar_yieldstar_test: RuntimeError
+await_for_cancel_test: RuntimeError
 await_for_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+await_test: RuntimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -2241,6 +2269,7 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
+constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Issue 30856
@@ -2250,6 +2279,7 @@ covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
 covariant_override/runtime_check_test: RuntimeError
+covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
@@ -2283,7 +2313,6 @@ duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
-dynamic_test: RuntimeError
 emit_const_fields_test: CompileTimeError
 enum_mirror_test: CompileTimeError
 example_constructor_test: RuntimeError
@@ -2322,7 +2351,8 @@ full_stacktrace1_test: RuntimeError # Issue 12698
 full_stacktrace2_test: RuntimeError # Issue 12698
 full_stacktrace3_test: RuntimeError # Issue 12698
 function_propagation_test: CompileTimeError
-function_subtype_bound_closure1_test: RuntimeError
+function_subtype2_test: RuntimeError
+function_subtype3_test: RuntimeError
 function_subtype_bound_closure2_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
@@ -2332,48 +2362,41 @@ function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_cast2_test: RuntimeError
-function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_factory1_test: RuntimeError
 function_subtype_inline1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_subtype_local1_test: RuntimeError
 function_subtype_local2_test: RuntimeError
 function_subtype_local5_test: RuntimeError
-function_subtype_named1_test: RuntimeError
-function_subtype_named2_test: RuntimeError
-function_subtype_not0_test: RuntimeError
 function_subtype_not1_test: RuntimeError
-function_subtype_not2_test: RuntimeError
-function_subtype_not3_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_subtype_top_level1_test: RuntimeError
-function_subtype_typearg2_test: RuntimeError
-function_subtype_typearg3_test: RuntimeError
+function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in (local(B.#)) for j:signature(B_closure.$signature).
 function_type_alias2_test: RuntimeError
-function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
-fuzzy_arrows_test/03: RuntimeError
+generic_async_star_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node U.
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_type_as_type_argument_test/03: RuntimeError
+generic_function_type_within_type_argument_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
+generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
+generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_method_types_test/03: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -2382,8 +2405,6 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
-generic_methods_named_parameters_test: RuntimeError
-generic_methods_optional_parameters_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # NoSuchMethodError: The method 'markSeen' was called on null.
@@ -2418,7 +2439,6 @@ infinity_test: RuntimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
-instanceof2_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/01: RuntimeError
@@ -2446,18 +2466,21 @@ issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
+known_identifier_usage_error_test/none: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
-list_is_test: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
 local_function_test/02: MissingCompileTimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
+main_test/20: RuntimeError
+main_test/22: RuntimeError
+main_test/44: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -2469,20 +2492,17 @@ malbounded_type_cast2_test: MissingCompileTimeError
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
 malbounded_type_cast_test/02: MissingCompileTimeError
-malbounded_type_cast_test/none: RuntimeError
 malbounded_type_literal_test/00: MissingCompileTimeError
 malbounded_type_test2_test/00: MissingCompileTimeError
 malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
-malbounded_type_test_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: CompileTimeError
 map_literal11_test/none: MissingRuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-map_literal7_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
@@ -2591,10 +2611,6 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mixin_type_parameters_mixin_extends_test: RuntimeError
-mixin_type_parameters_mixin_test: RuntimeError
-mixin_type_parameters_super_extends_test: RuntimeError
-mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 30847
 modulo_test: RuntimeError
@@ -2606,6 +2622,7 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_default_eq_test/none: RuntimeError
 named_parameters_test/02: MissingCompileTimeError
 named_parameters_test/04: MissingCompileTimeError
 named_parameters_test/06: MissingCompileTimeError
@@ -2702,7 +2719,9 @@ regress_18535_test: CompileTimeError
 regress_21795_test: RuntimeError
 regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
+regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
+regress_24935_test/none: RuntimeError
 regress_25550_test: CompileTimeError
 regress_26175_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -2722,6 +2741,7 @@ setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+shadow_parameter_and_local_test: RuntimeError
 stack_trace_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
@@ -2785,10 +2805,11 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
-type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
+typedef_is_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 vm/causal_async_exception_stack2_test: Crash # Wrong number of template arguments, given 2, expected 1
 vm/causal_async_exception_stack_test: Crash # Wrong number of template arguments, given 2, expected 1
 vm/debug_break_enabled_vm_test/01: CompileTimeError
@@ -2809,9 +2830,6 @@ vm/regress_28325_test: RuntimeError
 vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/28: MissingRuntimeError
-vm/type_vm_test/30: MissingRuntimeError
-vm/type_vm_test/31: MissingRuntimeError
-vm/type_vm_test/32: MissingRuntimeError
 vm/uint32_right_shift_test: RuntimeError
 vm/uint32_shift_test: RuntimeError
 vm/unaligned_integer_access_literal_index_test: RuntimeError
@@ -2822,6 +2840,7 @@ void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
+yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$strong ]
 *: SkipByDesign

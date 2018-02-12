@@ -221,14 +221,12 @@ integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
 iterable_empty_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
 iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_generate_test/01: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: Crash # Assertion failure: Only 2 of 4 arguments have been read from: [HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int)]
 iterable_return_type_test/02: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 iterable_return_type_test/none: Crash # Assertion failure: Only 2 of 4 arguments have been read from: [HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int), HTypeInfoExpression(COMPLETE, int)]
 iterable_to_list_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 iterable_to_list_test/none: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-iterable_to_set_test: RuntimeError
 json_map_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
@@ -237,7 +235,6 @@ list_set_all_test: RuntimeError
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 list_unmodifiable_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-map_keys2_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
@@ -267,19 +264,16 @@ integer_to_radix_string_test/none: RuntimeError
 integer_to_string_test/01: RuntimeError
 iterable_empty_test: RuntimeError
 iterable_fold_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
-iterable_generate_test/01: RuntimeError
 iterable_reduce_test: Crash # NoSuchMethodError: The getter 'isDynamic' was called on null.
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-iterable_to_set_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
 list_replace_range_test: RuntimeError # Issue 32010
 list_set_all_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
-map_keys2_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 null_nosuchmethod_test/01: CompileTimeError
 null_nosuchmethod_test/none: CompileTimeError
