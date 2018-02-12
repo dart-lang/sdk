@@ -27,7 +27,6 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -37,6 +36,7 @@ import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:vm/incremental_compiler.dart';
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
@@ -47,10 +47,12 @@ const String platformKernelFile = 'virtual_platform_kernel.dill';
 // Current tags include the following:
 //   0 - Perform normal compilation.
 //   1 - Update in-memory file system with in-memory sources (used by tests).
-//   2 - APP JIT snapshot training run for kernel_service.
+//   2 - Accept last compilation result.
+//   3 - APP JIT snapshot training run for kernel_service.
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
-const int kTrainTag = 2;
+const int kAcceptTag = 2;
+const int kTrainTag = 3;
 
 abstract class Compiler {
   final FileSystem fileSystem;
@@ -111,10 +113,10 @@ abstract class Compiler {
   Future<Program> compileInternal(Uri script);
 }
 
-class IncrementalCompiler extends Compiler {
-  IncrementalKernelGenerator generator;
+class IncrementalCompilerWrapper extends Compiler {
+  IncrementalCompiler generator;
 
-  IncrementalCompiler(FileSystem fileSystem, Uri platformKernelPath,
+  IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {bool strongMode: false, bool suppressWarnings: false, syncAsync: false})
       : super(fileSystem, platformKernelPath,
             strongMode: strongMode,
@@ -124,20 +126,20 @@ class IncrementalCompiler extends Compiler {
   @override
   Future<Program> compileInternal(Uri script) async {
     if (generator == null) {
-      generator = new IncrementalKernelGenerator(options, script);
+      generator = new IncrementalCompiler(options, script);
     }
-    return await generator.computeDelta(entryPoint: script);
+    errors.clear();
+    return await generator.compile(entryPoint: script);
   }
 
-  void invalidate(Uri uri) {
-    generator.invalidate(uri);
-  }
+  void accept() => generator.accept();
+  void invalidate(Uri uri) => generator.invalidate(uri);
 }
 
-class SingleShotCompiler extends Compiler {
+class SingleShotCompilerWrapper extends Compiler {
   final bool requireMain;
 
-  SingleShotCompiler(FileSystem fileSystem, Uri platformKernelPath,
+  SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool strongMode: false,
       bool suppressWarnings: false,
@@ -166,7 +168,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     {bool strongMode: false,
     bool suppressWarnings: false,
     bool syncAsync: false}) async {
-  IncrementalCompiler compiler = lookupIncrementalCompiler(isolateId);
+  IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
   if (compiler != null) {
     updateSources(compiler, sourceFiles);
     invalidateSources(compiler, sourceFiles);
@@ -175,11 +177,11 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
         ? StandardFileSystem.instance
         : _buildFileSystem(sourceFiles, platformKernel);
 
-    // TODO(aam): IncrementalCompiler instance created below have to be
+    // TODO(aam): IncrementalCompilerWrapper instance created below have to be
     // destroyed when corresponding isolate is shut down. To achieve that kernel
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompiler(fileSystem, platformKernelPath,
+    compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
         strongMode: strongMode,
         suppressWarnings: suppressWarnings,
         syncAsync: syncAsync);
@@ -188,7 +190,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
   return compiler;
 }
 
-void updateSources(IncrementalCompiler compiler, List sourceFiles) {
+void updateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
   final bool hasMemoryFS = compiler.fileSystem is HybridFileSystem;
   if (sourceFiles.isNotEmpty) {
     final FileSystem fs = compiler.fileSystem;
@@ -208,7 +210,7 @@ void updateSources(IncrementalCompiler compiler, List sourceFiles) {
   }
 }
 
-void invalidateSources(IncrementalCompiler compiler, List sourceFiles) {
+void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
   if (sourceFiles.isNotEmpty) {
     for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
       compiler.invalidate(Uri.parse(sourceFiles[i * 2]));
@@ -251,13 +253,22 @@ Future _processLoadRequest(request) async {
   // unit tests compile sources that are not on the file system, so this can only
   // happen during unit tests.
   if (tag == kUpdateSourcesTag) {
-    assert(
-        incremental,
-        "Incremental compiler required for use of"
-        "'kUpdateSourcesTag'");
+    assert(incremental,
+        "Incremental compiler required for use of 'kUpdateSourcesTag'");
     compiler = lookupIncrementalCompiler(isolateId);
     assert(compiler != null);
     updateSources(compiler, sourceFiles);
+    port.send(new CompilationResult.ok(null).toResponse());
+    return;
+  } else if (tag == kAcceptTag) {
+    assert(
+        incremental, "Incremental compiler required for use of 'kAcceptTag'");
+    compiler = lookupIncrementalCompiler(isolateId);
+    // There are unit tests that invoke the IncrementalCompiler directly and
+    // request a reload, meaning that we won't have a compiler for this isolate.
+    if (compiler != null) {
+      (compiler as IncrementalCompilerWrapper).accept();
+    }
     port.send(new CompilationResult.ok(null).toResponse());
     return;
   }
@@ -279,7 +290,7 @@ Future _processLoadRequest(request) async {
     final FileSystem fileSystem = sourceFiles.isEmpty && platformKernel == null
         ? StandardFileSystem.instance
         : _buildFileSystem(sourceFiles, platformKernel);
-    compiler = new SingleShotCompiler(fileSystem, platformKernelPath,
+    compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: sourceFiles.isEmpty,
         strongMode: strong,
         suppressWarnings: suppressWarnings,

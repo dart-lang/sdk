@@ -559,6 +559,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
   }
+
   if (isolate()->use_dart_frontend()) {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
@@ -611,6 +612,15 @@ void IsolateReloadContext::Reload(bool force_reload,
     I->object_store()->set_changed_in_last_reload(
         GrowableObjectArray::Handle(GrowableObjectArray::New()));
     ReportOnJSON(js_);
+    if (isolate()->use_dart_frontend()) {
+      TransitionVMToNative transition(thread);
+      if (KernelIsolate::AcceptCompilation().status !=
+          Dart_KernelCompilationStatus_Ok) {
+        FATAL(
+            "An error occurred in the CFE while accepting the most recent"
+            " compilation results.");
+      }
+    }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
@@ -671,6 +681,13 @@ void IsolateReloadContext::Reload(bool force_reload,
       isolate()->object_store()->set_root_library(lib);
       FinalizeLoading();
       result = Object::null();
+      TransitionVMToNative transition(thread);
+      if (KernelIsolate::AcceptCompilation().status !=
+          Dart_KernelCompilationStatus_Ok) {
+        FATAL(
+            "An error occurred in the CFE while accepting the most recent"
+            " compilation results.");
+      }
     } else {
       result = tmp.raw();
     }
