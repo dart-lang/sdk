@@ -3012,9 +3012,44 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("Assert");
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
+
+    // Compute start and end offsets for the condition expression.
+    // This code is a temporary workaround because expressions don't carry
+    // their start and end offsets currently.
+    //
+    // The token that follows leftParenthesis is considered to be the
+    // first token of the condition.
+    // TODO(ahe): this really should be condition.fileOffset.
+    int startOffset = leftParenthesis.next.offset;
+    int endOffset;
+    {
+      // Search forward from leftParenthesis to find the last token of
+      // the condition - which is a token immediately followed by a commaToken,
+      // right parenthesis or a trailing comma.
+      Token conditionBoundary = commaToken ?? leftParenthesis.endGroup;
+      Token conditionLastToken = leftParenthesis;
+      while (!conditionLastToken.isEof) {
+        Token nextToken = conditionLastToken.next;
+        if (nextToken == conditionBoundary) {
+          break;
+        } else if (optional(',', nextToken) &&
+            nextToken.next == conditionBoundary) {
+          // The next token is trailing comma, which means current token is
+          // the last token of the condition.
+          break;
+        }
+        conditionLastToken = nextToken;
+      }
+      if (conditionLastToken.isEof) {
+        endOffset = startOffset = -1;
+      } else {
+        endOffset = conditionLastToken.offset + conditionLastToken.length;
+      }
+    }
+
     AssertStatement statement = new ShadowAssertStatement(condition,
-        conditionStartOffset: leftParenthesis.offset + 1,
-        conditionEndOffset: leftParenthesis.endGroup.offset,
+        conditionStartOffset: startOffset,
+        conditionEndOffset: endOffset,
         message: message);
     switch (kind) {
       case Assert.Statement:
