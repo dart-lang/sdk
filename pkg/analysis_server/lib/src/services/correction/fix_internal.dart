@@ -402,6 +402,9 @@ class FixProcessor {
         CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD) {
       await _addFix_createField_initializingFormal();
     }
+    if (errorCode == CompileTimeErrorCode.CONST_INSTANCE_FIELD) {
+      await _addFix_addStatic();
+    }
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
@@ -470,9 +473,6 @@ class FixProcessor {
     return fixes;
   }
 
-  /**
-   * Returns `true` if the `async` proposal was added.
-   */
   Future<Null> _addFix_addAsync() async {
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     if (body != null && body.keyword == null) {
@@ -699,6 +699,16 @@ class FixProcessor {
       builder.addSimpleInsertion(node.parent.offset, '@required ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_REQUIRED);
+  }
+
+  Future<Null> _addFix_addStatic() async {
+    FieldDeclaration declaration =
+        node.getAncestor((n) => n is FieldDeclaration);
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleInsertion(declaration.offset, 'static ');
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_STATIC);
   }
 
   Future<Null> _addFix_boolInsteadOfBoolean() async {

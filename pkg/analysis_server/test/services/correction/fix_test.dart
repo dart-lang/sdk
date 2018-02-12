@@ -958,6 +958,32 @@ main() {
 ''');
   }
 
+  test_addStatic_multipleFields() async {
+    await resolveTestUnit('''
+class C {
+  const int x = 0, y = 0;
+}
+''');
+    await assertHasFix(DartFixKind.ADD_STATIC, '''
+class C {
+  static const int x = 0, y = 0;
+}
+''');
+  }
+
+  test_addStatic_oneField() async {
+    await resolveTestUnit('''
+class C {
+  const int x = 0;
+}
+''');
+    await assertHasFix(DartFixKind.ADD_STATIC, '''
+class C {
+  static const int x = 0;
+}
+''');
+  }
+
   test_boolean() async {
     await resolveTestUnit('''
 main() {
