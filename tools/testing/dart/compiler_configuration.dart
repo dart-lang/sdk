@@ -121,8 +121,12 @@ abstract class CompilerConfiguration {
     throw new UnsupportedError("$this does not support createCommand().");
   }
 
-  CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> arguments, Map<String, String> environmentOverrides) {
+  CommandArtifact computeCompilationArtifact(
+
+      /// Each test has its own temporary directory to avoid name collisions.
+      String tempDir,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
     return new CommandArtifact([], null, null);
   }
 
@@ -1095,7 +1099,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   FastaCompilerConfiguration(Configuration configuration)
       : this._(
-            Uri.base.resolve("pkg/front_end/tool/_fasta/compile.dart"),
+            Repository.uri.resolve("pkg/front_end/tool/_fasta/compile.dart"),
             Uri.base
                 .resolveUri(new Uri.directory(configuration.buildDirectory)),
             !configuration.isStrong,
@@ -1161,7 +1165,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
           _vmExecutable,
           compilerArguments,
           environmentOverrides,
-          Uri.base,
+          Repository.uri,
         )
       ],
       outputFileName,
@@ -1192,6 +1196,9 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
+    if (runtimeConfiguration is! NoneRuntimeConfiguration) {
+      throw "--compiler=fasta only supports --runtime=none";
+    }
     return <String>[];
   }
 }

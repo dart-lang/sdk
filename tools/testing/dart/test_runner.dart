@@ -574,7 +574,7 @@ class RunningProcess {
 class BatchRunnerProcess {
   /// When true, the command line is passed to the test runner as a
   /// JSON-encoded list of strings.
-  final bool _jsonCommandLine;
+  final bool _useJson;
 
   Completer<CommandOutput> _completer;
   ProcessCommand _command;
@@ -597,7 +597,7 @@ class BatchRunnerProcess {
   Timer _timer;
   int _testCount = 0;
 
-  BatchRunnerProcess(this._jsonCommandLine);
+  BatchRunnerProcess({bool useJson: true}) : _useJson = useJson;
 
   Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
       int timeout, List<String> arguments) {
@@ -670,7 +670,7 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
-    if (_jsonCommandLine) {
+    if (_useJson) {
       return "${JSON.encode(arguments)}\n";
     } else {
       return arguments.join(' ') + '\n';
@@ -1280,7 +1280,7 @@ class CommandExecutorImpl implements CommandExecutor {
     if (runners == null) {
       runners = new List<BatchRunnerProcess>(maxProcesses);
       for (int i = 0; i < maxProcesses; i++) {
-        runners[i] = new BatchRunnerProcess(identifier == "fasta");
+        runners[i] = new BatchRunnerProcess(useJson: identifier == "fasta");
       }
       _batchProcesses[identifier] = runners;
     }

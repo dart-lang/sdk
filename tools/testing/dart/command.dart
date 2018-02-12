@@ -365,6 +365,17 @@ class FastaCompilationCommand extends CompilationCommand {
     }
     return "$buffer";
   }
+
+  @override
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(_compilerLocation);
+  }
+
+  @override
+  bool _equal(FastaCompilationCommand other) {
+    return super._equal(other) && _compilerLocation == other._compilerLocation;
+  }
 }
 
 class VMKernelCompilationCommand extends CompilationCommand {
