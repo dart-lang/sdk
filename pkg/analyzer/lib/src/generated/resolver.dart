@@ -2534,17 +2534,20 @@ class DirectiveResolver extends SimpleAstVisitor {
       if (element.nameOffset == nodeOffset) {
         node.element = element;
         // Verify the exported source kind.
-        Source exportedSource = element.exportedLibrary.source;
-        int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
-        if (exportedTime >= 0 &&
-            exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-          StringLiteral uriLiteral = node.uri;
-          errors.add(new AnalysisError(
-              _enclosingLibrary.source,
-              uriLiteral.offset,
-              uriLiteral.length,
-              CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-              [uriLiteral.toSource()]));
+        LibraryElement exportedLibrary = element.exportedLibrary;
+        if (exportedLibrary != null) {
+          Source exportedSource = exportedLibrary.source;
+          int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
+          if (exportedTime >= 0 &&
+              exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+            StringLiteral uriLiteral = node.uri;
+            errors.add(new AnalysisError(
+                _enclosingLibrary.source,
+                uriLiteral.offset,
+                uriLiteral.length,
+                CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                [uriLiteral.toSource()]));
+          }
         }
         break;
       }
@@ -2559,20 +2562,23 @@ class DirectiveResolver extends SimpleAstVisitor {
       if (element.nameOffset == nodeOffset) {
         node.element = element;
         // Verify the imported source kind.
-        Source importedSource = element.importedLibrary.source;
-        int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
-        if (importedTime >= 0 &&
-            importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-          StringLiteral uriLiteral = node.uri;
-          ErrorCode errorCode = element.isDeferred
-              ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-              : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
-          errors.add(new AnalysisError(
-              _enclosingLibrary.source,
-              uriLiteral.offset,
-              uriLiteral.length,
-              errorCode,
-              [uriLiteral.toSource()]));
+        LibraryElement importedLibrary = element.importedLibrary;
+        if (importedLibrary != null) {
+          Source importedSource = importedLibrary.source;
+          int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
+          if (importedTime >= 0 &&
+              importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+            StringLiteral uriLiteral = node.uri;
+            ErrorCode errorCode = element.isDeferred
+                ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+                : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+            errors.add(new AnalysisError(
+                _enclosingLibrary.source,
+                uriLiteral.offset,
+                uriLiteral.length,
+                errorCode,
+                [uriLiteral.toSource()]));
+          }
         }
         break;
       }

@@ -1653,14 +1653,7 @@ main() {
   p.loadLibrary();
 }''');
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        StaticWarningCode.UNDEFINED_IDENTIFIER
-      ]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   test_duplicateConstructorName_named() async {
