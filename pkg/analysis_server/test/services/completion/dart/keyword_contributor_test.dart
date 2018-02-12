@@ -1423,6 +1423,18 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_integerLiteral_inArgumentList() async {
+    addTestSource('main() { print(42^); }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
+  test_integerLiteral_inListLiteral() async {
+    addTestSource('main() { var items = [42^]; }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
   test_is_expression() async {
     addTestSource('main() {if (x is^)}');
     await computeSuggestions();

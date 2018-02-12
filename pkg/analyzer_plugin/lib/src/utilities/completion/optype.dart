@@ -113,6 +113,12 @@ class OpType {
    */
   factory OpType.forCompletion(CompletionTarget target, int offset) {
     OpType optype = new OpType._();
+
+    // Don't suggest anything right after double or integer literals.
+    if (target.isDoubleOrIntLiteral()) {
+      return optype;
+    }
+
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
     var mthDecl =

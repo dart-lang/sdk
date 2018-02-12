@@ -31,6 +31,12 @@ class KeywordContributor extends DartCompletionContributor {
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+
+    // Don't suggest anything right after double or integer literals.
+    if (request.target.isDoubleOrIntLiteral()) {
+      return suggestions;
+    }
+
     request.target.containingNode
         .accept(new _KeywordVisitor(request, suggestions));
     return suggestions;
