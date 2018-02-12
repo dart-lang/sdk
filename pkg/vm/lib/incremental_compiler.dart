@@ -18,8 +18,10 @@ class IncrementalCompiler {
   List<Program> _pendingDeltas;
   CompilerOptions _compilerOptions;
 
-  IncrementalCompiler(this._compilerOptions, Uri entryPoint) {
-    _generator = new IncrementalKernelGenerator(_compilerOptions, entryPoint);
+  IncrementalCompiler(this._compilerOptions, Uri entryPoint,
+      {Uri bootstrapDill}) {
+    _generator = new IncrementalKernelGenerator(
+        _compilerOptions, entryPoint, bootstrapDill);
     _pendingDeltas = <Program>[];
   }
 
