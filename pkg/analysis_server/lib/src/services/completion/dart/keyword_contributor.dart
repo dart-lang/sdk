@@ -14,8 +14,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 const ASYNC_STAR = 'async*';
-const DEFERRED_AS = 'deferred as';
 const DEFAULT_COLON = 'default:';
+const DEFERRED_AS = 'deferred as';
 const EXPORT_STATEMENT = "export '';";
 const IMPORT_STATEMENT = "import '';";
 const PART_STATEMENT = "part '';";
@@ -220,8 +220,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.initializers.isNotEmpty && node.initializers.last == entity) {
-      _addSuggestion(Keyword.SUPER);
+    if (node.initializers.isNotEmpty) {
+      if (entity is ConstructorInitializer) {
+        _addSuggestion(Keyword.ASSERT);
+      }
+      if (node.initializers.last == entity) {
+        _addSuggestion(Keyword.SUPER);
+        _addSuggestion(Keyword.THIS);
+      }
     }
   }
 
@@ -347,23 +353,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitParenthesizedExpression(ParenthesizedExpression node) {
-    Expression expression = node.expression;
-    if (expression is Identifier || expression is PropertyAccess) {
-      if (entity == node.rightParenthesis) {
-        var next = expression.endToken.next;
-        if (next == entity || next == droppedToken) {
-          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
-          // stream but not part of the ParenthesizedExpression.
-          _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
-          return;
-        }
-      }
-    }
-    _addExpressionKeywords(node);
-  }
-
-  @override
   visitIfStatement(IfStatement node) {
     if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
       // Actual: if (x i^)
@@ -453,6 +442,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitNode(AstNode node) {
     // ignored
+  }
+
+  @override
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    Expression expression = node.expression;
+    if (expression is Identifier || expression is PropertyAccess) {
+      if (entity == node.rightParenthesis) {
+        var next = expression.endToken.next;
+        if (next == entity || next == droppedToken) {
+          // Fasta parses `if (x i^)` as `if (x ^) where the `i` is in the token
+          // stream but not part of the ParenthesizedExpression.
+          _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+          return;
+        }
+      }
+    }
+    _addExpressionKeywords(node);
   }
 
   @override

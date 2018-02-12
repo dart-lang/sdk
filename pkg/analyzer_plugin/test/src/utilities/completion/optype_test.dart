@@ -223,6 +223,11 @@ class OpTypeTest extends AbstractContextTest {
     await assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_AssertInitializer() async {
+    addTestSource('class C { C() : assert(^); }');
+    await assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block

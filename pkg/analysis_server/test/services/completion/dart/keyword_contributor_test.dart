@@ -837,6 +837,18 @@ class C {
     assertSuggestKeywords([]);
   }
 
+  test_constructor_initializers_first() async {
+    addTestSource('class A { int f; A() : ^, f = 1; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT]);
+  }
+
+  test_constructor_initializers_last() async {
+    addTestSource('class A { A() : ^; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT, Keyword.SUPER, Keyword.THIS]);
+  }
+
   test_constructor_param() async {
     addTestSource('class A { A(^) {});}');
     await computeSuggestions();
