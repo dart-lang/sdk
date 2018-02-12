@@ -27,8 +27,11 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
       validUnit =
           parseCompilationUnit(validCode, codes: expectedErrorsInValidCode);
     } catch (e) {
-      print('*** Valid code did not parse correctly');
-      print(validCode);
+      print('');
+      print('  Errors in valid code.');
+      print('    Error: $e');
+      print('    Code: $validCode');
+      print('');
       rethrow;
     }
 
