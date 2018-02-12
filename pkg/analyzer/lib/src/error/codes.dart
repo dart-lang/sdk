@@ -5046,7 +5046,7 @@ class StrongModeCode extends ErrorCode {
   /* TODO(leafp) Delete most of these.
    */
   static const StrongModeCode TOP_LEVEL_CYCLE = const StrongModeCode(
-      ErrorType.HINT,
+      ErrorType.COMPILE_TIME_ERROR,
       'TOP_LEVEL_CYCLE',
       "The type of '{0}' can't be inferred because it depends on itself through the cycle: {1}.",
       "Try adding an explicit type to one or more of the variables in the cycle in order to break the cycle.");
