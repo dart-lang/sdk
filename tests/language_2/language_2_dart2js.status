@@ -3857,6 +3857,7 @@ mixin_mixin5_test: RuntimeError # Issue 31054
 mixin_mixin6_test: RuntimeError # Issue 31054
 mixin_mixin_bound2_test: RuntimeError # Issue 31054
 mixin_mixin_bound_test: RuntimeError # Issue 31054
+mixin_mixin_type_arguments_test: RuntimeError # Issue 31054
 
 [ $compiler == dart2js && !$strong ]
 dynamic_test: RuntimeError
