@@ -47,25 +47,28 @@ external_service_disappear_test: Crash # Issue 31587
 coverage_leaf_function_test: RuntimeError
 coverage_optimized_function_test: Skip # Timeout
 get_source_report_test: RuntimeError
-get_vm_timeline_rpc_test: Pass, Timeout
-issue_25465_test: Pass, Timeout
-issue_30555_test: Pass, Timeout
-next_through_assign_call_test: Pass, Timeout
-next_through_call_on_field_in_class_test: Pass, Timeout
-next_through_create_list_and_map_test: Pass, Timeout
-next_through_is_and_as_test: Pass, Timeout
-next_through_multi_catch_test: Pass, Timeout
-next_through_simple_async_with_returns_test: Pass, Timeout
-next_through_simple_linear_2_test: Pass, Timeout
+get_vm_timeline_rpc_test: Pass, Timeout # Issue 32137.
+issue_25465_test: Pass, Timeout # Issue 32137.
+issue_30555_test: Pass, RuntimeError, Timeout # Issue 32137.
+next_through_assign_call_test: Pass, Timeout # Issue 32137.
+next_through_call_on_field_in_class_test: Pass, Timeout # Issue 32137.
+next_through_create_list_and_map_test: Skip # Issues 32137 and 32138.
+next_through_is_and_as_test: Pass, Timeout # Issue 32137.
+next_through_multi_catch_test: Pass, Timeout # Issue 32137.
+next_through_simple_async_with_returns_test: Skip # Issues 32137 and 32138.
+next_through_simple_linear_2_test: Pass, Timeout # Issue 32137.
+pause_idle_isolate_test: Skip # Issues 32137 and 32138.
+pause_on_start_and_exit_test: Pass, RuntimeError # Issue 32137.
 regress_28443_test: Pass, Timeout
 reload_sources_test: RuntimeError
+set_vm_name_rpc_test: Pass, Timeout # Issue 32137.
 step_test: Pass, Slow
 step_through_constructor_test: Pass, Slow
-step_through_function_2_test: Pass, Timeout
-step_through_function_test: Pass, Timeout
-step_through_property_get_test: Pass, Timeout
-step_through_switch_test: Pass, Timeout
-step_through_switch_with_continue_test: Pass, Timeout
+step_through_function_2_test: Pass, Timeout # Issue 32137.
+step_through_function_test: Pass, Timeout # Issue 32137.
+step_through_property_get_test: Pass, Timeout # Issue 32137.
+step_through_switch_test: Pass, Timeout # Issue 32137.
+step_through_switch_with_continue_test: Pass, Timeout # Issue 32137.
 
 [ $compiler == dartk && $system == windows && $strong ]
 add_breakpoint_rpc_kernel_test: Skip # Timeout
@@ -103,3 +106,4 @@ step_through_arithmetic_test: RuntimeError
 
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
 async_single_step_exception_test: RuntimeError
+

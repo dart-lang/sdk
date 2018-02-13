@@ -329,6 +329,9 @@ math/math_test: RuntimeError
 mirrors/invocation_fuzz_test/smi: Pass, Slow
 mirrors/variable_is_const_test/01: Crash # Please triage.
 
+[ $compiler == dartk && $system == windows ]
+mirrors/invocation_fuzz_test/smi: Pass, Timeout # Issue 32137.
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.

@@ -219,6 +219,10 @@ LibTest/core/DateTime/parse_A03_t01: Crash # Please triage.
 [ $compiler == dartk && $mode == debug ]
 LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
+[ $compiler == dartk && $system == windows ]
+Language/Libraries_and_Scripts/top_level_syntax_t06: Pass, Timeout
+Language/Reference/Operator_Precedence/precedence_t03: Pass, Timeout
+
 [ $compiler == dartk && $strong ]
 *: SkipByDesign
 

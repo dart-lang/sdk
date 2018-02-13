@@ -191,6 +191,9 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 
+[ $compiler == dartk && $system == windows ]
+isolate/ping_pause_test: Skip # Issues 32137 and 32138
+
 [ $compiler == dartk && $strong ]
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
