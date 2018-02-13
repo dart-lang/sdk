@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:ansicolor/ansicolor.dart';  // OK
+import 'package:analyzer/analyzer.dart';  // OK
 
 import 'package:linter/src/analyzer.dart';
 
@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart';  // LINT
 
 import 'package:linter/src/formatter.dart';
 
-export 'package:ansicolor/ansicolor.dart';  // OK
+export 'package:analyzer/analyzer.dart';  // OK
 
 export 'package:linter/src/analyzer.dart';
 
