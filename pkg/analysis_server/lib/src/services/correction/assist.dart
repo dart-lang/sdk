@@ -100,7 +100,7 @@ class DartAssistKind {
   static const FLUTTER_WRAP_COLUMN = const AssistKind(
       'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
   static const FLUTTER_WRAP_GENERIC = const AssistKind(
-      'dart.assist.flutter.wrap.generic', 31, "Wrap with new widget");
+      'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
   static const FLUTTER_WRAP_PADDING = const AssistKind(
       'dart.assist.flutter.wrap.padding', 30, "Add widget padding");
   static const FLUTTER_WRAP_ROW =
@@ -138,19 +138,19 @@ class DartAssistKind {
   static const SPLIT_VARIABLE_DECLARATION = const AssistKind(
       'dart.assist.splitVariableDeclaration', 30, "Split variable declaration");
   static const SURROUND_WITH_BLOCK =
-      const AssistKind('dart.assist.surround.block', 30, "Surround with block");
+      const AssistKind('dart.assist.surround.block', 22, "Surround with block");
   static const SURROUND_WITH_DO_WHILE = const AssistKind(
-      'dart.assist.surround.doWhile', 30, "Surround with 'do-while'");
+      'dart.assist.surround.doWhile', 27, "Surround with 'do-while'");
   static const SURROUND_WITH_FOR = const AssistKind(
-      'dart.assist.surround.forEach', 30, "Surround with 'for'");
+      'dart.assist.surround.forEach', 26, "Surround with 'for'");
   static const SURROUND_WITH_FOR_IN = const AssistKind(
-      'dart.assist.surround.forIn', 30, "Surround with 'for-in'");
+      'dart.assist.surround.forIn', 25, "Surround with 'for-in'");
   static const SURROUND_WITH_IF =
-      const AssistKind('dart.assist.surround.if', 30, "Surround with 'if'");
+      const AssistKind('dart.assist.surround.if', 23, "Surround with 'if'");
   static const SURROUND_WITH_TRY_CATCH = const AssistKind(
-      'dart.assist.surround.tryCatch', 30, "Surround with 'try-catch'");
+      'dart.assist.surround.tryCatch', 28, "Surround with 'try-catch'");
   static const SURROUND_WITH_TRY_FINALLY = const AssistKind(
-      'dart.assist.surround.tryFinally', 30, "Surround with 'try-finally'");
+      'dart.assist.surround.tryFinally', 29, "Surround with 'try-finally'");
   static const SURROUND_WITH_WHILE = const AssistKind(
-      'dart.assist.surround.while', 30, "Surround with 'while'");
+      'dart.assist.surround.while', 24, "Surround with 'while'");
 }

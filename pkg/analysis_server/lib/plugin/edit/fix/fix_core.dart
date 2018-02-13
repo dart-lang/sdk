@@ -24,11 +24,15 @@ class Fix {
 
   /**
    * A comparator that can be used to sort fixes by their relevance. The most
-   * relevant fixes will be sorted before fixes with a lower relevance.
+   * relevant fixes will be sorted before fixes with a lower relevance. Fixes
+   * with the same relevance are sorted alphabetically.
    */
-  static final Comparator<Fix> SORT_BY_RELEVANCE =
-      (Fix firstFix, Fix secondFix) =>
-          firstFix.kind.priority - secondFix.kind.priority;
+  static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix a, Fix b) {
+    if (a.kind.priority != b.kind.priority) {
+      return a.kind.priority - b.kind.priority;
+    }
+    return a.change.message.compareTo(b.change.message);
+  };
 
   /**
    * A description of the fix being proposed.
