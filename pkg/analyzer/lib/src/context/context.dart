@@ -297,8 +297,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ((options is AnalysisOptionsImpl)
             ? this._options.implicitDynamic != options.implicitDynamic
             : false) ||
-        this._options.enableStrictCallChecks !=
-            options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins ||
         !_samePatchPaths(this._options.patchPaths, options.patchPaths);
     this._options.analyzeFunctionBodiesPredicate =
@@ -306,7 +304,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableLazyAssignmentOperators =
         options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;

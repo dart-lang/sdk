@@ -451,8 +451,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
-        currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
+        currentOptions.preserveComments != options.preserveComments;
     if (needsRecompute) {
       fail(
           "Cannot set options that cause the sources to be reanalyzed in a test context");

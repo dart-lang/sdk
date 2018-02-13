@@ -689,8 +689,7 @@ class Driver implements CommandLineStarter {
   /// Return whether [a] and [b] options are equal for the purpose of
   /// command line analysis.
   bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
-    return a.enableStrictCallChecks == b.enableStrictCallChecks &&
-        a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
+    return a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
         a.enableSuperMixins == b.enableSuperMixins &&
         a.enableTiming == b.enableTiming &&
         a.generateImplicitErrors == b.generateImplicitErrors &&
@@ -912,9 +911,6 @@ class Driver implements CommandLineStarter {
       return false;
     }
     if (newOptions.disableHints != previous.disableHints) {
-      return false;
-    }
-    if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
       return false;
     }
     if (newOptions.showPackageWarnings != previous.showPackageWarnings) {

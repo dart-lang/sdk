@@ -90,7 +90,6 @@ multiline_newline_test/02: CompileTimeError
 multiline_newline_test/02r: CompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
-object_has_no_call_method_test/02: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError

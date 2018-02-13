@@ -69,17 +69,6 @@ main() {
     expect(processors[0].code, CompileTimeErrorCode.DUPLICATE_DEFINITION.name);
   });
 
-  test('fromArgs options flag', () {
-    var args = <String>['--$enableStrictCallChecksFlag'];
-    //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
-    args.addAll(sdkSummaryArgs);
-    var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
-    var analysisOptions = compiler.context.analysisOptions;
-    expect(analysisOptions.enableStrictCallChecks, isTrue);
-  });
-
   test('custom module name for summary', () {
     var args = <String>[
       '-snormal',
