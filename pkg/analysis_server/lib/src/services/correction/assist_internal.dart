@@ -1303,6 +1303,7 @@ class AssistProcessor {
           parent is Label &&
           parent2 is NamedExpression &&
           node.name == 'child' &&
+          node.staticElement != null &&
           flutter.isWidgetExpression(parent2.expression)) {
         namedExp = parent2;
       } else {

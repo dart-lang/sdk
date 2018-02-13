@@ -2521,6 +2521,21 @@ main() {
 ''');
   }
 
+  test_flutterConvertToChildren_BAD_childUnresolved() async {
+    addFlutterPackage();
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Row(
+    /*caret*/child: new Container()
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN);
+  }
+
   test_flutterConvertToChildren_BAD_notOnChild() async {
     addFlutterPackage();
     await resolveTestUnit('''
