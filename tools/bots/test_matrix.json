@@ -618,6 +618,7 @@
         {
           "name": "vm tests",
           "arguments": [
+            "--builder-tag=optimization_counter_threshold",
             "--compiler=dartk",
             "--vm-options=--optimization-counter-threshold=5"
           ],
@@ -627,6 +628,7 @@
         {
           "name": "strong vm tests",
           "arguments": [
+            "--builder-tag=optimization_counter_threshold",
             "--compiler=dartk",
             "--strong",
             "--vm-options=--optimization-counter-threshold=5"
