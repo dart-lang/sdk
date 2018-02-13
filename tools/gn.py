@@ -173,7 +173,7 @@ def UseWheezySysroot(args, gn_args):
   if TargetSysroot(args):
     return False
   # Use the downloaded sysroot unless it is explicitly disabled.
-  return not args.no_wheezy
+  return not args.no_wheezy and not UseSanitizer(args)
 
 
 def ToGnArgs(args, mode, arch, target_os):
