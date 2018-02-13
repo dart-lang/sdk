@@ -316,7 +316,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeOverrideOfInheritedMember(ExecutableElement member,
-      {StringBuffer, displayTextBuffer, String returnTypeGroupName}) {
+      {StringBuffer displayTextBuffer, String returnTypeGroupName}) {
     // prepare environment
     String prefix = getIndent(1);
     // may be property
@@ -352,15 +352,20 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
     }
     // name
-    write(member.displayName);
+    write(member.displayName, displayTextBuffer: displayTextBuffer);
+
     // parameters + body
     if (isGetter) {
       writeln(' => null;');
+      displayTextBuffer?.write(' => ...');
     } else {
-      writeTypeParameters(member.typeParameters, methodBeingCopied: member);
+      writeTypeParameters(member.typeParameters,
+          methodBeingCopied: member, displayTextBuffer: displayTextBuffer);
       List<ParameterElement> parameters = member.parameters;
-      writeParameters(parameters, methodBeingCopied: member);
+      writeParameters(parameters,
+          methodBeingCopied: member, displayTextBuffer: displayTextBuffer);
       writeln(' {');
+      displayTextBuffer?.write(' {');
       // TO-DO
       write(prefix2);
       writeln('// TODO: implement ${member.displayName}');
@@ -371,6 +376,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // close method
       write(prefix);
       writeln('}');
+      displayTextBuffer?.write(' ... }');
     }
   }
 
@@ -400,51 +406,52 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement methodBeingCopied}) {
-    write('(');
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
+    write('(', displayTextBuffer: displayTextBuffer);
     bool sawNamed = false;
     bool sawPositional = false;
     for (int i = 0; i < parameters.length; i++) {
       ParameterElement parameter = parameters.elementAt(i);
       if (i > 0) {
-        write(', ');
+        write(', ', displayTextBuffer: displayTextBuffer);
       }
       // may be optional
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind == ParameterKind.NAMED) {
         if (!sawNamed) {
-          write('{');
+          write('{', displayTextBuffer: displayTextBuffer);
           sawNamed = true;
         }
       }
       if (parameterKind == ParameterKind.POSITIONAL) {
         if (!sawPositional) {
-          write('[');
+          write('[', displayTextBuffer: displayTextBuffer);
           sawPositional = true;
         }
       }
       // parameter
       writeParameterSource(parameter.type, parameter.name,
-          methodBeingCopied: methodBeingCopied);
+          methodBeingCopied: methodBeingCopied,
+          displayTextBuffer: displayTextBuffer);
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
         if (sawPositional) {
-          write(' = ');
+          write(' = ', displayTextBuffer: displayTextBuffer);
         } else {
-          write(': ');
+          write(': ', displayTextBuffer: displayTextBuffer);
         }
-        write(defaultCode);
+        write(defaultCode, displayTextBuffer: displayTextBuffer);
       }
     }
     // close parameters
     if (sawNamed) {
-      write('}');
+      write('}', displayTextBuffer: displayTextBuffer);
     }
     if (sawPositional) {
-      write(']');
+      write(']', displayTextBuffer: displayTextBuffer);
     }
-    write(')');
+    write(')', displayTextBuffer: displayTextBuffer);
   }
 
   @override
@@ -472,13 +479,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameterSource(DartType type, String name,
-      {ExecutableElement methodBeingCopied}) {
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
     _EnclosingElementFinder finder = new _EnclosingElementFinder();
     finder.find(dartFileEditBuilder.unit, offset);
     String parameterSource = _getTypeSource(
         type, finder.enclosingClass, finder.enclosingExecutable,
         parameterName: name, methodBeingCopied: methodBeingCopied);
-    write(parameterSource);
+    write(parameterSource, displayTextBuffer: displayTextBuffer);
   }
 
   @override
@@ -516,8 +523,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeTypeParameter(TypeParameterElement typeParameter,
-      {ExecutableElement methodBeingCopied}) {
-    write(typeParameter.name);
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
+    write(typeParameter.name, displayTextBuffer: displayTextBuffer);
     if (typeParameter.bound != null) {
       _EnclosingElementFinder finder = new _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.unit, offset);
@@ -525,26 +532,28 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           finder.enclosingExecutable,
           methodBeingCopied: methodBeingCopied);
       if (bound != null) {
-        write(' extends ');
-        write(bound);
+        write(' extends ', displayTextBuffer: displayTextBuffer);
+        write(bound, displayTextBuffer: displayTextBuffer);
       }
     }
   }
 
   @override
   void writeTypeParameters(List<TypeParameterElement> typeParameters,
-      {ExecutableElement methodBeingCopied}) {
+      {StringBuffer displayTextBuffer, ExecutableElement methodBeingCopied}) {
     if (typeParameters.isNotEmpty) {
-      write('<');
+      write('<', displayTextBuffer: displayTextBuffer);
       bool isFirst = true;
       for (TypeParameterElement typeParameter in typeParameters) {
         if (!isFirst) {
-          write(', ');
+          write(', ', displayTextBuffer: displayTextBuffer);
         }
         isFirst = false;
-        writeTypeParameter(typeParameter, methodBeingCopied: methodBeingCopied);
+        writeTypeParameter(typeParameter,
+            methodBeingCopied: methodBeingCopied,
+            displayTextBuffer: displayTextBuffer);
       }
-      write('>');
+      write('>', displayTextBuffer: displayTextBuffer);
     }
   }
 

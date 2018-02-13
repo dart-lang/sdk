@@ -36,18 +36,20 @@ class C extends B {
 }
 ''');
     await computeSuggestions();
-    // TODO(pquitslund): test displayText
     _assertOverride('''@override
   A suggested1(int x) {
     // TODO: implement suggested1
     return null;
-  }''');
+  }''', displayText: 'suggested1(int x) { ... }');
     _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''');
+        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''',
+        displayText: 'suggested1(int x) { ... }');
     _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''');
+        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''',
+        displayText: 'suggested2(String y) { ... }');
     _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
+        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''',
+        displayText: 'suggested3([String z]) { ... }');
   }
 
   test_fromPart() async {
@@ -76,18 +78,20 @@ class C extends B {
     // assume information for context.getLibrariesContaining has been cached
     await computeLibrariesContaining();
     await computeSuggestions();
-    // TODO(pquitslund): test displayText
     _assertOverride('''@override
   A suggested1(int x) {
     // TODO: implement suggested1
     return null;
-  }''');
+  }''', displayText: 'suggested1(int x) { ... }');
     _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''');
+        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''',
+        displayText: 'suggested1(int x) { ... }');
     _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''');
+        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''',
+        displayText: 'suggested2(String y) { ... }');
     _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
+        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''',
+        displayText: 'suggested3([String z]) { ... }');
   }
 
   CompletionSuggestion _assertOverride(String completion,

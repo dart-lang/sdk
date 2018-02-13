@@ -900,7 +900,7 @@ A add(A a) {
   // TODO: implement add
   return null;
 }
-''');
+''', displayText: 'add(A a) { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_functionTypeAlias() async {
@@ -916,7 +916,7 @@ class B extends A {
 void perform(F f) {
   // TODO: implement perform
 }
-''');
+''', displayText: 'perform(F f) { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_functionTypedParameter() async {
@@ -932,7 +932,7 @@ class B extends A {
 forEach(int Function(double p1, String p2) f) {
   // TODO: implement forEach
 }
-''');
+''', displayText: 'forEach(int Function(double p1, String p2) f) { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_generic_noBounds() async {
@@ -948,7 +948,7 @@ List<T> get<T>(T key) {
   // TODO: implement get
   return null;
 }
-''');
+''', displayText: 'get<T>(T key) { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_generic_withBounds() async {
@@ -964,7 +964,7 @@ List<T> get<T extends V2>(K2 key) {
   // TODO: implement get
   return null;
 }
-''');
+''', displayText: 'get<T extends V2>(K2 key) { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_genericFunctionTypedParameter() async {
@@ -981,29 +981,24 @@ int foo(T Function<T>() fn) {
   // TODO: implement foo
   return null;
 }
-''');
+''', displayText: 'foo(T Function<T>() fn) { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_nullAsTypeArgument() async {
-    await _assertWriteOverrideOfInheritedMethod(
-      '''
+    await _assertWriteOverrideOfInheritedMethod('''
 abstract class A {
   List<Null> foo();
 }
 
 class B extends A {
 }
-''',
-      '''
+''', '''
 @override
 List<Null> foo() {
   // TODO: implement foo
   return null;
 }
-''',
-      // TODO(pquitslund): Add tests once implemented.
-      //displayText: 'foo() { ... }'
-    );
+''', displayText: 'foo() { ... }');
   }
 
   test_writeOverrideOfInheritedMember_method_voidAsTypeArgument() async {
@@ -1020,7 +1015,7 @@ List<void> foo() {
   // TODO: implement foo
   return null;
 }
-''');
+''', displayText: 'foo() { ... }');
   }
 
   test_writeParameterMatchingArgument() async {
