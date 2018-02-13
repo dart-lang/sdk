@@ -53,12 +53,14 @@ issue_30555_test: Pass, RuntimeError, Timeout # Issue 32137.
 next_through_assign_call_test: Skip # Issues 32137 and 32138.
 next_through_assign_int_test: Skip # Issues 32137 and 32138.
 next_through_call_on_field_in_class_test: Pass, Timeout # Issue 32137.
+next_through_call_on_field_test: Skip # Issues 32137 and 32138.
 next_through_create_list_and_map_test: Skip # Issues 32137 and 32138.
 next_through_function_expression_test: Skip # Issues 32137 and 32138.
 next_through_is_and_as_test: Skip # Issues 32137 and 32138.
 next_through_multi_catch_test: Skip # Issues 32137 and 32138.
 next_through_simple_async_with_returns_test: Skip # Issues 32137 and 32138.
-next_through_simple_linear_2_test: Pass, Timeout # Issue 32137.
+next_through_simple_linear_2_test: Skip # Issues 32137 and 32138.
+next_through_simple_linear_test: Skip # Issues 32137 and 32138.
 pause_idle_isolate_test: Skip # Issues 32137 and 32138.
 pause_on_start_and_exit_test: Pass, RuntimeError # Issue 32137.
 regress_28443_test: Pass, Timeout
