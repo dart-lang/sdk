@@ -1291,44 +1291,27 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_flutterConvertToChildren() async {
+    // Find "child: widget" under selection.
     NamedExpression namedExp;
-    // Allow assist to activate from either the new-expr or the child: arg.
-    if (node is SimpleIdentifier &&
-        node.parent is Label &&
-        node.parent.parent is NamedExpression) {
-      namedExp = node.parent.parent as NamedExpression;
-      if ((node as SimpleIdentifier).name != 'child' ||
-          namedExp.expression == null) {
-        return;
-      }
-      if (namedExp.parent?.parent is! InstanceCreationExpression) {
-        return;
-      }
-      InstanceCreationExpression newExpr = namedExp.parent.parent;
-      if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
-        return;
-      }
-    } else {
-      InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
-      if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
-        _coverageMarker();
-        return;
-      }
-      namedExp = flutter.findChildArgument(newExpr);
-      if (namedExp == null || namedExp.expression == null) {
+    {
+      AstNode node = this.node;
+      AstNode parent = node?.parent;
+      AstNode parent2 = parent?.parent;
+      if (node is SimpleIdentifier &&
+          parent is Label &&
+          parent2 is NamedExpression &&
+          node.name == 'child' &&
+          flutter.isWidgetExpression(parent2.expression)) {
+        namedExp = parent2;
+      } else {
         _coverageMarker();
         return;
       }
     }
-    InstanceCreationExpression childArg =
-        flutter.getChildWidget(namedExp, false);
-    if (childArg == null) {
-      _coverageMarker();
-      return;
-    }
+
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      _convertFlutterChildToChildren(childArg, namedExp, eol, utils.getNodeText,
+      _convertFlutterChildToChildren(namedExp, eol, utils.getNodeText,
           utils.getLinePrefix, utils.getIndent, utils.getText, builder);
     });
     _addAssistFromBuilder(
@@ -2754,7 +2737,6 @@ class AssistProcessor {
   }
 
   void _convertFlutterChildToChildren(
-      InstanceCreationExpression childArg,
       NamedExpression namedExp,
       String eol,
       Function getNodeText,
@@ -2762,6 +2744,7 @@ class AssistProcessor {
       Function getIndent,
       Function getText,
       DartFileEditBuilder builder) {
+    Expression childArg = namedExp.expression;
     int childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
     int listLoc = childArg.offset;
@@ -2789,8 +2772,8 @@ class AssistProcessor {
       } else {
         builder.addSimpleInsertion(listLoc, '<Widget>[');
       }
-      String newChildArgSrc = childArgSrc.replaceAll(
-          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+      String newChildArgSrc =
+          _replaceSourceIndent(childArgSrc, indentOld, indentNew);
       newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);
     }

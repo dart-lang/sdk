@@ -2521,6 +2521,22 @@ main() {
 ''');
   }
 
+  test_flutterConvertToChildren_BAD_notOnChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  return new Scaffold(
+    body: /*caret*/new Center(
+      child: new Container(),
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN);
+  }
+
   test_flutterConvertToChildren_OK_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
