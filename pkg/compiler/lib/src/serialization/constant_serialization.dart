@@ -193,6 +193,11 @@ class ConstantSerializer
     encoder.setElement(Key.IMPORT, exp.import as ImportElement);
     encoder.setConstant(Key.EXPRESSION, exp.expression);
   }
+
+  @override
+  void visitAssert(AssertConstantExpression exp, ObjectEncoder context) {
+    throw new UnsupportedError("AssertConstantExpression is not supported.");
+  }
 }
 
 /// Utility class for deserializing [ConstantExpression]s.
@@ -299,6 +304,7 @@ class ConstantDeserializer {
             decoder.getConstant(Key.EXPRESSION),
             decoder.getElement(Key.IMPORT) as ImportElement);
       case ConstantExpressionKind.SYNTHETIC:
+      case ConstantExpressionKind.ASSERT:
     }
     throw new UnsupportedError("Unexpected constant kind: ${kind} in $decoder");
   }
@@ -428,7 +434,11 @@ class ConstantConstructorDeserializer {
       case ConstantConstructorKind.GENERATIVE:
         ResolutionInterfaceType type = readType();
         return new GenerativeConstantConstructor(
-            type, readDefaults(), readFields(), readConstructorInvocation());
+            type,
+            readDefaults(),
+            readFields(),
+            const <AssertConstantExpression>[],
+            readConstructorInvocation());
       case ConstantConstructorKind.REDIRECTING_GENERATIVE:
         return new RedirectingGenerativeConstantConstructor(
             readDefaults(), readConstructorInvocation());

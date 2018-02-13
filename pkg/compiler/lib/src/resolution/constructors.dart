@@ -479,6 +479,7 @@ class InitializerResolver {
             constructor.enclosingClass.thisType,
             defaultValues,
             fieldInitializers,
+            const <AssertConstantExpression>[],
             constructorInvocation);
       }
     }

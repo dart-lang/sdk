@@ -47,6 +47,9 @@ abstract class EvaluationEnvironment {
       ConstructorEntity constructor, ConstantValue evaluate());
 
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate());
+
+  /// `true` if assertions are enabled.
+  bool get enableAssertions;
 }
 
 abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
@@ -59,6 +62,20 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   }
 
   DiagnosticReporter get reporter;
+
+  /// Returns the [Spannable] used for reporting errors and warnings.
+  ///
+  /// Returns the second-to-last in the spannable stack, if available, to point
+  /// to the use, rather than the declaration, of a constructor or field.
+  ///
+  /// For instance
+  ///
+  ///    const foo = const bool.fromEnvironment("foo", default: 0);
+  ///
+  /// will point to `foo` instead of the declaration of `bool.fromEnvironment`.
+  Spannable get _spannable => _spannableStack.tail.isEmpty
+      ? _spannableStack.head
+      : _spannableStack.tail.head;
 
   @override
   ConstantValue evaluateField(FieldEntity field, ConstantValue evaluate()) {
@@ -90,7 +107,7 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
       ConstantExpression expression, MessageKind kind, Map arguments) {
     if (constantRequired) {
       // TODO(johnniwinther): Should [ConstantExpression] have a location?
-      reporter.reportErrorMessage(_spannableStack.head, kind, arguments);
+      reporter.reportErrorMessage(_spannable, kind, arguments);
     }
   }
 
@@ -98,7 +115,7 @@ abstract class EvaluationEnvironmentBase implements EvaluationEnvironment {
   void reportWarning(
       ConstantExpression expression, MessageKind kind, Map arguments) {
     if (constantRequired) {
-      reporter.reportWarningMessage(_spannableStack.head, kind, arguments);
+      reporter.reportWarningMessage(_spannable, kind, arguments);
     }
   }
 }

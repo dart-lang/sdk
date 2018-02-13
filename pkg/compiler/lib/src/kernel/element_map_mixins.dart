@@ -878,6 +878,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     }
 
     ConstructedConstantExpression superConstructorInvocation;
+    List<AssertConstantExpression> assertions = <AssertConstantExpression>[];
     for (ir.Initializer initializer in node.initializers) {
       if (initializer is ir.FieldInitializer) {
         registerField(initializer.field, visit(initializer.value));
@@ -888,14 +889,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         superConstructorInvocation = _computeConstructorInvocation(
             initializer.target, initializer.arguments);
       } else if (initializer is ir.AssertInitializer) {
-        // Assert in initializer is currently not supported in dart2js.
-        // TODO(johnniwinther): Support assert in initializer.
-        String constructorName = '${cls.name}.${node.name}';
-        elementMap.reporter.reportErrorMessage(
-            computeSourceSpanFromTreeNode(initializer),
-            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
-            {'constructorName': constructorName});
-        return new ErroneousConstantConstructor();
+        ConstantExpression condition = visit(initializer.statement.condition);
+        ConstantExpression message = initializer.statement.message != null
+            ? visit(initializer.statement.message)
+            : null;
+        assertions.add(new AssertConstantExpression(condition, message));
       } else if (initializer is ir.InvalidInitializer) {
         String constructorName = '${cls.name}.${node.name}';
         elementMap.reporter.reportErrorMessage(
@@ -926,8 +924,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       return new RedirectingGenerativeConstantConstructor(
           defaultValues, superConstructorInvocation);
     } else {
-      return new GenerativeConstantConstructor(
-          type, defaultValues, fieldMap, superConstructorInvocation);
+      return new GenerativeConstantConstructor(type, defaultValues, fieldMap,
+          assertions, superConstructorInvocation);
     }
   }
 }

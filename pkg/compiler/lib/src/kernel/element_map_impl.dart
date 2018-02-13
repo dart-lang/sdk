@@ -1813,6 +1813,9 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 
   @override
   DiagnosticReporter get reporter => _elementMap.reporter;
+
+  @override
+  bool get enableAssertions => _elementMap.options.enableUserAssertions;
 }
 
 class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {

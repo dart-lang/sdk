@@ -43,6 +43,7 @@ enum ConstantExpressionKind {
   LOCAL_VARIABLE,
   POSITIONAL_REFERENCE,
   NAMED_REFERENCE,
+  ASSERT,
 }
 
 /// An expression that is a compile-time constant.
@@ -564,13 +565,12 @@ class ConstructedConstantExpression extends ConstantExpression {
     sb.write('])');
   }
 
-  Map<FieldEntity, ConstantExpression> computeInstanceFields(
-      EvaluationEnvironment environment) {
+  InstanceData computeInstanceData(EvaluationEnvironment environment) {
     ConstantConstructor constantConstructor =
         environment.getConstructorConstant(target);
     assert(constantConstructor != null,
         failedAt(target, "No constant constructor computed for $target."));
-    return constantConstructor.computeInstanceFields(
+    return constantConstructor.computeInstanceData(
         environment, arguments, callStructure);
   }
 
@@ -589,15 +589,15 @@ class ConstructedConstantExpression extends ConstantExpression {
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return environment.evaluateConstructor(target, () {
-      Map<FieldEntity, ConstantExpression> fieldMap =
-          computeInstanceFields(environment);
-      if (fieldMap == null) {
+      InstanceData instanceData = computeInstanceData(environment);
+      if (instanceData == null) {
         return new NonConstantValue();
       }
       bool isValidAsConstant = true;
       Map<FieldEntity, ConstantValue> fieldValues =
           <FieldEntity, ConstantValue>{};
-      fieldMap.forEach((FieldEntity field, ConstantExpression constant) {
+      instanceData.fieldMap
+          .forEach((FieldEntity field, ConstantExpression constant) {
         ConstantValue value = constant.evaluate(environment, constantSystem);
         assert(
             value != null,
@@ -609,6 +609,11 @@ class ConstructedConstantExpression extends ConstantExpression {
           isValidAsConstant = false;
         }
       });
+      for (AssertConstantExpression assertion in instanceData.assertions) {
+        if (!assertion.evaluate(environment, constantSystem).isConstant) {
+          isValidAsConstant = false;
+        }
+      }
       if (isValidAsConstant) {
         return new ConstructedConstantValue(
             computeInstanceType(environment), fieldValues);
@@ -1919,6 +1924,85 @@ class StringFromEnvironmentConstantExpression
       commonElements.stringType;
 }
 
+class AssertConstantExpression extends ConstantExpression {
+  final ConstantExpression condition;
+  final ConstantExpression message;
+
+  AssertConstantExpression(this.condition, this.message);
+
+  @override
+  ConstantExpressionKind get kind => ConstantExpressionKind.ASSERT;
+
+  @override
+  bool _equals(AssertConstantExpression other) {
+    return condition == other.condition && message == other.message;
+  }
+
+  @override
+  int _computeHashCode() {
+    return 13 * condition.hashCode + 17 * message.hashCode;
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('assert(');
+    condition._createStructuredText(sb);
+    sb.write(',message=');
+    if (message != null) {
+      message._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
+    sb.write(')');
+  }
+
+  @override
+  ConstantValue evaluate(
+      EvaluationEnvironment environment, ConstantSystem constantSystem) {
+    ConstantValue conditionValue =
+        condition.evaluate(environment, constantSystem);
+    bool validAssert;
+    if (environment.enableAssertions) {
+      // Boolean conversion:
+      validAssert =
+          conditionValue is BoolConstantValue && conditionValue.primitiveValue;
+    } else {
+      validAssert = true;
+    }
+    if (!validAssert) {
+      if (message != null) {
+        ConstantValue value = message.evaluate(environment, constantSystem);
+        if (value is PrimitiveConstantValue) {
+          String text = '${value.primitiveValue}';
+          environment.reportError(this,
+              MessageKind.INVALID_ASSERT_VALUE_MESSAGE, {'message': text});
+        } else {
+          environment.reportError(this, MessageKind.INVALID_ASSERT_VALUE,
+              {'assertion': condition.toDartText()});
+          // TODO(johnniwinther): Report invalid constant message?
+        }
+      } else {
+        environment.reportError(this, MessageKind.INVALID_ASSERT_VALUE,
+            {'assertion': condition.toDartText()});
+      }
+      return new NonConstantValue();
+    }
+
+    // Return a valid constant value to signal that assertion didn't fail.
+    return new NullConstantValue();
+  }
+
+  @override
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitAssert(this, context);
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new AssertConstantExpression(
+        condition.apply(arguments), message?.apply(arguments));
+  }
+}
+
 /// A constant expression referenced with a deferred prefix.
 /// For example `lib.C`.
 class DeferredConstantExpression extends ConstantExpression {
@@ -2001,6 +2085,7 @@ abstract class ConstantExpressionVisitor<R, A> {
   R visitStringFromEnvironment(
       StringFromEnvironmentConstantExpression exp, A context);
   R visitDeferred(DeferredConstantExpression exp, A context);
+  R visitAssert(AssertConstantExpression exp, A context);
 
   R visitPositional(PositionalArgumentReference exp, A context);
   R visitNamed(NamedArgumentReference exp, A context);
@@ -2274,6 +2359,17 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
     if (exp.defaultValue != null) {
       sb.write(', defaultValue: ');
       visit(exp.defaultValue);
+    }
+    sb.write(')');
+  }
+
+  @override
+  void visitAssert(AssertConstantExpression exp, [_]) {
+    sb.write('assert(');
+    visit(exp.condition);
+    if (exp.message != null) {
+      sb.write(', ');
+      visit(exp.message);
     }
     sb.write(')');
   }

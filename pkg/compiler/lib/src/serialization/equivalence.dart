@@ -930,6 +930,15 @@ class ConstantEquivalence
         strategy.testConstants(
             exp1, exp2, 'expression', exp1.expression, exp2.expression);
   }
+
+  @override
+  bool visitAssert(
+      AssertConstantExpression exp1, covariant AssertConstantExpression exp2) {
+    return strategy.testConstants(
+            exp1, exp2, 'condition', exp1.condition, exp2.condition) &&
+        strategy.testConstants(
+            exp1, exp2, 'message', exp1.message, exp2.message);
+  }
 }
 
 /// Visitor that checks for structural equivalence of [ConstantValue]s.

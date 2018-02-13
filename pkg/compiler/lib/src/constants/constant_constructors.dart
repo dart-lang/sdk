@@ -92,7 +92,11 @@ class ConstantConstructorComputer extends SemanticVisitor
       }
     });
     return new GenerativeConstantConstructor(
-        currentClass.thisType, defaultValues, fieldMap, constructorInvocation);
+        currentClass.thisType,
+        defaultValues,
+        fieldMap,
+        const <AssertConstantExpression>[],
+        constructorInvocation);
   }
 
   ConstantConstructor visitRedirectingGenerativeConstructorDeclaration(

@@ -104,7 +104,7 @@ void useConstant(
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType(null);
-  constructedConstant.computeInstanceFields(null);
+  constructedConstant.computeInstanceData(null);
   expression.evaluate(null, null);
   new NullConstantConstructorVisitor()
     ..visit(null, null)
