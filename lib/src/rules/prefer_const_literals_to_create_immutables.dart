@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:linter/src/analyzer.dart';
 
 const desc =
-    'Prefer use const literals as parameter of constructors on @immutable classes.';
+    'Prefer const literals as parameters of constructors on @immutable classes.';
 
 const details = '''
 

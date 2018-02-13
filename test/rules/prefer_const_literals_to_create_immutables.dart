@@ -25,7 +25,8 @@ var l1 = new A([]); // LINT
 var l2 = new A(const[]); // OK
 
 // tests for nested lists
-var l3 = new A([ // OK
+var l3 = new A([ // LINT
+                 // ^^^^ Should be OK (https://github.com/dart-lang/linter/issues/885)
   []]); // LINT
 var l4 = new A([ // LINT
   const[]]); // OK
@@ -33,7 +34,8 @@ var l5 = new A(const[ //OK
   const[]]); // OK
 
 // tests with maps and parenthesis
-var l6 = new A({1: // OK
+var l6 = new A({1: // LINT
+                   // ^^^^ Should be OK (https://github.com/dart-lang/linter/issues/885)
   []});// LINT
 var l7 = new A(const {1: const []});// OK
 var l8 = new A((([])));// LINT
@@ -51,13 +53,13 @@ var l13 = new A([1.0]); // LINT
 var l14 = new A(['']); // LINT
 var l15 = new A([null]); // LINT
 
-
 // basic tests
 var m1 = new A({}); // LINT
 var m2 = new A(const{}); // OK
 
 // tests for nested maps
-var m3 = new A({ // OK
+var m3 = new A({ // LINT
+                 // ^^^^ Should be OK (https://github.com/dart-lang/linter/issues/885)
   1: {}}); // LINT
 var m4 = new A({ // LINT
   1: const{}}); // OK
@@ -65,7 +67,8 @@ var m5 = new A(const{1: //OK
   const{}}); // OK
 
 // tests with lists and parenthesis
-var m6 = new A([ // OK
+var m6 = new A([ // LINT
+                 // ^^^^ Should be OK (https://github.com/dart-lang/linter/issues/885)
   {}]);// LINT
 var m7 = new A(const [const {}]);// OK
 var m8 = new A((({})));// LINT
