@@ -135,6 +135,7 @@ abstract class KernelClassBuilder
   Supertype buildSupertype(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     Class cls = isPatch ? origin.target : this.cls;
+    arguments ??= calculatedBounds;
     if (arguments != null) {
       return new Supertype(cls, buildTypeArguments(library, arguments));
     } else {
