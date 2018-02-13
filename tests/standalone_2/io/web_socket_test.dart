@@ -535,6 +535,23 @@ class SecurityConfiguration {
     });
   }
 
+  void testShouldSetUserAgent() {
+    asyncStart();
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        Expect.equals('Custom User Agent', WebSocket.userAgent);
+        server.close();
+        webSocket.close();
+        asyncEnd();
+      });
+
+      WebSocket.userAgent = 'Custom User Agent';
+      createClient(server.port).then((webSocket) {
+        webSocket.close();
+      });
+    });
+  }
+
   void runTests() {
     testRequestResponseClientCloses(2, null, null, 1);
     testRequestResponseClientCloses(2, 3001, null, 2);
@@ -562,6 +579,7 @@ class SecurityConfiguration {
     testFromUpgradedSocket();
     testAdditionalHeaders();
     testBasicAuthentication();
+    testShouldSetUserAgent();
   }
 }
 

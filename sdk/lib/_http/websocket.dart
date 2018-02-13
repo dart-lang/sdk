@@ -413,6 +413,18 @@ abstract class WebSocket
    * not, the receiving end will close the connection.
    */
   void addUtf8Text(List<int> bytes);
+
+  /**
+   * Gets the user agent used for WebSocket connections.
+   */
+  static String get userAgent => _WebSocketImpl.userAgent;
+
+  /**
+   * Sets the user agent to use for WebSocket connections.
+   */
+  static set userAgent(String userAgent) {
+    _WebSocketImpl.userAgent = userAgent;
+  }
 }
 
 class WebSocketException implements IOException {
