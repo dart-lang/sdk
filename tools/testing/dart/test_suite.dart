@@ -494,10 +494,6 @@ class VMTestSuite extends TestSuite {
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
     }
 
-    if (configuration.isStrong) {
-      args.add('--strong');
-    }
-
     args.add(testName);
 
     var command = Command.process(

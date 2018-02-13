@@ -1137,6 +1137,8 @@ executable("run_vm_tests") {
 
   sources = [
               "builtin_nolib.cc",
+              "dfe.cc",
+              "dfe.h",
               "error_exit.cc",
               "error_exit.h",
               "run_vm_tests.cc",
