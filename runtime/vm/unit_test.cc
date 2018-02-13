@@ -27,12 +27,26 @@
 using dart::bin::Builtin;
 using dart::bin::DartUtils;
 
+extern "C" {
+extern const uint8_t kPlatformDill[];
+extern const uint8_t kPlatformStrongDill[];
+extern intptr_t kPlatformDillSize;
+extern intptr_t kPlatformStrongDillSize;
+}
+
 namespace dart {
+
+const uint8_t* platform_dill = kPlatformDill;
+const uint8_t* platform_strong_dill = kPlatformStrongDill;
+const intptr_t platform_dill_size = kPlatformDillSize;
+const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
 DEFINE_FLAG(bool,
             use_dart_frontend,
             false,
             "Parse scripts with Dart-to-Kernel parser");
+
+DECLARE_FLAG(bool, strong);
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
@@ -67,19 +81,48 @@ void TestCaseBase::RunAll() {
   }
 }
 
-Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
+static void NoopRelease(uint8_t* data) {}
+
+Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer,
+                                     intptr_t len,
+                                     const char* name,
+                                     bool is_snapshot) {
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-  Dart_Isolate isolate =
-      Dart_CreateIsolate(name, NULL, buffer, NULL, &api_flags, NULL, &err);
+  Dart_Isolate isolate = NULL;
+  if (is_snapshot) {
+    isolate =
+        Dart_CreateIsolate(name, NULL, buffer, NULL, &api_flags, NULL, &err);
+  } else {
+    kernel::Program* program = reinterpret_cast<kernel::Program*>(
+        Dart_ReadKernelBinary(buffer, len, NoopRelease));
+    if (program != NULL) {
+      isolate = Dart_CreateIsolateFromKernel(name, NULL, program, &api_flags,
+                                             NULL, &err);
+      delete program;
+    }
+  }
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
   }
   EXPECT(isolate != NULL);
   return isolate;
+}
+
+Dart_Isolate TestCase::CreateTestIsolate(const char* name) {
+  if (FLAG_use_dart_frontend) {
+    return CreateIsolate(
+        FLAG_strong ? platform_strong_dill : platform_dill,
+        FLAG_strong ? platform_strong_dill_size : platform_dill_size, name,
+        false /* buffer is not a snapshot */);
+  } else {
+    return CreateIsolate(bin::core_isolate_snapshot_data,
+                         0 /* Snapshots have length encoded within them. */,
+                         name, true /* buffer is a snapshot */);
+  }
 }
 
 static const char* kPackageScheme = "package:";
@@ -199,7 +242,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          bool incrementally) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
-      url, NULL /* platform binary can be found at the default location */, 0,
+      url, FLAG_strong ? platform_strong_dill : platform_dill,
+      FLAG_strong ? platform_strong_dill_size : platform_dill_size,
       sourcefiles_count, sourcefiles, incrementally);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
