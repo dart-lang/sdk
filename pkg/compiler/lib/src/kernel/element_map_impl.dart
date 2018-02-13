@@ -938,8 +938,8 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
       IndexedConstructor constructor;
       if (node is ir.Constructor) {
         functionNode = node.function;
-        constructor = createGenerativeConstructor(
-            enclosingClass, name, _getParameterStructure(functionNode),
+        constructor = createGenerativeConstructor(enclosingClass, name,
+            _getParameterStructure(functionNode, includeTypeParameters: false),
             isExternal: isExternal, isConst: node.isConst);
         definition = new SpecialMemberDefinition(
             constructor, node, MemberKind.constructor);
@@ -948,8 +948,8 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
         bool isFromEnvironment = isExternal &&
             name.text == 'fromEnvironment' &&
             const ['int', 'bool', 'String'].contains(enclosingClass.name);
-        constructor = createFactoryConstructor(
-            enclosingClass, name, _getParameterStructure(functionNode),
+        constructor = createFactoryConstructor(enclosingClass, name,
+            _getParameterStructure(functionNode, includeTypeParameters: false),
             isExternal: isExternal,
             isConst: node.isConst,
             isFromEnvironmentConstructor: isFromEnvironment);
@@ -1034,15 +1034,21 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
     });
   }
 
-  ParameterStructure _getParameterStructure(ir.FunctionNode node) {
+  ParameterStructure _getParameterStructure(ir.FunctionNode node,
+      // TODO(johnniwinther): Remove this when type arguments are passed to
+      // constructors like calling a generic method.
+      {bool includeTypeParameters: true}) {
     // TODO(johnniwinther): Cache the computed function type.
     int requiredParameters = node.requiredParameterCount;
     int positionalParameters = node.positionalParameters.length;
     int typeParameters = node.typeParameters.length;
     List<String> namedParameters =
         node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(requiredParameters, positionalParameters,
-        namedParameters, options.strongMode ? typeParameters : 0);
+    return new ParameterStructure(
+        requiredParameters,
+        positionalParameters,
+        namedParameters,
+        options.strongMode && includeTypeParameters ? typeParameters : 0);
   }
 
   IndexedLibrary createLibrary(String name, Uri canonicalUri);

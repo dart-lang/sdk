@@ -1518,7 +1518,6 @@ double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
-dynamic_invoke_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_mirror_test: CompileTimeError
@@ -1530,9 +1529,6 @@ external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 extract_type_arguments_test: RuntimeError
-f_bounded_equality_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-f_bounded_quantification4_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-f_bounded_quantification5_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
@@ -1552,11 +1548,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-first_class_types_libraries_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-first_class_types_literals_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-first_class_types_literals_test/02: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-first_class_types_literals_test/none: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-first_class_types_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1594,16 +1585,14 @@ function_subtype_setter0_test: RuntimeError
 function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
 function_type2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in (local(B.#)) for j:signature(B_closure.$signature).
-function_type_alias10_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_async_star_test: RuntimeError
-generic_closure_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_creation_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 generic_field_mixin6_test/none: RuntimeError
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node U.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -1622,8 +1611,7 @@ generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
-generic_methods_generic_function_result_test/01: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-generic_methods_generic_function_result_test/none: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/metadata_collector.dart': Failed assertion: line 100 pos 12: 'isBound': is not true.
@@ -1797,7 +1785,6 @@ mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
 mixin_of_mixin_test/none: CompileTimeError
-mixin_regress_13688_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 mixin_super_2_test/none: CompileTimeError
 mixin_super_bound_test/01: MissingCompileTimeError
 mixin_super_bound_test/02: MissingCompileTimeError
@@ -1849,13 +1836,12 @@ named_parameters_test/06: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
 nan_identical_test: RuntimeError
-nested_generic_closure_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
 no_such_method_test: CompileTimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
-null2_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 null_no_such_method_test: CompileTimeError
 null_test/mirrors: CompileTimeError
 null_test/none: CompileTimeError
@@ -1928,7 +1914,6 @@ override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 prefix5_negative_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
-recursive_generic_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
@@ -1955,9 +1940,7 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 regress_31591_test: RuntimeError
 regress_32012_test: Crash # Unsupported operation: Unsupported type parameter type node B.
-reify_typevar_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-runtime_type_function_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
-runtime_type_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
@@ -2051,7 +2034,7 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
-type_variable_promotion_test: Crash # Assertion failure: Only 2 of 3 arguments have been read from: [HRef(HForeignCode("# ? Object.keys(#) : []")), literal: NullConstant, literal: NullConstant]
+type_variable_promotion_test: RuntimeError
 typedef_is_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -2086,8 +2069,8 @@ void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fa
 void_type_usage_test/conditional2_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional2_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2103,8 +2086,8 @@ void_type_usage_test/conditional3_conditional: Crash # 'package:front_end/src/fa
 void_type_usage_test/conditional3_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional3_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2571,6 +2554,7 @@ mixin_invalid_bound_test/07: MissingCompileTimeError
 mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
 mixin_super_bound_test/01: MissingCompileTimeError

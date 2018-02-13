@@ -189,7 +189,7 @@ class Constant {
   Constant(this.name, this.holder, this.value);
 
   String toString() {
-    return 'Constant(name=${name},value=${value.toStructuredText()})';
+    return 'Constant(name=${name.key},value=${value.toStructuredText()})';
   }
 }
 
@@ -233,7 +233,7 @@ class StaticField {
       this.isLazy);
 
   String toString() {
-    return 'StaticField(name=${name},element=${element})';
+    return 'StaticField(name=${name.key},element=${element})';
   }
 }
 
@@ -363,7 +363,7 @@ class MixinApplication extends Class {
     _mixinClass = mixinClass;
   }
 
-  String toString() => 'Mixin(name=${name},element=$element)';
+  String toString() => 'Mixin(name=${name.key},element=$element)';
 }
 
 /// A field.
@@ -409,7 +409,7 @@ class Field {
   bool get needsInterceptedSetterOnThis => setterFlags == 3;
 
   String toString() {
-    return 'Field(name=${name},element=${element})';
+    return 'Field(name=${name.key},element=${element})';
   }
 }
 
@@ -511,7 +511,7 @@ class InstanceMethod extends DartMethod {
   bool get isStatic => false;
 
   String toString() {
-    return 'InstanceMethod(name=${name},element=${element}'
+    return 'InstanceMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -550,7 +550,7 @@ class ParameterStubMethod extends StubMethod {
       : super(name, code);
 
   String toString() {
-    return 'ParameterStubMethod(name=${name},element=${element}'
+    return 'ParameterStubMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -588,7 +588,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
   bool get isStatic => true;
 
   String toString() {
-    return 'StaticDartMethod(name=${name},element=${element}'
+    return 'StaticDartMethod(name=${name.key},element=${element}'
         ',code=${js.nodeToString(code)})';
   }
 }
@@ -599,7 +599,7 @@ class StaticStubMethod extends StubMethod implements StaticMethod {
       : super(name, code);
 
   String toString() {
-    return 'StaticStubMethod(name=${name},element=${element}}'
+    return 'StaticStubMethod(name=${name.key},element=${element}}'
         ',code=${js.nodeToString(code)})';
   }
 }

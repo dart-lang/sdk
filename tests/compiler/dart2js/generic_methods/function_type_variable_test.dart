@@ -190,6 +190,11 @@ main() {
     ClassEntity cls = env.getClass('C3');
     env.elementEnvironment.forEachConstructor(cls,
         (ConstructorEntity constructor) {
+      Expect.equals(
+          0,
+          constructor.parameterStructure.typeParameters,
+          "Type parameters found on constructor $constructor: "
+          "${constructor.parameterStructure}");
       List<TypeVariableType> functionTypeVariables =
           env.elementEnvironment.getFunctionTypeVariables(constructor);
       Expect.isTrue(
