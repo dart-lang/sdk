@@ -28,7 +28,6 @@ import 'utils.dart';
 // * Verify incremental re-calculation by fresh analysis starting with known
 //   allocated classes.
 // * Auto-generate entry_points.json during build.
-// * Support FutureOr<T> properly.
 //
 // === Precision ===
 // * Handle '==' with null.
@@ -778,6 +777,11 @@ class _ClassHierarchyCache implements TypeHierarchy {
       return true;
     }
 
+    // TODO(alexmarkov): handle FutureOr more precisely (requires generics).
+    if (superClass == _typeFlowAnalysis.environment.futureOrClass) {
+      return true;
+    }
+
     _ClassData subClassData = getClassData(subClass);
     _ClassData superClassData = getClassData(superClass);
 
@@ -799,6 +803,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
     }
 
     assertx(base is InterfaceType); // TODO(alexmarkov)
+    final baseClass = (base as InterfaceType).classNode;
 
     // TODO(alexmarkov): take type arguments into account.
 
@@ -806,11 +811,13 @@ class _ClassHierarchyCache implements TypeHierarchy {
     // subtypes is too large
 
     if (base == const DynamicType() ||
-        base == _typeFlowAnalysis.environment.objectType) {
+        base == _typeFlowAnalysis.environment.objectType ||
+        // TODO(alexmarkov): handle FutureOr more precisely (requires generics).
+        baseClass == _typeFlowAnalysis.environment.futureOrClass) {
       return const AnyType();
     }
 
-    _ClassData classData = getClassData((base as InterfaceType).classNode);
+    _ClassData classData = getClassData(baseClass);
 
     final allocatedSubtypes = classData.allocatedSubtypes;
     if (!_sealed) {
