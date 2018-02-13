@@ -2737,6 +2737,128 @@ class MyWidgetState extends State<MyWidget> {
 ''');
   }
 
+  test_flutterMoveWidgetDown_BAD_last() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      new Text('bbb'),
+      /*caret*/new Text('ccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_DOWN);
+  }
+
+  test_flutterMoveWidgetDown_BAD_notInList() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Text('aaa'),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_DOWN);
+  }
+
+  test_flutterMoveWidgetDown_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      /*caret*/new Text('bbb'),
+      new Text('ccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_MOVE_DOWN, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      /*caret*/new Text('ccc'),
+      new Text('bbb'),
+    ],
+  );
+}
+''');
+  }
+
+  test_flutterMoveWidgetUp_BAD_first() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      /*caret*/new Text('aaa'),
+      new Text('bbb'),
+      new Text('ccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_UP);
+  }
+
+  test_flutterMoveWidgetUp_BAD_notInList() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Text('aaa'),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_MOVE_UP);
+  }
+
+  test_flutterMoveWidgetUp_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('aaa'),
+      /*caret*/new Text('bbb'),
+      new Text('ccc'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_MOVE_UP, '''
+import 'package:flutter/material.dart';
+main() {
+  new Column(
+    children: <Widget>[
+      new Text('bbb'),
+      /*caret*/new Text('aaa'),
+      new Text('ccc'),
+    ],
+  );
+}
+''');
+  }
+
   test_flutterRemoveWidget_BAD_childrenIntoChild() async {
     addFlutterPackage();
     await resolveTestUnit('''

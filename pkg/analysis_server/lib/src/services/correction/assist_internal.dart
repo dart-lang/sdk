@@ -144,6 +144,8 @@ class AssistProcessor {
     await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
     await _addProposal_flutterConvertToStatefulWidget();
+    await _addProposal_flutterMoveWidgetDown();
+    await _addProposal_flutterMoveWidgetUp();
     await _addProposal_flutterRemoveWidget_singleChild();
     await _addProposal_flutterRemoveWidget_multipleChildren();
     await _addProposal_flutterSwapWithChild();
@@ -1410,6 +1412,62 @@ class AssistProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  Future<Null> _addProposal_flutterMoveWidgetDown() async {
+    var widget = flutter.identifyWidgetExpression(node);
+    if (widget == null) {
+      return;
+    }
+
+    AstNode parentList = widget.parent;
+    if (parentList is ListLiteral) {
+      List<Expression> parentElements = parentList.elements;
+      int index = parentElements.indexOf(widget);
+      if (index != parentElements.length - 1) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          Expression nextWidget = parentElements[index + 1];
+          var nextRange = range.node(nextWidget);
+          var nextText = utils.getRangeText(nextRange);
+
+          var widgetRange = range.node(widget);
+          var widgetText = utils.getRangeText(widgetRange);
+
+          builder.addSimpleReplacement(nextRange, widgetText);
+          builder.addSimpleReplacement(widgetRange, nextText);
+        });
+        _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_DOWN);
+      }
+    }
+  }
+
+  Future<Null> _addProposal_flutterMoveWidgetUp() async {
+    var widget = flutter.identifyWidgetExpression(node);
+    if (widget == null) {
+      return;
+    }
+
+    AstNode parentList = widget.parent;
+    if (parentList is ListLiteral) {
+      List<Expression> parentElements = parentList.elements;
+      int index = parentElements.indexOf(widget);
+      if (index > 0) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          Expression previousWidget = parentElements[index - 1];
+          var previousRange = range.node(previousWidget);
+          var previousText = utils.getRangeText(previousRange);
+
+          var widgetRange = range.node(widget);
+          var widgetText = utils.getRangeText(widgetRange);
+
+          builder.addSimpleReplacement(previousRange, widgetText);
+          builder.addSimpleReplacement(widgetRange, previousText);
+        });
+        _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_UP);
+      }
+    }
   }
 
   Future<Null> _addProposal_flutterRemoveWidget_multipleChildren() async {
