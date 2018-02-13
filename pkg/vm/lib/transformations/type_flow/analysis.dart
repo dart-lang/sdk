@@ -1028,6 +1028,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
+  Type fieldType(Field field) => _fieldValues[field]?.value;
+
+  Args<Type> argumentTypes(Member member) => _summaries[member]?.argumentTypes;
+
   /// ---- Implementation of [CallHandler] interface. ----
 
   @override

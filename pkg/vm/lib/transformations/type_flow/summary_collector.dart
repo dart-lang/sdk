@@ -263,7 +263,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter(
-            "this", new InterfaceType(member.enclosingClass), null);
+            "this", member.enclosingClass.rawType, null,
+            isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       }
 
@@ -385,8 +386,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Parameter _declareParameter(
-      String name, DartType type, Expression initializer) {
-    final param = new Parameter(name, type);
+      String name, DartType type, Expression initializer,
+      {bool isReceiver: false}) {
+    Type staticType =
+        isReceiver ? new ConeType(type) : new Type.fromStatic(type);
+    final param = new Parameter(name, staticType);
     _summary.add(param);
     assertx(param.index < _summary.parameterCount);
     if (param.index >= _summary.requiredParameterCount) {

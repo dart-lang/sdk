@@ -24,7 +24,7 @@ class C extends core::Object implements self::A {
 }
 class TearOffInterfaceMethod extends core::Object {
   field dynamic bazz;
-  constructor •(self::A arg) → void
+  constructor •([@vm.inferred-type.metadata=#lib::B] self::A arg) → void
     : self::TearOffInterfaceMethod::bazz = arg.{self::A::foo}, super core::Object::•()
     ;
 }

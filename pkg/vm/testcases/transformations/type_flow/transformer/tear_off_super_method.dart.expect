@@ -40,7 +40,7 @@ class TearOffSuperMethod extends self::Base {
   method bar() → core::int
     return [@vm.direct-call.metadata=#lib::Base::doCall] this.{self::Base::doCall}(super.{self::Base::foo});
 }
-static field self::A aa = new self::B::•();
+[@vm.inferred-type.metadata=#lib::B]static field self::A aa = new self::B::•();
 static method knownResult() → dynamic
   return new self::B::•();
 static method main(core::List<core::String> args) → dynamic {

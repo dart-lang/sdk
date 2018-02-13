@@ -21,8 +21,8 @@ class T2 extends core::Object implements self::I {
   method foo() → void {}
 }
 class Point extends core::Object {
-  final field self::I x;
-  const constructor •(self::I x) → void
+[@vm.inferred-type.metadata=!]  final field self::I x;
+  const constructor •([@vm.inferred-type.metadata=!] self::I x) → void
     : self::Point::x = x, super core::Object::•()
     ;
   method newPoint1() → self::Point
@@ -30,7 +30,7 @@ class Point extends core::Object {
   method newPoint2() → self::Point
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] this.{self::Point::x});
 }
-static method getX(dynamic point) → dynamic {
+static method getX([@vm.inferred-type.metadata=#lib::Point] dynamic point) → dynamic {
   point.x;
 }
 static method main() → dynamic {

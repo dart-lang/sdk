@@ -59,8 +59,9 @@ class StatementVisitor {
 /// Input parameter of the summary.
 class Parameter extends Statement {
   final String _name;
-  final DartType staticType;
+  final Type staticType;
   Type defaultValue;
+  Type _argumentType = const EmptyType();
 
   Parameter(this._name, this.staticType);
 
@@ -76,6 +77,12 @@ class Parameter extends Statement {
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
           CallHandler callHandler) =>
       throw 'Unable to apply _Parameter';
+
+  Type get argumentType => _argumentType;
+
+  void _observeArgumentType(Type argType, TypeHierarchy typeHierarchy) {
+    _argumentType = _argumentType.union(argType, typeHierarchy);
+  }
 }
 
 /// Narrows down [arg] to [type].
@@ -279,8 +286,16 @@ class Summary {
 
     types.setAll(0, args);
 
+    for (int i = 0; i < args.length; i++) {
+      Parameter param = _statements[i] as Parameter;
+      param._observeArgumentType(args[i], typeHierarchy);
+      types[i] = args[i].intersection(param.staticType, typeHierarchy);
+    }
+
     for (int i = args.length; i < parameterCount; i++) {
-      types[i] = (_statements[i] as Parameter).defaultValue;
+      Parameter param = _statements[i] as Parameter;
+      param._observeArgumentType(param.defaultValue, typeHierarchy);
+      types[i] = param.defaultValue;
       assertx(types[i] != null);
     }
 
@@ -298,5 +313,15 @@ class Summary {
     Statistics.summariesAnalyzed++;
 
     return result.getComputedType(types);
+  }
+
+  Args<Type> get argumentTypes {
+    final positional = new List<Type>(parameterCount);
+    for (int i = 0; i < parameterCount; i++) {
+      Parameter param = _statements[i] as Parameter;
+      positional[i] = param.argumentType;
+    }
+    // TODO(alexmarkov): support named parameters
+    return new Args<Type>(positional);
   }
 }

@@ -39,7 +39,7 @@ class B extends core::Object {
   method bazz() → dynamic
     return new self::T3::•();
 }
-static field core::Function unknown;
+[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
 static method use_foo1(dynamic x) → dynamic
   return [@vm.inferred-type.metadata=#lib::T1] x.foo();
 static method use_foo2(dynamic x) → dynamic

@@ -60,8 +60,9 @@ _runGlobalTransformations(Program program, bool strongMode) {
       globalTypeFlow.transformProgram(coreTypes, program);
     } else {
       devirtualization.transformProgram(coreTypes, program);
-      no_dynamic_invocations_annotator.transformProgram(coreTypes, program);
     }
+
+    no_dynamic_invocations_annotator.transformProgram(program);
   }
 }
 

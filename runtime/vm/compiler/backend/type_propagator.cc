@@ -947,10 +947,29 @@ CompileType ParameterInstr::ComputeType() const {
     // Note: in catch-blocks we have ParameterInstr for each local variable
     // not only for normal parameters.
     if (index() < scope->num_variables()) {
-      LocalVariable* param = scope->VariableAt(index());
+      const LocalVariable* param = scope->VariableAt(index());
+      CompileType* inferred_type = NULL;
+      if (block_->IsGraphEntry()) {
+        inferred_type = param->parameter_type();
+      }
+      // Best bet: use inferred type if it has a concrete class.
+      if ((inferred_type != NULL) &&
+          (inferred_type->ToNullableCid() != kDynamicCid)) {
+        TraceStrongModeType(this, inferred_type);
+        return *inferred_type;
+      }
+      // If parameter type was checked by caller, then use Dart type annotation,
+      // plus non-nullability from inferred type if known.
       if (param->was_type_checked_by_caller()) {
-        return CompileType::FromAbstractType(param->type(),
-                                             CompileType::kNullable);
+        const bool is_nullable =
+            (inferred_type == NULL) || inferred_type->is_nullable();
+        TraceStrongModeType(this, param->type());
+        return CompileType::FromAbstractType(param->type(), is_nullable);
+      }
+      // Last resort: use inferred non-nullability.
+      if (inferred_type != NULL) {
+        TraceStrongModeType(this, inferred_type);
+        return *inferred_type;
       }
     }
   }
@@ -1063,6 +1082,7 @@ CompileType InstanceCallInstr::ComputeType() const {
   CompileType* inferred_type = result_type();
   if ((inferred_type != NULL) &&
       (inferred_type->ToNullableCid() != kDynamicCid)) {
+    TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
 
