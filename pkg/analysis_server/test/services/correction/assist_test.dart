@@ -2721,7 +2721,26 @@ class MyWidgetState extends State<MyWidget> {
 ''');
   }
 
-  test_flutterReplaceWithChild_OK_childIntoChild_multiLine() async {
+  test_flutterRemoveWidget_BAD_childrenIntoChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: new /*caret*/Row(
+      children: [
+        new Text('aaa'),
+        new Text('bbb'),
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET);
+  }
+
+  test_flutterRemoveWidget_OK_childIntoChild_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -2742,7 +2761,7 @@ main() {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
 import 'package:flutter/material.dart';
 main() {
   new Column(
@@ -2759,7 +2778,7 @@ main() {
 ''');
   }
 
-  test_flutterReplaceWithChild_OK_childIntoChild_singleLine() async {
+  test_flutterRemoveWidget_OK_childIntoChild_singleLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -2774,7 +2793,7 @@ main() {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
 import 'package:flutter/material.dart';
 main() {
   new Padding(
@@ -2785,7 +2804,7 @@ main() {
 ''');
   }
 
-  test_flutterReplaceWithChild_OK_childIntoChildren() async {
+  test_flutterRemoveWidget_OK_childIntoChildren() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -2806,7 +2825,7 @@ main() {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
 import 'package:flutter/material.dart';
 main() {
   new Column(
@@ -2823,26 +2842,7 @@ main() {
 ''');
   }
 
-  test_flutterReplaceWithChildren_BAD_parentChild() async {
-    addFlutterPackage();
-    await resolveTestUnit('''
-import 'package:flutter/material.dart';
-main() {
-  new Center(
-    child: new /*caret*/Row(
-      children: [
-        new Text('aaa'),
-        new Text('bbb'),
-      ],
-    ),
-  );
-}
-''');
-    _setCaretLocation();
-    await assertNoAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
-  }
-
-  test_flutterReplaceWithChildren_OK_intoChildren() async {
+  test_flutterRemoveWidget_OK_intoChildren() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -2872,7 +2872,7 @@ main() {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN, '''
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
 import 'package:flutter/material.dart';
 main() {
   new Column(

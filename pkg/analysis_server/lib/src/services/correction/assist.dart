@@ -89,8 +89,8 @@ class DartAssistKind {
       'dart.assist.flutter.convert.toStatefulWidget',
       30,
       "Convert to StatefulWidget");
-  static const FLUTTER_REPLACE_WITH_CHILDREN = const AssistKind(
-      'dart.assist.flutter.replaceWithChildren', 30, "Replace with children");
+  static const FLUTTER_REMOVE_WIDGET =
+      const AssistKind('dart.assist.flutter.removeWidget', 30, "Remove widget");
   static const FLUTTER_SWAP_WITH_CHILD = const AssistKind(
       'dart.assist.flutter.swap.withChild', 30, "Swap with child");
   static const FLUTTER_SWAP_WITH_PARENT = const AssistKind(

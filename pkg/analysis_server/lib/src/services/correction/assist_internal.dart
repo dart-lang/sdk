@@ -144,8 +144,8 @@ class AssistProcessor {
     await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
     await _addProposal_flutterConvertToStatefulWidget();
-    await _addProposal_flutterReplaceWithChild();
-    await _addProposal_flutterReplaceWithChildren();
+    await _addProposal_flutterRemoveWidget_singleChild();
+    await _addProposal_flutterRemoveWidget_multipleChildren();
     await _addProposal_flutterSwapWithChild();
     await _addProposal_flutterSwapWithParent();
     await _addProposal_flutterWrapWidget();
@@ -1429,33 +1429,7 @@ class AssistProcessor {
         changeBuilder, DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
   }
 
-  Future<Null> _addProposal_flutterReplaceWithChild() async {
-    var widgetCreation = flutter.identifyNewExpression(node);
-    if (widgetCreation == null) {
-      return;
-    }
-
-    var childArgument = flutter.findChildArgument(widgetCreation);
-    if (childArgument == null) {
-      return;
-    }
-
-    // child: new ThisWidget(child: ourChild)
-    // children: [foo, new ThisWidget(child: ourChild), bar]
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      var childExpression = childArgument.expression;
-      var childText = utils.getNodeText(childExpression);
-      var indentOld = utils.getLinePrefix(childExpression.offset);
-      var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = _replaceSourceIndent(childText, indentOld, indentNew);
-      builder.addSimpleReplacement(range.node(widgetCreation), childText);
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
-  }
-
-  Future<Null> _addProposal_flutterReplaceWithChildren() async {
+  Future<Null> _addProposal_flutterRemoveWidget_multipleChildren() async {
     var widgetCreation = flutter.identifyNewExpression(node);
     if (widgetCreation == null) {
       return;
@@ -1490,8 +1464,32 @@ class AssistProcessor {
       childText = _replaceSourceIndent(childText, indentOld, indentNew);
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_REMOVE_WIDGET);
+  }
+
+  Future<Null> _addProposal_flutterRemoveWidget_singleChild() async {
+    var widgetCreation = flutter.identifyNewExpression(node);
+    if (widgetCreation == null) {
+      return;
+    }
+
+    var childArgument = flutter.findChildArgument(widgetCreation);
+    if (childArgument == null) {
+      return;
+    }
+
+    // child: new ThisWidget(child: ourChild)
+    // children: [foo, new ThisWidget(child: ourChild), bar]
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var childExpression = childArgument.expression;
+      var childText = utils.getNodeText(childExpression);
+      var indentOld = utils.getLinePrefix(childExpression.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = _replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_REMOVE_WIDGET);
   }
 
   Future<Null> _addProposal_flutterSwapWithChild() async {
