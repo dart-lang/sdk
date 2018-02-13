@@ -34,6 +34,9 @@ generic_list_checked_test: RuntimeError
 assertion_test: RuntimeError
 implicit_creation/implicit_new_constructor_generic_test: Pass
 
+[ $compiler == dart2js && $runtime == d8 && !$dart2js_with_kernel ]
+void_type_function_types_test/none: CompileTimeError # Issue #30515
+
 [ $compiler == dart2js && $runtime == drt && $checked && !$dart2js_with_kernel ]
 regress_30339_test: RuntimeError # Issue 30393
 

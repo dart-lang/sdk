@@ -92,14 +92,14 @@ main() {
   expectsG(h);
   expectsH(h);
 
-  Expect.isTrue(h2 is H2);
+  Expect.isTrue(h2 is F2);
   Expect.isTrue(h2 is G2);
   Expect.isTrue(h2 is H2);
   expectsF2(h2);
   expectsG2(h2);
   expectsH2(h2);
 
-  Expect.isTrue(h3 is H3);
+  Expect.isTrue(h3 is F3);
   Expect.isTrue(h3 is G3);
   Expect.isTrue(h3 is H3);
   expectsF3(h3);
