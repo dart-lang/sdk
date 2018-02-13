@@ -31,6 +31,14 @@ mirrors/variable_is_const_test/01: MissingCompileTimeError
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 mirrors/variable_is_const_test/01: Crash
 
+[ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
+isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
+mirrors/invocation_fuzz_test/emptyarray: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/false: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/none: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/smi: Crash, RuntimeError, Fail, Pass # Crashes on opt counter builder (#31838)
+mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash
 mirrors/library_exports_shown_test: Crash # 31916
@@ -209,7 +217,6 @@ isolate/mint_maker_test: RuntimeError
 isolate/ping_pause_test: RuntimeError
 isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
-isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
 mirrors/class_mirror_type_variables_test: RuntimeError
 mirrors/constructor_optional_args_test: Crash
 mirrors/constructors_test: RuntimeError
@@ -232,7 +239,6 @@ mirrors/instance_members_test: RuntimeError
 mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/instantiate_abstract_class_test: RuntimeError
-mirrors/invocation_fuzz_test/smi: Crash, Pass # Crashes on opt counter builder (#31838)
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: Crash
 mirrors/library_imports_bad_metadata_test/none: RuntimeError
