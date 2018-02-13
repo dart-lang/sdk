@@ -282,6 +282,13 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  test_invocationOfNonFunction_localGenericFunction() async {
+    // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
+    await super.test_invocationOfNonFunction_localGenericFunction();
+  }
+
+  @override
+  @failingTest
   test_invocationOfNonFunction_localObject() async {
     // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
     await super.test_invocationOfNonFunction_localObject();
@@ -698,6 +705,13 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedFunction_inImportedLib() async {
     // Bad state: No reference information for f at 40
     await super.test_undefinedFunction_inImportedLib();
+  }
+
+  @override
+  @failingTest
+  test_undefinedGetter_generic_function_call() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
+    await super.test_undefinedGetter_generic_function_call();
   }
 
   @override

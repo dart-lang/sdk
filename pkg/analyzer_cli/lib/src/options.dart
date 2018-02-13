@@ -218,6 +218,11 @@ class CommandLineOptions {
   Map<String, String> get definedVariables =>
       contextBuilderOptions.declaredVariables;
 
+  /// Whether to strictly follow the specification when generating warnings on
+  /// "call" methods (fixes dartbug.com/21938).
+  bool get enableStrictCallChecks =>
+      contextBuilderOptions.defaultOptions.enableStrictCallChecks;
+
   /// Whether to relax restrictions on mixins (DEP 34).
   bool get enableSuperMixins =>
       contextBuilderOptions.defaultOptions.enableSuperMixins;

@@ -103,6 +103,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   bool _enableHints = false;
 
   /**
+   * A flag indicating whether we should strictly follow the specification when
+   * generating warnings on "call" methods (fixes dartbug.com/21938).
+   */
+  bool _enableStrictCallChecks = false;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
@@ -136,6 +142,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     this._definingLibrary = _resolver.definingLibrary;
     AnalysisOptions options = _definingLibrary.context.analysisOptions;
     _enableHints = options.hint;
+    _enableStrictCallChecks = options.enableStrictCallChecks;
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
     _subtypeManager = new SubtypeManager();
@@ -717,20 +724,20 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Given the elements, determine the type of the function we are invoking
     //
-    DartType staticType = _getInvokeType(staticElement);
-    methodName.staticType = staticType;
+    DartType staticInvokeType = _getInvokeType(staticElement);
+    methodName.staticType = staticInvokeType;
 
-    DartType propagatedType = _getInvokeType(propagatedElement);
+    DartType propagatedInvokeType = _getInvokeType(propagatedElement);
     methodName.propagatedType =
-        _propagatedInvokeTypeIfBetter(propagatedType, staticType);
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
 
     //
     // Instantiate generic function or method if needed.
     //
-    DartType staticInvokeType = _instantiateGenericMethod(
-        staticType, node.typeArguments, node.methodName);
-    DartType propagatedInvokeType = _instantiateGenericMethod(
-        propagatedType, node.typeArguments, node.methodName);
+    staticInvokeType = _instantiateGenericMethod(
+        staticInvokeType, node.typeArguments, node.methodName);
+    propagatedInvokeType = _instantiateGenericMethod(
+        propagatedInvokeType, node.typeArguments, node.methodName);
 
     //
     // Record the results.
@@ -764,8 +771,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Then check for error conditions.
     //
-    ErrorCode errorCode =
-        _checkForInvocationError(target, true, staticElement, staticType);
+    ErrorCode errorCode = _checkForInvocationError(target, true, staticElement);
     if (errorCode != null &&
         target is SimpleIdentifier &&
         target.staticElement is PrefixElement) {
@@ -779,8 +785,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (_enableHints && errorCode == null && staticElement == null) {
       // The method lookup may have failed because there were multiple
       // incompatible choices. In this case we don't want to generate a hint.
-      errorCode = _checkForInvocationError(
-          target, false, propagatedElement, propagatedType);
+      errorCode = _checkForInvocationError(target, false, propagatedElement);
       if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
         ClassElement classElementContext = null;
         if (target == null) {
@@ -844,9 +849,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             targetType = _getStaticType(target);
           }
         }
-        if (targetType != null &&
+        if (!_enableStrictCallChecks &&
+            targetType != null &&
             targetType.isDartCoreFunction &&
             methodName.name == FunctionElement.CALL_METHOD_NAME) {
+          // TODO(brianwilkerson) Can we ever resolve the function being
+          // invoked?
+//          resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
         }
         if (!node.isCascaded) {
@@ -1296,8 +1305,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * was no target. The flag [useStaticContext] should be `true` if the
    * invocation is in a static constant (does not have access to instance state).
    */
-  ErrorCode _checkForInvocationError(Expression target, bool useStaticContext,
-      Element element, DartType type) {
+  ErrorCode _checkForInvocationError(
+      Expression target, bool useStaticContext, Element element) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
       return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
@@ -1334,7 +1343,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           return _getErrorCodeForExecuting(returnType);
         }
       } else if (element is VariableElement) {
-        return _getErrorCodeForExecuting(type);
+        DartType variableType = element.type;
+        return _getErrorCodeForExecuting(variableType);
       } else {
         if (target == null) {
           ClassElement enclosingClass = _resolver.enclosingClass;
@@ -1513,21 +1523,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       bestType = _resolver.typeProvider.functionType;
     }
     return bestType;
-  }
-
-  /**
-   * Return an error if the [type], which is presumably being invoked, is not a
-   * function. The errors for non functions may be broken up by type; currently,
-   * it returns a special value for when the type is `void`.
-   */
-  ErrorCode _getErrorCodeForExecuting(DartType type) {
-    if (_isExecutableType(type)) {
-      return null;
-    }
-
-    return type.isVoid
-        ? StaticWarningCode.USE_OF_VOID_RESULT
-        : StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
   }
 
   /**
@@ -1892,6 +1887,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Return an error if the [type], which is presumably being invoked, is not a
+   * function. The errors for non functions may be broken up by type; currently,
+   * it returns a special value for when the type is `void`.
+   */
+  ErrorCode _getErrorCodeForExecuting(DartType type) {
+    if (_isExecutableType(type)) {
+      return null;
+    }
+
+    return type.isVoid
+        ? StaticWarningCode.USE_OF_VOID_RESULT
+        : StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+  }
+
+  /**
    * Return `true` if the given [type] represents an object that could be
    * invoked using the call operator '()'.
    */
@@ -1899,7 +1909,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     type = type?.resolveToBound(_resolver.typeProvider.objectType);
     if (type.isDynamic || type is FunctionType) {
       return true;
-    } else if (type.isDartCoreFunction) {
+    } else if (!_enableStrictCallChecks &&
+        (type.isDartCoreFunction || type.isObject)) {
       return true;
     } else if (type is InterfaceType) {
       ClassElement classElement = type.element;
@@ -2632,9 +2643,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (!isStaticProperty &&
             staticOrPropagatedEnclosingElt is ClassElement) {
           InterfaceType targetType = staticOrPropagatedEnclosingElt.type;
-          if (targetType != null &&
+          if (!_enableStrictCallChecks &&
+              targetType != null &&
               targetType.isDartCoreFunction &&
               propertyName.name == FunctionElement.CALL_METHOD_NAME) {
+            // TODO(brianwilkerson) Can we ever resolve the function being
+            // invoked?
+//            resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
             return;
           } else if (staticOrPropagatedEnclosingElt.isEnum &&
               propertyName.name == "_name") {

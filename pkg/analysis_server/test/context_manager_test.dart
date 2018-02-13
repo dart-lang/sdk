@@ -1831,7 +1831,7 @@ embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   language:
-    enableSuperMixins: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1846,7 +1846,7 @@ linter:
     // Verify options were set.
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
-    expect(analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
 
     // Remove options.
     deleteOptionsFile();
@@ -1855,7 +1855,7 @@ linter:
     // Verify defaults restored.
     expect(errorProcessors, isEmpty);
     expect(lints, isEmpty);
-    expect(analysisOptions.enableSuperMixins, isFalse);
+    expect(analysisOptions.enableStrictCallChecks, isFalse);
   }
 
   @failingTest
@@ -1882,7 +1882,7 @@ test_pack:lib/''');
     newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
   language:
-    enableSuperMixins: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1895,7 +1895,7 @@ linter:
     await pumpEventQueue();
 
     // Verify options were set.
-    expect(analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
     expect(analysisOptions.strongMode, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
@@ -1905,7 +1905,7 @@ linter:
     await pumpEventQueue();
 
     // Verify defaults restored.
-    expect(analysisOptions.enableSuperMixins, isFalse);
+    expect(analysisOptions.enableStrictCallChecks, isFalse);
     expect(lints, hasLength(1));
     expect(lints.first, new isInstanceOf<AvoidAs>());
     expect(errorProcessors, hasLength(1));
@@ -1927,7 +1927,7 @@ include: other_options.yaml
     newFile('$projPath/other_options.yaml', content: r'''
 analyzer:
   language:
-    enableSuperMixins: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1938,7 +1938,7 @@ linter:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
     // Verify options were set.
-    expect(analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(lints[0].name, 'camel_case_types');
@@ -1957,7 +1957,7 @@ linter:
     newFile('$booLibPosixPath/other_options.yaml', content: r'''
 analyzer:
   language:
-    enableSuperMixins: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -1974,7 +1974,7 @@ include: package:boo/other_options.yaml
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     await pumpEventQueue();
     // Verify options were set.
-    expect(analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
     expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(lints[0].name, 'camel_case_types');
@@ -2050,7 +2050,7 @@ analyzer:
   exclude:
     - 'test/**'
   language:
-    enableSuperMixins: true
+    enableStrictCallChecks: true
   errors:
     unused_local_variable: false
 linter:
@@ -2072,7 +2072,7 @@ linter:
     expect(analysisOptions.strongMode, isTrue);
     expect(analysisOptions.enableSuperMixins, isTrue);
     // * from analysis options:
-    expect(analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.enableStrictCallChecks, isTrue);
 
     // * verify tests are excluded
     expect(

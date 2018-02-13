@@ -56,6 +56,25 @@ analyzer:
     expect(analysisOptions.strongMode, false);
   }
 
+  test_configure_enableLazyAssignmentOperators() {
+    expect(analysisOptions.enableStrictCallChecks, false);
+    configureContext('''
+analyzer:
+  language:
+    enableStrictCallChecks: true
+''');
+    expect(analysisOptions.enableStrictCallChecks, true);
+  }
+
+  test_configure_enableStrictCallChecks() {
+    configureContext('''
+analyzer:
+  language:
+    enableStrictCallChecks: true
+''');
+    expect(analysisOptions.enableStrictCallChecks, true);
+  }
+
   test_configure_enableSuperMixins() {
     configureContext('''
 analyzer:

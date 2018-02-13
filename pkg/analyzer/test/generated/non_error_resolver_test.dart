@@ -3494,7 +3494,7 @@ main() {
   v();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    assertNoErrors(source);
     verify([source]);
   }
 

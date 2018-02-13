@@ -60,6 +60,7 @@ main() {
         expect(options.disableHints, isFalse);
         expect(options.lints, isFalse);
         expect(options.displayVersion, isFalse);
+        expect(options.enableStrictCallChecks, isFalse);
         expect(options.enableSuperMixins, isFalse);
         expect(options.enableTypeChecks, isFalse);
         expect(options.infosAreFatal, isFalse);
@@ -95,6 +96,12 @@ main() {
         CommandLineOptions options = CommandLineOptions
             .parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
         expect(options.disableCacheFlushing, isTrue);
+      });
+
+      test('enable strict call checks', () {
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--enable-strict-call-checks', 'foo.dart']);
+        expect(options.enableStrictCallChecks, isTrue);
       });
 
       test('enable super mixins', () {
