@@ -569,7 +569,6 @@ issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
-list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
@@ -838,7 +837,6 @@ issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
 issue31596_tearoff_test: RuntimeError
 issue31596_test: RuntimeError
-list_is_test: RuntimeError
 nsm5_test: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
 
@@ -890,7 +888,6 @@ built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
-closure_param_null_to_object_test: RuntimeError
 extract_type_arguments_test: Crash # Issue 31371
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 implicit_downcast_during_constructor_invocation_test: RuntimeError
@@ -1158,7 +1155,6 @@ issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
-list_is_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
