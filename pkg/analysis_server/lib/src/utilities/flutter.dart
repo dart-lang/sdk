@@ -11,6 +11,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 
 const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
 
+const _BASIC_URI = "package:flutter/src/widgets/basic.dart";
+const _CENTER_NAME = "Center";
+const _PADDING_NAME = "Padding";
 const _STATELESS_WIDGET_NAME = "StatelessWidget";
 const _WIDGET_NAME = "Widget";
 const _WIDGET_URI = "package:flutter/src/widgets/framework.dart";
@@ -262,6 +265,22 @@ Expression identifyWidgetExpression(AstNode node) {
 bool isExactlyStatelessWidgetType(DartType type) {
   return type is InterfaceType &&
       _isExactWidget(type.element, _STATELESS_WIDGET_NAME, _WIDGET_URI);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `Center`.
+ */
+bool isExactWidgetTypeCenter(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _CENTER_NAME, _BASIC_URI);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `Padding`.
+ */
+bool isExactWidgetTypePadding(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _PADDING_NAME, _BASIC_URI);
 }
 
 /**

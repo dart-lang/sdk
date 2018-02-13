@@ -1567,21 +1567,32 @@ class AssistProcessor {
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_CENTER,
         parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
-        parentClassName: 'Center');
+        parentClassName: 'Center',
+        widgetValidator: (expr) {
+          return !flutter.isExactWidgetTypeCenter(expr.staticType);
+        });
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_PADDING,
         parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
         parentClassName: 'Padding',
-        leadingLines: ['padding: const EdgeInsets.all(8.0),']);
+        leadingLines: ['padding: const EdgeInsets.all(8.0),'],
+        widgetValidator: (expr) {
+          return !flutter.isExactWidgetTypePadding(expr.staticType);
+        });
   }
 
   Future<Null> _addProposal_flutterWrapWidgetImpl(
       {AssistKind kind: DartAssistKind.FLUTTER_WRAP_GENERIC,
+      bool Function(Expression widgetExpr) widgetValidator,
       String parentLibraryUri,
       String parentClassName,
       List<String> leadingLines: const []}) async {
     Expression widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr == null) {
+      _coverageMarker();
+      return;
+    }
+    if (widgetValidator != null && !widgetValidator(widgetExpr)) {
       _coverageMarker();
       return;
     }
