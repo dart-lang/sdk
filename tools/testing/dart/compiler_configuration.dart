@@ -1149,12 +1149,18 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     if (Platform.isWindows) {
       vmPath += ".exe";
     }
-    List<String> compilerArguments = <String>[
-      "-o",
-      outputFileName,
-      "--platform",
-      _plaformDill.toFilePath(),
-    ]..addAll(arguments);
+    List<String> compilerArguments = <String>[];
+    if (!_isLegacy) {
+      compilerArguments.add("--strong-mode");
+    }
+    compilerArguments
+      ..addAll(<String>[
+        "-o",
+        outputFileName,
+        "--platform",
+        _plaformDill.toFilePath(),
+      ])
+      ..addAll(arguments);
 
     return new CommandArtifact(
       [
