@@ -1903,3 +1903,9 @@ CantUseSuperBoundedTypeForInstanceCreation:
   template: "Can't use a super-bounded type for instance creation. Got '#type'."
   tip: "Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference."
   severity: ERROR
+
+MixinInferenceNoMatchingClass:
+  template: |
+    Type parameters could not be inferred for the mixin '#name' because
+    '#name2' does not implement the mixin's supertype constraint '#type'.
+  severity: ERROR

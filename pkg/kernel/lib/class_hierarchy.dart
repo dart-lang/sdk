@@ -14,12 +14,17 @@ import 'src/incremental_class_hierarchy.dart' show IncrementalClassHierarchy;
 
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
+abstract class MixinInferrer {
+  void infer(ClassHierarchy hierarchy, Class classNode);
+}
+
 /// Interface for answering various subclassing queries.
 /// TODO(scheglov) Several methods are not used, or used only in tests.
 /// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
   factory ClassHierarchy(Program program,
-      {HandleAmbiguousSupertypes onAmbiguousSupertypes}) {
+      {HandleAmbiguousSupertypes onAmbiguousSupertypes,
+      MixinInferrer mixinInferrer}) {
     int numberOfClasses = 0;
     for (var library in program.libraries) {
       numberOfClasses += library.classes.length;
@@ -32,7 +37,7 @@ abstract class ClassHierarchy {
     };
     return new ClosedWorldClassHierarchy._internal(
         program, numberOfClasses, onAmbiguousSupertypes)
-      .._initialize();
+      .._initialize(mixinInferrer);
   }
 
   /// Use [ClassHierarchy] factory instead.
@@ -89,6 +94,11 @@ abstract class ClassHierarchy {
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass].  [superclass] must
+  /// be a generic class.
+  Supertype asInstantiationOf(Supertype type, Class superclass);
 
   /// Returns the instance member that would respond to a dynamic dispatch of
   /// [name] to an instance of [class_], or `null` if no such member exists.
@@ -682,11 +692,25 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         onAmbiguousSupertypes: _onAmbiguousSupertypes);
   }
 
-  void _initialize() {
+  @override
+  Supertype asInstantiationOf(Supertype type, Class superclass) {
+    // This is similar to getTypeAsInstanceOf, except that it assumes that
+    // superclass is a generic class.  It thus does not rely on being able
+    // to answer isSubtypeOf queries and so can be used before we have built
+    // the intervals needed for those queries.
+    assert(superclass.typeParameters.isNotEmpty);
+    if (type.classNode == superclass) {
+      return superclass.asThisSupertype;
+    }
+    var map = _infoFor[type.classNode]?.genericSuperTypes;
+    return map == null ? null : map[superclass]?.first;
+  }
+
+  void _initialize(MixinInferrer mixinInferrer) {
     // Build the class ordering based on a topological sort.
     for (var library in _program.libraries) {
       for (var classNode in library.classes) {
-        _topologicalSortVisit(classNode);
+        _topologicalSortVisit(classNode, mixinInferrer);
       }
     }
 
@@ -741,7 +765,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// Returns the depth of the visited class (the number of steps in the longest
   /// inheritance path to the root class).
   int _topSortIndex = 0;
-  int _topologicalSortVisit(Class classNode) {
+  int _topologicalSortVisit(Class classNode, MixinInferrer mixinInferrer) {
     var info = _infoFor[classNode];
     if (info != null) {
       if (info.isBeingVisited) {
@@ -753,17 +777,21 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _infoFor[classNode] = info = new _ClassInfo(classNode);
     info.isBeingVisited = true;
     if (classNode.supertype != null) {
-      superDepth =
-          max(superDepth, _topologicalSortVisit(classNode.supertype.classNode));
+      superDepth = max(superDepth,
+          _topologicalSortVisit(classNode.supertype.classNode, mixinInferrer));
       _recordSuperTypes(info, classNode.supertype);
     }
     if (classNode.mixedInType != null) {
       superDepth = max(
-          superDepth, _topologicalSortVisit(classNode.mixedInType.classNode));
+          superDepth,
+          _topologicalSortVisit(
+              classNode.mixedInType.classNode, mixinInferrer));
+      if (mixinInferrer != null) mixinInferrer.infer(this, classNode);
       _recordSuperTypes(info, classNode.mixedInType);
     }
     for (var supertype in classNode.implementedTypes) {
-      superDepth = max(superDepth, _topologicalSortVisit(supertype.classNode));
+      superDepth = max(superDepth,
+          _topologicalSortVisit(supertype.classNode, mixinInferrer));
       _recordSuperTypes(info, supertype);
     }
     _buildDeclaredMembers(classNode, info);

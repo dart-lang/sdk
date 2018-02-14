@@ -8,9 +8,6 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/fasta/type_inference/interface_resolver.dart'
-    show InterfaceResolver;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -43,8 +40,6 @@ import '../builder/builder.dart'
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
-import '../problems.dart' show internalProblem;
-
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
@@ -74,11 +69,18 @@ import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
+import '../problems.dart' show internalProblem;
+
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
 import '../severity.dart' show Severity;
 
+import '../type_inference/interface_resolver.dart' show InterfaceResolver;
+
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+
+import '../type_inference/type_inferrer.dart'
+    show LegacyModeMixinInferrer, StrongModeMixinInferrer;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -574,7 +576,10 @@ class SourceLoader<L> extends Loader<L> {
       if (ambiguousTypesRecords != null) {
         ambiguousTypesRecords.add([cls, a, b]);
       }
-    });
+    },
+        mixinInferrer: target.strongMode
+            ? new StrongModeMixinInferrer(this)
+            : new LegacyModeMixinInferrer());
     for (List record in ambiguousTypesRecords) {
       handleAmbiguousSupertypes(record[0], record[1], record[2]);
     }

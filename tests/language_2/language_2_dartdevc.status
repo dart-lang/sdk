@@ -543,25 +543,6 @@ mixin_super_test: RuntimeError
 mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
-mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
-mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/01: Crash # Issue 32091
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/04: Crash # Issue 32091
-mixin_type_parameter_inference_previous_mixin_test/05: Crash # Issue 32091
-mixin_type_parameter_inference_previous_mixin_test/none: Crash # Issue 32091
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/06: Crash
-mixin_type_parameter_inference_test/07: Crash
-mixin_type_parameter_inference_test/08: Crash
-mixin_type_parameter_inference_test/09: Crash
-mixin_type_parameter_inference_test/10: Crash
-mixin_type_parameter_inference_test/12: Crash
-mixin_type_parameter_inference_test/13: Crash
-mixin_type_parameter_inference_test/16: Crash
-mixin_type_parameter_inference_test/none: Crash
 mixin_type_parameters_errors_test/01: MissingCompileTimeError
 mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError

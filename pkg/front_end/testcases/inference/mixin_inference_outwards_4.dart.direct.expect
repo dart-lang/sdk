@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class I<X extends core::Object> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M0<T extends core::Object> extends core::Object implements self::I<self::M0::T> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M1<T extends core::Object> extends self::I<self::M1::T> {
+  synthetic constructor •() → void
+    : super self::I::•()
+    ;
+}
+abstract class _Object&M0 = core::Object with self::M0<dynamic> {
+}
+abstract class __Object&M0&M1 = self::_Object&M0 with self::M1<dynamic> {
+}
+class A extends self::__Object&M0&M1 implements self::I<core::int> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/mixin_inference_outwards_4.dart:16:38: Error: 'A' can't implement both '#lib1::I<dynamic>' and '#lib1::I<dart.core::int>'\nclass /*@error=AmbiguousSupertypes*/ A extends Object\n                                     ^"]/* from null */;
+static method main() → dynamic {}

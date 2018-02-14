@@ -4,7 +4,6 @@
 
 library fasta.kernel_class_builder;
 
-import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -36,6 +35,7 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        Message,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
@@ -51,6 +51,8 @@ import '../fasta_codes.dart'
         templateRedirectionTargetNotFound;
 
 import '../problems.dart' show unexpected, unhandled, unimplemented;
+
+import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'kernel_builder.dart'
     show
@@ -142,6 +144,19 @@ abstract class KernelClassBuilder
       return new Supertype(cls, buildTypeArguments(library, arguments));
     } else {
       return cls.asRawSupertype;
+    }
+  }
+
+  Supertype buildMixedInType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    Class cls = isPatch ? origin.target : this.cls;
+    if (arguments != null) {
+      return new Supertype(cls, buildTypeArguments(library, arguments));
+    } else {
+      return new Supertype(
+          cls,
+          new List<DartType>.filled(
+              cls.typeParameters.length, const UnknownType()));
     }
   }
 

@@ -55,6 +55,16 @@ class KernelNamedTypeBuilder
     }
   }
 
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    if (builder is KernelClassBuilder) {
+      KernelClassBuilder builder = this.builder;
+      return builder.buildMixedInType(library, arguments);
+    } else {
+      return handleInvalidSupertype(library, charOffset, fileUri);
+    }
+  }
+
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
     TypeBuilder result = substitution[builder];
     if (result != null) {

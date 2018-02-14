@@ -80,6 +80,11 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     return null;
   }
 
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    return buildSupertype(library, charOffset, fileUri);
+  }
+
   @override
   buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);

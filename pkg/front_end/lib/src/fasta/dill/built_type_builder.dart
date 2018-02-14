@@ -23,6 +23,11 @@ class BuiltTypeBuilder extends KernelTypeBuilder {
     return unimplemented("buildSupertype", -1, null);
   }
 
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    return unimplemented("buildMixedInType", -1, null);
+  }
+
   buildInvalidType(int charOffset, Uri fileUri) {
     return unimplemented("buildInvalidType", -1, null);
   }

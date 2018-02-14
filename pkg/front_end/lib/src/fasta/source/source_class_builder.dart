@@ -133,7 +133,7 @@ class SourceClassBuilder extends KernelClassBuilder {
     actualCls.supertype =
         supertype?.buildSupertype(library, charOffset, fileUri);
     actualCls.mixedInType =
-        mixedInType?.buildSupertype(library, charOffset, fileUri);
+        mixedInType?.buildMixedInType(library, charOffset, fileUri);
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;

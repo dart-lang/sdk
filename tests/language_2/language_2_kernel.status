@@ -17,18 +17,6 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
-mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/06: MissingCompileTimeError
-mixin_type_parameter_inference_test/07: MissingCompileTimeError
-mixin_type_parameter_inference_test/08: RuntimeError
-mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
@@ -774,18 +762,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
-mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/06: MissingCompileTimeError
-mixin_type_parameter_inference_test/07: MissingCompileTimeError
-mixin_type_parameter_inference_test/08: RuntimeError
-mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError

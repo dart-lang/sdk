@@ -101,6 +101,10 @@ inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
 inference/instantiate_tearoff_of_call: Fail # Issue #31746
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
+inference/mixin_inference_outwards_3: TypeCheckError
+inference/mixin_inference_outwards_4: TypeCheckError
+inference/mixin_inference_unification_1: TypeCheckError
+inference/mixin_inference_unification_2: TypeCheckError
 inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
