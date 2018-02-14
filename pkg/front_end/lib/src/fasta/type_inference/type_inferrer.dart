@@ -403,44 +403,58 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // is inferred (the kernel code is discarded).
     if (isTopLevel) return null;
 
+    // This logic is strong mode only; in legacy mode anything goes.
+    if (!strongMode) return null;
+
+    // If an interface type is being assigned to a function type, see if we
+    // should tear off `.call`.
+    // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
+    if (actualType is InterfaceType) {
+      var classNode = (actualType as InterfaceType).classNode;
+      var callMember = classHierarchy.getInterfaceMember(classNode, callName);
+      if (callMember != null) {
+        if (_shouldTearOffCall(expectedType, actualType)) {
+          var parent = expression.parent;
+          var tearOff = new PropertyGet(expression, callName, callMember)
+            ..fileOffset = fileOffset;
+          parent?.replaceChild(expression, tearOff);
+          expression = tearOff;
+          actualType = getCalleeType(callMember, actualType);
+        }
+      }
+    }
+
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.
       return null;
+    }
+
+    if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
+      // Error: not assignable.  Perform error recovery.
+      var parent = expression.parent;
+      var errorNode = helper.wrapInCompileTimeError(expression,
+          templateInvalidAssignment.withArguments(actualType, expectedType));
+      parent?.replaceChild(expression, errorNode);
+      return errorNode;
     } else {
-      if (strongMode) {
-        if (!isTopLevel &&
-            !typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
-          // Error: not assignable.  Perform error recovery.
-          var parent = expression.parent;
-          var errorNode = helper.wrapInCompileTimeError(
-              expression,
-              templateInvalidAssignment.withArguments(
-                  actualType, expectedType));
-          parent?.replaceChild(expression, errorNode);
-          return errorNode;
-        } else {
-          var template = _getPreciseTypeErrorTemplate(expression);
-          if (template != null) {
-            // The type of the expression is known precisely, so an implicit
-            // downcast is guaranteed to fail.  Insert a compile-time error.
-            var parent = expression.parent;
-            var errorNode = helper.wrapInCompileTimeError(
-                expression, template.withArguments(actualType, expectedType));
-            parent?.replaceChild(expression, errorNode);
-            return errorNode;
-          } else {
-            // Insert an implicit downcast.
-            var parent = expression.parent;
-            var typeCheck = new AsExpression(expression, expectedType)
-              ..isTypeError = true
-              ..fileOffset = fileOffset;
-            parent?.replaceChild(expression, typeCheck);
-            return typeCheck;
-          }
-        }
+      var template = _getPreciseTypeErrorTemplate(expression);
+      if (template != null) {
+        // The type of the expression is known precisely, so an implicit
+        // downcast is guaranteed to fail.  Insert a compile-time error.
+        var parent = expression.parent;
+        var errorNode = helper.wrapInCompileTimeError(
+            expression, template.withArguments(actualType, expectedType));
+        parent?.replaceChild(expression, errorNode);
+        return errorNode;
       } else {
-        return null;
+        // Insert an implicit downcast.
+        var parent = expression.parent;
+        var typeCheck = new AsExpression(expression, expectedType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+        parent?.replaceChild(expression, typeCheck);
+        return typeCheck;
       }
     }
   }
@@ -1533,5 +1547,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     return null;
+  }
+
+  bool _shouldTearOffCall(DartType expectedType, DartType actualType) {
+    if (expectedType is InterfaceType &&
+        expectedType.classNode == typeSchemaEnvironment.futureOrClass) {
+      expectedType = (expectedType as InterfaceType).typeArguments[0];
+    }
+    if (expectedType is FunctionType) return true;
+    if (expectedType == typeSchemaEnvironment.rawFunctionType) {
+      if (!typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
