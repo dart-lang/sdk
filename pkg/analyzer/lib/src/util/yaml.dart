@@ -6,11 +6,9 @@ library analyzer.src.util.yaml;
 
 import 'dart:collection';
 
-import 'package:yaml/yaml.dart';
-
 /// If all of the elements of [list] are strings, return a list of strings
 /// containing the same elements. Otherwise, return `null`.
-List<String> toStringList(YamlList list) {
+List<String> toStringList(List list) {
   if (list == null) {
     return null;
   }

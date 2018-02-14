@@ -535,13 +535,13 @@ class _OptionsProcessor {
       List<String> pluginNames = <String>[];
       if (names is String) {
         pluginNames.add(names);
-      } else if (names is YamlList) {
+      } else if (names is List) {
         for (var element in names) {
           if (element is String) {
             pluginNames.add(element);
           }
         }
-      } else if (names is YamlMap) {
+      } else if (names is Map) {
         for (var key in names.keys) {
           if (key is String) {
             pluginNames.add(key);
@@ -562,7 +562,7 @@ class _OptionsProcessor {
   }
 
   void _applyExcludes(AnalysisOptionsImpl options, Object excludes) {
-    if (excludes is YamlList) {
+    if (excludes is List) {
       List<String> excludeList = toStringList(excludes);
       if (excludeList != null) {
         options.excludePatterns = excludeList;
