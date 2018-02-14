@@ -51,7 +51,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.7",
-  "async_tag": "@corelib_2_2_1",
+  "async_tag": "@2.0.4",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -142,7 +142,7 @@ vars = {
   "usage_tag": "@3.3.0",
   "utf_tag": "@0.9.0+4",
   "watcher_tag": "@0.9.7+7",
-  "web_socket_channel_tag": "@corelib_2_2_1",
+  "web_socket_channel_tag": "@1.0.7",
   "WebCore_rev": "@3c45690813c112373757bbef53de1602a62af609",
   "yaml_tag": "@2.1.13",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
