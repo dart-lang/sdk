@@ -1140,6 +1140,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.commonMasks.boolType)
           ..sourceInformation = node.sourceInformation;
       }
+    } else if (element == commonElements.setRuntimeTypeInfo) {
+      if (node.inputs.length == 2) {
+        return handleArrayTypeInfo(node);
+      }
     } else if (element == commonElements.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
@@ -1165,6 +1169,39 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
     return node;
+  }
+
+  HInstruction handleArrayTypeInfo(HInvokeStatic node) {
+    // If type information is not needed, use the raw Array.
+    HInstruction source = node.inputs[0];
+    if (source.usedBy.length != 1) return node;
+    if (!source.isArray(_closedWorld)) return node;
+    for (HInstruction user in node.usedBy) {
+      if (user is HGetLength) continue;
+      if (user is HIndex) continue;
+      // Bounds check escapes the array, but we don't care.
+      if (user is HBoundsCheck) continue;
+      // Interceptor only escapes the Array if array passed to an intercepted
+      // method.
+      if (user is HInterceptor) continue;
+      if (user is HInvokeStatic) {
+        MemberEntity element = user.element;
+        if (element == commonElements.checkConcurrentModificationError) {
+          // CME check escapes the array, but we don't care.
+          continue;
+        }
+      }
+      if (user is HInvokeDynamicGetter) {
+        String name = user.selector.name;
+        // These getters don't use the Array type.
+        if (name == 'last') continue;
+        if (name == 'first') continue;
+      }
+      // TODO(sra): Implement a more general algorithm - many methods don't use
+      // the element type.
+      return node;
+    }
+    return source;
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
