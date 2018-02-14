@@ -1214,7 +1214,6 @@ parser_quirks_test: CompileTimeError # Issue 31533
 recursive_mixin_test: Crash
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: SkipByDesign
 regress_13462_0_test: SkipByDesign
