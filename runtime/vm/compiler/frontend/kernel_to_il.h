@@ -755,7 +755,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
 
   Fragment EvaluateAssertion();
-  Fragment CheckReturnTypeInCheckedMode();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment CheckBooleanInCheckedMode();

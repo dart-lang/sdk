@@ -1078,7 +1078,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     return_value = Bind(BuildLoadLocal(*temp, node->token_pos()));
   }
 
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
          ((function.kind() == RawFunction::kImplicitGetter) ||

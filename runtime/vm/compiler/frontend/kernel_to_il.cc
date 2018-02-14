@@ -1426,13 +1426,19 @@ Fragment BaseFlowGraphBuilder::PushArgument() {
 
 Fragment FlowGraphBuilder::Return(TokenPosition position) {
   Fragment instructions;
+  const Function& function = parsed_function_->function();
 
-  instructions += CheckReturnTypeInCheckedMode();
+  // Emit a type check of the return type in checked mode for all functions
+  // and in strong mode for native functions.
+  if (I->type_checks() || (function.is_native() && I->strong())) {
+    const AbstractType& return_type =
+        AbstractType::Handle(Z, function.result_type());
+    instructions += CheckAssignable(return_type, Symbols::FunctionResult());
+  }
 
   Value* value = Pop();
   ASSERT(stack_ == NULL);
 
-  const Function& function = parsed_function_->function();
   if (NeedsDebugStepCheck(function, position)) {
     instructions += DebugStepCheck(position);
   }
@@ -2162,15 +2168,6 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
   ASSERT(!target.IsNull());
   return StaticCall(TokenPosition::kNoSource, target, /* argument_count = */ 1,
                     ICData::kStatic);
-}
-
-Fragment FlowGraphBuilder::CheckReturnTypeInCheckedMode() {
-  if (I->type_checks()) {
-    const AbstractType& return_type =
-        AbstractType::Handle(Z, parsed_function_->function().result_type());
-    return CheckAssignable(return_type, Symbols::FunctionResult());
-  }
-  return Fragment();
 }
 
 Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {
