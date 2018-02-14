@@ -76,7 +76,8 @@ kernel::Program* ReadPrecompiledKernelFromFile(const char* script_uri) {
     TransitionVMToNative transition(thread);
     Api::Scope api_scope(thread);
     Dart_Handle retval = (thread->isolate()->library_tag_handler())(
-        Dart_kKernelTag, NULL, Api::NewHandle(thread, String::New(script_uri)));
+        Dart_kKernelTag, Api::Null(),
+        Api::NewHandle(thread, String::New(script_uri)));
     if (!Dart_IsError(retval)) {
       uint64_t data;
       intptr_t data_len = 0;
