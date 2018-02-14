@@ -8,10 +8,10 @@ recursive_import_test: Skip # Issue 27441
 [ $compiler == dart2js ]
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
+generic_class_is_test: Fail # Issue 32004
 local_function_call_test: RuntimeError # Issue 31879
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
-generic_class_is_test: Fail # Issue 32004
 no_such_method_test: Fail # Wrong Invocation.memberName.
 statements_test: Fail
 typed_locals_test: Pass, Fail
@@ -23,7 +23,7 @@ timer_test: Fail # Issue 7728.
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.
 
-[ $strong && $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer && $strong ]
 dummy_compiler_test: Skip # Issue 28649
 recursive_import_test: Skip # Issue 28649
 
@@ -40,23 +40,11 @@ consistent_codeUnitAt_error_test: Pass, Slow # Issue 25940
 constant_javascript_semantics2_test: Pass, Slow # Issue 25940
 deferred_split_test: Pass, Slow # Issue 25940
 
+[ $compiler == dart2js && $runtime == chrome && $csp ]
+deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
-
-[ $compiler == dart2js && !$host_checked ]
-dummy_compiler_test: Slow, Pass
-recursive_import_test: Slow, Pass
-
-[ $compiler == dart2js && $host_checked ]
-dummy_compiler_test: Skip # Issue 30773
-recursive_import_test: Skip # Issue 30773
-
-[ $compiler == dart2js && $browser ]
-dummy_compiler_test: Skip
-recursive_import_test: Skip
-
-[ $compiler == dart2js && $runtime == drt && $csp ]
-deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 consistent_index_error_string_test: Pass, Slow # Issue 25940
@@ -66,6 +54,10 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == safari ]
 deferred_fail_and_retry_worker_test: Timeout # Issue 22106
+
+[ $compiler == dart2js && $browser ]
+dummy_compiler_test: Skip
+recursive_import_test: Skip
 
 [ $compiler == dart2js && $checked ]
 variable_type_test/01: Fail, OK
@@ -280,6 +272,14 @@ mirrors_used_warning2_test: Fail # mirrors not supported
 mirrors_used_warning_test: Fail # mirrors not supported
 no_such_method_mirrors_test: Fail # mirrors not supported
 reflect_native_types_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $host_checked ]
+dummy_compiler_test: Skip # Issue 30773
+recursive_import_test: Skip # Issue 30773
+
+[ $compiler == dart2js && !$host_checked ]
+dummy_compiler_test: Slow, Pass
+recursive_import_test: Slow, Pass
 
 [ $compiler == dart2js && $minified ]
 code_motion_exception_test: Skip # Requires unminified operator names.

@@ -1396,6 +1396,30 @@ WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeErro
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
+[ $compiler == dart2js && $runtime == chrome && $csp && $minified ]
+LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: SkipByDesign # Uses script injection
+LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: Pass # Please triage this failure
+LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLScriptElement/script-reexecution_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLTemplateElement/inertContents_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-started_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/files/workers/inline-worker-via-blob-url_t01: SkipByDesign # inlined script
+LayoutTests/fast/loader/scroll-position-restored-on-back_t01: Skip # Timeout. Please triage this failure
+WebPlatformTest/webstorage/event_local_key_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_local_newvalue_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_local_oldvalue_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_local_storagearea_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_local_url_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_session_key_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_session_newvalue_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_session_oldvalue_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_session_storagearea_t01: Skip # Timeout. Please triage this failure.
+WebPlatformTest/webstorage/event_session_url_t01: Skip # Timeout. Please triage this failure.
+
+[ $compiler == dart2js && $runtime == chrome && !$csp && !$minified ]
+LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
+
 [ $compiler == dart2js && $runtime != chrome && $runtime != drt && $browser && $fast_startup ]
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/test-001_t01: Fail # please triage
@@ -2335,16 +2359,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # Please triage this failure
-
-[ $compiler == dart2js && $runtime == drt && $csp && $minified ]
-LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLScriptElement/script-reexecution_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLTemplateElement/inertContents_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-started_t01: RuntimeError # Please triage this failure
-
-[ $compiler == dart2js && $runtime == drt && !$csp && !$minified ]
-LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime != drt && $browser && $fast_startup ]
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Fail # please triage

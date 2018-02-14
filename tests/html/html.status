@@ -372,6 +372,13 @@ custom_elements_test: Pass, Timeout # Issue 26789
 request_animation_frame_test: Skip # Times out. Issue 22167
 transition_event_test/functional: Skip # Times out. Issue 22167
 
+[ $runtime == chrome && $csp ]
+deferred_multi_app_htmltest: SkipByDesign # uses inline script
+no_linked_scripts_htmltest: SkipByDesign # uses inline script
+scripts_htmltest: SkipByDesign # uses inline script
+two_scripts_htmltest: SkipByDesign # uses inline script
+worker_test/functional: SkipByDesign # starts worker with inline script
+
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt ]
 webgl_1_test: Pass, Fail # Issue 8219
 

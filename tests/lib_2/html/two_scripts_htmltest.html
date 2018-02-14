@@ -7,7 +7,7 @@ BSD-style license that can be found in the LICENSE file.
 <!--
 START_HTML_DART_TEST
 {
-  "scripts": ["two_scripts_test_first.dart", "two_scripts_test_second.dart"],
+  "scripts": ["two_scripts_test_first.dart", "two_scripts_test_second.dart", "dispatch_parent_event.js"],
   "expectedMessages":
       ["first_local", "first_global", "second_local", "second_global"]
 }
@@ -15,7 +15,7 @@ END_HTML_DART_TEST
 -->
 <html>
 <head>
-  <script>window.parent.dispatchEvent(new Event('detect_errors'));</script>
+  <script src="dispatch_parent_event.js"></script>
   <title>Two Scripts HTML test</title>
 </head><body>
   <h1>Two Scripts HTML test</h1>
