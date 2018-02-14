@@ -472,12 +472,28 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     unit.accept(selectionAnalyzer);
     // May be a fatal error.
     {
-      RefactoringStatus status = selectionAnalyzer.status;
-      if (status.hasFatalError) {
-        return status;
+      if (selectionAnalyzer.status.hasFatalError) {
+        return selectionAnalyzer.status;
       }
     }
+
     List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
+
+    // If no selected nodes, extract the smallest covering expression.
+    if (selectedNodes.isEmpty) {
+      for (var node = selectionAnalyzer.coveringNode;
+          node != null;
+          node = node.parent) {
+        if (node is Statement) {
+          break;
+        }
+        if (node is Expression && _isExtractable(range.node(node))) {
+          selectedNodes.add(node);
+          selectionRange = range.node(node);
+          break;
+        }
+      }
+    }
 
     // Check selected nodes.
     if (!selectedNodes.isEmpty) {
