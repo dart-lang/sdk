@@ -81,6 +81,7 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/element_classes_test: RuntimeError # Issue 30291
 html/element_types_keygen_test: RuntimeError # Issue 29055
 html/file_sample_test: Pass, RuntimeError
+html/fileapi_entry_test: Pass, RuntimeError
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
