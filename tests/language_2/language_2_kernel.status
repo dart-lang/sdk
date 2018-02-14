@@ -11,6 +11,16 @@
 # to add them.
 
 [ $compiler == dartkp ]
+call_method_as_cast_test/01: RuntimeError
+call_method_as_cast_test/02: RuntimeError
+call_method_as_cast_test/03: RuntimeError
+call_method_as_cast_test/04: RuntimeError
+call_method_as_cast_test/05: RuntimeError
+call_method_is_check_test/01: RuntimeError
+call_method_is_check_test/02: RuntimeError
+call_method_is_check_test/03: RuntimeError
+call_method_is_check_test/04: RuntimeError
+call_method_is_check_test/05: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
@@ -624,7 +634,6 @@ type_variable_bounds4_test/01: RuntimeError
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-callable_test/none: RuntimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
@@ -640,11 +649,7 @@ async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
-call_function2_test: CompileTimeError # Issue 31402 (map literal)
-call_function_apply_test: CompileTimeError # Issue 31402 (Invocation arguments)
-call_function_test: CompileTimeError
-call_with_no_such_method_test: CompileTimeError # Issue 31402 (Invocation arguments)
-callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
+call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt1_test: RuntimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -725,7 +730,7 @@ flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
-function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
+function_propagation_test: RuntimeError
 function_subtype3_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
@@ -733,6 +738,10 @@ function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -817,7 +826,6 @@ regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel iss
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
-regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -876,6 +884,16 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
+call_method_as_cast_test/01: RuntimeError
+call_method_as_cast_test/02: RuntimeError
+call_method_as_cast_test/03: RuntimeError
+call_method_as_cast_test/04: RuntimeError
+call_method_as_cast_test/05: RuntimeError
+call_method_is_check_test/01: RuntimeError
+call_method_is_check_test/02: RuntimeError
+call_method_is_check_test/03: RuntimeError
+call_method_is_check_test/04: RuntimeError
+call_method_is_check_test/05: RuntimeError
 cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
 hello_dart_test: Crash
@@ -995,7 +1013,6 @@ assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-callable_test/none: RuntimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
@@ -1038,7 +1055,6 @@ call_function2_test: CompileTimeError # Issue 31402 (map literal)
 call_function_apply_test: CompileTimeError # Issue 31402 (Invocation arguments)
 call_function_test: CompileTimeError
 call_with_no_such_method_test: CompileTimeError # Issue 31402 (Invocation arguments)
-callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt2_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt3_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -1132,7 +1148,7 @@ flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
-function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
+function_propagation_test: RuntimeError
 function_subtype3_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
@@ -1140,6 +1156,10 @@ function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
