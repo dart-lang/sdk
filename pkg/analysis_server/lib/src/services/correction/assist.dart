@@ -105,8 +105,8 @@ class DartAssistKind {
       'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
   static const FLUTTER_WRAP_GENERIC = const AssistKind(
       'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
-  static const FLUTTER_WRAP_PADDING = const AssistKind(
-      'dart.assist.flutter.wrap.padding', 30, "Add widget padding");
+  static const FLUTTER_WRAP_PADDING =
+      const AssistKind('dart.assist.flutter.wrap.padding', 30, "Add padding");
   static const FLUTTER_WRAP_ROW =
       const AssistKind('dart.assist.flutter.wrap.row', 30, "Wrap with Row");
   static const IMPORT_ADD_SHOW = const AssistKind(
