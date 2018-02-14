@@ -16,13 +16,6 @@ namespace dart {
 
 // --- Message sending/receiving from native code ---
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
 class IsolateSaver {
  public:
   explicit IsolateSaver(Isolate* current_isolate)
@@ -46,18 +39,16 @@ class IsolateSaver {
 };
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
-  uint8_t* buffer = NULL;
-  ApiMessageWriter writer(&buffer, malloc_allocator);
-  bool success = writer.WriteCMessage(message);
+  ApiMessageWriter writer;
+  Message* msg =
+      writer.WriteCMessage(message, port_id, Message::kNormalPriority);
 
-  if (!success) {
-    free(buffer);
-    return success;
+  if (msg == NULL) {
+    return false;
   }
 
   // Post the message at the given port.
-  return PortMap::PostMessage(new Message(
-      port_id, buffer, writer.BytesWritten(), Message::kNormalPriority));
+  return PortMap::PostMessage(msg);
 }
 
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {

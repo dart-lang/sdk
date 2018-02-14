@@ -12,6 +12,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/message.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -489,7 +490,7 @@ class ScriptSnapshotReader : public SnapshotReader {
 
 class MessageSnapshotReader : public SnapshotReader {
  public:
-  MessageSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
+  MessageSnapshotReader(Message* message, Thread* thread);
   ~MessageSnapshotReader();
 
  private:
@@ -498,7 +499,7 @@ class MessageSnapshotReader : public SnapshotReader {
 
 class BaseWriter : public StackResource {
  public:
-  // Size of the snapshot.
+  uint8_t* buffer() { return stream_.buffer(); }
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
 
   // Writes raw data to the stream (basic type).
@@ -556,14 +557,11 @@ class BaseWriter : public StackResource {
   }
 
  protected:
-  BaseWriter(uint8_t** buffer,
-             ReAlloc alloc,
-             DeAlloc dealloc,
-             intptr_t initial_size)
+  BaseWriter(ReAlloc alloc, DeAlloc dealloc, intptr_t initial_size)
       : StackResource(Thread::Current()),
-        stream_(buffer, alloc, initial_size),
+        buffer_(NULL),
+        stream_(&buffer_, alloc, initial_size),
         dealloc_(dealloc) {
-    ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
   ~BaseWriter() {}
@@ -585,6 +583,7 @@ class BaseWriter : public StackResource {
   }
 
  private:
+  uint8_t* buffer_;
   WriteStream stream_;
   DeAlloc dealloc_;
 
@@ -649,7 +648,6 @@ class SnapshotWriter : public BaseWriter {
  protected:
   SnapshotWriter(Thread* thread,
                  Snapshot::Kind kind,
-                 uint8_t** buffer,
                  ReAlloc alloc,
                  DeAlloc dealloc,
                  intptr_t initial_size,
@@ -766,7 +764,7 @@ class SnapshotWriter : public BaseWriter {
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
-  ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc);
+  explicit ScriptSnapshotWriter(ReAlloc alloc);
   ~ScriptSnapshotWriter() {}
 
   // Writes a partial snapshot of the script.
@@ -780,44 +778,36 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 
 class SerializedObjectBuffer : public StackResource {
  public:
-  SerializedObjectBuffer()
-      : StackResource(Thread::Current()),
-        object_data_(NULL),
-        object_length_(0) {}
+  SerializedObjectBuffer() : StackResource(Thread::Current()), message_(NULL) {}
 
-  virtual ~SerializedObjectBuffer() { free(object_data_); }
+  virtual ~SerializedObjectBuffer() { delete message_; }
 
-  void StealBuffer(uint8_t** out_data, intptr_t* out_length) {
-    *out_data = object_data_;
-    *out_length = object_length_;
-
-    object_data_ = NULL;
-    object_length_ = 0;
+  void set_message(Message* message) {
+    ASSERT(message_ == NULL);
+    message_ = message;
+  }
+  Message* StealMessage() {
+    Message* result = message_;
+    message_ = NULL;
+    return result;
   }
 
-  uint8_t** data_buffer() { return &object_data_; }
-  intptr_t* data_length() { return &object_length_; }
-
  private:
-  uint8_t* object_data_;
-  intptr_t object_length_;
+  Message* message_;
 };
 
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  MessageWriter(uint8_t** buffer,
-                ReAlloc alloc,
-                DeAlloc dealloc,
-                bool can_send_any_object,
-                intptr_t* buffer_len = NULL);
+  explicit MessageWriter(bool can_send_any_object);
   ~MessageWriter() {}
 
-  void WriteMessage(const Object& obj);
+  Message* WriteMessage(const Object& obj,
+                        Dart_Port dest_port,
+                        Message::Priority priority);
 
  private:
   ForwardList forward_list_;
-  intptr_t* buffer_len_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };

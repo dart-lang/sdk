@@ -117,36 +117,13 @@ class VerifyOriginId : public IsolateVisitor {
 };
 #endif
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
-static void SerializeObject(const Instance& obj,
-                            uint8_t** obj_data,
-                            intptr_t* obj_len,
-                            bool allow_any_object) {
-  MessageWriter writer(obj_data, &malloc_allocator, &malloc_deallocator,
-                       allow_any_object);
-  writer.WriteMessage(obj);
-  *obj_len = writer.BytesWritten();
-}
-
 // TODO(zra): Allocation of Message objects should be centralized.
 static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
   if (ApiObjectConverter::CanConvert(obj.raw())) {
     return new Message(dest_port, obj.raw(), Message::kNormalPriority);
   } else {
-    uint8_t* obj_data;
-    intptr_t obj_len;
-    SerializeObject(obj, &obj_data, &obj_len, false);
-    return new Message(dest_port, obj_data, obj_len, Message::kNormalPriority);
+    MessageWriter writer(false);
+    return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
   }
 }
 
@@ -248,12 +225,9 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(msg);
-
-  PortMap::PostMessage(new Message(main_port(), data, writer.BytesWritten(),
-                                   Message::kOOBPriority));
+  MessageWriter writer(false);
+  PortMap::PostMessage(
+      writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
 }
 
 class IsolateMessageHandler : public MessageHandler {
@@ -538,7 +512,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     // We should only be sending RawObjects that can be converted to CObjects.
     ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
   } else {
-    MessageSnapshotReader reader(message->data(), message->len(), thread);
+    MessageSnapshotReader reader(message, thread);
     msg_obj = reader.ReadObject();
   }
   if (msg_obj.IsError()) {
@@ -2624,14 +2598,13 @@ void Isolate::KillLocked(LibMsgId msg_id) {
   list_values[3] = &imm;
 
   {
-    uint8_t* buffer = NULL;
-    ApiMessageWriter writer(&buffer, &malloc_allocator);
-    bool success = writer.WriteCMessage(&kill_msg);
-    ASSERT(success);
+    ApiMessageWriter writer;
+    Message* message =
+        writer.WriteCMessage(&kill_msg, main_port(), Message::kOOBPriority);
+    ASSERT(message != NULL);
 
     // Post the message at the given port.
-    success = PortMap::PostMessage(new Message(
-        main_port(), buffer, writer.BytesWritten(), Message::kOOBPriority));
+    bool success = PortMap::PostMessage(message);
     ASSERT(success);
   }
 }
@@ -2798,13 +2771,11 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread_registry()->ReturnThreadLocked(is_mutator, thread);
 }
 
-static RawInstance* DeserializeObject(Thread* thread,
-                                      uint8_t* obj_data,
-                                      intptr_t obj_len) {
-  if (obj_data == NULL) {
+static RawInstance* DeserializeObject(Thread* thread, Message* message) {
+  if (message == NULL) {
     return Instance::null();
   }
-  MessageSnapshotReader reader(obj_data, obj_len, thread);
+  MessageSnapshotReader reader(message, thread);
   Zone* zone = thread->zone();
   const Object& obj = Object::Handle(zone, reader.ReadObject());
   ASSERT(!obj.IsError());
@@ -2847,9 +2818,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(NULL),
       function_name_(NULL),
       serialized_args_(NULL),
-      serialized_args_len_(0),
-      serialized_message_(NULL),
-      serialized_message_len_(0),
+      serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
       spawn_count_(spawn_count),
       paused_(paused),
@@ -2867,7 +2836,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     const String& class_name = String::Handle(cls.Name());
     class_name_ = NewConstChar(class_name.ToCString());
   }
-  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
 
   // Inherit flags from spawning isolate.
   Isolate::Current()->FlagsCopyTo(isolate_flags());
@@ -2898,18 +2866,14 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
-      serialized_args_(NULL),
-      serialized_args_len_(0),
-      serialized_message_(NULL),
-      serialized_message_len_(0),
+      serialized_args_(args_buffer->StealMessage()),
+      serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
       spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
   function_name_ = NewConstChar("main");
-  args_buffer->StealBuffer(&serialized_args_, &serialized_args_len_);
-  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
 
   // By default inherit flags from spawning isolate. These can be overridden
   // from the calling code.
@@ -2923,8 +2887,8 @@ IsolateSpawnState::~IsolateSpawnState() {
   delete[] library_url_;
   delete[] class_name_;
   delete[] function_name_;
-  free(serialized_args_);
-  free(serialized_message_);
+  delete serialized_args_;
+  delete serialized_message_;
 }
 
 RawObject* IsolateSpawnState::ResolveFunction() {
@@ -3005,12 +2969,11 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 }
 
 RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeObject(thread, serialized_args_, serialized_args_len_);
+  return DeserializeObject(thread, serialized_args_);
 }
 
 RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeObject(thread, serialized_message_,
-                           serialized_message_len_);
+  return DeserializeObject(thread, serialized_message_);
 }
 
 void IsolateSpawnState::DecrementSpawnCount() {

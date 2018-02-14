@@ -918,11 +918,9 @@ ScriptSnapshotReader::~ScriptSnapshotReader() {
   ResetBackwardReferenceTable();
 }
 
-MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
-                                             intptr_t size,
-                                             Thread* thread)
-    : SnapshotReader(buffer,
-                     size,
+MessageSnapshotReader::MessageSnapshotReader(Message* message, Thread* thread)
+    : SnapshotReader(message->data(),
+                     message->len(),
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
                      thread) {}
@@ -933,13 +931,12 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
-                               uint8_t** buffer,
                                ReAlloc alloc,
                                DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(buffer, alloc, dealloc, initial_size),
+    : BaseWriter(alloc, dealloc, initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -1546,17 +1543,15 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   free(const_cast<char*>(expected_features));
 }
 
-ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
+ScriptSnapshotWriter::ScriptSnapshotWriter(ReAlloc alloc)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kScript,
-                     buffer,
                      alloc,
                      NULL,
                      kInitialSize,
                      &forward_list_,
                      true /* can_send_any_object */),
       forward_list_(thread(), kMaxPredefinedObjectIds) {
-  ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
 
@@ -1598,26 +1593,30 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
   }
 }
 
-MessageWriter::MessageWriter(uint8_t** buffer,
-                             ReAlloc alloc,
-                             DeAlloc dealloc,
-                             bool can_send_any_object,
-                             intptr_t* buffer_len)
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
+}
+
+MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
-                     buffer,
-                     alloc,
-                     dealloc,
+                     malloc_allocator,
+                     malloc_deallocator,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
-      forward_list_(thread(), kMaxPredefinedObjectIds),
-      buffer_len_(buffer_len) {
-  ASSERT(buffer != NULL);
-  ASSERT(alloc != NULL);
-}
+      forward_list_(thread(), kMaxPredefinedObjectIds) {}
 
-void MessageWriter::WriteMessage(const Object& obj) {
+Message* MessageWriter::WriteMessage(const Object& obj,
+                                     Dart_Port dest_port,
+                                     Message::Priority priority) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
 
@@ -1627,13 +1626,12 @@ void MessageWriter::WriteMessage(const Object& obj) {
   if (setjmp(*jump.Set()) == 0) {
     NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
-    if (buffer_len_ != NULL) {
-      *buffer_len_ = BytesWritten();
-    }
   } else {
     FreeBuffer();
     ThrowException(exception_type(), exception_msg());
   }
+
+  return new Message(dest_port, buffer(), BytesWritten(), priority);
 }
 
 }  // namespace dart

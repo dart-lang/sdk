@@ -12,13 +12,6 @@ namespace dart {
 
 static const int kNumInitialReferences = 4;
 
-ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
-    : BaseReader(buffer, length),
-      zone_(NULL),
-      backward_references_(kNumInitialReferences),
-      vm_isolate_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL) {}
-
 ApiMessageReader::ApiMessageReader(Message* msg)
     : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
                               : msg->data(),
@@ -857,24 +850,24 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t* data) {
-  // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(kMaxPredefinedObjectIds);
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
 
-  // Write out the class and tags information.
-  WriteIndexedObject(kArrayCid);
-  WriteTags(0);
+ApiMessageWriter::ApiMessageWriter()
+    : BaseWriter(malloc_allocator, NULL, kInitialSize),
+      object_id_(0),
+      forward_list_(NULL),
+      forward_list_length_(0),
+      forward_id_(0) {
+  ASSERT(kDartCObjectTypeMask >= Dart_CObject_kNumberOfTypes - 1);
+}
 
-  // Write out the length field.
-  Write<RawObject*>(Smi::New(field_count));
-
-  // Write out the type arguments.
-  WriteNullObject();
-
-  // Write out the individual Smis.
-  for (int i = 0; i < field_count; i++) {
-    Write<RawObject*>(Integer::New(data[i]));
-  }
+ApiMessageWriter::~ApiMessageWriter() {
+  ::free(forward_list_);
 }
 
 void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
@@ -1253,11 +1246,14 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
   return true;
 }
 
-bool ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
+Message* ApiMessageWriter::WriteCMessage(Dart_CObject* object,
+                                         Dart_Port dest_port,
+                                         Message::Priority priority) {
   bool success = WriteCObject(object);
   if (!success) {
     UnmarkAllCObjects(object);
-    return false;
+    free(buffer());
+    return NULL;
   }
   // Write out all objects that were added to the forward list and have
   // not been serialized yet. These would typically be fields of arrays.
@@ -1266,11 +1262,12 @@ bool ApiMessageWriter::WriteCMessage(Dart_CObject* object) {
     success = WriteForwardedCObject(forward_list_[i]);
     if (!success) {
       UnmarkAllCObjects(object);
-      return false;
+      free(buffer());
+      return NULL;
     }
   }
   UnmarkAllCObjects(object);
-  return true;
+  return new Message(dest_port, buffer(), BytesWritten(), priority);
 }
 
 }  // namespace dart
