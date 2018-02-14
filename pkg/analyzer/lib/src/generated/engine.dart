@@ -1223,12 +1223,6 @@ abstract class AnalysisOptions {
   bool get enableLazyAssignmentOperators;
 
   /**
-   * Return `true` to strictly follow the specification when generating
-   * warnings on "call" methods (fixes dartbug.com/21938).
-   */
-  bool get enableStrictCallChecks;
-
-  /**
    * Return `true` if mixins are allowed to inherit from types other than
    * Object, and are allowed to reference `super`.
    */
@@ -1408,9 +1402,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableLazyAssignmentOperators = false;
 
   @override
-  bool enableStrictCallChecks = false;
-
-  @override
   bool enableSuperMixins = false;
 
   @override
@@ -1516,7 +1507,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
     enabledPluginNames = options.enabledPluginNames;
-    enableStrictCallChecks = options.enableStrictCallChecks;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
@@ -1658,7 +1648,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       // Append boolean flags.
       buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
-      buffer.addBool(enableStrictCallChecks);
       buffer.addBool(enableSuperMixins);
       buffer.addBool(enableUriInPartOf);
       buffer.addBool(implicitCasts);
@@ -1699,7 +1688,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     disableCacheFlushing = false;
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
-    enableStrictCallChecks = false;
     enableSuperMixins = false;
     enableTiming = false;
     enableUriInPartOf = true;
@@ -1724,7 +1712,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {

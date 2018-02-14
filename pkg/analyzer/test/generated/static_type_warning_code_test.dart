@@ -746,23 +746,16 @@ class A {
   }
 
   test_invocationOfNonFunction_localGenericFunction() async {
-    // Objects having a specific function type may be invoked, but objects
-    // having type Function may not, because type Function lacks a call method
-    // (this is because it is impossible to know what signature the call should
-    // have).
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableStrictCallChecks = true;
-    resetWith(options: options);
+    // Invoking `.call` on a `Function` type works similarly to invoking it on
+    // `dynamic`--the invocation is accepted at compile time, and all type
+    // checking is deferred until runtime.
     await assertErrorsInCode('''
 f(Function f) {
   return f();
-}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', []);
   }
 
   test_invocationOfNonFunction_localObject() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableStrictCallChecks = true;
-    resetWith(options: options);
     await assertErrorsInCode('''
 f(Object o) {
   return o();
@@ -1484,23 +1477,17 @@ f(T e) { return e.m; }''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
   test_undefinedGetter_generic_function_call() async {
-    // Objects having a specific function type have a call() method, but
-    // objects having type Function do not (this is because it is impossible to
-    // know what signature the call should have).
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableStrictCallChecks = true;
-    resetWith(options: options);
+    // Referencing `.call` on a `Function` type works similarly to referencing
+    // it on `dynamic`--the reference is accepted at compile time, and all type
+    // checking is deferred until runtime.
     await assertErrorsInUnverifiedCode('''
 f(Function f) {
   return f.call;
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', []);
   }
 
   test_undefinedGetter_object_call() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableStrictCallChecks = true;
-    resetWith(options: options);
     await assertErrorsInUnverifiedCode('''
 f(Object o) {
   return o.call;
@@ -1597,17 +1584,14 @@ class B {
   }
 
   test_undefinedMethod_generic_function_call() async {
-    // Objects having a specific function type have a call() method, but
-    // objects having type Function do not (this is because it is impossible to
-    // know what signature the call should have).
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableStrictCallChecks = true;
-    resetWith(options: options);
+    // Invoking `.call` on a `Function` type works similarly to invoking it on
+    // `dynamic`--the invocation is accepted at compile time, and all type
+    // checking is deferred until runtime.
     await assertErrorsInCode('''
 f(Function f) {
   f.call();
 }
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+''', []);
   }
 
   test_undefinedMethod_ignoreTypePropagation() async {
@@ -1630,9 +1614,6 @@ class C {
   }
 
   test_undefinedMethod_object_call() async {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableStrictCallChecks = true;
-    resetWith(options: options);
     await assertErrorsInCode('''
 f(Object o) {
   o.call();

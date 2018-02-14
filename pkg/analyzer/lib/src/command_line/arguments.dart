@@ -20,7 +20,6 @@ const String bazelAnalysisOptionsPath =
 const String declarationCastsFlag = 'declaration-casts';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
-const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
 const String enableSuperMixinFlag = 'supermixin';
 const String flutterAnalysisOptionsPath =
     'package:flutter/analysis_options_user.yaml';
@@ -47,10 +46,6 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     }
   }
 
-  if (args.wasParsed(enableStrictCallChecksFlag)) {
-    options.enableStrictCallChecks = args[enableStrictCallChecksFlag];
-    verbose('$enableStrictCallChecksFlag = ${options.enableStrictCallChecks}');
-  }
   if (args.wasParsed(enableSuperMixinFlag)) {
     options.enableSuperMixins = args[enableSuperMixinFlag];
     verbose('$enableSuperMixinFlag = ${options.enableSuperMixins}');
@@ -220,11 +215,6 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       hide: ddc);
   parser.addOption(sdkSummaryPathOption,
       help: 'The path to the Dart SDK summary file.', hide: hide);
-  parser.addFlag(enableStrictCallChecksFlag,
-      help: 'Fix issue 21938.',
-      defaultsTo: false,
-      negatable: false,
-      hide: hide);
   parser.addFlag(enableInitializingFormalAccessFlag,
       help:
           'Enable support for allowing access to field formal parameters in a '

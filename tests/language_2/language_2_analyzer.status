@@ -1166,7 +1166,6 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 no_main_test/01: MissingStaticWarning # Issue 28823
 no_such_method_negative_test: CompileTimeError
-object_has_no_call_method_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/04: MissingCompileTimeError

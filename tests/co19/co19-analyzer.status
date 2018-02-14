@@ -33,6 +33,7 @@ Language/Expressions/Constants/literal_number_t01: CompileTimeError # int64
 Language/Expressions/Constants/logical_expression_t03: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t01: CompileTimeError # int64
 Language/Expressions/Constants/math_operators_t06: CompileTimeError # int64
+Language/Expressions/Function_Invocation/Function_Expression_Invocation/static_type_t02: StaticWarning
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t17: MissingCompileTimeError # Please triage this failure
@@ -61,9 +62,12 @@ Language/Expressions/Lookup/Method_Lookup/superclass_t08: StaticWarning # Please
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
+Language/Expressions/Method_Invocation/Ordinary_Invocation/static_type_t01: StaticWarning
+Language/Expressions/Method_Invocation/Ordinary_Invocation/static_type_t04: StaticWarning
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t03: StaticWarning # Please triage this failure.
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t04: StaticWarning # Please triage this failure.
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t05: StaticWarning # Please triage this failure.
+Language/Expressions/Method_Invocation/Super_Invocation/static_type_dynamic_t02: StaticWarning
 Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError # int64
 Language/Expressions/Numbers/syntax_t06: CompileTimeError # int64
 Language/Expressions/Numbers/syntax_t09: CompileTimeError # int64
