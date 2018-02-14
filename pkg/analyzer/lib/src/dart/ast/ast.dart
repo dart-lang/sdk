@@ -11,14 +11,19 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -2745,6 +2750,37 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 }
 
 /**
+ * An error listener that only records whether any constant related errors have
+ * been reported.
+ */
+class ConstantAnalysisErrorListener extends AnalysisErrorListener {
+  /**
+   * A flag indicating whether any constant related errors have been reported to
+   * this listener.
+   */
+  bool hasConstError = false;
+
+  @override
+  void onError(AnalysisError error) {
+    switch (error.errorCode) {
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
+      case CompileTimeErrorCode
+          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+      case CompileTimeErrorCode.INVALID_CONSTANT:
+      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        hasConstError = true;
+    }
+  }
+}
+
+/**
  * A constructor declaration.
  *
  *    constructorDeclaration ::=
@@ -4151,6 +4187,9 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
           // Inside an explicitly non-`const` instance creation expression.
           return false;
         }
+        // We need to ask the parent because it might be `const` just because
+        // it's possible for it to be.
+        return parent.isConst;
       } else if (parent is Annotation) {
         // Inside an annotation.
         return true;
@@ -6495,7 +6534,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
     if (!isImplicit) {
       return keyword.keyword == Keyword.CONST;
     } else {
-      return inConstantContext;
+      return inConstantContext || canBeConst();
     }
   }
 
@@ -6512,6 +6551,42 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
+
+  /**
+   * Return `true` if it would be valid for this instance creation expression to
+   * have a keyword of `const`. It is valid if
+   *
+   * * the invoked constructor is a `const` constructor,
+   * * all of the arguments are, or could be, constant expressions, and
+   * * the evaluation of the constructor would not produce an exception.
+   *
+   * Note that this method will return `false` if the AST has not been resolved
+   * because without resolution it cannot be determined whether the constructor
+   * is a `const` constructor.
+   *
+   * Also note that this method can cause constant evaluation to occur, which
+   * can be computationally expensive.
+   */
+  bool canBeConst() {
+    ConstructorElement element = staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+    Token oldKeyword = keyword;
+    ConstantAnalysisErrorListener listener =
+        new ConstantAnalysisErrorListener();
+    try {
+      keyword = new KeywordToken(Keyword.CONST, offset);
+      LibraryElement library = element.library;
+      AnalysisContext context = library.context;
+      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
+      accept(new ConstantVerifier(errorReporter, library, context.typeProvider,
+          context.declaredVariables));
+    } finally {
+      keyword = oldKeyword;
+    }
+    return !listener.hasConstError;
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {

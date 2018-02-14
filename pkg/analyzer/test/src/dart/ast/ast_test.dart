@@ -4,14 +4,17 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/parser_test.dart';
+import '../../../generated/resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExpressionImplTest);
+    defineReflectiveTests(InstanceCreationExpressionImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
   });
 }
@@ -44,6 +47,16 @@ class C {
 }
 ''');
     assertInContext("C(0", true);
+  }
+
+  test_inConstantContext_instanceCreation_functionLiteral() {
+    parse('''
+const V = () => C();
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", false);
   }
 
   test_inConstantContext_instanceCreation_initializer_false() {
@@ -213,6 +226,16 @@ class C {
     assertInContext("[]", true);
   }
 
+  test_inConstantContext_listLiteral_functionLiteral() {
+    parse('''
+const V = () => [];
+class C {
+  const C();
+}
+''');
+    assertInContext("[]", false);
+  }
+
   test_inConstantContext_listLiteral_initializer_false() {
     parse('''
 var c = [];
@@ -313,6 +336,16 @@ class C {
     assertInContext("{}", true);
   }
 
+  test_inConstantContext_mapLiteral_functionLiteral() {
+    parse('''
+const V = () => {};
+class C {
+  const C();
+}
+''');
+    assertInContext("{}", false);
+  }
+
   test_inConstantContext_mapLiteral_initializer_false() {
     parse('''
 var c = {};
@@ -401,6 +434,68 @@ f(v) {
 }
 ''');
     assertInContext("{}", true);
+  }
+}
+
+@reflectiveTest
+class InstanceCreationExpressionImplTest extends ResolverTestCase {
+  String testSource;
+  CompilationUnitImpl testUnit;
+
+  void assertInContext(String snippet, bool isConst) {
+    int index = testSource.indexOf(snippet);
+    expect(index >= 0, isTrue);
+    NodeLocator visitor = new NodeLocator(index);
+    AstNodeImpl node = visitor.searchWithin(testUnit);
+    node = node.getAncestor((node) => node is InstanceCreationExpressionImpl);
+    expect(node, isNotNull);
+    expect((node as InstanceCreationExpressionImpl).isConst,
+        isConst ? isTrue : isFalse);
+  }
+
+  void enablePreviewDart2() {
+    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
+  }
+
+  void resolve(String source) async {
+    testSource = source;
+    testUnit = await resolveSource2('/test.dart', source);
+  }
+
+  void test_isConst_instanceCreation_notExplicit_notInContext() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C()];
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  void
+      test_isConst_instanceCreation_notExplicit_notInContext_nonConstConstructor() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C()];
+class C {
+  C();
+}
+''');
+    assertInContext("C()", false);
+  }
+
+  void
+      test_isConst_instanceCreation_notExplicit_notInContext_nonConstParam() async {
+    enablePreviewDart2();
+    await resolve('''
+f(int i) => <Object>[C(i)];
+class C {
+  final int f;
+  const C(this.f);
+}
+''');
+    assertInContext("C(i)", false);
   }
 }
 
