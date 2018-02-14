@@ -569,8 +569,24 @@ class ShadowConstructorInvocation extends ConstructorInvocation
 
   final Member _initialTarget;
 
+  /// If the constructor invocation points to a redirected constructor, the type
+  /// arguments to be supplied to redirected constructor, in terms of those
+  /// supplied to the original constructor.
+  ///
+  /// For example, in the code below:
+  ///
+  ///     class C<T> {
+  ///       C() = D<List<T>>;
+  ///     }
+  ///     main() {
+  ///       new C<int>();
+  ///     }
+  ///
+  /// [targetTypeArguments] is a list containing the type `List<T>`.
+  final List<DartType> targetTypeArguments;
+
   ShadowConstructorInvocation(this._prefixName, Constructor target,
-      this._initialTarget, Arguments arguments,
+      this.targetTypeArguments, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -595,6 +611,31 @@ class ShadowConstructorInvocation extends ConstructorInvocation
               .message);
     }
     inferrer.listener.constructorInvocationExit(this, inferredType);
+
+    if (isRedirected(this)) {
+      InterfaceType returnType = inferredType;
+      List<DartType> initialTypeArguments;
+      if (inferrer.strongMode) {
+        initialTypeArguments = returnType.typeArguments;
+      } else {
+        int requiredTypeArgumentsCount = returnType.typeArguments.length;
+        int suppliedTypeArgumentsCount = arguments.types.length;
+        initialTypeArguments = arguments.types.toList(growable: true)
+          ..length = requiredTypeArgumentsCount;
+        for (int i = suppliedTypeArgumentsCount;
+            i < requiredTypeArgumentsCount;
+            i++) {
+          initialTypeArguments[i] = const DynamicType();
+        }
+      }
+      Substitution substitution = Substitution.fromPairs(
+          _initialTarget.function.typeParameters, initialTypeArguments);
+      arguments.types.clear();
+      for (DartType argument in targetTypeArguments) {
+        arguments.types.add(substitution.substituteType(argument));
+      }
+    }
+
     return inferredType;
   }
 
@@ -700,8 +741,24 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
 
   final Member _initialTarget;
 
+  /// If the factory invocation points to a redirected factory, the type
+  /// arguments to be supplied to redirected constructor, in terms of those
+  /// supplied to the original constructor.
+  ///
+  /// For example, in the code below:
+  ///
+  ///     class C<T> {
+  ///       C() = D<List<T>>;
+  ///     }
+  ///     main() {
+  ///       new C<int>();
+  ///     }
+  ///
+  /// [targetTypeArguments] is a list containing the type `List<T>`.
+  final List<DartType> targetTypeArguments;
+
   ShadowFactoryConstructorInvocation(this._prefixName, Procedure target,
-      this._initialTarget, Arguments arguments,
+      this.targetTypeArguments, this._initialTarget, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -716,7 +773,41 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
         computeConstructorReturnType(_initialTarget),
         arguments);
     inferrer.listener.constructorInvocationExit(this, inferredType);
+
+    if (isRedirected(this)) {
+      InterfaceType returnType = inferredType;
+      List<DartType> initialTypeArguments;
+      if (inferrer.strongMode) {
+        initialTypeArguments = returnType.typeArguments;
+      } else {
+        int requiredTypeArgumentsCount = returnType.typeArguments.length;
+        int suppliedTypeArgumentsCount = arguments.types.length;
+        initialTypeArguments = arguments.types.toList(growable: true)
+          ..length = requiredTypeArgumentsCount;
+        for (int i = suppliedTypeArgumentsCount;
+            i < requiredTypeArgumentsCount;
+            i++) {
+          initialTypeArguments[i] = const DynamicType();
+        }
+      }
+      Substitution substitution = Substitution.fromPairs(
+          _initialTarget.function.typeParameters, initialTypeArguments);
+      arguments.types.clear();
+      for (DartType argument in targetTypeArguments) {
+        arguments.types.add(substitution.substituteType(argument));
+      }
+    }
+
     return inferredType;
+  }
+
+  /// Determines whether the given [ShadowConstructorInvocation] represents an
+  /// invocation of a redirected factory constructor.
+  ///
+  /// This is static to avoid introducing a method that would be visible to the
+  /// kernel.
+  static bool isRedirected(ShadowFactoryConstructorInvocation expression) {
+    return !identical(expression._initialTarget, expression.target);
   }
 }
 

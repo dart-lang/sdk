@@ -28,6 +28,7 @@ export 'kernel_procedure_builder.dart'
     show
         KernelConstructorBuilder,
         KernelFunctionBuilder,
+        KernelRedirectingFactoryBuilder,
         KernelProcedureBuilder;
 
 export 'kernel_type_builder.dart' show KernelTypeBuilder;

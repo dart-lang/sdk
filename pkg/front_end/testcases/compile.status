@@ -23,6 +23,8 @@ redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryCo
 redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
 redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirection_chain_type_arguments: Fail # Issue 32130
+redirection_chain_type_arguments_subst: Fail # Issue 32130
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers

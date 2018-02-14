@@ -82,9 +82,6 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-const_constructor2_test/20: MissingCompileTimeError
-const_constructor2_test/22: MissingCompileTimeError
-const_constructor2_test/24: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError # Fasta bug: Const factory with body.
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field.
@@ -92,9 +89,7 @@ const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_types_test/34: MissingCompileTimeError
-const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-const_types_test/40: MissingCompileTimeError
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
@@ -812,7 +807,6 @@ override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23089_test: Crash

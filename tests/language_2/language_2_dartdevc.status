@@ -352,9 +352,7 @@ const_optional_args_test/01: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
-const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
@@ -753,7 +751,6 @@ library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
 mock_writable_final_private_field_test: RuntimeError
-redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
