@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/source.dart';
@@ -29,6 +30,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
    */
   final Map<String, LinkedEditGroup> _linkedEditGroups =
       <String, LinkedEditGroup>{};
+
+  /**
+   * The set of [Position]s that belong to the current [EditBuilderImpl] and
+   * should not be updated in result of inserting this builder.
+   */
+  final Set<Position> _lockedPositions = new HashSet<Position>.identity();
 
   /**
    * Initialize a newly created change builder.
@@ -86,7 +93,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
    */
   void _updatePositions(int offset, int delta) {
     void _updatePosition(Position position) {
-      if (position.offset >= offset) {
+      if (position.offset >= offset && !_lockedPositions.contains(position)) {
         position.offset = position.offset + delta;
       }
     }
@@ -165,6 +172,7 @@ class EditBuilderImpl implements EditBuilder {
       int end = offset + _buffer.length;
       int length = end - start;
       Position position = new Position(fileEditBuilder.fileEdit.file, start);
+      fileEditBuilder.changeBuilder._lockedPositions.add(position);
       LinkedEditGroup group =
           fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
       group.addPosition(position, length);
@@ -315,6 +323,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     fileEdit.add(edit);
     int delta = _editDelta(edit);
     changeBuilder._updatePositions(edit.offset + math.max(0, delta), delta);
+    changeBuilder._lockedPositions.clear();
     _captureSelection(builder, edit);
   }
 

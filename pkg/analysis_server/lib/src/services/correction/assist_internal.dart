@@ -62,8 +62,6 @@ class AssistProcessor {
 
   final List<Assist> assists = <Assist>[];
 
-  Position exitPosition = null;
-
   CorrectionUtils utils;
 
   AstNode node;
@@ -2575,7 +2573,6 @@ class AssistProcessor {
     }
     // prepare statement information
     Statement firstStatement = selectedStatements[0];
-    Statement lastStatement = selectedStatements[selectedStatements.length - 1];
     SourceRange statementsRange =
         utils.getLinesRangeStatements(selectedStatements);
     // prepare environment
@@ -2593,7 +2590,6 @@ class AssistProcessor {
             utils.replaceSourceRangeIndent(
                 statementsRange, indentOld, indentNew));
         builder.addSimpleInsertion(statementsRange.end, '$indentOld}$eol');
-        exitPosition = _newPosition(lastStatement.end);
       });
       _addAssistFromBuilder(changeBuilder, DartAssistKind.SURROUND_WITH_BLOCK);
     }
@@ -2948,10 +2944,6 @@ class AssistProcessor {
    */
   String _getRangeText(SourceRange range) {
     return utils.getRangeText(range);
-  }
-
-  Position _newPosition(int offset) {
-    return new Position(file, offset);
   }
 
   Future<Null> _swapFlutterWidgets(
