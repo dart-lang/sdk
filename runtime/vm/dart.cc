@@ -636,7 +636,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   return Error::null();
 }
 
-const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
+const char* Dart::FeaturesString(Isolate* isolate,
+                                 bool is_vm_isolate,
+                                 Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -648,16 +650,24 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   buffer.AddString("release");
 #endif
 
-  if (Snapshot::IncludesCode(kind)) {
-// Checked mode affects deopt ids.
 #define ADD_FLAG(name, isolate_flag, flag)                                     \
   do {                                                                         \
     const bool name = (isolate != NULL) ? isolate->name() : flag;              \
     buffer.AddString(name ? (" " #name) : (" no-" #name));                     \
   } while (0);
+
+  // We don't write the strong flag into the features list for the VM isolate
+  // snapshot as the implementation is in an intermediate state where the VM
+  // isolate is always initialized from a vm_snapshot generated in non strong
+  // mode.
+  if (!is_vm_isolate) {
+    ADD_FLAG(strong, strong, FLAG_strong);
+  }
+
+  if (Snapshot::IncludesCode(kind)) {
+    // Checked mode affects deopt ids.
     ADD_FLAG(type_checks, enable_type_checks, FLAG_enable_type_checks);
     ADD_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
-    ADD_FLAG(strong, strong, FLAG_strong);
     ADD_FLAG(error_on_bad_type, enable_error_on_bad_type,
              FLAG_error_on_bad_type);
     ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
@@ -666,7 +676,6 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-#undef ADD_FLAG
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)
@@ -697,6 +706,7 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
     buffer.AddString(" dwarf-stack-traces");
   }
+#undef ADD_FLAG
 
   return buffer.Steal();
 }

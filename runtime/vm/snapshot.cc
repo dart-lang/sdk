@@ -662,7 +662,7 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, kind_);
+  const char* expected_features = Dart::FeaturesString(isolate, false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -1535,7 +1535,7 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), kind_);
+      Dart::FeaturesString(Isolate::Current(), false, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),

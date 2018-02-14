@@ -1791,6 +1791,32 @@ VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
   free(script_snapshot);
 }
 
+VM_UNIT_TEST_CASE(CheckKernelSnapshot) {
+  intptr_t vm_isolate_snapshot_size;
+  uint8_t* isolate_snapshot = NULL;
+  intptr_t isolate_snapshot_size;
+  uint8_t* full_snapshot = NULL;
+  bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
+  FLAG_load_deferred_eagerly = true;
+  {
+    // Start an Isolate, and create a full snapshot of it.
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Write out the script snapshot.
+    Dart_Handle result =
+        Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size, &isolate_snapshot,
+                            &isolate_snapshot_size);
+    EXPECT_VALID(result);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
+    memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
+    Dart_ExitScope();
+  }
+  FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
+  bool is_kernel = Dart_IsDart2Snapshot(full_snapshot, isolate_snapshot_size);
+  EXPECT_EQ(FLAG_strong, is_kernel);
+}
+
 #endif  // !PRODUCT
 
 // Helper function to call a top level Dart function and serialize the result.
