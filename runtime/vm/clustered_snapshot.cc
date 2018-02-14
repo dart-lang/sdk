@@ -3537,20 +3537,16 @@ class MintDeserializationCluster : public DeserializationCluster {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         Thread::Current(), Timeline::GetIsolateStream(), "PostLoadMint"));
 
-    const GrowableObjectArray& new_constants =
-        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    const Class& mint_cls =
+        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
+    mint_cls.set_constants(Object::empty_array());
     Object& number = Object::Handle(zone);
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       number = refs.At(i);
       if (number.IsMint() && number.IsCanonical()) {
-        new_constants.Add(number);
+        mint_cls.InsertCanonicalMint(zone, Mint::Cast(number));
       }
     }
-    const Array& constants_array =
-        Array::Handle(zone, Array::MakeFixedLength(new_constants));
-    const Class& mint_cls =
-        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
-    mint_cls.set_constants(constants_array);
   }
 };
 

@@ -1211,13 +1211,12 @@ class Class : public Object {
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
   RawDouble* LookupCanonicalDouble(Zone* zone, double value) const;
-  // Returns an instance of Mint or Mint::null().
+  RawMint* LookupCanonicalMint(Zone* zone, int64_t value) const;
+
+  // Returns an instance of Bigint or Bigint::null().
   // 'index' points to either:
   // - constants_list_ position of found element, or
   // - constants_list_ position where new canonical can be inserted.
-  RawMint* LookupCanonicalMint(Zone* zone,
-                               int64_t value,
-                               intptr_t* index) const;
   RawBigint* LookupCanonicalBigint(Zone* zone,
                                    const Bigint& value,
                                    intptr_t* index) const;
@@ -1227,9 +1226,10 @@ class Class : public Object {
   RawInstance* InsertCanonicalConstant(Zone* zone,
                                        const Instance& constant) const;
   void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
-  void InsertCanonicalInt(Zone* zone,
-                          intptr_t index,
-                          const Number& constant) const;
+  void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
+  void InsertCanonicalBigint(Zone* zone,
+                             intptr_t index,
+                             const Bigint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 

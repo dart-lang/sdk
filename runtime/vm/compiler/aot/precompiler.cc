@@ -1979,23 +1979,30 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         }
       }
       intptr_t cid = cls.id();
-      if ((cid == kMintCid) || (cid == kBigintCid)) {
+      if (cid == kBigintCid) {
         // Constants stored as a plain list, no rehashing needed.
         constants = Array::MakeFixedLength(retained_constants);
         cls.set_constants(constants);
+      } else if (cid == kDoubleCid) {
+        // Rehash.
+        cls.set_constants(Object::empty_array());
+        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
+          constant ^= retained_constants.At(j);
+          cls.InsertCanonicalDouble(Z, Double::Cast(constant));
+        }
+      } else if (cid == kMintCid) {
+        // Rehash.
+        cls.set_constants(Object::empty_array());
+        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
+          constant ^= retained_constants.At(j);
+          cls.InsertCanonicalMint(Z, Mint::Cast(constant));
+        }
       } else {
         // Rehash.
         cls.set_constants(Object::empty_array());
-        if (cid == kDoubleCid) {
-          for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-            constant ^= retained_constants.At(j);
-            cls.InsertCanonicalDouble(Z, Double::Cast(constant));
-          }
-        } else {
-          for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-            constant ^= retained_constants.At(j);
-            cls.InsertCanonicalConstant(Z, constant);
-          }
+        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
+          constant ^= retained_constants.At(j);
+          cls.InsertCanonicalConstant(Z, constant);
         }
       }
 
