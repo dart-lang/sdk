@@ -50,7 +50,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
     ResolveResult result = await session.getResolvedAst(path);
-    ResultState state = result.state;
+    ResultState state = result?.state ?? ResultState.INVALID_FILE_TYPE;
     if (state == ResultState.INVALID_FILE_TYPE) {
       throw new AnalysisException('Cannot analyze "$path"');
     }
