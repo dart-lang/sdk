@@ -526,57 +526,51 @@ class C {
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_named_none() {
     testRecovery('''
 f({a: 0) {}
-''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_named_positional() {
     testRecovery('''
 f({a: 0]) {}
-''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f({a: 0}) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_none_named() {
     testRecovery('''
 f(a}) {}
-''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_none_positional() {
     testRecovery('''
 f(a]) {}
-''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f(a) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_positional_named() {
     testRecovery('''
 f([a = 0}) {}
-''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }
 
-  @failingTest
   void test_incorrectlyTerminatedGroup_positional_none() {
     // Maybe put in paired_tokens_test.dart.
     testRecovery('''
 f([a = 0) {}
-''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }
@@ -628,12 +622,11 @@ f([a = _s_, b]) {}
 ''');
   }
 
-  @failingTest
   void test_multipleGroups_mixed() {
     // TODO(brianwilkerson) Figure out the best way to recover from this.
     testRecovery('''
 f([a = 0], {b: 1}) {}
-''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f([a = 0]) {}
 ''');
   }
