@@ -1746,8 +1746,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         classElement = elt;
       }
     } else {
-      LibraryElementImpl libraryElementImpl = _getImportedLibrary(node.target);
-      classElement = libraryElementImpl.getType(node.methodName.name);
+      LibraryElementImpl libraryElement = _getImportedLibrary(node.target);
+      if (libraryElement == null) {
+        // We cannot resolve the import to find the library, so we won't be able
+        // to find the class to see whether the method is actually a constructor.
+        return null;
+      }
+      classElement = libraryElement.getType(node.methodName.name);
     }
 
     // Before any ASTs are created, look up ConstructorElement to see if we
