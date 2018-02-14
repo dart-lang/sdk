@@ -3910,7 +3910,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      from_index, num_type_params, bound_error,
                                      bound_trail, space);
     }
-    if (other.IsDartFunctionClass()) {
+    // In strong mode, subtyping rules of callable instances are restricted.
+    if (!isolate->strong() && other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
           Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
@@ -15926,7 +15927,9 @@ bool Instance::IsInstanceOf(
   }
   other_type_arguments = instantiated_other.arguments();
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
-  if (other_is_dart_function || instantiated_other.IsFunctionType()) {
+  // In strong mode, subtyping rules of callable instances are restricted.
+  if (!isolate->strong() &&
+      (other_is_dart_function || instantiated_other.IsFunctionType())) {
     // Check if this instance understands a call() method of a compatible type.
     Function& sig_fun =
         Function::Handle(zone, cls.LookupCallFunctionForTypeTest());
@@ -16795,22 +16798,26 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       return fun.TypeTest(test_kind, other_fun, bound_error, bound_trail,
                           space);
     }
-    // Check if type S has a call() method of function type T.
-    const Function& call_function =
-        Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
-    if (!call_function.IsNull()) {
-      if (other_is_dart_function_type) {
-        return true;
-      }
-      // Shortcut the test involving the call function if the
-      // pair <this, other> is already in the trail.
-      if (TestAndAddBuddyToTrail(&bound_trail, other)) {
-        return true;
-      }
-      if (call_function.TypeTest(
-              test_kind, Function::Handle(zone, Type::Cast(other).signature()),
-              bound_error, bound_trail, space)) {
-        return true;
+    // In strong mode, subtyping rules of callable instances are restricted.
+    if (!isolate->strong()) {
+      // Check if type S has a call() method of function type T.
+      const Function& call_function =
+          Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
+      if (!call_function.IsNull()) {
+        if (other_is_dart_function_type) {
+          return true;
+        }
+        // Shortcut the test involving the call function if the
+        // pair <this, other> is already in the trail.
+        if (TestAndAddBuddyToTrail(&bound_trail, other)) {
+          return true;
+        }
+        if (call_function.TypeTest(
+                test_kind,
+                Function::Handle(zone, Type::Cast(other).signature()),
+                bound_error, bound_trail, space)) {
+          return true;
+        }
       }
     }
   }

@@ -11,16 +11,6 @@
 # to add them.
 
 [ $compiler == dartkp ]
-call_method_as_cast_test/01: RuntimeError
-call_method_as_cast_test/02: RuntimeError
-call_method_as_cast_test/03: RuntimeError
-call_method_as_cast_test/04: RuntimeError
-call_method_as_cast_test/05: RuntimeError
-call_method_is_check_test/01: RuntimeError
-call_method_is_check_test/02: RuntimeError
-call_method_is_check_test/03: RuntimeError
-call_method_is_check_test/04: RuntimeError
-call_method_is_check_test/05: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
@@ -649,6 +639,7 @@ async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt1_test: RuntimeError
@@ -732,6 +723,7 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype3_test: RuntimeError
+function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError
@@ -884,16 +876,6 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
-call_method_as_cast_test/01: RuntimeError
-call_method_as_cast_test/02: RuntimeError
-call_method_as_cast_test/03: RuntimeError
-call_method_as_cast_test/04: RuntimeError
-call_method_as_cast_test/05: RuntimeError
-call_method_is_check_test/01: RuntimeError
-call_method_is_check_test/02: RuntimeError
-call_method_is_check_test/03: RuntimeError
-call_method_is_check_test/04: RuntimeError
-call_method_is_check_test/05: RuntimeError
 cha_deopt2_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt3_test: CompileTimeError, DartkCrash # KernelVM bug: Deferred loading kernel issue 30273.
 hello_dart_test: Crash
@@ -1051,6 +1033,7 @@ async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arg
 bad_named_parameters_test/04: Crash
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt2_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -1147,6 +1130,7 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype3_test: RuntimeError
+function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError

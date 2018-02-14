@@ -102,6 +102,7 @@ mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
+mirrors/function_apply_test: RuntimeError, OK
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
