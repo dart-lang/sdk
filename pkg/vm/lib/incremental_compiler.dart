@@ -18,8 +18,10 @@ class IncrementalCompiler {
   List<Program> _pendingDeltas;
   CompilerOptions _compilerOptions;
 
-  IncrementalCompiler(this._compilerOptions, Uri entryPoint) {
-    _generator = new IncrementalKernelGenerator(_compilerOptions, entryPoint);
+  IncrementalCompiler(this._compilerOptions, Uri entryPoint,
+      {Uri bootstrapDill}) {
+    _generator = new IncrementalKernelGenerator(
+        _compilerOptions, entryPoint, bootstrapDill);
     _pendingDeltas = <Program>[];
   }
 
@@ -36,13 +38,18 @@ class IncrementalCompiler {
     }
 
     // If more than one delta is pending, we need to combine them.
+    Procedure mainMethod;
     Map<Uri, Library> combined = <Uri, Library>{};
     for (Program delta in _pendingDeltas) {
+      if (delta.mainMethod != null) {
+        mainMethod = delta.mainMethod;
+      }
       for (Library library in delta.libraries) {
         combined[library.importUri] = library;
       }
     }
-    return new Program(libraries: combined.values.toList());
+    return new Program(libraries: combined.values.toList())
+      ..mainMethod = mainMethod;
   }
 
   /// This lets incremental compiler know that results of last [compile] call

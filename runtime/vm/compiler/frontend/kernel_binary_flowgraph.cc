@@ -771,7 +771,12 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
       Class::Handle(builder_->zone_, H.LookupClassByKernelClass(kernel_name));
   ASSERT(!klass.IsNull());
 
-  const intptr_t cid = klass.id();
+  intptr_t cid = klass.id();
+  if (cid == kClosureCid) {
+    // VM uses more specific function types and doesn't expect instances of
+    // _Closure class, so inferred _Closure class doesn't make sense for the VM.
+    cid = kDynamicCid;
+  }
 
   return InferredTypeMetadata(cid, nullable);
 }
@@ -2053,6 +2058,8 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(
     intptr_t pos,
     ParameterTypeCheckMode type_check_mode) {
   intptr_t kernel_offset = builder_->ReaderOffset();  // no tag.
+  const InferredTypeMetadata parameter_type =
+      builder_->inferred_type_metadata_helper_.GetInferredType(kernel_offset);
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbol(helper.name_index_);
@@ -2060,8 +2067,8 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
 
-  LocalVariable* variable =
-      MakeVariable(helper.position_, helper.position_, name, type);
+  LocalVariable* variable = MakeVariable(helper.position_, helper.position_,
+                                         name, type, &parameter_type);
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -2113,8 +2120,15 @@ LocalVariable* StreamingScopeBuilder::MakeVariable(
     TokenPosition declaration_pos,
     TokenPosition token_pos,
     const String& name,
-    const AbstractType& type) {
-  return new (Z) LocalVariable(declaration_pos, token_pos, name, type);
+    const AbstractType& type,
+    const InferredTypeMetadata* param_type_md /* = NULL */) {
+  CompileType* param_type = NULL;
+  if ((param_type_md != NULL) && !param_type_md->IsTrivial()) {
+    param_type = new (Z) CompileType(CompileType::CreateNullable(
+        param_type_md->nullable, param_type_md->cid));
+  }
+  return new (Z)
+      LocalVariable(declaration_pos, token_pos, name, type, param_type);
 }
 
 void StreamingScopeBuilder::AddExceptionVariable(
@@ -6885,9 +6899,10 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
                                argument_names, ICData::kNoRebind, &result_type,
                                type_args_len);
   } else {
-    instructions += InstanceCall(
-        position, name, token_kind, type_args_len, argument_count,
-        argument_names, checked_argument_count, *interface_target, &result_type);
+    instructions +=
+        InstanceCall(position, name, token_kind, type_args_len, argument_count,
+                     argument_names, checked_argument_count, *interface_target,
+                     &result_type);
   }
 
   // Drop temporaries preserving result on the top of the stack.

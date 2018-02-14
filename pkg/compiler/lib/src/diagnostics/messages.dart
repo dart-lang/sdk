@@ -198,6 +198,8 @@ enum MessageKind {
   INSTANCE_STATIC_SAME_NAME_CONT,
   INTERNAL_LIBRARY,
   INTERNAL_LIBRARY_FROM,
+  INVALID_ASSERT_VALUE,
+  INVALID_ASSERT_VALUE_MESSAGE,
   INVALID_ARGUMENT_AFTER_NAMED,
   INVALID_AWAIT,
   INVALID_AWAIT_FOR,
@@ -3607,6 +3609,13 @@ part of test.main;
           MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
           "Constructor '#{constructorName}' is not a valid constant "
           "constructor."),
+
+      MessageKind.INVALID_ASSERT_VALUE: const MessageTemplate(
+          MessageKind.INVALID_ASSERT_VALUE, "Assertion '#{assertion}' failed."),
+
+      MessageKind.INVALID_ASSERT_VALUE_MESSAGE: const MessageTemplate(
+          MessageKind.INVALID_ASSERT_VALUE_MESSAGE,
+          "Assertion failed: #{message}"),
 
       //////////////////////////////////////////////////////////////////////////////
       // Patch errors start.

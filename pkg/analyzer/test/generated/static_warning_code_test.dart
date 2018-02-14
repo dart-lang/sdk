@@ -3702,7 +3702,7 @@ void main() {
     assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
   }
 
-  test_generalizedVoid_useOfVoidWithInitializerError() async {
+  test_generalizedVoid_useOfVoidWithInitializerOk() async {
     Source source = addSource(r'''
 void main() {
   void x;
@@ -3710,7 +3710,7 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    assertNoErrors(source);
   }
 
   test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
@@ -4100,13 +4100,12 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_useOfVoidResult_inForLoop_ok() async {
     Source source = addSource(r'''
 class A {
   void m() {}
   n() {
-    for(var a = m();;) {}
+    for(void a = m();;) {}
   }
 }''');
     await computeAnalysisResult(source);
@@ -4127,13 +4126,12 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_useOfVoidResult_variableDeclaration_function_ok() async {
     Source source = addSource(r'''
 void f() {}
 class A {
   n() {
-    var a = f();
+    void a = f();
   }
 }''');
     await computeAnalysisResult(source);
@@ -4167,13 +4165,12 @@ class A {
     verify([source]);
   }
 
-  @failingTest
   test_useOfVoidResult_variableDeclaration_method_ok() async {
     Source source = addSource(r'''
 class A {
   void m() {}
   n() {
-    var a = m();
+    void a = m();
   }
 }''');
     await computeAnalysisResult(source);

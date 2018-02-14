@@ -5,14 +5,13 @@
 library vm.transformations.no_dynamic_invocations_annotator;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../metadata/procedure_attributes.dart';
 
 /// Assumes strong mode and closed world. If a procedure can not be riched
 /// via dynamic invocation from anywhere then annotates it with appropriate
 /// [ProcedureAttributeMetadata] annotation.
-Program transformProgram(CoreTypes coreTypes, Program program) {
+Program transformProgram(Program program) {
   new NoDynamicInvocationsAnnotator(program).visitProgram(program);
   return program;
 }

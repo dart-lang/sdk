@@ -172,9 +172,8 @@ def UseWheezySysroot(args, gn_args):
   # Don't use the wheezy sysroot if we're given another sysroot.
   if TargetSysroot(args):
     return False
-  # The clang toolchain we pull from Fuchsia doesn't have arm and arm64
-  # sysroots, so use the wheezy/jesse ones.
-  return gn_args['is_clang'] and gn_args['target_cpu'].startswith('arm')
+  # Use the downloaded sysroot unless it is explicitly disabled.
+  return not args.no_wheezy and not UseSanitizer(args)
 
 
 def ToGnArgs(args, mode, arch, target_os):
@@ -444,8 +443,9 @@ def parse_args(args):
       action='store_true')
   other_group.add_argument('--no-wheezy',
       help='Disable the Debian wheezy sysroot on Linux',
-      dest='wheezy',
-      action='store_false')
+      default=False,
+      dest='no_wheezy',
+      action='store_true')
   other_group.add_argument('--workers', '-w',
       type=int,
       help='Number of simultaneous GN invocations',

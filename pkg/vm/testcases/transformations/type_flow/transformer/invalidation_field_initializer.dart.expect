@@ -46,7 +46,7 @@ class DeepCaller1 extends core::Object {
     return [@vm.inferred-type.metadata=!] self::field1;
 }
 class D extends core::Object {
-  field core::Object field2 = [@vm.inferred-type.metadata=!] self::getValue();
+[@vm.inferred-type.metadata=!]  field core::Object field2 = [@vm.inferred-type.metadata=!] self::getValue();
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -55,26 +55,26 @@ class DeepCaller2 extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method barL1(self::D dd) → dynamic
+  method barL1([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL2] [@vm.inferred-type.metadata=!] this.{self::DeepCaller2::barL2}(dd);
-  method barL2(self::D dd) → dynamic
+  method barL2([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL3] [@vm.inferred-type.metadata=!] this.{self::DeepCaller2::barL3}(dd);
-  method barL3(self::D dd) → dynamic
+  method barL3([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::DeepCaller2::barL4] [@vm.inferred-type.metadata=!] this.{self::DeepCaller2::barL4}(dd);
-  method barL4(self::D dd) → dynamic
+  method barL4([@vm.inferred-type.metadata=#lib::D] self::D dd) → dynamic
     return [@vm.direct-call.metadata=#lib::D::field2] [@vm.inferred-type.metadata=!] dd.{self::D::field2};
 }
-static field core::Function unknown;
-static field core::Object field1 = [@vm.inferred-type.metadata=!] self::getValue();
+[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
+[@vm.inferred-type.metadata=!]static field core::Object field1 = [@vm.inferred-type.metadata=!] self::getValue();
 static method getDynamic() → dynamic
   return self::unknown.call();
 static method getValue() → core::Object {
   self::A aa = self::getDynamic() as{TypeError} self::A;
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}();
 }
-static method use1(self::DeepCaller1 x) → dynamic
+static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1 x) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller1::barL1] [@vm.inferred-type.metadata=!] x.{self::DeepCaller1::barL1}();
-static method use2(self::DeepCaller2 x) → dynamic
+static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2 x) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller2::barL1] [@vm.inferred-type.metadata=!] x.{self::DeepCaller2::barL1}(new self::D::•());
 static method createC() → dynamic {
   new self::C::•();

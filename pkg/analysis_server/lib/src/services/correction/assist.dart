@@ -31,110 +31,130 @@ class AssistContextImpl implements AssistContext {
  * An enumeration of possible assist kinds.
  */
 class DartAssistKind {
-  static const ADD_PART_DIRECTIVE =
-      const AssistKind('ADD_PART_DIRECTIVE', 30, "Add 'part' directive");
-  static const ADD_TYPE_ANNOTATION =
-      const AssistKind('ADD_TYPE_ANNOTATION', 30, "Add type annotation");
+  static const ADD_PART_DIRECTIVE = const AssistKind(
+      'dart.assist.addPartDirective', 30, "Add 'part' directive");
+  static const ADD_TYPE_ANNOTATION = const AssistKind(
+      'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
-      'ASSIGN_TO_LOCAL_VARIABLE', 30, "Assign value to new local variable");
+      'dart.assist.assignToVariable', 30, "Assign value to new local variable");
   static const CONVERT_DOCUMENTATION_INTO_BLOCK = const AssistKind(
-      'CONVERT_DOCUMENTATION_INTO_BLOCK',
+      'dart.assist.convert.blockComment',
       30,
-      "Convert into block documentation comment");
+      "Convert to block documentation comment");
   static const CONVERT_DOCUMENTATION_INTO_LINE = const AssistKind(
-      'CONVERT_DOCUMENTATION_INTO_LINE',
+      'dart.assist.convert.lineComment',
       30,
-      "Convert into line documentation comment");
-  static const CONVERT_FLUTTER_CHILD =
-      const AssistKind('CONVERT_FLUTTER_CHILD', 30, "Convert to children:");
+      "Convert to line documentation comment");
   static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
-      'CONVERT_INTO_ASYNC_BODY', 30, "Convert into async function body");
+      'dart.assist.convert.bodyToAsync', 30, "Convert to async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
-      'CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
+      'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
-      'CONVERT_INTO_EXPRESSION_BODY', 30, "Convert into expression body");
+      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
-      'CONVERT_INTO_FOR_INDEX', 30, "Convert into for-index loop");
+      'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
-      'CONVERT_INTO_FINAL_FIELD', 30, "Convert into final field");
-  static const CONVERT_INTO_GETTER =
-      const AssistKind('CONVERT_INTO_GETTER', 30, "Convert into getter");
+      'dart.assist.convert.getterToFinalField', 30, "Convert to final field");
+  static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
+      'dart.assist.convert.toGenericFunctionSyntax',
+      30,
+      "Convert into 'Function' syntax");
+  static const CONVERT_INTO_GETTER = const AssistKind(
+      'dart.assist.convert.finalFieldToGetter', 30, "Convert to getter");
   static const CONVERT_INTO_IS_NOT =
-      const AssistKind('CONVERT_INTO_IS_NOT', 30, "Convert into is!");
+      const AssistKind('dart.assist.convert.isNot', 30, "Convert to is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
-      'CONVERT_INTO_IS_NOT_EMPTY', 30, "Convert into 'isNotEmpty'");
-  static const CONVERT_PART_OF_TO_URI =
-      const AssistKind('CONVERT_PART_OF_TO_URI', 30, "Convert to use a URI");
+      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'");
+  static const CONVERT_PART_OF_TO_URI = const AssistKind(
+      'dart.assist.convert.partOfToPartUri', 30, "Convert to use a URI");
   static const CONVERT_TO_FIELD_PARAMETER = const AssistKind(
-      'CONVERT_TO_FIELD_PARAMETER', 30, "Convert to field formal parameter");
+      'dart.assist.convert.toConstructorFieldParameter',
+      30,
+      "Convert to field formal parameter");
   static const CONVERT_TO_NORMAL_PARAMETER = const AssistKind(
-      'CONVERT_TO_NORMAL_PARAMETER', 30, "Convert to normal parameter");
+      'dart.assist.convert.toConstructorNormalParameter',
+      30,
+      "Convert to normal parameter");
   static const ENCAPSULATE_FIELD =
-      const AssistKind('ENCAPSULATE_FIELD', 30, "Encapsulate field");
+      const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
-      const AssistKind('EXCHANGE_OPERANDS', 30, "Exchange operands");
-  static const EXTRACT_CLASS =
-      const AssistKind('EXTRACT_CLASS', 30, "Extract class into file '{0}'");
+      const AssistKind('dart.assist.exchangeOperands', 30, "Exchange operands");
+  static const EXTRACT_CLASS = const AssistKind(
+      'dart.assist.extractClass', 30, "Extract class into file '{0}'");
+  static const FLUTTER_CONVERT_TO_CHILDREN = const AssistKind(
+      'dart.assist.flutter.convert.childToChildren',
+      30,
+      "Convert to children:");
   static const FLUTTER_CONVERT_TO_STATEFUL_WIDGET = const AssistKind(
-      "FLUTTER_CONVERT_TO_STATEFUL_WIDGET", 30, "Convert to StatefulWidget");
-  static const FLUTTER_REPLACE_WITH_CHILDREN = const AssistKind(
-      "FLUTTER_REPLACE_WITH_CHILDREN", 30, "Replace with children");
-  static const IMPORT_ADD_SHOW =
-      const AssistKind('IMPORT_ADD_SHOW', 30, "Add explicit 'show' combinator");
+      'dart.assist.flutter.convert.toStatefulWidget',
+      30,
+      "Convert to StatefulWidget");
+  static const FLUTTER_MOVE_DOWN =
+      const AssistKind('dart.assist.flutter.move.down', 30, "Move widget down");
+  static const FLUTTER_MOVE_UP =
+      const AssistKind('dart.assist.flutter.move.up', 30, "Move widget up");
+  static const FLUTTER_REMOVE_WIDGET =
+      const AssistKind('dart.assist.flutter.removeWidget', 30, "Remove widget");
+  static const FLUTTER_SWAP_WITH_CHILD = const AssistKind(
+      'dart.assist.flutter.swap.withChild', 30, "Swap with child");
+  static const FLUTTER_SWAP_WITH_PARENT = const AssistKind(
+      'dart.assist.flutter.swap.withParent', 30, "Swap with parent");
+  static const FLUTTER_WRAP_CENTER =
+      const AssistKind('dart.assist.flutter.wrap.center', 30, "Center widget");
+  static const FLUTTER_WRAP_COLUMN = const AssistKind(
+      'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
+  static const FLUTTER_WRAP_GENERIC = const AssistKind(
+      'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
+  static const FLUTTER_WRAP_PADDING = const AssistKind(
+      'dart.assist.flutter.wrap.padding', 30, "Add widget padding");
+  static const FLUTTER_WRAP_ROW =
+      const AssistKind('dart.assist.flutter.wrap.row', 30, "Wrap with Row");
+  static const IMPORT_ADD_SHOW = const AssistKind(
+      'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
-      'INTRODUCE_LOCAL_CAST_TYPE', 30, "Introduce new local with tested type");
+      'dart.assist.introduceLocalCast',
+      30,
+      "Introduce new local with tested type");
   static const INVERT_IF_STATEMENT =
-      const AssistKind('INVERT_IF_STATEMENT', 30, "Invert 'if' statement");
-  static const JOIN_IF_WITH_INNER = const AssistKind('JOIN_IF_WITH_INNER', 30,
+      const AssistKind('dart.assist.invertIf', 30, "Invert 'if' statement");
+  static const JOIN_IF_WITH_INNER = const AssistKind(
+      'dart.assist.joinWithInnerIf',
+      30,
       "Join 'if' statement with inner 'if' statement");
-  static const JOIN_IF_WITH_OUTER = const AssistKind('JOIN_IF_WITH_OUTER', 30,
+  static const JOIN_IF_WITH_OUTER = const AssistKind(
+      'dart.assist.joinWithOuterIf',
+      30,
       "Join 'if' statement with outer 'if' statement");
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
-      'JOIN_VARIABLE_DECLARATION', 30, "Join variable declaration");
-  static const MOVE_FLUTTER_WIDGET_DOWN =
-      const AssistKind("MOVE_FLUTTER_WIDGET_DOWN", 30, "Move widget down");
-  static const MOVE_FLUTTER_WIDGET_UP =
-      const AssistKind("MOVE_FLUTTER_WIDGET_UP", 30, "Move widget up");
-  static const REPARENT_FLUTTER_LIST =
-      const AssistKind("REPARENT_FLUTTER_LIST", 30, "Wrap with new widget");
-  static const REPARENT_FLUTTER_WIDGET =
-      const AssistKind("REPARENT_FLUTTER_WIDGET", 30, "Wrap with new widget");
-  static const REPARENT_FLUTTER_WIDGET_CENTER =
-      const AssistKind("REPARENT_FLUTTER_WIDGET_CENTER", 29, "Center widget");
-  static const REPARENT_FLUTTER_WIDGET_PADDING = const AssistKind(
-      "REPARENT_FLUTTER_WIDGET_PADDING", 29, "Add widget padding");
-  static const REPARENT_FLUTTER_WIDGETS_COLUMN = const AssistKind(
-      "REPARENT_FLUTTER_WIDGETS_COLUMN", 29, "Wrap with Column");
-  static const REPARENT_FLUTTER_WIDGETS_ROW =
-      const AssistKind("REPARENT_FLUTTER_WIDGETS_ROW", 29, "Wrap with Row");
-  static const REMOVE_TYPE_ANNOTATION =
-      const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
+      'dart.assist.joinVariableDeclaration', 30, "Join variable declaration");
+  static const REMOVE_TYPE_ANNOTATION = const AssistKind(
+      'dart.assist.removeTypeAnnotation', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
-      'REPLACE_CONDITIONAL_WITH_IF_ELSE',
+      'dart.assist.convert.conditionalToIfElse',
       30,
       "Replace conditional with 'if-else'");
   static const REPLACE_IF_ELSE_WITH_CONDITIONAL = const AssistKind(
-      'REPLACE_IF_ELSE_WITH_CONDITIONAL',
+      'dart.assist.convert.ifElseToConditional',
       30,
       "Replace 'if-else' with conditional ('c ? x : y')");
-  static const SPLIT_AND_CONDITION =
-      const AssistKind('SPLIT_AND_CONDITION', 30, "Split && condition");
+  static const SPLIT_AND_CONDITION = const AssistKind(
+      'dart.assist.splitIfConjunction', 30, "Split && condition");
   static const SPLIT_VARIABLE_DECLARATION = const AssistKind(
-      'SPLIT_VARIABLE_DECLARATION', 30, "Split variable declaration");
+      'dart.assist.splitVariableDeclaration', 30, "Split variable declaration");
   static const SURROUND_WITH_BLOCK =
-      const AssistKind('SURROUND_WITH_BLOCK', 30, "Surround with block");
+      const AssistKind('dart.assist.surround.block', 22, "Surround with block");
   static const SURROUND_WITH_DO_WHILE = const AssistKind(
-      'SURROUND_WITH_DO_WHILE', 30, "Surround with 'do-while'");
-  static const SURROUND_WITH_FOR =
-      const AssistKind('SURROUND_WITH_FOR', 30, "Surround with 'for'");
-  static const SURROUND_WITH_FOR_IN =
-      const AssistKind('SURROUND_WITH_FOR_IN', 30, "Surround with 'for-in'");
+      'dart.assist.surround.doWhile', 27, "Surround with 'do-while'");
+  static const SURROUND_WITH_FOR = const AssistKind(
+      'dart.assist.surround.forEach', 26, "Surround with 'for'");
+  static const SURROUND_WITH_FOR_IN = const AssistKind(
+      'dart.assist.surround.forIn', 25, "Surround with 'for-in'");
   static const SURROUND_WITH_IF =
-      const AssistKind('SURROUND_WITH_IF', 30, "Surround with 'if'");
+      const AssistKind('dart.assist.surround.if', 23, "Surround with 'if'");
   static const SURROUND_WITH_TRY_CATCH = const AssistKind(
-      'SURROUND_WITH_TRY_CATCH', 30, "Surround with 'try-catch'");
+      'dart.assist.surround.tryCatch', 28, "Surround with 'try-catch'");
   static const SURROUND_WITH_TRY_FINALLY = const AssistKind(
-      'SURROUND_WITH_TRY_FINALLY', 30, "Surround with 'try-finally'");
-  static const SURROUND_WITH_WHILE =
-      const AssistKind('SURROUND_WITH_WHILE', 30, "Surround with 'while'");
+      'dart.assist.surround.tryFinally', 29, "Surround with 'try-finally'");
+  static const SURROUND_WITH_WHILE = const AssistKind(
+      'dart.assist.surround.while', 24, "Surround with 'while'");
 }

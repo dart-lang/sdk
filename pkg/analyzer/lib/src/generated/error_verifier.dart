@@ -4414,7 +4414,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         ? getStaticType(lhs)
         : leftVariableElement.type;
 
-    if (_checkForUseOfVoidResult(rhs)) {
+    if (!leftType.isVoid && _checkForUseOfVoidResult(rhs)) {
       return;
     }
 

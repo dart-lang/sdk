@@ -9,9 +9,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 void sendFlutterNotificationOutline(AnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
+    String content, LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var computer = new FlutterOutlineComputer(file, lineInfo, dartUnit);
+    var computer =
+        new FlutterOutlineComputer(file, content, lineInfo, dartUnit);
     protocol.FlutterOutline outline = computer.compute();
     // send notification
     var params = new protocol.FlutterOutlineParams(file, outline);

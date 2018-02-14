@@ -1227,22 +1227,23 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
-Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
-                                        const String& name,
-                                        Token::Kind kind,
-                                        intptr_t type_args_len,
-                                        intptr_t argument_count,
-                                        const Array& argument_names,
-                                        intptr_t checked_argument_count,
-                                        const Function& interface_target,
-                                        const InferredTypeMetadata* result_type) {
+Fragment FlowGraphBuilder::InstanceCall(
+    TokenPosition position,
+    const String& name,
+    Token::Kind kind,
+    intptr_t type_args_len,
+    intptr_t argument_count,
+    const Array& argument_names,
+    intptr_t checked_argument_count,
+    const Function& interface_target,
+    const InferredTypeMetadata* result_type) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position, name, kind, arguments, type_args_len, argument_names,
       checked_argument_count, ic_data_array_, GetNextDeoptId(),
       interface_target);
-  if (result_type != NULL) {
+  if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
                                                        result_type->cid));
   }
@@ -1528,7 +1529,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
     ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
            (result_type->cid == recognized_cid));
     call->SetResultType(Z, CompileType::FromCid(recognized_cid));
-  } else if (result_type != NULL) {
+  } else if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
                                                        result_type->cid));
   }

@@ -577,6 +577,8 @@ struct InferredTypeMetadata {
 
   const intptr_t cid;
   const bool nullable;
+
+  bool IsTrivial() const { return (cid == kDynamicCid) && nullable; }
 };
 
 // Helper class which provides access to inferred type metadata.
@@ -744,7 +746,8 @@ class StreamingScopeBuilder {
   LocalVariable* MakeVariable(TokenPosition declaration_pos,
                               TokenPosition token_pos,
                               const String& name,
-                              const AbstractType& type);
+                              const AbstractType& type,
+                              const InferredTypeMetadata* param_type_md = NULL);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
                             const char* prefix,

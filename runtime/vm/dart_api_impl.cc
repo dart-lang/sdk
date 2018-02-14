@@ -5925,14 +5925,23 @@ DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      intptr_t platform_kernel_size) {
-#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
+#if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
   return result;
 #else
-  return KernelIsolate::CompileToKernel(script_uri, platform_kernel,
-                                        platform_kernel_size, 0, NULL, true);
+  result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
+                                          platform_kernel_size, 0, NULL, true);
+  if (result.status == Dart_KernelCompilationStatus_Ok) {
+    if (KernelIsolate::AcceptCompilation().status !=
+        Dart_KernelCompilationStatus_Ok) {
+      FATAL(
+          "An error occurred in the CFE while accepting the most recent"
+          " compilation results.");
+    }
+  }
+  return result;
 #endif
 }
 
@@ -5943,15 +5952,25 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile sources[],
                             bool incremental_compile) {
-#if defined(DART_PRECOMPILED_RUNTIME)
   Dart_KernelCompilationResult result;
+#if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
   return result;
 #else
-  return KernelIsolate::CompileToKernel(
+  result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, source_files_count,
       sources, incremental_compile);
+  if (result.status == Dart_KernelCompilationStatus_Ok) {
+    if (KernelIsolate::AcceptCompilation().status !=
+        Dart_KernelCompilationStatus_Ok) {
+      FATAL(
+          "An error occurred in the CFE while accepting the most recent"
+          " compilation results.");
+    }
+  }
+  return result;
+
 #endif
 }
 

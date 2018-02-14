@@ -250,7 +250,6 @@ int_parse_radix_test/01: RuntimeError
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-map_test: Crash # Issue 27394
 nan_infinity_test/01: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError

@@ -30,24 +30,47 @@ class A {
 class B extends A {
   B suggested2(String y) => null;
   C suggested3([String z]) => null;
+  void suggested4() { }
+  int get suggested5 => null;
 }
 class C extends B {
   sugg^
 }
 ''');
     await computeSuggestions();
-    // TODO(pquitslund): test displayText
     _assertOverride('''@override
   A suggested1(int x) {
     // TODO: implement suggested1
     return null;
-  }''');
+  }''',
+        displayText: 'suggested1(int x) { ... }',
+        selectionOffset: 79,
+        selectionLength: 4);
     _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''');
+        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''',
+        displayText: 'suggested1(int x) { ... }',
+        selectionOffset: 79,
+        selectionLength: 4);
     _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''');
+        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''',
+        displayText: 'suggested2(String y) { ... }',
+        selectionOffset: 82,
+        selectionLength: 4);
     _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
+        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''',
+        displayText: 'suggested3([String z]) { ... }',
+        selectionOffset: 84,
+        selectionLength: 4);
+    _assertOverride(
+        '''@override\n  void suggested4() {\n    // TODO: implement suggested4\n  }''',
+        displayText: 'suggested4() { ... }',
+        selectionOffset: 32,
+        selectionLength: 0);
+    _assertOverride(
+        '''// TODO: implement suggested5\n  @override\n  int get suggested5 => null;''',
+        displayText: 'suggested5 => ...',
+        selectionOffset: 66,
+        selectionLength: 4);
   }
 
   test_fromPart() async {
@@ -76,22 +99,30 @@ class C extends B {
     // assume information for context.getLibrariesContaining has been cached
     await computeLibrariesContaining();
     await computeSuggestions();
-    // TODO(pquitslund): test displayText
     _assertOverride('''@override
   A suggested1(int x) {
     // TODO: implement suggested1
     return null;
-  }''');
+  }''', displayText: 'suggested1(int x) { ... }');
     _assertOverride(
-        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''');
+        '''@override\n  A suggested1(int x) {\n    // TODO: implement suggested1\n    return null;\n  }''',
+        displayText: 'suggested1(int x) { ... }',
+        selectionOffset: 79,
+        selectionLength: 4);
     _assertOverride(
-        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''');
+        '''@override\n  B suggested2(String y) {\n    // TODO: implement suggested2\n    return null;\n  }''',
+        displayText: 'suggested2(String y) { ... }',
+        selectionOffset: 82,
+        selectionLength: 4);
     _assertOverride(
-        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''');
+        '''@override\n  C suggested3([String z]) {\n    // TODO: implement suggested3\n    return null;\n  }''',
+        displayText: 'suggested3([String z]) { ... }',
+        selectionOffset: 84,
+        selectionLength: 4);
   }
 
   CompletionSuggestion _assertOverride(String completion,
-      {String displayText}) {
+      {String displayText, int selectionOffset, int selectionLength}) {
     CompletionSuggestion cs = getSuggest(
         completion: completion,
         csKind: CompletionSuggestionKind.OVERRIDE,
@@ -102,8 +133,10 @@ class C extends B {
     expect(cs.kind, equals(CompletionSuggestionKind.OVERRIDE));
     expect(cs.relevance, equals(DART_RELEVANCE_HIGH));
     expect(cs.importUri, null);
-//    expect(cs.selectionOffset, equals(completion.length));
-//    expect(cs.selectionLength, equals(0));
+    if (selectionOffset != null && selectionLength != null) {
+      expect(cs.selectionOffset, selectionOffset);
+      expect(cs.selectionLength, selectionLength);
+    }
     expect(cs.isDeprecated, isFalse);
     expect(cs.isPotential, isFalse);
     expect(cs.element, isNotNull);

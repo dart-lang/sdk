@@ -4922,7 +4922,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         failedAt(
             function,
             "Only ${argumentIndex} of ${compiledArguments.length} "
-            "arguments have been read from: ${compiledArguments}"));
+            "arguments have been read from: ${compiledArguments} passed to "
+            "$function."));
 
     _returnType =
         _elementMap.elementEnvironment.getFunctionType(function).returnType;

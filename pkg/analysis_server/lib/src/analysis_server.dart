@@ -1295,7 +1295,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
             FlutterService.OUTLINE, path)) {
           _runDelayed(() {
             sendFlutterNotificationOutline(
-                analysisServer, path, result.lineInfo, unit);
+                analysisServer, path, result.content, result.lineInfo, unit);
           });
         }
         // TODO(scheglov) Implement notifications for AnalysisService.IMPLEMENTED.

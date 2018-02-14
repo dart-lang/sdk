@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -91,14 +92,16 @@ class OverrideContributor implements DartCompletionContributor {
     if (completion == null || completion.length == 0) {
       return null;
     }
+
+    SourceRange selectionRange = _computeSelectionRange(completion);
     String displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
         completion,
-        targetId.offset,
-        0,
+        selectionRange.offset,
+        selectionRange.length,
         element.isDeprecated,
         false,
         displayText: displayText);
@@ -120,6 +123,26 @@ class OverrideContributor implements DartCompletionContributor {
       }
     }
     return memberNames;
+  }
+
+  /**
+   * Compute a selection range for the given completion.
+   */
+  SourceRange _computeSelectionRange(String completion) {
+    // TODO(pq): consider moving this into ChangeBuilder.
+    // { return null; } or => null;
+    int offset = completion.indexOf('null;');
+    if (offset != -1) {
+      return new SourceRange(offset, 4);
+    }
+    // { }
+    offset = completion.indexOf('{');
+    if (offset != -1) {
+      return new SourceRange(offset + 2, 0);
+    }
+
+    // Default.
+    return new SourceRange(0, 0);
   }
 
   /**

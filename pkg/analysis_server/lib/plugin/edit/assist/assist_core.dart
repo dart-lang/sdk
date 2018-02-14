@@ -24,10 +24,14 @@ class Assist {
   /**
    * A comparator that can be used to sort assists by their relevance. The most
    * relevant assists will be sorted before assists with a lower relevance.
+   * Assists with the same relevance are sorted alphabetically.
    */
-  static final Comparator<Assist> SORT_BY_RELEVANCE =
-      (Assist firstAssist, Assist secondAssist) =>
-          firstAssist.kind.priority - secondAssist.kind.priority;
+  static final Comparator<Assist> SORT_BY_RELEVANCE = (Assist a, Assist b) {
+    if (a.kind.priority != b.kind.priority) {
+      return a.kind.priority - b.kind.priority;
+    }
+    return a.change.message.compareTo(b.change.message);
+  };
 
   /**
    * A description of the assist being proposed.

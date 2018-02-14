@@ -1,39 +1,39 @@
 ------------ #lib::A:: ------------
-%this = _Parameter #0 [#lib::A]
+%this = _Parameter #0 [_T (#lib::A)+]
 t1 = _Call direct [dart.core::Object::] (%this)
 RESULT: _T {}?
 ------------ #lib::A::foo1 ------------
-%this = _Parameter #0 [#lib::A]
-%x = _Parameter #1 [dart.core::Object]
+%this = _Parameter #0 [_T (#lib::A)+]
+%x = _Parameter #1 [_T (dart.core::Object)+?]
 RESULT: _T {}?
 ------------ #lib::B:: ------------
-%this = _Parameter #0 [#lib::B]
+%this = _Parameter #0 [_T (#lib::B)+]
 t1 = _Call direct [dart.core::Object::] (%this)
 RESULT: _T {}?
 ------------ #lib::B::bar1 ------------
-%this = _Parameter #0 [#lib::B]
-%arg = _Parameter #1 [dart.core::Object]
+%this = _Parameter #0 [_T (#lib::B)+]
+%arg = _Parameter #1 [_T (dart.core::Object)+?]
 RESULT: _T {}?
 ------------ #lib::B::bar2 ------------
-%this = _Parameter #0 [#lib::B]
+%this = _Parameter #0 [_T (#lib::B)+]
 RESULT: _T {}?
 ------------ #lib::B::bar3 ------------
-%this = _Parameter #0 [#lib::B]
-%y = _Parameter #1 [dart.core::int]
+%this = _Parameter #0 [_T (#lib::B)+]
+%y = _Parameter #1 [_T (dart.core::int)+?]
 RESULT: _T {}?
 ------------ #lib::B::bar4 ------------
 
 RESULT: _T {}?
 ------------ #lib::C:: ------------
-%this = _Parameter #0 [#lib::C]
+%this = _Parameter #0 [_T (#lib::C)+]
 t1 = _Call direct [dart.core::Object::] (%this)
 RESULT: _T {}?
 ------------ #lib::C::interfaceCalls ------------
-%this = _Parameter #0 [#lib::C]
-%aa = _Parameter #1 [#lib::A]
-%a2 = _Parameter #2 [dart.core::Object]
-%a3 = _Parameter #3 [dart.core::Object]
-%a4 = _Parameter #4 [dart.core::Object]
+%this = _Parameter #0 [_T (#lib::C)+]
+%aa = _Parameter #1 [_T (#lib::A)+?]
+%a2 = _Parameter #2 [_T (dart.core::Object)+?]
+%a3 = _Parameter #3 [_T (dart.core::Object)+?]
+%a4 = _Parameter #4 [_T (dart.core::Object)+?]
 t5 = _Call direct [#lib::B::] (_T (#lib::B))
 t6 = _Call [#lib::A::foo1] (%aa, _T (#lib::B))
 t7* = _Call get [#lib::A::foo2] (%aa)
@@ -43,11 +43,11 @@ t10 = _Call get [#lib::A::foo2] (%aa)
 a4 = _Join [dart.core::Object] (%a4, _T ANY?)
 RESULT: a4
 ------------ #lib::C::dynamicCalls ------------
-%this = _Parameter #0 [#lib::C]
-%aa = _Parameter #1 [dynamic]
-%a2 = _Parameter #2 [dart.core::Object]
-%a3 = _Parameter #3 [dart.core::Object]
-%a4 = _Parameter #4 [dart.core::Object]
+%this = _Parameter #0 [_T (#lib::C)+]
+%aa = _Parameter #1 [_T ANY?]
+%a2 = _Parameter #2 [_T (dart.core::Object)+?]
+%a3 = _Parameter #3 [_T (dart.core::Object)+?]
+%a4 = _Parameter #4 [_T (dart.core::Object)+?]
 t5 = _Call direct [#lib::B::] (_T (#lib::B))
 t6 = _Call dynamic [foo1] (%aa, _T (#lib::B))
 t7* = _Call dynamic get [foo2] (%aa)
@@ -57,15 +57,15 @@ t10* = _Call dynamic [foo2] (%aa, %a2, %a3, t9)
 a4 = _Join [dart.core::Object] (%a4, t10)
 RESULT: a4
 ------------ #lib::D:: ------------
-%this = _Parameter #0 [#lib::D]
+%this = _Parameter #0 [_T (#lib::D)+]
 t1 = _Call direct [#lib::B::] (%this)
 RESULT: _T {}?
 ------------ #lib::D::superCalls ------------
-%this = _Parameter #0 [#lib::D]
-%a1 = _Parameter #1 [dart.core::Object]
-%a2 = _Parameter #2 [dart.core::Object]
-%a3 = _Parameter #3 [dart.core::Object]
-%a4 = _Parameter #4 [dart.core::Object]
+%this = _Parameter #0 [_T (#lib::D)+]
+%a1 = _Parameter #1 [_T (dart.core::Object)+?]
+%a2 = _Parameter #2 [_T (dart.core::Object)+?]
+%a3 = _Parameter #3 [_T (dart.core::Object)+?]
+%a4 = _Parameter #4 [_T (dart.core::Object)+?]
 t5 = _Call direct [#lib::B::bar1] (%this, %a1)
 t6* = _Call direct get [#lib::B::bar4] (%this)
 t7 = _Call direct set [#lib::B::bar3] (%this, t6)

@@ -102,6 +102,8 @@ class DartFixKind {
   static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
+  static const ADD_STATIC =
+      const FixKind('ADD_STATIC', 50, "Add 'static' modifier");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,

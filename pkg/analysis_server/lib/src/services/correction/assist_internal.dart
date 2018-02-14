@@ -132,19 +132,26 @@ class AssistProcessor {
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToExpressionFunctionBody();
-    await _addProposal_convertFlutterChild();
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertToForIndexLoop();
+    await _addProposal_convertToGenericFunctionSyntax();
     await _addProposal_convertToIsNot_onIs();
     await _addProposal_convertToIsNot_onNot();
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToNormalParameter();
-    await _addProposal_convertToStatefulWidget();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
-    await _addProposal_flutterReplaceWithChild();
-    await _addProposal_flutterReplaceWithChildren();
+    await _addProposal_flutterConvertToChildren();
+    await _addProposal_flutterConvertToStatefulWidget();
+    await _addProposal_flutterMoveWidgetDown();
+    await _addProposal_flutterMoveWidgetUp();
+    await _addProposal_flutterRemoveWidget_singleChild();
+    await _addProposal_flutterRemoveWidget_multipleChildren();
+    await _addProposal_flutterSwapWithChild();
+    await _addProposal_flutterSwapWithParent();
+    await _addProposal_flutterWrapWidget();
+    await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
@@ -152,12 +159,8 @@ class AssistProcessor {
     await _addProposal_joinIfStatementOuter();
     await _addProposal_joinVariableDeclaration_onAssignment();
     await _addProposal_joinVariableDeclaration_onDeclaration();
-    await _addProposal_moveFlutterWidgetDown();
-    await _addProposal_moveFlutterWidgetUp();
     await _addProposal_removeTypeAnnotation();
     await _addProposal_reparentFlutterList();
-    await _addProposal_reparentFlutterWidget();
-    await _addProposal_reparentFlutterWidgets();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
     await _addProposal_splitAndCondition();
@@ -208,6 +211,7 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     assists.add(new Assist(kind, change));
   }
@@ -503,50 +507,6 @@ class AssistProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE);
-  }
-
-  Future<Null> _addProposal_convertFlutterChild() async {
-    NamedExpression namedExp;
-    // Allow assist to activate from either the new-expr or the child: arg.
-    if (node is SimpleIdentifier &&
-        node.parent is Label &&
-        node.parent.parent is NamedExpression) {
-      namedExp = node.parent.parent as NamedExpression;
-      if ((node as SimpleIdentifier).name != 'child' ||
-          namedExp.expression == null) {
-        return;
-      }
-      if (namedExp.parent?.parent is! InstanceCreationExpression) {
-        return;
-      }
-      InstanceCreationExpression newExpr = namedExp.parent.parent;
-      if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
-        return;
-      }
-    } else {
-      InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
-      if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
-        _coverageMarker();
-        return;
-      }
-      namedExp = flutter.findChildArgument(newExpr);
-      if (namedExp == null || namedExp.expression == null) {
-        _coverageMarker();
-        return;
-      }
-    }
-    InstanceCreationExpression childArg =
-        flutter.getChildWidget(namedExp, false);
-    if (childArg == null) {
-      _coverageMarker();
-      return;
-    }
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      _convertFlutterChildToChildren(childArg, namedExp, eol, utils.getNodeText,
-          utils.getLinePrefix, utils.getIndent, utils.getText, builder);
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_FLUTTER_CHILD);
   }
 
   Future<Null> _addProposal_convertIntoFinalField() async {
@@ -980,6 +940,24 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_FOR_INDEX);
   }
 
+  Future<Null> _addProposal_convertToGenericFunctionSyntax() async {
+    AstNode node = this.node;
+    while (node != null) {
+      if (node is FunctionTypeAlias) {
+        await _convertFunctionTypeAliasToGenericTypeAlias(node);
+        return;
+      } else if (node is FunctionTypedFormalParameter) {
+        await _convertFunctionTypedFormalParameterToSimpleFormalParameter(node);
+        return;
+      } else if (node is FormalParameterList) {
+        // It would be confusing for this assist to alter a surrounding context
+        // when the selection is inside a parameter list.
+        return;
+      }
+      node = node.parent;
+    }
+  }
+
   Future<Null> _addProposal_convertToIsNot_onIs() async {
     // may be child of "is"
     AstNode node = this.node;
@@ -1182,100 +1160,6 @@ class AssistProcessor {
     }
   }
 
-  Future<Null> _addProposal_convertToStatefulWidget() async {
-    ClassDeclaration widgetClass =
-        node.getAncestor((n) => n is ClassDeclaration);
-    TypeName superclass = widgetClass?.extendsClause?.superclass;
-    if (widgetClass == null || superclass == null) {
-      _coverageMarker();
-      return;
-    }
-
-    // Don't spam, activate only from the `class` keyword to the class body.
-    if (selectionOffset < widgetClass.classKeyword.offset ||
-        selectionOffset > widgetClass.leftBracket.end) {
-      _coverageMarker();
-      return;
-    }
-
-    // Find the build() method.
-    MethodDeclaration buildMethod;
-    for (var member in widgetClass.members) {
-      if (member is MethodDeclaration &&
-          member.name.name == 'build' &&
-          member.parameters != null &&
-          member.parameters.parameters.length == 1) {
-        buildMethod = member;
-        break;
-      }
-    }
-    if (buildMethod == null) {
-      _coverageMarker();
-      return;
-    }
-
-    // Must be a StatelessWidget subclasses.
-    ClassElement widgetClassElement = widgetClass.element;
-    if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
-      _coverageMarker();
-      return;
-    }
-
-    String widgetName = widgetClassElement.displayName;
-    String stateName = widgetName + 'State';
-
-    var buildLinesRange = utils.getLinesRange(range.node(buildMethod));
-    var buildText = utils.getRangeText(buildLinesRange);
-
-    // Update the build() text to insert `widget.` before references to
-    // the widget class members.
-    final List<SourceEdit> buildTextEdits = [];
-    buildMethod.body.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
-      if (node.staticElement?.enclosingElement == widgetClassElement) {
-        var offset = node.offset - buildLinesRange.offset;
-        AstNode parent = node.parent;
-        if (parent is InterpolationExpression &&
-            parent.leftBracket.type ==
-                TokenType.STRING_INTERPOLATION_IDENTIFIER) {
-          buildTextEdits.add(new SourceEdit(offset, 0, '{widget.'));
-          buildTextEdits.add(new SourceEdit(offset + node.length, 0, '}'));
-        } else {
-          buildTextEdits.add(new SourceEdit(offset, 0, 'widget.'));
-        }
-      }
-    }));
-    buildText = SourceEdit.applySequence(buildText, buildTextEdits.reversed);
-
-    var statefulWidgetClass =
-        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
-    var stateClass =
-        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'State');
-    var stateType = stateClass.type.instantiate([widgetClassElement.type]);
-
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) async {
-      builder.addReplacement(range.node(superclass), (builder) {
-        builder.writeType(statefulWidgetClass.type);
-      });
-      builder.addReplacement(buildLinesRange, (builder) {
-        builder.writeln('  @override');
-        builder.writeln('  $stateName createState() {');
-        builder.writeln('    return new $stateName();');
-        builder.writeln('  }');
-      });
-      builder.addInsertion(widgetClass.end, (builder) {
-        builder.writeln();
-        builder.writeln();
-        builder.writeClassDeclaration(stateName, superclass: stateType,
-            membersWriter: () {
-          builder.write(buildText);
-        });
-      });
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
-  }
-
   Future<Null> _addProposal_encapsulateField() async {
     // find FieldDeclaration
     FieldDeclaration fieldDeclaration =
@@ -1408,33 +1292,186 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.EXCHANGE_OPERANDS);
   }
 
-  Future<Null> _addProposal_flutterReplaceWithChild() async {
-    var widgetCreation = flutter.identifyNewExpression(node);
-    if (widgetCreation == null) {
-      return;
+  Future<Null> _addProposal_flutterConvertToChildren() async {
+    // Find "child: widget" under selection.
+    NamedExpression namedExp;
+    {
+      AstNode node = this.node;
+      AstNode parent = node?.parent;
+      AstNode parent2 = parent?.parent;
+      if (node is SimpleIdentifier &&
+          parent is Label &&
+          parent2 is NamedExpression &&
+          node.name == 'child' &&
+          node.staticElement != null &&
+          flutter.isWidgetExpression(parent2.expression)) {
+        namedExp = parent2;
+      } else {
+        _coverageMarker();
+        return;
+      }
     }
 
-    var childArgument = flutter.findChildArgument(widgetCreation);
-    if (childArgument == null) {
-      return;
-    }
-
-    // child: new ThisWidget(child: ourChild)
-    // children: [foo, new ThisWidget(child: ourChild), bar]
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      var childExpression = childArgument.expression;
-      var childText = utils.getNodeText(childExpression);
-      var indentOld = utils.getLinePrefix(childExpression.offset);
-      var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = _replaceSourceIndent(childText, indentOld, indentNew);
-      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+      _convertFlutterChildToChildren(namedExp, eol, utils.getNodeText,
+          utils.getLinePrefix, utils.getIndent, utils.getText, builder);
     });
     _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
+        changeBuilder, DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN);
   }
 
-  Future<Null> _addProposal_flutterReplaceWithChildren() async {
+  Future<Null> _addProposal_flutterConvertToStatefulWidget() async {
+    ClassDeclaration widgetClass =
+        node.getAncestor((n) => n is ClassDeclaration);
+    TypeName superclass = widgetClass?.extendsClause?.superclass;
+    if (widgetClass == null || superclass == null) {
+      _coverageMarker();
+      return;
+    }
+
+    // Don't spam, activate only from the `class` keyword to the class body.
+    if (selectionOffset < widgetClass.classKeyword.offset ||
+        selectionOffset > widgetClass.leftBracket.end) {
+      _coverageMarker();
+      return;
+    }
+
+    // Find the build() method.
+    MethodDeclaration buildMethod;
+    for (var member in widgetClass.members) {
+      if (member is MethodDeclaration &&
+          member.name.name == 'build' &&
+          member.parameters != null &&
+          member.parameters.parameters.length == 1) {
+        buildMethod = member;
+        break;
+      }
+    }
+    if (buildMethod == null) {
+      _coverageMarker();
+      return;
+    }
+
+    // Must be a StatelessWidget subclasses.
+    ClassElement widgetClassElement = widgetClass.element;
+    if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
+      _coverageMarker();
+      return;
+    }
+
+    String widgetName = widgetClassElement.displayName;
+    String stateName = widgetName + 'State';
+
+    var buildLinesRange = utils.getLinesRange(range.node(buildMethod));
+    var buildText = utils.getRangeText(buildLinesRange);
+
+    // Update the build() text to insert `widget.` before references to
+    // the widget class members.
+    final List<SourceEdit> buildTextEdits = [];
+    buildMethod.body.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+      if (node.staticElement?.enclosingElement == widgetClassElement) {
+        var offset = node.offset - buildLinesRange.offset;
+        AstNode parent = node.parent;
+        if (parent is InterpolationExpression &&
+            parent.leftBracket.type ==
+                TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+          buildTextEdits.add(new SourceEdit(offset, 0, '{widget.'));
+          buildTextEdits.add(new SourceEdit(offset + node.length, 0, '}'));
+        } else {
+          buildTextEdits.add(new SourceEdit(offset, 0, 'widget.'));
+        }
+      }
+    }));
+    buildText = SourceEdit.applySequence(buildText, buildTextEdits.reversed);
+
+    var statefulWidgetClass =
+        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
+    var stateClass =
+        await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'State');
+    var stateType = stateClass.type.instantiate([widgetClassElement.type]);
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) async {
+      builder.addReplacement(range.node(superclass), (builder) {
+        builder.writeType(statefulWidgetClass.type);
+      });
+      builder.addReplacement(buildLinesRange, (builder) {
+        builder.writeln('  @override');
+        builder.writeln('  $stateName createState() {');
+        builder.writeln('    return new $stateName();');
+        builder.writeln('  }');
+      });
+      builder.addInsertion(widgetClass.end, (builder) {
+        builder.writeln();
+        builder.writeln();
+        builder.writeClassDeclaration(stateName, superclass: stateType,
+            membersWriter: () {
+          builder.write(buildText);
+        });
+      });
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET);
+  }
+
+  Future<Null> _addProposal_flutterMoveWidgetDown() async {
+    var widget = flutter.identifyWidgetExpression(node);
+    if (widget == null) {
+      return;
+    }
+
+    AstNode parentList = widget.parent;
+    if (parentList is ListLiteral) {
+      List<Expression> parentElements = parentList.elements;
+      int index = parentElements.indexOf(widget);
+      if (index != parentElements.length - 1) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          Expression nextWidget = parentElements[index + 1];
+          var nextRange = range.node(nextWidget);
+          var nextText = utils.getRangeText(nextRange);
+
+          var widgetRange = range.node(widget);
+          var widgetText = utils.getRangeText(widgetRange);
+
+          builder.addSimpleReplacement(nextRange, widgetText);
+          builder.addSimpleReplacement(widgetRange, nextText);
+        });
+        _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_DOWN);
+      }
+    }
+  }
+
+  Future<Null> _addProposal_flutterMoveWidgetUp() async {
+    var widget = flutter.identifyWidgetExpression(node);
+    if (widget == null) {
+      return;
+    }
+
+    AstNode parentList = widget.parent;
+    if (parentList is ListLiteral) {
+      List<Expression> parentElements = parentList.elements;
+      int index = parentElements.indexOf(widget);
+      if (index > 0) {
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          Expression previousWidget = parentElements[index - 1];
+          var previousRange = range.node(previousWidget);
+          var previousText = utils.getRangeText(previousRange);
+
+          var widgetRange = range.node(widget);
+          var widgetText = utils.getRangeText(widgetRange);
+
+          builder.addSimpleReplacement(previousRange, widgetText);
+          builder.addSimpleReplacement(widgetRange, previousText);
+        });
+        _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_UP);
+      }
+    }
+  }
+
+  Future<Null> _addProposal_flutterRemoveWidget_multipleChildren() async {
     var widgetCreation = flutter.identifyNewExpression(node);
     if (widgetCreation == null) {
       return;
@@ -1469,8 +1506,262 @@ class AssistProcessor {
       childText = _replaceSourceIndent(childText, indentOld, indentNew);
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.FLUTTER_REPLACE_WITH_CHILDREN);
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_REMOVE_WIDGET);
+  }
+
+  Future<Null> _addProposal_flutterRemoveWidget_singleChild() async {
+    var widgetCreation = flutter.identifyNewExpression(node);
+    if (widgetCreation == null) {
+      return;
+    }
+
+    var childArgument = flutter.findChildArgument(widgetCreation);
+    if (childArgument == null) {
+      return;
+    }
+
+    // child: new ThisWidget(child: ourChild)
+    // children: [foo, new ThisWidget(child: ourChild), bar]
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var childExpression = childArgument.expression;
+      var childText = utils.getNodeText(childExpression);
+      var indentOld = utils.getLinePrefix(childExpression.offset);
+      var indentNew = utils.getLinePrefix(widgetCreation.offset);
+      childText = _replaceSourceIndent(childText, indentOld, indentNew);
+      builder.addSimpleReplacement(range.node(widgetCreation), childText);
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_REMOVE_WIDGET);
+  }
+
+  Future<Null> _addProposal_flutterSwapWithChild() async {
+    InstanceCreationExpression exprGoingDown =
+        flutter.identifyNewExpression(node);
+    if (exprGoingDown == null || !flutter.isWidgetCreation(exprGoingDown)) {
+      _coverageMarker();
+      return;
+    }
+    InstanceCreationExpression exprGoingUp =
+        flutter.findChildWidget(exprGoingDown);
+    if (exprGoingUp == null) {
+      _coverageMarker();
+      return;
+    }
+    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
+    if (stableChild == null || stableChild.expression == null) {
+      _coverageMarker();
+      return;
+    }
+    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
+    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
+    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
+      _coverageMarker();
+      return; // Outer new-expr needs to be in multi-line format already.
+    }
+    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
+    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
+    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
+      _coverageMarker();
+      return; // Inner new-expr needs to be in multi-line format already.
+    }
+    await _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
+        DartAssistKind.FLUTTER_SWAP_WITH_CHILD);
+  }
+
+  Future<Null> _addProposal_flutterSwapWithParent() async {
+    InstanceCreationExpression exprGoingUp =
+        flutter.identifyNewExpression(node);
+    if (exprGoingUp == null || !flutter.isWidgetCreation(exprGoingUp)) {
+      _coverageMarker();
+      return;
+    }
+    AstNode expr = exprGoingUp.parent?.parent?.parent;
+    if (expr == null || expr is! InstanceCreationExpression) {
+      _coverageMarker();
+      return;
+    }
+    InstanceCreationExpression exprGoingDown = expr;
+    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
+    if (stableChild == null || stableChild.expression == null) {
+      _coverageMarker();
+      return;
+    }
+    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
+    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
+    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
+      _coverageMarker();
+      return; // Inner new-expr needs to be in multi-line format already.
+    }
+    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
+    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
+    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
+      _coverageMarker();
+      return; // Outer new-expr needs to be in multi-line format already.
+    }
+    await _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
+        DartAssistKind.FLUTTER_SWAP_WITH_PARENT);
+  }
+
+  Future<Null> _addProposal_flutterWrapWidget() async {
+    await _addProposal_flutterWrapWidgetImpl();
+    await _addProposal_flutterWrapWidgetImpl(
+        kind: DartAssistKind.FLUTTER_WRAP_CENTER,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Center',
+        widgetValidator: (expr) {
+          return !flutter.isExactWidgetTypeCenter(expr.staticType);
+        });
+    await _addProposal_flutterWrapWidgetImpl(
+        kind: DartAssistKind.FLUTTER_WRAP_PADDING,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Padding',
+        leadingLines: ['padding: const EdgeInsets.all(8.0),'],
+        widgetValidator: (expr) {
+          return !flutter.isExactWidgetTypePadding(expr.staticType);
+        });
+  }
+
+  Future<Null> _addProposal_flutterWrapWidgetImpl(
+      {AssistKind kind: DartAssistKind.FLUTTER_WRAP_GENERIC,
+      bool Function(Expression widgetExpr) widgetValidator,
+      String parentLibraryUri,
+      String parentClassName,
+      List<String> leadingLines: const []}) async {
+    Expression widgetExpr = flutter.identifyWidgetExpression(node);
+    if (widgetExpr == null) {
+      _coverageMarker();
+      return;
+    }
+    if (widgetValidator != null && !widgetValidator(widgetExpr)) {
+      _coverageMarker();
+      return;
+    }
+    String widgetSrc = utils.getNodeText(widgetExpr);
+
+    // If the wrapper class is specified, find its element.
+    ClassElement parentClassElement;
+    if (parentLibraryUri != null && parentClassName != null) {
+      parentClassElement =
+          await _getExportedClass(parentLibraryUri, parentClassName);
+    }
+
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(widgetExpr), (DartEditBuilder builder) {
+        builder.write('new ');
+        if (parentClassElement == null) {
+          builder.addSimpleLinkedEdit('WIDGET', 'widget');
+        } else {
+          builder.writeType(parentClassElement.type);
+        }
+        builder.write('(');
+        if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
+          String indentOld = utils.getLinePrefix(widgetExpr.offset);
+          String indentNew = '$indentOld${utils.getIndent(1)}';
+
+          for (var leadingLine in leadingLines) {
+            builder.write(eol);
+            builder.write(indentNew);
+            builder.write(leadingLine);
+          }
+
+          builder.write(eol);
+          builder.write(indentNew);
+          widgetSrc = widgetSrc.replaceAll(
+              new RegExp("^$indentOld", multiLine: true), indentNew);
+          widgetSrc += ",$eol$indentOld";
+        }
+        if (parentClassElement == null) {
+          builder.addSimpleLinkedEdit('CHILD', 'child');
+        } else {
+          builder.write('child');
+        }
+        builder.write(': ');
+        builder.write(widgetSrc);
+        builder.write(')');
+        builder.selectHere();
+      });
+    });
+    _addAssistFromBuilder(changeBuilder, kind);
+  }
+
+  Future<Null> _addProposal_flutterWrapWidgets() async {
+    var selectionRange = new SourceRange(selectionOffset, selectionLength);
+    var analyzer = new SelectionAnalyzer(selectionRange);
+    unit.accept(analyzer);
+
+    List<Expression> widgetExpressions = [];
+    if (analyzer.hasSelectedNodes) {
+      for (var selectedNode in analyzer.selectedNodes) {
+        if (!flutter.isWidgetExpression(selectedNode)) {
+          return;
+        }
+        widgetExpressions.add(selectedNode);
+      }
+    } else {
+      var widget = flutter.identifyWidgetExpression(analyzer.coveringNode);
+      if (widget != null) {
+        widgetExpressions.add(widget);
+      }
+    }
+    if (widgetExpressions.isEmpty) {
+      return;
+    }
+
+    var firstWidget = widgetExpressions.first;
+    var lastWidget = widgetExpressions.last;
+    var selectedRange = range.startEnd(firstWidget, lastWidget);
+    String src = utils.getRangeText(selectedRange);
+
+    Future<Null> addAssist(
+        {@required AssistKind kind,
+        @required String parentLibraryUri,
+        @required String parentClassName}) async {
+      ClassElement parentClassElement =
+          await _getExportedClass(parentLibraryUri, parentClassName);
+
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(selectedRange, (DartEditBuilder builder) {
+          builder.write('new ');
+          builder.writeType(parentClassElement.type);
+          builder.write('(');
+
+          String indentOld = utils.getLinePrefix(firstWidget.offset);
+          String indentNew1 = indentOld + utils.getIndent(1);
+          String indentNew2 = indentOld + utils.getIndent(2);
+
+          builder.write(eol);
+          builder.write(indentNew1);
+          builder.write('children: [');
+          builder.write(eol);
+
+          String newSrc = _replaceSourceIndent(src, indentOld, indentNew2);
+          builder.write(indentNew2);
+          builder.write(newSrc);
+
+          builder.write(',');
+          builder.write(eol);
+
+          builder.write(indentNew1);
+          builder.write('],');
+          builder.write(eol);
+
+          builder.write(indentOld);
+          builder.write(')');
+        });
+      });
+      _addAssistFromBuilder(changeBuilder, kind);
+    }
+
+    await addAssist(
+        kind: DartAssistKind.FLUTTER_WRAP_COLUMN,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Column');
+    await addAssist(
+        kind: DartAssistKind.FLUTTER_WRAP_ROW,
+        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentClassName: 'Row');
   }
 
   Future<Null> _addProposal_importAddShow() async {
@@ -1871,74 +2162,6 @@ class AssistProcessor {
         changeBuilder, DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  Future<Null> _addProposal_moveFlutterWidgetDown() async {
-    InstanceCreationExpression exprGoingDown =
-        flutter.identifyNewExpression(node);
-    if (exprGoingDown == null || !flutter.isWidgetCreation(exprGoingDown)) {
-      _coverageMarker();
-      return;
-    }
-    InstanceCreationExpression exprGoingUp =
-        flutter.findChildWidget(exprGoingDown);
-    if (exprGoingUp == null) {
-      _coverageMarker();
-      return;
-    }
-    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
-    if (stableChild == null || stableChild.expression == null) {
-      _coverageMarker();
-      return;
-    }
-    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
-    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
-    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
-      _coverageMarker();
-      return; // Outer new-expr needs to be in multi-line format already.
-    }
-    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
-    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
-    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
-      _coverageMarker();
-      return; // Inner new-expr needs to be in multi-line format already.
-    }
-    await _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
-        DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN);
-  }
-
-  Future<Null> _addProposal_moveFlutterWidgetUp() async {
-    InstanceCreationExpression exprGoingUp =
-        flutter.identifyNewExpression(node);
-    if (exprGoingUp == null || !flutter.isWidgetCreation(exprGoingUp)) {
-      _coverageMarker();
-      return;
-    }
-    AstNode expr = exprGoingUp.parent?.parent?.parent;
-    if (expr == null || expr is! InstanceCreationExpression) {
-      _coverageMarker();
-      return;
-    }
-    InstanceCreationExpression exprGoingDown = expr;
-    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
-    if (stableChild == null || stableChild.expression == null) {
-      _coverageMarker();
-      return;
-    }
-    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
-    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
-    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
-      _coverageMarker();
-      return; // Inner new-expr needs to be in multi-line format already.
-    }
-    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
-    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
-    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
-      _coverageMarker();
-      return; // Outer new-expr needs to be in multi-line format already.
-    }
-    await _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
-        DartAssistKind.MOVE_FLUTTER_WIDGET_UP);
-  }
-
   Future<Null> _addProposal_removeTypeAnnotation() async {
     VariableDeclarationList declarationList =
         node.getAncestor((n) => n is VariableDeclarationList);
@@ -2028,158 +2251,7 @@ class AssistProcessor {
         builder.selectHere();
       });
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.REPARENT_FLUTTER_LIST);
-  }
-
-  Future<Null> _addProposal_reparentFlutterWidget() async {
-    await _addProposal_reparentFlutterWidgetImpl();
-    await _addProposal_reparentFlutterWidgetImpl(
-        kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_CENTER,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
-        parentClassName: 'Center');
-    await _addProposal_reparentFlutterWidgetImpl(
-        kind: DartAssistKind.REPARENT_FLUTTER_WIDGET_PADDING,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
-        parentClassName: 'Padding',
-        leadingLines: ['padding: const EdgeInsets.all(8.0),']);
-  }
-
-  Future<Null> _addProposal_reparentFlutterWidgetImpl(
-      {AssistKind kind: DartAssistKind.REPARENT_FLUTTER_WIDGET,
-      String parentLibraryUri,
-      String parentClassName,
-      List<String> leadingLines: const []}) async {
-    Expression widgetExpr = flutter.identifyWidgetExpression(node);
-    if (widgetExpr == null) {
-      _coverageMarker();
-      return;
-    }
-    String widgetSrc = utils.getNodeText(widgetExpr);
-
-    // If the wrapper class is specified, find its element.
-    ClassElement parentClassElement;
-    if (parentLibraryUri != null && parentClassName != null) {
-      parentClassElement =
-          await _getExportedClass(parentLibraryUri, parentClassName);
-    }
-
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(widgetExpr), (DartEditBuilder builder) {
-        builder.write('new ');
-        if (parentClassElement == null) {
-          builder.addSimpleLinkedEdit('WIDGET', 'widget');
-        } else {
-          builder.writeType(parentClassElement.type);
-        }
-        builder.write('(');
-        if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
-          String indentOld = utils.getLinePrefix(widgetExpr.offset);
-          String indentNew = '$indentOld${utils.getIndent(1)}';
-
-          for (var leadingLine in leadingLines) {
-            builder.write(eol);
-            builder.write(indentNew);
-            builder.write(leadingLine);
-          }
-
-          builder.write(eol);
-          builder.write(indentNew);
-          widgetSrc = widgetSrc.replaceAll(
-              new RegExp("^$indentOld", multiLine: true), indentNew);
-          widgetSrc += ",$eol$indentOld";
-        }
-        if (parentClassElement == null) {
-          builder.addSimpleLinkedEdit('CHILD', 'child');
-        } else {
-          builder.write('child');
-        }
-        builder.write(': ');
-        builder.write(widgetSrc);
-        builder.write(')');
-        builder.selectHere();
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, kind);
-  }
-
-  Future<Null> _addProposal_reparentFlutterWidgets() async {
-    var selectionRange = new SourceRange(selectionOffset, selectionLength);
-    var analyzer = new SelectionAnalyzer(selectionRange);
-    unit.accept(analyzer);
-
-    List<Expression> widgetExpressions = [];
-    if (analyzer.hasSelectedNodes) {
-      for (var selectedNode in analyzer.selectedNodes) {
-        if (!flutter.isWidgetExpression(selectedNode)) {
-          return;
-        }
-        widgetExpressions.add(selectedNode);
-      }
-    } else {
-      var widget = flutter.identifyWidgetExpression(analyzer.coveringNode);
-      if (widget != null) {
-        widgetExpressions.add(widget);
-      }
-    }
-    if (widgetExpressions.isEmpty) {
-      return;
-    }
-
-    var firstWidget = widgetExpressions.first;
-    var lastWidget = widgetExpressions.last;
-    var selectedRange = range.startEnd(firstWidget, lastWidget);
-    String src = utils.getRangeText(selectedRange);
-
-    Future<Null> addAssist(
-        {@required AssistKind kind,
-        @required String parentLibraryUri,
-        @required String parentClassName}) async {
-      ClassElement parentClassElement =
-          await _getExportedClass(parentLibraryUri, parentClassName);
-
-      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addReplacement(selectedRange, (DartEditBuilder builder) {
-          builder.write('new ');
-          builder.writeType(parentClassElement.type);
-          builder.write('(');
-
-          String indentOld = utils.getLinePrefix(firstWidget.offset);
-          String indentNew1 = indentOld + utils.getIndent(1);
-          String indentNew2 = indentOld + utils.getIndent(2);
-
-          builder.write(eol);
-          builder.write(indentNew1);
-          builder.write('children: [');
-          builder.write(eol);
-
-          String newSrc = _replaceSourceIndent(src, indentOld, indentNew2);
-          builder.write(indentNew2);
-          builder.write(newSrc);
-
-          builder.write(',');
-          builder.write(eol);
-
-          builder.write(indentNew1);
-          builder.write('],');
-          builder.write(eol);
-
-          builder.write(indentOld);
-          builder.write(')');
-        });
-      });
-      _addAssistFromBuilder(changeBuilder, kind);
-    }
-
-    await addAssist(
-        kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_COLUMN,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
-        parentClassName: 'Column');
-    await addAssist(
-        kind: DartAssistKind.REPARENT_FLUTTER_WIDGETS_ROW,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
-        parentClassName: 'Row');
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_WRAP_GENERIC);
   }
 
   Future<Null> _addProposal_replaceConditionalWithIfElse() async {
@@ -2690,6 +2762,26 @@ class AssistProcessor {
   }
 
   /**
+   * Return `true` if all of the parameters in the given list of [parameters]
+   * have an explicit type annotation.
+   */
+  bool _allParametersHaveTypes(FormalParameterList parameters) {
+    for (FormalParameter parameter in parameters.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = (parameter as DefaultFormalParameter).parameter;
+      }
+      if (parameter is SimpleFormalParameter) {
+        if (parameter.type == null) {
+          return false;
+        }
+      } else if (parameter is! FunctionTypedFormalParameter) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Configures [utils] using given [target].
    */
   void _configureTargetLocation(Object target) {
@@ -2704,7 +2796,6 @@ class AssistProcessor {
   }
 
   void _convertFlutterChildToChildren(
-      InstanceCreationExpression childArg,
       NamedExpression namedExp,
       String eol,
       Function getNodeText,
@@ -2712,6 +2803,7 @@ class AssistProcessor {
       Function getIndent,
       Function getText,
       DartFileEditBuilder builder) {
+    Expression childArg = namedExp.expression;
     int childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
     int listLoc = childArg.offset;
@@ -2739,11 +2831,67 @@ class AssistProcessor {
       } else {
         builder.addSimpleInsertion(listLoc, '<Widget>[');
       }
-      String newChildArgSrc = childArgSrc.replaceAll(
-          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+      String newChildArgSrc =
+          _replaceSourceIndent(childArgSrc, indentOld, indentNew);
       newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);
     }
+  }
+
+  Future<Null> _convertFunctionTypeAliasToGenericTypeAlias(
+      FunctionTypeAlias node) async {
+    if (!_allParametersHaveTypes(node.parameters)) {
+      return;
+    }
+    String returnType;
+    if (node.returnType != null) {
+      returnType = utils.getNodeText(node.returnType);
+    }
+    String functionName = utils.getRangeText(
+        range.startEnd(node.name, node.typeParameters ?? node.name));
+    String parameters = utils.getNodeText(node.parameters);
+    String replacement;
+    if (returnType == null) {
+      replacement = '$functionName = Function$parameters';
+    } else {
+      replacement = '$functionName = $returnType Function$parameters';
+    }
+    // add change
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(
+          range.startStart(node.typedefKeyword.next, node.semicolon),
+          replacement);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  Future<Null> _convertFunctionTypedFormalParameterToSimpleFormalParameter(
+      FunctionTypedFormalParameter node) async {
+    if (!_allParametersHaveTypes(node.parameters)) {
+      return;
+    }
+    String returnType;
+    if (node.returnType != null) {
+      returnType = utils.getNodeText(node.returnType);
+    }
+    String functionName = utils.getRangeText(range.startEnd(
+        node.identifier, node.typeParameters ?? node.identifier));
+    String parameters = utils.getNodeText(node.parameters);
+    String replacement;
+    if (returnType == null) {
+      replacement = 'Function$parameters $functionName';
+    } else {
+      replacement = '$returnType Function$parameters $functionName';
+    }
+    // add change
+    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(node), replacement);
+    });
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
   }
 
   /// Return the [ClassElement] with the given [className] that is exported
@@ -2862,7 +3010,7 @@ class AssistProcessor {
                 builder.write(utils.getNodePrefix(arg.name));
                 argSrc = utils.getNodeText(stableChild);
                 builder.write(argSrc);
-                if (assistKind == DartAssistKind.MOVE_FLUTTER_WIDGET_UP) {
+                if (assistKind == DartAssistKind.FLUTTER_SWAP_WITH_PARENT) {
                   builder.write(',$eol');
                 }
               } else {
@@ -2871,7 +3019,7 @@ class AssistProcessor {
                 builder.write(argSrc);
               }
             });
-            if (assistKind == DartAssistKind.MOVE_FLUTTER_WIDGET_DOWN) {
+            if (assistKind == DartAssistKind.FLUTTER_SWAP_WITH_CHILD) {
               builder.write(',$eol');
             }
             builder.write(innerIndent);

@@ -142,80 +142,134 @@ class AnnotateWithInferredTypes extends RecursiveVisitor<Null> {
     program.addMetadataRepository(_metadata);
   }
 
-  void _annotateNode(TreeNode node) {
-    final callSite = _typeFlowAnalysis.callSite(node);
-    if ((callSite != null) && callSite.isResultUsed && callSite.isReachable) {
-      final resultType = callSite.resultType;
-      assertx(resultType != null);
+  InferredType _convertType(Type type) {
+    assertx(type != null);
 
-      Class concreteClass;
+    Class concreteClass;
 
-      final nullable = resultType is NullableType;
-      if (nullable) {
-        final baseType = (resultType as NullableType).baseType;
+    final nullable = type is NullableType;
+    if (nullable) {
+      final baseType = (type as NullableType).baseType;
 
-        if (baseType == const EmptyType()) {
-          concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
-        } else {
-          concreteClass =
-              baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
-        }
+      if (baseType == const EmptyType()) {
+        concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
       } else {
         concreteClass =
-            resultType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+            baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
       }
+    } else {
+      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+    }
 
-      if ((concreteClass != null) || !nullable) {
-        _metadata.mapping[node] = new InferredType(concreteClass, nullable);
+    if ((concreteClass != null) || !nullable) {
+      return new InferredType(concreteClass, nullable);
+    }
+
+    return null;
+  }
+
+  void _setInferredType(TreeNode node, Type type) {
+    final inferredType = _convertType(type);
+    if (inferredType != null) {
+      _metadata.mapping[node] = inferredType;
+    }
+  }
+
+  void _annotateCallSite(TreeNode node) {
+    final callSite = _typeFlowAnalysis.callSite(node);
+    if ((callSite != null) && callSite.isResultUsed && callSite.isReachable) {
+      _setInferredType(node, callSite.resultType);
+    }
+  }
+
+  void _annotateMember(Member member) {
+    if (_typeFlowAnalysis.isMemberUsed(member)) {
+      if (member is Field) {
+        _setInferredType(member, _typeFlowAnalysis.fieldType(member));
+      } else {
+        Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
+        assertx(argTypes != null);
+
+        final int firstParamIndex = hasReceiverArg(member) ? 1 : 0;
+
+        final positionalParams = member.function.positionalParameters;
+        assertx(argTypes.positionalCount ==
+            firstParamIndex + positionalParams.length);
+
+        for (int i = 0; i < positionalParams.length; i++) {
+          _setInferredType(
+              positionalParams[i], argTypes.values[firstParamIndex + i]);
+        }
+
+        // TODO(alexmarkov): figure out how to pass receiver type.
+        // TODO(alexmarkov): support named parameters
       }
     }
   }
 
   @override
+  visitConstructor(Constructor node) {
+    _annotateMember(node);
+    super.visitConstructor(node);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    _annotateMember(node);
+    super.visitProcedure(node);
+  }
+
+  @override
+  visitField(Field node) {
+    _annotateMember(node);
+    super.visitField(node);
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitMethodInvocation(node);
   }
 
   @override
   visitPropertyGet(PropertyGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitPropertyGet(node);
   }
 
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitDirectMethodInvocation(node);
   }
 
   @override
   visitDirectPropertyGet(DirectPropertyGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitDirectPropertyGet(node);
   }
 
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitSuperMethodInvocation(node);
   }
 
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitSuperPropertyGet(node);
   }
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitStaticInvocation(node);
   }
 
   @override
   visitStaticGet(StaticGet node) {
-    _annotateNode(node);
+    _annotateCallSite(node);
     super.visitStaticGet(node);
   }
 }

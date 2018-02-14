@@ -811,6 +811,20 @@ library lib;
     expect(element, isNotNull);
   }
 
+  void test_computeLibraryElement_unresolvedUris() {
+    Source source = addSource("/lib.dart", r'''
+import 'package:foo/bar.dart';
+export 'package:foo/baz.dart';
+''');
+    var libraryElement = context.computeLibraryElement(source);
+    expect(libraryElement.imports, hasLength(2));
+    expect(libraryElement.exports, hasLength(1));
+    expect(libraryElement.imports[0].uri, 'package:foo/bar.dart');
+    expect(libraryElement.imports[0].importedLibrary, isNull);
+    expect(libraryElement.exports[0].uri, 'package:foo/baz.dart');
+    expect(libraryElement.exports[0].exportedLibrary, isNull);
+  }
+
   void test_computeLineInfo_dart() {
     Source source = addSource("/test.dart", r'''
 library lib;
@@ -2480,15 +2494,6 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
 
-  void test_resolveCompilationUnit_library() {
-    Source source = addSource("/lib.dart", "library lib;");
-    LibraryElement library = context.computeLibraryElement(source);
-    CompilationUnit compilationUnit =
-        context.resolveCompilationUnit(source, library);
-    expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
-  }
-
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
 //    _context = new _AnalysisContext_sourceChangeDuringResolution();
 //    AnalysisContextFactory.initContextWithCore(_context);
@@ -2499,6 +2504,15 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
 //    expect(compilationUnit, isNotNull);
 //    expect(_context.getLineInfo(source), isNotNull);
 //  }
+
+  void test_resolveCompilationUnit_library() {
+    Source source = addSource("/lib.dart", "library lib;");
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnit compilationUnit =
+        context.resolveCompilationUnit(source, library);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
+  }
 
   void test_resolveCompilationUnit_source() {
     Source source = addSource("/lib.dart", "library lib;");

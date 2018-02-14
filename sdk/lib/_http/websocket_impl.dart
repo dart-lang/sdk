@@ -1249,6 +1249,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     return _sink.close();
   }
 
+  static String get userAgent => _httpClient.userAgent;
+
+  static set userAgent(String userAgent) {
+    _httpClient.userAgent = userAgent;
+  }
+
   void _close([int code, String reason]) {
     if (_writeClosed) return;
     if (_outCloseCode == null) {

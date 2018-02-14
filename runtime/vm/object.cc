@@ -4403,31 +4403,77 @@ const char* Class::ToCString() const {
                      patch_prefix, class_name);
 }
 
-// Returns an instance of Double or Double::null().
-// 'index' points to either:
-// - constants_list_ position of found element, or
-// - constants_list_ position where new canonical can be inserted.
-RawDouble* Class::LookupCanonicalDouble(Zone* zone,
-                                        double value,
-                                        intptr_t* index) const {
-  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Double& canonical_value = Double::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.BitwiseEqualsToDouble(value)) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
+class CanonicalDoubleKey {
+ public:
+  explicit CanonicalDoubleKey(const Double& key)
+      : key_(&key), value_(key.value()) {}
+  explicit CanonicalDoubleKey(const double value) : key_(NULL), value_(value) {}
+
+  bool Matches(const Double& obj) const {
+    return obj.BitwiseEqualsToDouble(value_);
   }
-  return Double::null();
+  uword Hash() const { return Hash(value_); }
+
+  // Thomas Wang, Integer Hash Functions.
+  // https://gist.github.com/badboy/6267743
+  // "64 bit to 32 bit Hash Functions"
+  static uword Hash(double value) {
+    uint64_t v = bit_cast<uint64_t>(value);
+    v = ~v + (v << 18);
+    v = v ^ (v >> 31);
+    v = v * 21;
+    v = v ^ (v >> 11);
+    v = v + (v << 6);
+    v = v ^ (v >> 22);
+    return static_cast<uint32_t>(v);
+  }
+
+  const Double* key_;
+  const double value_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical Instances based on a hash of the fields.
+class CanonicalDoubleTraits {
+ public:
+  static const char* Name() { return "CanonicalDoubleTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+  static bool IsMatch(const CanonicalDoubleKey& a, const Object& b) {
+    return a.Matches(Double::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    ASSERT(key.IsDouble());
+    return CanonicalDoubleKey::Hash(Double::Cast(key).value());
+  }
+  static uword Hash(const CanonicalDoubleKey& key) { return key.Hash(); }
+  static RawObject* NewKey(const CanonicalDoubleKey& obj) {
+    if (obj.key_ != NULL) {
+      return obj.key_->raw();
+    } else {
+      UNIMPLEMENTED();
+      return NULL;
+    }
+  }
+};
+typedef UnorderedHashSet<CanonicalDoubleTraits> CanonicalDoubleSet;
+
+// Returns an instance of Double or Double::null().
+RawDouble* Class::LookupCanonicalDouble(Zone* zone, double value) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
+  if (this->constants() == Object::empty_array().raw()) return Double::null();
+
+  Double& canonical_value = Double::Handle(zone);
+  CanonicalDoubleSet constants(zone, this->constants());
+  canonical_value ^= constants.GetOrNull(CanonicalDoubleKey(value));
+  this->set_constants(constants.Release());
+  return canonical_value.raw();
 }
 
 RawMint* Class::LookupCanonicalMint(Zone* zone,
@@ -4554,9 +4600,19 @@ RawInstance* Class::InsertCanonicalConstant(Zone* zone,
   return canonical_value.raw();
 }
 
-void Class::InsertCanonicalNumber(Zone* zone,
-                                  intptr_t index,
-                                  const Number& constant) const {
+void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
+  if (this->constants() == Object::empty_array().raw()) {
+    this->set_constants(Array::Handle(
+        zone, HashTables::New<CanonicalDoubleSet>(128, Heap::kOld)));
+  }
+  CanonicalDoubleSet constants(zone, this->constants());
+  constants.InsertNewOrGet(CanonicalDoubleKey(constant));
+  this->set_constants(constants.Release());
+}
+
+void Class::InsertCanonicalInt(Zone* zone,
+                               intptr_t index,
+                               const Number& constant) const {
   // The constant needs to be added to the list. Grow the list if it is full.
   Array& canonical_list = Array::Handle(zone, constants());
   const intptr_t list_len = canonical_list.Length();
@@ -4571,7 +4627,8 @@ void Class::InsertCanonicalNumber(Zone* zone,
 void Class::RehashConstants(Zone* zone) const {
   intptr_t cid = id();
   if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
-    // Constants stored as a plain list, no rehashing needed.
+    // Constants stored as a plain list or in a hashset with a stable hashcode,
+    // which only depends on the actual value of the constant.
     return;
   }
 
@@ -4579,6 +4636,7 @@ void Class::RehashConstants(Zone* zone) const {
   if (old_constants.Length() == 0) return;
 
   set_constants(Object::empty_array());
+
   CanonicalInstancesSet set(zone, old_constants.raw());
   Instance& constant = Instance::Handle(zone);
   CanonicalInstancesSet::Iterator it(&set);
@@ -18584,7 +18642,7 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
         }
         ASSERT(result.IsOld());
         result.SetCanonical();
-        cls.InsertCanonicalNumber(zone, index, result);
+        cls.InsertCanonicalInt(zone, index, result);
         return result.raw();
       }
     }
@@ -18610,7 +18668,7 @@ bool Number::CheckIsCanonical(Thread* thread) const {
     }
     case kDoubleCid: {
       Double& dbl = Double::Handle(zone);
-      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value(), &idx);
+      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value());
       return (dbl.raw() == this->raw());
     }
     case kBigintCid: {
@@ -19110,7 +19168,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
     canonical_value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalNumber(zone, index, canonical_value);
+    cls.InsertCanonicalInt(zone, index, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -19228,9 +19286,8 @@ RawDouble* Double::NewCanonical(double value) {
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
   Double& canonical_value = Double::Handle(zone);
-  intptr_t index = 0;
 
-  canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+  canonical_value ^= cls.LookupCanonicalDouble(zone, value);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -19238,16 +19295,15 @@ RawDouble* Double::NewCanonical(double value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+      canonical_value ^= cls.LookupCanonicalDouble(zone, value);
       if (!canonical_value.IsNull()) {
         return canonical_value.raw();
       }
     }
     canonical_value = Double::New(value, Heap::kOld);
     canonical_value.SetCanonical();
-    // The value needs to be added to the constants list. Grow the list if
-    // it is full.
-    cls.InsertCanonicalNumber(zone, index, canonical_value);
+    // The value needs to be added to the constants list.
+    cls.InsertCanonicalDouble(zone, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -19544,7 +19600,7 @@ RawBigint* Bigint::NewCanonical(const String& str) {
     value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalNumber(zone, index, value);
+    cls.InsertCanonicalInt(zone, index, value);
     return value.raw();
   }
 }

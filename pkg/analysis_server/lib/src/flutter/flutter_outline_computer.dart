@@ -15,13 +15,14 @@ import 'package:analyzer/src/generated/source.dart';
 /// Computer for Flutter specific outlines.
 class FlutterOutlineComputer {
   final String file;
+  final String content;
   final LineInfo lineInfo;
   final CompilationUnit unit;
   final TypeProvider typeProvider;
 
   final List<protocol.FlutterOutline> _depthFirstOrder = [];
 
-  FlutterOutlineComputer(this.file, this.lineInfo, this.unit)
+  FlutterOutlineComputer(this.file, this.content, this.lineInfo, this.unit)
       : typeProvider = unit.element.context.typeProvider;
 
   protocol.FlutterOutline compute() {
@@ -44,22 +45,38 @@ class FlutterOutlineComputer {
     if (argument is NamedExpression) {
       argument = (argument as NamedExpression).expression;
     }
-    String label = argument.toString();
+
+    String name = parameter.displayName;
+
+    String label = content.substring(argument.offset, argument.end);
+    if (label.contains('\n')) {
+      label = '…';
+    }
+
     if (argument is BooleanLiteral) {
-      attributes.add(new protocol.FlutterOutlineAttribute(
-          parameter.displayName, label,
+      attributes.add(new protocol.FlutterOutlineAttribute(name, label,
           literalValueBoolean: argument.value));
     } else if (argument is IntegerLiteral) {
-      attributes.add(new protocol.FlutterOutlineAttribute(
-          parameter.displayName, label,
+      attributes.add(new protocol.FlutterOutlineAttribute(name, label,
           literalValueInteger: argument.value));
     } else if (argument is StringLiteral) {
-      attributes.add(new protocol.FlutterOutlineAttribute(
-          parameter.displayName, label,
+      attributes.add(new protocol.FlutterOutlineAttribute(name, label,
           literalValueString: argument.stringValue));
     } else {
-      attributes.add(
-          new protocol.FlutterOutlineAttribute(parameter.displayName, label));
+      if (argument is FunctionExpression) {
+        bool hasParameters = argument.parameters != null &&
+            argument.parameters.parameters.isNotEmpty;
+        if (argument.body is ExpressionFunctionBody) {
+          label = hasParameters ? '(…) => …' : '() => …';
+        } else {
+          label = hasParameters ? '(…) { … }' : '() { … }';
+        }
+      } else if (argument is ListLiteral) {
+        label = '[…]';
+      } else if (argument is MapLiteral) {
+        label = '{…}';
+      }
+      attributes.add(new protocol.FlutterOutlineAttribute(name, label));
     }
   }
 

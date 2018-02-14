@@ -36,8 +36,6 @@
 #include "bin/gzip.h"
 #endif
 
-#include "vm/kernel.h"
-
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
 extern const uint8_t kDartVmSnapshotInstructions[];
@@ -439,8 +437,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, platform_program,
                                              flags, isolate_data, error);
     } else {
-      *error = OS::SCreate(
-          NULL, "Platform kernel not available to create service isolate.");
+      *error =
+          strdup("Platform kernel not available to create service isolate.");
       delete isolate_data;
       return NULL;
     }
@@ -553,8 +551,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
     if (!isolate_run_app_snapshot && kernel_program == NULL) {
       if (!dfe.CanUseDartFrontend()) {
-        *error = OS::SCreate(NULL, "Dart frontend unavailable to compile %s.",
-                             script_uri);
+        const char* format = "Dart frontend unavailable to compile script %s.";
+        intptr_t len = snprintf(NULL, 0, format, script_uri) + 2;
+        *error = reinterpret_cast<char*>(malloc(len));
+        ASSERT(error != NULL);
+        snprintf(*error, len, format, script_uri);
         return NULL;
       }
 

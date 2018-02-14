@@ -16,7 +16,6 @@ import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
 import 'elements/elements.dart';
-import 'elements/entities.dart';
 import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'elements/operators.dart';
 import 'elements/resolution_types.dart';
@@ -1262,9 +1261,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           new ConstructedConstantExpression(
               type, targetConstructor, callStructure, arguments);
 
-      Map<FieldEntity, ConstantExpression> fields = expression
-          .computeInstanceFields(new AstEvaluationEnvironment(compiler));
-      fields.forEach((_field, ConstantExpression expression) {
+      InstanceData instanceData = expression
+          .computeInstanceData(new AstEvaluationEnvironment(compiler));
+      instanceData.fieldMap.forEach((_field, ConstantExpression expression) {
         FieldElement field = _field;
         ConstantValue value = expression.evaluate(
             new AstEvaluationEnvironment(compiler), constantSystem);
@@ -1481,4 +1480,7 @@ class AstEvaluationEnvironment extends EvaluationEnvironmentBase {
 
   @override
   DiagnosticReporter get reporter => _compiler.reporter;
+
+  @override
+  bool get enableAssertions => _compiler.options.enableUserAssertions;
 }

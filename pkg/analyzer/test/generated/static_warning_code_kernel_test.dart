@@ -1856,12 +1856,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_generalizedVoid_useOfVoidWithInitializerError() async {
-    return super.test_generalizedVoid_useOfVoidWithInitializerError();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
     return super.test_generalizedVoid_useOfVoidAssignedToDynamicError();
   }

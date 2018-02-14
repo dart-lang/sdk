@@ -521,6 +521,16 @@ static void ReleaseFetchedBytes(uint8_t* buffer) {
   free(buffer);
 }
 
+static void AcceptCompilation(Thread* thread) {
+  TransitionVMToNative transition(thread);
+  if (KernelIsolate::AcceptCompilation().status !=
+      Dart_KernelCompilationStatus_Ok) {
+    FATAL(
+        "An error occurred in the CFE while accepting the most recent"
+        " compilation results.");
+  }
+}
+
 // NOTE: This function returns *after* FinalizeLoading is called.
 void IsolateReloadContext::Reload(bool force_reload,
                                   const char* root_script_url,
@@ -559,6 +569,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
   }
+
+  bool did_kernel_compilation = false;
   if (isolate()->use_dart_frontend()) {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
@@ -592,7 +604,7 @@ void IsolateReloadContext::Reload(bool force_reload,
         CommonFinalizeTail();
         return;
       }
-
+      did_kernel_compilation = true;
       kernel_program.set(
           ReadPrecompiledKernelFromBuffer(retval.kernel, retval.kernel_size));
     }
@@ -611,6 +623,13 @@ void IsolateReloadContext::Reload(bool force_reload,
     I->object_store()->set_changed_in_last_reload(
         GrowableObjectArray::Handle(GrowableObjectArray::New()));
     ReportOnJSON(js_);
+
+    // If we use the CFE and performed a compilation, we need to notify that
+    // we have accepted the compilation to clear some state in the incremental
+    // compiler.
+    if (isolate()->use_dart_frontend() && did_kernel_compilation) {
+      AcceptCompilation(thread);
+    }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
   }
@@ -671,6 +690,13 @@ void IsolateReloadContext::Reload(bool force_reload,
       isolate()->object_store()->set_root_library(lib);
       FinalizeLoading();
       result = Object::null();
+
+      // If we use the CFE and performed a compilation, we need to notify that
+      // we have accepted the compilation to clear some state in the incremental
+      // compiler.
+      if (did_kernel_compilation) {
+        AcceptCompilation(thread);
+      }
     } else {
       result = tmp.raw();
     }

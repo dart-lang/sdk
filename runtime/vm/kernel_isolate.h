@@ -20,6 +20,7 @@ class KernelIsolate : public AllStatic {
   static const char* kName;
   static const int kCompileTag;
   static const int kUpdateSourcesTag;
+  static const int kAcceptTag;
   static const int kTrainTag;
 
   static void Run();
@@ -39,6 +40,7 @@ class KernelIsolate : public AllStatic {
       Dart_SourceFile source_files[] = NULL,
       bool incremental_compile = true);
 
+  static Dart_KernelCompilationResult AcceptCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(
       int source_files_count,
       Dart_SourceFile source_files[]);

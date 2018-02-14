@@ -40,6 +40,27 @@ List<int> _pathsToTimes(List<String> paths) {
 }
 
 /**
+ * Return a (semi-)canonicalized version of [path] for the purpose of analysis.
+ *
+ * Using the built-in path's [canonicalize] results in fully lowercase paths on
+ * Windows displayed to the user so this method uses [normalize] and then just
+ * uppercases the drive letter on Windows to resolve the most common issues.
+ */
+String _canonicalize(String path) {
+  path = normalize(path);
+  // Ideally we'd call path's [canonicalize] here to ensure that on
+  // case-insensitive file systems that different casing paths resolved to the
+  // same thing; however these paths are used both as both as part of the
+  // identity and also to display to users in error messages so for now we only
+  // canonicalize the drive letter to resolve the most common issues.
+  // https://github.com/dart-lang/sdk/issues/32095
+  if (io.Platform.isWindows && isAbsolute(path)) {
+    path = path.substring(0, 1).toUpperCase() + path.substring(1);
+  }
+  return path;
+}
+
+/**
 * The name of the directory containing plugin specific subfolders used to
 * store data across sessions.
 */
@@ -90,13 +111,13 @@ class PhysicalResourceProvider implements ResourceProvider {
 
   @override
   File getFile(String path) {
-    path = normalize(path);
+    path = _canonicalize(path);
     return new _PhysicalFile(new io.File(path));
   }
 
   @override
   Folder getFolder(String path) {
-    path = normalize(path);
+    path = _canonicalize(path);
     return new _PhysicalFolder(new io.Directory(path));
   }
 
@@ -255,7 +276,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   String canonicalizePath(String relPath) {
-    return normalize(join(path, relPath));
+    return _canonicalize(join(path, relPath));
   }
 
   @override
