@@ -1324,7 +1324,8 @@ class ProgramCompiler
     // nice to do them first.
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
-    var body = _emitArgumentInitializers(node.function);
+    var fn = node.function;
+    var body = _emitArgumentInitializers(fn);
 
     // Redirecting constructors: these are not allowed to have initializers,
     // and the redirecting ctor invocation runs before field initializers.
@@ -1351,8 +1352,7 @@ class ProgramCompiler
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
     if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
 
-    var jsBody = _visitStatement(node.function.body);
-    if (jsBody != null) body.add(jsBody);
+    body.add(_emitFunctionScopedBody(fn));
     return body;
   }
 
@@ -2868,25 +2868,9 @@ class ProgramCompiler
   JS.Block _emitFunctionBody(FunctionNode f) {
     var block = _withCurrentFunction(f, () {
       var block = _emitArgumentInitializers(f);
-      var jsBody = _visitStatement(f.body);
-      if (jsBody != null) block.add(jsBody);
+      block.add(_emitFunctionScopedBody(f));
       return block;
     });
-
-    if (f.asyncMarker == AsyncMarker.Sync) {
-      // It is a JS syntax error to use let or const to bind two variables with
-      // the same name in the same scope.  If the let- and const- bound
-      // variables in the block shadow any of the parameters, wrap the body in
-      // an extra block.  (sync*, async, and async* function bodies are placed
-      // in an inner function that is a separate scope from the parameters.)
-      var parameterNames = new Set<String>()
-        ..addAll(f.positionalParameters.map((p) => p.name))
-        ..addAll(f.namedParameters.map((p) => p.name));
-
-      if (block.any((s) => s.shadows(parameterNames))) {
-        block = [new JS.Block(block, isScope: true)];
-      }
-    }
 
     return new JS.Block(block);
   }
@@ -3046,6 +3030,25 @@ class ProgramCompiler
       if (name != null) result = new JS.LabeledStatement(name, result);
     }
     return result;
+  }
+
+  JS.Statement _emitFunctionScopedBody(FunctionNode f) {
+    var jsBody = _visitStatement(f.body);
+    if (f.asyncMarker == AsyncMarker.Sync) {
+      // Handle shadowing of parameters by local varaibles, which is allowed in
+      // Dart but not in JS.
+      //
+      // We only handle this for normal (sync) functions. Generator-based
+      // functions (sync*, async, and async*) have their bodies placed
+      // in an inner function scope that is a separate scope from the
+      // parameters, so they avoid this problem.
+      var parameterNames = new HashSet<String>()
+        ..addAll(f.positionalParameters.map((p) => p.name))
+        ..addAll(f.namedParameters.map((p) => p.name));
+
+      return jsBody.toScopedBlock(parameterNames);
+    }
+    return jsBody;
   }
 
   /// Visits [nodes] with [_visitExpression].
@@ -3476,25 +3479,33 @@ class ProgramCompiler
     var body = <JS.Statement>[];
 
     var savedCatch = _catchParameter;
+    var vars = new HashSet<String>();
     if (node.exception != null) {
       var name = node.exception;
-      if (name != null && name != _catchParameter) {
+      if (name == _catchParameter) {
+        vars.add(name.name);
+      } else if (name != null) {
+        vars.add(name.name);
         body.add(js.statement('let # = #;',
             [_emitVariableRef(name), _emitVariableRef(_catchParameter)])
           ..sourceInformation = name);
         _catchParameter = name;
       }
-      if (node.stackTrace != null) {
-        var stackVar = _emitVariableRef(node.stackTrace);
-        body.add(js.statement('let # = #.stackTrace(#);',
-            [stackVar, _runtimeModule, _emitVariableRef(name)])
-          ..sourceInformation = node.stackTrace);
+      var stackTrace = node.stackTrace;
+      if (stackTrace != null) {
+        vars.add(stackTrace.name);
+        body.add(js.statement('let # = #.stackTrace(#);', [
+          _emitVariableRef(stackTrace),
+          _runtimeModule,
+          _emitVariableRef(name)
+        ])
+          ..sourceInformation = stackTrace);
       }
     }
 
-    body.add(_visitStatement(node.body));
+    body.add(_visitStatement(node.body).toScopedBlock(vars));
     _catchParameter = savedCatch;
-    var then = JS.Statement.from(body);
+    var then = new JS.Block(body);
 
     if (types.isTop(node.guard)) return then;
 
