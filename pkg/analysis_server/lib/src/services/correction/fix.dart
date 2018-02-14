@@ -115,6 +115,8 @@ class DartFixKind {
       'CHANGE_TYPE_ANNOTATION', 50, "Change '{0}' to '{1}' type annotation");
   static const CONVERT_FLUTTER_CHILD =
       const FixKind('CONVERT_FLUTTER_CHILD', 50, "Convert to children:");
+  static const CONVERT_FLUTTER_CHILDREN =
+      const FixKind('CONVERT_FLUTTER_CHILDREN', 50, "Convert to child:");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =

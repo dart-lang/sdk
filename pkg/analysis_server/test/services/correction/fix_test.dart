@@ -5439,7 +5439,7 @@ class A {
 ''');
   }
 
-  test_undefinedParameter_convertFlutterChild_invalidList() async {
+  test_undefinedParameter_convertFlutterChild_BAD_listNotWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -5549,6 +5549,115 @@ build() {
         ),
       ],
     ),
+  );
+}
+''');
+  }
+
+  test_undefinedParameter_convertFlutterChild_OK_widgetVariable() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+build() {
+  var text = new Text('foo');
+  new Row(
+    child: text,
+  );
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILD, '''
+import 'package:flutter/material.dart';
+build() {
+  var text = new Text('foo');
+  new Row(
+    children: <Widget>[text],
+  );
+}
+''');
+  }
+
+  test_undefinedParameter_convertFlutterChildren_BAD_notWidget() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Center(
+    children: [
+      new Object(),
+    ],
+  );
+}
+''');
+    await assertNoFix(DartFixKind.CONVERT_FLUTTER_CHILDREN);
+  }
+
+  test_undefinedParameter_convertFlutterChildren_OK_multiLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Center(
+    children: [
+      new Container(
+        width: 200.0,
+        height: 300.0,
+      ),
+    ],
+  );
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILDREN, '''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Center(
+    child: new Container(
+      width: 200.0,
+      height: 300.0,
+    ),
+  );
+}
+''');
+  }
+
+  test_undefinedParameter_convertFlutterChildren_OK_singleLine() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Center(
+    children: [
+      new Text('foo'),
+    ],
+  );
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILDREN, '''
+import 'package:flutter/widgets.dart';
+build() {
+  return new Center(
+    child: new Text('foo'),
+  );
+}
+''');
+  }
+
+  test_undefinedParameter_convertFlutterChildren_OK_singleLine2() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+build() {
+  var text = new Text('foo');
+  new Center(
+    children: [text],
+  );
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_FLUTTER_CHILDREN, '''
+import 'package:flutter/widgets.dart';
+build() {
+  var text = new Text('foo');
+  new Center(
+    child: text,
   );
 }
 ''');
