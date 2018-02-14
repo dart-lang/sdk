@@ -1505,6 +1505,35 @@ static intptr_t GetResultCidOfListFactory(Zone* zone,
   return FactoryRecognizer::ResultCid(function);
 }
 
+void FlowGraphBuilder::SetResultTypeForStaticCall(
+    StaticCallInstr* call,
+    const Function& target,
+    intptr_t argument_count,
+    const InferredTypeMetadata* result_type) {
+  const intptr_t list_cid =
+      GetResultCidOfListFactory(Z, target, argument_count);
+  if (list_cid != kDynamicCid) {
+    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+           (result_type->cid == list_cid));
+    call->SetResultType(Z, CompileType::FromCid(list_cid));
+    call->set_is_known_list_constructor(true);
+    return;
+  }
+  if (target.recognized_kind() != MethodRecognizer::kUnknown) {
+    intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
+    if (recognized_cid != kDynamicCid) {
+      ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
+             (result_type->cid == recognized_cid));
+      call->SetResultType(Z, CompileType::FromCid(recognized_cid));
+      return;
+    }
+  }
+  if ((result_type != NULL) && !result_type->IsTrivial()) {
+    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
+                                                       result_type->cid));
+  }
+}
+
 Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
                                       intptr_t argument_count,
@@ -1517,22 +1546,7 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   StaticCallInstr* call = new (Z)
       StaticCallInstr(position, target, type_args_count, argument_names,
                       arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
-  const intptr_t list_cid =
-      GetResultCidOfListFactory(Z, target, argument_count);
-  if (list_cid != kDynamicCid) {
-    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
-           (result_type->cid == list_cid));
-    call->SetResultType(Z, CompileType::FromCid(list_cid));
-    call->set_is_known_list_constructor(true);
-  } else if (target.recognized_kind() != MethodRecognizer::kUnknown) {
-    intptr_t recognized_cid = MethodRecognizer::ResultCid(target);
-    ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
-           (result_type->cid == recognized_cid));
-    call->SetResultType(Z, CompileType::FromCid(recognized_cid));
-  } else if ((result_type != NULL) && !result_type->IsTrivial()) {
-    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
-                                                       result_type->cid));
-  }
+  SetResultTypeForStaticCall(call, target, argument_count, result_type);
   Push(call);
   return Fragment(call);
 }

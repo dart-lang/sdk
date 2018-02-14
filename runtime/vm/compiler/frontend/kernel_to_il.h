@@ -719,6 +719,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(TokenPosition position);
   Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
+  void SetResultTypeForStaticCall(StaticCallInstr* call,
+                                  const Function& target,
+                                  intptr_t argument_count,
+                                  const InferredTypeMetadata* result_type);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
