@@ -150,8 +150,6 @@ regress/issue_31213: Crash
 regress/issue_31299: Crash
 regress/issue_31766: Crash
 reorder_super: Crash
-runtime_checks/call_method_implicit_tear_off: Crash
-runtime_checks/call_method_implicit_tear_off_future_or: Crash
 runtime_checks/implicit_downcast_assert_initializer: Crash
 runtime_checks/implicit_downcast_constructor_initializer: Crash
 runtime_checks_new/for_in_call_kinds: Crash

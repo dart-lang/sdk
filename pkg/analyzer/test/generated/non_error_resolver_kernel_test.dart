@@ -43,6 +43,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_argumentTypeNotAssignable_classWithCall_Function() async {
+    return super.test_argumentTypeNotAssignable_classWithCall_Function();
+  }
+
+  @override
+  @failingTest
   @notForDart2
   test_async_return_flattens_futures() async {
     // Only FutureOr is flattened.
@@ -206,6 +213,34 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_2() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_2();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_3() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_3();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invalidAssignment_implicitlyImplementFunctionViaCall_4() async {
+    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_4();
   }
 
   @override

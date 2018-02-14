@@ -12,7 +12,7 @@ num_sign_test: Crash, Pass # Issue 31768
 error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
-apply3_test: RuntimeError
+apply3_test: CompileTimeError
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
@@ -350,7 +350,7 @@ bigint_test: Pass, Timeout # Please triage.
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
-apply3_test: RuntimeError
+apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
