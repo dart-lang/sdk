@@ -1026,8 +1026,21 @@ class Parser {
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
-    token = ensureSemicolon(token);
-    listener.endFunctionTypeAlias(typedefKeyword, equals, token);
+    Token semicolon = token.next;
+    if (optional(';', semicolon)) {
+      token = semicolon;
+    } else {
+      // Recovery
+      token = semicolon = ensureSemicolon(token);
+      if (optional('{', token.next) && token.next.endGroup != null) {
+        // Looks like a typedef and function declaration collided.
+        // TODO(danrubel) Consider better error message and recovery.
+        reportRecoverableErrorWithToken(
+            token.next, fasta.templateExpectedDeclaration);
+        token = token.next.endGroup;
+      }
+    }
+    listener.endFunctionTypeAlias(typedefKeyword, equals, semicolon);
     return token;
   }
 
@@ -4249,6 +4262,12 @@ class Parser {
     Token begin = token;
     token = parseExpression(token);
     if (!ofFunctionExpression) {
+      // TODO(danrubel): Improve recovery and error message for `=> return`
+      // If the token is `return` and
+      // begin.next --> synthetic_id.next --> `return`
+      // then discard the synthetic identifier and associated events (how?),
+      // report an error on and skip the `return`,
+      // and call parseExpression again.
       token = ensureSemicolon(token);
       listener.handleExpressionFunctionBody(begin, token);
     } else {

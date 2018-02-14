@@ -2129,6 +2129,17 @@ const MessageCode messageGetterWithFormals = const MessageCode(
     tip: r"""Try removing '(...)'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAssignmentToNonAssignable =
+    messageIllegalAssignmentToNonAssignable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
+    "IllegalAssignmentToNonAssignable",
+    analyzerCode: "ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE",
+    dart2jsCode: "*fatal*",
+    message: r"""Illegal assignment to non-assignable expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2)>
     templateIllegalMethodName =
     const Template<Message Function(String name, String name2)>(
@@ -3216,6 +3227,18 @@ Message _withArgumentsMethodNotFound(String name) {
   return new Message(codeMethodNotFound,
       message: """Method not found: '$name'.""", arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingAssignableSelector =
+    messageMissingAssignableSelector;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingAssignableSelector = const MessageCode(
+    "MissingAssignableSelector",
+    analyzerCode: "MISSING_ASSIGNABLE_SELECTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Missing selector such as '.<identifier>' or '[0]'.""",
+    tip: r"""Try adding a selector.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingAssignmentInInitializer =
@@ -4519,6 +4542,17 @@ const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
     dart2jsCode: "*ignored*",
     message: r"""The modifier 'static' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticConstructor = messageStaticConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticConstructor = const MessageCode(
+    "StaticConstructor",
+    analyzerCode: "STATIC_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Constructors can't be static.""",
+    tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticOperator = messageStaticOperator;

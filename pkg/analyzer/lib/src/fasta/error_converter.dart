@@ -255,6 +255,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
         return;
+      case "ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
+            offset,
+            length);
+        return;
       case "ILLEGAL_CHARACTER":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
@@ -330,6 +336,10 @@ class FastaErrorReporter {
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, offset, length);
+        return;
+      case "MISSING_ASSIGNABLE_SELECTOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, offset, length);
         return;
       case "MISSING_ASSIGNMENT_IN_INITIALIZER":
         errorReporter?.reportErrorForOffset(
@@ -460,6 +470,10 @@ class FastaErrorReporter {
       case "STATIC_AFTER_VAR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_VAR, offset, length);
+        return;
+      case "STATIC_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_CONSTRUCTOR, offset, length);
         return;
       case "STATIC_OPERATOR":
         errorReporter?.reportErrorForOffset(

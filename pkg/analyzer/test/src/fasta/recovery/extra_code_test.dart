@@ -50,12 +50,16 @@ class C {
  */
 @reflectiveTest
 class MiscellaneousTest extends AbstractRecoveryTest {
-  @failingTest
   void test_classTypeAlias_withBody() {
-    // Parser crashes
     testRecovery('''
 class B = Object with A {}
-''', [ParserErrorCode.EXPECTED_TOKEN], '''
+''',
+        // TODO(danrubel): Consolidate and improve error message.
+        [
+          ParserErrorCode.EXPECTED_EXECUTABLE,
+          ParserErrorCode.EXPECTED_EXECUTABLE,
+          ParserErrorCode.EXPECTED_TOKEN
+        ], '''
 class B = Object with A;
 ''');
   }

@@ -557,6 +557,15 @@ StaticAfterVar:
   script:
     - "class C { var static f; }"
 
+StaticConstructor:
+  template: "Constructors can't be static."
+  tip: "Try removing the keyword 'static'."
+  analyzerCode: STATIC_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { static C() {} }"
+    - "class C { static C.m() {} }"
+
 StaticOperator:
   template: "Operators can't be static."
   tip: "Try removing the keyword 'static'."
@@ -1687,6 +1696,21 @@ RedirectingConstructorWithBody:
 
 NotAnLvalue:
   template: "Can't assign to this."
+
+IllegalAssignmentToNonAssignable:
+  template: "Illegal assignment to non-assignable expression."
+  analyzerCode: ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
+  dart2jsCode: "*fatal*"
+  script:
+    - "main(){ f()++; }"
+
+MissingAssignableSelector:
+  template: "Missing selector such as '.<identifier>' or '[0]'."
+  tip: "Try adding a selector."
+  analyzerCode: MISSING_ASSIGNABLE_SELECTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "main(){ ++f(); }"
 
 CannotReadPackagesFile:
   template: "Unable to read '.packages' file:\n  #string."

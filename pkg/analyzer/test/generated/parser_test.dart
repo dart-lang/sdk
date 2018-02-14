@@ -4699,10 +4699,19 @@ class Wrong<T> {
   }
 
   void test_nonIdentifierLibraryName_partOf() {
-    CompilationUnit unit = parseCompilationUnit("part of 3;", errors: [
-      expectedError(ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, 8, 1),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 8, 1)
-    ]);
+    CompilationUnit unit = parseCompilationUnit("part of 3;",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 8, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 9, 1)
+              ]
+            : [
+                expectedError(
+                    ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, 8, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 8, 1)
+              ]);
     expect(unit, isNotNull);
   }
 
@@ -4758,8 +4767,11 @@ class Wrong<T> {
   void test_parseCascadeSection_missingIdentifier() {
     MethodInvocation methodInvocation = parseCascadeSection('..()');
     expectNotNullIfNoErrors(methodInvocation);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
+    listener.assertErrors([
+      // Cascade section is preceeded by `null` in this test
+      // and error is reported on '('.
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)
+    ]);
     expect(methodInvocation.target, isNull);
     expect(methodInvocation.methodName.name, "");
     expect(methodInvocation.typeArguments, isNull);
@@ -4769,8 +4781,11 @@ class Wrong<T> {
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
     MethodInvocation methodInvocation = parseCascadeSection('..<E>()');
     expectNotNullIfNoErrors(methodInvocation);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
+    listener.assertErrors([
+      // Cascade section is preceeded by `null` in this test
+      // and error is reported on '<'.
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)
+    ]);
     expect(methodInvocation.target, isNull);
     expect(methodInvocation.methodName.name, "");
     expect(methodInvocation.typeArguments, isNotNull);
@@ -5110,11 +5125,18 @@ m() {
   }
 
   void test_topLevelVariable_withMetadata() {
-    parseCompilationUnit("String @A string;", codes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
-    ]);
+    parseCompilationUnit("String @A string;",
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+              ]
+            : [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+              ]);
   }
 
   void test_typedef_incomplete() {
@@ -5128,11 +5150,17 @@ typedef T
 main() {
   Function<
 }
-''', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 51, 1),
-      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 51, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 55, 8)
-    ]);
+''',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 51, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 51, 1),
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 51, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 51, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 55, 8)
+              ]);
   }
 
   void test_typedef_namedFunction() {
@@ -5193,17 +5221,29 @@ main() {
         .assertErrors([expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 1)]);
   }
 
-  @failingTest
   void test_unexpectedToken_invalidPostfixExpression() {
-    // Note: this might not be the right error to produce, but some error should
-    // be produced
-    parseExpression("f()++",
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 3, 2)]);
+    parseExpression("f()++", errors: [
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 3, 2)
+    ]);
+  }
+
+  void test_unexpectedToken_invalidPrefixExpression() {
+    parseExpression("++f()", errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 4, 1)
+    ]);
   }
 
   void test_unexpectedToken_returnInExpressionFunctionBody() {
     parseCompilationUnit("f() => return null;",
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 6)]);
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 4),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 14, 4),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 4)
+              ]
+            : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 6)]);
   }
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
@@ -10327,7 +10367,15 @@ abstract class RecoveryParserTestMixin implements AbstractParserTestCase {
   void test_classTypeAlias_withBody() {
     parseCompilationUnit(r'''
 class A {}
-class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
+class B = Object with A {}''',
+        codes: usingFastaParser
+            // TODO(danrubel): Consolidate and improve error message.
+            ? [
+                ParserErrorCode.EXPECTED_EXECUTABLE,
+                ParserErrorCode.EXPECTED_EXECUTABLE,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_combinator_missingIdentifier() {
@@ -10492,7 +10540,9 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     CompilationUnit unit =
         parseCompilationUnit("class A { A() : a = (){}; var v; }", codes: [
       ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.UNEXPECTED_TOKEN
+      usingFastaParser
+          ? ParserErrorCode.EXPECTED_CLASS_MEMBER
+          : ParserErrorCode.UNEXPECTED_TOKEN
     ]);
     // Make sure we recovered and parsed "var v" correctly
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
@@ -10653,9 +10703,9 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     }
   }
 
-  @failingTest
   void test_incomplete_returnType() {
-    parseCompilationUnit(r'''
+    if (usingFastaParser) {
+      parseCompilationUnit(r'''
 Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   if (map == null) return null;
   Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();
@@ -10663,7 +10713,8 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     result[new Symbol(name)] = value;
   });
   return result;
-}''');
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 36, 1)]);
+    }
   }
 
   void test_incomplete_topLevelFunction() {
