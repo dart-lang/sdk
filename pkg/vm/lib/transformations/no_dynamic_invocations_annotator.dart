@@ -24,6 +24,10 @@ class Selector {
 
   Selector(this.action, this.target);
 
+  Selector.invoke(Name target) : this(Action.invoke, target);
+  Selector.get(Name target) : this(Action.get, target);
+  Selector.set(Name target) : this(Action.set, target);
+
   bool operator ==(other) {
     return other is Selector &&
         other.action == this.action &&
@@ -46,7 +50,7 @@ class Selector {
   }
 }
 
-class NoDynamicInvocationsAnnotator extends RecursiveVisitor<Null> {
+class NoDynamicInvocationsAnnotator {
   final Set<Selector> _dynamicSelectors;
   final ProcedureAttributesMetadataRepository _metadata;
 
@@ -56,7 +60,35 @@ class NoDynamicInvocationsAnnotator extends RecursiveVisitor<Null> {
     program.addMetadataRepository(_metadata);
   }
 
-  @override
+  visitProgram(Program program) {
+    for (var library in program.libraries) {
+      for (var klass in library.classes) {
+        visitClass(klass);
+      }
+    }
+  }
+
+  visitClass(Class node) {
+    for (var member in node.members) {
+      if (member is Procedure) {
+        visitProcedure(member);
+      } else if (member is Field) {
+        visitField(member);
+      }
+    }
+  }
+
+  visitField(Field node) {
+    if (node.isStatic || node.name.name == 'call') {
+      return;
+    }
+
+    if (!_dynamicSelectors.contains(new Selector.set(node.name))) {
+      _metadata.mapping[node] =
+          const ProcedureAttributesMetadata.noDynamicInvocations();
+    }
+  }
+
   visitProcedure(Procedure node) {
     if (node.isStatic || node.name.name == 'call') {
       return;
@@ -64,9 +96,9 @@ class NoDynamicInvocationsAnnotator extends RecursiveVisitor<Null> {
 
     Selector selector;
     if (node.kind == ProcedureKind.Method) {
-      selector = new Selector(Action.invoke, node.name);
+      selector = new Selector.invoke(node.name);
     } else if (node.kind == ProcedureKind.Setter) {
-      selector = new Selector(Action.set, node.name);
+      selector = new Selector.set(node.name);
     } else {
       return;
     }
@@ -92,7 +124,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitMethodInvocation(node);
 
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector(Action.invoke, node.name));
+      dynamicSelectors.add(new Selector.invoke(node.name));
     }
   }
 
@@ -101,7 +133,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitPropertyGet(node);
 
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector(Action.get, node.name));
+      dynamicSelectors.add(new Selector.get(node.name));
     }
   }
 
@@ -110,7 +142,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitPropertySet(node);
 
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector(Action.set, node.name));
+      dynamicSelectors.add(new Selector.set(node.name));
     }
   }
 }

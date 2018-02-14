@@ -1007,8 +1007,8 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
         VisitNode();
         break;
       }
-      bool is_setter = function.IsImplicitSetterFunction();
-      bool is_method = !function.IsStaticFunction();
+      const bool is_setter = function.IsImplicitSetterFunction();
+      const bool is_method = !function.IsStaticFunction();
       intptr_t pos = 0;
       if (is_method) {
         Class& klass = Class::Handle(Z, function.Owner());
@@ -1025,6 +1025,16 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
             Symbols::Value(),
             AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
         scope_->InsertParameterAt(pos++, result_->setter_value);
+
+        if (is_method && !attrs.has_dynamic_invocations) {
+          FieldHelper field_helper(builder_);
+          field_helper.ReadUntilIncluding(FieldHelper::kFlags);
+
+          if (!field_helper.IsGenericCovariantImpl()) {
+            result_->setter_value->set_type_check_mode(
+                LocalVariable::kTypeCheckedByCaller);
+          }
+        }
       }
       break;
     }
@@ -5842,9 +5852,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     ICData::RebindRule rebind_rule,
     const InferredTypeMetadata* result_type,
     intptr_t type_args_count) {
-  return flow_graph_builder_->StaticCall(
-      position, target, argument_count, argument_names, rebind_rule,
-      result_type, type_args_count);
+  return flow_graph_builder_->StaticCall(position, target, argument_count,
+                                         argument_names, rebind_rule,
+                                         result_type, type_args_count);
 }
 
 Fragment StreamingFlowGraphBuilder::InstanceCall(
@@ -6928,7 +6938,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
     TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-  TokenPosition position = ReadPosition();  // read offset.
+  TokenPosition position = ReadPosition();     // read offset.
   if (p != NULL) *p = position;
 
   const InferredTypeMetadata result_type =
@@ -6991,9 +7001,9 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
                      &positional_argument_count);  // read arguments.
   ++argument_count;
 
-  return instructions +
-         StaticCall(position, target, argument_count, argument_names,
-                    ICData::kNoRebind, &result_type, type_args_len);
+  return instructions + StaticCall(position, target, argument_count,
+                                   argument_names, ICData::kNoRebind,
+                                   &result_type, type_args_len);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
@@ -7143,7 +7153,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
                                                           TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-  TokenPosition position = ReadPosition();  // read position.
+  TokenPosition position = ReadPosition();     // read position.
   if (p != NULL) *p = position;
 
   const InferredTypeMetadata result_type =
