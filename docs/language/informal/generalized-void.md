@@ -287,6 +287,31 @@ hence ignored), except when explicitly subjected to a type cast. This
 open for the cases where the developer knows that the typing misrepresents
 the actual situation.*
 
+We define void equivalent types inductively as follows: A type `T` is
+_void equivalent_ if `T` is `void` or `T` is a type of the form
+`FutureOr<S>` where `S` is a void equivalent type.
+
+*The subtype rules for `FutureOr` ensure that whenever `T` is a void
+equivalent type we can show `T <: void` and `void <: T`. In that sense we
+may consider void equivalent types to be "the same type". However, we will
+not necessarily treat them identically for all purposes. For instance,
+it is useful to be able to test `if (x is Future<void>) ..` in the case
+where `x` is a variable of type `FutureOr<void>`, but that is not allowed
+when `x` has type `void`.*
+
+It is a static warning (in Dart 2: a compile-time error) if a return
+statement `return e;` occurs such that the innermost enclosing function
+has return type `void` and the static type of `e` is not a void equivalent
+type.
+
+It is a static warning (in Dart 2: a compile-time error) if a function
+marked `async*`, or `sync*` has return type `void`.
+
+*Note that it is allowed for an `async` function to have return type
+`void`. This serves to indicate that said function performs a
+"fire-and-forget" operation, that is, it is not even useful for the caller
+to synchronize with the completion of that task.*
+
 During bounds checking, it is possible that a bound of a formal type
 parameter of a generic class or function is statically known to be the type
 void. In this case, the bound is considered to be the built-in class
