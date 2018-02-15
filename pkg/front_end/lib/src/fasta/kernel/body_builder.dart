@@ -7,18 +7,6 @@ library fasta.body_builder;
 // ignore: UNDEFINED_HIDDEN_NAME
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
-
-import 'package:kernel/type_algebra.dart' show instantiateToBounds;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/clone.dart' show CloneVisitor;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'package:kernel/transformations/flags.dart' show TransformerFlag;
-
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart'
@@ -85,13 +73,21 @@ import 'redirecting_factory_body.dart'
 
 import 'utils.dart' show offsetForToken;
 
+import 'forest.dart' show Forest;
+
+import 'fangorn.dart' show Fangorn;
+
 import '../names.dart';
 
 import 'fasta_accessors.dart';
 
+import 'kernel_api.dart';
+
+import 'kernel_ast_api.dart';
+
 import 'kernel_builder.dart';
 
-import 'kernel_shadow_ast.dart';
+final Forest<Expression, Statement> _forest = new Fangorn();
 
 class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
@@ -110,6 +106,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   final Scope enclosingScope;
 
   final bool enableNative;
+
   final bool stringExpectedAfterNative;
 
   /// Whether to ignore an unresolved reference to `main` within the body of
@@ -208,6 +205,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
         super(scope);
+
+  @override
+  Forest<Expression, Statement> get forest => _forest;
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 
@@ -1463,7 +1463,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (value == null) {
       push(new LargeIntAccessor(this, token));
     } else {
-      push(new ShadowIntLiteral(value)..fileOffset = offsetForToken(token));
+      push(forest.literalInt(value, offsetForToken(token)));
     }
   }
 
@@ -2231,8 +2231,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           int value =
               int.parse("-" + receiver.token.lexeme, onError: (_) => null);
           if (value != null) {
-            push(new ShadowIntLiteral(value)
-              ..fileOffset = offsetForToken(token));
+            push(forest.literalInt(value, offsetForToken(token)));
             return;
           }
         }
@@ -3434,13 +3433,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Expression buildFallThroughError(int charOffset) {
     addProblem(fasta.messageSwitchCaseFallThrough, charOffset);
 
+    // TODO(ahe): The following doesn't make sense for the Analyzer. It should
+    // be moved to [Forest] or conditional on `forest is Fangorn`.
+
+    // TODO(ahe): Compute a LocatedMessage above instead?
     Location location = messages.getLocationFromUri(uri, charOffset);
 
     return new Throw(buildStaticInvocation(
         library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
         new Arguments(<Expression>[
           new StringLiteral("${location?.file ?? uri}"),
-          new IntLiteral(location?.line ?? 0)
+          forest.literalInt(location?.line ?? 0, charOffset),
         ]),
         charOffset: charOffset));
   }
