@@ -201,6 +201,8 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--exclude-source": false,
   "--fatal": ",",
   "--help": false,
+  "--legacy": "--legacy-mode",
+  "--legacy-mode": true,
   "--libraries-json": Uri,
   "--output": Uri,
   "--packages": Uri,
@@ -242,7 +244,7 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  final bool strongMode = options["--strong-mode"];
+  final bool strongMode = options["--strong-mode"] || !options["--legacy-mode"];
 
   final bool syncAsync = options["--sync-async"];
 

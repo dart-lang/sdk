@@ -209,9 +209,6 @@ class CompileTask {
     DillTarget dillTarget = createDillTarget(uriTranslator);
     KernelTarget kernelTarget =
         createKernelTarget(dillTarget, uriTranslator, c.options.strongMode);
-    if (c.options.strongMode) {
-      print("Note: strong mode support is preliminary and may not work.");
-    }
     Uri platform = c.options.sdkSummary;
     if (platform != null) {
       _appendDillForUri(dillTarget, platform);
