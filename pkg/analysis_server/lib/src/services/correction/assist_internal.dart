@@ -1475,12 +1475,6 @@ class AssistProcessor {
       return;
     }
 
-    // We can inline the list of our children only into another list.
-    var widgetParentNode = widgetCreation.parent;
-    if (widgetParentNode is! ListLiteral) {
-      return;
-    }
-
     // Prepare the list of our children.
     List<Expression> childrenExpressions;
     {
@@ -1492,6 +1486,12 @@ class AssistProcessor {
       } else {
         return;
       }
+    }
+
+    // We can inline the list of our children only into another list.
+    var widgetParentNode = widgetCreation.parent;
+    if (childrenExpressions.length > 1 && widgetParentNode is! ListLiteral) {
+      return;
     }
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
