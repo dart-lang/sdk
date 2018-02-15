@@ -1677,7 +1677,6 @@ class AssistProcessor {
         builder.write(': ');
         builder.write(widgetSrc);
         builder.write(')');
-        builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, kind);
@@ -2246,7 +2245,6 @@ class AssistProcessor {
         builder.write(eol);
         builder.write(indentOld);
         builder.write(']');
-        builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_WRAP_GENERIC);
@@ -3024,7 +3022,6 @@ class AssistProcessor {
         });
         builder.write(outerIndent);
         builder.write(')');
-        builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, assistKind);
