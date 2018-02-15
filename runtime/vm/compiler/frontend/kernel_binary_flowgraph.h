@@ -174,6 +174,7 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
+    kIsCovariant = 1 << 5,
     kIsGenericCovariantImpl = 1 << 6,
     kIsGenericCovariantInterface = 1 << 7
   };
@@ -198,6 +199,7 @@ class FieldHelper {
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsFinal() { return (flags_ & kFinal) != 0; }
   bool IsStatic() { return (flags_ & kStatic) != 0; }
+  bool IsCovariant() const { return (flags_ & kIsCovariant) != 0; }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
