@@ -44,8 +44,8 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     for (var root in roots) {
       if (root != null && p.url.isWithin(root, sourceUrl)) {
         var relative = p.url.relative(sourceUrl, from: root);
-        if (relative.startsWith('dart:')) {
-          sourceUrl = relative;
+        if (relative.contains('dart:')) {
+          sourceUrl = relative.substring(relative.indexOf('dart:'));
           break;
         }
         var packageRoot = '$root/packages';
