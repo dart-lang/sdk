@@ -1830,7 +1830,7 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
     return Object::sentinel().raw();
   }
   if (message->len() > 0) {
-    MessageSnapshotReader reader(message->data(), message->len(), thread);
+    MessageSnapshotReader reader(message, thread);
     return reader.ReadObject();
   } else {
     return message->raw_obj();

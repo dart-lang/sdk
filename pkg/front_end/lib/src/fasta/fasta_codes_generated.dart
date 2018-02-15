@@ -1,11 +1,11 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/front_end/messages.yaml' and run
-// 'pkg/front_end/tool/_fasta/generate_messages.dart' to update.
+// 'pkg/front_end/tool/fasta generate-messages' to update.
 
 part of fasta.codes;
 
@@ -2129,6 +2129,17 @@ const MessageCode messageGetterWithFormals = const MessageCode(
     tip: r"""Try removing '(...)'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAssignmentToNonAssignable =
+    messageIllegalAssignmentToNonAssignable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
+    "IllegalAssignmentToNonAssignable",
+    analyzerCode: "ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE",
+    dart2jsCode: "*fatal*",
+    message: r"""Illegal assignment to non-assignable expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2)>
     templateIllegalMethodName =
     const Template<Message Function(String name, String name2)>(
@@ -3218,6 +3229,18 @@ Message _withArgumentsMethodNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingAssignableSelector =
+    messageMissingAssignableSelector;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingAssignableSelector = const MessageCode(
+    "MissingAssignableSelector",
+    analyzerCode: "MISSING_ASSIGNABLE_SELECTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Missing selector such as '.<identifier>' or '[0]'.""",
+    tip: r"""Try adding a selector.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingAssignmentInInitializer =
     messageMissingAssignmentInInitializer;
 
@@ -3353,6 +3376,41 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
     dart2jsCode: "*fatal*",
     message: r"""A typedef needs an explicit list of parameters.""",
     tip: r"""Try adding a parameter list to the typedef.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String name2,
+        DartType
+            _type)> templateMixinInferenceNoMatchingClass = const Template<
+        Message Function(String name, String name2, DartType _type)>(
+    messageTemplate:
+        r"""Type parameters could not be inferred for the mixin '#name' because
+'#name2' does not implement the mixin's supertype constraint '#type'.""",
+    withArguments: _withArgumentsMixinInferenceNoMatchingClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, DartType _type)>
+    codeMixinInferenceNoMatchingClass =
+    const Code<Message Function(String name, String name2, DartType _type)>(
+        "MixinInferenceNoMatchingClass", templateMixinInferenceNoMatchingClass,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinInferenceNoMatchingClass(
+    String name, String name2, DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeMixinInferenceNoMatchingClass,
+      message:
+          """Type parameters could not be inferred for the mixin '$name' because
+'$name2' does not implement the mixin's supertype constraint '$type'.""",
+      arguments: {'name': name, 'name2': name2, 'type': _type});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;
@@ -4519,6 +4577,17 @@ const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
     dart2jsCode: "*ignored*",
     message: r"""The modifier 'static' should be before the modifier 'var'.""",
     tip: r"""Try re-ordering the modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticConstructor = messageStaticConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticConstructor = const MessageCode(
+    "StaticConstructor",
+    analyzerCode: "STATIC_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Constructors can't be static.""",
+    tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticOperator = messageStaticOperator;

@@ -773,19 +773,20 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_convertFlutterChild() async {
-    NamedExpression namedExp = flutter.findNamedExpression(node, 'child');
-    if (namedExp == null) {
+    NamedExpression named = flutter.findNamedExpression(node, 'child');
+    if (named == null) {
       return;
     }
-    InstanceCreationExpression childArg =
-        flutter.getChildWidget(namedExp, false);
-    if (childArg != null) {
+
+    // child: widget
+    Expression expression = named.expression;
+    if (flutter.isWidgetExpression(expression)) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         flutter.convertChildToChildren2(
             builder,
-            childArg,
-            namedExp,
+            expression,
+            named,
             eol,
             utils.getNodeText,
             utils.getLinePrefix,
@@ -796,13 +797,15 @@ class FixProcessor {
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
       return;
     }
-    ListLiteral listArg = flutter.getChildList(namedExp);
-    if (listArg != null) {
+
+    // child: [widget1, widget2]
+    if (expression is ListLiteral &&
+        expression.elements.every(flutter.isWidgetExpression)) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleInsertion(namedExp.offset + 'child'.length, 'ren');
-        if (listArg.typeArguments == null) {
-          builder.addSimpleInsertion(listArg.offset, '<Widget>');
+        builder.addSimpleReplacement(range.node(named.name), 'children:');
+        if (expression.typeArguments == null) {
+          builder.addSimpleInsertion(expression.offset, '<Widget>');
         }
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
@@ -810,7 +813,31 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_convertFlutterChildren() async {
-    // TODO(messick) Implement _addFix_convertFlutterChildren()
+    AstNode node = this.node;
+    if (node is SimpleIdentifier &&
+        node.name == 'children' &&
+        node.parent?.parent is NamedExpression) {
+      NamedExpression named = node.parent?.parent;
+      Expression expression = named.expression;
+      if (expression is ListLiteral && expression.elements.length == 1) {
+        Expression widget = expression.elements[0];
+        if (flutter.isWidgetExpression(widget)) {
+          String widgetText = utils.getNodeText(widget);
+          String indentOld = utils.getLinePrefix(widget.offset);
+          String indentNew = utils.getLinePrefix(named.offset);
+          widgetText = _replaceSourceIndent(widgetText, indentOld, indentNew);
+
+          var builder = new DartChangeBuilder(session);
+          await builder.addFileEdit(file, (builder) {
+            builder.addReplacement(range.node(named), (builder) {
+              builder.write('child: ');
+              builder.write(widgetText);
+            });
+          });
+          _addFixFromBuilder(builder, DartFixKind.CONVERT_FLUTTER_CHILDREN);
+        }
+      }
+    }
   }
 
   Future<Null> _addFix_createClass() async {
@@ -3265,6 +3292,12 @@ class FixProcessor {
       return _isNameOfType(node.name);
     }
     return false;
+  }
+
+  static String _replaceSourceIndent(
+      String source, String indentOld, String indentNew) {
+    return source.replaceAll(
+        new RegExp('^$indentOld', multiLine: true), indentNew);
   }
 }
 

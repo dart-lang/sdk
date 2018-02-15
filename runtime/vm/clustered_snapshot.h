@@ -195,7 +195,7 @@ class Serializer : public StackResource {
     data[Snapshot::kSnapshotFlagIndex] = kind;
   }
 
-  void WriteVersionAndFeatures();
+  void WriteVersionAndFeatures(bool is_vm_snapshot);
 
   void Serialize();
   WriteStream* stream() { return &stream_; }

@@ -1233,6 +1233,30 @@ String res(String s) => s..length;
 ''');
   }
 
+  test_singleExpression_coveringExpression() async {
+    await indexTestUnit('''
+main(int n) {
+  var v = new FooBar(n);
+}
+
+class FooBar {
+  FooBar(int count);
+}
+''');
+    _createRefactoringForStringOffset('Bar(n);');
+    return _assertSuccessfulRefactoring('''
+main(int n) {
+  var v = res(n);
+}
+
+FooBar res(int n) => new FooBar(n);
+
+class FooBar {
+  FooBar(int count);
+}
+''');
+  }
+
   test_singleExpression_dynamic() async {
     await indexTestUnit('''
 dynaFunction() {}
@@ -2865,6 +2889,15 @@ Future<int> newFuture() => null;
     int offset = findOffset(search);
     int length = search.length;
     _createRefactoring(offset, length);
+  }
+
+  /**
+   * Creates a new refactoring in [refactoring] at the offset of the given
+   * [search] pattern, and with `0` length.
+   */
+  void _createRefactoringForStringOffset(String search) {
+    int offset = findOffset(search);
+    _createRefactoring(offset, 0);
   }
 
   void _createRefactoringWithSuffix(String selectionSearch, String suffix) {

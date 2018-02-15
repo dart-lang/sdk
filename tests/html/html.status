@@ -224,6 +224,9 @@ webgl_1_test: Pass, Fail # Issue 8219
 websql_test: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 xhr_test/xhr: Pass, Fail # Issue 11602
 
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+websql_test: Pass # Triage, seen some double reporting on windows.
+
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
@@ -371,6 +374,13 @@ custom_element_name_clash_test: Pass, Timeout # Issue 26789
 custom_elements_test: Pass, Timeout # Issue 26789
 request_animation_frame_test: Skip # Times out. Issue 22167
 transition_event_test/functional: Skip # Times out. Issue 22167
+
+[ $runtime == chrome && $csp ]
+deferred_multi_app_htmltest: SkipByDesign # uses inline script
+no_linked_scripts_htmltest: SkipByDesign # uses inline script
+scripts_htmltest: SkipByDesign # uses inline script
+two_scripts_htmltest: SkipByDesign # uses inline script
+worker_test/functional: SkipByDesign # starts worker with inline script
 
 [ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt ]
 webgl_1_test: Pass, Fail # Issue 8219

@@ -31,9 +31,13 @@ class MethodTest extends PartialCodeTest {
         new TestDescriptor(
           'const_noName',
           'const',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED
+          ],
           'const _s_;',
-          allFailing: true,
+          failing: allExceptEof,
           expectedErrorsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
@@ -41,9 +45,12 @@ class MethodTest extends PartialCodeTest {
         new TestDescriptor(
           'const_name',
           'const f',
-          [ParserErrorCode.EXPECTED_TOKEN],
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED
+          ],
           'const f;',
-          allFailing: true,
+          failing: ['methodNonVoid', 'getter', 'setter'],
           expectedErrorsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
@@ -159,9 +166,13 @@ class MethodTest extends PartialCodeTest {
         new TestDescriptor(
           'static_const_noName',
           'static const',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.EXPECTED_TOKEN,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED
+          ],
           'static const _s_;',
-          allFailing: true,
+          failing: allExceptEof,
           expectedErrorsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
@@ -169,9 +180,12 @@ class MethodTest extends PartialCodeTest {
         new TestDescriptor(
           'static_const_name',
           'static const f',
-          [ParserErrorCode.EXPECTED_TOKEN],
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            CompileTimeErrorCode.CONST_NOT_INITIALIZED
+          ],
           'static const f;',
-          allFailing: true,
+          failing: ['methodNonVoid', 'getter', 'setter'],
           expectedErrorsInValidCode: [
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],

@@ -23,17 +23,6 @@ namespace dart {
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, show_kernel_isolate);
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 #ifndef PRODUCT
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
  public:
@@ -107,13 +96,10 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
                 Smi::Handle(thread->zone(), Smi::New(Message::kServiceOOBMsg)));
 
   // Serialize message.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(message);
-
+  MessageWriter writer(false);
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(
-      new Message(sp.Id(), data, writer.BytesWritten(), Message::kOOBPriority));
+      writer.WriteMessage(message, sp.Id(), Message::kOOBPriority));
   return Bool::Get(result).raw();
 }
 

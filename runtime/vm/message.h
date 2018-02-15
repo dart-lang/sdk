@@ -8,7 +8,6 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
-#include "vm/raw_object.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
 typedef int64_t Dart_Port;
@@ -16,6 +15,7 @@ typedef int64_t Dart_Port;
 namespace dart {
 
 class JSONStream;
+class RawObject;
 
 class Message {
  public:
@@ -48,39 +48,15 @@ class Message {
           uint8_t* data,
           intptr_t len,
           Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort)
-      : next_(NULL),
-        dest_port_(dest_port),
-        delivery_failure_port_(delivery_failure_port),
-        data_(data),
-        len_(len),
-        priority_(priority) {
-    ASSERT((priority == kNormalPriority) ||
-           (delivery_failure_port == kIllegalPort));
-  }
+          Dart_Port delivery_failure_port = kIllegalPort);
 
   // Message objects can also carry RawObject pointers for Smis and objects in
   // the VM heap. This is indicated by setting the len_ field to 0.
   Message(Dart_Port dest_port,
           RawObject* raw_obj,
           Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort)
-      : next_(NULL),
-        dest_port_(dest_port),
-        delivery_failure_port_(delivery_failure_port),
-        data_(reinterpret_cast<uint8_t*>(raw_obj)),
-        len_(0),
-        priority_(priority) {
-    ASSERT(!raw_obj->IsHeapObject() || raw_obj->IsVMHeapObject());
-    ASSERT((priority == kNormalPriority) ||
-           (delivery_failure_port == kIllegalPort));
-  }
-  ~Message() {
-    ASSERT(delivery_failure_port_ == kIllegalPort);
-    if (len_ > 0) {
-      free(data_);
-    }
-  }
+          Dart_Port delivery_failure_port = kIllegalPort);
+  ~Message();
 
   Dart_Port dest_port() const { return dest_port_; }
   uint8_t* data() const {

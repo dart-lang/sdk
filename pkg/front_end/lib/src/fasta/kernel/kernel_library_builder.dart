@@ -65,6 +65,7 @@ import 'kernel_builder.dart'
         KernelMixinApplicationBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
+        KernelRedirectingFactoryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -674,22 +675,40 @@ class KernelLibraryBuilder
     }
 
     assert(constructorNameReference.suffix == null);
-    KernelProcedureBuilder procedure = new KernelProcedureBuilder(
-        metadata,
-        staticMask | modifiers,
-        returnType,
-        procedureName,
-        copyTypeVariables(
-            currentDeclaration.typeVariables ?? <TypeVariableBuilder>[],
-            factoryDeclaration),
-        formals,
-        ProcedureKind.Factory,
-        this,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        nativeMethodName,
-        redirectionTarget);
+    KernelProcedureBuilder procedure;
+    if (redirectionTarget != null) {
+      procedure = new KernelRedirectingFactoryBuilder(
+          metadata,
+          staticMask | modifiers,
+          returnType,
+          procedureName,
+          copyTypeVariables(
+              currentDeclaration.typeVariables ?? <TypeVariableBuilder>[],
+              factoryDeclaration),
+          formals,
+          this,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          nativeMethodName,
+          redirectionTarget);
+    } else {
+      procedure = new KernelProcedureBuilder(
+          metadata,
+          staticMask | modifiers,
+          returnType,
+          procedureName,
+          copyTypeVariables(
+              currentDeclaration.typeVariables ?? <TypeVariableBuilder>[],
+              factoryDeclaration),
+          formals,
+          ProcedureKind.Factory,
+          this,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          nativeMethodName);
+    }
 
     var metadataCollector = loader.target.metadataCollector;
     metadataCollector?.setDocumentationComment(

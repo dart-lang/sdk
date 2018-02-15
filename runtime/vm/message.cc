@@ -11,6 +11,43 @@
 
 namespace dart {
 
+Message::Message(Dart_Port dest_port,
+                 uint8_t* data,
+                 intptr_t len,
+                 Priority priority,
+                 Dart_Port delivery_failure_port)
+    : next_(NULL),
+      dest_port_(dest_port),
+      delivery_failure_port_(delivery_failure_port),
+      data_(data),
+      len_(len),
+      priority_(priority) {
+  ASSERT((priority == kNormalPriority) ||
+         (delivery_failure_port == kIllegalPort));
+}
+
+Message::Message(Dart_Port dest_port,
+                 RawObject* raw_obj,
+                 Priority priority,
+                 Dart_Port delivery_failure_port)
+    : next_(NULL),
+      dest_port_(dest_port),
+      delivery_failure_port_(delivery_failure_port),
+      data_(reinterpret_cast<uint8_t*>(raw_obj)),
+      len_(0),
+      priority_(priority) {
+  ASSERT(!raw_obj->IsHeapObject() || raw_obj->IsVMHeapObject());
+  ASSERT((priority == kNormalPriority) ||
+         (delivery_failure_port == kIllegalPort));
+}
+
+Message::~Message() {
+  ASSERT(delivery_failure_port_ == kIllegalPort);
+  if (len_ > 0) {
+    free(data_);
+  }
+}
+
 bool Message::RedirectToDeliveryFailurePort() {
   if (delivery_failure_port_ == kIllegalPort) {
     return false;

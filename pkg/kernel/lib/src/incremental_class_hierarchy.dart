@@ -226,6 +226,11 @@ class IncrementalClassHierarchy implements ClassHierarchy {
   }
 
   @override
+  Supertype asInstantiationOf(Supertype type, Class superclass) {
+    throw new UnimplementedError();
+  }
+
+  @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;

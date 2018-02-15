@@ -1030,6 +1030,18 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
                           intptr_t* script_snapshot_size);
 
 /**
+ * Returns true if snapshot_buffer contains a Dart2 snapshot.
+ *
+ * \param snapshot_buffer Pointer to a buffer that contains the snapshot
+ *   that needs to be checked.
+ * \param snapshot_size Size of the buffer.
+ *
+ * \returns true if the snapshot is a Dart2 snapshot, false otherwise.
+ */
+DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer,
+                                      intptr_t snapshot_size);
+
+/**
  * Schedules an interrupt for the specified isolate.
  *
  * When the isolate is interrupted, the isolate interrupt callback

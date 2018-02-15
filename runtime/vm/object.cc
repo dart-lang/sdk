@@ -3910,7 +3910,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      from_index, num_type_params, bound_error,
                                      bound_trail, space);
     }
-    if (other.IsDartFunctionClass()) {
+    // In strong mode, subtyping rules of callable instances are restricted.
+    if (!isolate->strong() && other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
           Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
@@ -4403,29 +4404,30 @@ const char* Class::ToCString() const {
                      patch_prefix, class_name);
 }
 
+// Thomas Wang, Integer Hash Functions.
+// https://gist.github.com/badboy/6267743
+// "64 bit to 32 bit Hash Functions"
+static uword Hash64To32(uint64_t v) {
+  v = ~v + (v << 18);
+  v = v ^ (v >> 31);
+  v = v * 21;
+  v = v ^ (v >> 11);
+  v = v + (v << 6);
+  v = v ^ (v >> 22);
+  return static_cast<uint32_t>(v);
+}
+
 class CanonicalDoubleKey {
  public:
   explicit CanonicalDoubleKey(const Double& key)
       : key_(&key), value_(key.value()) {}
   explicit CanonicalDoubleKey(const double value) : key_(NULL), value_(value) {}
-
   bool Matches(const Double& obj) const {
     return obj.BitwiseEqualsToDouble(value_);
   }
   uword Hash() const { return Hash(value_); }
-
-  // Thomas Wang, Integer Hash Functions.
-  // https://gist.github.com/badboy/6267743
-  // "64 bit to 32 bit Hash Functions"
   static uword Hash(double value) {
-    uint64_t v = bit_cast<uint64_t>(value);
-    v = ~v + (v << 18);
-    v = v ^ (v >> 31);
-    v = v * 21;
-    v = v ^ (v >> 11);
-    v = v + (v << 6);
-    v = v ^ (v >> 22);
-    return static_cast<uint32_t>(v);
+    return Hash64To32(bit_cast<uint64_t>(value));
   }
 
   const Double* key_;
@@ -4435,25 +4437,43 @@ class CanonicalDoubleKey {
   DISALLOW_ALLOCATION();
 };
 
-// Traits for looking up Canonical Instances based on a hash of the fields.
-class CanonicalDoubleTraits {
+class CanonicalMintKey {
  public:
-  static const char* Name() { return "CanonicalDoubleTraits"; }
+  explicit CanonicalMintKey(const Mint& key)
+      : key_(&key), value_(key.value()) {}
+  explicit CanonicalMintKey(const int64_t value) : key_(NULL), value_(value) {}
+  bool Matches(const Mint& obj) const { return obj.value() == value_; }
+  uword Hash() const { return Hash(value_); }
+  static uword Hash(int64_t value) {
+    return Hash64To32(bit_cast<uint64_t>(value));
+  }
+
+  const Mint* key_;
+  const int64_t value_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical numbers based on a hash of the value.
+template <typename ObjectType, typename KeyType>
+class CanonicalNumberTraits {
+ public:
+  static const char* Name() { return "CanonicalNumberTraits"; }
   static bool ReportStats() { return false; }
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
     return a.raw() == b.raw();
   }
-  static bool IsMatch(const CanonicalDoubleKey& a, const Object& b) {
-    return a.Matches(Double::Cast(b));
+  static bool IsMatch(const KeyType& a, const Object& b) {
+    return a.Matches(ObjectType::Cast(b));
   }
   static uword Hash(const Object& key) {
-    ASSERT(key.IsDouble());
-    return CanonicalDoubleKey::Hash(Double::Cast(key).value());
+    return KeyType::Hash(ObjectType::Cast(key).value());
   }
-  static uword Hash(const CanonicalDoubleKey& key) { return key.Hash(); }
-  static RawObject* NewKey(const CanonicalDoubleKey& obj) {
+  static uword Hash(const KeyType& key) { return key.Hash(); }
+  static RawObject* NewKey(const KeyType& obj) {
     if (obj.key_ != NULL) {
       return obj.key_->raw();
     } else {
@@ -4462,7 +4482,10 @@ class CanonicalDoubleTraits {
     }
   }
 };
-typedef UnorderedHashSet<CanonicalDoubleTraits> CanonicalDoubleSet;
+typedef UnorderedHashSet<CanonicalNumberTraits<Double, CanonicalDoubleKey> >
+    CanonicalDoubleSet;
+typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
+    CanonicalMintSet;
 
 // Returns an instance of Double or Double::null().
 RawDouble* Class::LookupCanonicalDouble(Zone* zone, double value) const {
@@ -4476,27 +4499,16 @@ RawDouble* Class::LookupCanonicalDouble(Zone* zone, double value) const {
   return canonical_value.raw();
 }
 
-RawMint* Class::LookupCanonicalMint(Zone* zone,
-                                    int64_t value,
-                                    intptr_t* index) const {
+// Returns an instance of Mint or Mint::null().
+RawMint* Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
   ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
+  if (this->constants() == Object::empty_array().raw()) return Mint::null();
+
   Mint& canonical_value = Mint::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.value() == value) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
-  }
-  return Mint::null();
+  CanonicalMintSet constants(zone, this->constants());
+  canonical_value ^= constants.GetOrNull(CanonicalMintKey(value));
+  this->set_constants(constants.Release());
+  return canonical_value.raw();
 }
 
 RawBigint* Class::LookupCanonicalBigint(Zone* zone,
@@ -4610,9 +4622,19 @@ void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
   this->set_constants(constants.Release());
 }
 
-void Class::InsertCanonicalInt(Zone* zone,
-                               intptr_t index,
-                               const Number& constant) const {
+void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
+  if (this->constants() == Object::empty_array().raw()) {
+    this->set_constants(Array::Handle(
+        zone, HashTables::New<CanonicalMintSet>(128, Heap::kOld)));
+  }
+  CanonicalMintSet constants(zone, this->constants());
+  constants.InsertNewOrGet(CanonicalMintKey(constant));
+  this->set_constants(constants.Release());
+}
+
+void Class::InsertCanonicalBigint(Zone* zone,
+                                  intptr_t index,
+                                  const Bigint& constant) const {
   // The constant needs to be added to the list. Grow the list if it is full.
   Array& canonical_list = Array::Handle(zone, constants());
   const intptr_t list_len = canonical_list.Length();
@@ -15905,7 +15927,9 @@ bool Instance::IsInstanceOf(
   }
   other_type_arguments = instantiated_other.arguments();
   const bool other_is_dart_function = instantiated_other.IsDartFunctionType();
-  if (other_is_dart_function || instantiated_other.IsFunctionType()) {
+  // In strong mode, subtyping rules of callable instances are restricted.
+  if (!isolate->strong() &&
+      (other_is_dart_function || instantiated_other.IsFunctionType())) {
     // Check if this instance understands a call() method of a compatible type.
     Function& sig_fun =
         Function::Handle(zone, cls.LookupCallFunctionForTypeTest());
@@ -16774,22 +16798,26 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       return fun.TypeTest(test_kind, other_fun, bound_error, bound_trail,
                           space);
     }
-    // Check if type S has a call() method of function type T.
-    const Function& call_function =
-        Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
-    if (!call_function.IsNull()) {
-      if (other_is_dart_function_type) {
-        return true;
-      }
-      // Shortcut the test involving the call function if the
-      // pair <this, other> is already in the trail.
-      if (TestAndAddBuddyToTrail(&bound_trail, other)) {
-        return true;
-      }
-      if (call_function.TypeTest(
-              test_kind, Function::Handle(zone, Type::Cast(other).signature()),
-              bound_error, bound_trail, space)) {
-        return true;
+    // In strong mode, subtyping rules of callable instances are restricted.
+    if (!isolate->strong()) {
+      // Check if type S has a call() method of function type T.
+      const Function& call_function =
+          Function::Handle(zone, type_cls.LookupCallFunctionForTypeTest());
+      if (!call_function.IsNull()) {
+        if (other_is_dart_function_type) {
+          return true;
+        }
+        // Shortcut the test involving the call function if the
+        // pair <this, other> is already in the trail.
+        if (TestAndAddBuddyToTrail(&bound_trail, other)) {
+          return true;
+        }
+        if (call_function.TypeTest(
+                test_kind,
+                Function::Handle(zone, Type::Cast(other).signature()),
+                bound_error, bound_trail, space)) {
+          return true;
+        }
       }
     }
   }
@@ -18642,7 +18670,7 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
         }
         ASSERT(result.IsOld());
         result.SetCanonical();
-        cls.InsertCanonicalInt(zone, index, result);
+        cls.InsertCanonicalBigint(zone, index, result);
         return result.raw();
       }
     }
@@ -18663,7 +18691,7 @@ bool Number::CheckIsCanonical(Thread* thread) const {
       return true;
     case kMintCid: {
       Mint& result = Mint::Handle(zone);
-      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value(), &idx);
+      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value());
       return (result.raw() == this->raw());
     }
     case kDoubleCid: {
@@ -19150,8 +19178,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
   Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
   Mint& canonical_value = Mint::Handle(zone);
-  intptr_t index = 0;
-  canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+  canonical_value ^= cls.LookupCanonicalMint(zone, value);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -19159,7 +19186,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+      canonical_value ^= cls.LookupCanonicalMint(zone, value);
       if (!canonical_value.IsNull()) {
         return canonical_value.raw();
       }
@@ -19168,7 +19195,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
     canonical_value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalInt(zone, index, canonical_value);
+    cls.InsertCanonicalMint(zone, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -19600,7 +19627,7 @@ RawBigint* Bigint::NewCanonical(const String& str) {
     value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalInt(zone, index, value);
+    cls.InsertCanonicalBigint(zone, index, value);
     return value.raw();
   }
 }

@@ -482,10 +482,6 @@ static uint8_t* malloc_allocator(uint8_t* ptr,
   return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
 }
 
-static void malloc_deallocator(uint8_t* ptr) {
-  free(ptr);
-}
-
 BENCHMARK_SIZE(CoreSnapshotSize) {
   const char* kScriptChars =
       "import 'dart:async';\n"
@@ -597,31 +593,22 @@ BENCHMARK(EnterExitIsolate) {
   benchmark->set_score(elapsed_time);
 }
 
-static uint8_t message_buffer[64];
-static uint8_t* message_allocator(uint8_t* ptr,
-                                  intptr_t old_size,
-                                  intptr_t new_size) {
-  return message_buffer;
-}
-static void message_deallocator(uint8_t* ptr) {}
-
 BENCHMARK(SerializeNull) {
   TransitionNativeToVM transition(thread);
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
-  uint8_t* buffer;
   Timer timer(true, "Serialize Null");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &message_allocator, &message_deallocator,
-                         true);
-    writer.WriteMessage(null_object);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message = writer.WriteMessage(null_object, ILLEGAL_PORT,
+                                           Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -632,19 +619,18 @@ BENCHMARK(SerializeSmi) {
   TransitionNativeToVM transition(thread);
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
-  uint8_t* buffer;
   Timer timer(true, "Serialize Smi");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &message_allocator, &message_deallocator,
-                         true);
-    writer.WriteMessage(smi_object);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message =
+        writer.WriteMessage(smi_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -657,19 +643,18 @@ BENCHMARK(SimpleMessage) {
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
   const intptr_t kLoopCount = 1000000;
-  uint8_t* buffer;
   Timer timer(true, "Simple Message");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &malloc_allocator, &malloc_deallocator, true);
-    writer.WriteMessage(array_object);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message = writer.WriteMessage(array_object, ILLEGAL_PORT,
+                                           Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
-    free(buffer);
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -690,19 +675,18 @@ BENCHMARK(LargeMap) {
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;
-  uint8_t* buffer;
   Timer timer(true, "Large Map");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &malloc_allocator, &malloc_deallocator, true);
-    writer.WriteMessage(map);
-    intptr_t buffer_len = writer.BytesWritten();
+    MessageWriter writer(true);
+    Message* message =
+        writer.WriteMessage(map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(buffer, buffer_len, thread);
+    MessageSnapshotReader reader(message, thread);
     reader.ReadObject();
-    free(buffer);
+    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();

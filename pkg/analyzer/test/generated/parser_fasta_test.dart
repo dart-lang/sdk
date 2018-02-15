@@ -400,39 +400,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, found 0
-    super.test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal();
-  }
-
-  @override
-  @failingTest
-  void test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, found 0
-    super.test_illegalAssignmentToNonAssignable_postfix_plusPlus_literal();
-  }
-
-  @override
-  @failingTest
-  void test_illegalAssignmentToNonAssignable_postfix_plusPlus_parenthesized() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, found 0
-    super
-        .test_illegalAssignmentToNonAssignable_postfix_plusPlus_parenthesized();
-  }
-
-  @override
-  @failingTest
-  void test_illegalAssignmentToNonAssignable_primarySelectorPostfix() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, found 0
-    super.test_illegalAssignmentToNonAssignable_primarySelectorPostfix();
-  }
-
-  @override
-  @failingTest
   void test_illegalAssignmentToNonAssignable_superAssigned() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true
@@ -927,22 +894,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingAssignableSelector_prefix_minusMinus_literal() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, found 0
-    super.test_missingAssignableSelector_prefix_minusMinus_literal();
-  }
-
-  @override
-  @failingTest
-  void test_missingAssignableSelector_prefix_plusPlus_literal() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, found 0
-    super.test_missingAssignableSelector_prefix_plusPlus_literal();
-  }
-
-  @override
-  @failingTest
   void test_missingAssignableSelector_superPrimaryExpression() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, found 0
@@ -1195,42 +1146,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_nonIdentifierLibraryName_partOf() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'IntegerLiteralImpl' is not a subtype of type 'List<SimpleIdentifier>' of 'components' where
-    //   IntegerLiteralImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   List is from dart:core
-    //   SimpleIdentifier is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/dart/ast/ast_factory.dart 665:62              AstFactoryImpl.libraryIdentifier
-    //   package:analyzer/src/fasta/ast_builder.dart 1451:18                AstBuilder.endPartOf
-    //   package:front_end/src/fasta/parser/parser.dart 499:14              Parser.parsePartOf
-    //   package:front_end/src/fasta/parser/parser.dart 467:14              Parser.parsePartOrPartOf
-    //   package:front_end/src/fasta/parser/parser.dart 296:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3125:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_nonIdentifierLibraryName_partOf();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_missingIdentifier() {
-    // TODO(brianwilkerson) Testing at too low a level.
-    super.test_parseCascadeSection_missingIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_missingIdentifier_typeArguments() {
-    // TODO(brianwilkerson) Testing at too low a level.
-    super.test_parseCascadeSection_missingIdentifier_typeArguments();
-  }
-
-  @override
-  @failingTest
   void test_setterInFunction_block() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.SETTER_IN_FUNCTION, found 0
@@ -1247,68 +1162,10 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_staticConstructor() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.STATIC_CONSTRUCTOR, found 0
-    super.test_staticConstructor();
-  }
-
-  @override
-  @failingTest
-  void test_topLevelVariable_withMetadata() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (8)
-    super.test_topLevelVariable_withMetadata();
-  }
-
-  @override
-  @failingTest
-  void test_typedef_incomplete() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_EXECUTABLE, found 0
-    super.test_typedef_incomplete();
-  }
-
-  @override
-  @failingTest
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0
     super.test_unexpectedToken_endOfFieldDeclarationStatement();
-  }
-
-  @override
-  @failingTest
-  void test_unexpectedToken_invalidPostfixExpression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0
-    super.test_unexpectedToken_invalidPostfixExpression();
-  }
-
-  @override
-  @failingTest
-  void test_unexpectedToken_returnInExpressionFunctionBody() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FormalParameterListImpl' is not a subtype of type 'Token' of 'asyncKeyword' where
-    //   FormalParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   Token is from package:front_end/src/scanner/token.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 380:26                 AstBuilder.handleExpressionFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 2621:18             Parser.parseFunctionBody
-    //   package:front_end/src/fasta/parser/parser.dart 1737:13             Parser.parseTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1646:11             Parser.parseTopLevelMember
-    //   package:front_end/src/fasta/parser/parser.dart 298:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3371:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_unexpectedToken_returnInExpressionFunctionBody();
   }
 
   @override
@@ -2212,13 +2069,6 @@ class ParserProxy extends analyzer.ParserAdapter {
 class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
   @override
-  @failingTest
-  void test_classTypeAlias_withBody() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_classTypeAlias_withBody();
-  }
-
-  @override
   void test_equalityExpression_precedence_relational_right() {
     // Fasta recovers differently. It takes the `is` to be an identifier and
     // assumes that it is the right operand of the `==`.
@@ -2239,24 +2089,10 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_functionExpression_in_ConstructorFieldInitializer() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_functionExpression_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
   void test_functionExpression_named() {
     // TODO(brianwilkerson) Unhandled compile-time error:
     // A function expression can't have a name.
     super.test_functionExpression_named();
-  }
-
-  @override
-  @failingTest
-  void test_incomplete_returnType() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incomplete_returnType();
   }
 
   @override

@@ -334,8 +334,19 @@ class MapView<K, V> implements Map<K, V> {
  * the constructor, except for operations that modify the map.
  * Modifying operations throw instead.
  */
-class UnmodifiableMapView<K, V> = MapView<K, V>
-    with _UnmodifiableMapMixin<K, V>;
+class UnmodifiableMapView<K, V> extends MapView<K, V>
+    with _UnmodifiableMapMixin<K, V> {
+  UnmodifiableMapView(Map<K, V> map) : super(map);
+
+  Map<RK, RV> cast<RK, RV>() {
+    Map<Object, Object> self = this;
+    if (self is Map<RK, RV>) return self;
+    return new UnmodifiableMapView<RK, RV>(_map.cast<RK, RV>());
+  }
+
+  Map<RK, RV> retype<RK, RV>() =>
+      new UnmodifiableMapView<RK, RV>(_map.retype<RK, RV>());
+}
 
 /**
  * Helper class which implements complex [Map] operations

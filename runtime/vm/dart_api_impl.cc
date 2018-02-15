@@ -1544,10 +1544,42 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   }
 #endif  // #if defined(DEBUG)
 
-  ScriptSnapshotWriter writer(script_snapshot_buffer, ApiReallocate);
+  ScriptSnapshotWriter writer(ApiReallocate);
   writer.WriteScriptSnapshot(lib);
+  *script_snapshot_buffer = writer.buffer();
   *script_snapshot_size = writer.BytesWritten();
   return Api::Success();
+}
+
+DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer,
+                                      intptr_t snapshot_size) {
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  if (snapshot_size < version_len) {
+    return false;
+  }
+
+  const char* version = reinterpret_cast<const char*>(snapshot_buffer);
+  ASSERT(version != NULL);
+  if (strncmp(version, expected_version, version_len)) {
+    return false;
+  }
+  const char* features =
+      reinterpret_cast<const char*>(snapshot_buffer) + version_len;
+  ASSERT(features != NULL);
+  intptr_t pending_len = snapshot_size - version_len;
+  intptr_t buffer_len = OS::StrNLen(features, pending_len);
+  // if buffer_len is less than pending_len it means we have a null terminated
+  // string and we can safely execute 'strstr' on it.
+  if ((buffer_len < pending_len)) {
+    if (strstr(features, "no-strong")) {
+      return false;
+    } else if (strstr(features, "strong")) {
+      return true;
+    }
+  }
+  return false;
 }
 
 DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
@@ -1759,17 +1791,6 @@ DART_EXPORT bool Dart_HasLivePorts() {
   return isolate->message_handler()->HasLivePorts();
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION;
@@ -1786,12 +1807,9 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   }
 
   const Object& object = Object::Handle(Z, raw_obj);
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(object);
-  intptr_t len = writer.BytesWritten();
+  MessageWriter writer(false);
   return PortMap::PostMessage(
-      new Message(port_id, data, len, Message::kNormalPriority));
+      writer.WriteMessage(object, port_id, Message::kNormalPriority));
 }
 
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {

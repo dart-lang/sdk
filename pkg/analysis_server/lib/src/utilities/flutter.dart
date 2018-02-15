@@ -63,7 +63,7 @@ void convertChildToChildren(
 
 void convertChildToChildren2(
     DartFileEditBuilder builder,
-    InstanceCreationExpression childArg,
+    Expression childArg,
     NamedExpression namedExp,
     String eol,
     Function getNodeText,
@@ -159,33 +159,14 @@ NamedExpression findNamedExpression(AstNode node, String name) {
   return namedExp;
 }
 
-ListLiteral getChildList(NamedExpression child) {
-  if (child.expression is ListLiteral) {
-    ListLiteral list = child.expression;
-    if (list.elements.isEmpty ||
-        list.elements.every((element) =>
-            element is InstanceCreationExpression &&
-            isWidgetCreation(element))) {
-      return list;
-    }
-  }
-  return null;
-}
-
 /**
- * Return the Flutter instance creation expression that is the value of the
- * given [child], or null if none. If [strict] is true, require the value to
- * also have a 'child' argument.
+ * Return the expression that is a Flutter Widget that is the value of the
+ * given [child], or null if none.
  */
-InstanceCreationExpression getChildWidget(NamedExpression child,
-    [bool strict = false]) {
-  if (child?.expression is InstanceCreationExpression) {
-    InstanceCreationExpression childNewExpr = child.expression;
-    if (isWidgetCreation(childNewExpr)) {
-      if (!strict || (findChildArgument(childNewExpr) != null)) {
-        return childNewExpr;
-      }
-    }
+Expression getChildWidget(NamedExpression child) {
+  Expression expression = child?.expression;
+  if (isWidgetExpression(expression)) {
+    return expression;
   }
   return null;
 }

@@ -7,6 +7,8 @@ library analyzer.test.src.task.options_test;
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,6 +24,7 @@ import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
 import '../context/abstract_context.dart';
+import '../../resource_utils.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -30,6 +33,7 @@ main() {
     defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
     defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
     defineReflectiveTests(OptionsFileValidatorTest);
+    defineReflectiveTests(OptionsProviderTest);
   });
 }
 
@@ -54,25 +58,6 @@ analyzer:
   strong-mode:true # misformatted
 ''');
     expect(analysisOptions.strongMode, false);
-  }
-
-  test_configure_enableLazyAssignmentOperators() {
-    expect(analysisOptions.enableStrictCallChecks, false);
-    configureContext('''
-analyzer:
-  language:
-    enableStrictCallChecks: true
-''');
-    expect(analysisOptions.enableStrictCallChecks, true);
-  }
-
-  test_configure_enableStrictCallChecks() {
-    configureContext('''
-analyzer:
-  language:
-    enableStrictCallChecks: true
-''');
-    expect(analysisOptions.enableStrictCallChecks, true);
   }
 
   test_configure_enableSuperMixins() {
@@ -630,6 +615,106 @@ linter:
   }
 }
 
+@reflectiveTest
+class OptionsProviderTest {
+  TestPathTranslator pathTranslator;
+  ResourceProvider resourceProvider;
+
+  AnalysisOptionsProvider provider;
+
+  String get optionsFilePath => '/analysis_options.yaml';
+
+  void setUp() {
+    var rawProvider = new MemoryResourceProvider();
+    resourceProvider = new TestResourceProvider(rawProvider);
+    pathTranslator = new TestPathTranslator(rawProvider);
+    provider = new AnalysisOptionsProvider(new SourceFactory([
+      new ResourceUriResolver(rawProvider),
+    ]));
+  }
+
+  test_perform_include_merge() {
+    pathTranslator.newFile('/other_options.yaml', '''
+analyzer:
+  exclude:
+    - toplevelexclude.dart
+  plugins:
+    toplevelplugin:
+      enabled: true
+  errors:
+    toplevelerror: warning
+linter:
+  rules:
+    - toplevellint
+''');
+    String code = r'''
+include: other_options.yaml
+analyzer:
+  exclude:
+    - lowlevelexclude.dart
+  plugins:
+    lowlevelplugin:
+      enabled: true
+  errors:
+    lowlevelerror: warning
+linter:
+  rules:
+    - lowlevellint
+''';
+    pathTranslator.newFile(optionsFilePath, code);
+
+    final lowlevellint = new TestRule.withName('lowlevellint');
+    final toplevellint = new TestRule.withName('toplevellint');
+    Registry.ruleRegistry.register(lowlevellint);
+    Registry.ruleRegistry.register(toplevellint);
+    final options = _getOptionsObject('/');
+
+    expect(options.lintRules, unorderedEquals([toplevellint, lowlevellint]));
+    expect(options.enabledPluginNames,
+        unorderedEquals(['toplevelplugin', 'lowlevelplugin']));
+    expect(options.excludePatterns,
+        unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']));
+    expect(
+        options.errorProcessors,
+        unorderedMatches([
+          new ErrorProcessorMatcher(
+              new ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
+          new ErrorProcessorMatcher(
+              new ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
+        ]));
+  }
+
+  Map<String, YamlNode> _getOptions(String posixPath, {bool crawlUp: false}) {
+    Resource resource = pathTranslator.getResource(posixPath);
+    return provider.getOptions(resource, crawlUp: crawlUp);
+  }
+
+  AnalysisOptions _getOptionsObject(String posixPath, {bool crawlUp: false}) {
+    final map = _getOptions(posixPath, crawlUp: crawlUp);
+    final options = new AnalysisOptionsImpl();
+    applyToAnalysisOptions(options, map);
+    return options;
+  }
+}
+
+class ErrorProcessorMatcher extends Matcher {
+  final ErrorProcessor required;
+
+  ErrorProcessorMatcher(this.required);
+
+  @override
+  Description describe(Description desc) => desc
+    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
+
+  @override
+  bool matches(dynamic o, Map<dynamic, dynamic> options) {
+    return o is ErrorProcessor &&
+        o.code.toUpperCase() == required.code.toUpperCase() &&
+        o.severity == required.severity;
+  }
+}
+
 class TestRule extends LintRule {
   TestRule() : super(name: 'fantastic_test_rule');
+  TestRule.withName(String name) : super(name: name);
 }

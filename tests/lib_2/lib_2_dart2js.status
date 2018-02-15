@@ -81,10 +81,28 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/element_classes_test: RuntimeError # Issue 30291
 html/element_types_keygen_test: RuntimeError # Issue 29055
 html/file_sample_test: Pass, RuntimeError
+html/fileapi_entry_test: Pass, RuntimeError
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
 isolate/kill_self_synchronously_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == chrome && $csp ]
+html/canvas_pixel_array_type_alias_test: RuntimeError
+html/js_browser_test: RuntimeError
+html/js_caching_test: RuntimeError
+html/js_context_test: RuntimeError
+html/js_dart_functions_test: RuntimeError
+html/js_dart_js_test: RuntimeError
+html/js_identity_test: RuntimeError
+html/js_jsarray_test: RuntimeError
+html/js_jsfunc_callmethod_test: RuntimeError
+html/js_jsify_test: RuntimeError
+html/js_jsobject_test: RuntimeError
+html/js_methods_test: RuntimeError
+html/js_transferrables_test: RuntimeError
+html/js_typed_interop_lazy_test/none: RuntimeError
+html/js_typed_interop_rename_static_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 html/audiobuffersourcenode_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
@@ -120,33 +138,8 @@ html/js_extend_class_test: RuntimeError
 html/js_interop_constructor_name_error1_test: Fail # Issue 26838
 html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
-[ $compiler == dart2js && $runtime == drt ]
-html/fileapi_entry_test: RuntimeError # DRT before DomError repl'd DomException
-html/request_animation_frame_test: Skip # Async test hangs.
-html/speechrecognition_test: RuntimeError # Please triage.
-html/svg_test: RuntimeError # Please triage.
-math/math2_test: RuntimeError
-math/math_test: RuntimeError
-
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 html/audiocontext_test/functional: Pass, Fail
-
-[ $compiler == dart2js && $runtime == drt && $csp ]
-html/canvas_pixel_array_type_alias_test: RuntimeError
-html/js_browser_test: RuntimeError
-html/js_caching_test: RuntimeError
-html/js_context_test: RuntimeError
-html/js_dart_functions_test: RuntimeError
-html/js_dart_js_test: RuntimeError
-html/js_identity_test: RuntimeError
-html/js_jsarray_test: RuntimeError
-html/js_jsfunc_callmethod_test: RuntimeError
-html/js_jsify_test: RuntimeError
-html/js_jsobject_test: RuntimeError
-html/js_methods_test: RuntimeError
-html/js_transferrables_test: RuntimeError
-html/js_typed_interop_lazy_test/none: RuntimeError
-html/js_typed_interop_rename_static_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
@@ -292,7 +285,7 @@ isolate/isolate_current_test: Fail # please triage
 convert/utf85_test: Pass, Slow # Issue 12029.
 html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 
-[ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
+[ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
 html/event_customevent_test: SkipByDesign
 html/js_array_test: SkipByDesign
 html/js_dart_to_string_test: SkipByDesign

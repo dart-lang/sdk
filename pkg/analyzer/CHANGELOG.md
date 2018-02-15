@@ -1,3 +1,16 @@
+## 0.31.2-alpha.0
+
+* front_end handling of callable classes (#32064)
+* Improve fasta parser error reporting.
+* Check for unresolved imports to improve handling of optional new/const (#32150).
+* Changes to front_end handling of callable classes.
+* Normalize Windows drive letters to uppercase for analysis (#32095, #32042, #28895).
+* Relax void errors: no error assigning void to void variable.
+* Keep unresolved import/export directives for task based analysis
+  (dart-lang/angular#801).
+* Promote `TOP_LEVEL_CYCLE` to an error.
+* Code cleanups.
+
 ## 0.31.1
 
 * Update to reflect that `_InternalLinkedHashMap` is not a subtype of `HashMap`

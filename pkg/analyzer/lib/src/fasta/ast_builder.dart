@@ -34,7 +34,10 @@ import 'package:front_end/src/fasta/messages.dart'
         Message,
         codeExpectedFunctionBody,
         messageDirectiveAfterDeclaration,
-        messageNativeClauseShouldBeAnnotation;
+        messageIllegalAssignmentToNonAssignable,
+        messageMissingAssignableSelector,
+        messageNativeClauseShouldBeAnnotation,
+        messageStaticConstructor;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
@@ -1340,14 +1343,30 @@ class AstBuilder extends ScopeListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixAssignmentExpression");
 
-    push(ast.prefixExpression(operator, pop()));
+    Expression expression = pop();
+    if (!expression.isAssignable) {
+      // TODO(danrubel): The fasta parser does not have enough context to
+      // report this error. Consider moving it to the resolution phase
+      // or at least to common location that can be shared by all listeners.
+      parser.reportRecoverableError(
+          expression.endToken, messageMissingAssignableSelector);
+    }
+    push(ast.prefixExpression(operator, expression));
   }
 
   void handleUnaryPostfixAssignmentExpression(Token operator) {
     assert(operator.type.isUnaryPostfixOperator);
     debugEvent("UnaryPostfixAssignmentExpression");
 
-    push(ast.postfixExpression(pop(), operator));
+    Expression expression = pop();
+    if (!expression.isAssignable) {
+      // TODO(danrubel): The fasta parser does not have enough context to
+      // report this error. Consider moving it to the resolution phase
+      // or at least to common location that can be shared by all listeners.
+      parser.reportRecoverableError(
+          operator, messageIllegalAssignmentToNonAssignable);
+    }
+    push(ast.postfixExpression(expression, operator));
   }
 
   void handleModifier(Token token) {
@@ -2088,6 +2107,13 @@ class AstBuilder extends ScopeListener {
 
     void constructor(
         SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
+      if (modifiers?.staticKeyword != null) {
+        // TODO(danrubel): The fasta parser does not have enough context to
+        // report this error. Consider moving it to the resolution phase
+        // or at least to common location that can be shared by all listeners.
+        parser.reportRecoverableError(
+            modifiers.staticKeyword, messageStaticConstructor);
+      }
       classDeclaration.members.add(ast.constructorDeclaration(
           comment,
           metadata,

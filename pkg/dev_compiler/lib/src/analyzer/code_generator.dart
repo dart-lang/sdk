@@ -2383,7 +2383,7 @@ class CodeGenerator extends Object
         cls.element, className, superCall?.staticElement, superCallArgs);
     if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
 
-    body.add(_visitStatement(node.body));
+    body.add(_emitFunctionScopedBody(node.body, node.element));
     return new JS.Block(body)..sourceInformation = node;
   }
 
@@ -2840,25 +2840,35 @@ class CodeGenerator extends Object
     _currentFunction = body;
 
     var initArgs = _emitArgumentInitializers(element, parameters);
-    var block = body.accept(this) as JS.Block;
+    var block = _emitFunctionScopedBody(body, element);
 
     if (initArgs != null) block = new JS.Block([initArgs, block]);
 
-    if (body is BlockFunctionBody) {
-      var params = element.parameters.map((e) => e.name).toSet();
-      bool shadowsParam = body.block.statements.any((s) =>
-          s is VariableDeclarationStatement &&
-          s.variables.variables.any((v) => params.contains(v.name.name)));
-
-      if (shadowsParam) {
-        block = new JS.Block([
-          new JS.Block([block], isScope: true)
-        ]);
-      }
-    }
-
     _currentFunction = savedFunction;
 
+    if (block.isScope) {
+      // TODO(jmesserly: JS AST printer does not understand the need to emit a
+      // nested scoped block in a JS function. So we need to add a non-scoped
+      // wrapper to ensure it gets printed.
+      block = new JS.Block([block]);
+    }
+    return block;
+  }
+
+  JS.Block _emitFunctionScopedBody(
+      FunctionBody body, ExecutableElement element) {
+    var block = body.accept(this) as JS.Block;
+    if (!body.isAsynchronous && !body.isGenerator) {
+      // Handle shadowing of parameters by local varaibles, which is allowed in
+      // Dart but not in JS.
+      //
+      // We only handle this for normal (sync) functions. Generator-based
+      // functions (sync*, async, and async*) have their bodies placed
+      // in an inner function scope that is a separate scope from the
+      // parameters, so they avoid this problem.
+      var parameterNames = element.parameters.map((e) => e.name).toSet();
+      return block.toScopedBlock(parameterNames);
+    }
     return block;
   }
 
@@ -5479,23 +5489,31 @@ class CodeGenerator extends Object
     var body = <JS.Statement>[];
 
     var savedCatch = _catchParameter;
+    var vars = new HashSet<String>();
     if (node.catchKeyword != null) {
       var name = node.exceptionParameter;
-      if (name != null && name != _catchParameter) {
+      if (name == _catchParameter) {
+        vars.add(name.name);
+      } else if (name != null) {
+        vars.add(name.name);
         body.add(js.statement('let # = #;', [
           _emitSimpleIdentifier(name),
           _emitSimpleIdentifier(_catchParameter)
         ]));
         _catchParameter = name;
       }
-      if (node.stackTraceParameter != null) {
-        var stackVar = node.stackTraceParameter.name;
-        body.add(js.statement('let # = #.stackTrace(#);',
-            [stackVar, _runtimeModule, _emitSimpleIdentifier(name)]));
+      var stackVar = node.stackTraceParameter;
+      if (stackVar != null) {
+        vars.add(stackVar.name);
+        body.add(js.statement('let # = #.stackTrace(#);', [
+          _emitSimpleIdentifier(stackVar),
+          _runtimeModule,
+          _emitSimpleIdentifier(name)
+        ]));
       }
     }
 
-    body.add(new JS.Block(_visitStatementList(node.body.statements)));
+    body.add(_visitStatement(node.body).toScopedBlock(vars));
     _catchParameter = savedCatch;
     return JS.Statement.from(body);
   }

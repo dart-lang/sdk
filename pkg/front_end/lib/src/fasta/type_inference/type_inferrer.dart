@@ -2,20 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/names.dart' show callName;
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
-import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -51,15 +37,71 @@ import 'package:kernel/ast.dart'
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
+        Supertype,
         ThisExpression,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VoidType;
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy, MixinInferrer;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/type_algebra.dart'
+    show calculateBounds, getFreshTypeParameters, Substitution;
+
+import '../../base/instrumentation.dart'
+    show
+        Instrumentation,
+        InstrumentationValueForMember,
+        InstrumentationValueForType,
+        InstrumentationValueForTypeArgs,
+        InstrumentationValueLiteral;
+
+import '../fasta_codes.dart';
+
+import '../kernel/fasta_accessors.dart' show BuilderHelper;
+
+import '../kernel/kernel_shadow_ast.dart'
+    show
+        getExplicitTypeArguments,
+        ShadowClass,
+        ShadowConstructorInvocation,
+        ShadowField,
+        ShadowMember,
+        ShadowNullLiteral,
+        ShadowVariableDeclaration;
+
+import '../names.dart' show callName;
+
+import '../problems.dart' show unhandled;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../source/source_loader.dart' show SourceLoader;
+
+import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
+
+import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
+
+import 'type_inference_engine.dart' show TypeInferenceEngineImpl;
+
+import 'type_inference_listener.dart' show TypeInferenceListener;
+
+import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
+
+import 'type_schema.dart' show isKnown, UnknownType;
+
+import 'type_schema_elimination.dart' show greatestClosure;
+
+import 'type_schema_environment.dart'
+    show
+        getNamedParameterType,
+        getPositionalParameterType,
+        TypeVariableEliminator,
+        TypeSchemaEnvironment;
 
 /// Given a [FunctionNode], gets the named parameter identified by [name], or
 /// `null` if there is no parameter with the given name.
@@ -403,44 +445,58 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // is inferred (the kernel code is discarded).
     if (isTopLevel) return null;
 
+    // This logic is strong mode only; in legacy mode anything goes.
+    if (!strongMode) return null;
+
+    // If an interface type is being assigned to a function type, see if we
+    // should tear off `.call`.
+    // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
+    if (actualType is InterfaceType) {
+      var classNode = (actualType as InterfaceType).classNode;
+      var callMember = classHierarchy.getInterfaceMember(classNode, callName);
+      if (callMember != null) {
+        if (_shouldTearOffCall(expectedType, actualType)) {
+          var parent = expression.parent;
+          var tearOff = new PropertyGet(expression, callName, callMember)
+            ..fileOffset = fileOffset;
+          parent?.replaceChild(expression, tearOff);
+          expression = tearOff;
+          actualType = getCalleeType(callMember, actualType);
+        }
+      }
+    }
+
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.
       return null;
+    }
+
+    if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
+      // Error: not assignable.  Perform error recovery.
+      var parent = expression.parent;
+      var errorNode = helper.wrapInCompileTimeError(expression,
+          templateInvalidAssignment.withArguments(actualType, expectedType));
+      parent?.replaceChild(expression, errorNode);
+      return errorNode;
     } else {
-      if (strongMode) {
-        if (!isTopLevel &&
-            !typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
-          // Error: not assignable.  Perform error recovery.
-          var parent = expression.parent;
-          var errorNode = helper.wrapInCompileTimeError(
-              expression,
-              templateInvalidAssignment.withArguments(
-                  actualType, expectedType));
-          parent?.replaceChild(expression, errorNode);
-          return errorNode;
-        } else {
-          var template = _getPreciseTypeErrorTemplate(expression);
-          if (template != null) {
-            // The type of the expression is known precisely, so an implicit
-            // downcast is guaranteed to fail.  Insert a compile-time error.
-            var parent = expression.parent;
-            var errorNode = helper.wrapInCompileTimeError(
-                expression, template.withArguments(actualType, expectedType));
-            parent?.replaceChild(expression, errorNode);
-            return errorNode;
-          } else {
-            // Insert an implicit downcast.
-            var parent = expression.parent;
-            var typeCheck = new AsExpression(expression, expectedType)
-              ..isTypeError = true
-              ..fileOffset = fileOffset;
-            parent?.replaceChild(expression, typeCheck);
-            return typeCheck;
-          }
-        }
+      var template = _getPreciseTypeErrorTemplate(expression);
+      if (template != null) {
+        // The type of the expression is known precisely, so an implicit
+        // downcast is guaranteed to fail.  Insert a compile-time error.
+        var parent = expression.parent;
+        var errorNode = helper.wrapInCompileTimeError(
+            expression, template.withArguments(actualType, expectedType));
+        parent?.replaceChild(expression, errorNode);
+        return errorNode;
       } else {
-        return null;
+        // Insert an implicit downcast.
+        var parent = expression.parent;
+        var typeCheck = new AsExpression(expression, expectedType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+        parent?.replaceChild(expression, typeCheck);
+        return typeCheck;
       }
     }
   }
@@ -1533,5 +1589,146 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     return null;
+  }
+
+  bool _shouldTearOffCall(DartType expectedType, DartType actualType) {
+    if (expectedType is InterfaceType &&
+        expectedType.classNode == typeSchemaEnvironment.futureOrClass) {
+      expectedType = (expectedType as InterfaceType).typeArguments[0];
+    }
+    if (expectedType is FunctionType) return true;
+    if (expectedType == typeSchemaEnvironment.rawFunctionType) {
+      if (!typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+class LegacyModeMixinInferrer implements MixinInferrer {
+  void infer(ClassHierarchy hierarchy, Class classNode) {
+    Supertype mixedInType = classNode.mixedInType;
+    if (mixedInType.typeArguments.isNotEmpty &&
+        mixedInType.typeArguments.first == const UnknownType()) {
+      assert(mixedInType.typeArguments.every((t) => t == const UnknownType()));
+      for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
+        mixedInType.typeArguments[i] = const DynamicType();
+      }
+    }
+  }
+}
+
+class StrongModeMixinInferrer implements MixinInferrer {
+  final CoreTypes coreTypes;
+  final SourceLoader loader;
+  TypeConstraintGatherer gatherer;
+
+  StrongModeMixinInferrer(this.loader) : coreTypes = loader.coreTypes;
+
+  void generateConstraints(ClassHierarchy hierarchy, Class mixinClass,
+      Supertype baseType, Supertype mixinSupertype) {
+    if (mixinSupertype.typeArguments.isEmpty) {
+      // The supertype constraint isn't generic; it doesn't constrain anything.
+    } else if (mixinSupertype.classNode.isSyntheticMixinImplementation) {
+      // We had a mixin M<X0, ..., Xn> with a superclass constraint of the form
+      // S0 with M0 where S0 and M0 each possibly have type arguments.  That has
+      // been compiled a named mixin application class of the form
+      //
+      // class S0&M0<...> = S0 with M0;
+      // class M<X0, ..., Xn> extends S0&M0<...>
+      //
+      // where the type parameters of S0&M0 are the X0, ..., Xn that occured
+      // free in S0 and M0.  Treat S0 and M0 as separate supertype constraints
+      // by recursively calling this algorithm.
+      var substitution = Substitution.fromSupertype(mixinSupertype);
+      var s0 =
+          substitution.substituteSupertype(mixinSupertype.classNode.supertype);
+      var m0 = substitution
+          .substituteSupertype(mixinSupertype.classNode.mixedInType);
+      generateConstraints(hierarchy, mixinClass, baseType, s0);
+      generateConstraints(hierarchy, mixinClass, baseType, m0);
+    } else {
+      // Find the type U0 which is baseType as an instance of mixinSupertype's
+      // class.
+      Supertype supertype =
+          hierarchy.asInstantiationOf(baseType, mixinSupertype.classNode);
+      if (supertype == null) {
+        loader.addProblem(
+            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
+                baseType.classNode.name, mixinSupertype.asInterfaceType),
+            mixinClass.fileOffset,
+            mixinClass.fileUri);
+        return;
+      }
+      InterfaceType u0 = Substitution
+          .fromSupertype(baseType)
+          .substituteSupertype(supertype)
+          .asInterfaceType;
+      // We want to solve U0 = S0 where S0 is mixinSupertype, but we only have
+      // a subtype constraints.  Solve for equality by solving
+      // both U0 <: S0 and S0 <: U0.
+      InterfaceType s0 = mixinSupertype.asInterfaceType;
+      gatherer.trySubtypeMatch(u0, s0);
+      gatherer.trySubtypeMatch(s0, u0);
+    }
+  }
+
+  void infer(ClassHierarchy hierarchy, Class classNode) {
+    Supertype mixedInType = classNode.mixedInType;
+    if (mixedInType.typeArguments.isNotEmpty &&
+        mixedInType.typeArguments.first == const UnknownType()) {
+      assert(mixedInType.typeArguments.every((t) => t == const UnknownType()));
+      // Note that we have no anonymous mixin applications, they have all
+      // been named.  Note also that mixin composition has been translated
+      // so that we only have mixin applications of the form `S with M`.
+      Supertype baseType = classNode.supertype;
+      Class mixinClass = mixedInType.classNode;
+      Supertype mixinSupertype = mixinClass.supertype;
+      gatherer = new TypeConstraintGatherer(
+          new TypeSchemaEnvironment(loader.coreTypes, hierarchy, true),
+          mixinClass.typeParameters);
+      // Generate constraints based on the mixin's supertype.
+      generateConstraints(hierarchy, mixinClass, baseType, mixinSupertype);
+      // Solve them to get a map from type parameters to upper and lower
+      // bounds.
+      var result = gatherer.computeConstraints();
+      // Generate new type parameters with the solution as bounds.
+      List<TypeParameter> parameters = mixinClass.typeParameters.map((p) {
+        var constraint = result[p];
+        // Because we solved for equality, a valid solution has a parameter
+        // either unconstrained or else with identical upper and lower bounds.
+        if (constraint != null && constraint.upper != constraint.lower) {
+          loader.addProblem(
+              templateMixinInferenceNoMatchingClass.withArguments(
+                  mixinClass.name,
+                  baseType.classNode.name,
+                  mixinSupertype.asInterfaceType),
+              mixinClass.fileOffset,
+              mixinClass.fileUri);
+          return p;
+        }
+        assert(constraint == null || constraint.upper == constraint.lower);
+        return new TypeParameter(
+            p.name,
+            constraint == null || constraint.upper == const UnknownType()
+                ? p.bound
+                : constraint.upper);
+      }).toList();
+      // Bounds might mention the mixin class's type parameters so we have to
+      // substitute them before calling instantiate to bounds.
+      var substitution = Substitution.fromPairs(mixinClass.typeParameters,
+          parameters.map((p) => new TypeParameterType(p)).toList());
+      for (var p in parameters) {
+        p.bound = substitution.substituteType(p.bound);
+      }
+      // Use instantiate to bounds.
+      List<DartType> bounds =
+          calculateBounds(parameters, loader.coreTypes.objectClass);
+      for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
+        mixedInType.typeArguments[i] = bounds[i];
+      }
+      gatherer = null;
+    }
   }
 }

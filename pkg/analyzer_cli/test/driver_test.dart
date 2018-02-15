@@ -35,6 +35,7 @@ main() {
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
     defineReflectiveTests(LinterTest_UseCFE);
+    defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
     defineReflectiveTests(OptionsTest_UseCFE);
@@ -776,6 +777,44 @@ class LinterTest_PreviewDart2 extends LinterTest {
 class LinterTest_UseCFE extends LinterTest {
   @override
   bool get useCFE => true;
+}
+
+@reflectiveTest
+class NonDartFilesTest extends BaseTest {
+  test_analysisOptionsYaml() async {
+    await withTempDirAsync((tempDir) async {
+      String filePath =
+          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      new File(filePath).writeAsStringSync('''
+analyzer:
+  string-mode: true
+''');
+      await drive(filePath);
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The option 'string-mode' isn't supported by 'analyzer'"));
+      expect(exitCode, 0);
+    });
+  }
+
+  test_pubspecYaml() async {
+    await withTempDirAsync((tempDir) async {
+      String filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
+      new File(filePath).writeAsStringSync('''
+name: foo
+flutter:
+  assets:
+    doesNotExist.gif
+''');
+      await drive(filePath);
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The value of the 'asset' field is expected to be a list of relative file paths"));
+      expect(exitCode, 0);
+    });
+  }
 }
 
 @reflectiveTest

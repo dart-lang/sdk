@@ -12,7 +12,7 @@ num_sign_test: Crash, Pass # Issue 31768
 error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
-apply3_test: CompileTimeError
+apply3_test: RuntimeError
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
@@ -280,6 +280,9 @@ symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 uri_base_test: RuntimeError
 
+[ $compiler == dart2js && $dart2js_with_kernel && $strong ]
+map_unmodifiable_cast_test: Crash
+
 [ $compiler == dart2js && $dart2js_with_kernel && !$strong ]
 *: SkipByDesign
 
@@ -350,7 +353,8 @@ bigint_test: Pass, Timeout # Please triage.
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
-apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+apply3_test: RuntimeError
+apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -365,6 +369,7 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError

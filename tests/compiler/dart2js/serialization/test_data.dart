@@ -217,9 +217,9 @@ class MyRandom implements Random {
   double nextDouble() => 0.0;
 }
 main() {
-  // Invocation of `MyRandom.nextInt` is only detected knowing the actual 
-  // implementation class for `List` and the world impact of its `shuffle` 
-  // method.  
+  // Invocation of `MyRandom.nextInt` is only detected knowing the actual
+  // implementation class for `List` and the world impact of its `shuffle`
+  // method.
   [].shuffle(new MyRandom());
 }'''
       },
@@ -234,7 +234,7 @@ main() {
       continue loop;
     }
     break;
-  }      
+  }
 }'''
   }),
 

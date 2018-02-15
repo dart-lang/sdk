@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class I<X extends core::Object> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class J<X extends core::Object> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class _I&J^#T0^#T1<#T0 extends core::Object, #T1 extends core::Object> = self::I<self::_I&J^#T0^#T1::#T0> with self::J<self::_I&J^#T0^#T1::#T1> {
+}
+class M0<X extends core::Object, Y extends core::Object> extends self::_I&J^#T0^#T1<self::M0::X, self::M0::Y> {
+  synthetic constructor •() → void
+    : super self::I::•()
+    ;
+}
+class M1 extends core::Object implements self::I<core::int> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M2 extends self::M1 implements self::J<core::double> {
+  synthetic constructor •() → void
+    : super self::M1::•()
+    ;
+}
+abstract class _M2&M0 = self::M2 with self::M0<dynamic, dynamic> {
+}
+class A extends self::_M2&M0 {
+  synthetic constructor •() → void
+    : super self::M2::•()
+    ;
+}
+static method main() → dynamic {}

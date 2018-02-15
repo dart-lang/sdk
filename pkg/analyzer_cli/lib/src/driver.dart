@@ -27,10 +27,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
+import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
@@ -318,16 +320,52 @@ class Driver implements CommandLineStarter {
     }
 
     for (Source source in sourcesToAnalyze) {
-      SourceKind sourceKind = analysisDriver != null
-          ? await analysisDriver.getSourceKind(source.fullName)
-          : context.computeKindOf(source);
-      if (sourceKind == SourceKind.PART) {
-        partSources.add(source);
-        continue;
+      if (analysisDriver != null &&
+          (source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
+              source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE)) {
+        file_system.File file = resourceProvider.getFile(source.fullName);
+        String content = file.readAsStringSync();
+        LineInfo lineInfo = new LineInfo.fromContent(content);
+        List<AnalysisError> errors =
+            GenerateOptionsErrorsTask.analyzeAnalysisOptions(
+                file.createSource(), content, analysisDriver.sourceFactory);
+        formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+        for (AnalysisError error in errors) {
+          allResult = allResult.max(determineProcessedSeverity(
+              error, options, _context.analysisOptions));
+        }
+      } else if (source.shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+        try {
+          file_system.File file = resourceProvider.getFile(source.fullName);
+          String content = file.readAsStringSync();
+          YamlNode node = loadYamlNode(content);
+          if (node is YamlMap) {
+            PubspecValidator validator =
+                new PubspecValidator(resourceProvider, file.createSource());
+            LineInfo lineInfo = new LineInfo.fromContent(content);
+            List<AnalysisError> errors = validator.validate(node.nodes);
+            formatter
+                .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+            for (AnalysisError error in errors) {
+              allResult = allResult.max(determineProcessedSeverity(
+                  error, options, _context.analysisOptions));
+            }
+          }
+        } catch (exception) {
+          // If the file cannot be analyzed, ignore it.
+        }
+      } else {
+        SourceKind sourceKind = analysisDriver != null
+            ? await analysisDriver.getSourceKind(source.fullName)
+            : context.computeKindOf(source);
+        if (sourceKind == SourceKind.PART) {
+          partSources.add(source);
+          continue;
+        }
+        ErrorSeverity status = await _runAnalyzer(source, options, formatter);
+        allResult = allResult.max(status);
+        libUris.add(source.uri);
       }
-      ErrorSeverity status = await _runAnalyzer(source, options, formatter);
-      allResult = allResult.max(status);
-      libUris.add(source.uri);
     }
 
     formatter.flush();
@@ -689,8 +727,7 @@ class Driver implements CommandLineStarter {
   /// Return whether [a] and [b] options are equal for the purpose of
   /// command line analysis.
   bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
-    return a.enableStrictCallChecks == b.enableStrictCallChecks &&
-        a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
+    return a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
         a.enableSuperMixins == b.enableSuperMixins &&
         a.enableTiming == b.enableTiming &&
         a.generateImplicitErrors == b.generateImplicitErrors &&
@@ -912,9 +949,6 @@ class Driver implements CommandLineStarter {
       return false;
     }
     if (newOptions.disableHints != previous.disableHints) {
-      return false;
-    }
-    if (newOptions.enableStrictCallChecks != previous.enableStrictCallChecks) {
       return false;
     }
     if (newOptions.showPackageWarnings != previous.showPackageWarnings) {

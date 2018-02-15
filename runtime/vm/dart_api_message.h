@@ -47,7 +47,6 @@ class ApiMessageReader : public BaseReader {
   // The ApiMessageReader object must be enclosed by an ApiNativeScope.
   // Allocation of all C Heap objects is done in the zone associated with
   // the enclosing ApiNativeScope.
-  ApiMessageReader(const uint8_t* buffer, intptr_t length);
   explicit ApiMessageReader(Message* message);
   ~ApiMessageReader() {}
 
@@ -155,21 +154,13 @@ class ApiMessageReader : public BaseReader {
 class ApiMessageWriter : public BaseWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  ApiMessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc, NULL, kInitialSize),
-        object_id_(0),
-        forward_list_(NULL),
-        forward_list_length_(0),
-        forward_id_(0) {
-    ASSERT(kDartCObjectTypeMask >= Dart_CObject_kNumberOfTypes - 1);
-  }
-  ~ApiMessageWriter() { ::free(forward_list_); }
-
-  // Writes a message of integers.
-  void WriteMessage(intptr_t field_count, intptr_t* data);
+  ApiMessageWriter();
+  ~ApiMessageWriter();
 
   // Writes a message with a single object.
-  bool WriteCMessage(Dart_CObject* object);
+  Message* WriteCMessage(Dart_CObject* object,
+                         Dart_Port dest_port,
+                         Message::Priority priority);
 
  private:
   static const intptr_t kDartCObjectTypeBits = 4;

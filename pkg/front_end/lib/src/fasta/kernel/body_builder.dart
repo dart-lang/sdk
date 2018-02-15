@@ -79,6 +79,7 @@ import 'frontend_accessors.dart' show buildIsNull;
 import 'redirecting_factory_body.dart'
     show
         RedirectingFactoryBody,
+        RedirectionTarget,
         getRedirectingFactoryBody,
         getRedirectionTarget;
 
@@ -2370,6 +2371,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isConst: false,
       int charOffset: -1,
       Member initialTarget,
+      List<DartType> targetTypeArguments,
       String prefixName,
       int targetOffset: -1,
       Class targetClass}) {
@@ -2390,7 +2392,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Not a const constructor.", charOffset);
       }
       return new ShadowConstructorInvocation(
-          prefixName, target, initialTarget, arguments,
+          prefixName, target, targetTypeArguments, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2400,7 +2402,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
         return new ShadowFactoryConstructorInvocation(
-            prefixName, target, initialTarget, arguments,
+            prefixName, target, targetTypeArguments, initialTarget, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
@@ -2561,6 +2563,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Builder b = type.findConstructorOrFactory(name, charOffset, uri, library);
       Member target;
       Member initialTarget;
+      List<DartType> targetTypeArguments;
       if (b == null) {
         // Not found. Reported below.
       } else if (b.isConstructor) {
@@ -2578,7 +2581,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       } else if (b.isFactory) {
         initialTarget = b.target;
-        target = getRedirectionTarget(initialTarget);
+        RedirectionTarget redirectionTarget = getRedirectionTarget(
+            initialTarget,
+            strongMode: library.loader.target.strongMode);
+        target = redirectionTarget?.target;
+        targetTypeArguments = redirectionTarget?.typeArguments;
         if (target == null) {
           return deprecated_buildCompileTimeError(
               "Cyclic definition of factory '${name}'.", nameToken.charOffset);
@@ -2608,7 +2615,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             isConst: isConst,
             charOffset: nameToken.charOffset,
             prefixName: prefixName,
-            initialTarget: initialTarget);
+            initialTarget: initialTarget,
+            targetTypeArguments: targetTypeArguments);
       } else {
         errorName ??= debugName(type.name, name);
       }

@@ -5050,6 +5050,8 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['condition);']);
+    _assertExitPosition('condition);');
   }
 
   test_surroundWith_for() async {
@@ -5072,6 +5074,11 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['v =']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['init;']);
+    _assertLinkedGroup(change.linkedEditGroups[2], ['condition;']);
+    _assertLinkedGroup(change.linkedEditGroups[3], ['increment']);
+    _assertExitPosition('  }');
   }
 
   test_surroundWith_forIn() async {
@@ -5094,6 +5101,9 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['item']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['iterable']);
+    _assertExitPosition('  }');
   }
 
   test_surroundWith_if() async {
@@ -5116,6 +5126,8 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
+    _assertExitPosition('  }');
   }
 
   test_surroundWith_tryCatch() async {
@@ -5140,6 +5152,10 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Exception']);
+    _assertLinkedGroup(change.linkedEditGroups[1], ['e) {']);
+    _assertLinkedGroup(change.linkedEditGroups[2], ['// TODO']);
+    _assertExitPosition('// TODO');
   }
 
   test_surroundWith_tryFinally() async {
@@ -5164,6 +5180,8 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['// TODO']);
+    _assertExitPosition('// TODO');
   }
 
   test_surroundWith_while() async {
@@ -5186,6 +5204,15 @@ main() {
 // end
 }
 ''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
+    _assertExitPosition('  }');
+  }
+
+  void _assertExitPosition(String after) {
+    Position exitPosition = change.selection;
+    expect(exitPosition, isNotNull);
+    expect(exitPosition.file, testFile);
+    expect(exitPosition.offset, resultCode.indexOf(after) + after.length);
   }
 
   /**

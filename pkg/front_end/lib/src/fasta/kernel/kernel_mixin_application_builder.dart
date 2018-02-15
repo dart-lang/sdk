@@ -41,6 +41,12 @@ class KernelMixinApplicationBuilder
   }
 
   @override
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    return unsupported("buildMixedInType", charOffset, fileUri);
+  }
+
+  @override
   buildInvalidType(int charOffset, Uri fileUri) {
     return unsupported("buildInvalidType", charOffset, fileUri);
   }

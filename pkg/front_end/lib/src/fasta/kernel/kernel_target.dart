@@ -391,7 +391,7 @@ class KernelTarget extends TargetImplementation {
                   ..bind(objectClassBuilder);
               }
               if (builder.isMixinApplication) {
-                cls.mixedInType = builder.mixedInType.buildSupertype(
+                cls.mixedInType = builder.mixedInType.buildMixedInType(
                     library, builder.charOffset, builder.fileUri);
               }
             }

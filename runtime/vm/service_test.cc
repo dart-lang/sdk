@@ -44,7 +44,7 @@ class ServiceTestMessageHandler : public MessageHandler {
       response_obj = message->raw_obj();
     } else {
       Thread* thread = Thread::Current();
-      MessageSnapshotReader reader(message->data(), message->len(), thread);
+      MessageSnapshotReader reader(message, thread);
       response_obj = reader.ReadObject();
     }
     if (response_obj.IsString()) {

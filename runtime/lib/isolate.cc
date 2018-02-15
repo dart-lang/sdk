@@ -25,17 +25,6 @@
 
 namespace dart {
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
@@ -106,15 +95,10 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
     PortMap::PostMessage(
         new Message(destination_port_id, obj.raw(), Message::kNormalPriority));
   } else {
-    uint8_t* data = NULL;
-    MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator,
-                         can_send_any_object);
-    writer.WriteMessage(obj);
-
+    MessageWriter writer(can_send_any_object);
     // TODO(turnidge): Throw an exception when the return value is false?
-    PortMap::PostMessage(new Message(destination_port_id, data,
-                                     writer.BytesWritten(),
-                                     Message::kNormalPriority));
+    PortMap::PostMessage(writer.WriteMessage(obj, destination_port_id,
+                                             Message::kNormalPriority));
   }
   return Object::null();
 }
@@ -228,11 +212,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
       // serializable this will throw an exception.
       SerializedObjectBuffer message_buffer;
       {
-        MessageWriter writer(message_buffer.data_buffer(), &malloc_allocator,
-                             &malloc_deallocator,
-                             /* can_send_any_object = */ true,
-                             message_buffer.data_length());
-        writer.WriteMessage(message);
+        MessageWriter writer(/* can_send_any_object = */ true);
+        message_buffer.set_message(writer.WriteMessage(
+            message, ILLEGAL_PORT, Message::kNormalPriority));
       }
 
       const char* utf8_package_root =
@@ -341,16 +323,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   SerializedObjectBuffer arguments_buffer;
   SerializedObjectBuffer message_buffer;
   {
-    MessageWriter writer(
-        arguments_buffer.data_buffer(), &malloc_allocator, &malloc_deallocator,
-        /* can_send_any_object = */ false, arguments_buffer.data_length());
-    writer.WriteMessage(args);
+    MessageWriter writer(/* can_send_any_object = */ false);
+    arguments_buffer.set_message(
+        writer.WriteMessage(args, ILLEGAL_PORT, Message::kNormalPriority));
   }
   {
-    MessageWriter writer(
-        message_buffer.data_buffer(), &malloc_allocator, &malloc_deallocator,
-        /* can_send_any_object = */ false, message_buffer.data_length());
-    writer.WriteMessage(message);
+    MessageWriter writer(/* can_send_any_object = */ false);
+    message_buffer.set_message(
+        writer.WriteMessage(message, ILLEGAL_PORT, Message::kNormalPriority));
   }
 
   // Canonicalize the uri with respect to the current isolate.
@@ -420,12 +400,9 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
   // Make sure to route this request to the isolate library OOB mesage handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(msg);
-
-  PortMap::PostMessage(new Message(port.Id(), data, writer.BytesWritten(),
-                                   Message::kOOBPriority));
+  MessageWriter writer(false);
+  PortMap::PostMessage(
+      writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
 
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.

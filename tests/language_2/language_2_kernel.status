@@ -17,18 +17,6 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
-mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
-mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/06: MissingCompileTimeError
-mixin_type_parameter_inference_test/07: MissingCompileTimeError
-mixin_type_parameter_inference_test/08: RuntimeError
-mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 31424
 no_such_method_subtype_test: RuntimeError # Issue 31424
 
@@ -82,9 +70,6 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-const_constructor2_test/20: MissingCompileTimeError
-const_constructor2_test/22: MissingCompileTimeError
-const_constructor2_test/24: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_factory_with_body_test/01: MissingCompileTimeError # Fasta bug: Const factory with body.
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field.
@@ -92,9 +77,7 @@ const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_types_test/34: MissingCompileTimeError
-const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-const_types_test/40: MissingCompileTimeError
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
@@ -624,7 +607,6 @@ type_variable_bounds4_test/01: RuntimeError
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-callable_test/none: RuntimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
@@ -640,11 +622,8 @@ async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
-call_function2_test: CompileTimeError # Issue 31402 (map literal)
-call_function_apply_test: CompileTimeError # Issue 31402 (Invocation arguments)
-call_function_test: CompileTimeError
-call_with_no_such_method_test: CompileTimeError # Issue 31402 (Invocation arguments)
-callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
+call_operator_test: RuntimeError, OK
+call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt1_test: RuntimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -725,14 +704,19 @@ flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
-function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
+function_propagation_test: RuntimeError
 function_subtype3_test: RuntimeError
+function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -778,18 +762,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-mixin_type_parameter_inference_error_test/01: MissingCompileTimeError
-mixin_type_parameter_inference_error_test/02: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
-mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
-mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
-mixin_type_parameter_inference_test/06: MissingCompileTimeError
-mixin_type_parameter_inference_test/07: MissingCompileTimeError
-mixin_type_parameter_inference_test/08: RuntimeError
-mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
@@ -811,13 +783,11 @@ override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
-regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -995,7 +965,6 @@ assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
-callable_test/none: RuntimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
@@ -1034,11 +1003,8 @@ async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arg
 bad_named_parameters_test/04: Crash
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
-call_function2_test: CompileTimeError # Issue 31402 (map literal)
-call_function_apply_test: CompileTimeError # Issue 31402 (Invocation arguments)
-call_function_test: CompileTimeError
-call_with_no_such_method_test: CompileTimeError # Issue 31402 (Invocation arguments)
-callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
+call_operator_test: RuntimeError, OK
+call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt2_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 cha_deopt3_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -1132,14 +1098,19 @@ flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
-function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
+function_propagation_test: RuntimeError
 function_subtype3_test: RuntimeError
+function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -1243,7 +1214,6 @@ parser_quirks_test: CompileTimeError # Issue 31533
 recursive_mixin_test: Crash
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: SkipByDesign
 regress_13462_0_test: SkipByDesign
@@ -1253,7 +1223,6 @@ regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel iss
 regress_23089_test: Crash
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
-regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_28255_test: SkipByDesign
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)

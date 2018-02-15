@@ -49,13 +49,16 @@ serialization/compilation3_test: Skip # Skip most serialization tests. These are
 serialization/compilation4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/compilation5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/compilation_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
+serialization/impact_test: Slow, RuntimeError # Issue 32149
 serialization/library_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
+serialization/model0_test: Slow, RuntimeError # Issue 32149
 serialization/model1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/native_data_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
+serialization/reserialization_test: Slow, RuntimeError # Issue 32149
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow

@@ -8,7 +8,7 @@ deferred library.
 
 START_HTML_DART_TEST
 {
-  "scripts": ["deferred_multi_app.dart", "deferred_multi_app_lib.dart"],
+  "scripts": ["deferred_multi_app.dart", "dispatch_parent_event.js"],
   "expectedMessages": ["one", "two"]
 }
 END_HTML_DART_TEST
@@ -16,7 +16,7 @@ END_HTML_DART_TEST
 <html>
   <body>
     <div id="state">1</div>
-    <script>window.parent.dispatchEvent(new Event('detect_errors'));</script>
+    <script src="dispatch_parent_event.js"></script>
     <script src="deferred_multi_app.dart" type="application/dart"></script>
     <script src="deferred_multi_app.dart" type="application/dart"></script>
   </body>

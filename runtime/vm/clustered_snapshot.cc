@@ -3537,20 +3537,16 @@ class MintDeserializationCluster : public DeserializationCluster {
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         Thread::Current(), Timeline::GetIsolateStream(), "PostLoadMint"));
 
-    const GrowableObjectArray& new_constants =
-        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    const Class& mint_cls =
+        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
+    mint_cls.set_constants(Object::empty_array());
     Object& number = Object::Handle(zone);
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       number = refs.At(i);
       if (number.IsMint() && number.IsCanonical()) {
-        new_constants.Add(number);
+        mint_cls.InsertCanonicalMint(zone, Mint::Cast(number));
       }
     }
-    const Array& constants_array =
-        Array::Handle(zone, Array::MakeFixedLength(new_constants));
-    const Class& mint_cls =
-        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
-    mint_cls.set_constants(constants_array);
   }
 };
 
@@ -4850,14 +4846,14 @@ RawObject* Serializer::ParentOf(const Object& object) {
 }
 #endif  // SNAPSHOT_BACKTRACE
 
-void Serializer::WriteVersionAndFeatures() {
+void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
   const char* expected_features =
-      Dart::FeaturesString(Isolate::Current(), kind_);
+      Dart::FeaturesString(Isolate::Current(), is_vm_snapshot, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -5307,7 +5303,8 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(isolate, kind_);
+  const char* expected_features =
+      Dart::FeaturesString(isolate, (isolate == NULL), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -5721,7 +5718,7 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
                         kInitialSize, vm_image_writer_);
 
   serializer.ReserveHeader();
-  serializer.WriteVersionAndFeatures();
+  serializer.WriteVersionAndFeatures(true);
   // VM snapshot roots are:
   // - the symbol table
   // - all the token streams
@@ -5753,7 +5750,7 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   ASSERT(object_store != NULL);
 
   serializer.ReserveHeader();
-  serializer.WriteVersionAndFeatures();
+  serializer.WriteVersionAndFeatures(false);
   // Isolate snapshot roots are:
   // - the object store
   serializer.WriteIsolateSnapshot(num_base_objects, object_store);

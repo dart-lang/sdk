@@ -4,12 +4,12 @@
 
 library fasta.kernel_class_builder;
 
-import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/ast.dart'
     show
         Class,
         Constructor,
         DartType,
+        DynamicType,
         Expression,
         Field,
         FunctionNode,
@@ -35,6 +35,7 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        Message,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
@@ -51,6 +52,8 @@ import '../fasta_codes.dart'
 
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 
+import '../type_inference/type_schema.dart' show UnknownType;
+
 import 'kernel_builder.dart'
     show
         Builder,
@@ -58,6 +61,7 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         KernelLibraryBuilder,
         KernelProcedureBuilder,
+        KernelRedirectingFactoryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -143,6 +147,19 @@ abstract class KernelClassBuilder
     }
   }
 
+  Supertype buildMixedInType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    Class cls = isPatch ? origin.target : this.cls;
+    if (arguments != null) {
+      return new Supertype(cls, buildTypeArguments(library, arguments));
+    } else {
+      return new Supertype(
+          cls,
+          new List<DartType>.filled(
+              cls.typeParameters.length, const UnknownType()));
+    }
+  }
+
   @override
   int resolveConstructors(LibraryBuilder library) {
     int count = super.resolveConstructors(library);
@@ -156,7 +173,7 @@ abstract class KernelClassBuilder
           unexpected(
               "$fileUri", "${builder.parent.fileUri}", charOffset, fileUri);
         }
-        if (builder is KernelProcedureBuilder && builder.isFactory) {
+        if (builder is KernelRedirectingFactoryBuilder) {
           // Compute the immediate redirection target, not the effective.
           ConstructorReferenceBuilder redirectionTarget =
               builder.redirectionTarget;
@@ -164,9 +181,29 @@ abstract class KernelClassBuilder
             Builder targetBuilder = redirectionTarget.target;
             addRedirectingConstructor(builder, library);
             if (targetBuilder is ProcedureBuilder) {
-              builder.setRedirectingFactoryBody(targetBuilder.target);
+              List<DartType> typeArguments = builder.typeArguments;
+              if (typeArguments == null) {
+                // TODO(32049) If type arguments aren't specified, they should
+                // be inferred.  Currently, the inference is not performed.
+                // The code below is a workaround.
+                typeArguments = new List.filled(
+                    targetBuilder.target.enclosingClass.typeParameters.length,
+                    const DynamicType());
+              }
+              builder.setRedirectingFactoryBody(
+                  targetBuilder.target, typeArguments);
             } else if (targetBuilder is DillMemberBuilder) {
-              builder.setRedirectingFactoryBody(targetBuilder.member);
+              List<DartType> typeArguments = builder.typeArguments;
+              if (typeArguments == null) {
+                // TODO(32049) If type arguments aren't specified, they should
+                // be inferred.  Currently, the inference is not performed.
+                // The code below is a workaround.
+                typeArguments = new List.filled(
+                    targetBuilder.target.enclosingClass.typeParameters.length,
+                    const DynamicType());
+              }
+              builder.setRedirectingFactoryBody(
+                  targetBuilder.member, typeArguments);
             } else {
               var message = templateRedirectionTargetNotFound
                   .withArguments(redirectionTarget.fullNameForErrors);

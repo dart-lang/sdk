@@ -357,17 +357,21 @@ abstract class BigInt implements Comparable<BigInt> {
    * Whether this big integer can be represented as an `int` without losing
    * precision.
    *
-   * Warning: this function is not yet implemented and always returns true.
+   * Warning: this function may give a different result on
+   * dart2js, dev compiler, and the VM, due to the differences in
+   * integer precision.
    */
   bool get isValidInt;
 
   /**
    * Returns this [BigInt] as an [int].
    *
-   * If the number does not fit clamps to the max (or min) integer.
+   * If the number does not fit, clamps to the max (or min)
+   * integer.
    *
-   * Warning: the clamping is not yet implemented and the behavior of this
-   * function will change in future versions of this library.
+   * Warning: the clamping behaves differently on dart2js, dev
+   * compiler, and the VM, due to the differences in integer
+   * precision.
    */
   int toInt();
 
