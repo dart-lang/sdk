@@ -1815,6 +1815,7 @@ VM_UNIT_TEST_CASE(CheckKernelSnapshot) {
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
   bool is_kernel = Dart_IsDart2Snapshot(full_snapshot);
   EXPECT_EQ(FLAG_strong, is_kernel);
+  free(full_snapshot);
 }
 
 #endif  // !PRODUCT
