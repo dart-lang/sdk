@@ -1840,13 +1840,8 @@ class BufferedSink {
     // the bytes buffer is too large to fit in our own buffer, just emit both.
     if (length + bytes.length < SIZE &&
         (bytes.length < SMALL || length < SMALL)) {
-      if (length == 0) {
-        _sink.add(bytes);
-        flushedLength += bytes.length;
-      } else {
-        _buffer.setRange(length, length + bytes.length, bytes);
-        length += bytes.length;
-      }
+      _buffer.setRange(length, length + bytes.length, bytes);
+      length += bytes.length;
     } else if (bytes.length < SMALL) {
       // Flush as much as we can in the current buffer.
       _buffer.setRange(length, SIZE, bytes);
@@ -1860,12 +1855,9 @@ class BufferedSink {
       length = remainder;
       flushedLength += SIZE;
     } else {
-      _sink.add(_buffer.sublist(0, length));
+      flush();
       _sink.add(bytes);
-      _buffer = new Uint8List(SIZE);
-      flushedLength += length;
       flushedLength += bytes.length;
-      length = 0;
     }
   }
 
