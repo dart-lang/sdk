@@ -217,13 +217,10 @@ cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
-cc/IsolateReload_BadClass: Fail
 cc/IsolateReload_DanglingGetter_Library: Fail
 cc/IsolateReload_DanglingSetter_Class: Fail
 cc/IsolateReload_DanglingSetter_Instance: Fail
 cc/IsolateReload_DanglingSetter_Library: Fail
-cc/IsolateReload_DirectSubclasses_Failure: Fail
-cc/IsolateReload_DirectSubclasses_Success: Skip
 cc/IsolateReload_EnumDelete: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
 cc/IsolateReload_EnumToNotEnum: Skip
@@ -247,7 +244,6 @@ cc/IsolateReload_RunNewFieldInitializersThrows: Skip
 cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_ShapeChangeRetainsHash: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
-cc/IsolateReload_TopLevelParseError: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
