@@ -1813,7 +1813,7 @@ VM_UNIT_TEST_CASE(CheckKernelSnapshot) {
     Dart_ExitScope();
   }
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
-  bool is_kernel = Dart_IsDart2Snapshot(full_snapshot, isolate_snapshot_size);
+  bool is_kernel = Dart_IsDart2Snapshot(full_snapshot);
   EXPECT_EQ(FLAG_strong, is_kernel);
 }
 

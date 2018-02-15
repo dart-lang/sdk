@@ -1551,8 +1551,15 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   return Api::Success();
 }
 
-DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer,
-                                      intptr_t snapshot_size) {
+DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer) {
+  if (snapshot_buffer == NULL) {
+    return false;
+  }
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
+  if (snapshot == NULL) {
+    return false;
+  }
+  const intptr_t snapshot_size = snapshot->length();
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
