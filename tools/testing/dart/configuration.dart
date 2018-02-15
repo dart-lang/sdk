@@ -646,12 +646,27 @@ class Compiler {
       case Compiler.dartkp:
         return Runtime.dartPrecompiled;
       case Compiler.specParser:
+      case Compiler.fasta:
         return Runtime.none;
       case Compiler.none:
         return Runtime.vm;
     }
 
     throw "unreachable";
+  }
+
+  Mode get defaultMode {
+    switch (this) {
+      case Compiler.dart2analyzer:
+      case Compiler.dart2js:
+      case Compiler.dartdevc:
+      case Compiler.dartdevk:
+      case Compiler.fasta:
+        return Mode.release;
+
+      default:
+        return Mode.debug;
+    }
   }
 
   String toString() => "Compiler($name)";
