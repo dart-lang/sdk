@@ -40,8 +40,7 @@ class UriTranslatorImplTest {
   void test_translate_dart() {
     expect(translator.translate(Uri.parse('dart:core')),
         Uri.parse('org-dartlang-test:///sdk/core/core.dart'));
-    expect(translator.translate(Uri.parse('dart:core/string.dart')),
-        Uri.parse('org-dartlang-test:///sdk/core/string.dart'));
+    expect(translator.translate(Uri.parse('dart:core/string.dart')), null);
 
     expect(translator.translate(Uri.parse('dart:math')),
         Uri.parse('org-dartlang-test:///sdk/math/math.dart'));
