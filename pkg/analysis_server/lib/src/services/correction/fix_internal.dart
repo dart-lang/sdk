@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -3216,30 +3217,24 @@ class FixProcessor {
    * Return `true` if the [source] can be imported into [unitLibraryFile].
    */
   bool _isSourceVisibleToLibrary(Source source) {
-    if (!source.uri.isScheme('file')) {
+    String path = source.fullName;
+
+    ContextRoot contextRoot = driver.contextRoot;
+    if (contextRoot == null) {
       return true;
     }
 
-    // Prepare the root of our package.
-    Folder packageRoot;
-    for (Folder folder = unitLibraryFolder;
-        folder != null;
-        folder = folder.parent) {
-      if (folder.getChildAssumingFile('pubspec.yaml').exists ||
-          folder.getChildAssumingFile('BUILD').exists) {
-        packageRoot = folder;
-        break;
-      }
-    }
-
-    // This should be rare / never situation.
-    if (packageRoot == null) {
-      return true;
+    // We don't want to use private libraries of other packages.
+    if (source.uri.isScheme('package') && _isLibSrcPath(path)) {
+      return resourceProvider.pathContext.isWithin(contextRoot.root, path);
     }
 
     // We cannot use relative URIs to reference files outside of our package.
-    return resourceProvider.pathContext
-        .isWithin(packageRoot.path, source.fullName);
+    if (source.uri.isScheme('file')) {
+      return resourceProvider.pathContext.isWithin(contextRoot.root, path);
+    }
+
+    return true;
   }
 
   /**
