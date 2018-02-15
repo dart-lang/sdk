@@ -7,16 +7,13 @@
 
 #include "bin/platform.h"
 
-#include <errno.h>        // NOLINT
 #include <signal.h>       // NOLINT
 #include <string.h>       // NOLINT
 #include <sys/utsname.h>  // NOLINT
-#include <termios.h>      // NOLINT
 #include <unistd.h>       // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
-#include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
@@ -30,53 +27,6 @@ static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   Dart_DumpNativeStackTrace(context);
   abort();
 }
-
-class PlatformPosix {
- public:
-  static void SaveConsoleConfiguration() {
-    SaveConsoleConfigurationHelper(STDOUT_FILENO, &stdout_initial_c_lflag_);
-    SaveConsoleConfigurationHelper(STDERR_FILENO, &stderr_initial_c_lflag_);
-    SaveConsoleConfigurationHelper(STDIN_FILENO, &stdin_initial_c_lflag_);
-  }
-
-  static void RestoreConsoleConfiguration() {
-    RestoreConsoleConfigurationHelper(STDOUT_FILENO, stdout_initial_c_lflag_);
-    RestoreConsoleConfigurationHelper(STDERR_FILENO, stderr_initial_c_lflag_);
-    RestoreConsoleConfigurationHelper(STDIN_FILENO, stdin_initial_c_lflag_);
-    stdout_initial_c_lflag_ = -1;
-    stderr_initial_c_lflag_ = -1;
-    stdin_initial_c_lflag_ = -1;
-  }
-
- private:
-  static tcflag_t stdout_initial_c_lflag_;
-  static tcflag_t stderr_initial_c_lflag_;
-  static tcflag_t stdin_initial_c_lflag_;
-
-  static void SaveConsoleConfigurationHelper(intptr_t fd, tcflag_t* flag) {
-    ASSERT(flag != NULL);
-    struct termios term;
-    int status = NO_RETRY_EXPECTED(tcgetattr(fd, &term));
-    if (status != 0) {
-      return;
-    }
-    *flag = term.c_lflag;
-  }
-
-  static void RestoreConsoleConfigurationHelper(intptr_t fd, tcflag_t flag) {
-    struct termios term;
-    int status = NO_RETRY_EXPECTED(tcgetattr(fd, &term));
-    if (status != 0) {
-      return;
-    }
-    term.c_lflag = flag;
-    NO_RETRY_EXPECTED(tcsetattr(fd, TCSANOW, &term));
-  }
-};
-
-tcflag_t PlatformPosix::stdout_initial_c_lflag_ = 0;
-tcflag_t PlatformPosix::stderr_initial_c_lflag_ = 0;
-tcflag_t PlatformPosix::stdin_initial_c_lflag_ = 0;
 
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
@@ -112,7 +62,7 @@ bool Platform::Initialize() {
     perror("sigaction() failed.");
     return false;
   }
-  SaveConsoleConfiguration();
+
   return true;
 }
 
@@ -192,16 +142,7 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 void Platform::Exit(int exit_code) {
-  RestoreConsoleConfiguration();
   exit(exit_code);
-}
-
-void Platform::SaveConsoleConfiguration() {
-  PlatformPosix::SaveConsoleConfiguration();
-}
-
-void Platform::RestoreConsoleConfiguration() {
-  PlatformPosix::RestoreConsoleConfiguration();
 }
 
 }  // namespace bin

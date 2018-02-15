@@ -91,9 +91,6 @@ class Platform {
   static DART_NORETURN void Exit(int exit_code);
 
  private:
-  static void SaveConsoleConfiguration();
-  static void RestoreConsoleConfiguration();
-
   // The path to the executable.
   static const char* executable_name_;
   // The path to the resolved executable.
