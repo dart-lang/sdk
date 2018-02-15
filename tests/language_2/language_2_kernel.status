@@ -838,6 +838,7 @@ ct_const2_test: Fail
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc04: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.

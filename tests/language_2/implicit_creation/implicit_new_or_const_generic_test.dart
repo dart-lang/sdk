@@ -82,7 +82,7 @@ main() {
   }
 
   // Test instance creation with type parameters.
-  new G<int>().testWithT();
+  new G<int>().testWithInt();
 }
 
 class D<T> {
@@ -97,7 +97,7 @@ class D<T> {
 
 class G<T> {
   // Tests creation of D<T> where T is a type variable.
-  void testWithT() {
+  void testWithInt() {
     // Cannot create constants referencing T or x.
     var instances = [
       new D<T>(null),
@@ -113,7 +113,7 @@ class G<T> {
       prefix.D<T>.named(null),
     ];
 
-    const dx = const D<T>(null);
+    const dx = const D<int>(null);
     Expect.allDistinct([dx]..addAll(instances));
     for (var i = 0; i < instances.length; i++) {
       var d = instances[i];
