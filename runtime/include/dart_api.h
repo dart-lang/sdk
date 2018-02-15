@@ -1038,7 +1038,7 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
  *
  * \returns true if the snapshot is a Dart2 snapshot, false otherwise.
  */
-DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer);
+DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer);
 
 /**
  * Schedules an interrupt for the specified isolate.
