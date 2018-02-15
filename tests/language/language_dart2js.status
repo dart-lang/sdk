@@ -1341,6 +1341,7 @@ regress_17382_test: RuntimeError
 regress_18535_test: CompileTimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22936_test/01: RuntimeError
+regress_23408_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
