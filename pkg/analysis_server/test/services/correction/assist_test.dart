@@ -85,19 +85,6 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     await assertNoAssist(kind);
   }
 
-  Position expectedPosition(String search) {
-    int offset = resultCode.indexOf(search);
-    return new Position(testFile, offset);
-  }
-
-  List<Position> expectedPositions(List<String> patterns) {
-    List<Position> positions = <Position>[];
-    patterns.forEach((String search) {
-      positions.add(expectedPosition(search));
-    });
-    return positions;
-  }
-
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
