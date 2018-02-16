@@ -32,6 +32,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
       <String, LinkedEditGroup>{};
 
   /**
+   * The range of the selection for the change being built, or `null` if there
+   * is no selection.
+   */
+  SourceRange _selectionRange;
+
+  /**
    * The set of [Position]s that belong to the current [EditBuilderImpl] and
    * should not be updated in result of inserting this builder.
    */
@@ -41,6 +47,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * Initialize a newly created change builder.
    */
   ChangeBuilderImpl();
+
+  @override
+  SourceRange get selectionRange => _selectionRange;
 
   @override
   SourceChange get sourceChange {
@@ -84,6 +93,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   void setSelection(Position position) {
     _change.selection = position;
+  }
+
+  void _setSelectionRange(SourceRange range) {
+    _selectionRange = range;
   }
 
   /**
@@ -131,10 +144,10 @@ class EditBuilderImpl implements EditBuilder {
   final int length;
 
   /**
-   * The offset of the selection for the change being built, or `-1` if the
+   * The range of the selection for the change being built, or `null` if the
    * selection is not inside the change being built.
    */
-  int _selectionOffset = -1;
+  SourceRange _selectionRange;
 
   /**
    * The end-of-line marker used in the file being edited, or `null` if the
@@ -203,8 +216,16 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
+  void selectAll(void writer()) {
+    int rangeOffset = _buffer.length;
+    writer();
+    int rangeLength = _buffer.length - rangeOffset;
+    _selectionRange = new SourceRange(offset + rangeOffset, rangeLength);
+  }
+
+  @override
   void selectHere() {
-    _selectionOffset = offset + _buffer.length;
+    _selectionRange = new SourceRange(offset + _buffer.length, 0);
   }
 
   @override
@@ -331,11 +352,12 @@ class FileEditBuilderImpl implements FileEditBuilder {
    * Capture the selection offset if one was set.
    */
   void _captureSelection(EditBuilderImpl builder, SourceEdit edit) {
-    int offset = builder._selectionOffset;
-    if (offset >= 0) {
+    SourceRange range = builder._selectionRange;
+    if (range != null) {
       Position position =
-          new Position(fileEdit.file, offset + _deltaToEdit(edit));
+          new Position(fileEdit.file, range.offset + _deltaToEdit(edit));
       changeBuilder.setSelection(position);
+      changeBuilder._setSelectionRange(range);
     }
   }
 

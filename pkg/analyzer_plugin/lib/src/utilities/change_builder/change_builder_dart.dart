@@ -321,7 +321,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String prefix2 = getIndent(2);
     ElementKind elementKind = member.kind;
     // TODO(brianwilkerson) Look for a non-abstract inherited member farther up
-    // in the superclass chain.
+    // in the superclass chain that we could invoke.
     bool isAbstract = member.isAbstract;
     bool isGetter = elementKind == ElementKind.GETTER;
     bool isSetter = elementKind == ElementKind.SETTER;
@@ -359,13 +359,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // name
     write(memberName, displayTextBuffer: displayTextBuffer);
+
     // parameters + body
     if (isGetter) {
       if (isAbstract) {
-        writeln(' => null;');
+        write(' => ');
+        selectAll(() {
+          write('null');
+        });
+        writeln(';');
       } else {
-        write(' => super.');
-        write(memberName);
+        write(' => ');
+        selectAll(() {
+          write('super.');
+          write(memberName);
+        });
         writeln(';');
       }
       displayTextBuffer?.write(' => …');
@@ -384,42 +392,53 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       if (returnType.isVoid) {
         if (!isAbstract) {
           write(prefix2);
-          write('super.');
-          write(memberName);
-          write('(');
-          for (int i = 0; i < parameters.length; i++) {
-            if (i > 0) {
-              write(', ');
+          selectAll(() {
+            write('super.');
+            write(memberName);
+            write('(');
+            for (int i = 0; i < parameters.length; i++) {
+              if (i > 0) {
+                write(', ');
+              }
+              write(parameters[i].name);
             }
-            write(parameters[i].name);
-          }
-          writeln(');');
+            write(');');
+          });
+          writeln();
         }
       } else if (isSetter) {
         if (!isAbstract) {
           write(prefix2);
-          write('super.');
-          write(memberName);
-          write(' = ');
-          write(parameters[0].name);
-          writeln(';');
+          selectAll(() {
+            write('super.');
+            write(memberName);
+            write(' = ');
+            write(parameters[0].name);
+            write(';');
+          });
+          writeln();
         }
       } else {
+        write(prefix2);
         if (isAbstract) {
-          writeln('return null;');
+          selectAll(() {
+            write('return null;');
+          });
         } else {
-          write(prefix2);
-          write('return super.');
-          write(memberName);
-          write('(');
-          for (int i = 0; i < parameters.length; i++) {
-            if (i > 0) {
-              write(', ');
+          selectAll(() {
+            write('return super.');
+            write(memberName);
+            write('(');
+            for (int i = 0; i < parameters.length; i++) {
+              if (i > 0) {
+                write(', ');
+              }
+              write(parameters[i].name);
             }
-            write(parameters[i].name);
-          }
-          writeln(');');
+            write(');');
+          });
         }
+        writeln();
       }
       // close method
       write(prefix);
