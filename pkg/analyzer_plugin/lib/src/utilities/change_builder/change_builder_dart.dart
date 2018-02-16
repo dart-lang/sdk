@@ -317,23 +317,28 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeOverrideOfInheritedMember(ExecutableElement member,
       {StringBuffer displayTextBuffer, String returnTypeGroupName}) {
-    // prepare environment
     String prefix = getIndent(1);
-    // may be property
     String prefix2 = getIndent(2);
     ElementKind elementKind = member.kind;
+    // TODO(brianwilkerson) Look for a non-abstract inherited member farther up
+    // in the superclass chain.
+    bool isAbstract = member.isAbstract;
     bool isGetter = elementKind == ElementKind.GETTER;
     bool isSetter = elementKind == ElementKind.SETTER;
     bool isMethod = elementKind == ElementKind.METHOD;
     bool isOperator = isMethod && (member as MethodElement).isOperator;
+    String memberName = member.displayName;
     write(prefix);
+
+    // @override
+    writeln('@override');
+    write(prefix);
+
     if (isGetter) {
       writeln('// TODO: implement ${member.displayName}');
       write(prefix);
     }
-    // @override
-    writeln('@override');
-    write(prefix);
+
     // return type
     DartType returnType = member.type.returnType;
     bool typeWritten = writeType(returnType,
@@ -351,13 +356,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.OPERATOR.lexeme);
       write(' ');
     }
-    // name
-    write(member.displayName, displayTextBuffer: displayTextBuffer);
 
+    // name
+    write(memberName, displayTextBuffer: displayTextBuffer);
     // parameters + body
     if (isGetter) {
-      writeln(' => null;');
-      displayTextBuffer?.write(' => ...');
+      if (isAbstract) {
+        writeln(' => null;');
+      } else {
+        write(' => super.');
+        write(memberName);
+        writeln(';');
+      }
+      displayTextBuffer?.write(' => …');
     } else {
       writeTypeParameters(member.typeParameters,
           methodBeingCopied: member, displayTextBuffer: displayTextBuffer);
@@ -365,18 +376,55 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       writeParameters(parameters,
           methodBeingCopied: member, displayTextBuffer: displayTextBuffer);
       writeln(' {');
-      displayTextBuffer?.write(' {');
+
       // TO-DO
       write(prefix2);
-      writeln('// TODO: implement ${member.displayName}');
-      if (typeWritten && !returnType.isVoid) {
-        write(prefix2);
-        writeln('return null;');
+      writeln('// TODO: implement $memberName');
+
+      if (returnType.isVoid) {
+        if (!isAbstract) {
+          write(prefix2);
+          write('super.');
+          write(memberName);
+          write('(');
+          for (int i = 0; i < parameters.length; i++) {
+            if (i > 0) {
+              write(', ');
+            }
+            write(parameters[i].name);
+          }
+          writeln(');');
+        }
+      } else if (isSetter) {
+        if (!isAbstract) {
+          write(prefix2);
+          write('super.');
+          write(memberName);
+          write(' = ');
+          write(parameters[0].name);
+          writeln(';');
+        }
+      } else {
+        if (isAbstract) {
+          writeln('return null;');
+        } else {
+          write(prefix2);
+          write('return super.');
+          write(memberName);
+          write('(');
+          for (int i = 0; i < parameters.length; i++) {
+            if (i > 0) {
+              write(', ');
+            }
+            write(parameters[i].name);
+          }
+          writeln(');');
+        }
       }
       // close method
       write(prefix);
       writeln('}');
-      displayTextBuffer?.write(' ... }');
+      displayTextBuffer?.write(' { … }');
     }
   }
 
