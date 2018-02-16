@@ -38,6 +38,10 @@ main() {
   });
 }
 
+const _isClassElement = const isInstanceOf<ClassElement>();
+
+const _isConstructorElement = const isInstanceOf<ConstructorElement>();
+
 /// Wrapper around the test package's `fail` function.
 ///
 /// Unlike the test package's `fail` function, this function is not annotated
@@ -1322,20 +1326,24 @@ class A {
   A() {}
 }
 main() {
-  var v = new A(); // marker
+  new A();
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // unnamed constructor:
-    expect(instanceCreationExpression.constructorName.name, isNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
   }
 
   /**
@@ -1351,20 +1359,24 @@ class A {
   A() {}
 }
 main() {
-  var v = A(); // marker
+  A();
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // unnamed constructor:
-    expect(instanceCreationExpression.constructorName.name, isNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
   }
 
   /**
@@ -1380,21 +1392,24 @@ class A {
   A.named() {}
 }
 main() {
-  var v = A.named(); // marker
+  A.named();
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // named constructor:
-    expect(instanceCreationExpression.constructorName.name.staticElement,
-        isNotNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name.staticElement, _isConstructorElement);
   }
 
   /**
@@ -1414,20 +1429,24 @@ class A {
 import 'fileOne.dart' as one;
 
 main() {
-  var v = one.A(); // marker
+  one.A();
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // unnamed constructor:
-    expect(instanceCreationExpression.constructorName.name, isNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
   }
 
   /**
@@ -1446,21 +1465,24 @@ class A {
     String code = '''
 import 'fileOne.dart' as one;
 main() {
-  var v = one.A.named(); // marker
+  one.A.named();
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName = findMarkedIdentifier(code, unit, "(); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // named constructor:
-    expect(instanceCreationExpression.constructorName.name.staticElement,
-        isNotNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name.staticElement, _isConstructorElement);
   }
 
   /**
@@ -1481,21 +1503,24 @@ class A<T> {
 import 'fileOne.dart' as one;
 
 main() {
-  var v = one.A<int>(42); // marker
+  one.A<int>(42);
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName =
-        findMarkedIdentifier(code, unit, "<int>(42); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // unnamed constructor:
-    expect(instanceCreationExpression.constructorName.name, isNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
   }
 
   /**
@@ -1512,21 +1537,24 @@ class A<T> {
   A(this.x) {}
 }
 main() {
-  var v = A<int>(42); // marker
+  A<int>(42);
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
-    AstNode constructorName =
-        findMarkedIdentifier(code, unit, "<int>(42); // marker");
-    InstanceCreationExpression instanceCreationExpression =
-        constructorName.parent.parent.parent;
-    expect(instanceCreationExpression, isNotNull);
-    expect(instanceCreationExpression.constructorName.type.type, isNotNull);
-    expect(instanceCreationExpression.constructorName.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticElement, isNotNull);
-    expect(instanceCreationExpression.staticType, isNotNull);
-    // unnamed constructor:
-    expect(instanceCreationExpression.constructorName.name, isNull);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
   }
 
   test_visitMethodInvocations_importPrefix_function() async {

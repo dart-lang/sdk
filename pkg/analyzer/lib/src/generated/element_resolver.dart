@@ -1705,6 +1705,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           _astFactory.constructorName(typeName, node.operator, node.methodName);
     } else {
       // A()
+      node.methodName.staticElement = classElement;
       typeName = _astFactory.typeName(node.methodName, node.typeArguments);
       typeName.type = classType;
       constructorName = _astFactory.constructorName(typeName, null, null);
@@ -1807,6 +1808,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else {
       // p.A()
       // libraryPrefixId is a SimpleIdentifier in this case
+      node.methodName.staticElement = classElement;
       PrefixedIdentifier prefixedIdentifier = _astFactory.prefixedIdentifier(
           libraryPrefixId, node.operator, node.methodName);
       typeName = _astFactory.typeName(prefixedIdentifier, node.typeArguments);
