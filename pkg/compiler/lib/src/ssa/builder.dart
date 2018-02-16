@@ -2972,7 +2972,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
     HConstant hConstant = globalNameHNode;
     StringConstantValue constant = hConstant.constant;
-    String globalName = constant.primitiveValue;
+    String globalName = constant.stringValue;
     js.Template expr = js.js.expressionTemplateYielding(
         emitter.generateEmbeddedGlobalAccess(globalName));
     native.NativeBehavior nativeBehavior = elements.getNativeData(node);
@@ -3586,7 +3586,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       bool canThrow = true;
       if (inputs[0].isInteger(closedWorld) && inputs[0] is HConstant) {
         dynamic constant = inputs[0];
-        int value = constant.constant.primitiveValue;
+        IntConstantValue intConstant = constant.constant;
+        int value = intConstant.intValue;
         if (0 <= value && value < 0x100000000) canThrow = false;
       }
       HForeignCode foreign = new HForeignCode(code, elementType, inputs,
@@ -4082,7 +4083,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       if (isSymbolConstructor) {
         ConstructedConstantValue symbol = getConstantForNode(node);
         StringConstantValue stringConstant = symbol.fields.values.single;
-        String nameString = stringConstant.primitiveValue;
+        String nameString = stringConstant.stringValue;
         registry?.registerConstSymbol(nameString);
       }
     } else {

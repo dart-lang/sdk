@@ -366,7 +366,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
       if (element == compiler.resolution.commonElements.deferredLibraryClass) {
         ConstructedConstantValue constant = value;
         StringConstantValue s = constant.fields.values.single;
-        result = s.primitiveValue;
+        result = s.stringValue;
         break;
       }
     }

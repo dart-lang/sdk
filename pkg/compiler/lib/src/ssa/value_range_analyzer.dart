@@ -139,7 +139,7 @@ class IntValue extends Value {
     dynamic constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator -(dynamic other) {
@@ -149,7 +149,7 @@ class IntValue extends Value {
     dynamic constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator -() {
@@ -158,7 +158,7 @@ class IntValue extends Value {
     dynamic constant =
         constantSystem.negate.fold(constantSystem.createInt(value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator &(dynamic other) {
@@ -166,7 +166,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     dynamic constant = constantSystem.bitAnd.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value min(dynamic other) {
@@ -681,19 +681,19 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitConstant(HConstant hConstant) {
     if (!hConstant.isInteger(closedWorld)) return info.newUnboundRange();
     ConstantValue constant = hConstant.constant;
-    NumConstantValue constantNum;
+    IntConstantValue intConstant;
     if (constant is DeferredConstantValue) {
-      constantNum = constant.referenced;
+      intConstant = constant.referenced;
     } else if (constant is DeferredGlobalConstantValue) {
-      constantNum = constant.referenced;
+      intConstant = constant.referenced;
     } else {
-      constantNum = constant;
+      intConstant = constant;
     }
-    if (constantNum.isPositiveInfinity || constantNum.isNegativeInfinity) {
+    if (intConstant.isPositiveInfinity || intConstant.isNegativeInfinity) {
       return info.newUnboundRange();
     }
-    if (constantNum.isMinusZero) constantNum = new IntConstantValue(0);
-    Value value = info.newIntValue(constantNum.primitiveValue);
+    if (intConstant.isMinusZero) intConstant = new IntConstantValue(0);
+    Value value = info.newIntValue(intConstant.intValue);
     return info.newNormalizedRange(value, value);
   }
 

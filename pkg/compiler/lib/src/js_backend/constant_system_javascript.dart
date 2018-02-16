@@ -22,8 +22,7 @@ class JavaScriptBitNotOperation extends BitNotOperation {
       if (constant.isMinusZero) constant = DART_CONSTANT_SYSTEM.createInt(0);
       IntConstantValue intConstant = constant;
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JAVA_SCRIPT_CONSTANT_SYSTEM
-          .createInt32(~intConstant.primitiveValue);
+      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(~intConstant.intValue);
     }
     return null;
   }
@@ -47,7 +46,7 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
     IntConstantValue result = dartBitOperation.fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(result.primitiveValue);
+      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(result.intValue);
     }
     return result;
   }
@@ -62,7 +61,7 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
     // Truncate the input value to 32 bits if necessary.
     if (left.isInt) {
       IntConstantValue intConstant = left;
-      int value = intConstant.primitiveValue;
+      int value = intConstant.intValue;
       int truncatedValue = value & JAVA_SCRIPT_CONSTANT_SYSTEM.BITS32;
       if (value < 0) {
         // Sign-extend if the input was negative. The current semantics don't
@@ -96,7 +95,7 @@ class JavaScriptNegateOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      if (intConstant.primitiveValue == 0) {
+      if (intConstant.intValue == 0) {
         return JAVA_SCRIPT_CONSTANT_SYSTEM.createDouble(-0.0);
       }
     }
@@ -160,14 +159,19 @@ class JavaScriptIdentityOperation implements BinaryOperation {
 
   BoolConstantValue fold(ConstantValue left, ConstantValue right) {
     BoolConstantValue result = dartIdentityOperation.fold(left, right);
-    if (result == null || result.primitiveValue) return result;
+    if (result == null || result.boolValue) return result;
     // In JavaScript -0.0 === 0 and all doubles are equal to their integer
     // values. Furthermore NaN !== NaN.
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      return new BoolConstantValue(leftInt.intValue == rightInt.intValue);
+    }
     if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
-      double leftDouble = leftNum.primitiveValue.toDouble();
-      double rightDouble = rightNum.primitiveValue.toDouble();
+      double leftDouble = leftNum.doubleValue;
+      double rightDouble = rightNum.doubleValue;
       return new BoolConstantValue(leftDouble == rightDouble);
     }
     return result;
@@ -198,14 +202,14 @@ class JavaScriptRoundOperation implements UnaryOperation {
 
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      int value = intConstant.primitiveValue;
+      int value = intConstant.intValue;
       if (value >= -double.MAX_FINITE && value <= double.MAX_FINITE) {
         return tryToRound(value);
       }
     }
     if (constant.isDouble) {
       DoubleConstantValue doubleConstant = constant;
-      double value = doubleConstant.primitiveValue;
+      double value = doubleConstant.doubleValue;
       // NaN and infinities will throw.
       if (value.isNaN) return null;
       if (value.isInfinite) return null;
@@ -269,7 +273,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   NumConstantValue convertToJavaScriptConstant(NumConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      int intValue = intConstant.primitiveValue;
+      int intValue = intConstant.intValue;
       if (integerBecomesNanOrInfinity(intValue)) {
         return new DoubleConstantValue(intValue.toDouble());
       }
@@ -281,7 +285,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       }
     } else if (constant.isDouble) {
       DoubleConstantValue doubleResult = constant;
-      double doubleValue = doubleResult.primitiveValue;
+      double doubleValue = doubleResult.doubleValue;
       if (!doubleValue.isInfinite &&
           !doubleValue.isNaN &&
           !constant.isMinusZero) {
@@ -361,7 +365,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     for (int i = 0; i < keys.length; i++) {
       dynamic key = keys[i];
       if (key.isString) {
-        if (key.primitiveValue == JavaScriptMapConstant.PROTO_PROPERTY) {
+        if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
           protoValue = values[i];
         }
       } else {

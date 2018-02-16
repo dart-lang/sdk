@@ -385,7 +385,7 @@ class MirrorUsageBuilder {
       for (ConstantValue entry in list.entries) {
         if (entry.isString) {
           StringConstantValue string = entry;
-          result.add(string.primitiveValue);
+          result.add(string.stringValue);
         } else if (!onlyStrings && entry.isType) {
           TypeConstantValue type = entry;
           result.add(type.representedType);
@@ -404,7 +404,7 @@ class MirrorUsageBuilder {
       return [type.representedType];
     } else if (constant.isString) {
       StringConstantValue string = constant;
-      var iterable = string.primitiveValue.split(',').map((e) => e.trim());
+      var iterable = string.stringValue.split(',').map((e) => e.trim());
       return onlyStrings ? new List<String>.from(iterable) : iterable.toList();
     } else {
       Spannable node = positionOf(constant);

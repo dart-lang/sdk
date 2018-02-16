@@ -3356,7 +3356,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     HConstant hConstant = instruction;
     StringConstantValue stringConstant = hConstant.constant;
-    return stringConstant.primitiveValue;
+    return stringConstant.stringValue;
   }
 
   void handleForeignJsCurrentIsolateContext(ir.StaticInvocation invocation) {

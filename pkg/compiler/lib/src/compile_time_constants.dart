@@ -538,8 +538,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         context,
         node,
         new ConcatenateConstantExpression([left.expression, right.expression]),
-        constantSystem.createString(
-            leftValue.primitiveValue + rightValue.primitiveValue));
+        constantSystem
+            .createString(leftValue.stringValue + rightValue.stringValue));
   }
 
   AstConstant visitStringInterpolation(StringInterpolation node) {
@@ -551,7 +551,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     subexpressions.add(initialString.expression);
     StringBuffer sb = new StringBuffer();
     StringConstantValue initialStringValue = initialString.value;
-    sb.write(initialStringValue.primitiveValue);
+    sb.write(initialStringValue.stringValue);
     for (StringInterpolationPart part in node.parts) {
       AstConstant subexpression = evaluate(part.expression);
       if (subexpression == null || subexpression.isError) {
@@ -560,8 +560,17 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       subexpressions.add(subexpression.expression);
       ConstantValue expression = subexpression.value;
       if (expression.isPrimitive) {
-        PrimitiveConstantValue primitive = expression;
-        sb.write(primitive.primitiveValue);
+        if (expression is IntConstantValue) {
+          sb.write(expression.intValue);
+        } else if (expression is DoubleConstantValue) {
+          sb.write(expression.doubleValue);
+        } else if (expression is StringConstantValue) {
+          sb.write(expression.stringValue);
+        } else if (expression is BoolConstantValue) {
+          sb.write(expression.boolValue);
+        } else if (expression is NullConstantValue) {
+          sb.write(null);
+        }
       } else {
         // TODO(johnniwinther): Specialize message to indicated that the problem
         // is not constness but the types of the const expressions.
@@ -571,7 +580,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       if (partString == null) return null;
       subexpressions.add(partString.expression);
       StringConstantValue partStringValue = partString.value;
-      sb.write(partStringValue.primitiveValue);
+      sb.write(partStringValue.stringValue);
     }
     return new AstConstant(
         context,
@@ -663,7 +672,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           AstConstant left = evaluate(send.receiver);
           if (left != null && left.value.isString) {
             StringConstantValue stringConstantValue = left.value;
-            String string = stringConstantValue.primitiveValue;
+            String string = stringConstantValue.stringValue;
             IntConstantValue length = constantSystem.createInt(string.length);
             result = new AstConstant(context, send,
                 new StringLengthConstantExpression(left.expression), length);
@@ -826,9 +835,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         node,
         new ConditionalConstantExpression(condition.expression,
             thenExpression.expression, elseExpression.expression),
-        boolCondition.primitiveValue
-            ? thenExpression.value
-            : elseExpression.value);
+        boolCondition.boolValue ? thenExpression.value : elseExpression.value);
   }
 
   AstConstant visitSendSet(SendSet node) {
@@ -1039,7 +1046,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           {'fromType': type, 'toType': commonElements.stringType});
     }
 
-    String name = firstArgument.primitiveValue;
+    String name = firstArgument.stringValue;
     String value = compiler.fromEnvironment(name);
 
     AstConstant createEvaluatedConstant(ConstantValue value) {

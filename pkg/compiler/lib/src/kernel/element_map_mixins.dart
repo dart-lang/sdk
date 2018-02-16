@@ -296,7 +296,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         assert(constant.fields.length == 1 || constant.fields.length == 2);
         ConstantValue indexConstant = constant.fields.values.first;
         if (indexConstant is IntConstantValue) {
-          return indexConstant.primitiveValue;
+          return indexConstant.intValue;
         }
       }
     }

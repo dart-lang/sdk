@@ -302,7 +302,7 @@ class KernelImpactBuilder extends ir.Visitor {
         return;
       }
       StringConstantValue stringValue = value;
-      impactBuilder.registerConstSymbolName(stringValue.primitiveValue);
+      impactBuilder.registerConstSymbolName(stringValue.stringValue);
     }
   }
 
