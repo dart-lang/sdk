@@ -7839,10 +7839,9 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  Double& constant =
-      Double::ZoneHandle(Z, Double::New(H.DartString(ReadStringReference()),
-                                        Heap::kOld));  // read string reference.
-  return Constant(constant);
+  intptr_t offset = ReaderOffset() - 1;  // EvaluateExpression needs the tag.
+  SkipStringReference();                 // read index into string table.
+  return Constant(constant_evaluator_.EvaluateExpression(offset));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildBoolLiteral(bool value,
