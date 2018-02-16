@@ -1720,6 +1720,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     instanceCreationExpression.staticElement = constructorElt;
     instanceCreationExpression.staticType = classType;
 
+    node.argumentList.correspondingStaticParameters =
+        _computeCorrespondingParameters(node.argumentList, constructorElt.type);
+
     // Finally, do the node replacement, true is returned iff the replacement
     // was successful, only return the new node if it was successful.
     if (NodeReplacer.replace(node, instanceCreationExpression)) {
@@ -1824,6 +1827,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     constructorName.staticElement = constructorElt;
     instanceCreationExpression.staticElement = constructorElt;
     instanceCreationExpression.staticType = classType;
+
+    node.argumentList.correspondingStaticParameters =
+        _computeCorrespondingParameters(node.argumentList, constructorElt.type);
 
     // Finally, do the node replacement, true is returned iff the replacement
     // was successful, only return the new node if it was successful.

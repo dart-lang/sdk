@@ -1356,10 +1356,10 @@ main() {
   test_visitMethodInvocations_implicit() async {
     String code = '''
 class A {
-  A() {}
+  A(a, {b}) {}
 }
 main() {
-  A();
+  A(0, b: 1);
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
@@ -1367,16 +1367,23 @@ main() {
 
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(constructor, _isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
     expect(creation.constructorName.type.name.staticElement, _isClassElement);
 
     expect(creation.constructorName.name, isNull);
+
+    List<Expression> arguments = creation.argumentList.arguments;
+    Expression argumentA = arguments[0];
+    expect(argumentA.staticParameterElement, constructor.parameters[0]);
+    NamedExpression argumentB = arguments[1];
+    expect(argumentB.name.label.staticElement, constructor.parameters[1]);
   }
 
   /**
@@ -1400,16 +1407,17 @@ main() {
 
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(constructor, _isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
     expect(creation.constructorName.type.name.staticElement, _isClassElement);
 
-    expect(creation.constructorName.name.staticElement, _isConstructorElement);
+    expect(creation.constructorName.name.staticElement, constructor);
   }
 
   /**
@@ -1437,11 +1445,12 @@ main() {
 
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(constructor, _isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
     expect(creation.constructorName.type.name.staticElement, _isClassElement);
@@ -1459,13 +1468,13 @@ main() {
   test_visitMethodInvocations_implicit_prefixed_named() async {
     addNamedSource("/fileOne.dart", r'''
 class A {
-  A.named() {}
+  A.named(a, {b}) {}
 }
 ''');
     String code = '''
 import 'fileOne.dart' as one;
 main() {
-  one.A.named();
+  one.A.named(0, b: 1);
 }
     ''';
     CompilationUnit unit = await resolveSource(code);
@@ -1473,16 +1482,23 @@ main() {
 
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(constructor, _isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
     expect(creation.constructorName.type.name.staticElement, _isClassElement);
 
-    expect(creation.constructorName.name.staticElement, _isConstructorElement);
+    expect(creation.constructorName.name.staticElement, constructor);
+
+    List<Expression> arguments = creation.argumentList.arguments;
+    Expression argumentA = arguments[0];
+    expect(argumentA.staticParameterElement, constructor.parameters[0]);
+    NamedExpression argumentB = arguments[1];
+    expect(argumentB.name.label.staticElement, constructor.parameters[1]);
   }
 
   /**
@@ -1511,11 +1527,12 @@ main() {
 
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(constructor, _isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
     expect(creation.constructorName.type.name.staticElement, _isClassElement);
@@ -1545,11 +1562,12 @@ main() {
 
     ExpressionStatement statement = statements[0];
     InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
 
-    expect(creation.staticElement, _isConstructorElement);
+    expect(constructor, _isConstructorElement);
     expect(creation.staticType, isNotNull);
 
-    expect(creation.constructorName.staticElement, _isConstructorElement);
+    expect(creation.constructorName.staticElement, constructor);
 
     expect(creation.constructorName.type.type, isNotNull);
     expect(creation.constructorName.type.name.staticElement, _isClassElement);
