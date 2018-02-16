@@ -24,9 +24,9 @@ class Selector {
 
   Selector(this.action, this.target);
 
-  Selector.invoke(Name target) : this(Action.invoke, target);
-  Selector.get(Name target) : this(Action.get, target);
-  Selector.set(Name target) : this(Action.set, target);
+  Selector.doInvoke(Name target) : this(Action.invoke, target);
+  Selector.doGet(Name target) : this(Action.get, target);
+  Selector.doSet(Name target) : this(Action.set, target);
 
   bool operator ==(other) {
     return other is Selector &&
@@ -83,7 +83,7 @@ class NoDynamicInvocationsAnnotator {
       return;
     }
 
-    if (!_dynamicSelectors.contains(new Selector.set(node.name))) {
+    if (!_dynamicSelectors.contains(new Selector.doSet(node.name))) {
       _metadata.mapping[node] =
           const ProcedureAttributesMetadata.noDynamicInvocations();
     }
@@ -96,9 +96,9 @@ class NoDynamicInvocationsAnnotator {
 
     Selector selector;
     if (node.kind == ProcedureKind.Method) {
-      selector = new Selector.invoke(node.name);
+      selector = new Selector.doInvoke(node.name);
     } else if (node.kind == ProcedureKind.Setter) {
-      selector = new Selector.set(node.name);
+      selector = new Selector.doSet(node.name);
     } else {
       return;
     }
@@ -124,7 +124,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitMethodInvocation(node);
 
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector.invoke(node.name));
+      dynamicSelectors.add(new Selector.doInvoke(node.name));
     }
   }
 
@@ -133,7 +133,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitPropertyGet(node);
 
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector.get(node.name));
+      dynamicSelectors.add(new Selector.doGet(node.name));
     }
   }
 
@@ -142,7 +142,7 @@ class DynamicSelectorsCollector extends RecursiveVisitor<Null> {
     super.visitPropertySet(node);
 
     if (node.dispatchCategory == DispatchCategory.dynamicDispatch) {
-      dynamicSelectors.add(new Selector.set(node.name));
+      dynamicSelectors.add(new Selector.doSet(node.name));
     }
   }
 }
