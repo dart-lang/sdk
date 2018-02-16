@@ -339,6 +339,16 @@ Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
   return input;
 }
 
+// After replacing a call with a specialized instruction, make sure to
+// update types at all uses, as specialized instruction can provide a more
+// specific type.
+static void RefineUseTypes(Definition* instr) {
+  CompileType* new_type = instr->Type();
+  for (Value::Iterator it(instr->input_use_list()); !it.Done(); it.Advance()) {
+    it.Current()->RefineReachingType(new_type);
+  }
+}
+
 bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
     InstanceCallInstr* instr) {
   ASSERT(I->strong() && FLAG_use_strong_mode_types);
@@ -481,6 +491,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
                 instr->ToCString(), replacement->ToCString());
     }
     ReplaceCall(instr, replacement);
+    RefineUseTypes(replacement);
     return true;
   }
 
@@ -673,6 +684,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
                 instr->ToCString(), replacement->ToCString());
     }
     ReplaceCall(instr, replacement);
+    RefineUseTypes(replacement);
     return true;
   }
 
