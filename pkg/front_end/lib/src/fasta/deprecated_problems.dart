@@ -118,14 +118,14 @@ Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
   String json = JSON.encode(data);
   HttpClient client = new HttpClient();
   try {
-    Uri uri = Uri.parse(defaultServerAddress);
+    Uri serverUri = Uri.parse(defaultServerAddress);
     HttpClientRequest request;
     try {
-      request = await client.postUrl(uri);
+      request = await client.postUrl(serverUri);
     } on SocketException {
       // Assume the crash logger isn't running.
       await client.close(force: true);
-      return new Future.error(error, trace);
+      return new Future.error(new Crash(uri, charOffset, error, trace), trace);
     }
     if (request != null) {
       await note("\nSending crash report data");

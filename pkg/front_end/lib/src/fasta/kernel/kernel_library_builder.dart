@@ -377,11 +377,12 @@ class KernelLibraryBuilder
                     name = "#T${index}";
                   }
                 } else if (argument.arguments == null) {
-                  name = unresolved[argument.name] ??= "#U${unresolvedCount++}";
+                  name = unresolved["${argument.name}"] ??=
+                      "#U${unresolvedCount++}";
                 }
               }
               name ??= "#U${unresolvedCount++}";
-              unresolvedReversed[name] = argument.name;
+              unresolvedReversed[name] = "${argument.name}";
               freeTypes[name] = argument;
               part.add(name);
               type.arguments[i] = new KernelNamedTypeBuilder(name, null);
