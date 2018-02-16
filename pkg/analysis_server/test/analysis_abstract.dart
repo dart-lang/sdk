@@ -116,7 +116,8 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     //
     // Create server
     //
-    AnalysisServerOptions options = new AnalysisServerOptions();
+    AnalysisServerOptions options = new AnalysisServerOptions()
+      ..previewDart2 = true;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,

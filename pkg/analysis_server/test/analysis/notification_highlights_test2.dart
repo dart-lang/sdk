@@ -497,7 +497,7 @@ void my_function(String a) {
     assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
   }
 
-  test_CONSTRUCTOR() async {
+  test_CONSTRUCTOR_explicitNew() async {
     addTestFile('''
 class AAA<T> {
   AAA() {}
@@ -506,6 +506,26 @@ class AAA<T> {
 main() {
   new AAA<int>();
   new AAA<int>.name(42);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
+  }
+
+  test_CONSTRUCTOR_implicitNew() async {
+    addTestFile('''
+class AAA<T> {
+  AAA() {}
+  AAA.name(p) {}
+}
+main() {
+  AAA<int>();
+  AAA<int>.name(42);
 }
 ''');
     await prepareHighlights();
