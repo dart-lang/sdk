@@ -2752,6 +2752,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kTypeLiteral:
         EvaluateTypeLiteral();
         break;
+      case kAsExpression:
+        EvaluateAsExpression();
+        break;
       case kListLiteral:
       case kConstListLiteral:
         EvaluateListLiteralInternal();
@@ -3199,6 +3202,40 @@ void StreamingConstantEvaluator::EvaluateLogicalExpression() {
     } else {
       builder_->SkipExpression();  // read right.
     }
+  }
+}
+
+void StreamingConstantEvaluator::EvaluateAsExpression() {
+  builder_->ReadPosition();
+  const uint8_t flags = builder_->ReadFlags();
+  const bool is_type_error = (flags & (1 << 0)) != 0;
+
+  // Check that this AsExpression was inserted by the front-end.
+  if (!is_type_error) {
+    H.ReportError(
+        script_, TokenPosition::kNoSource,
+        "explicit as operator is not permitted in constant expression");
+  }
+
+  EvaluateExpression(builder_->ReaderOffset(), false);
+
+  const AbstractType& type = T.BuildType();
+  if (!type.IsInstantiated() || type.IsMalformed()) {
+    H.ReportError(
+        script_, TokenPosition::kNoSource,
+        "Not a constant expression: right hand side of an implicit "
+        "as-expression is expected to be an instantiated type, got %s",
+        type.ToCString());
+  }
+
+  const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
+  const TypeArguments& function_type_arguments = TypeArguments::Handle();
+  Error& error = Error::Handle();
+  if (!result_.IsInstanceOf(type, instantiator_type_arguments,
+                            function_type_arguments, &error)) {
+    H.ReportError(script_, TokenPosition::kNoSource,
+                  "Not a constant expression: %s is not an instance of %s",
+                  result_.ToCString(), type.ToCString());
   }
 }
 
