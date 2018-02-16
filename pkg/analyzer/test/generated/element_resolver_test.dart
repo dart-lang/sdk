@@ -25,6 +25,7 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -1301,6 +1302,9 @@ class ElementResolverTest extends EngineTestCase {
 @reflectiveTest
 class PreviewDart2Test extends ResolverTestCase {
   @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl()
       ..previewDart2 = true;
@@ -1523,6 +1527,25 @@ main() {
     expect(instanceCreationExpression.staticType, isNotNull);
     // unnamed constructor:
     expect(instanceCreationExpression.constructorName.name, isNull);
+  }
+
+  test_visitMethodInvocations_importPrefix_function() async {
+    String code = '''
+import 'dart:math' as ma;
+main() {
+  ma.max(1, 2); // marker
+}
+''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+
+    SimpleIdentifier prefix = invocation.target;
+    expect(prefix.staticElement, new isInstanceOf<PrefixElement>());
+
+    expect(invocation.methodName.name, 'max');
   }
 
   /**

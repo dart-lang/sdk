@@ -1746,7 +1746,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         classElement = elt;
       }
     } else {
-      LibraryElementImpl libraryElement = _getImportedLibrary(node.target);
+      LibraryElement libraryElement = _getImportedLibrary(node.target);
       if (libraryElement == null) {
         // We cannot resolve the import to find the library, so we won't be able
         // to find the class to see whether the method is actually a constructor.
