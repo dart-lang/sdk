@@ -30,6 +30,13 @@ part of dart.core;
  * Iterable<Match> matches = exp.allMatches(str);
  * ```
  *
+ * The following example finds the content of the first matching group.
+ * ```dart
+ *  RegExp exp = new RegExp("/transactions/([0-9]+)/invoices");
+ *  String str = "/transactions/123/invoices";
+ *  String transactionNumber = exp.firstMatch(str).group(1);
+ *  print(transactionNumber); // 123
+ * ``` 
  * Note the use of a _raw string_ (a string prefixed with `r`)
  * in the example above. Use a raw string to treat each character in a string
  * as a literal character.
