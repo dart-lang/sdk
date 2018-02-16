@@ -276,9 +276,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Uri resolvedUri;
     Uri newFileUri;
     resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
-    if (this.uri.scheme != "package") {
-      newFileUri = resolve(fileUri, uri, charOffset);
-    }
+    newFileUri = resolve(fileUri, uri, charOffset);
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
   }

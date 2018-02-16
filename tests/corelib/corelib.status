@@ -3,52 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-big_integer_arith_vm_test/add: CompileTimeError # int64
-big_integer_arith_vm_test/div: CompileTimeError # int64
-big_integer_arith_vm_test/gcd: CompileTimeError # int64
-big_integer_arith_vm_test/mod: CompileTimeError # int64
-big_integer_arith_vm_test/modInv: CompileTimeError # int64
-big_integer_arith_vm_test/modPow: CompileTimeError # int64
-big_integer_arith_vm_test/mul: CompileTimeError # int64
-big_integer_arith_vm_test/negate: CompileTimeError # int64
-big_integer_arith_vm_test/none: CompileTimeError # int64
-big_integer_arith_vm_test/overflow: CompileTimeError # int64
-big_integer_arith_vm_test/shift: CompileTimeError # int64
-big_integer_arith_vm_test/sub: CompileTimeError # int64
-big_integer_arith_vm_test/trunDiv: CompileTimeError # int64
-bit_twiddling_bigint_test: CompileTimeError # int64
-bit_twiddling_test: CompileTimeError # int64
-double_ceil_test: CompileTimeError # int64
-double_floor_test: CompileTimeError # int64
-double_round_test: CompileTimeError # int64
-double_truncate_test: CompileTimeError # int64
-duration2_test: StaticWarning, OK # Test generates error on purpose.
-error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
-hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
-int_ceil_test: CompileTimeError # int64
-int_ceil_to_double_test: CompileTimeError # int64
-int_floor_test: CompileTimeError # int64
-int_floor_to_double_test: CompileTimeError # int64
-int_from_environment_test: CompileTimeError # int64
-int_modulo_arith_test/bignum: CompileTimeError # int64
-int_modulo_arith_test/modPow: CompileTimeError # int64
-int_modulo_arith_test/none: CompileTimeError # int64
-int_parse_radix_bad_handler_test: Fail
-int_parse_radix_test/02: CompileTimeError # int64
-int_round_test: CompileTimeError # int64
-int_round_to_double_test: CompileTimeError # int64
-int_to_int_test: CompileTimeError # int64
-int_truncate_test: CompileTimeError # int64
-int_truncate_to_double_test: CompileTimeError # int64
-integer_to_radix_string_test: CompileTimeError # int64
-integer_to_string_test/01: CompileTimeError # int64
-iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
-num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
-num_parse_test/01: CompileTimeError # int64
-num_parse_test/none: CompileTimeError # int64
-num_sign_test: CompileTimeError # int64
-regress_r21715_test: CompileTimeError # int64
-string_test: StaticWarning, OK # Test generates error on purpose.
+*: Skip
 
 [ $compiler == dart2js ]
 regexp/pcre_test: Pass, Slow # Issue 21593
@@ -125,22 +80,6 @@ int_parse_radix_test/*: Pass, Slow
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
-
-# Analyzer's implementation of fromEnvironment assumes that undefined
-# environment variables have an unspecified value (rather than being
-# null) because it is expected that the user will supply a value when
-# the code is run.  This means that it produces slightly different
-# error messages than the VM and Dart2js.
-[ $compiler == dart2analyzer && $checked ]
-from_environment_const_type_undefined_test/09: CompileTimeError
-from_environment_const_type_undefined_test/11: CompileTimeError
-from_environment_const_type_undefined_test/12: CompileTimeError
-from_environment_const_type_undefined_test/13: CompileTimeError
-from_environment_const_type_undefined_test/14: CompileTimeError
-from_environment_const_type_undefined_test/16: CompileTimeError
-
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
 
 [ $compiler != dart2analyzer && $runtime != dart_precompiled && $runtime != vm ]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).

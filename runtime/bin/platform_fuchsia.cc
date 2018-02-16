@@ -150,14 +150,6 @@ void Platform::Exit(int exit_code) {
   exit(exit_code);
 }
 
-void Platform::SaveConsoleConfiguration() {
-  UNIMPLEMENTED();
-}
-
-void Platform::RestoreConsoleConfiguration() {
-  UNIMPLEMENTED();
-}
-
 }  // namespace bin
 }  // namespace dart
 

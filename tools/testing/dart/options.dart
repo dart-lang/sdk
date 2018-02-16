@@ -86,9 +86,7 @@ enum _OptionValueType { bool, int, string }
 class OptionsParser {
   static final List<_Option> _options = [
     new _Option('mode', 'Mode in which to run the tests.',
-        abbr: 'm',
-        values: ['all']..addAll(Mode.names),
-        defaultsTo: Mode.debug.name),
+        abbr: 'm', values: ['all']..addAll(Mode.names)),
     new _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
@@ -613,7 +611,7 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          var modes = data["mode"] as String;
+          String modes = data["mode"] ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);

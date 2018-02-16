@@ -105,19 +105,6 @@ bool test() {
     }
   }
 
-  Position expectedPosition(String search) {
-    int offset = resultCode.indexOf(search);
-    return new Position(testFile, offset);
-  }
-
-  List<Position> expectedPositions(List<String> patterns) {
-    List<Position> positions = <Position>[];
-    patterns.forEach((String search) {
-      positions.add(expectedPosition(search));
-    });
-    return positions;
-  }
-
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
@@ -3562,35 +3549,26 @@ main() {
 ''');
   }
 
-  test_importLibraryPackage_preferPublicOverPrivate() async {
-    _configureMyPkg(
-        {'src/a.dart': 'class Test {}', 'b.dart': "export 'src/a.dart';"});
+  test_importLibraryProject_BAD_inLibSrc_differentContextRoot() async {
+    addPackageSource('bbb', 'b1.dart', r'''
+import 'src/b2.dart';
+''');
+    addPackageSource('bbb', 'src/b2.dart', 'class Test {}');
     await resolveTestUnit('''
+import 'package:bbb/b1.dart';
 main() {
-  Test test = null;
+  Test t;
 }
 ''');
-    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT2, '''
-import 'package:my_pkg/b.dart';
-
-main() {
-  Test test = null;
-}
-''');
-    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT3, '''
-import 'package:my_pkg/src/a.dart';
-
-main() {
-  Test test = null;
-}
-''');
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_CLASS;
+    };
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT3);
   }
 
   test_importLibraryProject_BAD_notInLib_BUILD() async {
-    testFile = '/aaa/bin/test.dart';
-    newFile('/aaa/BUILD');
-    newFile('/bbb/BUILD');
-    addSource('/bbb/test/lib.dart', 'class Test {}');
+    testFile = '/project/lib/test.dart';
+    addSource('/other/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
 main() {
   Test t;
@@ -3600,10 +3578,8 @@ main() {
   }
 
   test_importLibraryProject_BAD_notInLib_pubspec() async {
-    testFile = '/aaa/bin/test.dart';
-    newFile('/aaa/pubspec.yaml', content: 'name: aaa');
-    newFile('/bbb/pubspec.yaml', content: 'name: bbb');
-    addSource('/bbb/test/lib.dart', 'class Test {}');
+    testFile = '/project/lib/test.dart';
+    addSource('/other/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
 main() {
   Test t;
@@ -3612,8 +3588,30 @@ main() {
     await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
   }
 
+  test_importLibraryProject_OK_inLibSrc_thisContextRoot() async {
+    testFile = '/project/lib/test.dart';
+    packageMap['project'] = [newFolder('/project/lib')];
+    addSource('/project/lib/src/lib.dart', 'class Test {}');
+    await resolveTestUnit('''
+main() {
+  Test t;
+}
+''');
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_CLASS;
+    };
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT3, '''
+import 'package:project/src/lib.dart';
+
+main() {
+  Test t;
+}
+''');
+  }
+
   test_importLibraryProject_withClass_annotation() async {
-    addSource('/lib.dart', '''
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
 library lib;
 class Test {
   const Test(int p);
@@ -3634,7 +3632,8 @@ main() {
   }
 
   test_importLibraryProject_withClass_constInstanceCreation() async {
-    addSource('/lib.dart', '''
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
 class Test {
   const Test();
 }
@@ -3742,7 +3741,8 @@ main() {
   }
 
   test_importLibraryProject_withFunction() async {
-    addSource('/lib.dart', '''
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -3761,7 +3761,8 @@ main() {
   }
 
   test_importLibraryProject_withFunction_unresolvedMethod() async {
-    addSource('/lib.dart', '''
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -3804,7 +3805,8 @@ main() {
   }
 
   test_importLibraryProject_withTopLevelVariable() async {
-    addSource('/lib.dart', '''
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
 library lib;
 int MY_VAR = 42;
 ''');

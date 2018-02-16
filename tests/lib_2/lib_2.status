@@ -75,6 +75,7 @@ html/worker_test/functional: Pass, Fail # Issues 20659.
 html/xhr_test/json: Fail # IE10 returns string, not JSON object
 
 [ $runtime == safari ]
+async/periodic_timer3_test: Pass, RuntimeError # Flaky. Issue 32094
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 html/audiobuffersourcenode_test/functional: RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element

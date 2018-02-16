@@ -1332,7 +1332,6 @@ private_super_constructor_test/01: MissingCompileTimeError
 redirecting_constructor_initializer_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError
 regress_13462_1_test: CompileTimeError

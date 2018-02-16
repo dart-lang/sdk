@@ -1551,8 +1551,15 @@ Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
   return Api::Success();
 }
 
-DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer,
-                                      intptr_t snapshot_size) {
+DART_EXPORT bool Dart_IsDart2Snapshot(const uint8_t* snapshot_buffer) {
+  if (snapshot_buffer == NULL) {
+    return false;
+  }
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
+  if (snapshot == NULL) {
+    return false;
+  }
+  const intptr_t snapshot_size = snapshot->length();
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
@@ -1560,13 +1567,12 @@ DART_EXPORT bool Dart_IsDart2Snapshot(uint8_t* snapshot_buffer,
     return false;
   }
 
-  const char* version = reinterpret_cast<const char*>(snapshot_buffer);
+  const char* version = reinterpret_cast<const char*>(snapshot->content());
   ASSERT(version != NULL);
   if (strncmp(version, expected_version, version_len)) {
     return false;
   }
-  const char* features =
-      reinterpret_cast<const char*>(snapshot_buffer) + version_len;
+  const char* features = version + version_len;
   ASSERT(features != NULL);
   intptr_t pending_len = snapshot_size - version_len;
   intptr_t buffer_len = OS::StrNLen(features, pending_len);

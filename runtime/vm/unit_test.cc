@@ -170,6 +170,10 @@ static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 static ThreadLocalKey kernel_reload_key = kUnsetThreadLocalKey;
 #endif
 
+bool TestCase::UsingDartFrontend() {
+  return FLAG_use_dart_frontend;
+}
+
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
                                          void** kernel_pgm,

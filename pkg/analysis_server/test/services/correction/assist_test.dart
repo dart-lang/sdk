@@ -85,19 +85,6 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     await assertNoAssist(kind);
   }
 
-  Position expectedPosition(String search) {
-    int offset = resultCode.indexOf(search);
-    return new Position(testFile, offset);
-  }
-
-  List<Position> expectedPositions(List<String> patterns) {
-    List<Position> positions = <Position>[];
-    patterns.forEach((String search) {
-      positions.add(expectedPosition(search));
-    });
-    return positions;
-  }
-
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
@@ -2874,7 +2861,7 @@ main() {
 ''');
   }
 
-  test_flutterRemoveWidget_BAD_childrenIntoChild() async {
+  test_flutterRemoveWidget_BAD_childrenMultipleIntoChild() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -2991,6 +2978,52 @@ main() {
       new Text('baz'),
     ],
   );
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_childrenOneIntoChild() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Column(
+      children: [
+        new Text('foo'),
+      ],
+    ),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  new Center(
+    child: /*caret*/new Text('foo'),
+  );
+}
+''');
+  }
+
+  test_flutterRemoveWidget_OK_childrenOneIntoReturn() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  return /*caret*/new Column(
+    children: [
+      new Text('foo'),
+    ],
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_REMOVE_WIDGET, '''
+import 'package:flutter/material.dart';
+main() {
+  return /*caret*/new Text('foo');
 }
 ''');
   }

@@ -22,6 +22,28 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $fasta ]
+initializer_super_last_test/cc04: MissingCompileTimeError
+initializer_super_last_test/cc09: MissingCompileTimeError
+initializer_super_last_test/cc10: MissingCompileTimeError
+initializer_super_last_test/cc11: MissingCompileTimeError
+initializer_super_last_test/cc12: MissingCompileTimeError
+initializer_super_last_test/cc13: MissingCompileTimeError
+initializer_super_last_test/cc14: MissingCompileTimeError
+initializer_super_last_test/cc15: MissingCompileTimeError
+initializer_super_last_test/cc16: MissingCompileTimeError
+initializer_super_last_test/cc25: MissingCompileTimeError
+initializer_super_last_test/cc26: MissingCompileTimeError
+initializer_super_last_test/cc27: MissingCompileTimeError
+initializer_super_last_test/cc28: MissingCompileTimeError
+initializer_super_last_test/cc29: MissingCompileTimeError
+initializer_super_last_test/cc30: MissingCompileTimeError
+initializer_super_last_test/cc31: MissingCompileTimeError
+initializer_super_last_test/cc32: MissingCompileTimeError
+
+[ $compiler == dart2js && !$strong ]
+initializer_super_last_test: Crash, CompileTimeError # Issue 31321
+
 [ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
@@ -39,6 +61,40 @@ implicit_creation/implicit_new_constructor_generic_test: Fail # No support for i
 implicit_creation/implicit_new_constructor_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_generic_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_test: Fail # No support for implicit creation.
+
+[ $compiler != dart2js && !$strong ]
+initializer_super_last_test/cc01: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc02: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc03: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc04: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc05: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc06: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc07: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc08: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc09: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc10: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc11: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc12: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc13: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc14: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc15: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc16: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc17: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc18: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc19: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc20: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc21: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc22: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc23: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc24: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc25: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc26: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc27: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc28: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc29: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc30: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc31: MissingCompileTimeError # Was valid in Dart 1.
+initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 
 [ $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.

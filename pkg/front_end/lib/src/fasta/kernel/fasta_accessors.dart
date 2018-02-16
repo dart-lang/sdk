@@ -4,8 +4,6 @@
 
 library fasta.fasta_accessors;
 
-import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
-
 import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart'
@@ -27,6 +25,8 @@ import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
+import 'forest.dart' show Forest;
+
 import 'frontend_accessors.dart' as kernel
     show
         IndexAccessor,
@@ -45,6 +45,8 @@ import 'frontend_accessors.dart' as kernel
 
 import 'frontend_accessors.dart' show Accessor;
 
+import 'kernel_ast_api.dart';
+
 import 'kernel_builder.dart'
     show
         Builder,
@@ -60,18 +62,6 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         KernelTypeBuilder;
 
-import 'kernel_shadow_ast.dart'
-    show
-        ShadowArguments,
-        ShadowComplexAssignment,
-        ShadowIllegalAssignment,
-        ShadowIndexAssign,
-        ShadowPropertyAssign,
-        ShadowStaticAssignment,
-        ShadowThisExpression,
-        ShadowTypeLiteral,
-        ShadowVariableAssignment;
-
 import 'utils.dart' show offsetForToken;
 
 import 'type_algorithms.dart' show calculateBoundsForDeclaration;
@@ -86,6 +76,8 @@ abstract class BuilderHelper {
   int get functionNestingLevel;
 
   bool get constantExpressionRequired;
+
+  Forest<Expression, Statement> get forest;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -325,7 +317,10 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new ShadowArguments(<Expression>[new IntLiteral(1)]),
+    // TODO(ahe): For the Analyzer, we probably need to build a prefix
+    // increment node that wraps an error.
+    return buildError(
+        new ShadowArguments(<Expression>[helper.forest.literalInt(1, offset)]),
         isGetter: true);
   }
 
@@ -334,7 +329,10 @@ abstract class ErrorAccessor implements FastaAccessor {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildError(new ShadowArguments(<Expression>[new IntLiteral(1)]),
+    // TODO(ahe): For the Analyzer, we probably need to build a post increment
+    // node that wraps an error.
+    return buildError(
+        new ShadowArguments(<Expression>[helper.forest.literalInt(1, offset)]),
         isGetter: true);
   }
 

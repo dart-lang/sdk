@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -114,7 +115,7 @@ class Required {
         resourceProvider,
         new MemoryByteStore(),
         _fileContentOverlay,
-        null,
+        new ContextRoot(resourceProvider.convertPath('/project'), []),
         sourceFactory,
         new AnalysisOptionsImpl()..strongMode = true);
     scheduler.start();

@@ -1030,7 +1030,8 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
           FieldHelper field_helper(builder_);
           field_helper.ReadUntilIncluding(FieldHelper::kFlags);
 
-          if (!field_helper.IsGenericCovariantImpl()) {
+          if (!field_helper.IsCovariant() &&
+              !field_helper.IsGenericCovariantImpl()) {
             result_->setter_value->set_type_check_mode(
                 LocalVariable::kTypeCheckedByCaller);
           }

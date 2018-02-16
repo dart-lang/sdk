@@ -190,6 +190,8 @@ class KernelLoader {
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
 
+  void CheckForInitializer(const Field& field);
+
   Class& LoadClass(const Library& library,
                    const Class& toplevel_class,
                    intptr_t class_end);

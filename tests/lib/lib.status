@@ -12,22 +12,7 @@ mirrors/mirrors_reader_test: Pass, Slow
 mirrors/*: Skip # Issue 27929: Triage
 
 [ $compiler == dart2analyzer ]
-async/stream_event_transformed_test: StaticWarning
-convert/base64_test/01: CompileTimeError # int64
-convert/utf82_test: CompileTimeError # int64
-math/double_pow_test: CompileTimeError # int64
-mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
-mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
-mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
-mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK # Expect to trigger noSuchMethod.
-mirrors/mirrors_nsm_test: StaticWarning, OK # Expect to trigger noSuchMethod.
-mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
-mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
-mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
-mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
-profiler/metrics_num_test: Fail # Issue 20309
-profiler/metrics_test: Fail # Issue 20309
-typed_data/int32x4_bigint_test: CompileTimeError # int64
+*: Skip
 
 [ $compiler != dart2analyzer ]
 async/stream_controller_async_test: StaticWarning
@@ -232,12 +217,6 @@ mirrors/immutable_collections_test: SkipSlow # Timeout.
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-
-[ $compiler == dart2analyzer && $checked ]
-mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
-
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
 
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow

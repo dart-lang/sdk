@@ -304,7 +304,11 @@ TEST_CASE(IsolateReload_BadClass) {
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(result, "unexpected token");
+  if (TestCase::UsingDartFrontend()) {
+    EXPECT_ERROR(result, "Expected ';' before this");
+  } else {
+    EXPECT_ERROR(result, "unexpected token");
+  }
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 }
 
@@ -1168,7 +1172,13 @@ TEST_CASE(IsolateReload_TopLevelParseError) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(lib, "unexpected token");
+  if (TestCase::UsingDartFrontend()) {
+    EXPECT_ERROR(lib,
+                 "Variables must be declared using the keywords"
+                 " 'const', 'final', 'var' or a type name.");
+  } else {
+    EXPECT_ERROR(lib, "unexpected token");
+  }
 }
 
 TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
@@ -2419,7 +2429,11 @@ TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_ERROR(lib, "unexpected token");
+  if (TestCase::UsingDartFrontend()) {
+    EXPECT_ERROR(lib, "Expected ';' before this");
+  } else {
+    EXPECT_ERROR(lib, "unexpected token");
+  }
 
   // If we don't clean up the subclasses, we would find BIterator in
   // the list of subclasses, which would be bad.  Make sure that

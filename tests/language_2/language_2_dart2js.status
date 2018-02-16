@@ -1396,6 +1396,7 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
+assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -1517,9 +1518,7 @@ const_switch2_test/01: MissingCompileTimeError
 const_switch_test/02: RuntimeError
 const_switch_test/04: RuntimeError
 const_types_test/34: MissingCompileTimeError
-const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
@@ -1963,7 +1962,6 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError
@@ -2164,6 +2162,7 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
+assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_foreign_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -2726,7 +2725,6 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_long_test: RuntimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
 regress_13462_0_test: CompileTimeError

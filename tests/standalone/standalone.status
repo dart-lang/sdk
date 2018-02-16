@@ -10,11 +10,7 @@
 io/raw_datagram_socket_test: SkipByDesign
 
 [ $compiler == dart2analyzer ]
-io/directory_invalid_arguments_test: StaticWarning
-io/file_constructor_test: Fail # Issue 11518
-io/process_invalid_arguments_test: StaticWarning
-io/raw_secure_server_socket_argument_test: StaticWarning
-io/stdout_bad_argument_test: StaticWarning
+*: Skip
 
 # Overriding these flags are not supported in product mode.
 [ $mode == product ]
@@ -29,9 +25,6 @@ verbose_gc_to_bmu_test: Skip
 
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
-
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
 
 [ $compiler == dartk && $strong ]
 *: SkipByDesign

@@ -668,6 +668,19 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
   }
 }
 
+void KernelLoader::CheckForInitializer(const Field& field) {
+  if (builder_.PeekTag() == kSomething) {
+    SimpleExpressionConverter converter(&H, &builder_);
+    const bool has_simple_initializer =
+        converter.IsSimple(builder_.ReaderOffset() + 1);
+    if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
+      field.set_has_initializer(true);
+      return;
+    }
+  }
+  field.set_has_initializer(false);
+}
+
 void KernelLoader::LoadLibrary(intptr_t index) {
   if (!program_->is_single_program()) {
     FATAL(
@@ -802,10 +815,10 @@ void KernelLoader::LoadLibrary(intptr_t index) {
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
+    CheckForInitializer(field);
     field_helper.SetJustRead(FieldHelper::kType);
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = builder_.ReaderOffset();
-    field.set_has_initializer(builder_.PeekTag() == kSomething);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
     {
       // GenerateFieldAccessors reads (some of) the initializer.
@@ -1057,9 +1070,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      field_helper.IsConst(), is_reflectable, script_class, type,
                      field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
+      CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = builder_.ReaderOffset();
-      field.set_has_initializer(builder_.PeekTag() == kSomething);
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
       {
         // GenerateFieldAccessors reads (some of) the initializer.

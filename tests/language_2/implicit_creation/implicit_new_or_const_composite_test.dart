@@ -35,7 +35,7 @@ main() {
 
     Expect.identical(cd1, cd2);
     Expect.identical(cd1, cd3);
-    Expect.allDistinct([cd1, cd3, cd4]);
+    Expect.allDistinct([cd1, cd3, cd4, cd5]);
   }
 
   {

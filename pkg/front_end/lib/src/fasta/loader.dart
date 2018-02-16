@@ -85,6 +85,12 @@ abstract class Loader<L> {
   LibraryBuilder read(Uri uri, int charOffset,
       {Uri fileUri, LibraryBuilder accessor, LibraryBuilder origin}) {
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
+      if (fileUri != null &&
+          (fileUri.scheme == "dart" ||
+              fileUri.scheme == "package" ||
+              fileUri.scheme == "dart-ext")) {
+        fileUri = null;
+      }
       if (fileUri == null) {
         switch (uri.scheme) {
           case "package":
