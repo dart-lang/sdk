@@ -118,7 +118,12 @@ class DartUnitHighlightsComputer {
     ClassElement classElement = element;
     // prepare type
     HighlightRegionType type;
-    if (classElement.isEnum) {
+    if (node.parent is TypeName &&
+        node.parent.parent is ConstructorName &&
+        node.parent.parent.parent is InstanceCreationExpression) {
+      // new Class()
+      type = HighlightRegionType.CONSTRUCTOR;
+    } else if (classElement.isEnum) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;

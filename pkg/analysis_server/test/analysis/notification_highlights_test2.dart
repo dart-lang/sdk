@@ -499,20 +499,22 @@ void my_function(String a) {
 
   test_CONSTRUCTOR() async {
     addTestFile('''
-class AAA {
+class AAA<T> {
   AAA() {}
   AAA.name(p) {}
 }
 main() {
-  new AAA();
-  new AAA.name(42);
+  new AAA<int>();
+  new AAA<int>.name(42);
 }
 ''');
     await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
-    assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA() {}');
-    assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA();');
   }
 
   test_DIRECTIVE() async {
