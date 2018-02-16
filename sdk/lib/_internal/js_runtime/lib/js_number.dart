@@ -433,11 +433,17 @@ class JSInt extends JSNumber implements int, double {
 
   int get bitLength {
     int nonneg = this < 0 ? -this - 1 : this;
-    if (nonneg >= 0x100000000) {
+    int wordBits = 32;
+    while (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;
-      return _bitCount(_spread(nonneg)) + 32;
+      wordBits += 32;
     }
-    return _bitCount(_spread(nonneg));
+    return wordBits - _clz32(nonneg);
+  }
+
+  static int _clz32(int uint32) {
+    // TODO(sra): Use `Math.clz32(uint32)` (not available on IE11).
+    return 32 - _bitCount(_spread(uint32));
   }
 
   // Returns pow(this, e) % m.
@@ -592,9 +598,9 @@ class JSInt extends JSNumber implements int, double {
     return (i & 0x0000003F);
   }
 
-  static _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
-  static _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
-  static _ors(int a, int b) => JS('int', '# | #', a, b);
+  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static int _ors(int a, int b) => JS('int', '# | #', a, b);
 
   // Assumes i is <= 32-bit
   static int _spread(int i) {
