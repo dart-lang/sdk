@@ -340,6 +340,12 @@ action("generate_version_cc_file") {
     rebase_path("vm/version_in.cc", root_build_dir),
   ]
   if (!dart_version_git_info) {
-    args += [ "--ignore_svn_revision" ]
+    args += [ "--no_git_hash" ]
+  }
+  if (dart_custom_version_for_pub != "") {
+    args += [
+      "--custom_for_pub",
+      dart_custom_version_for_pub,
+    ]
   }
 }

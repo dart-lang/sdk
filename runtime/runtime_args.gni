@@ -56,4 +56,17 @@ declare_args() {
   # Whether the Dart binary version string should include the git hash and
   # git commit time.
   dart_version_git_info = true
+
+  # When this argument is a non-empty string, the version repoted by the
+  # Dart VM will be one that is compatible with pub's interpretation of
+  # semantic version strings. The version string will also include the values
+  # of the argument. In particular the version string will read:
+  #
+  #     "M.m.p-dev.x.x-$(dart_custom_version_for_pub)-$(short_git_hash)"
+  #
+  # Where 'M', 'm', and 'p' are the major, minor and patch version numbers,
+  # and 'dev.x.x' is the dev version tag most recently preceeding the current
+  # revision. The short git hash can be omitted by setting
+  # dart_version_git_info=false
+  dart_custom_version_for_pub = ""
 }

@@ -40,14 +40,21 @@ VM_SNAPSHOT_FILES=[
   'symbols.cc',
 ]
 
-def makeVersionString(quiet, no_svn):
-  version_string = utils.GetSemanticSDKVersion(ignore_svn_revision=no_svn)
+def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
+  if custom_for_pub:
+    if no_git_hash:
+      version_string = ("%s-%s" % (utils.GetLatestDevTag(), custom_for_pub))
+    else:
+      version_string = ("%s-%s-%s" %
+          (utils.GetLatestDevTag(), custom_for_pub, utils.GetShortGitHash()))
+  else:
+    version_string = utils.GetSemanticSDKVersion(no_git_hash=no_git_hash)
   if not quiet:
     debugLog("Returning version string: %s " % version_string)
   return version_string
 
 
-def makeSnapshotHashString():
+def MakeSnapshotHashString():
   vmhash = hashlib.md5()
   for vmfilename in VM_SNAPSHOT_FILES:
     vmfilepath = os.path.join(utils.DART_DIR, 'runtime', 'vm', vmfilename)
@@ -56,17 +63,17 @@ def makeSnapshotHashString():
   return vmhash.hexdigest()
 
 
-def makeFile(quiet, output_file, input_file, ignore_svn_revision):
+def MakeFile(quiet, output_file, input_file, no_git_hash, custom_for_pub):
   version_cc_text = open(input_file).read()
-  version_string = makeVersionString(quiet, ignore_svn_revision)
+  version_string = MakeVersionString(quiet, no_git_hash, custom_for_pub)
   version_cc_text = version_cc_text.replace("{{VERSION_STR}}",
                                             version_string)
   version_time = utils.GetGitTimestamp()
-  if ignore_svn_revision or version_time == None:
+  if no_git_hash or version_time == None:
     version_time = "Unknown timestamp"
   version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}",
                                             version_time)
-  snapshot_hash = makeSnapshotHashString()
+  snapshot_hash = MakeSnapshotHashString()
   version_cc_text = version_cc_text.replace("{{SNAPSHOT_HASH}}",
                                             snapshot_hash)
   open(output_file, 'w').write(version_cc_text)
@@ -77,18 +84,27 @@ def main(args):
   try:
     # Parse input.
     parser = OptionParser()
-    parser.add_option("-q", "--quiet",
-                      action="store_true", default=False,
-                      help="disable console output")
-    parser.add_option("--ignore_svn_revision",
-                      action="store_true", default=False,
-                      help="Don't try to determine svn revision")
-    parser.add_option("--output",
-                      action="store", type="string",
-                      help="output file name")
+    parser.add_option("--custom_for_pub",
+        action="store",
+        type="string",
+        help=("Generates a version string that works with pub that includes"
+              "the given string"))
     parser.add_option("--input",
-                      action="store", type="string",
-                      help="input template file")
+        action="store",
+        type="string",
+        help="input template file")
+    parser.add_option("--no_git_hash",
+        action="store_true",
+        default=False,
+        help="Don't try to determine svn revision")
+    parser.add_option("--output",
+        action="store",
+        type="string",
+        help="output file name")
+    parser.add_option("-q", "--quiet",
+        action="store_true",
+        default=False,
+        help="disable console output")
 
     (options, args) = parser.parse_args()
     if not options.output:
@@ -102,8 +118,8 @@ def main(args):
     for arg in args:
       files.append(arg)
 
-    if not makeFile(options.quiet, options.output, options.input,
-                    options.ignore_svn_revision):
+    if not MakeFile(options.quiet, options.output, options.input,
+                    options.no_git_hash, options.custom_for_pub):
       return -1
 
     return 0
