@@ -354,6 +354,9 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   }
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
   const Function& root_function = Function::ZoneHandle(zone_, code.function());
+  if (root_function.IsNull()) {
+    FATAL1("Wherefore art thou functionless code, %s?\n", code.ToCString());
+  }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
   GrowableArray<TokenPosition> token_positions(zone_, 4);
