@@ -3278,7 +3278,7 @@ class FakeFlutter {
   main() {
     return new Container(
       child: new Column(
-        children: [
+        children: <Widget>[
           new /*caret*/Text('aaa'),
         ],
       ),
@@ -3316,7 +3316,7 @@ class FakeFlutter {
       new Text('aaa'),
 // start
       new Column(
-        children: [
+        children: <Widget>[
           new Text('bbb'),
           new Text('ccc'),
         ],
@@ -3395,7 +3395,7 @@ class FakeFlutter {
       new Text('aaa'),
 // start
       new Row(
-        children: [
+        children: <Widget>[
           new Text('bbb'),
           new Text('ccc'),
         ],
