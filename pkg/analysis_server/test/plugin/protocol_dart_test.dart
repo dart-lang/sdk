@@ -181,7 +181,7 @@ class A {
         findElementInUnit(unit, 'myConstructor');
     // create notification Element
     Element element = convertElement(engineElement);
-    expect(element.parameters, '(int a, {int c, int b})');
+    expect(element.parameters, '(int a, {@required int c, int b})');
   }
 
   // Verify parameter re-ordering for required params
@@ -198,7 +198,8 @@ class A {
         findElementInUnit(unit, 'myConstructor');
     // create notification Element
     Element element = convertElement(engineElement);
-    expect(element.parameters, '(int a, {int d, int c, int b})');
+    expect(element.parameters,
+        '(int a, {@required int d, @required int c, int b})');
   }
 
   // Verify parameter re-ordering for required params
@@ -215,7 +216,8 @@ class A {
         findElementInUnit(unit, 'myConstructor');
     // create notification Element
     Element element = convertElement(engineElement);
-    expect(element.parameters, '(int a, {int d, int c, int b, int a})');
+    expect(element.parameters,
+        '(int a, {@required int d, @required int c, int b, int a})');
   }
 
   void test_fromElement_dynamic() {
