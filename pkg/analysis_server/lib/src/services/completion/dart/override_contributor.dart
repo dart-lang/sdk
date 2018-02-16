@@ -64,7 +64,7 @@ class OverrideContributor implements DartCompletionContributor {
    * Return a template for an override of the given [element]. If selected, the
    * template will replace [targetId].
    */
-  Future<String> _buildReplacementText(
+  Future<DartChangeBuilder> _buildReplacementText(
       AnalysisResult result,
       SimpleIdentifier targetId,
       ExecutableElement element,
@@ -77,7 +77,7 @@ class OverrideContributor implements DartCompletionContributor {
             displayTextBuffer: displayTextBuffer);
       });
     });
-    return builder.sourceChange.edits[0].edits[0].replacement.trim();
+    return builder;
   }
 
   /**
@@ -87,20 +87,23 @@ class OverrideContributor implements DartCompletionContributor {
   Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
       SimpleIdentifier targetId, ExecutableElement element) async {
     StringBuffer displayTextBuffer = new StringBuffer();
-    String completion = await _buildReplacementText(
+    DartChangeBuilder builder = await _buildReplacementText(
         request.result, targetId, element, displayTextBuffer);
+    String completion =
+        builder.sourceChange.edits[0].edits[0].replacement.trim();
     if (completion == null || completion.length == 0) {
       return null;
     }
 
-    SourceRange selectionRange = _computeSelectionRange(completion);
+    SourceRange selectionRange = builder.selectionRange;
+    int offsetDelta = range.node(targetId).offset;
     String displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
         completion,
-        selectionRange.offset,
+        selectionRange.offset - offsetDelta,
         selectionRange.length,
         element.isDeprecated,
         false,
