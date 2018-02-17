@@ -295,7 +295,6 @@ isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/iss
 async/async_await_sync_completer_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
-async/future_value_chain4_test: CompileTimeError # Issue 31616
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
