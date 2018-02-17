@@ -65,7 +65,8 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
         jsPreambles: _getPreambles,
         useJsMethodNamesOnAbsence: true,
         jsNameConverter: _convertName,
-        forcedTmpDir: data.outDir);
+        forcedTmpDir: data.outDir,
+        verbose: true);
     return pass(data);
   }
 

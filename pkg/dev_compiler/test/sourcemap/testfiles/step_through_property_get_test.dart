@@ -29,12 +29,12 @@ class Bar extends Foo {
   void doStuff() {
     /* bl */
     /*s:1*/ print(data2);
-    /*s:3*/ print(data2 /*s:5*/ [1]);
+    /*s:3*/ print(data2 /*sl:5*/ [1]);
 
     /*s:6*/ print(data1);
-    /*s:8*/ print(data1 /*s:10*/ [1]);
+    /*s:8*/ print(data1 /*sl:10*/ [1]);
 
     /*s:11*/ print(super.data1);
-    /*s:13*/ print(super.data1 /*s:15*/ [1]);
+    /*s:13*/ print(super.data1 /*sl:15*/ [1]);
   }
 }

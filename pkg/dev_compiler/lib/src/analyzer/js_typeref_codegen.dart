@@ -12,7 +12,7 @@ import 'module_compiler.dart' show CompilerOptions;
 import 'js_interop.dart';
 
 /// Mixin with logic to generate [TypeRef]s out of [DartType]s.
-abstract class JsTypeRefCodegen {
+abstract class JSTypeRefCodegen {
   final _resolved = <DartType, JS.TypeRef>{};
 
   // Mixin dependencies:

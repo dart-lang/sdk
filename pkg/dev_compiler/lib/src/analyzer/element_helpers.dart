@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/element/element.dart'
     show
         ClassElement,
+        CompilationUnitElement,
         Element,
         ExecutableElement,
         FunctionElement,
@@ -205,4 +206,19 @@ bool isCallableClass(ClassElement c) {
   return callMethod is PropertyAccessorElement
       ? callMethod.returnType is FunctionType
       : callMethod != null;
+}
+
+Uri uriForCompilationUnit(CompilationUnitElement unit) {
+  if (unit.source.isInSystemLibrary) {
+    return unit.source.uri;
+  }
+  // TODO(jmesserly): this needs serious cleanup.
+  // There does appear to be something strange going on with Analyzer
+  // URIs if we try and use them directly on Windows.
+  // See also compiler.dart placeSourceMap, which could use cleanup too.
+  var sourcePath = unit.source.fullName;
+  return sourcePath.startsWith('package:')
+      ? Uri.parse(sourcePath)
+      // TODO(jmesserly): shouldn't this be path.toUri?
+      : new Uri.file(sourcePath);
 }

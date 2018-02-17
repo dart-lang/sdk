@@ -32,6 +32,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../compiler/js_metalet.dart' as JS;
@@ -41,12 +42,13 @@ import '../compiler/module_builder.dart' show pathToJSIdentifier;
 import '../compiler/type_utilities.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
+import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan;
 import 'ast_builder.dart';
 import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
-import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
+import 'js_typeref_codegen.dart' show JSTypeRefCodegen;
 import 'js_typerep.dart' show JSTypeRep, JSType;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
@@ -69,7 +71,7 @@ import 'side_effect_analysis.dart'
 // expressions (which result in JS.Expression) and statements
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
-    with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference
+    with ClosureAnnotator, JSTypeRefCodegen, NullableTypeInference
     implements AstVisitor<JS.Node> {
   final AnalysisContext context;
   final SummaryDataStore summaryData;
@@ -166,20 +168,23 @@ class CodeGenerator extends Object
 
   Map<TypeDefiningElement, AstNode> _declarationNodes;
 
-  /// The stack of currently emitting elements, if generating top-level code
-  /// for them. This is not used when inside method bodies, because order does
-  /// not matter for those.
-  final _topLevelElements = <TypeDefiningElement>[];
+  /// The class that's currently emitting top-level (module-level) JS code.
+  ///
+  /// This is primarily used to forward declare classes so they are available
+  /// to JS class `extends`.
+  ///
+  /// This is not set when inside method bodies, because they are run after we
+  /// load modules, so they can freely access all classes.
+  TypeDefiningElement _topLevelClass;
 
   /// The current element being loaded.
   /// We can use this to determine if we're loading top-level code or not:
   ///
-  ///     _currentElements.last == _topLevelElements.last
-  //
-  // TODO(jmesserly): ideally we'd only track types here, in other words,
-  // TypeDefiningElement. However we still rely on this for [currentLibrary] so
-  // we need something to be pushed always.
-  final _currentElements = <Element>[];
+  ///     _currentElement == _topLevelClass
+  ///
+  /// This is also used to find the current compilation unit for emitting source
+  /// mappings.
+  Element _currentElement;
 
   final _deferredProperties = new HashMap<PropertyAccessorElement, JS.Method>();
 
@@ -246,9 +251,13 @@ class CodeGenerator extends Object
     _typeRep = new JSTypeRep(rules, types);
   }
 
-  Element get currentElement => _currentElements.last;
+  LibraryElement get currentLibrary => _currentElement.library;
 
-  LibraryElement get currentLibrary => currentElement.library;
+  CompilationUnitElement get _currentCompilationUnit {
+    var e = _currentElement;
+    while (e is! CompilationUnitElement) e = e.enclosingElement;
+    return e;
+  }
 
   /// The main entry point to JavaScript code generation.
   ///
@@ -568,7 +577,8 @@ class CodeGenerator extends Object
     var node = _declarationNodes.remove(e);
     if (node == null) return; // not from this module or already loaded.
 
-    _currentElements.add(e);
+    var savedElement = _currentElement;
+    _currentElement = e;
 
     // TODO(jmesserly): this is not really the right place for this.
     // Ideally we do this per function body.
@@ -579,23 +589,7 @@ class CodeGenerator extends Object
 
     _moduleItems.add(node.accept<JS.Node>(this));
 
-    var last = _currentElements.removeLast();
-    assert(identical(e, last));
-  }
-
-  /// Start generating top-level code for the element [e].
-  ///
-  /// Subsequent [emitDeclaration] calls will cause those elements to be
-  /// generated before this one, until [finishTopLevel] is called.
-  void _startTopLevelCodeForClass(TypeDefiningElement e) {
-    assert(identical(e, currentElement));
-    _topLevelElements.add(e);
-  }
-
-  /// Finishes the top-level code for the element [e].
-  void _finishTopLevelCodeForClass(TypeDefiningElement e) {
-    var last = _topLevelElements.removeLast();
-    assert(identical(e, last));
+    _currentElement = savedElement;
   }
 
   /// To emit top-level module items, we sometimes need to reorder them.
@@ -611,8 +605,7 @@ class CodeGenerator extends Object
   void _declareBeforeUse(TypeDefiningElement e) {
     if (e == null) return;
 
-    var topLevel = _topLevelElements;
-    if (topLevel.isNotEmpty && identical(currentElement, topLevel.last)) {
+    if (_topLevelClass != null && identical(_currentElement, _topLevelClass)) {
       // If the item is from our library, try to emit it now.
       _emitTypeDeclaration(e);
     }
@@ -625,7 +618,8 @@ class CodeGenerator extends Object
     // this is only to catch things that haven't been emitted yet.
     //
     // See _emitTypeDeclaration.
-    _currentElements.add(unit.element);
+    var savedElement = _currentElement;
+    _currentElement = unit.element;
     var isInternalSdk = isSdkInternalRuntime(currentLibrary);
     List<VariableDeclaration> fields;
     for (var declaration in unit.declarations) {
@@ -663,15 +657,16 @@ class CodeGenerator extends Object
 
     if (fields != null) _emitTopLevelFields(fields);
 
-    _currentElements.removeLast();
+    _currentElement = savedElement;
   }
 
   void _emitExportDirectives(CompilationUnit unit) {
+    var savedElement = _currentElement;
     for (var directive in unit.directives) {
-      _currentElements.add(directive.element);
+      _currentElement = directive.element;
       directive.accept(this);
-      _currentElements.removeLast();
     }
+    _currentElement = savedElement;
   }
 
   @override
@@ -782,9 +777,7 @@ class CodeGenerator extends Object
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
-
       var castType = _emitType(type);
-
       result = js.call('#.is(#)', [castType, lhs]);
     }
 
@@ -913,7 +906,8 @@ class CodeGenerator extends Object
       }
     }
 
-    var jsCtors = _defineConstructors(classElem, className, memberMap);
+    var jsCtors =
+        _defineConstructors(classElem, className, memberMap, classNode);
     var jsMethods = _emitClassMethods(classElem, members);
     _emitSuperclassCovarianceChecks(classNode, jsMethods);
 
@@ -1343,7 +1337,8 @@ class CodeGenerator extends Object
       }
     }
 
-    _startTopLevelCodeForClass(classElem);
+    var savedTopLevel = _topLevelClass;
+    _topLevelClass = classElem;
 
     // Unroll mixins.
     var mixinLength = classElem.mixins.length;
@@ -1373,7 +1368,7 @@ class CodeGenerator extends Object
       mixinBody.add(
           _callHelperStatement('mixinMembers(#, #)', [classExpr, mixinClass]));
 
-      _finishTopLevelCodeForClass(classElem);
+      _topLevelClass = savedTopLevel;
 
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
@@ -1424,7 +1419,7 @@ class CodeGenerator extends Object
       baseClass = mixinId;
     }
 
-    _finishTopLevelCodeForClass(classElem);
+    _topLevelClass = savedTopLevel;
 
     body.add(_emitClassStatement(classElem, className, baseClass, methods));
 
@@ -1580,7 +1575,6 @@ class CodeGenerator extends Object
           param = covariantParams.lookup(param) as ParameterElement;
 
           if (param == null) continue;
-          JS.Parameter jsParam;
           if (param.kind == ParameterKind.NAMED) {
             foundNamedParams = true;
 
@@ -1593,7 +1587,7 @@ class CodeGenerator extends Object
               name
             ]));
           } else {
-            jsParam = _emitParameter(param);
+            var jsParam = _emitParameter(param);
             jsParams.add(jsParam);
 
             if (param.kind == ParameterKind.POSITIONAL) {
@@ -1643,15 +1637,14 @@ class CodeGenerator extends Object
       // Pass along all arguments verbatim, and let the callee handle them.
       // TODO(jmesserly): we'll need something different once we have
       // rest/spread support, but this should work for now.
-      var params =
-          _emitFormalParameterList(node.parameters, destructure: false);
+      var params = _emitFormalParameters(node.parameters?.parameters);
 
       fun = new JS.Fun(
           params,
           new JS.Block([
             js.statement('return $newKeyword #(#)',
                 [visitConstructorName(redirect), params])
-              ..sourceInformation = redirect
+              ..sourceInformation = _nodeStart(redirect)
           ]),
           returnType: returnType);
     } else {
@@ -1661,14 +1654,17 @@ class CodeGenerator extends Object
       if (init != null) body.add(init);
       body.add(_visitStatement(node.body));
 
-      var params = _emitFormalParameterList(node.parameters);
+      var params = _emitFormalParameters(node.parameters?.parameters);
       fun = new JS.Fun(params, new JS.Block(body), returnType: returnType);
     }
 
     _currentFunction = savedFunction;
 
     return closureAnnotate(
-        new JS.Method(name, fun, isStatic: true), element, node);
+        new JS.Method(name, fun, isStatic: true)
+          ..sourceInformation = _functionEnd(node),
+        element,
+        node);
   }
 
   /// Given a class C that implements method M from interface I, but does not
@@ -1768,7 +1764,8 @@ class CodeGenerator extends Object
     var mocks = _classProperties.mockMembers;
     if (!mocks.containsKey(element.name)) {
       var getter = js.call('function() { return this[#]; }', [virtualField]);
-      result.add(new JS.Method(name, getter, isGetter: true));
+      result.add(new JS.Method(name, getter, isGetter: true)
+        ..sourceInformation = _functionSpan(field.name));
     }
 
     if (!mocks.containsKey(element.name + '=')) {
@@ -1788,7 +1785,8 @@ class CodeGenerator extends Object
         jsCode = 'function(value) { #[#] = value; }';
       }
 
-      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true));
+      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true)
+        ..sourceInformation = _functionSpan(field.name));
     }
 
     return result;
@@ -1900,8 +1898,11 @@ class CodeGenerator extends Object
   }
 
   /// Defines all constructors for this class as ES5 constructors.
-  List<JS.Statement> _defineConstructors(ClassElement classElem,
-      JS.Expression className, Map<Element, Declaration> memberMap) {
+  List<JS.Statement> _defineConstructors(
+      ClassElement classElem,
+      JS.Expression className,
+      Map<Element, Declaration> memberMap,
+      Declaration classNode) {
     var isCallable = isCallableClass(classElem);
 
     var body = <JS.Statement>[];
@@ -1942,8 +1943,10 @@ class CodeGenerator extends Object
       var ctorBody = <JS.Statement>[_initializeFields(fields)];
       if (superCall != null) ctorBody.add(superCall);
 
-      addConstructor('',
-          _finishConstructorFunction([], new JS.Block(ctorBody), isCallable));
+      addConstructor(
+          '',
+          _finishConstructorFunction([], new JS.Block(ctorBody), isCallable)
+            ..sourceInformation = _functionEnd(classNode));
       return body;
     }
 
@@ -2279,7 +2282,7 @@ class CodeGenerator extends Object
       List<VariableDeclaration> fields,
       bool isCallable,
       JS.Expression className) {
-    var params = _emitFormalParameterList(node.parameters);
+    var params = _emitFormalParameters(node.parameters?.parameters);
 
     var savedFunction = _currentFunction;
     _currentFunction = node.body;
@@ -2290,10 +2293,11 @@ class CodeGenerator extends Object
     _superAllowed = savedSuperAllowed;
     _currentFunction = savedFunction;
 
-    return _finishConstructorFunction(params, body, isCallable);
+    return _finishConstructorFunction(params, body, isCallable)
+      ..sourceInformation = _functionEnd(node);
   }
 
-  JS.Expression _finishConstructorFunction(
+  JS.Fun _finishConstructorFunction(
       List<JS.Parameter> params, JS.Block body, isCallable) {
     // We consider a class callable if it inherits from anything with a `call`
     // method. As a result, we can know the callable JS function was created
@@ -2381,10 +2385,13 @@ class CodeGenerator extends Object
         superCall != null ? _emitArgumentList(superCall.argumentList) : null;
     var jsSuper = _emitSuperConstructorCallIfNeeded(
         cls.element, className, superCall?.staticElement, superCallArgs);
-    if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
+    if (jsSuper != null) {
+      if (superCall != null) jsSuper.sourceInformation = _nodeStart(superCall);
+      body.add(jsSuper);
+    }
 
     body.add(_emitFunctionScopedBody(node.body, node.element));
-    return new JS.Block(body)..sourceInformation = node;
+    return new JS.Block(body);
   }
 
   JS.Statement _emitRedirectingConstructor(
@@ -2468,8 +2475,8 @@ class CodeGenerator extends Object
           _classProperties.virtualFields[f] ?? _declareMemberName(f.getter);
       var jsInit = _visitInitializer(initializer, f);
       body.add(jsInit
-          .toAssignExpression(
-              js.call('this.#', [access])..sourceInformation = hoverInfo)
+          .toAssignExpression(js.call('this.#', [access])
+            ..sourceInformation = _nodeSpan(hoverInfo))
           .toStatement());
     }
 
@@ -2518,10 +2525,10 @@ class CodeGenerator extends Object
     _emitCovarianceBoundsCheck(
         element.typeParameters, _classProperties?.covariantParameters, body);
     for (var param in parameters.parameters) {
-      var jsParam = _emitSimpleIdentifier(param.identifier);
+      var jsParam = _emitParameter(param.identifier.staticElement)
+        ..sourceInformation = _nodeStart(param.identifier);
 
-      if (!options.destructureNamedParams &&
-          param.kind != ParameterKind.REQUIRED) {
+      if (param.kind != ParameterKind.REQUIRED) {
         if (param.kind == ParameterKind.NAMED) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
@@ -2577,7 +2584,7 @@ class CodeGenerator extends Object
       var defaultValue = param.defaultValue;
       return _isJSUndefined(defaultValue)
           ? null
-          : _visitAndMarkExpression(defaultValue);
+          : _visitExpression(defaultValue);
     } else {
       return new JS.LiteralNull();
     }
@@ -2599,8 +2606,7 @@ class CodeGenerator extends Object
     if (node.isGetter) {
       return new JS.Fun([], js.statement('{ return this.#; }', [name]));
     } else if (node.isSetter) {
-      var params =
-          _emitFormalParameterList(node.parameters, destructure: false);
+      var params = _emitFormalParameters(node.parameters?.parameters);
       return new JS.Fun(
           params, js.statement('{ this.# = #; }', [name, params.last]));
     } else {
@@ -2629,7 +2635,8 @@ class CodeGenerator extends Object
         new JS.Method(_declareMemberName(node.element), fn,
             isGetter: node.isGetter,
             isSetter: node.isSetter,
-            isStatic: node.isStatic),
+            isStatic: node.isStatic)
+          ..sourceInformation = _functionEnd(node),
         node.element,
         node);
   }
@@ -2673,6 +2680,7 @@ class CodeGenerator extends Object
         _isInlineJSFunction(node.functionExpression)) {
       fn = JS.simplifyPassThroughArrowFunCallBody(fn);
     }
+    fn.sourceInformation = _functionEnd(node);
 
     var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
     var nameExpr = _emitTopLevelName(element);
@@ -2710,7 +2718,8 @@ class CodeGenerator extends Object
     return closureAnnotate(
         new JS.Method(_propertyName(name),
             _emitFunctionExpression(node.functionExpression),
-            isGetter: node.isGetter, isSetter: node.isSetter),
+            isGetter: node.isGetter, isSetter: node.isSetter)
+          ..sourceInformation = _functionEnd(node),
         node.element,
         node);
   }
@@ -2762,11 +2771,7 @@ class CodeGenerator extends Object
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun fn = _emitFunction(node.element, node.parameters, node.body);
-    return _toArrowFunction(fn);
-  }
-
-  JS.ArrowFun _toArrowFunction(JS.Fun f) {
+    var f = _emitFunction(node.element, node.parameters, node.body);
     JS.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
@@ -2781,8 +2786,7 @@ class CodeGenerator extends Object
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
     return new JS.ArrowFun(f.params, body,
-        typeParams: f.typeParams, returnType: f.returnType)
-      ..sourceInformation = f.sourceInformation;
+        typeParams: f.typeParams, returnType: f.returnType);
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -2802,14 +2806,16 @@ class CodeGenerator extends Object
 
     // normal function (sync), vs (sync*, async, async*)
     var isSync = !(element.isAsynchronous || element.isGenerator);
-    var formals = _emitFormalParameterList(parameters, destructure: isSync);
+    var formals = _emitFormalParameters(parameters?.parameters);
     var typeFormals = _emitTypeFormals(type.typeFormals);
     if (_reifyGeneric(element)) formals.insertAll(0, typeFormals);
 
     JS.Block code = isSync
         ? _emitFunctionBody(element, parameters, body)
-        : new JS.Block(
-            [_emitGeneratorFunction(element, parameters, body).toReturn()]);
+        : new JS.Block([
+            _emitGeneratorFunction(element, parameters, body).toReturn()
+              ..sourceInformation = _nodeStart(body)
+          ]);
     if (element.isOperator && formals.isNotEmpty) {
       if (element.name == '[]=') {
         // []= methods need to return the value. We could also address this at
@@ -2915,6 +2921,7 @@ class CodeGenerator extends Object
         // itself, for recursive calls.
         gen = new JS.NamedFunction(new JS.TemporaryId(name), gen);
       }
+      gen.sourceInformation = _functionEnd(body);
       if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
 
       _superAllowed = savedSuperAllowed;
@@ -2945,8 +2952,7 @@ class CodeGenerator extends Object
       var params = parameters?.parameters;
 
       var jsParams = _emitFormalParameters(
-          params?.where((p) => isPotentiallyMutated(body, p.element)),
-          destructure: false);
+          params?.where((p) => isPotentiallyMutated(body, p.element)));
 
       var gen = emitGeneratorFn(jsParams);
       if (jsParams.isNotEmpty) gen = js.call('() => #(#)', [gen, jsParams]);
@@ -2994,7 +3000,7 @@ class CodeGenerator extends Object
 
     var fn = _emitFunctionExpression(func.functionExpression);
 
-    var name = new JS.Identifier(func.name.name)..sourceInformation = func.name;
+    var name = _emitVariableDef(func.name);
     JS.Statement declareFn;
     if (JS.This.foundIn(fn)) {
       declareFn = js.statement('const # = #.bind(this);', [name, fn]);
@@ -3006,7 +3012,7 @@ class CodeGenerator extends Object
       declareFn = new JS.Block(
           [declareFn, _emitFunctionTagged(name, element.type).toStatement()]);
     }
-    return declareFn..sourceInformation = node;
+    return declareFn;
   }
 
   /// Emits a simple identifier, including handling an inferred generic
@@ -3014,7 +3020,8 @@ class CodeGenerator extends Object
   @override
   JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
     var typeArgs = _getTypeArgs(node.staticElement, node.staticType);
-    var simpleId = _emitSimpleIdentifier(node)..sourceInformation = node;
+    var simpleId = _emitSimpleIdentifier(node)
+      ..sourceInformation = _nodeSpan(node);
     if (typeArgs == null) return simpleId;
     return _callHelper('gbind(#, #)', [simpleId, typeArgs]);
   }
@@ -3110,6 +3117,11 @@ class CodeGenerator extends Object
     }
 
     return new JS.Identifier(name);
+  }
+
+  JS.Identifier _emitVariableDef(SimpleIdentifier id, {JS.TypeRef type}) {
+    return new JS.Identifier(id.name, type: type)
+      ..sourceInformation = _nodeStart(id);
   }
 
   /// Returns `true` if the type name referred to by [node] is used in a
@@ -3537,7 +3549,7 @@ class CodeGenerator extends Object
     } else {
       target = new JS.Identifier(element.name);
     }
-    target.sourceInformation = left;
+    target.sourceInformation = _nodeSpan(left);
     return _visitExpression(rhs).toAssignExpression(target);
   }
 
@@ -3555,10 +3567,10 @@ class CodeGenerator extends Object
     var member = _emitMemberName(field.name,
         isStatic: isStatic, type: classElem.type, element: field.setter);
     jsTarget = isStatic
-        ? new JS.PropertyAccess(_emitStaticAccess(classElem), member)
-        : _emitTargetAccess(jsTarget, member, field.setter);
-    return _visitExpression(right)
-        .toAssignExpression(jsTarget..sourceInformation = id);
+        ? (new JS.PropertyAccess(_emitStaticAccess(classElem), member)
+          ..sourceInformation = _nodeSpan(id))
+        : _emitTargetAccess(jsTarget, member, field.setter, id);
+    return _visitExpression(right).toAssignExpression(jsTarget);
   }
 
   JS.Expression _emitNullSafeSet(PropertyAccess node, Expression right) {
@@ -3581,7 +3593,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Block visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    return new JS.Block([_visitAndMarkExpression(node.expression).toReturn()]);
+    return new JS.Block([_visitExpression(node.expression).toReturn()]);
   }
 
   @override
@@ -3647,16 +3659,19 @@ class CodeGenerator extends Object
   JS.Expression _emitTarget(Expression target, Element member, bool isStatic) {
     if (isStatic) {
       if (member is ConstructorElement) {
-        return _emitConstructorAccess(member.enclosingElement.type);
+        return _emitConstructorAccess(member.enclosingElement.type)
+          ..sourceInformation = _nodeSpan(target);
       }
       if (member is PropertyAccessorElement) {
         var field = member.variable;
         if (field is FieldElement) {
-          return _emitStaticAccess(field.enclosingElement);
+          return _emitStaticAccess(field.enclosingElement)
+            ..sourceInformation = _nodeSpan(target);
         }
       }
       if (member is MethodElement) {
-        return _emitStaticAccess(member.enclosingElement);
+        return _emitStaticAccess(member.enclosingElement)
+          ..sourceInformation = _nodeSpan(target);
       }
     }
     return _visitExpression(target);
@@ -3664,13 +3679,16 @@ class CodeGenerator extends Object
 
   /// Emits the [JS.PropertyAccess] for accessors or method calls to
   /// [jsTarget].[jsName], replacing `super` if it is not allowed in scope.
-  JS.Expression _emitTargetAccess(
-      JS.Expression jsTarget, JS.Expression jsName, Element member) {
+  JS.Expression _emitTargetAccess(JS.Expression jsTarget, JS.Expression jsName,
+      Element member, AstNode node) {
+    JS.Expression result;
     if (!_superAllowed && jsTarget is JS.Super && member != null) {
-      return _getSuperHelper(member, jsName)
-        ..sourceInformation = jsTarget.sourceInformation;
+      result = _getSuperHelper(member, jsName);
+    } else {
+      result = new JS.PropertyAccess(jsTarget, jsName);
     }
-    return new JS.PropertyAccess(jsTarget, jsName);
+    if (node != null) result.sourceInformation = _nodeEnd(node);
+    return result;
   }
 
   JS.Expression _getSuperHelper(Element member, JS.Expression jsName) {
@@ -3720,7 +3738,8 @@ class CodeGenerator extends Object
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
     if (isDynamicInvoke(target) || isDynamicInvoke(node.methodName)) {
       if (jsTarget is JS.Super) {
-        jsTarget = _emitTargetAccess(jsTarget, jsName, element);
+        jsTarget =
+            _emitTargetAccess(jsTarget, jsName, element, node.methodName);
         return _emitDynamicInvoke(jsTarget, typeArgs, args);
       }
       if (typeArgs != null) {
@@ -3740,7 +3759,7 @@ class CodeGenerator extends Object
       assert(typeArgs == null); // Object methods don't take type args.
       return _callHelper('#(#, #)', [name, jsTarget, args]);
     }
-    jsTarget = _emitTargetAccess(jsTarget, jsName, element);
+    jsTarget = _emitTargetAccess(jsTarget, jsName, element, node.methodName);
     var castTo = getImplicitOperationCast(node);
     if (castTo != null) {
       jsTarget = js.call('#._check(#)', [_emitType(castTo), jsTarget]);
@@ -4016,65 +4035,19 @@ class CodeGenerator extends Object
     return jsParams;
   }
 
-  List<JS.Parameter> _emitFormalParameterList(FormalParameterList parameters,
-          {bool destructure: true}) =>
-      _emitFormalParameters(parameters?.parameters, destructure: destructure);
-
-  List<JS.Parameter> _emitFormalParameters(Iterable<FormalParameter> parameters,
-      {bool destructure: true}) {
+  List<JS.Parameter> _emitFormalParameters(
+      Iterable<FormalParameter> parameters) {
     if (parameters == null) return [];
 
-    destructure = destructure && options.destructureNamedParams;
-
     var result = <JS.Parameter>[];
-    var namedVars = <JS.DestructuredVariable>[];
-    var hasNamedArgsConflictingWithObjectProperties = false;
-    var needsOpts = false;
-
     for (var param in parameters) {
       if (param.kind == ParameterKind.NAMED) {
-        if (destructure) {
-          if (JS.objectProperties.contains(param.identifier.name)) {
-            hasNamedArgsConflictingWithObjectProperties = true;
-          }
-          var name = _visitExpression(param.identifier);
-          JS.SimpleBindingPattern structure;
-          var paramName = param.identifier.name;
-          if (JS.invalidVariableName(paramName)) {
-            structure = new JS.SimpleBindingPattern(name);
-            name = js.string(paramName);
-          }
-
-          var defaultValue = _defaultParamValue(param);
-          namedVars.add(new JS.DestructuredVariable(
-              name: name, structure: structure, defaultValue: defaultValue));
-        } else {
-          needsOpts = true;
-        }
-      } else {
-        var jsParam = _visitExpression(param);
-        var defaultValue = _defaultParamValue(param);
-        result.add(destructure && defaultValue != null
-            ? new JS.DestructuredVariable(
-                name: jsParam, defaultValue: defaultValue)
-            : jsParam);
+        result.add(namedArgumentTemp);
+        break;
       }
+      result.add(_emitFormalParameter(param));
     }
 
-    if (needsOpts) {
-      result.add(namedArgumentTemp);
-    } else if (namedVars.isNotEmpty) {
-      // Note: `var {valueOf} = {}` extracts `Object.prototype.valueOf`, so
-      // in case there are conflicting names we create an object without
-      // any prototype.
-      var defaultOpts = hasNamedArgsConflictingWithObjectProperties
-          ? js.call('Object.create(null)')
-          : js.call('{}');
-      result.add(new JS.DestructuredVariable(
-          structure: new JS.ObjectBindingPattern(namedVars),
-          type: emitNamedParamsArgType(parameters.map((p) => p.element)),
-          defaultValue: defaultOpts));
-    }
     return result;
   }
 
@@ -4134,8 +4107,12 @@ class CodeGenerator extends Object
       //     if (stream.addStream(e)) return;
       //     yield;
       var helperName = star ? 'addStream' : 'add';
-      return js.statement('{ if(#.#(#)) return; #; }',
-          [_asyncStarController, helperName, jsExpr, new JS.Yield(null)]);
+      return js.statement('{ if(#.#(#)) return; #; }', [
+        _asyncStarController,
+        helperName,
+        jsExpr,
+        new JS.Yield(null)..sourceInformation = _nodeStart(node)
+      ]);
     }
     // A normal yield in a sync*
     return jsExpr.toYieldStatement(star: star);
@@ -4171,7 +4148,7 @@ class CodeGenerator extends Object
       var variable = variables[0];
       var initializer = variable.initializer;
       if (initializer != null) {
-        var name = new JS.Identifier(variable.name.name);
+        var name = _emitVariableDef(variable.name);
         JS.Expression value;
         if (_annotatedNullCheck(variable.element)) {
           value = notNull(initializer);
@@ -4198,12 +4175,13 @@ class CodeGenerator extends Object
         return value.toVariableDeclaration(name);
       }
     }
-    return _visitExpression(node.variables).toStatement();
+    return visitVariableDeclarationList(node.variables).toStatement();
   }
 
   @override
   JS.VariableDeclarationList visitVariableDeclarationList(
       VariableDeclarationList node) {
+    if (node == null) return null;
     return new JS.VariableDeclarationList(
         'let', node.variables?.map(visitVariableDeclaration)?.toList());
   }
@@ -4217,8 +4195,7 @@ class CodeGenerator extends Object
     }
 
     var name =
-        new JS.Identifier(node.name.name, type: emitTypeRef(node.element.type))
-          ..sourceInformation = node.name;
+        _emitVariableDef(node.name, type: emitTypeRef(node.element.type));
     return new JS.VariableInitialization(
         name, _visitInitializer(node.initializer, node.element));
   }
@@ -4262,9 +4239,9 @@ class CodeGenerator extends Object
     // explicitly initialize to null, to avoid getting `undefined`.
     // TODO(jmesserly): do this only for vars that aren't definitely assigned.
     if (init == null) return new JS.LiteralNull();
-    var value =
-        _annotatedNullCheck(variable) ? notNull(init) : _visitExpression(init);
-    return value..sourceInformation = init;
+    return _annotatedNullCheck(variable)
+        ? notNull(init)
+        : _visitExpression(init);
   }
 
   JS.Statement _emitLazyFields(
@@ -4470,7 +4447,8 @@ class CodeGenerator extends Object
     }
 
     return _emitInstanceCreationExpression(element, getType(constructor.type),
-        name, node.argumentList, node.isConst);
+        name, node.argumentList, node.isConst)
+      ..sourceInformation = _nodeStart(node.constructorName);
   }
 
   bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
@@ -4563,7 +4541,8 @@ class CodeGenerator extends Object
     // conversion.
     if (op.type == TokenType.BAR_BAR ||
         op.type == TokenType.AMPERSAND_AMPERSAND) {
-      return _visitTest(node);
+      return _visitTest(node)
+        ..sourceInformation = _getLocation(node.operator.offset);
     }
 
     if (op.type.isEqualityOperator) return _emitEqualityOperator(node, op);
@@ -4587,6 +4566,11 @@ class CodeGenerator extends Object
     var leftType = getStaticType(left);
     var rightType = getStaticType(right);
 
+    JS.Expression operatorCall() {
+      return _emitSend(left, op.lexeme, [right])
+        ..sourceInformation = _getLocation(node.operator.offset);
+    }
+
     if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
         leftType == types.stringType && op.type == TokenType.PLUS) {
       // special cases where we inline the operation
@@ -4594,7 +4578,8 @@ class CodeGenerator extends Object
       // TODO(jmesserly): it would be nice to just inline the method from core,
       // instead of special cases here.
       JS.Expression binary(String code) {
-        return js.call(code, [notNull(left), notNull(right)]);
+        return js.call(code, [notNull(left), notNull(right)])
+          ..sourceInformation = _getLocation(node.operator.offset);
       }
 
       JS.Expression bitwise(String code) {
@@ -4606,12 +4591,13 @@ class CodeGenerator extends Object
           // `a ~/ b` is equivalent to `(a / b).truncate()`
           var div = ast.binaryExpression(left, '/', right)
             ..staticType = node.staticType;
-          return _emitSend(div, 'truncate', []);
+          return _emitSend(div, 'truncate', [])
+            ..sourceInformation = _getLocation(node.operator.offset);
 
         case TokenType.PERCENT:
           // TODO(sra): We can generate `a % b + 0` if both are non-negative
           // (the `+ 0` is to coerce -0.0 to 0).
-          return _emitSend(left, op.lexeme, [right]);
+          return operatorCall();
 
         case TokenType.AMPERSAND:
           return bitwise('# & #');
@@ -4636,7 +4622,7 @@ class CodeGenerator extends Object
               _parentMasksToWidth(node, 31 - shiftCount)) {
             return binary('# >> #');
           }
-          return _emitSend(left, op.lexeme, [right]);
+          return operatorCall();
 
         case TokenType.LT_LT:
           if (_is31BitUnsigned(node)) {
@@ -4647,7 +4633,7 @@ class CodeGenerator extends Object
           if (_asIntInRange(right, 0, 31) != null) {
             return _coerceBitOperationResultToUnsigned(node, binary('# << #'));
           }
-          return _emitSend(left, op.lexeme, [right]);
+          return operatorCall();
 
         default:
           // TODO(vsm): When do Dart ops not map to JS?
@@ -4655,7 +4641,7 @@ class CodeGenerator extends Object
       }
     }
 
-    return _emitSend(left, op.lexeme, [right]);
+    return operatorCall();
   }
 
   /// Bit operations are coerced to values on [0, 2^32). The coercion changes
@@ -5070,32 +5056,16 @@ class CodeGenerator extends Object
       // The printer handles precedence so we don't need to.
       _visitExpression(node.expression);
 
-  @override
-  JS.Identifier visitDefaultFormalParameter(DefaultFormalParameter node) {
-    return _emitParameter(node.element, declaration: true);
-  }
-
-  JS.Parameter _emitNormalFormalParameter(NormalFormalParameter node) {
-    var id = _emitParameter(node.element, declaration: true);
-    var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
+  JS.Parameter _emitFormalParameter(FormalParameter node) {
+    var id = _emitParameter(node.element, declaration: true)
+      ..sourceInformation = _nodeSpan(node);
+    var isRestArg = node is! DefaultFormalParameter &&
+        findAnnotation(node.element, isJsRestAnnotation) != null;
     return isRestArg ? new JS.RestParameter(id) : id;
   }
 
   @override
-  visitSimpleFormalParameter(SimpleFormalParameter node) =>
-      _emitNormalFormalParameter(node);
-
-  @override
-  visitFieldFormalParameter(FieldFormalParameter node) =>
-      _emitNormalFormalParameter(node);
-
-  @override
-  visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      _emitNormalFormalParameter(node);
-
-  @override
-  JS.This visitThisExpression(ThisExpression node) =>
-      new JS.This()..sourceInformation = node;
+  JS.This visitThisExpression(ThisExpression node) => new JS.This();
 
   @override
   JS.Expression visitSuperExpression(SuperExpression node) => new JS.Super();
@@ -5107,11 +5077,13 @@ class CodeGenerator extends Object
       return _callHelper('loadLibrary');
     }
 
+    JS.Expression result;
     if (isLibraryPrefix(node.prefix)) {
-      return _visitExpression(node.identifier);
+      result = _visitExpression(node.identifier);
     } else {
-      return _emitAccess(node.prefix, node.identifier, node.staticType);
+      result = _emitAccess(node.prefix, node.identifier, node.staticType);
     }
+    return result;
   }
 
   @override
@@ -5197,7 +5169,7 @@ class CodeGenerator extends Object
         !virtualFields.isVirtual(field)) {
       // If super.x is a sealed field, then x is an instance property since
       // subclasses cannot override x.
-      jsTarget = new JS.This()..sourceInformation = target;
+      jsTarget = new JS.This()..sourceInformation = jsTarget.sourceInformation;
     }
 
     JS.Expression result;
@@ -5213,12 +5185,12 @@ class CodeGenerator extends Object
         result = _callHelper('tagStatic(#, #)', [jsTarget, jsName]);
       } else if (isSuper) {
         result = _callHelper('bind(this, #, #)',
-            [jsName, _emitTargetAccess(jsTarget, jsName, accessor)]);
+            [jsName, _emitTargetAccess(jsTarget, jsName, accessor, memberId)]);
       } else {
         result = _callHelper('bind(#, #)', [jsTarget, jsName]);
       }
     } else {
-      result = _emitTargetAccess(jsTarget, jsName, accessor);
+      result = _emitTargetAccess(jsTarget, jsName, accessor, memberId);
     }
     return typeArgs == null
         ? result
@@ -5253,7 +5225,7 @@ class CodeGenerator extends Object
 
     // Generic dispatch to a statically known method.
     return js.call('#(#)', [
-      _emitTargetAccess(_visitExpression(target), memberName, element),
+      _emitTargetAccess(_visitExpression(target), memberName, element, null),
       _visitExpressionList(args)
     ]);
   }
@@ -5324,14 +5296,14 @@ class CodeGenerator extends Object
 
   @override
   JS.For visitForStatement(ForStatement node) {
-    var init = _visitAndMarkExpression(node.initialization) ??
-        _visitExpression(node.variables);
+    var init = _visitExpression(node.initialization) ??
+        visitVariableDeclarationList(node.variables);
     var updaters = node.updaters;
     JS.Expression update;
     if (updaters != null && updaters.isNotEmpty) {
-      update = new JS.Expression.binary(
-              updaters.map(_visitAndMarkExpression).toList(), ',')
-          .toVoidExpression();
+      update =
+          new JS.Expression.binary(updaters.map(_visitExpression).toList(), ',')
+              .toVoidExpression();
     }
     var condition = _visitTest(node.condition);
     return new JS.For(init, condition, update, _visitScope(node.body));
@@ -5354,14 +5326,14 @@ class CodeGenerator extends Object
     }
 
     var init = _visitExpression(node.identifier);
-    var iterable = _visitAndMarkExpression(node.iterable);
+    var iterable = _visitExpression(node.iterable);
     var body = _visitScope(node.body);
     if (init == null) {
-      var name = node.loopVariable.identifier.name;
-      init = js.call('let #', name);
+      var id = node.loopVariable.identifier;
+      init = js.call('let #', _emitVariableDef(id));
       if (_annotatedNullCheck(node.loopVariable.element)) {
-        body =
-            new JS.Block([_nullParameterCheck(new JS.Identifier(name)), body]);
+        body = new JS.Block(
+            [_nullParameterCheck(new JS.Identifier(id.name)), body]);
       }
     }
     return new JS.ForOf(init, iterable, body);
@@ -5392,13 +5364,11 @@ class CodeGenerator extends Object
         null,
         ast.argumentList([node.iterable]),
         false);
-    var iter = _visitExpression(
-        _createTemporary('it', streamIterator, nullable: false));
-
+    var iter = new JS.TemporaryId('iter');
+    var variable = node.identifier ?? node.loopVariable.identifier;
     var init = _visitExpression(node.identifier);
     if (init == null) {
-      init = js
-          .call('let # = #.current', [node.loopVariable.identifier.name, iter]);
+      init = js.call('let # = #.current', [_emitVariableDef(variable), iter]);
     } else {
       init = js.call('# = #.current', [init, iter]);
     }
@@ -5412,10 +5382,12 @@ class CodeGenerator extends Object
         [
           iter,
           createStreamIter,
-          new JS.Yield(js.call('#.moveNext()', iter)),
+          new JS.Yield(js.call('#.moveNext()', iter))
+            ..sourceInformation = _nodeStart(variable),
           init,
           _visitStatement(node.body),
           new JS.Yield(js.call('#.cancel()', iter))
+            ..sourceInformation = _nodeStart(variable)
         ]);
   }
 
@@ -5448,7 +5420,9 @@ class CodeGenerator extends Object
     // This could incorrectly shadow a user's name.
     var savedCatch = _catchParameter;
 
-    if (clauses.length == 1 && clauses.single.exceptionParameter != null) {
+    var isSingleCatch =
+        clauses.length == 1 && clauses.single.exceptionParameter != null;
+    if (isSingleCatch) {
       // Special case for a single catch.
       _catchParameter = clauses.single.exceptionParameter;
     } else {
@@ -5462,6 +5436,9 @@ class CodeGenerator extends Object
     }
 
     var catchVarDecl = _emitSimpleIdentifier(_catchParameter);
+    if (isSingleCatch) {
+      catchVarDecl..sourceInformation = _nodeStart(_catchParameter);
+    }
     _catchParameter = savedCatch;
     return new JS.Catch(catchVarDecl, new JS.Block([catchBody]));
   }
@@ -5479,7 +5456,8 @@ class CodeGenerator extends Object
     return new JS.If(
         js.call('#.is(#)', [castType, _emitSimpleIdentifier(_catchParameter)]),
         then,
-        otherwise);
+        otherwise)
+      ..sourceInformation = _nodeStart(clause);
   }
 
   /// Visits the catch clause body. This skips the exception type guard, if any.
@@ -5496,17 +5474,15 @@ class CodeGenerator extends Object
         vars.add(name.name);
       } else if (name != null) {
         vars.add(name.name);
-        body.add(js.statement('let # = #;', [
-          _emitSimpleIdentifier(name),
-          _emitSimpleIdentifier(_catchParameter)
-        ]));
+        body.add(js.statement('let # = #;',
+            [_emitVariableDef(name), _emitSimpleIdentifier(_catchParameter)]));
         _catchParameter = name;
       }
       var stackVar = node.stackTraceParameter;
       if (stackVar != null) {
         vars.add(stackVar.name);
         body.add(js.statement('let # = #.stackTrace(#);', [
-          _emitSimpleIdentifier(stackVar),
+          _emitVariableDef(stackVar),
           _runtimeModule,
           _emitSimpleIdentifier(name)
         ]));
@@ -5520,7 +5496,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Case visitSwitchCase(SwitchCase node) {
-    var expr = _visitAndMarkExpression(node.expression);
+    var expr = _visitExpression(node.expression);
     var body = _visitStatementList(node.statements);
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
@@ -5549,7 +5525,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Switch visitSwitchStatement(SwitchStatement node) => new JS.Switch(
-      _visitAndMarkExpression(node.expression),
+      _visitExpression(node.expression),
       node.members?.map(_emitSwitchMember)?.toList());
 
   @override
@@ -5715,30 +5691,22 @@ class CodeGenerator extends Object
   @override
   visitBooleanLiteral(BooleanLiteral node) => js.boolean(node.value);
 
-  /// Visit a Dart [node] that produces a JS expression, without attaching
-  /// a source location.
-  JS.Expression _visitExpression(AstNode node) {
-    return node?.accept<JS.Node>(this) as JS.Expression;
-  }
-
   /// Visit a Dart [node] that produces a JS expression, and attaches a source
   /// location.
-  ///
-  /// Expressions should generally *not* be marked when they are visited as part
-  /// of other expressions. They should only be marked when needed for control
-  /// flow. For example, the condition in an `if (cond) {}` or the 3 branches in
-  /// a conditional `cond ? x : y`. Field initializers are another example.
-  JS.Expression _visitAndMarkExpression(AstNode node) {
-    var e = node?.accept<JS.Node>(this) as JS.Expression;
-    if (e != null) e.sourceInformation = node;
+  // TODO(jmesserly): parameter type should be `Expression`
+  JS.Expression _visitExpression(AstNode node) {
+    if (node == null) return null;
+    var e = node.accept<JS.Node>(this) as JS.Expression;
+    e.sourceInformation ??= _nodeStart(node);
     return e;
   }
 
   /// Visit a Dart [node] that produces a JS statement, and marks its source
   /// location for debugging.
   JS.Statement _visitStatement(AstNode node) {
-    var s = node?.accept<JS.Node>(this) as JS.Statement;
-    if (s != null) s.sourceInformation = node;
+    if (node == null) return null;
+    var s = node.accept<JS.Node>(this) as JS.Statement;
+    if (s is! Block) s.sourceInformation = _nodeStart(node);
     return s;
   }
 
@@ -5750,6 +5718,76 @@ class CodeGenerator extends Object
   /// Visits [nodes] with [_visitExpression].
   List<JS.Expression> _visitExpressionList(Iterable<AstNode> nodes) {
     return nodes?.map(_visitExpression)?.toList();
+  }
+
+  /// Gets the start position of [node] for use in source mapping.
+  ///
+  /// This is the most common kind of marking, and is used for most expressions
+  /// and statements.
+  SourceLocation _nodeStart(AstNode node) => _getLocation(node.offset);
+
+  /// Gets the end position of [node] for use in source mapping.
+  ///
+  /// This is used to complete a hover span, when we know the start position has
+  /// already been emitted. For example, `foo.bar` we only need to mark the end
+  /// of `.bar` to ensure `foo.bar` has a hover tooltip.
+  NodeEnd _nodeEnd(AstNode node) {
+    var loc = _getLocation(node.end);
+    return loc != null ? new NodeEnd(loc) : null;
+  }
+
+  /// Gets the end of a function for source mapping.
+  ///
+  /// JS wants a marking before the closing brace/semicolon, rather than after,
+  /// so this adjusts appropriately (it uses [node.endToken.offset] rather than
+  /// [node.end]).
+  ///
+  /// Every JS function should have an end marking for stepping out of it.
+  /// Alternatively this can be supplied with [_functionSpan].
+  NodeEnd _functionEnd(AstNode node) {
+    var loc = _getLocation(node.endToken.offset);
+    return loc != null ? new NodeEnd(loc) : null;
+  }
+
+  /// Similar to [_functionEnd] but also marks the start of the function.
+  ///
+  /// This is used when we want to support hovering.
+  NodeSpan _functionSpan(AstNode node) {
+    var start = _getLocation(node.offset);
+    var end = _getLocation(node.endToken.offset);
+    return start != null && end != null ? new NodeSpan(start, end) : null;
+  }
+
+  /// Combines [_nodeStart] and [_nodeEnd], used when we want to support
+  /// hovering on the [node].
+  NodeSpan _nodeSpan(AstNode node) {
+    var start = _getLocation(node.offset);
+    var end = _getLocation(node.end);
+    return start != null && end != null ? new NodeSpan(start, end) : null;
+  }
+
+  SourceLocation _getLocation(int offset) {
+    if (offset == -1) return null;
+    var unit = _currentCompilationUnit;
+    Uri fileUri;
+    if (unit.source.isInSystemLibrary) {
+      fileUri = unit.source.uri;
+    } else {
+      // TODO(jmesserly): this needs serious cleanup.
+      // There does appear to be something strange going on with Analyzer
+      // URIs if we try and use them directly on Windows.
+      // See also compiler.dart placeSourceMap, which could use cleanup too.
+      var sourcePath = unit.source.fullName;
+      fileUri = sourcePath.startsWith('package:')
+          ? Uri.parse(sourcePath)
+          // TODO(jmesserly): shouldn't this be path.toUri?
+          : new Uri.file(sourcePath);
+    }
+    var loc = unit.lineInfo.getLocation(offset);
+    return new SourceLocation(offset,
+        sourceUrl: fileUri,
+        line: loc.lineNumber - 1,
+        column: loc.columnNumber - 1);
   }
 
   /// Generates an expression for a boolean conversion context (if, while, &&,
@@ -6153,6 +6191,22 @@ class CodeGenerator extends Object
   @override
   visitDottedName(node) => _unreachable(node);
 
+  /// Unused, handled by [_emitFormalParameter].
+  @override
+  visitDefaultFormalParameter(node) => _unreachable(node);
+
+  /// Unused, handled by [_emitFormalParameter].
+  @override
+  visitSimpleFormalParameter(node) => _unreachable(node);
+
+  /// Unused, handled by [_emitFormalParameter].
+  @override
+  visitFieldFormalParameter(node) => _unreachable(node);
+
+  /// Unused, handled by [_emitFormalParameter].
+  @override
+  visitFunctionTypedFormalParameter(node) => _unreachable(node);
+
   /// Unused, handled by [visitEnumDeclaration].
   @override
   visitEnumConstantDeclaration(node) => _unreachable(node); // see
@@ -6161,7 +6215,7 @@ class CodeGenerator extends Object
   @override
   visitExtendsClause(node) => _unreachable(node);
 
-  /// Unused, see [_emitFormalParameterList].
+  /// Unused, see [_emitFormalParameters].
   @override
   visitFormalParameterList(node) => _unreachable(node);
 

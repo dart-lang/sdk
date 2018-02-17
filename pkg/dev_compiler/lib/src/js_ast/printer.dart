@@ -581,7 +581,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   visitFunctionDeclaration(FunctionDeclaration declaration) {
     indent();
     outClosureAnnotation(declaration);
-    functionOut(declaration.function, declaration.name);
+    var f = declaration.function;
+    context.enterNode(f);
+    functionOut(f, declaration.name);
+    context.exitNode(f);
     lineOut();
   }
 
@@ -938,7 +941,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitNamedFunction(NamedFunction namedFunction) {
-    functionOut(namedFunction.function, namedFunction.name);
+    var f = namedFunction.function;
+    context.enterNode(f);
+    functionOut(f, namedFunction.name);
+    context.exitNode(f);
   }
 
   visitFun(Fun fun) {

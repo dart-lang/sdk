@@ -1,27 +1,3 @@
 # Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
-
-/hello_sane_column_on_print_return_value: Crash
-/printing_class_fields_step_into: Crash
-/stops_at_ending_brace: Crash
-/no_mapping_on_class_constructor_line: Crash
-/no_mapping_on_class_named_constructor_line: Crash
-/hello_class_call: Crash
-/method_call_with_named_parameters: Crash
-/method_call_with_named_parameters_no_given: Crash
-/call_on_field_in_class: Crash
-/next_through_assign_int_test: Crash
-/next_through_catch_test: Crash
-/next_through_for_each_loop_test: Crash
-/next_through_operator_bracket_on_this_test: Crash
-/next_through_operator_bracket_test: Crash
-/hello_async: Crash
-/next_through_is_and_as_test: Crash
-/next_through_multi_catch_test: Crash
-/step_through_async_star_yield: Crash
-/step_through_await_for: Crash
-/step_through_conditional_expression: Crash
-/step_through_if_and_identical: Crash
-/step_through_property_get_test: Crash
-/step_through_sync_star: Crash

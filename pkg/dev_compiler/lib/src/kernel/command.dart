@@ -18,8 +18,8 @@ import 'package:source_maps/source_maps.dart';
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
-import 'source_map_printer.dart';
 
 const _binaryName = 'dartdevk';
 

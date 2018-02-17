@@ -223,25 +223,25 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   if (verbose) {
     print('JavaScript stacktrace:');
     print(jsStackTrace.join('\n'));
-    print('Dart stacktrace:');
+    print('\nDart stacktrace:');
     print(dartStackTrace.join('\n'));
   }
   Expect.equals(
       expectedIndex,
       expectations.expectedLines.length,
       "Missing stack trace lines for test:\n${test.code}\n"
-      "Actual:\n${dartStackTrace.join('\n')}\n"
+      "Actual:\n${dartStackTrace.join('\n')}\n\n"
       "Expected:\n${expectations.expectedLines.join('\n')}\n");
   Expect.isTrue(
       unexpectedLines.isEmpty,
       "Unexpected stack trace lines for test:\n${test.code}\n"
-      "Actual:\n${dartStackTrace.join('\n')}\n"
+      "Actual:\n${dartStackTrace.join('\n')}\n\n"
       "Unexpected:\n${expectations.unexpectedLines.join('\n')}\n");
   Expect.isTrue(
       unexpectedBeforeLines.isEmpty && unexpectedAfterLines.isEmpty,
       "Unexpected stack trace lines:\n${test.code}\n"
-      "Actual:\n${dartStackTrace.join('\n')}\n"
-      "Unexpected before:\n${unexpectedBeforeLines.join('\n')}\n"
+      "Actual:\n${dartStackTrace.join('\n')}\n\n"
+      "Unexpected before:\n${unexpectedBeforeLines.join('\n')}\n\n"
       "Unexpected after:\n${unexpectedAfterLines.join('\n')}\n");
 
   if (forcedTmpDir == null) {

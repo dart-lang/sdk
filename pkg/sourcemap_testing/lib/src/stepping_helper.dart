@@ -123,13 +123,15 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
     noBreaksEnd[stopNum2].add("test.dart:${annotation.lineNo}:");
   }
 
-  _checkRecordedStops(recordStops, expectedStops, noBreaksStart, noBreaksEnd);
+  _checkRecordedStops(
+      recordStops, expectedStops, noBreaksStart, noBreaksEnd, debug);
 
   for (Annotation annotation in code.annotations
       .where((annotation) => annotation.text.trim() == "nb")) {
     // Check that we didn't break where we're not allowed to.
     if (recordStopLines.contains(annotation.lineNo)) {
-      fail("Was not allowed to stop on line ${annotation.lineNo}, but did!");
+      fail("Was not allowed to stop on line ${annotation.lineNo}, but did!"
+          "  Actual line stops: $recordStopLines${_debugHint(debug)}");
     }
   }
   for (Annotation annotation in code.annotations
@@ -138,7 +140,8 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
     if (recordStopLineColumns
         .contains("${annotation.lineNo}:${annotation.columnNo}")) {
       fail("Was not allowed to stop on line ${annotation.lineNo} "
-          "column ${annotation.columnNo}, but did!");
+          "column ${annotation.columnNo}, but did!"
+          "  Actual line stops: $recordStopLineColumns${_debugHint(debug)}");
     }
   }
 
@@ -147,8 +150,12 @@ void checkD8Steps(String outputPath, List<String> d8Output, AnnotatedCode code,
   }
 }
 
-void _checkRecordedStops(List<String> recordStops, List<String> expectedStops,
-    List<List<String>> noBreaksStart, List<List<String>> noBreaksEnd) {
+void _checkRecordedStops(
+    List<String> recordStops,
+    List<String> expectedStops,
+    List<List<String>> noBreaksStart,
+    List<List<String>> noBreaksEnd,
+    bool debug) {
   // We want to find all expected lines in recorded lines in order, but allow
   // more in between in the recorded lines.
   // noBreaksStart and noBreaksStart gives instructions on what's *NOT* allowed
@@ -173,16 +180,46 @@ void _checkRecordedStops(List<String> recordStops, List<String> expectedStops,
           noBreaksEnd[expectedIndex] != null) {
         aliveNoBreaks.removeAll(noBreaksEnd[expectedIndex]);
       }
-    } else if (aliveNoBreaks
-        .contains("${(recorded.split(":")..removeLast()).join(":")}:")) {
-      fail("Break '$recorded' was found when it wasn't allowed "
-          "(js step $stopNumber, after stop $expectedIndex)");
+    } else {
+      if (debug) {
+        // One of the most helpful debugging tools is to see stops that weren't
+        // matched. The most common failure is we didn't match one particular
+        // stop location (e.g. because of the column). This gets reported
+        // as an aliveNoBreaks failure (if the test is using no-breaks like
+        // `nbb`) or it's reported as "stops don't match" message.
+        //
+        // Both failures are difficult to debug without seeing the stops that
+        // didn't match. No breaks failures are misleading (the problem isn't
+        // an incorrect break, but we missed a stop, so the aliveNoBreaks is
+        // wrong), and the normal failure list dumps the enitre stop list,
+        // making it difficult to see where the mismatch was.
+        //
+        // Also we add 1 to expectedIndex, because the stop annotations are
+        // 1-based in the source files (e.g. `/*s:1*/` is expectedIndex 0)
+        print("Skipping stop `$recorded` that didn't match expected stop "
+            "${expectedIndex + 1} `${expectedStops[expectedIndex]}`");
+      }
+      if (aliveNoBreaks
+          .contains("${(recorded.split(":")..removeLast()).join(":")}:")) {
+        fail("Break '$recorded' was found when it wasn't allowed "
+            "(js step $stopNumber, after stop ${expectedIndex + 1}). "
+            "This can happen when an expected stop was not matched"
+            "${_debugHint(debug)}.");
+      }
     }
   }
   if (expectedIndex != expectedStops.length) {
     // Didn't find everything.
-    fail("Expected to find $expectedStops but found $recordStops");
+    fail("Expected to find $expectedStops but found $recordStops"
+        "${_debugHint(debug)}");
   }
+}
+
+/// If we're not in debug mode, this returns a message string with information
+/// about how to enable debug mode in the test runner.
+String _debugHint(bool debug) {
+  if (debug) return ''; // already in debug mode
+  return ' (pass -Ddebug=1 to the test runner to see debug information)';
 }
 
 void _debugPrint(List<_DartStackTraceDataEntry> trace, String outputPath) {
