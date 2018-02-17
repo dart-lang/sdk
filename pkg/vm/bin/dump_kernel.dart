@@ -38,5 +38,6 @@ main(List<String> arguments) async {
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readProgram(program);
 
-  writeProgramToText(program, path: output, showMetadata: true);
+  writeProgramToText(program,
+      path: output, showExternal: true, showMetadata: true);
 }
