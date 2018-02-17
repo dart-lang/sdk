@@ -1197,6 +1197,27 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return top-level and class member declarations.
+   *
+   * Returns
+   *
+   * declarations: List<ElementDeclaration>
+   *
+   *   The list of declarations.
+   *
+   * files: List<FilePath>
+   *
+   *   The list of the paths of files with declarations.
+   */
+  Future<SearchGetElementDeclarationsResult>
+      sendSearchGetElementDeclarations() async {
+    var result = await server.send("search.getElementDeclarations", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new SearchGetElementDeclarationsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Return the type hierarchy of the class declared or referenced at the given
    * location.
    *

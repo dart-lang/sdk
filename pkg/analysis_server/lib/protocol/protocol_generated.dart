@@ -8724,6 +8724,242 @@ class EditSortMembersResult implements ResponseResult {
 }
 
 /**
+ * ElementDeclaration
+ *
+ * {
+ *   "name": String
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "line": int
+ *   "column": int
+ *   "className": optional String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ElementDeclaration implements HasToJson {
+  String _name;
+
+  ElementKind _kind;
+
+  int _fileIndex;
+
+  int _offset;
+
+  int _line;
+
+  int _column;
+
+  String _className;
+
+  /**
+   * The name of the declaration.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the declaration.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The kind of the element that corresponds to the declaration.
+   */
+  ElementKind get kind => _kind;
+
+  /**
+   * The kind of the element that corresponds to the declaration.
+   */
+  void set kind(ElementKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The index of the file (in the enclosing response).
+   */
+  int get fileIndex => _fileIndex;
+
+  /**
+   * The index of the file (in the enclosing response).
+   */
+  void set fileIndex(int value) {
+    assert(value != null);
+    this._fileIndex = value;
+  }
+
+  /**
+   * The offset of the declaration name in the file.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the declaration name in the file.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The one-based index of the line containing the declaration name.
+   */
+  int get line => _line;
+
+  /**
+   * The one-based index of the line containing the declaration name.
+   */
+  void set line(int value) {
+    assert(value != null);
+    this._line = value;
+  }
+
+  /**
+   * The one-based index of the column containing the declaration name.
+   */
+  int get column => _column;
+
+  /**
+   * The one-based index of the column containing the declaration name.
+   */
+  void set column(int value) {
+    assert(value != null);
+    this._column = value;
+  }
+
+  /**
+   * The name of the class enclosing this declaration. If the declaration is
+   * not a class member, this field will be absent.
+   */
+  String get className => _className;
+
+  /**
+   * The name of the class enclosing this declaration. If the declaration is
+   * not a class member, this field will be absent.
+   */
+  void set className(String value) {
+    this._className = value;
+  }
+
+  ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
+      int line, int column,
+      {String className}) {
+    this.name = name;
+    this.kind = kind;
+    this.fileIndex = fileIndex;
+    this.offset = offset;
+    this.line = line;
+    this.column = column;
+    this.className = className;
+  }
+
+  factory ElementDeclaration.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      ElementKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ElementKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      int fileIndex;
+      if (json.containsKey("fileIndex")) {
+        fileIndex =
+            jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "fileIndex");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int line;
+      if (json.containsKey("line")) {
+        line = jsonDecoder.decodeInt(jsonPath + ".line", json["line"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "line");
+      }
+      int column;
+      if (json.containsKey("column")) {
+        column = jsonDecoder.decodeInt(jsonPath + ".column", json["column"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "column");
+      }
+      String className;
+      if (json.containsKey("className")) {
+        className = jsonDecoder.decodeString(
+            jsonPath + ".className", json["className"]);
+      }
+      return new ElementDeclaration(name, kind, fileIndex, offset, line, column,
+          className: className);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["kind"] = kind.toJson();
+    result["fileIndex"] = fileIndex;
+    result["offset"] = offset;
+    result["line"] = line;
+    result["column"] = column;
+    if (className != null) {
+      result["className"] = className;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ElementDeclaration) {
+      return name == other.name &&
+          kind == other.kind &&
+          fileIndex == other.fileIndex &&
+          offset == other.offset &&
+          line == other.line &&
+          column == other.column &&
+          className == other.className;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fileIndex.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, line.hashCode);
+    hash = JenkinsSmiHash.combine(hash, column.hashCode);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * ExecutableFile
  *
  * {
@@ -15058,6 +15294,154 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * search.getElementDeclarations params
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class SearchGetElementDeclarationsParams implements RequestParams {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "search.getElementDeclarations", null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is SearchGetElementDeclarationsParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 653510116;
+  }
+}
+
+/**
+ * search.getElementDeclarations result
+ *
+ * {
+ *   "declarations": List<ElementDeclaration>
+ *   "files": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class SearchGetElementDeclarationsResult implements ResponseResult {
+  List<ElementDeclaration> _declarations;
+
+  List<String> _files;
+
+  /**
+   * The list of declarations.
+   */
+  List<ElementDeclaration> get declarations => _declarations;
+
+  /**
+   * The list of declarations.
+   */
+  void set declarations(List<ElementDeclaration> value) {
+    assert(value != null);
+    this._declarations = value;
+  }
+
+  /**
+   * The list of the paths of files with declarations.
+   */
+  List<String> get files => _files;
+
+  /**
+   * The list of the paths of files with declarations.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  SearchGetElementDeclarationsResult(
+      List<ElementDeclaration> declarations, List<String> files) {
+    this.declarations = declarations;
+    this.files = files;
+  }
+
+  factory SearchGetElementDeclarationsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<ElementDeclaration> declarations;
+      if (json.containsKey("declarations")) {
+        declarations = jsonDecoder.decodeList(
+            jsonPath + ".declarations",
+            json["declarations"],
+            (String jsonPath, Object json) =>
+                new ElementDeclaration.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "declarations");
+      }
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      return new SearchGetElementDeclarationsResult(declarations, files);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "search.getElementDeclarations result", json);
+    }
+  }
+
+  factory SearchGetElementDeclarationsResult.fromResponse(Response response) {
+    return new SearchGetElementDeclarationsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["declarations"] =
+        declarations.map((ElementDeclaration value) => value.toJson()).toList();
+    result["files"] = files;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is SearchGetElementDeclarationsResult) {
+      return listEqual(declarations, other.declarations,
+              (ElementDeclaration a, ElementDeclaration b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, declarations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
