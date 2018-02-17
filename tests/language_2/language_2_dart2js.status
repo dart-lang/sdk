@@ -918,7 +918,6 @@ built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
-callable_test/none: RuntimeError
 call_method_as_cast_test/01: RuntimeError
 call_method_as_cast_test/02: RuntimeError
 call_method_as_cast_test/03: RuntimeError
@@ -934,15 +933,16 @@ call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
 call_with_no_such_method_test: RuntimeError
+callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 extract_type_arguments_test: Crash # Issue 31371
 function_propagation_test: RuntimeError
-function_type_call_getter2_test/none: RuntimeError
 function_type_call_getter2_test/00: MissingCompileTimeError
 function_type_call_getter2_test/01: MissingCompileTimeError
 function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/none: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_for_in_element_test: RuntimeError
@@ -2113,8 +2113,8 @@ void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fa
 void_type_usage_test/conditional2_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional2_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2130,8 +2130,8 @@ void_type_usage_test/conditional3_conditional: Crash # 'package:front_end/src/fa
 void_type_usage_test/conditional3_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
-void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
 void_type_usage_test/conditional3_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
@@ -2266,9 +2266,6 @@ config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
 const_constructor2_test/11: CompileTimeError
 const_constructor2_test/12: CompileTimeError
-const_constructor2_test/20: MissingCompileTimeError
-const_constructor2_test/22: MissingCompileTimeError
-const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/03: CompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test/01: CompileTimeError
@@ -2378,7 +2375,6 @@ function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
-function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
