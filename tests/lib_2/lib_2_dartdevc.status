@@ -7,7 +7,6 @@ async/futures_test: RuntimeError # Issue 29922
 html/xhr_test/xhr: RuntimeError # Issue 29922, strong mode cast failure
 
 [ $compiler == dartdevk ]
-async/future_value_chain4_test: CompileTimeError
 async/slow_consumer_test: CompileTimeError
 collection/list_test: RuntimeError
 convert/chunked_conversion1_test: RuntimeError

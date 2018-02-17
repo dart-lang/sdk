@@ -120,14 +120,12 @@ isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 [ !$strong ]
 async/stream_first_where_test/badType: MissingCompileTimeError
 async/stream_last_where_test/badType: MissingCompileTimeError
+mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 
 [ $builder_tag == mac10_7 && $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-
-[ $compiler != dart2analyzer && $runtime != none && $checked && !$strong ]
-mirrors/redirecting_factory_different_type_test/02: RuntimeError
 
 [ $compiler != dartdevc && $checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
@@ -138,6 +136,7 @@ mirrors/library_import_deferred_loading_test: RuntimeError, OK # Deferred loaded
 mirrors/load_library_test: RuntimeError, OK # Deferred loaded eagerly
 
 [ $compiler == none && !$checked ]
+mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/reflected_type_generics_test/02: Fail, OK # Type check for a bounded type argument.
 
 [ $runtime == chrome && $system == linux ]

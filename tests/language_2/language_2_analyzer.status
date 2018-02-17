@@ -1126,6 +1126,7 @@ const_types_test/08: MissingCompileTimeError # Incorrectly allows using type par
 const_types_test/14: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/15: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
+default_implementation2_test: CompileTimeError # Issue 30855
 error_stacktrace_test/00: Pass
 field3a_negative_test: StaticWarning # Issue 28823
 forwarding_stub_tearoff_test: CompileTimeError
@@ -1156,6 +1157,7 @@ mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
+mixin_type_parameter_inference_test/11: MissingCompileTimeError # Fuzzy arrow, 32114
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
 multiline_newline_test/02: CompileTimeError

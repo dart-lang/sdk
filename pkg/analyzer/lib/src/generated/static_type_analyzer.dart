@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
-    show getDefiniteType, getReadType;
+    show getExpressionType, getReadType;
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -1451,8 +1451,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   void _analyzeLeastUpperBound(
       Expression node, Expression expr1, Expression expr2,
       {bool read: false}) {
-    DartType staticType1 = _getDefiniteType(expr1, read: read);
-    DartType staticType2 = _getDefiniteType(expr2, read: read);
+    DartType staticType1 = _getExpressionType(expr1, read: read);
+    DartType staticType2 = _getExpressionType(expr2, read: read);
     if (staticType1 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType1 = _dynamicType;
@@ -1661,11 +1661,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * the most precise type is desired, for example computing the least upper
    * bound.
    *
-   * See [getDefiniteType] for more information. Without strong mode, this is
+   * See [getExpressionType] for more information. Without strong mode, this is
    * equivalent to [_getStaticType].
    */
-  DartType _getDefiniteType(Expression expr, {bool read: false}) =>
-      getDefiniteType(expr, _typeSystem, _typeProvider, read: read);
+  DartType _getExpressionType(Expression expr, {bool read: false}) =>
+      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
 
   /**
    * If the given element name can be mapped to the name of a class defined within the given

@@ -31,8 +31,6 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/strong/checker.dart' as checker
-    show hasStrictArrow;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -6341,11 +6339,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType,
       {isDeclarationCast: false}) {
-    bool concrete = _options.strongMode && checker.hasStrictArrow(expression);
-    if (concrete && actualStaticType is FunctionType) {
-      actualStaticType =
-          _typeSystem.functionTypeToConcreteType(actualStaticType);
-    }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
         isDeclarationCast: isDeclarationCast);
   }
@@ -6802,10 +6795,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT =
               inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
-          foundConcreteFT =
-              typeSystem.functionTypeToConcreteType(foundConcreteFT);
-          requiredMemberFT =
-              typeSystem.functionTypeToConcreteType(requiredMemberFT);
 
           // Strong mode does override checking for types in CodeChecker, so
           // we can skip it here. Doing it here leads to unnecessary duplicate

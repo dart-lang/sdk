@@ -263,7 +263,8 @@ class MemoryLoadedLibraries implements LoadedLibraries {
   }
 
   @override
-  void forEachLibrary(void f(l)) => copiedLibraries.values.forEach(f);
+  void forEachLibrary(void f(LibraryEntity l)) =>
+      copiedLibraries.values.forEach((l) => f(l));
 
   @override
   getLibrary(Uri uri) => copiedLibraries[uri];

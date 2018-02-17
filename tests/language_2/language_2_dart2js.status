@@ -83,6 +83,7 @@ function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_cast2_test: RuntimeError
 function_subtype_cast3_test: RuntimeError
@@ -198,6 +199,7 @@ function_subtype_bound_closure6_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_cast2_test: RuntimeError
 function_subtype_cast3_test: RuntimeError

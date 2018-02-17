@@ -67,7 +67,6 @@ mirrors/reflected_type_generics_test/02: Pass
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 async/async_await_sync_completer_test: RuntimeError
-async/future_value_chain4_test: CompileTimeError # Issue 31616
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_join_test: CompileTimeError # Issue 31402 (Invocation arguments)

@@ -705,7 +705,6 @@ function_subtype3_test: RuntimeError
 function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
-function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
@@ -1037,6 +1036,7 @@ cyclic_typedef_test/10: Crash
 cyclic_typedef_test/11: Crash
 deep_nesting1_negative_test: Skip # Issue 31158
 deep_nesting2_negative_test: Skip # Issue 31158
+default_implementation2_test: Crash
 deferred_call_empty_before_load_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_closurize_load_library_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_constant_list_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -1097,7 +1097,6 @@ function_subtype3_test: RuntimeError
 function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
-function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
@@ -1181,6 +1180,15 @@ method_override6_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
+mixin_type_parameter_inference_test/06: Crash
+mixin_type_parameter_inference_test/07: Crash
+mixin_type_parameter_inference_test/08: Crash
+mixin_type_parameter_inference_test/09: Crash
+mixin_type_parameter_inference_test/10: Crash
+mixin_type_parameter_inference_test/12: Crash
+mixin_type_parameter_inference_test/13: Crash
+mixin_type_parameter_inference_test/16: Crash
+mixin_type_parameter_inference_test/none: Crash
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
