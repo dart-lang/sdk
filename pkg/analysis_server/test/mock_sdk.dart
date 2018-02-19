@@ -275,7 +275,8 @@ const Map<String, LibraryInfo> libraries = const {
       resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
-      provider.newFile(library.path, (library as MockSdkLibrary).content);
+      provider.newFile(provider.convertPath(library.path),
+          (library as MockSdkLibrary).content);
     });
     provider.newFile(
         provider.convertPath(
