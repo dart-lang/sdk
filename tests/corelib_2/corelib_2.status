@@ -16,8 +16,7 @@ apply3_test: RuntimeError
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError
-null_nosuchmethod_test/none: CompileTimeError
+null_nosuchmethod_test/01: RuntimeError # Issue 32088
 string_from_environment3_test/03: Crash
 
 [ $compiler == precompiler ]
@@ -137,6 +136,7 @@ regexp/pcre_test: Pass, Slow # Issue 21593
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
+null_nosuchmethod_test: RuntimeError # Like many tests, fails if type checks are skipped.
 splay_tree_from_iterable_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 
@@ -231,8 +231,6 @@ list_set_all_test: RuntimeError
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 nan_infinity_test/01: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError
-null_nosuchmethod_test/none: CompileTimeError
 queue_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/interceptor_simplifier.dart': Failed assertion: line 391 pos 16: 'receiver.nonCheck() == user.inputs[1].nonCheck()': is not true.
 splay_tree_from_iterable_test: RuntimeError
 stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -268,8 +266,6 @@ list_set_all_test: RuntimeError # Issue 32010
 list_test/01: RuntimeError
 list_test/none: RuntimeError
 nan_infinity_test/01: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError
-null_nosuchmethod_test/none: CompileTimeError
 queue_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 stacktrace_fromstring_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
@@ -331,6 +327,7 @@ string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
 compare_to2_test: CompileTimeError # invalid test
+null_nosuchmethod_test/01: RuntimeError # Issue 32088
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
@@ -341,8 +338,8 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler != dartdevc && $runtime != none && !$checked && !$strong ]
-null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
+[ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+null_nosuchmethod_test: Crash # Issue 32089
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -358,8 +355,6 @@ apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
-null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
@@ -367,14 +362,15 @@ symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+null_nosuchmethod_test: Crash # Issue 32089
+
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 apply_test: RuntimeError, OK
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
-null_nosuchmethod_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
-null_nosuchmethod_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 regexp/stack-overflow_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
@@ -453,7 +449,6 @@ list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it d
 list_removeat_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
-null_nosuchmethod_test/01: RuntimeError # DDC checks type before too many arguments, so TypeError instead of NSM
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921
