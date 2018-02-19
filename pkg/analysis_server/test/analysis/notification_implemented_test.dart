@@ -271,7 +271,7 @@ class C extends A {
   }
 
   test_method_withMethod_private_differentLib() async {
-    newFile('$testFolder/lib.dart', content: r'''
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class B extends A {
   void _m() {}

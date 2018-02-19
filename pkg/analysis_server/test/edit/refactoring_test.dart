@@ -280,7 +280,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    newFile('$testFolder/other.dart', content: r'''
+    newFile(join(testFolder, 'other.dart'), content: r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -452,7 +452,7 @@ main() {
   }
 
   test_resetOnAnalysisSetChanged_watch_otherFile() async {
-    String otherFile = '$testFolder/other.dart';
+    String otherFile = join(testFolder, 'other.dart');
     newFile(otherFile, content: '// other 1');
     addTestFile('''
 main() {
@@ -987,7 +987,7 @@ main() {
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    String otherFile = '$testFolder/other.dart';
+    String otherFile = join(testFolder, 'other.dart');
     newFile(otherFile, content: r'''
 foo(int p) {}
 ''');
@@ -1056,7 +1056,7 @@ main() {
   }
 
   test_resetOnAnalysisSetChanged() async {
-    newFile('$testFolder/other.dart', content: '// other 1');
+    newFile(join(testFolder, 'other.dart'), content: '// other 1');
     addTestFile('''
 main() {
   int res = 1 + 2;
@@ -1761,7 +1761,7 @@ library my.new_name;
   }
 
   test_library_partOfDirective() {
-    newFile('$testFolder/my_lib.dart', content: '''
+    newFile(join(testFolder, 'my_lib.dart'), content: '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');

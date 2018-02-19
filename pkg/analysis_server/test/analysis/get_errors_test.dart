@@ -44,8 +44,8 @@ main() {
   }
 
   test_errorInPart() async {
-    String libPath = '$testFolder/main.dart';
-    String partPath = '$testFolder/main_part.dart';
+    String libPath = join(testFolder, 'main.dart');
+    String partPath = join(testFolder, 'main_part.dart');
     newFile(libPath, content: r'''
 library main;
 part 'main_part.dart';

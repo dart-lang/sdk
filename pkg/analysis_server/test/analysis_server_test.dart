@@ -114,10 +114,13 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
 
   Future test_serverStatusNotifications() {
     server.serverServices.add(ServerService.STATUS);
-    newFolder('/pkg');
-    newFolder('/pkg/lib');
-    newFile('/pkg/lib/test.dart', content: 'class C {}');
-    server.setAnalysisRoots('0', ['/pkg'], [], {});
+    var pkgFolder = resourceProvider.convertPath('/pkg');
+    print(pkgFolder);
+    newFolder(pkgFolder);
+    newFolder(resourceProvider.pathContext.join(pkgFolder, 'lib'));
+    newFile(resourceProvider.pathContext.join(pkgFolder, 'lib', 'test.dart'),
+        content: 'class C {}');
+    server.setAnalysisRoots('0', [pkgFolder], [], {});
     // Pump the event queue to make sure the server has finished any
     // analysis.
     return pumpEventQueue(times: 5000).then((_) {

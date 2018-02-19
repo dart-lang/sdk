@@ -45,8 +45,8 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   }
 
   test_analysisOptionsFile() async {
-    String analysisOptionsFile =
-        newFile('$projectPath/analysis_options.yaml', content: '''
+    String filePath = join(projectPath, 'analysis_options.yaml');
+    String analysisOptionsFile = newFile(filePath, content: '''
 linter:
   rules:
     - invalid_lint_rule_name
@@ -63,7 +63,7 @@ linter:
     List<AnalysisError> errors = filesErrors[analysisOptionsFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
-    expect(error.location.file, '/project/analysis_options.yaml');
+    expect(error.location.file, filePath);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
@@ -89,7 +89,7 @@ import 'does_not_exist.dart';
   test_lintError() async {
     var camelCaseTypesLintName = 'camel_case_types';
 
-    newFile('$projectPath/.analysis_options', content: '''
+    newFile(join(projectPath, '.analysis_options'), content: '''
 linter:
   rules:
     - $camelCaseTypesLintName
@@ -115,7 +115,7 @@ linter:
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
-    expect(error.location.file, '/project/bin/test.dart');
+    expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
     expect(error.message, lint.description);
@@ -142,7 +142,7 @@ main() {
     List<AnalysisError> errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
-    expect(error.location.file, '/project/bin/test.dart');
+    expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
     expect(error.location.offset, isPositive);
     expect(error.location.length, isNonNegative);
     expect(error.severity, AnalysisErrorSeverity.ERROR);
@@ -151,7 +151,8 @@ main() {
   }
 
   test_pubspecFile() async {
-    String pubspecFile = newFile('$projectPath/pubspec.yaml', content: '''
+    String filePath = join(projectPath, 'pubspec.yaml');
+    String pubspecFile = newFile(filePath, content: '''
 version: 1.3.2
 ''').path;
 
@@ -166,7 +167,7 @@ version: 1.3.2
     List<AnalysisError> errors = filesErrors[pubspecFile];
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
-    expect(error.location.file, '/project/pubspec.yaml');
+    expect(error.location.file, filePath);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
     //
