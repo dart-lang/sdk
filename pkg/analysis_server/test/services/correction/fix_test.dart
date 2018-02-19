@@ -3631,27 +3631,6 @@ main() {
 ''');
   }
 
-  test_importLibraryProject_withClass_constInstanceCreation() async {
-    testFile = '/project/lib/test.dart';
-    addSource('/project/lib/lib.dart', '''
-class Test {
-  const Test();
-}
-''');
-    await resolveTestUnit('''
-main() {
-  const Test();
-}
-''');
-    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
-import 'lib.dart';
-
-main() {
-  const Test();
-}
-''');
-  }
-
   test_importLibraryProject_withClass_hasOtherLibraryWithPrefix() async {
     testFile = '/project/bin/test.dart';
     addSource('/project/bin/a.dart', '''
@@ -3736,6 +3715,69 @@ import 'lib.dart';
 
 main() {
   Test t = null;
+}
+''');
+  }
+
+  test_importLibraryProject_withClass_instanceCreation_const() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  const Test();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  return const Test();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  return const Test();
+}
+''');
+  }
+
+  test_importLibraryProject_withClass_instanceCreation_implicit() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  const Test();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  return Test();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  return Test();
+}
+''');
+  }
+
+  test_importLibraryProject_withClass_instanceCreation_new() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  const Test();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  return new Test();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  return new Test();
 }
 ''');
   }
