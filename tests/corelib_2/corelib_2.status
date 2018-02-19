@@ -278,6 +278,7 @@ uri_base_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $strong ]
 map_unmodifiable_cast_test: Crash
+null_nosuchmethod_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$strong ]
 *: SkipByDesign
@@ -338,9 +339,6 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
-null_nosuchmethod_test: Crash # Issue 32089
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -361,9 +359,6 @@ symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
-
-[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-null_nosuchmethod_test: Crash # Issue 32089
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
