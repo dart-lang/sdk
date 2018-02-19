@@ -2610,9 +2610,11 @@ For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, $\ldots
 \begin{dartCode}
 $C_q$($T_{1}$ $a_{1}$, \ldots, $T_{k}$ $a_{k}$):$\SUPER_q$($a_{1}$, $\ldots$, $a_{k}$);
 \end{dartCode}
-\noindent{}where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
+
+\noindent
+where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
 which denote the superclass, by $N_C$, and $\SUPER_q$ is obtained from $S_q$ by
-replacing occurrences of $S_N$ which denote the superclass by \SUPER{}}.
+replacing occurrences of $S_N$ which denote the superclass by \SUPER{}.
 If $S_q$ is a generative const constructor, and $M$ does not declare any
 fields, $C_q$ is also a const constructor.
 
@@ -2622,7 +2624,9 @@ For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots 
 $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, [$T_{k+1}$ $a_{k+1}$ = $d'_{1}$, \ldots , $T_{k+p}$ $a_{k+p}$ = $d'_p$])
     : $\SUPER_q$($a_{1}$, \ldots , $a_{k}$, $a_{k+1}$, \ldots, $a_p$);
 \end{dartCode}
-\noindent{}where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
+
+\noindent
+where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$,
 which denote the superclass, by $N_C$,
 $\SUPER_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by \SUPER{},
@@ -2637,10 +2641,12 @@ For each generative constructor of the form \code{$S_q$($T_{1}$ $a_{1}$, \ldots 
 $C_q$($T_{1}$ $a_{1}$, \ldots , $T_{k}$ $a_{k}$, \{$T_{k+1}$ $a_{k+1}$ = $d'_1$, \ldots , $T_{k+n}$ $a_{k+n}$ = $d'_n$\})
     : $\SUPER_q$($a_{1}$, \ldots , $a_{k}$, $a_{k+1}$: $a_{k+1}$, \ldots, $a_p$: $a_p$);
 \end{dartCode}
-\noindent{}where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
+
+\noindent
+where $C_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
 which denote the superclass by $N_C$,
 $\SUPER_q$ is obtained from $S_q$ by replacing occurrences of $S_N$
-which denote the superclass by \SUPER{}},
+which denote the superclass by \SUPER{},
 and $d'_i$, $i \in 1..n$, is a compile-time constant expression evaluating to the same value as $d_i$.
 If $S_q$ is a generative const constructor, and $M$ does not declare any
 fields, $C_q$ is also a const constructor.
