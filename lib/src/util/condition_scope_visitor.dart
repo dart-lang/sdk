@@ -196,7 +196,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     _propagateUndefinedExpressions(_removeLastScope());
     // If a for statement do not have breaks inside, that means the condition
     // after the loop is false.
-    if (!breakScope.hasBreak(node)) {
+    if (_isRelevantOutsideOfForStatement(node)) {
       _addFalseCondition(node.condition);
     }
     breakScope.deleteBreaksWithTarget(node);
@@ -321,6 +321,20 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
       return ExitDetector.exits(statement);
     }
   }
+
+  /// If any of the variables is declared inside the for statement then it does
+  /// not mean anything afterwards.
+  bool _isRelevantOutsideOfForStatement(ForStatement node) =>
+      !breakScope.hasBreak(node) &&
+      DartTypeUtilities
+          .traverseNodesInDFS(node.condition)
+          .where((n) => n is SimpleIdentifier)
+          .map((n) => (n as SimpleIdentifier).bestElement?.computeNode())
+          .every((n) =>
+              n != null &&
+              n.getAncestor(
+                      (a) => a.offset == node.offset && a is ForStatement) ==
+                  null);
 
   void _propagateUndefinedExpressions(ConditionScope scope) {
     outerScope?.addAll(scope.getUndefinedExpressions());

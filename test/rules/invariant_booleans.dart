@@ -456,3 +456,25 @@ void bug658() {
   String text;
   if ((text?.length ?? 0) != 0) {}
 }
+
+void bug811_1() {
+  final bar = 0;
+  final foo = 10;
+
+  for (var i = 0; i < foo; ++i) {}
+
+  for (var i = 0; i < foo; i++) {} // OK
+
+  if (bar == 10) {}
+}
+
+void bug811_2() {
+  var bar = 0;
+  final foo = 10;
+
+  for (bar = 0; bar < foo; ++bar) {}
+
+  for (bar = 0; bar < foo; bar++) {}
+
+  if (bar < foo) {} // LINT
+}
