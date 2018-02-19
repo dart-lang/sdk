@@ -33,8 +33,13 @@ get_isolate_after_language_error_test: CompileTimeError
 complex_reload_test: RuntimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
+coverage_optimized_function_test: Crash # Please triage
+get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 pause_on_unhandled_async_exceptions2_test: RuntimeError, Timeout # Issue 31765
 pause_on_unhandled_async_exceptions_test: RuntimeError, Timeout # Issue 31765
+
+[ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
+eval_test: Pass, Slow
 
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
@@ -48,7 +53,7 @@ break_on_default_constructor_test: Skip # Issues 32137 and 32138.
 coverage_leaf_function_test: RuntimeError
 coverage_optimized_function_test: Skip # Timeout
 get_source_report_test: RuntimeError
-get_vm_timeline_rpc_test: Pass, Timeout # Issue 32137.
+get_vm_timeline_rpc_test: Skip # Issue 32137.
 issue_25465_test: Skip # Issues 32137 and 32138.
 issue_30555_test: Skip # Issues 32137 and 32138.
 next_through_assign_call_test: Skip # Issues 32137 and 32138.
@@ -64,20 +69,20 @@ next_through_simple_async_with_returns_test: Skip # Issues 32137 and 32138.
 next_through_simple_linear_2_test: Skip # Issues 32137 and 32138.
 next_through_simple_linear_test: Skip # Issues 32137 and 32138.
 pause_idle_isolate_test: Skip # Issues 32137 and 32138.
-pause_on_start_and_exit_test: Pass, RuntimeError # Issue 32137.
-pause_on_start_and_exit_test: Skip # Issues 32137 and 32138.
-regress_28443_test: Pass, Timeout
+pause_on_start_and_exit_test: Skip # Issues 32225, 32138.
+pause_on_start_then_step_test: Skip # Issue 32225, 32138.
+regress_28443_test: Skip # Times out.
 regress_28980_test: Skip # Issues 32137 and 32138.
 reload_sources_test: RuntimeError
-set_vm_name_rpc_test: Pass, Timeout # Issue 32137.
+set_vm_name_rpc_test: Skip # Times out. Issue 32137.
 step_test: Skip # Issues 32137 and 32138.
 step_through_constructor_test: Pass, Slow
 step_through_function_2_test: Skip # Issues 32137 and 32138.
 step_through_function_test: Skip # Issues 32137 and 32138.
-step_through_property_get_test: Pass, Timeout # Issue 32137.
+step_through_property_get_test: Skip # Times out. Issue 32137.
 step_through_setter_test: Skip # Issues 32137 and 32138.
-step_through_switch_test: Pass, Timeout # Issue 32137.
-step_through_switch_with_continue_test: Pass, Timeout # Issue 32137.
+step_through_switch_test: Skip # Times out. Issue 32137.
+step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
 [ $compiler == dartk && $system == windows && $strong ]
 add_breakpoint_rpc_kernel_test: Skip # Timeout
@@ -115,3 +120,17 @@ step_through_arithmetic_test: RuntimeError
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
 async_single_step_exception_test: RuntimeError
 
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+async_generator_breakpoint_test: Pass, RuntimeError
+bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+coverage_leaf_function_test: RuntimeError # Please triage.
+coverage_optimized_function_test: RuntimeError # Please triage.
+get_object_rpc_test: RuntimeError # Please triage.
+get_source_report_test: RuntimeError # Please triage.
+library_dependency_test: RuntimeError # Please triage.
+positive_token_pos_test: Pass, RuntimeError
+reload_sources_test: Skip # Times out.
+rewind_test: Pass, RuntimeError
+set_name_rpc_test: RuntimeError # Please triage.
+unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
