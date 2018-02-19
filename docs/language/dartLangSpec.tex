@@ -42,6 +42,7 @@
 % - Don't cause warning if a non-system library import shadows a system library.
 % - Update mixin application forwarding constructors to correctly handle
 %   optional parameters and const constructors.
+% - Specify `call` for Dart 2 (no function type given to enclosing class).
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1120,10 +1121,10 @@ Then the type of $F$ is
 \code{<$X_1\ B_1, \ldots,\ X_m\ B_m$>($T_1, \ldots,\ T_n, $ \{$T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}$\}) $ \rightarrow T_0$}.
 
 \LMHash{}
-The run-time type of a function object always implements the class \code{Function}.
+The run-time type of a function object always implements the class \FUNCTION{}.
 
 \commentary{
-One cannot assume, based on the above, that given a function \code{f}, \code{f.runtimeType} will actually be \code{Function}, or that any two distinct function objects necessarily have the same run-time type.
+One cannot assume, based on the above, that given a function \code{f}, \code{f.runtimeType} will actually be \FUNCTION{}, or that any two distinct function objects necessarily have the same run-time type.
 }
 
 \rationale{
@@ -1131,7 +1132,7 @@ It is up to the implementation to choose an appropriate representation for funct
 For example, consider that a closure produced via property extraction treats equality different from ordinary closures, and is therefore likely a different class.
 Implementations may also use different classes for functions based on arity and or type.
 Arity may be implicitly affected by whether a function is an instance method (with an implicit receiver parameter) or not.
-The variations are manifold, and so this specification only guarantees that function objects are instances of some class that is considered to implement \code{Function}.
+The variations are manifold, and so this specification only guarantees that function objects are instances of some class that is considered to implement \FUNCTION{}.
 }
 
 
@@ -3882,7 +3883,7 @@ A {\em function literal} is an object that encapsulates an executable unit of co
 %% specifically for each relevant type of situation.
 
 \LMHash{}
-The class of a function literal implements the built-in class \code{Function}.
+The class of a function literal implements the built-in class \FUNCTION{}.
 
 \LMHash{}
 The static type of a function literal of the form
@@ -4706,7 +4707,7 @@ It is a compile-time error if $q_i = q_j$ for any $i \ne j$.
 
 \LMHash{}
 Let $T_i$ be the static type of $a_i$.
-If the static type of $f$ is \DYNAMIC{} or the built-in class \code{Function},
+If the static type of $f$ is \DYNAMIC{} or the built-in class \FUNCTION{},
 no further static checks are performed.
 Otherwise, it is a static type warning if the static type of $f$ is not a function type.
 
@@ -4809,30 +4810,54 @@ The \code{Invocation} passed to \code{noSuchMethod()} would describe a call to a
 }
 
 \LMHash{}
-Otherwise:
-
-Execution of a function expression invocation
+Otherwise, evaluation of a function expression invocation
 
 \code{$e_f$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
 \noindent
-is equivalent to execution of
+proceeds to evaluate $e_f$, yielding an object $o$.
+Let $f$ be a fresh variable bound to $o$.
+If $o$ is a function object then the following function invocation is evaluated
+and its result is the result of evaluating $i$:
 
-\code{$e_f$.call<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\code{$f$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 
-\commentary{
-The implication of this definition, and the other definitions involving the method \code{call()}, is that user defined types can be used as function values provided they define a \CALL{} method.
-The method \CALL{} is special in this regard.
-The signature of the \CALL{} method determines the signature used when using the object via the built-in invocation syntax.
-}
+\noindent
+Otherwise, if $o$ has a method named \CALL{},
+the following method invocation is evaluated and its result is the result of evaluating $i$:
+
+\code{$f$.call<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+
+\noindent
+Otherwise, when $o$ has no method named \CALL{},
+a new instance $im$ of the predefined class \code{Invocation} is created, such that:
+\begin{itemize}
+\item \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item \code{im.memberName} evaluates to the symbol \code{\#call}.
+\item \code{im.positionalArguments} evaluates to an unmodifiable list with the values
+resulting from evaluation of
+\code{<Object>[$a_1, \ldots,\ a_n$]}.
+\item \code{im.namedArguments} evaluates to an unmodifiable map
+with the keys and values resulting from evaluation of
+
+\code{<Symbol, Object>\{$\#x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $\#a_{n+k}$\}}.
+\item \code{im.typeArguments} evaluates to an unmodifiable list
+with the values resulting from evaluation of
+\code{<Type>[$A_1, \ldots,\ A_r$]}.
+\end{itemize}
+
+\LMHash{}
+Then the method invocation \code{f.noSuchMethod($im$)} is evaluated,
+and its result is the result of evaluating $i$.
 
 \LMHash{}
 Let $F$ be the static type of $e_f$.
 It is a static warning unless one of the following conditions is satisfied:
-\begin{itemize}
+\begin{enumerate}
 \item $F$ is \DYNAMIC{}.
-\item $F$ is \code{Function}.
-\item $F$ is a function type
+\item $F$ is \FUNCTION{}.
+\item\label{InvocationTypeListNamed}
+$F$ is a function type
 
 \code{<$X_1\ \EXTENDS\ B_1, \ldots,\ A_s\ \EXTENDS\ B_s$>}
 
@@ -4842,7 +4867,8 @@ It is a static warning unless one of the following conditions is satisfied:
 where $r = s$, and the static type of $a_j$ is assignable to
 $[A_1/X_1, \ldots, A_r/X_s]T_j$, for all $j \in 1 .. n+k$.
 
-\item $k$ is zero, $0 \leq m \leq n$, and $F$ is a function type
+\item\label{InvocationTypeListPositional}
+$k$ is zero, $0 \leq m \leq n$, and $F$ is a function type
 
 \code{<$X_1\ \EXTENDS\ B_1, \ldots,\ A_s\ \EXTENDS\ B_s$>}
 
@@ -4852,14 +4878,31 @@ $[A_1/X_1, \ldots, A_r/X_s]T_j$, for all $j \in 1 .. n+k$.
 where $r = s$, and the static type of $a_j$ is assignable to
 $[A_1/X_1, \ldots, A_r/X_s]T_j$,
 for all $j \in 1 .. n$.
-\end{itemize}
+
+\item\label{InvocationTypeListCall}
+$F$ is an interface type that has a method named \CALL{}, and then,
+considering $F$ to denote the function type of that method,
+criterion~\ref{InvocationTypeListNamed} or~\ref{InvocationTypeListPositional}
+in this list is satisfied.
+\end{enumerate}
 
 \commentary{
-That is, the types of the actual arguments must match the declared types of the corresponding parameters where the formal type parameters have been replaced by the actual type arguments.
+This means that the types of the actual arguments must match the declared types of the corresponding parameters,
+where the formal type parameters have been replaced by the actual type arguments.
+%
 Note that the type parameter lists are omitted when $s = 0$ (\ref{generics}),
 and that checks on the number of type arguments and their bounds is specified elsewhere (\ref{generics}).
+%
+Criterion~\ref{InvocationTypeListCall} ensures that
+a function expression invocation may amount to an invocation of the instance method \CALL{}
+when such a method is statically known,
+and the run-time semantics ensures that
+a function invocation may amount to an invocation of the instance method \CALL{}
+also for an invocation of a function of type \DYNAMIC{} or \FUNCTION{},
+but that an interface type with a method named \CALL{} is not itself a subtype of any function type.
 }
 
+\LMHash{}
 If $F$ is not a function type or $r \not= s$, the static type of $i$ is \DYNAMIC{}.
 Otherwise, the static type of $i$ is the return type
 $[A_1/X_1, \ldots, A_r/X_s]T_0$ of $F$.
@@ -5088,6 +5131,7 @@ and the result of this invocation is the result of evaluating $i$.
 \commentary{
 It is not possible to override the \code{noSuchMethod} of class \code{Object}
 in such a way that it cannot be invoked with one argument of type \code{Invocation}.
+% .. leaving `noSuchMethod(covariant Null n) => n;` as an exercise for the reader.
 }
 
 \commentary{
@@ -5101,13 +5145,15 @@ It is a static type warning if $T$ does not have an accessible (\ref{privacy}) i
 \item $T$ is \code{Type}, $e$ is a constant type literal,
 and the class corresponding to $e$ has a static getter named $m$.
 Or
-\item $T$ is \code{Function} and $m$ is \CALL.
-\rationale {
-The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL.
-The expectation is that any concrete subclass of \code{Function} will implement \CALL.
-Note that a warning will be issued if this is not the case.
-Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a warning,
-as this exemption is limited to type \code{Function}, and does not apply to its subtypes.
+\item $T$ is \FUNCTION{} and $m$ is \CALL.
+\rationale{
+This means that for invocations of an instance method named \code{call},
+a receiver of type \FUNCTION{} is treated like a receiver of type \DYNAMIC{}.
+The expectation is that any concrete subclass of \FUNCTION{} will implement \CALL,
+but there is no method signature which can be assumed for \CALL{} in \FUNCTION{}
+because every signature will conflict with some potential overriding declarations.
+Note that any use of \CALL{} on a subclass of \FUNCTION{} that fails to implement \CALL{} will provoke a warning,
+as this exemption is limited to type \FUNCTION{}, and does not apply to its subtypes.
 }
 \end{itemize}
 
@@ -6080,7 +6126,7 @@ The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the 
 
 
 \subsection{If-null Expressions}
-\label{ifNull}
+\LMLabel{ifNull}
 
 \LMHash{}
 An {\em if-null expression} evaluates an expression and if the result is the null object (\ref{null}), evaluates another.
@@ -6718,6 +6764,7 @@ An {\em identifier expression} consists of a single identifier; it provides acce
   \EXPORT{};
   \EXTERNAL{};
   \FACTORY{};
+  \FUNCTION{};
   \GET{};
   \IMPLEMENTS{};
   \IMPORT{};
@@ -9063,7 +9110,7 @@ A type $T$ is more specific than a type $S$, written $T << S$, if one of the fol
 \item $T$ is of the form \code{$I$<$T_1, \ldots,\ T_n$>} and $S$ is of the form \code{$I$<$S_1, \ldots,\ S_n$>} and:
 $T_i << S_i, 1 \le i \le n$
 \item $T$ and $S$ are both function types, and $T << S$ under the rules of section \ref{functionTypes}.
-\item $T$ is a function type and $S$ is \code{Function}.
+\item $T$ is a function type and $S$ is \FUNCTION{}.
 \item $T << U$ and $U << S$.
 \end{itemize}
 
@@ -9264,11 +9311,9 @@ However, they induce useful relationships between function types that declare no
 A function type $T$ may be assigned to a function type $S$, written $T \Longleftrightarrow S$, if{}f $T <: S$.
 
 \LMHash{}
-% ensure that Object and dynamic may be assign dot a function type
-A function is always an instance of some class that implements the class \code{Function} and implements a \CALL{} method with the same signature as the function.
-All function types are subtypes of \code{Function}.
-If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{} is the function type $F$, then $I$ is considered to be more specific than $F$.
-It is a static warning if a concrete class implements \code{Function} and does not have a concrete method named \CALL{} unless that class has a concrete \code{noSuchMethod()} distinct from the one declared in class \code{Object}.
+A function is always an instance of some class that implements the class \FUNCTION{}.
+All function types are subtypes of \FUNCTION{}.
+It is a static warning if a concrete class implements \FUNCTION{} and does not have a concrete method named \CALL{} unless that class has a concrete \code{noSuchMethod()} distinct from the one declared in class \code{Object}.
 
 %\commentary{Need to specify how a function values dynamic type is derived from its static signature.}
 
@@ -9326,7 +9371,7 @@ if all of the following conditions are met:
 \end{enumerate}
 
 \LMHash{}
-Furthermore, if $F$ is a function type, $F << \code{Function}$.
+Furthermore, if $F$ is a function type, $F << \FUNCTION{}$.
 
 
 \subsection{Type \DYNAMIC{}}
@@ -9652,10 +9697,10 @@ but it is not associative.
 % Function types
 
 \LMHash{}
-The least upper bound of a function type and an interface type $T$ is the least upper bound of \code{Function} and $T$.
+The least upper bound of a function type and an interface type $T$ is the least upper bound of \FUNCTION{} and $T$.
 Let $F$ and $G$ be function types.
 If $F$ and $G$ differ in their number of required parameters,
-then the least upper bound of $F$ and $G$ is \code{Function}.
+then the least upper bound of $F$ and $G$ is \FUNCTION{}.
 Otherwise:
 \begin{itemize}
 \item If
