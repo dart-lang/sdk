@@ -436,7 +436,6 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_type_variable_test/01: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError
@@ -632,7 +631,6 @@ regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 setter4_test: MissingCompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
@@ -694,10 +692,6 @@ void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError, Crash
 void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError, Crash
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError, Crash
 wrong_number_type_arguments_test/01: MissingCompileTimeError
-
-[ $compiler == dartdevc && $runtime == none ]
-instantiate_type_variable_test/01: CompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
 assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.

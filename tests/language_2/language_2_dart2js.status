@@ -1696,7 +1696,6 @@ instance_creation_in_function_annotation_test: CompileTimeError
 instantiate_tearoff_after_contravariance_check_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 instantiate_tearoff_of_call_test: CompileTimeError
 instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
 int64_literal_test/03: MissingCompileTimeError
@@ -1986,7 +1985,6 @@ regress_31591_test: RuntimeError
 regress_32012_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
@@ -2452,7 +2450,6 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_type_variable_test/01: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
 int64_literal_test/03: MissingCompileTimeError
@@ -2746,7 +2743,6 @@ regress_31591_test: RuntimeError
 regress_32012_test: Crash # Issue 32078
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
@@ -3284,6 +3280,7 @@ initializing_formal_type_test: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
+instantiate_type_variable_test/01: MissingCompileTimeError
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 integer_division_by_zero_test: RuntimeError # Issue 8301
 interface_test/00: MissingCompileTimeError
@@ -3645,6 +3642,7 @@ runtime_type_function_test: RuntimeError
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 setter4_test: CompileTimeError # issue 13639
 setter4_test: MissingCompileTimeError
+setter_no_getter_call_test/01: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant, issue 12698

@@ -6,9 +6,9 @@ import "package:expect/expect.dart";
 
 var topLevelClosure;
 
-/* //   //# 01: runtime error
+/* //# 01: compile-time error
 get topLevel => topLevelClosure;
-*/ //  //# 01: continued
+*/ //# 01: continued
 set topLevel(var value) {}
 
 initialize() {

@@ -522,6 +522,7 @@ instanceof2_test: RuntimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 instantiate_tearoff_test: RuntimeError
+instantiate_type_variable_test/01: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError
@@ -866,6 +867,7 @@ return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError # Issue 14736
+setter_no_getter_call_test/01: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError

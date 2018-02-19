@@ -126,7 +126,6 @@ script1_negative_test: CompileTimeError
 script2_negative_test: CompileTimeError
 setter_declaration2_negative_test: CompileTimeError
 setter_declaration_negative_test: CompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 source_self_negative_test: CompileTimeError
 static_call_wrong_argument_count_negative_test: Fail # Issue 12156
 string_escape4_negative_test: CompileTimeError
@@ -1136,7 +1135,6 @@ generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29070
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
-instantiate_type_variable_test/01: CompileTimeError
 interceptor6_test: CompileTimeError
 issue13673_test: StaticWarning # Issue 31925
 issue15606_test/none: CompileTimeError # invalid use of void for dart 2
@@ -1421,7 +1419,7 @@ import_combinators2_test/00: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
-instantiate_type_variable_test/01: StaticWarning
+instantiate_type_variable_test/01: MissingCompileTimeError
 interceptor6_test: StaticWarning
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError
@@ -1614,7 +1612,7 @@ regress_29405_test: StaticWarning
 return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 setter4_test: MissingCompileTimeError
-setter_no_getter_call_test/01: StaticWarning
+setter_no_getter_call_test/01: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
