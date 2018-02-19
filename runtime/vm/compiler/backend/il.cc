@@ -3926,7 +3926,13 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       case kUnboxedInt64: {
         ASSERT(FLAG_limit_ints_to_64_bits);
-        EmitLoadInt64FromBoxOrSmi(compiler);
+        if (value()->Type()->ToCid() == kSmiCid) {
+          // Smi -> int64 conversion is more efficient than
+          // handling arbitrary smi/mint.
+          EmitSmiConversion(compiler);
+        } else {
+          EmitLoadInt64FromBoxOrSmi(compiler);
+        }
         break;
       }
 

@@ -1677,7 +1677,6 @@ class AssistProcessor {
         builder.write(': ');
         builder.write(widgetSrc);
         builder.write(')');
-        builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, kind);
@@ -1717,6 +1716,8 @@ class AssistProcessor {
         @required String parentClassName}) async {
       ClassElement parentClassElement =
           await _getExportedClass(parentLibraryUri, parentClassName);
+      ClassElement widgetClassElement =
+          await _getExportedClass(flutter.WIDGETS_LIBRARY_URI, 'Widget');
 
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1731,7 +1732,9 @@ class AssistProcessor {
 
           builder.write(eol);
           builder.write(indentNew1);
-          builder.write('children: [');
+          builder.write('children: <');
+          builder.writeType(widgetClassElement.type);
+          builder.write('>[');
           builder.write(eol);
 
           String newSrc = _replaceSourceIndent(src, indentOld, indentNew2);
@@ -2246,7 +2249,6 @@ class AssistProcessor {
         builder.write(eol);
         builder.write(indentOld);
         builder.write(']');
-        builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_WRAP_GENERIC);
@@ -3024,7 +3026,6 @@ class AssistProcessor {
         });
         builder.write(outerIndent);
         builder.write(')');
-        builder.selectHere();
       });
     });
     _addAssistFromBuilder(changeBuilder, assistKind);

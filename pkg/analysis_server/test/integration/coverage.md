@@ -62,6 +62,7 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] search.findMemberDeclarations
 - [x] search.findMemberReferences
 - [x] search.findTopLevelDeclarations
+- [ ] search.getElementDeclarations
 - [x] search.getTypeHierarchy
 - [ ] search.results
 

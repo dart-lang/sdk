@@ -2235,6 +2235,7 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   // TODO(johnmccutchan): Do not allow IsNoSource once all nodes have proper
   // source positions.
   ASSERT(tp.IsReal() || tp.IsSynthetic() || tp.IsNoSource());
+  RELEASE_ASSERT(!function.IsNull());
   inline_id_to_function_->Add(&function);
   inline_id_to_token_pos_->Add(tp);
   caller_inline_id_->Add(parent_id);

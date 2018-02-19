@@ -850,6 +850,7 @@ class StreamingConstantEvaluator {
 
  private:
   bool IsAllowedToEvaluate();
+  void EvaluateAsExpression();
   void EvaluateVariableGet();
   void EvaluateVariableGet(uint8_t payload);
   void EvaluatePropertyGet();

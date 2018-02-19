@@ -62,6 +62,12 @@ OSThread* OSThread::CreateOSThread() {
 }
 
 OSThread::~OSThread() {
+  if (!is_os_thread()) {
+    // If the embedder enters an isolate on this thread and does not exit the
+    // isolate, the thread local at thread_key_, which we are destructing here,
+    // will contain a dart::Thread instead of a dart::OSThread.
+    FATAL("Thread exited without calling Dart_ExitIsolate");
+  }
   RemoveThreadFromList(this);
   delete log_;
   log_ = NULL;

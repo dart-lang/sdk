@@ -10,8 +10,6 @@ import 'dart:typed_data';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
-import 'src/incremental_class_hierarchy.dart' show IncrementalClassHierarchy;
-
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
 abstract class MixinInferrer {
@@ -38,12 +36,6 @@ abstract class ClassHierarchy {
     return new ClosedWorldClassHierarchy._internal(
         program, numberOfClasses, onAmbiguousSupertypes)
       .._initialize(mixinInferrer);
-  }
-
-  /// Use [ClassHierarchy] factory instead.
-  @deprecated
-  factory ClassHierarchy.deprecated_incremental([Program program]) {
-    return new IncrementalClassHierarchy.deprecated();
   }
 
   /// Given the [unordered] classes, return them in such order that classes

@@ -12,7 +12,9 @@ import 'package:expect/expect.dart';
 class A {
   factory A(
     String //# 01: compile-time error
-      x) = B;
+    var    //# 02: compile-time error
+    int    //# none: ok
+      x) = B; 
   A._();
 }
 
@@ -28,5 +30,5 @@ main() {
   // The type-annotation in A's constructor must be ignored.
   var b = cm.newInstance(const Symbol(''), [499]).reflectee;
   Expect.equals(499, b.x);
-  cm.newInstance(const Symbol(''), ["str"]); //# 02: ok
+  Expect.throws(() => cm.newInstance(const Symbol(''), ["str"]), (e) => e is TypeError); 
 }

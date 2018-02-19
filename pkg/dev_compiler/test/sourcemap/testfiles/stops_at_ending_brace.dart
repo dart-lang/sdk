@@ -5,13 +5,13 @@
 main() {
   new Foo();
   // Comment to push the ending brace back a bit.
-/*s:3*/
+/*s:2*/
 }
 
 class Foo {
   Foo() {
-    /*bl*/ /*s:1*/ print('hi');
+    /*bl*/ print('hi');
     // Comment to push the ending brace back a bit.
-    /*s:2*/
+    /*s:1*/
   }
 }

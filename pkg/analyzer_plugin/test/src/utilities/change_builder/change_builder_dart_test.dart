@@ -887,7 +887,51 @@ class MyClass {}''';
     expect(group.positions, hasLength(1));
   }
 
-  test_writeOverrideOfInheritedMember_method() async {
+  test_writeOverrideOfInheritedMember_getter_abstract() async {
+    await _assertWriteOverrideOfInheritedAccessor('''
+abstract class A {
+  int get zero;
+}
+class B extends A {
+}
+''', '''
+  @override
+  // TODO: implement zero
+  int get zero => null;
+''', displayText: 'zero => …', selection: new SourceRange(113, 4));
+  }
+
+  test_writeOverrideOfInheritedMember_getter_concrete() async {
+    await _assertWriteOverrideOfInheritedAccessor('''
+class A {
+  int get zero => 0;
+}
+class B extends A {
+}
+''', '''
+  @override
+  // TODO: implement zero
+  int get zero => super.zero;
+''', displayText: 'zero => …', selection: new SourceRange(109, 10));
+  }
+
+  test_writeOverrideOfInheritedMember_method_abstract() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+abstract class A {
+  A add(A a);
+}
+class B extends A {
+}
+''', '''
+  @override
+  A add(A a) {
+    // TODO: implement add
+    return null;
+  }
+''', displayText: 'add(A a) { … }', selection: new SourceRange(113, 12));
+  }
+
+  test_writeOverrideOfInheritedMember_method_concrete() async {
     await _assertWriteOverrideOfInheritedMethod('''
 class A {
   A add(A a) => null;
@@ -895,15 +939,15 @@ class A {
 class B extends A {
 }
 ''', '''
-@override
-A add(A a) {
-  // TODO: implement add
-  return null;
-}
-''', displayText: 'add(A a) { ... }');
+  @override
+  A add(A a) {
+    // TODO: implement add
+    return super.add(a);
+  }
+''', displayText: 'add(A a) { … }', selection: new SourceRange(112, 20));
   }
 
-  test_writeOverrideOfInheritedMember_method_functionTypeAlias() async {
+  test_writeOverrideOfInheritedMember_method_functionTypeAlias_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 typedef int F(int left, int right);
 abstract class A {
@@ -912,30 +956,67 @@ abstract class A {
 class B extends A {
 }
 ''', '''
-@override
-void perform(F f) {
-  // TODO: implement perform
-}
-''', displayText: 'perform(F f) { ... }');
+  @override
+  void perform(F f) {
+    // TODO: implement perform
+  }
+''', displayText: 'perform(F f) { … }', selection: null);
   }
 
-  test_writeOverrideOfInheritedMember_method_functionTypedParameter() async {
+  test_writeOverrideOfInheritedMember_method_functionTypeAlias_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+typedef int F(int left, int right);
+class A {
+  void perform(F f) {}
+}
+class B extends A {
+}
+''', '''
+  @override
+  void perform(F f) {
+    // TODO: implement perform
+    super.perform(f);
+  }
+''', displayText: 'perform(F f) { … }', selection: new SourceRange(160, 17));
+  }
+
+  test_writeOverrideOfInheritedMember_method_functionTypedParameter_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 abstract class A {
   forEach(int f(double p1, String p2));
 }
-
 class B extends A {
 }
 ''', '''
-@override
-forEach(int Function(double p1, String p2) f) {
-  // TODO: implement forEach
-}
-''', displayText: 'forEach(int Function(double p1, String p2) f) { ... }');
+  @override
+  forEach(int Function(double p1, String p2) f) {
+    // TODO: implement forEach
+    return null;
+  }
+''',
+        displayText: 'forEach(int Function(double p1, String p2) f) { … }',
+        selection: new SourceRange(178, 12));
   }
 
-  test_writeOverrideOfInheritedMember_method_generic_noBounds() async {
+  test_writeOverrideOfInheritedMember_method_functionTypedParameter_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+class A {
+  forEach(int f(double p1, String p2)) {}
+}
+class B extends A {
+}
+''', '''
+  @override
+  forEach(int Function(double p1, String p2) f) {
+    // TODO: implement forEach
+    return super.forEach(f);
+  }
+''',
+        displayText: 'forEach(int Function(double p1, String p2) f) { … }',
+        selection: new SourceRange(171, 24));
+  }
+
+  test_writeOverrideOfInheritedMember_method_generic_noBounds_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 abstract class A {
   List<T> get<T>(T key);
@@ -943,15 +1024,31 @@ abstract class A {
 class B implements A {
 }
 ''', '''
-@override
-List<T> get<T>(T key) {
-  // TODO: implement get
-  return null;
-}
-''', displayText: 'get<T>(T key) { ... }');
+  @override
+  List<T> get<T>(T key) {
+    // TODO: implement get
+    return null;
+  }
+''', displayText: 'get<T>(T key) { … }', selection: new SourceRange(138, 12));
   }
 
-  test_writeOverrideOfInheritedMember_method_generic_withBounds() async {
+  test_writeOverrideOfInheritedMember_method_generic_noBounds_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+class A {
+  List<T> get<T>(T key) {}
+}
+class B implements A {
+}
+''', '''
+  @override
+  List<T> get<T>(T key) {
+    // TODO: implement get
+    return super.get(key);
+  }
+''', displayText: 'get<T>(T key) { … }', selection: new SourceRange(131, 22));
+  }
+
+  test_writeOverrideOfInheritedMember_method_generic_withBounds_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 abstract class A<K1, V1> {
   List<T> get<T extends V1>(K1 key);
@@ -959,63 +1056,167 @@ abstract class A<K1, V1> {
 class B<K2, V2> implements A<K2, V2> {
 }
 ''', '''
-@override
-List<T> get<T extends V2>(K2 key) {
-  // TODO: implement get
-  return null;
-}
-''', displayText: 'get<T extends V2>(K2 key) { ... }');
+  @override
+  List<T> get<T extends V2>(K2 key) {
+    // TODO: implement get
+    return null;
+  }
+''',
+        displayText: 'get<T extends V2>(K2 key) { … }',
+        selection: new SourceRange(186, 12));
   }
 
-  test_writeOverrideOfInheritedMember_method_genericFunctionTypedParameter() async {
+  test_writeOverrideOfInheritedMember_method_generic_withBounds_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+class A<K1, V1> {
+  List<T> get<T extends V1>(K1 key) {
+    return null;
+  }
+}
+class B<K2, V2> implements A<K2, V2> {
+}
+''', '''
+  @override
+  List<T> get<T extends V2>(K2 key) {
+    // TODO: implement get
+    return super.get(key);
+  }
+''',
+        displayText: 'get<T extends V2>(K2 key) { … }',
+        selection: new SourceRange(199, 22));
+  }
+
+  test_writeOverrideOfInheritedMember_method_genericFunctionTypedParameter_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 abstract class A {
   int foo(T Function<T>() fn);
 }
-
 class B extends A {
 }
 ''', '''
-@override
-int foo(T Function<T>() fn) {
-  // TODO: implement foo
-  return null;
-}
-''', displayText: 'foo(T Function<T>() fn) { ... }');
+  @override
+  int foo(T Function<T>() fn) {
+    // TODO: implement foo
+    return null;
+ }
+''',
+        displayText: 'foo(T Function<T>() fn) { … }',
+        selection: new SourceRange(147, 12));
   }
 
-  test_writeOverrideOfInheritedMember_method_nullAsTypeArgument() async {
+  test_writeOverrideOfInheritedMember_method_genericFunctionTypedParameter_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+class A {
+  int foo(T Function<T>() fn) => 0;
+}
+class B extends A {
+}
+''', '''
+  @override
+  int foo(T Function<T>() fn) {
+    // TODO: implement foo
+    return super.foo(fn);
+ }
+''',
+        displayText: 'foo(T Function<T>() fn) { … }',
+        selection: new SourceRange(143, 21));
+  }
+
+  test_writeOverrideOfInheritedMember_method_nullAsTypeArgument_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 abstract class A {
   List<Null> foo();
 }
-
 class B extends A {
 }
 ''', '''
-@override
-List<Null> foo() {
-  // TODO: implement foo
-  return null;
-}
-''', displayText: 'foo() { ... }');
+  @override
+  List<Null> foo() {
+    // TODO: implement foo
+    return null;
+ }
+''', displayText: 'foo() { … }', selection: new SourceRange(125, 12));
   }
 
-  test_writeOverrideOfInheritedMember_method_voidAsTypeArgument() async {
+  test_writeOverrideOfInheritedMember_method_nullAsTypeArgument_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+class A {
+  List<Null> foo() => null
+}
+class B extends A {
+}
+''', '''
+  @override
+  List<Null> foo() {
+    // TODO: implement foo
+    return super.foo();
+ }
+''', displayText: 'foo() { … }', selection: new SourceRange(123, 19));
+  }
+
+  test_writeOverrideOfInheritedMember_method_voidAsTypeArgument_abstract() async {
     await _assertWriteOverrideOfInheritedMethod('''
 abstract class A {
   List<void> foo();
 }
-
 class B extends A {
 }
 ''', '''
-@override
-List<void> foo() {
-  // TODO: implement foo
-  return null;
+  @override
+  List<void> foo() {
+    // TODO: implement foo
+    return null;
+  }
+''', displayText: 'foo() { … }', selection: new SourceRange(125, 12));
+  }
+
+  test_writeOverrideOfInheritedMember_method_voidAsTypeArgument_concrete() async {
+    await _assertWriteOverrideOfInheritedMethod('''
+class A {
+  List<void> foo() => null;
 }
-''', displayText: 'foo() { ... }');
+class B extends A {
+}
+''', '''
+  @override
+  List<void> foo() {
+    // TODO: implement foo
+    return super.foo();
+  }
+''', displayText: 'foo() { … }', selection: new SourceRange(124, 19));
+  }
+
+  test_writeOverrideOfInheritedMember_setter_abstract() async {
+    await _assertWriteOverrideOfInheritedAccessor('''
+abstract class A {
+  set value(int value);
+}
+class B extends A {
+}
+''', '''
+  @override
+  set value(int value) {
+    // TODO: implement value
+  }
+''', displayText: 'value(int value) { … }', selection: null);
+  }
+
+  test_writeOverrideOfInheritedMember_setter_concrete() async {
+    await _assertWriteOverrideOfInheritedAccessor('''
+class A {
+  set value(int value) {}
+}
+class B extends A {
+}
+''', '''
+  @override
+  set value(int value) {
+    // TODO: implement value
+    super.value = value;
+  }
+''',
+        displayText: 'value(int value) { … }',
+        selection: new SourceRange(128, 20));
   }
 
   test_writeParameterMatchingArgument() async {
@@ -1436,12 +1637,48 @@ f(int i, String s) {
 
   /**
    * Assuming that the [content] being edited defines a class named 'A' whose
+   * first accessor is the member to be overridden and ends with a class to
+   * which an inherited method is to be added, assert that the text of the
+   * overridden member matches the [expected] text (modulo white space). Assert
+   * that the generated display text matches the given [displayText]. If a
+   * [selection] is provided, assert that the generated selection range matches
+   * it.
+   */
+  _assertWriteOverrideOfInheritedAccessor(String content, String expected,
+      {String displayText, SourceRange selection}) async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, content);
+    ClassElement classA = await _getClassElement(path, 'A');
+
+    StringBuffer displayBuffer =
+        displayText != null ? new StringBuffer() : null;
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 2, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeOverrideOfInheritedMember(
+            classA.accessors[0],
+            displayTextBuffer: displayBuffer);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace(expected));
+    expect(displayBuffer?.toString(), displayText);
+    if (selection != null) {
+      expect(builder.selectionRange, selection);
+    }
+  }
+
+  /**
+   * Assuming that the [content] being edited defines a class named 'A' whose
    * first method is the member to be overridden and ends with a class to which
    * an inherited method is to be added, assert that the text of the overridden
-   * member matches the [expected] text (modulo white space).
+   * member matches the [expected] text (modulo white space). Assert that the
+   * generated display text matches the given [displayText]. If a [selection] is
+   * provided, assert that the generated selection range matches it.
    */
   _assertWriteOverrideOfInheritedMethod(String content, String expected,
-      {String displayText}) async {
+      {String displayText, SourceRange selection}) async {
     String path = provider.convertPath('/test.dart');
     addSource(path, content);
     ClassElement classA = await _getClassElement(path, 'A');
@@ -1460,6 +1697,9 @@ f(int i, String s) {
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace(expected));
     expect(displayBuffer?.toString(), displayText);
+    if (selection != null) {
+      expect(builder.selectionRange, selection);
+    }
   }
 
   Future<ClassElement> _getClassElement(String path, String name) async {

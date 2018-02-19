@@ -28,9 +28,9 @@ class D<U> extends C<U> {
 }
 
 class E {
-  const factory E.redirecting1(var a) = F<int>;
-  const factory E.redirecting2(var a) = F<int>.redirecting;
-  const factory E.redirecting3(var a) = F<double>.redirecting;
+  const factory E.redirecting1(int a) = F<int>;
+  const factory E.redirecting2(int a) = F<int>.redirecting;
+  const factory E.redirecting3(double a) = F<double>.redirecting;
 }
 
 class F<V> implements E {

@@ -384,11 +384,18 @@ class JSNumber extends Interceptor implements int, double {
   @notNull
   int get bitLength {
     int nonneg = this < 0 ? -this - 1 : this;
-    if (nonneg >= 0x100000000) {
+    int wordBits = 32;
+    while (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;
-      return _bitCount(_spread(nonneg)) + 32;
+      wordBits += 32;
     }
-    return _bitCount(_spread(nonneg));
+    return wordBits - _clz32(nonneg);
+  }
+
+  @notNull
+  static int _clz32(@notNull int uint32) {
+    // TODO(sra): Use `Math.clz32(uint32)` (not available on IE11).
+    return 32 - _bitCount(_spread(uint32));
   }
 
   // Returns pow(this, e) % m.

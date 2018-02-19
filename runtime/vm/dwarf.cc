@@ -29,8 +29,8 @@ class InliningNode : public ZoneAllocated {
         children_head(NULL),
         children_tail(NULL),
         children_next(NULL) {
-    ASSERT(!function.IsNull());
-    ASSERT(function.IsNotTemporaryScopedHandle());
+    RELEASE_ASSERT(!function.IsNull());
+    RELEASE_ASSERT(function.IsNotTemporaryScopedHandle());
   }
 
   void AppendChild(InliningNode* child) {
@@ -63,7 +63,7 @@ Dwarf::Dwarf(Zone* zone, WriteStream* stream)
       temp_(0) {}
 
 intptr_t Dwarf::AddCode(const Code& code) {
-  ASSERT(!code.IsNull());
+  RELEASE_ASSERT(!code.IsNull());
   CodeIndexPair* pair = code_to_index_.Lookup(&code);
   if (pair != NULL) {
     return pair->index_;
@@ -104,7 +104,7 @@ intptr_t Dwarf::AddFunction(const Function& function) {
 }
 
 intptr_t Dwarf::AddScript(const Script& script) {
-  ASSERT(!script.IsNull());
+  RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
   if (pair != NULL) {
     return pair->index_;
@@ -118,7 +118,7 @@ intptr_t Dwarf::AddScript(const Script& script) {
 }
 
 intptr_t Dwarf::LookupFunction(const Function& function) {
-  ASSERT(!function.IsNull());
+  RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
   if (pair == NULL) {
     FATAL1("Function detected too late during DWARF generation: %s",
@@ -128,7 +128,7 @@ intptr_t Dwarf::LookupFunction(const Function& function) {
 }
 
 intptr_t Dwarf::LookupScript(const Script& script) {
-  ASSERT(!script.IsNull());
+  RELEASE_ASSERT(!script.IsNull());
   ScriptIndexPair* pair = script_to_index_.Lookup(&script);
   if (pair == NULL) {
     FATAL1("Script detected too late during DWARF generation: %s",
@@ -308,6 +308,7 @@ void Dwarf::WriteConcreteFunctions() {
   Script& script = Script::Handle(zone_);
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
+    RELEASE_ASSERT(!code.IsNull());
     if (!code.IsFunctionCode()) {
       continue;
     }
@@ -353,6 +354,9 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   }
   const Array& functions = Array::Handle(zone_, code.inlined_id_to_function());
   const Function& root_function = Function::ZoneHandle(zone_, code.function());
+  if (root_function.IsNull()) {
+    FATAL1("Wherefore art thou functionless code, %s?\n", code.ToCString());
+  }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
   GrowableArray<TokenPosition> token_positions(zone_, 4);

@@ -77,8 +77,9 @@ testReturnOfFunctionType() {
   Expect.throwsTypeError(() => cObj.setterForT());
   Expect.throwsTypeError(() => (cObj.setterForT() as F<Object>));
   FnChecks<dynamic> cDyn = cInt;
-  cDyn.setterForT(); // allowed fuzzy arrow
-  Expect.throwsTypeError(() => cDyn.setterForT()('hi')); // dcall throws
+  Expect.throwsTypeError(() => cDyn.setterForT());
+  Expect.throwsTypeError(
+      () => (cDyn as dynamic).setterForT()('hi')); // dcall throws
   cInt.setterForT()(42);
   Expect.equals(cObj.getT(), 42);
 }
@@ -106,8 +107,8 @@ testFieldOfFunctionType() {
   FnChecks<String> cStr = c;
   cStr.f('hi');
   FnChecks<dynamic> cDyn = c;
-  cDyn.f; // allowed fuzzy arrow
-  Expect.throwsTypeError(() => cDyn.f(42)); // dcall throws
+  Expect.throwsTypeError(() => cDyn.f);
+  Expect.throwsTypeError(() => (cDyn as dynamic).f(42)); // dcall throws
 }
 
 testFieldOfGenericFunctionType() {

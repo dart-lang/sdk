@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -96,6 +96,71 @@ class B {
 import 'not-dart.txt';
 ''');
     expect(await driver.search.classMembers('test'), isEmpty);
+  }
+
+  test_declarations_class() async {
+    await _resolveTestUnit('''
+class C {
+  int f;
+  C();
+  C.named();
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var files = <String>[];
+    List<Declaration> declarations = await driver.search.declarations(files);
+    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS, 6);
+    _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD, 16, 'C');
+    _assertHasDeclaration(
+        declarations, 'named', DeclarationKind.CONSTRUCTOR, 30, 'C');
+    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER, 49, 'C');
+    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER, 68, 'C');
+    _assertHasDeclaration(declarations, 'm', DeclarationKind.METHOD, 83, 'C');
+  }
+
+  test_declarations_enum() async {
+    await _resolveTestUnit('''
+enum E {
+  a, b, c
+}
+''');
+    var files = <String>[];
+    List<Declaration> declarations = await driver.search.declarations(files);
+    _assertHasDeclaration(declarations, 'E', DeclarationKind.ENUM, 5);
+    _assertHasDeclaration(declarations, 'a', DeclarationKind.ENUM_CONSTANT, 11);
+    _assertHasDeclaration(declarations, 'b', DeclarationKind.ENUM_CONSTANT, 14);
+    _assertHasDeclaration(declarations, 'c', DeclarationKind.ENUM_CONSTANT, 17);
+  }
+
+  test_declarations_top() async {
+    await _resolveTestUnit('''
+int get g => 0;
+void set s(_) {}
+void f(int p) {}
+int v;
+typedef void tf1();
+typedef tf2<T> = int Function<S>(T tp, S sp);
+''');
+    var files = <String>[];
+    List<Declaration> declarations = await driver.search.declarations(files);
+    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER, 8);
+    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER, 25);
+    _assertHasDeclaration(declarations, 'f', DeclarationKind.FUNCTION, 38);
+    _assertHasDeclaration(declarations, 'v', DeclarationKind.VARIABLE, 54);
+    _assertHasDeclaration(
+        declarations, 'tf1', DeclarationKind.FUNCTION_TYPE_ALIAS, 70);
+    _assertHasDeclaration(
+        declarations, 'tf2', DeclarationKind.FUNCTION_TYPE_ALIAS, 85);
+    // No declaration for type variables.
+    _assertNoDeclaration(declarations, 'T');
+    _assertNoDeclaration(declarations, 'S');
+    // No declarations for parameters.
+    _assertNoDeclaration(declarations, '_');
+    _assertNoDeclaration(declarations, 'p');
+    _assertNoDeclaration(declarations, 'tp');
+    _assertNoDeclaration(declarations, 'sp');
   }
 
   test_searchMemberReferences_qualified_resolved() async {
@@ -1181,6 +1246,32 @@ class NoMatchABCDE {}
     RegExp regExp = new RegExp(r'^[ABCDe]$');
     expect(await driver.search.topLevelElements(regExp),
         unorderedEquals([a, b, c, d, e]));
+  }
+
+  void _assertHasDeclaration(List<Declaration> declarations, String name,
+      DeclarationKind kind, int offset,
+      [String className]) {
+    for (var declaration in declarations) {
+      if (declaration.name == name &&
+          declaration.kind == kind &&
+          declaration.offset == offset &&
+          declaration.className == className) {
+        return;
+      }
+    }
+    var actual = declarations
+        .map((d) => '(name=${d.name}, kind=${d.kind}, offset=${d.offset})')
+        .join('\n');
+    fail(
+        'Exected to find (name=$name, kind=$kind, offset=$offset) in\n$actual');
+  }
+
+  void _assertNoDeclaration(List<Declaration> declarations, String name) {
+    for (var declaration in declarations) {
+      if (declaration.name == name) {
+        fail('Unexpected declaration $name');
+      }
+    }
   }
 
   ExpectedResult _expectId(

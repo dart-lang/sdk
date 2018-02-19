@@ -86,7 +86,7 @@ class Function {
       positionalArguments = new List.from(positionalArguments)..add(map);
     }
     return JS(
-        '', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
+        '', '#.apply(null, [#].concat(#))', dart.dcall, f, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(

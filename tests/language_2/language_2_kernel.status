@@ -638,14 +638,11 @@ conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loadin
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
-const_constructor2_test/11: CompileTimeError # Issue 31402 (Invocation arguments)
-const_constructor2_test/12: CompileTimeError # Issue 31402 (Invocation arguments)
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
 const_map4_test: RuntimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
-const_redirecting_factory_test: CompileTimeError # Issue 31402 (Field declaration)
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
@@ -708,7 +705,6 @@ function_subtype3_test: RuntimeError
 function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
-function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
@@ -1024,14 +1020,11 @@ conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loadin
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
-const_constructor2_test/11: CompileTimeError # Issue 31402 (Invocation arguments)
-const_constructor2_test/12: CompileTimeError # Issue 31402 (Invocation arguments)
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_evaluation_test: SkipByDesign
 const_list_test: RuntimeError
 const_map4_test: RuntimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
-const_redirecting_factory_test: CompileTimeError # Issue 31402 (Field declaration)
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
@@ -1103,7 +1096,6 @@ function_subtype3_test: RuntimeError
 function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
-function_subtype_cast0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError

@@ -730,6 +730,13 @@ public interface AnalysisServer {
   public void search_findTopLevelDeclarations(String pattern, FindTopLevelDeclarationsConsumer consumer);
 
   /**
+   * {@code search.getElementDeclarations}
+   *
+   * Return top-level and class member declarations.
+   */
+  public void search_getElementDeclarations(GetElementDeclarationsConsumer consumer);
+
+  /**
    * {@code search.getTypeHierarchy}
    *
    * Return the type hierarchy of the class declared or referenced at the given location.

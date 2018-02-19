@@ -26,6 +26,40 @@ Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
 }
 
 /**
+ * An element declaration.
+ */
+class Declaration {
+  final int fileIndex;
+  final String name;
+  final DeclarationKind kind;
+  final int offset;
+  final int line;
+  final int column;
+  final String className;
+
+  Declaration(this.fileIndex, this.name, this.kind, this.offset, this.line,
+      this.column, this.className);
+}
+
+/**
+ * The kind of a [Declaration].
+ */
+enum DeclarationKind {
+  CLASS,
+  CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
+  ENUM,
+  ENUM_CONSTANT,
+  FIELD,
+  FUNCTION,
+  FUNCTION_TYPE_ALIAS,
+  GETTER,
+  METHOD,
+  SETTER,
+  VARIABLE
+}
+
+/**
  * Search support for an [AnalysisDriver].
  */
 class Search {
@@ -57,6 +91,104 @@ class Search {
       }
     }
     return elements;
+  }
+
+  /**
+   * Return top-level and class member declarations.
+   *
+   * The path of each file with at least one declaration is added to [files].
+   * The list is for searched, there might be duplicates, but this is OK,
+   * we just want reduce amount of data, not to make it absolute minimum.
+   */
+  Future<List<Declaration>> declarations(List<String> files) async {
+    List<Declaration> declarations = <Declaration>[];
+
+    DeclarationKind getExecutableKind(
+        UnlinkedExecutable executable, bool topLevel) {
+      switch (executable.kind) {
+        case UnlinkedExecutableKind.constructor:
+          return DeclarationKind.CONSTRUCTOR;
+        case UnlinkedExecutableKind.functionOrMethod:
+          if (topLevel) {
+            return DeclarationKind.FUNCTION;
+          }
+          return DeclarationKind.METHOD;
+        case UnlinkedExecutableKind.getter:
+          return DeclarationKind.GETTER;
+          break;
+        default:
+          return DeclarationKind.SETTER;
+      }
+    }
+
+    for (String path in _driver.addedFiles) {
+      FileState file = _driver.fsState.getFileForPath(path);
+      int fileIndex;
+
+      void addDeclaration(String name, DeclarationKind kind, int offset,
+          [String className]) {
+        if (fileIndex == null) {
+          fileIndex = files.length;
+          files.add(file.path);
+        }
+        if (name.endsWith('=')) {
+          name = name.substring(0, name.length - 1);
+        }
+        var location = file.lineInfo.getLocation(offset);
+        declarations.add(new Declaration(fileIndex, name, kind, offset,
+            location.lineNumber, location.columnNumber, className));
+      }
+
+      for (var class_ in file.unlinked.classes) {
+        String className = class_.name;
+        addDeclaration(
+            className,
+            class_.isMixinApplication
+                ? DeclarationKind.CLASS_TYPE_ALIAS
+                : DeclarationKind.CLASS,
+            class_.nameOffset);
+
+        for (var field in class_.fields) {
+          addDeclaration(
+              field.name, DeclarationKind.FIELD, field.nameOffset, className);
+        }
+
+        for (var executable in class_.executables) {
+          if (executable.name.isNotEmpty) {
+            addDeclaration(
+                executable.name,
+                getExecutableKind(executable, false),
+                executable.nameOffset,
+                className);
+          }
+        }
+      }
+
+      for (var enum_ in file.unlinked.enums) {
+        addDeclaration(enum_.name, DeclarationKind.ENUM, enum_.nameOffset);
+        for (var value in enum_.values) {
+          addDeclaration(
+              value.name, DeclarationKind.ENUM_CONSTANT, value.nameOffset);
+        }
+      }
+
+      for (var executable in file.unlinked.executables) {
+        addDeclaration(executable.name, getExecutableKind(executable, true),
+            executable.nameOffset);
+      }
+
+      for (var typedef_ in file.unlinked.typedefs) {
+        addDeclaration(typedef_.name, DeclarationKind.FUNCTION_TYPE_ALIAS,
+            typedef_.nameOffset);
+      }
+
+      for (var variable in file.unlinked.variables) {
+        addDeclaration(
+            variable.name, DeclarationKind.VARIABLE, variable.nameOffset);
+      }
+    }
+
+    return declarations;
   }
 
   /**

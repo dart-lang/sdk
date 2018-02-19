@@ -9795,11 +9795,12 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElementImpl element =
-        node.type.element as GenericFunctionTypeElementImpl;
-    super.visitGenericFunctionType(node);
-    element.returnType =
-        _computeReturnType(node.returnType) ?? DynamicTypeImpl.instance;
+    GenericFunctionTypeElementImpl element = node.type?.element;
+    if (element != null) {
+      super.visitGenericFunctionType(node);
+      element.returnType =
+          _computeReturnType(node.returnType) ?? DynamicTypeImpl.instance;
+    }
     return null;
   }
 

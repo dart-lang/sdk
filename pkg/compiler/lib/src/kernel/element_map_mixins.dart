@@ -126,8 +126,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
-      return mainUri.path.contains('sdk/tests/compiler/dart2js_native') ||
-          mainUri.path.contains('sdk/tests/compiler/dart2js_extra');
+      return mainUri.path.contains('tests/compiler/dart2js_native') ||
+          mainUri.path.contains('tests/compiler/dart2js_extra');
     }
 
     DartType lookup(String typeName, {bool required}) {

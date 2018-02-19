@@ -8,8 +8,8 @@ class Class2 {
   operator [](index) => index;
 
   code() {
-    /*bl*/ this /*s:1*/ [42];
-    return this /*sl:2*/ [42];
+    /*bl*/ /*sl:1*/ this[42]; // DDK fails to hover on `this`
+    return /*sl:2*/ this[42];
   }
 }
 

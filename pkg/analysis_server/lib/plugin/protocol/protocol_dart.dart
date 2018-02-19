@@ -155,6 +155,9 @@ String _getParametersString(engine.Element element) {
         closeOptionalString = ']';
       }
     }
+    if (parameter.isRequired) {
+      sb.write('@required ');
+    }
     parameter.appendToWithoutDelimiters(sb);
   }
   sb.write(closeOptionalString);

@@ -1087,36 +1087,36 @@ abstract class VMKernelCompilerMixin {
 }
 
 class FastaCompilerConfiguration extends CompilerConfiguration {
-  static const String mimeType = "application/x.dill";
+  static final _compilerLocation =
+      Repository.uri.resolve("pkg/front_end/tool/_fasta/compile.dart");
 
-  final Uri _compilerLocation;
-
-  final Uri _plaformDill;
+  final Uri _platformDill;
 
   final Uri _vmExecutable;
 
-  final bool _isLegacy;
+  bool get _isLegacy => !_configuration.isStrong;
 
-  FastaCompilerConfiguration(Configuration configuration)
-      : this._(
-            Repository.uri.resolve("pkg/front_end/tool/_fasta/compile.dart"),
-            Uri.base
-                .resolveUri(new Uri.directory(configuration.buildDirectory)),
-            !configuration.isStrong,
-            configuration.useSdk,
-            configuration);
+  factory FastaCompilerConfiguration(Configuration configuration) {
+    var buildDirectory =
+        Uri.base.resolveUri(new Uri.directory(configuration.buildDirectory));
 
-  FastaCompilerConfiguration._(this._compilerLocation, Uri buildDirectory,
-      this._isLegacy, bool useSdk, Configuration configuration)
-      : _plaformDill = (useSdk
-                ? buildDirectory.resolve("dart-sdk/lib/_internal/")
-                : buildDirectory)
-            .resolve(
-                _isLegacy ? "vm_platform.dill" : "vm_platform_strong.dill"),
-        _vmExecutable = useSdk
-            ? buildDirectory.resolve("dart-sdk/bin/dart")
-            : buildDirectory.resolve("dart"),
-        super._subclass(configuration);
+    var dillDir = buildDirectory;
+    if (configuration.useSdk) {
+      dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
+    }
+
+    var suffix = configuration.isStrong ? "_strong" : "";
+    var platformDill = dillDir.resolve("vm_platform$suffix.dill");
+
+    var vmExecutable = buildDirectory
+        .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
+    return new FastaCompilerConfiguration._(
+        platformDill, vmExecutable, configuration);
+  }
+
+  FastaCompilerConfiguration._(
+      this._platformDill, this._vmExecutable, Configuration configuration)
+      : super._subclass(configuration);
 
   @override
   bool get useDfe => true;
@@ -1125,58 +1125,40 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   bool get runRuntimeDespiteMissingCompileTimeError => true;
 
   @override
-  int get timeoutMultiplier => 1;
-
-  @override
-  bool get hasCompiler => true;
-
-  @override
-  List<Uri> bootstrapDependencies() => <Uri>[_plaformDill];
+  List<Uri> bootstrapDependencies() => [_platformDill];
 
   @override
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    throw "not implemented yet";
+    throw new UnimplementedError();
   }
 
   @override
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    Uri output =
+    var output =
         Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
-    String outputFileName = output.toFilePath();
-    String vmPath = _vmExecutable.toFilePath();
-    if (Platform.isWindows) {
-      vmPath += ".exe";
-    }
-    List<String> compilerArguments = <String>[];
+    var outputFileName = output.toFilePath();
+
+    var compilerArguments = <String>[];
     if (!_isLegacy) {
       compilerArguments.add("--strong-mode");
     }
-    compilerArguments
-      ..addAll(<String>[
-        "-o",
-        outputFileName,
-        "--platform",
-        _plaformDill.toFilePath(),
-      ])
-      ..addAll(arguments);
 
-    return new CommandArtifact(
-      [
-        Command.fasta(
+    compilerArguments.addAll(
+        ["-o", outputFileName, "--platform", _platformDill.toFilePath()]);
+    compilerArguments.addAll(arguments);
+
+    return new CommandArtifact([
+      Command.fasta(
           _compilerLocation,
           output,
           bootstrapDependencies(),
           _vmExecutable,
           compilerArguments,
           environmentOverrides,
-          Repository.uri,
-        )
-      ],
-      outputFileName,
-      mimeType,
-    );
+          Repository.uri)
+    ], outputFileName, "application/x.dill");
   }
 
   @override
@@ -1185,8 +1167,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> dart2jsOptions,
       List<String> args) {
-    List<String> arguments = <String>[];
-    for (String argument in args) {
+    var arguments = <String>[];
+    for (var argument in args) {
       if (argument != "--ignore-unrecognized-flags") {
         arguments.add(argument);
       }
@@ -1205,6 +1187,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     if (runtimeConfiguration is! NoneRuntimeConfiguration) {
       throw "--compiler=fasta only supports --runtime=none";
     }
+
     return <String>[];
   }
 }

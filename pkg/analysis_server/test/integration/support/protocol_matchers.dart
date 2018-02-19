@@ -323,6 +323,31 @@ final Matcher isElement =
         }));
 
 /**
+ * ElementDeclaration
+ *
+ * {
+ *   "name": String
+ *   "kind": ElementKind
+ *   "fileIndex": int
+ *   "offset": int
+ *   "line": int
+ *   "column": int
+ *   "className": optional String
+ * }
+ */
+final Matcher isElementDeclaration =
+    new LazyMatcher(() => new MatchesJsonObject("ElementDeclaration", {
+          "name": isString,
+          "kind": isElementKind,
+          "fileIndex": isInt,
+          "offset": isInt,
+          "line": isInt,
+          "column": isInt
+        }, optionalFields: {
+          "className": isString
+        }));
+
+/**
  * ElementKind
  *
  * enum {
@@ -2637,6 +2662,25 @@ final Matcher isSearchFindTopLevelDeclarationsParams = new LazyMatcher(() =>
 final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() =>
     new MatchesJsonObject(
         "search.findTopLevelDeclarations result", {"id": isSearchId}));
+
+/**
+ * search.getElementDeclarations params
+ */
+final Matcher isSearchGetElementDeclarationsParams = isNull;
+
+/**
+ * search.getElementDeclarations result
+ *
+ * {
+ *   "declarations": List<ElementDeclaration>
+ *   "files": List<FilePath>
+ * }
+ */
+final Matcher isSearchGetElementDeclarationsResult = new LazyMatcher(() =>
+    new MatchesJsonObject("search.getElementDeclarations result", {
+      "declarations": isListOf(isElementDeclaration),
+      "files": isListOf(isFilePath)
+    }));
 
 /**
  * search.getTypeHierarchy params

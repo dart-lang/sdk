@@ -149,7 +149,7 @@ class ShadowAssertStatement extends AssertStatement implements ShadowStatement {
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var actualType =
         inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(
+    inferrer.ensureAssignable(
         expectedType, actualType, condition, condition.fileOffset);
     if (message != null) {
       inferrer.inferExpression(message, null, false);
@@ -435,7 +435,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
         // temporary variable first.
         assert(identical(combiner.arguments.positional[0], rhs));
         var expectedType = getPositionalParameterType(combinerType, 0);
-        inferrer.checkAssignability(
+        inferrer.ensureAssignable(
             expectedType, rhsType, rhs, combiner.fileOffset);
       }
       if (isOverloadedArithmeticOperator) {
@@ -454,7 +454,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
           combinedType,
           combinerType,
           combiner.fileOffset);
-      var replacedCombiner2 = inferrer.checkAssignability(
+      var replacedCombiner2 = inferrer.ensureAssignable(
           writeContext, combinedType, replacedCombiner, writeOffset);
       if (replacedCombiner2 != null) {
         replacedCombiner = replacedCombiner2;
@@ -463,7 +463,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     } else {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
       var replacedRhs =
-          inferrer.checkAssignability(writeContext, rhsType, rhs, writeOffset);
+          inferrer.ensureAssignable(writeContext, rhsType, rhs, writeOffset);
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
       if (nullAwareCombiner != null) {
         MethodInvocation equalsInvocation = nullAwareCombiner.condition;
@@ -541,7 +541,7 @@ class ShadowConditionalExpression extends ConditionalExpression
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var conditionType =
         inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(
+    inferrer.ensureAssignable(
         expectedType, conditionType, condition, condition.fileOffset);
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
     bool useLub = _forceLub || typeContext == null;
@@ -691,7 +691,7 @@ class ShadowDoStatement extends DoStatement implements ShadowStatement {
     var boolType = inferrer.coreTypes.boolClass.rawType;
     var actualType =
         inferrer.inferExpression(condition, boolType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(
+    inferrer.ensureAssignable(
         boolType, actualType, condition, condition.fileOffset);
     inferrer.listener.doStatementExit(this);
   }
@@ -846,7 +846,7 @@ class ShadowFieldInitializer extends FieldInitializer
   void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.fieldInitializerEnter(this);
     var initializerType = inferrer.inferExpression(value, field.type, true);
-    inferrer.checkAssignability(field.type, initializerType, value, fileOffset);
+    inferrer.ensureAssignable(field.type, initializerType, value, fileOffset);
     inferrer.listener.fieldInitializerExit(this);
   }
 }
@@ -893,7 +893,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     inferrer.listener.forInStatementEnter(this, variable, syntheticWrite);
     var inferredExpressionType = inferrer.resolveTypeParameter(inferrer
         .inferExpression(iterable, context, typeNeeded || typeChecksNeeded));
-    inferrer.checkAssignability(
+    inferrer.ensureAssignable(
         inferrer.wrapType(const DynamicType(), iterableClass),
         inferredExpressionType,
         iterable,
@@ -923,7 +923,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
           new VariableDeclaration(null, type: inferredType, isFinal: true);
       var variableGet = new VariableGet(tempVar)
         ..fileOffset = this.variable.fileOffset;
-      var implicitDowncast = inferrer.checkAssignability(
+      var implicitDowncast = inferrer.ensureAssignable(
           variable.type, inferredType, variableGet, fileOffset);
       if (implicitDowncast != null) {
         this.variable = tempVar..parent = this;
@@ -932,7 +932,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
       }
     } else if (syntheticAssignment is ShadowSyntheticExpression) {
       if (syntheticAssignment is ShadowComplexAssignment) {
-        inferrer.checkAssignability(
+        inferrer.ensureAssignable(
             greatestClosure(inferrer.coreTypes, syntheticWriteType),
             this.variable.type,
             syntheticAssignment.rhs,
@@ -962,7 +962,7 @@ class ShadowForStatement extends ForStatement implements ShadowStatement {
       var expectedType = inferrer.coreTypes.boolClass.rawType;
       var conditionType = inferrer.inferExpression(
           condition, expectedType, !inferrer.isTopLevel);
-      inferrer.checkAssignability(
+      inferrer.ensureAssignable(
           expectedType, conditionType, condition, condition.fileOffset);
     }
     for (var update in updates) {
@@ -1076,7 +1076,7 @@ class ShadowIfStatement extends IfStatement implements ShadowStatement {
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var conditionType =
         inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(
+    inferrer.ensureAssignable(
         expectedType, conditionType, condition, condition.fileOffset);
     inferrer.inferStatement(then);
     if (otherwise != null) inferrer.inferStatement(otherwise);
@@ -1158,7 +1158,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     var indexType = inferrer.inferExpression(index, indexContext, true);
     _storeLetType(inferrer, index, indexType);
     if (writeContext != null) {
-      inferrer.checkAssignability(
+      inferrer.ensureAssignable(
           expectedIndexTypeForWrite,
           indexType,
           _getInvocationArguments(inferrer, write).positional[0],
@@ -1171,7 +1171,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
           inferrer.findMethodInvocationMember(receiverType, read, silent: true);
       var calleeFunctionType =
           inferrer.getCalleeFunctionType(readMember, receiverType, false);
-      inferrer.checkAssignability(
+      inferrer.ensureAssignable(
           getPositionalParameterType(calleeFunctionType, 0),
           indexType,
           _getInvocationArguments(inferrer, read).positional[0],
@@ -1337,8 +1337,8 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
     }
     if (typeChecksNeeded) {
       for (int i = 0; i < expressions.length; i++) {
-        inferrer.checkAssignability(typeArgument, actualTypes[i],
-            expressions[i], expressions[i].fileOffset);
+        inferrer.ensureAssignable(typeArgument, actualTypes[i], expressions[i],
+            expressions[i].fileOffset);
       }
     }
     var inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
@@ -1362,8 +1362,8 @@ class ShadowLogicalExpression extends LogicalExpression
     inferrer.listener.logicalExpressionBeforeRhs(this);
     var rightType =
         inferrer.inferExpression(right, boolType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(boolType, leftType, left, left.fileOffset);
-    inferrer.checkAssignability(boolType, rightType, right, right.fileOffset);
+    inferrer.ensureAssignable(boolType, leftType, left, left.fileOffset);
+    inferrer.ensureAssignable(boolType, rightType, right, right.fileOffset);
     var inferredType = boolType;
     inferrer.listener.logicalExpressionExit(this, inferredType);
     return inferredType;
@@ -1461,10 +1461,10 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
       for (int i = 0; i < entries.length; i++) {
         var entry = entries[i];
         var key = entry.key;
-        inferrer.checkAssignability(
+        inferrer.ensureAssignable(
             keyType, actualTypes[2 * i], key, key.fileOffset);
         var value = entry.value;
-        inferrer.checkAssignability(
+        inferrer.ensureAssignable(
             valueType, actualTypes[2 * i + 1], value, value.fileOffset);
       }
     }
@@ -1551,7 +1551,7 @@ class ShadowNot extends Not implements ShadowExpression {
     var boolType = inferrer.coreTypes.boolClass.rawType;
     var actualType =
         inferrer.inferExpression(operand, boolType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(boolType, actualType, operand, fileOffset);
+    inferrer.ensureAssignable(boolType, actualType, operand, fileOffset);
     DartType inferredType = boolType;
     inferrer.listener.notExit(this, inferredType);
     return inferredType;
@@ -2476,7 +2476,7 @@ class ShadowVariableDeclaration extends VariableDeclaration
       type = inferredType;
     }
     if (initializer != null) {
-      var replacedInitializer = inferrer.checkAssignability(
+      var replacedInitializer = inferrer.ensureAssignable(
           type, initializerType, initializer, fileOffset);
       if (replacedInitializer != null) {
         initializer = replacedInitializer;
@@ -2546,7 +2546,7 @@ class ShadowWhileStatement extends WhileStatement implements ShadowStatement {
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var actualType =
         inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
-    inferrer.checkAssignability(
+    inferrer.ensureAssignable(
         expectedType, actualType, condition, condition.fileOffset);
     inferrer.inferStatement(body);
     inferrer.listener.whileStatementExit(this);

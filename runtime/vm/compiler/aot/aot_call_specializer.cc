@@ -176,12 +176,13 @@ static bool IsGetRuntimeType(Definition* defn) {
 // Object._haveSameRuntimeType(a, b).
 // Note: this optimization is not speculative.
 bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
-    InstanceCallInstr* call) {
-  const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.NumArgsTested() == 2);
-
+    TemplateDartCall<0>* call) {
+  ASSERT((call->IsInstanceCall() &&
+          (call->AsInstanceCall()->ic_data()->NumArgsTested() == 2)) ||
+         call->IsStaticCall());
   ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
+
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
@@ -203,7 +204,6 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
     InsertBefore(call, arg, NULL, FlowGraph::kEffect);
     args->Add(arg);
     const intptr_t kTypeArgsLen = 0;
-    ASSERT(call->type_args_len() == kTypeArgsLen);
     StaticCallInstr* static_call = new (Z) StaticCallInstr(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
         Object::null_array(),  // argument_names
@@ -337,6 +337,16 @@ Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
   }
 
   return input;
+}
+
+// After replacing a call with a specialized instruction, make sure to
+// update types at all uses, as specialized instruction can provide a more
+// specific type.
+static void RefineUseTypes(Definition* instr) {
+  CompileType* new_type = instr->Type();
+  for (Value::Iterator it(instr->input_use_list()); !it.Done(); it.Advance()) {
+    it.Current()->RefineReachingType(new_type);
+  }
 }
 
 bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
@@ -481,6 +491,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
                 instr->ToCString(), replacement->ToCString());
     }
     ReplaceCall(instr, replacement);
+    RefineUseTypes(replacement);
     return true;
   }
 
@@ -492,14 +503,19 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
   ASSERT(I->strong() && FLAG_use_strong_mode_types);
   Definition* replacement = NULL;
 
+  const String& name = String::Handle(Z, instr->function().name());
+  const Token::Kind op_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
+
+  if ((op_kind == Token::kEQ) && TryReplaceWithHaveSameRuntimeType(instr)) {
+    return true;
+  }
+
   const Class& owner = Class::Handle(Z, instr->function().Owner());
   if ((owner.id() != kIntegerCid) && (owner.id() != kDoubleCid)) {
     return false;
   }
 
   const intptr_t receiver_index = instr->FirstArgIndex();
-  const String& name = String::Handle(Z, instr->function().name());
-  const Token::Kind op_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
 
   // Recognize double and int operators here as devirtualization can convert
   // instance calls of these operators into static calls.
@@ -668,6 +684,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
                 instr->ToCString(), replacement->ToCString());
     }
     ReplaceCall(instr, replacement);
+    RefineUseTypes(replacement);
     return true;
   }
 

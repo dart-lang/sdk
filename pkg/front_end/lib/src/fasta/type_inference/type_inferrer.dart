@@ -230,8 +230,16 @@ class ClosureContext {
           : returnOrYieldContext;
       if (expectedType != null) {
         expectedType = greatestClosure(inferrer.coreTypes, expectedType);
-        if (inferrer.checkAssignability(
-                expectedType, type, expression, fileOffset) !=
+        DartType expectedTypeToCheck = expectedType;
+        if (!inferrer.isAssignable(expectedType, type) && isAsync) {
+          DartType unfuturedExpectedType =
+              inferrer.typeSchemaEnvironment.unfutureType(expectedType);
+          if (inferrer.isAssignable(unfuturedExpectedType, type)) {
+            expectedTypeToCheck = unfuturedExpectedType;
+          }
+        }
+        if (inferrer.ensureAssignable(
+                expectedTypeToCheck, type, expression, fileOffset) !=
             null) {
           type = expectedType;
         }
@@ -435,9 +443,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter get typePromoter;
 
+  bool isAssignable(DartType expectedType, DartType actualType) {
+    return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
+        typeSchemaEnvironment.isSubtypeOf(actualType, expectedType);
+  }
+
   /// Checks whether [actualType] can be assigned to [expectedType], and inserts
   /// an implicit downcast if appropriate.
-  Expression checkAssignability(DartType expectedType, DartType actualType,
+  Expression ensureAssignable(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset) {
     assert(expectedType == null || isKnown(expectedType));
     // We don't need to insert assignability checks when doing top level type
@@ -929,7 +942,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     var actualType =
         inferExpression(initializer, declaredType, declaredType != null);
     if (declaredType != null) {
-      checkAssignability(
+      ensureAssignable(
           declaredType, actualType, initializer, initializer.fileOffset);
     }
     this.helper = null;
@@ -1066,7 +1079,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         var expression = i < numPositionalArgs
             ? arguments.positional[i]
             : arguments.named[i - numPositionalArgs].value;
-        checkAssignability(
+        ensureAssignable(
             expectedType, actualType, expression, expression.fileOffset);
       }
     }
@@ -1299,7 +1312,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     this.helper = helper;
     assert(declaredType != null);
     var actualType = inferExpression(initializer, declaredType, true);
-    checkAssignability(
+    ensureAssignable(
         declaredType, actualType, initializer, initializer.fileOffset);
     this.helper = null;
   }

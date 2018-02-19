@@ -1705,6 +1705,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           _astFactory.constructorName(typeName, node.operator, node.methodName);
     } else {
       // A()
+      node.methodName.staticElement = classElement;
       typeName = _astFactory.typeName(node.methodName, node.typeArguments);
       typeName.type = classType;
       constructorName = _astFactory.constructorName(typeName, null, null);
@@ -1718,6 +1719,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     constructorName.staticElement = constructorElt;
     instanceCreationExpression.staticElement = constructorElt;
     instanceCreationExpression.staticType = classType;
+
+    node.argumentList.correspondingStaticParameters =
+        _computeCorrespondingParameters(node.argumentList, constructorElt.type);
 
     // Finally, do the node replacement, true is returned iff the replacement
     // was successful, only return the new node if it was successful.
@@ -1746,7 +1750,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         classElement = elt;
       }
     } else {
-      LibraryElementImpl libraryElement = _getImportedLibrary(node.target);
+      LibraryElement libraryElement = _getImportedLibrary(node.target);
       if (libraryElement == null) {
         // We cannot resolve the import to find the library, so we won't be able
         // to find the class to see whether the method is actually a constructor.
@@ -1807,6 +1811,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else {
       // p.A()
       // libraryPrefixId is a SimpleIdentifier in this case
+      node.methodName.staticElement = classElement;
       PrefixedIdentifier prefixedIdentifier = _astFactory.prefixedIdentifier(
           libraryPrefixId, node.operator, node.methodName);
       typeName = _astFactory.typeName(prefixedIdentifier, node.typeArguments);
@@ -1822,6 +1827,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     constructorName.staticElement = constructorElt;
     instanceCreationExpression.staticElement = constructorElt;
     instanceCreationExpression.staticType = classType;
+
+    node.argumentList.correspondingStaticParameters =
+        _computeCorrespondingParameters(node.argumentList, constructorElt.type);
 
     // Finally, do the node replacement, true is returned iff the replacement
     // was successful, only return the new node if it was successful.

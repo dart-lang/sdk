@@ -42,7 +42,7 @@ class AotCallSpecializer : public CallSpecializer {
   bool TryCreateICDataForUniqueTarget(InstanceCallInstr* call);
 
   bool RecognizeRuntimeTypeGetter(InstanceCallInstr* call);
-  bool TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call);
+  bool TryReplaceWithHaveSameRuntimeType(TemplateDartCall<0>* call);
 
   bool TryInlineFieldAccess(InstanceCallInstr* call);
   bool TryInlineFieldAccess(StaticCallInstr* call);

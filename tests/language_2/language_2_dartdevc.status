@@ -49,6 +49,7 @@ const_types_test/08: MissingCompileTimeError
 const_types_test/14: MissingCompileTimeError
 const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+default_implementation2_test: CompileTimeError # Issue 30855
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
@@ -101,15 +102,20 @@ mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: RuntimeError # should be CompileTimeError, fuzzy arrows
+mixin_type_parameter_inference_previous_mixin_test/03: MissingCompileTimeError # fuzzy arrows
 mixin_type_parameter_inference_previous_mixin_test/04: MissingCompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/05: RuntimeError
 mixin_type_parameter_inference_test/01: CompileTimeError
-mixin_type_parameter_inference_test/02: CompileTimeError
-mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/02: RuntimeError # CompileTimeError, except Fuzzy arrows
+mixin_type_parameter_inference_test/03: RuntimeError # CompileTimeError, except Fuzzy arrows
+mixin_type_parameter_inference_test/04: MissingCompileTimeError
+mixin_type_parameter_inference_test/05: MissingCompileTimeError
 mixin_type_parameter_inference_test/06: MissingCompileTimeError
 mixin_type_parameter_inference_test/07: MissingCompileTimeError
 mixin_type_parameter_inference_test/08: RuntimeError
 mixin_type_parameter_inference_test/09: RuntimeError
+mixin_type_parameter_inference_test/11: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/01r: CompileTimeError
@@ -341,9 +347,6 @@ compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
 conditional_import_string_test: CompileTimeError # Test is broken
 conditional_import_test: CompileTimeError # Test is broken
 config_import_test: CompileTimeError
-const_constructor2_test/20: MissingCompileTimeError
-const_constructor2_test/22: MissingCompileTimeError
-const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
@@ -402,7 +405,6 @@ field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
-function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_type_call_getter2_test/00: MissingCompileTimeError
 function_type_call_getter2_test/01: MissingCompileTimeError
@@ -434,7 +436,6 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_type_variable_test/01: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError
@@ -630,7 +631,6 @@ regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 setter4_test: MissingCompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
@@ -692,10 +692,6 @@ void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError, Crash
 void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError, Crash
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError, Crash
 wrong_number_type_arguments_test/01: MissingCompileTimeError
-
-[ $compiler == dartdevc && $runtime == none ]
-instantiate_type_variable_test/01: CompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
 assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
