@@ -717,6 +717,8 @@ class StreamingScopeBuilder {
   void VisitVectorType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
+  AbstractType& BuildAndVisitVariableType();
+
   void EnterScope(intptr_t kernel_offset);
   void ExitScope(TokenPosition start_position, TokenPosition end_position);
 

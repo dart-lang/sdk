@@ -686,7 +686,6 @@ function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
 function_type_call_getter2_test/00: MissingCompileTimeError
 function_type_call_getter2_test/01: MissingCompileTimeError
@@ -909,7 +908,6 @@ function_subtype_closure1_test: Pass
 function_subtype_factory1_test: Pass
 function_subtype_inline1_test: Pass
 function_subtype_inline2_test: Pass
-function_type2_test: RuntimeError
 generic_functions_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
@@ -1075,7 +1073,6 @@ function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
 function_type_call_getter2_test/00: MissingCompileTimeError
 function_type_call_getter2_test/01: MissingCompileTimeError
