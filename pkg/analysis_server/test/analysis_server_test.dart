@@ -99,7 +99,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
         resourceProvider,
         packageMapProvider,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false),
+        new DartSdkManager(resourceProvider.convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
   }
 
