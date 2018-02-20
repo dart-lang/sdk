@@ -62,7 +62,8 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart';
 
-import '../kernel/fasta_accessors.dart' show BuilderHelper;
+import '../kernel/fasta_accessors.dart'
+    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
@@ -387,7 +388,9 @@ class TypeInferrerDisabled extends TypeInferrer {
 /// possible without knowing the identity of the type parameters.  It defers to
 /// abstract methods for everything else.
 abstract class TypeInferrerImpl extends TypeInferrer {
-  static final FunctionType _functionReturningDynamic =
+  /// Marker object to indicate that a function takes an unknown number
+  /// of arguments.
+  static final FunctionType unknownFunction =
       new FunctionType(const [], const DynamicType());
 
   final TypeInferenceEngineImpl engine;
@@ -669,7 +672,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         return callType;
       }
     }
-    return _functionReturningDynamic;
+    return unknownFunction;
   }
 
   DartType getCalleeType(Object interfaceMember, DartType receiverType) {
@@ -1068,19 +1071,32 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
     }
-    if (typeChecksNeeded) {
-      int numPositionalArgs = arguments.positional.length;
-      for (int i = 0; i < formalTypes.length; i++) {
-        var formalType = formalTypes[i];
-        var expectedType = substitution != null
-            ? substitution.substituteType(formalType)
-            : formalType;
-        var actualType = actualTypes[i];
-        var expression = i < numPositionalArgs
-            ? arguments.positional[i]
-            : arguments.named[i - numPositionalArgs].value;
-        ensureAssignable(
-            expectedType, actualType, expression, expression.fileOffset);
+    if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
+      CalleeDesignation calleeKind = receiverType is FunctionType
+          ? CalleeDesignation.Function
+          : CalleeDesignation.Method;
+      LocatedMessage argMessage = helper.checkArguments(
+          new FunctionTypeAccessor.fromType(calleeType),
+          arguments,
+          calleeKind,
+          offset);
+      if (argMessage != null) {
+        helper.addProblem(argMessage.messageObject, argMessage.charOffset);
+      } else {
+        // Argument counts and names match. Compare types.
+        int numPositionalArgs = arguments.positional.length;
+        for (int i = 0; i < formalTypes.length; i++) {
+          var formalType = formalTypes[i];
+          var expectedType = substitution != null
+              ? substitution.substituteType(formalType)
+              : formalType;
+          var actualType = actualTypes[i];
+          var expression = i < numPositionalArgs
+              ? arguments.positional[i]
+              : arguments.named[i - numPositionalArgs].value;
+          ensureAssignable(
+              expectedType, actualType, expression, expression.fileOffset);
+        }
       }
     }
     DartType inferredType;
