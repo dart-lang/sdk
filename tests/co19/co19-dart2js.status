@@ -3731,7 +3731,6 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeErr
 LayoutTests/fast/css/media-rule-screenDepthPerComponent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/color-does-not-include-alpha_t01: RuntimeError # Issue 31161
-LayoutTests/fast/media/media-query-list_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $checked ]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
