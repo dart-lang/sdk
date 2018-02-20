@@ -3660,6 +3660,34 @@ const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
         r"""Try removing the other directives, or moving them to the library for which this is a part.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateNotAPrefixInTypeAnnotation = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
+    withArguments: _withArgumentsNotAPrefixInTypeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeNotAPrefixInTypeAnnotation =
+    const Code<Message Function(String name, String name2)>(
+        "NotAPrefixInTypeAnnotation", templateNotAPrefixInTypeAnnotation,
+        analyzerCode: "NOT_A_TYPE",
+        dart2jsCode: "*ignored*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotAPrefixInTypeAnnotation(String name, String name2) {
+  return new Message(codeNotAPrefixInTypeAnnotation,
+      message:
+          """'$name.$name2' can't be used as a type because '$name' doesn't refer to an import prefix.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNotAType =
     const Template<Message Function(String name)>(
         messageTemplate: r"""'#name' isn't a type.""",
@@ -5372,6 +5400,36 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
   return new Message(codeUnmatchedToken,
       message: """Can't find '$string' to match '$lexeme'.""",
       arguments: {'string': string, 'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateUnresolvedPrefixInTypeAnnotation = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""'#name.#name2' can't be used as a type because '#name' isn't defined.""",
+    withArguments: _withArgumentsUnresolvedPrefixInTypeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeUnresolvedPrefixInTypeAnnotation =
+    const Code<Message Function(String name, String name2)>(
+        "UnresolvedPrefixInTypeAnnotation",
+        templateUnresolvedPrefixInTypeAnnotation,
+        analyzerCode: "NOT_A_TYPE",
+        dart2jsCode: "*ignored*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
+    String name, String name2) {
+  return new Message(codeUnresolvedPrefixInTypeAnnotation,
+      message:
+          """'$name.$name2' can't be used as a type because '$name' isn't defined.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

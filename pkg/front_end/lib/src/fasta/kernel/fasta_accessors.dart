@@ -14,7 +14,9 @@ import '../fasta_codes.dart'
         messageSuperAsExpression,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
-        templateNotAType;
+        templateNotAPrefixInTypeAnnotation,
+        templateNotAType,
+        templateUnresolvedPrefixInTypeAnnotation;
 
 import '../messages.dart' show Message;
 
@@ -25,6 +27,8 @@ import '../problems.dart' show unhandled, unimplemented, unsupported;
 import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
+
+import 'body_builder.dart' show Identifier;
 
 import 'forest.dart' show Forest;
 
@@ -296,6 +300,8 @@ abstract class ErrorAccessor implements FastaAccessor {
   /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
+
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
 
   Name get name => unsupported("name", offsetForToken(token), uri);
 
@@ -575,6 +581,15 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
       {bool isGetter: false, bool isSetter: false, int offset}) {
     return helper.buildCompileTimeError(
         message, offset ?? offsetForToken(this.token));
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateNotAPrefixInTypeAnnotation.withArguments(
+            token.lexeme, suffix.name),
+        offsetForToken(token));
+    return const InvalidType();
   }
 
   @override
@@ -1112,6 +1127,7 @@ class LargeIntAccessor extends kernel.DelayedErrorAccessor with FastaAccessor {
 
   LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
 
+  @override
   Expression buildError() => helper.buildCompileTimeError(
       templateIntegerLiteralIsOutOfRange.withArguments(token),
       token.charOffset);
@@ -1351,6 +1367,15 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateUnresolvedPrefixInTypeAnnotation.withArguments(
+            name.name, suffix.name),
+        offsetForToken(token));
+    return const InvalidType();
   }
 
   @override

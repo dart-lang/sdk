@@ -1859,6 +1859,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (prefix is PrefixBuilder) {
         name = scopeLookup(prefix.exportScope, suffix.name, beginToken,
             isQualified: true, prefix: prefix);
+      } else if (prefix is ErrorAccessor) {
+        push(prefix.buildErroneousTypeNotAPrefix(suffix));
+        return;
       } else {
         String displayName = debugName(getNodeName(prefix), suffix.name);
         addProblem(fasta.templateNotAType.withArguments(displayName),
