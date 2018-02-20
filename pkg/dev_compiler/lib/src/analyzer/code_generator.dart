@@ -42,7 +42,7 @@ import '../compiler/module_builder.dart' show pathToJSIdentifier;
 import '../compiler/type_utilities.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
-import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan;
+import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'ast_builder.dart';
 import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
@@ -4248,6 +4248,11 @@ class CodeGenerator extends Object
   JS.Statement _emitLazyFields(
       Element target, List<VariableDeclaration> fields) {
     var accessors = <JS.Method>[];
+
+    var objExpr = target is ClassElement
+        ? _emitTopLevelName(target)
+        : emitLibraryName(target);
+
     for (var node in fields) {
       var name = node.name.name;
       var element = node.element;
@@ -4261,7 +4266,9 @@ class CodeGenerator extends Object
               access,
               js.call('function() { return #; }',
                   _visitInitializer(node.initializer, node.element)) as JS.Fun,
-              isGetter: true),
+              isGetter: true)
+            ..sourceInformation = _hoverComment(
+                new JS.PropertyAccess(objExpr, access), node.name),
           _findAccessor(element, getter: true),
           node));
 
@@ -4274,10 +4281,6 @@ class CodeGenerator extends Object
             node));
       }
     }
-
-    var objExpr = target is ClassElement
-        ? _emitTopLevelName(target)
-        : emitLibraryName(target);
 
     return _callHelperStatement('defineLazy(#, { # });', [objExpr, accessors]);
   }
@@ -5765,6 +5768,20 @@ class CodeGenerator extends Object
     var start = _getLocation(node.offset);
     var end = _getLocation(node.end);
     return start != null && end != null ? new NodeSpan(start, end) : null;
+  }
+
+  /// Adds a hover comment for Dart [node] using JS expression [expr], where
+  /// that expression would not otherwise not be generated into source code.
+  ///
+  /// For example, top-level and static fields are defined as lazy properties,
+  /// on the library/class, so their access expressions do not appear in the
+  /// source code.
+  HoverComment _hoverComment(JS.Expression expr, AstNode node) {
+    var start = _getLocation(node.offset);
+    var end = _getLocation(node.end);
+    return start != null && end != null
+        ? new HoverComment(expr, start, end)
+        : null;
   }
 
   SourceLocation _getLocation(int offset) {

@@ -16,6 +16,13 @@ class NodeSpan {
   NodeSpan(this.start, this.end);
 }
 
+class HoverComment {
+  final SourceLocation start, end;
+  final Expression expression;
+  HoverComment(this.expression, this.start, this.end);
+  toString() => '#<HoverComment `$expression` @ $start to $end>';
+}
+
 class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   /// Current line in the buffer.
   int _line = 0;
@@ -59,6 +66,12 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       dartStart = srcInfo;
     } else if (srcInfo is NodeSpan) {
       dartStart = srcInfo.start;
+    } else if (srcInfo is HoverComment) {
+      emit('/*');
+      _mark(srcInfo.start);
+      srcInfo.expression.accept(printer);
+      _mark(srcInfo.end);
+      emit('*/');
     } else if (srcInfo is! NodeEnd) {
       throw new StateError(
           'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
@@ -85,7 +98,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       dartEnd = srcInfo.end;
     } else if (srcInfo is NodeEnd) {
       dartEnd = srcInfo.end;
-    } else if (srcInfo is! SourceLocation) {
+    } else if (srcInfo is! SourceLocation && srcInfo is! HoverComment) {
       throw new StateError(
           'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
     }
@@ -100,11 +113,9 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
           // the output.
           var jsEnd = new SourceLocation(buffer.length - 1,
               line: _line, column: column);
-          _flushPendingMarks();
           _mark(dartEnd, jsEnd);
         }
       } else {
-        _flushPendingMarks();
         _mark(dartEnd);
       }
     }
@@ -135,15 +146,19 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   void _flushPendingMarks() {
     var pending = _pendingDartOffset;
     if (pending != null) {
-      _mark(pending, _pendingJSLocation);
+      _markInternal(pending, _pendingJSLocation);
       _pendingDartOffset = null;
       _pendingJSLocation = null;
     }
   }
 
   void _mark(SourceLocation dartLocation, [SourceLocation jsLocation]) {
+    _flushPendingMarks();
     jsLocation ??= _getJSLocation();
+    _markInternal(dartLocation, jsLocation);
+  }
 
+  void _markInternal(SourceLocation dartLocation, SourceLocation jsLocation) {
     // Don't mark the same JS location to two different Dart locations.
     if (_previousDartOffset == dartLocation.offset) return;
     _previousDartOffset = dartLocation.offset;

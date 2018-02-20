@@ -18,7 +18,7 @@ import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
-import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan;
+import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'js_interop.dart';
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
@@ -2131,12 +2131,19 @@ class ProgramCompiler
     var accessors = <JS.Method>[];
     var savedUri = _currentUri;
 
+    var objExpr =
+        target is Class ? _emitTopLevelName(target) : emitLibraryName(target);
+
     for (var field in fields) {
       _currentUri = field.fileUri;
       var name = field.name.name;
       var access = _emitStaticMemberName(name);
       accessors.add(new JS.Method(access, _emitStaticFieldInitializer(field),
-          isGetter: true));
+          isGetter: true)
+        ..sourceInformation = _hoverComment(
+            new JS.PropertyAccess(objExpr, access),
+            field.fileOffset,
+            name.length));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
       if (!field.isFinal && !field.isConst) {
@@ -2145,9 +2152,6 @@ class ProgramCompiler
       }
     }
     _currentUri = _currentLibrary.fileUri;
-
-    var objExpr =
-        target is Class ? _emitTopLevelName(target) : emitLibraryName(target);
 
     _currentUri = savedUri;
     return _callHelperStatement('defineLazy(#, { # });', [objExpr, accessors]);
@@ -3162,6 +3166,20 @@ class ProgramCompiler
     if (loc == null) return null;
     return new SourceLocation(offset,
         sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
+  }
+
+  /// Adds a hover comment for Dart node using JS expression [expr], where
+  /// that expression would not otherwise not be generated into source code.
+  ///
+  /// For example, top-level and static fields are defined as lazy properties,
+  /// on the library/class, so their access expressions do not appear in the
+  /// source code.
+  HoverComment _hoverComment(JS.Expression expr, int offset, int nameLength) {
+    var start = _getLocation(offset);
+    var end = _getLocation(offset + nameLength);
+    return start != null && end != null
+        ? new HoverComment(expr, start, end)
+        : null;
   }
 
   @override
