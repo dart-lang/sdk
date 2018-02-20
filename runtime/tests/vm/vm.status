@@ -163,7 +163,7 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 cc/InjectNativeFields1: Crash
-cc/InjectNativeFields3: Crash
+cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -174,20 +174,18 @@ cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == release && $runtime == vm ]
 cc/InjectNativeFields1: Fail
-cc/InjectNativeFields3: Fail
 cc/Service_TokenStream: Fail
 
 [ $compiler == dartk && $runtime == vm ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
+cc/CorelibCompileAll: Crash
+cc/CorelibCompilerStats: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
-cc/DartAPI_ImplicitNativeFieldAccess: Crash
 cc/DartAPI_InjectNativeFields1: Skip
-cc/DartAPI_InjectNativeFields3: Crash
-cc/DartAPI_InjectNativeFields4: Crash
-cc/DartAPI_InjectNativeFieldsSuperClass: Crash
 cc/DartAPI_InvokeNoSuchMethod: Fail
 cc/DartAPI_Invoke_CrossLibrary: Crash
+cc/DartAPI_IsolateSetCheckedMode: Skip # Checked mode is not relevant for dart 2?
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
 cc/DartAPI_LazyLoadDeoptimizes: Fail
 cc/DartAPI_LoadLibrary: Crash
@@ -200,13 +198,11 @@ cc/DartAPI_LoadSource: Crash
 cc/DartAPI_LoadSource_LateLoad: Crash
 cc/DartAPI_LookupLibrary: Crash
 cc/DartAPI_NativeFieldAccess: Fail
-cc/DartAPI_NegativeNativeFieldInIsolateMessage: Crash
 cc/DartAPI_ParsePatchLibrary: Crash
 cc/DartAPI_PropagateError: Fail
 cc/DartAPI_StackOverflowStackTraceInfoArrowFunction: Fail
 cc/DartAPI_StackOverflowStackTraceInfoBraceFunction1: Fail
 cc/DartAPI_StackOverflowStackTraceInfoBraceFunction2: Fail
-cc/DartAPI_TestNativeFieldsAccess: Crash
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -217,6 +213,7 @@ cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
+cc/GenerateSource: Skip # Cannot generate source from a kernel binary. 
 cc/IsolateReload_DanglingGetter_Library: Fail
 cc/IsolateReload_DanglingSetter_Class: Fail
 cc/IsolateReload_DanglingSetter_Instance: Fail
@@ -274,7 +271,7 @@ cc/SourcePosition_WhileContinueBreak: Crash
 cc/SourceReport_CallSites_PolymorphicCall: Fail
 cc/SourceReport_CallSites_SimpleCall: Fail
 cc/SourceReport_Coverage_AllFunctions: Fail
-cc/SourceReport_Coverage_AllFunctions_ForceCompile: Fail
+cc/SourceReport_Coverage_AllFunctions_ForceCompile: Crash
 cc/SourceReport_Coverage_ForceCompile: Fail
 cc/SourceReport_Coverage_NestedFunctions: Fail
 cc/SourceReport_Coverage_NoCalls: Fail
@@ -351,6 +348,19 @@ cc/Service_Address: Fail
 cc/Service_Code: Fail
 
 [ $compiler == dartk && $strong ]
+cc/DartAPI_ImportLibrary3: Fail # Issue 32190
+cc/DartAPI_LazyLoadDeoptimizes: Crash # Issue 32190
+cc/DartAPI_NativePortPostInteger: Crash # Issue 32190
+cc/DartAPI_NativePortReceiveInteger: Timeout # Issue 32190
+cc/DartAPI_NativePortReceiveNull: Timeout # Issue 32190
+cc/DartAPI_NewNativePort: Crash # Issue 32190
+cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
+cc/FullSnapshot1: Crash # Issue 32190
+cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
+cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
+cc/IsolateReload_LibraryLookup: Crash # Issue 32190
+cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail # Issue 32190
+cc/StackMapGC: Crash # Issue 32190
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
 

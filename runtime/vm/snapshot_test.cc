@@ -1879,6 +1879,7 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
 
 VM_UNIT_TEST_CASE(DartGeneratedMessages) {
   static const char* kCustomIsolateScriptCommonChars =
+      "final int kArrayLength = 10;\n"
       "getSmi() {\n"
       "  return 42;\n"
       "}\n"

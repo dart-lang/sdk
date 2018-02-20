@@ -14,12 +14,8 @@
 namespace dart {
 
 VM_UNIT_TEST_CASE(IsolateCurrent) {
-  char* error;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, NULL, NULL, &error);
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
   EXPECT_EQ(isolate, Dart_CurrentIsolate());
-  EXPECT_EQ(error, static_cast<char*>(NULL));
   Dart_ShutdownIsolate();
   EXPECT_EQ(reinterpret_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
 }

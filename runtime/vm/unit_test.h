@@ -270,6 +270,11 @@ extern const uint8_t* core_isolate_snapshot_data;
 extern const uint8_t* core_isolate_snapshot_instructions;
 }  // namespace bin
 
+extern const uint8_t* platform_dill;
+extern const uint8_t* platform_strong_dill;
+extern const intptr_t platform_dill_size;
+extern const intptr_t platform_strong_dill_size;
+
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name);
@@ -334,11 +339,10 @@ class TestCase : TestCaseBase {
   static const char* url();
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
                                                     const char* name = NULL) {
-    return CreateIsolate(buffer, name);
+    return CreateIsolate(buffer, 0, NULL, name);
   }
-  static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
-    return CreateIsolate(bin::core_isolate_snapshot_data, name);
-  }
+  static Dart_Isolate CreateTestIsolate(const char* name = NULL,
+                                        void* data = NULL);
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
@@ -363,7 +367,16 @@ class TestCase : TestCaseBase {
   static const char* GetTestLib(const char* url);
 
  private:
-  static Dart_Isolate CreateIsolate(const uint8_t* buffer, const char* name);
+  // |data_buffer| can either be snapshot data, or kernel binary data.
+  // If |data_buffer| is snapshot data, then |len| should be zero as snapshot
+  // size is encoded within them. If |len| is non-zero, then |data_buffer|
+  // will be treated as a kernel binary (but CreateIsolate will not
+  // take ownership of the buffer) and |instr_buffer| will be ignored.
+  static Dart_Isolate CreateIsolate(const uint8_t* data_buffer,
+                                    intptr_t len,
+                                    const uint8_t* instr_buffer,
+                                    const char* name,
+                                    void* data = NULL);
 
   RunEntry* const run_;
 };

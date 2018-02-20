@@ -30,7 +30,7 @@ TEST_CASE(GuardFieldSimpleTest) {
   const char* script_chars =
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  var f3 = new List(4);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
@@ -80,7 +80,7 @@ TEST_CASE(GuardFieldFinalListTest) {
   const char* script_chars =
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  final f3 = new List(4);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
@@ -132,7 +132,7 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
   const char* script_chars =
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  final f3 = new List();\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
@@ -185,7 +185,7 @@ TEST_CASE(GuardFieldConstructorTest) {
       "import 'dart:typed_data';\n"
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  final f3;\n"
       "  A(x) : f3 = x;\n"
       "  foo() {\n"
