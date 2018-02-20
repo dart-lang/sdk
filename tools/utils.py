@@ -474,6 +474,7 @@ def GetLatestDevTag():
                        cwd = DART_DIR)
   output, _ = p.communicate()
   if p.wait() != 0:
+    print "Warning: Could not get the most recent dev branch tag %s" % output
     return None
   return output.strip()
 

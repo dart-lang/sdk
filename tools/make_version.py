@@ -42,11 +42,15 @@ VM_SNAPSHOT_FILES=[
 
 def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
   if custom_for_pub:
+    latest = utils.GetLatestDevTag()
+    if not latest:
+      # If grabbing the dev tag fails, then fall back on the VERSION file.
+      latest = utils.GetSemanticSDKVersion(no_git_hash=True)
     if no_git_hash:
-      version_string = ("%s-%s" % (utils.GetLatestDevTag(), custom_for_pub))
+      version_string = ("%s.%s" % (latest, custom_for_pub))
     else:
-      version_string = ("%s-%s-%s" %
-          (utils.GetLatestDevTag(), custom_for_pub, utils.GetShortGitHash()))
+      git_hash = utils.GetShortGitHash()
+      version_string = ("%s.%s-%s" % (latest, custom_for_pub, git_hash))
   else:
     version_string = utils.GetSemanticSDKVersion(no_git_hash=no_git_hash)
   if not quiet:
