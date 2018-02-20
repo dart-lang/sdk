@@ -66,19 +66,34 @@ class BaseTest {
     String source, {
     String options: emptyOptionsFile,
     List<String> args: const <String>[],
+  }) {
+    return driveMany([source], options: options, args: args);
+  }
+
+  /// An ability to use [drive] with many sources instead of one.
+  Future<Null> driveMany(
+    List<String> sources, {
+    String options: emptyOptionsFile,
+    List<String> args: const <String>[],
   }) async {
     driver = new Driver(isTesting: true);
-    var cmd = <String>[
-      '--options',
-      path.join(testDirectory, options),
-      _adjustFileSpec(source)
-    ]..addAll(args);
+    var cmd = <String>[];
+
+    if (options != null)
+      cmd.addAll([
+        '--options',
+        path.join(testDirectory, options),
+      ]);
+
+    cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
+
     if (usePreviewDart2) {
       cmd.insert(0, '--preview-dart-2');
     }
     if (useCFE) {
       cmd.insert(0, '--use-cfe');
     }
+
     await driver.start(cmd);
   }
 
@@ -922,6 +937,19 @@ class OptionsTest extends BaseTest {
     expect(bulletToDash(outSink),
         contains("warning - The function 'baz' isn't defined"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
+  }
+
+  test_analyzeFilesInDifferentContexts() async {
+    await driveMany([
+      'data/linter_project/test_file.dart',
+      'data/no_lints_project/test_file.dart',
+    ], options: null);
+
+    // Should have the lint in the project with lint rules enabled.
+    expect(bulletToDash(outSink),
+        contains('linter_project/test_file.dart:7:7 - camel_case_types'));
+    // Should be just one lint in total.
+    expect(outSink.toString(), contains('1 lint found.'));
   }
 
   Future<Null> _driveBasic() async {
