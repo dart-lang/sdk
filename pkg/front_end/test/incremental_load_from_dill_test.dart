@@ -14,7 +14,10 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show writeProgramToFile, serializeProgram;
+import "package:front_end/src/api_prototype/memory_file_system.dart"
+    show MemoryFileSystem;
 
 final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
 final Uri invalidateUri = Uri.parse("package:compiler/src/filenames.dart");
@@ -44,7 +47,8 @@ main() async {
     }
     new File.fromUri(nonLoadable).writeAsBytesSync(corruptData);
 
-    // Compile dart2js, bootstrapping from the just-compiled dill.
+    // Compile dart2js, bootstrapping from the just-compiled dill,
+    // a nonexisting file and a dill file that isn't valid.
     for (List<Object> bootstrapData in [
       [normalDill, true],
       [nonexisting, false],
@@ -69,8 +73,90 @@ main() async {
         }
       }
     }
+
+    await testDisappearingLibrary();
   } finally {
     outDir.deleteSync(recursive: true);
+  }
+}
+
+/// Compile an application with n libraries, then
+/// compile "the same" application, but with m < n libraries,
+/// where (at least one) of the missing libraries are "in the middle"
+/// of the library list ---  bootstrapping from the dill with n libarries.
+void testDisappearingLibrary() async {
+  final Uri base = Uri.parse("org-dartlang-test:///");
+  final Uri sdkSummary = base.resolve("vm_platform.dill");
+  final Uri main = base.resolve("main.dart");
+  final Uri b = base.resolve("b.dart");
+  final Uri bootstrap = base.resolve("bootstrapFrom.dill");
+  final List<int> sdkSummaryData = await new File.fromUri(
+          computePlatformBinariesLocation().resolve("vm_platform.dill"))
+      .readAsBytes();
+
+  List<int> libCount2;
+  {
+    MemoryFileSystem fs = new MemoryFileSystem(base);
+    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+
+    fs.entityForUri(main).writeAsStringSync("""
+      library mainLibrary;
+      import "b.dart" as b;
+
+      main() {
+        b.foo();
+      }
+      """);
+
+    fs.entityForUri(b).writeAsStringSync("""
+      library bLibrary;
+
+      foo() {
+        print("hello from b.dart foo!");
+      }
+      """);
+
+    CompilerOptions options = getOptions();
+    options.fileSystem = fs;
+    options.sdkRoot = null;
+    options.sdkSummary = sdkSummary;
+    IncrementalCompiler compiler =
+        new IncrementalKernelGenerator(options, main);
+    var program = await compiler.computeDelta();
+    print(program);
+    libCount2 = serializeProgram(program);
+    if (program.libraries.length != 2) {
+      throw "Expected 2 libraries, got ${program.libraries.length}";
+    }
+    if (program.libraries[0].fileUri != main) {
+      throw "Expected the first library to have uri $main but was "
+          "${program.libraries[0].fileUri}";
+    }
+  }
+
+  {
+    MemoryFileSystem fs = new MemoryFileSystem(base);
+    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+    fs.entityForUri(bootstrap).writeAsBytesSync(libCount2);
+    fs.entityForUri(b).writeAsStringSync("""
+      library bLibrary;
+
+      main() {
+        print("hello from b!");
+      }
+      """);
+    CompilerOptions options = getOptions();
+    options.fileSystem = fs;
+    options.sdkRoot = null;
+    options.sdkSummary = sdkSummary;
+    IncrementalCompiler compiler =
+        new IncrementalKernelGenerator(options, b, bootstrap);
+    compiler.invalidate(main);
+    compiler.invalidate(b);
+    var program = await compiler.computeDelta();
+    if (program.libraries.length != 1) {
+      throw "Expected 1 library, got ${program.libraries.length}";
+    }
   }
 }
 

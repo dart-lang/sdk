@@ -174,18 +174,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         // For now ensure original order of libraries to produce bit-perfect
         // output.
-        List<Library> librariesOriginalOrder =
-            new List<Library>.filled(libraries.length, null, growable: true);
-        int lastOpen = libraries.length;
-        for (Library lib in libraries) {
-          int order = importUriToOrder[lib.importUri];
-          if (order != null) {
-            librariesOriginalOrder[order] = lib;
-          } else {
-            librariesOriginalOrder[--lastOpen] = lib;
-          }
-        }
-        libraries = librariesOriginalOrder;
+        libraries.sort((a, b) {
+          int aOrder = importUriToOrder[a.importUri];
+          int bOrder = importUriToOrder[b.importUri];
+          if (aOrder != null && bOrder != null) return aOrder - bOrder;
+          if (aOrder != null) return -1;
+          if (bOrder != null) return 1;
+          return 0;
+        });
       }
 
       // This is the incremental program.
