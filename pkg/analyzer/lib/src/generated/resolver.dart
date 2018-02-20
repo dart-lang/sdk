@@ -279,7 +279,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     Expression realTarget = node.realTarget;
     _checkForAbstractSuperMemberReference(realTarget, node.methodName);
-    _checkForNullAwareHints(node);
+    _checkForNullAwareHints(node, node.operator);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -305,7 +305,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitPropertyAccess(PropertyAccess node) {
     Expression realTarget = node.realTarget;
     _checkForAbstractSuperMemberReference(realTarget, node.propertyName);
-    _checkForNullAwareHints(node);
+    _checkForNullAwareHints(node, node.operator);
     return super.visitPropertyAccess(node);
   }
 
@@ -1008,76 +1008,72 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Produce several null-aware related hints.
    */
-  void _checkForNullAwareHints(Expression node) {
-    if (node is MethodInvocation &&
-            node.operator?.type == TokenType.QUESTION_PERIOD ||
-        node is PropertyAccess &&
-            node.operator?.type == TokenType.QUESTION_PERIOD) {
-      // childOfParent is used to know from which branch node comes.
-      var childOfParent = node;
-      var parent = node.parent;
-      while (parent is ParenthesizedExpression) {
-        childOfParent = parent;
-        parent = parent.parent;
-      }
+  void _checkForNullAwareHints(Expression node, Token operator) {
+    if (operator == null || operator.type != TokenType.QUESTION_PERIOD) {
+      return;
+    }
 
-      // CAN_BE_NULL_AFTER_NULL_AWARE
-      if (parent is MethodInvocation &&
-          parent.operator.type != TokenType.QUESTION_PERIOD &&
-          _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
-              null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-        return;
-      }
-      if (parent is PropertyAccess &&
-          parent.operator.type != TokenType.QUESTION_PERIOD &&
-          _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
-              null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-        return;
-      }
-      if (parent is CascadeExpression &&
-          parent.childEntities.first == childOfParent) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-        return;
-      }
+    // childOfParent is used to know from which branch node comes.
+    var childOfParent = node;
+    var parent = node.parent;
+    while (parent is ParenthesizedExpression) {
+      childOfParent = parent;
+      parent = parent.parent;
+    }
 
-      // NULL_AWARE_IN_CONDITION
-      if (parent is IfStatement && parent.condition == childOfParent ||
-          parent is ForStatement && parent.condition == childOfParent ||
-          parent is DoStatement && parent.condition == childOfParent ||
-          parent is WhileStatement && parent.condition == childOfParent ||
-          parent is ConditionalExpression &&
-              parent.condition == childOfParent ||
-          parent is AssertStatement && parent.condition == childOfParent) {
-        _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_IN_CONDITION, childOfParent);
-        return;
-      }
+    // CAN_BE_NULL_AFTER_NULL_AWARE
+    if (parent is MethodInvocation &&
+        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
+            null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+      return;
+    }
+    if (parent is PropertyAccess &&
+        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
+            null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+      return;
+    }
+    if (parent is CascadeExpression && parent.target == childOfParent) {
+      _errorReporter.reportErrorForNode(
+          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+      return;
+    }
 
-      // NULL_AWARE_IN_LOGICAL_OPERATOR
-      if (parent is PrefixExpression &&
-              parent.operator.type == TokenType.BANG ||
-          parent is BinaryExpression &&
-              [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
-                  .contains(parent.operator.type)) {
-        _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
-        return;
-      }
+    // NULL_AWARE_IN_CONDITION
+    if (parent is IfStatement && parent.condition == childOfParent ||
+        parent is ForStatement && parent.condition == childOfParent ||
+        parent is DoStatement && parent.condition == childOfParent ||
+        parent is WhileStatement && parent.condition == childOfParent ||
+        parent is ConditionalExpression && parent.condition == childOfParent ||
+        parent is AssertStatement && parent.condition == childOfParent) {
+      _errorReporter.reportErrorForNode(
+          HintCode.NULL_AWARE_IN_CONDITION, childOfParent);
+      return;
+    }
 
-      // NULL_AWARE_BEFORE_OPERATOR
-      if (parent is BinaryExpression &&
-          ![TokenType.EQ_EQ, TokenType.BANG_EQ, TokenType.QUESTION_QUESTION]
-              .contains(parent.operator.type) &&
-          parent.leftOperand == childOfParent) {
-        _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
-        return;
-      }
+    // NULL_AWARE_IN_LOGICAL_OPERATOR
+    if (parent is PrefixExpression && parent.operator.type == TokenType.BANG ||
+        parent is BinaryExpression &&
+            [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
+                .contains(parent.operator.type)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
+      return;
+    }
+
+    // NULL_AWARE_BEFORE_OPERATOR
+    if (parent is BinaryExpression &&
+        ![TokenType.EQ_EQ, TokenType.BANG_EQ, TokenType.QUESTION_QUESTION]
+            .contains(parent.operator.type) &&
+        parent.leftOperand == childOfParent) {
+      _errorReporter.reportErrorForNode(
+          HintCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
+      return;
     }
   }
 

@@ -431,7 +431,7 @@ class HintCode extends ErrorCode {
   static const HintCode NULL_AWARE_IN_LOGICAL_OPERATOR = const HintCode(
       'NULL_AWARE_IN_LOGICAL_OPERATOR',
       "The value of the '?.' operator can be 'null', which isn't appropriate "
-      "as operand of a logical operator.");
+      "as an operand of a logical operator.");
 
   /**
    * Hint for classes that override equals, but not hashCode.
