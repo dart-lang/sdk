@@ -49,10 +49,10 @@ static method callerA4([@vm.inferred-type.metadata=#lib::D?] self::A aa) → voi
   [@vm.direct-call.metadata=#lib::C::foo??] aa.{self::A::foo}();
 }
 static method callerE1([@vm.inferred-type.metadata=!] dynamic x) → void {
-  [@vm.direct-call.metadata=dart.core::_StringBase::toString] x.{core::Object::toString}();
+  x.toString();
 }
 static method callerE2([@vm.inferred-type.metadata=#lib::E] dynamic x) → void {
-  [@vm.direct-call.metadata=#lib::E::toString] x.{core::Object::toString}();
+  x.toString();
 }
 static method main(core::List<core::String> args) → dynamic {
   self::callerA1(new self::B::•());

@@ -539,15 +539,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return 'call';
     }
 
-    Class classNode = receiverType is InterfaceType
-        ? receiverType.classNode
-        : coreTypes.objectClass;
-
-    var interfaceMember = _getInterfaceMember(classNode, name, setter);
-    if (!silent && interfaceMember != null) {
-      instrumentation?.record(uri, fileOffset, 'target',
-          new InstrumentationValueForMember(interfaceMember));
+    Member interfaceMember;
+    if (receiverType is! DynamicType) {
+      Class classNode = receiverType is InterfaceType
+          ? receiverType.classNode
+          : coreTypes.objectClass;
+      interfaceMember = _getInterfaceMember(classNode, name, setter);
+      if (!silent && interfaceMember != null) {
+        instrumentation?.record(uri, fileOffset, 'target',
+            new InstrumentationValueForMember(interfaceMember));
+      }
     }
+
     if (!isTopLevel &&
         interfaceMember == null &&
         receiverType is! DynamicType &&
@@ -1303,6 +1306,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeContext, fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
+    if (methodName.name == '==') {
+      inferredType = coreTypes.boolClass.rawType;
+    }
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
     if (identical(interfaceMember, 'call')) {

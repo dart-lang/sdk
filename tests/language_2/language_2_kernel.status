@@ -704,7 +704,6 @@ implicit_creation/implicit_new_constructor_generic_test: Pass
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
@@ -1124,7 +1123,6 @@ instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
-invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: SkipByDesign
 issue31596_super_test/01: CompileTimeError

@@ -1,0 +1,36 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class NullEquality extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  @core::override
+  operator ==(core::Object other) → core::Null
+    return null;
+}
+class SubNullEquality extends self::NullEquality {
+  synthetic constructor •() → void
+    : super self::NullEquality::•()
+    ;
+  method test() → void {
+    core::bool super_equals_self = super.{self::NullEquality::==}(this);
+    core::bool super_equals_null = super.{self::NullEquality::==}(null);
+    core::bool super_not_equals_self = !super.{self::NullEquality::==}(this);
+    core::bool super_not_equals_null = !super.{self::NullEquality::==}(null);
+  }
+}
+static method test() → dynamic {
+  self::NullEquality n = new self::NullEquality::•();
+  core::bool equals_self = n.{self::NullEquality::==}(n);
+  core::bool equals_null = n.{self::NullEquality::==}(null);
+  core::bool null_equals = null.{core::Object::==}(n);
+  core::bool not_equals_self = !n.{self::NullEquality::==}(n);
+  core::bool not_equals_null = !n.{self::NullEquality::==}(null);
+  core::bool null_not_equals = !null.{core::Object::==}(n);
+}
+static method main() → dynamic {
+  self::test();
+  new self::SubNullEquality::•().{self::SubNullEquality::test}();
+}
