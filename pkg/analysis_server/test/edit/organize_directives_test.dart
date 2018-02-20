@@ -84,8 +84,8 @@ main() {
   }
 
   Future test_OK_remove_unresolvedDirectives() {
-    newFile('$testFolder/existing_part1.dart', content: 'part of lib;');
-    newFile('$testFolder/existing_part2.dart', content: 'part of lib;');
+    newFile(join(testFolder, 'existing_part1.dart'), content: 'part of lib;');
+    newFile(join(testFolder, 'existing_part2.dart'), content: 'part of lib;');
     addTestFile('''
 library lib;
 

@@ -61,6 +61,8 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_multiple_contexts() async {
+    String project1path = convertPath('/project1');
+    String project2path = convertPath('/project2');
     String fooPath = newFile('/project1/foo.dart', content: '''
 library foo;
 import '../project2/baz.dart';
@@ -74,7 +76,7 @@ library baz;
 f(int i) {}
 ''').path;
     Request request =
-        new AnalysisSetAnalysisRootsParams(['/project1', '/project2'], [])
+        new AnalysisSetAnalysisRootsParams([project1path, project2path], [])
             .toRequest('0');
     handleSuccessfulRequest(request);
     {
@@ -126,7 +128,7 @@ f() {}
   }
 
   test_overlayOnly() async {
-    String filePath = '/User/project1/test.dart';
+    String filePath = convertPath('/User/project1/test.dart');
     Folder folder1 = newFolder('/User/project1');
     Folder folder2 = newFolder('/User/project2');
     Request request =
@@ -254,7 +256,7 @@ f() {}
   List<String> _getUserSources(AnalysisDriver driver) {
     List<String> sources = <String>[];
     driver.addedFiles.forEach((path) {
-      if (path.startsWith('/User/')) {
+      if (path.startsWith(convertPath('/User/'))) {
         sources.add(path);
       }
     });

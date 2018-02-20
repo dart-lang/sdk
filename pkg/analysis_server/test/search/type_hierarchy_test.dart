@@ -695,7 +695,7 @@ class D extends C {
   }
 
   test_member_method_private_differentLib() async {
-    newFile('$testFolder/lib.dart', content: r'''
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class A {
   void _m() {}
