@@ -252,49 +252,22 @@ class Driver implements CommandLineStarter {
       outSink.writeln("Analyzing ${fileNames.join(', ')}...");
     }
 
-    // This is used to do part file analysis across sources.
-    List<Uri> libUris = <Uri>[];
-
-    // Note: This references _context via closure, so it will change over time
-    // during the following analysis.
-    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
-      return determineProcessedSeverity(
-          error, options, _context.analysisOptions);
-    };
-
-    // We currently print out to stderr to ensure that when in batch mode we
-    // print to stderr, this is because the prints from batch are made to
-    // stderr. The reason that options.shouldBatch isn't used is because when
-    // the argument flags are constructed in BatchRunner and passed in from
-    // batch mode which removes the batch flag to prevent the "cannot have the
-    // batch flag and source file" error message.
-    ErrorFormatter formatter;
-    if (options.machineFormat) {
-      formatter = new MachineErrorFormatter(errorSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
-    } else {
-      formatter = new HumanErrorFormatter(outSink, options, stats,
-          severityProcessor: defaultSeverityProcessor);
+    // Create a context, or re-use the previous one.
+    try {
+      _createContextAndAnalyze(options);
+    } on _DriverError catch (error) {
+      outSink.writeln(error.msg);
+      return ErrorSeverity.ERROR;
     }
 
-    ErrorSeverity allResult = ErrorSeverity.NONE;
+    // Add all the files to be analyzed en masse to the context. Skip any
+    // files that were added earlier (whether explicitly or implicitly) to
+    // avoid causing those files to be unnecessarily re-read.
+    Set<Source> knownSources = context.sources.toSet();
+    Set<Source> sourcesToAnalyze = new Set<Source>();
+    ChangeSet changeSet = new ChangeSet();
     for (String sourcePath in options.sourceFiles) {
       sourcePath = sourcePath.trim();
-
-      // Create a context, or re-use the previous one.
-      try {
-        _createContextAndAnalyze(options, sourcePath);
-      } on _DriverError catch (error) {
-        outSink.writeln(error.msg);
-        return ErrorSeverity.ERROR;
-      }
-
-      // Add all the files to be analyzed en masse to the context. Skip any
-      // files that were added earlier (whether explicitly or implicitly) to
-      // avoid causing those files to be unnecessarily re-read.
-      Set<Source> knownSources = context.sources.toSet();
-      Set<Source> sourcesToAnalyze = new Set<Source>();
-      ChangeSet changeSet = new ChangeSet();
 
       // Collect files for analysis.
       // Note that these files will all be analyzed in the same context.
@@ -319,87 +292,108 @@ class Driver implements CommandLineStarter {
       if (analysisDriver == null) {
         context.applyChanges(changeSet);
       }
+    }
 
-      // Analyze the libraries.
-      Set<Source> partSources = new Set<Source>();
+    // Analyze the libraries.
+    ErrorSeverity allResult = ErrorSeverity.NONE;
+    List<Uri> libUris = <Uri>[];
+    Set<Source> partSources = new Set<Source>();
 
-      for (Source source in sourcesToAnalyze) {
-        if (analysisDriver != null &&
-            (source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
-                source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE)) {
+    SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
+      return determineProcessedSeverity(
+          error, options, _context.analysisOptions);
+    };
+
+    // We currently print out to stderr to ensure that when in batch mode we
+    // print to stderr, this is because the prints from batch are made to
+    // stderr. The reason that options.shouldBatch isn't used is because when
+    // the argument flags are constructed in BatchRunner and passed in from
+    // batch mode which removes the batch flag to prevent the "cannot have the
+    // batch flag and source file" error message.
+    ErrorFormatter formatter;
+    if (options.machineFormat) {
+      formatter = new MachineErrorFormatter(errorSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    } else {
+      formatter = new HumanErrorFormatter(outSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    }
+
+    for (Source source in sourcesToAnalyze) {
+      if (analysisDriver != null &&
+          (source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
+              source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE)) {
+        file_system.File file = resourceProvider.getFile(source.fullName);
+        String content = file.readAsStringSync();
+        LineInfo lineInfo = new LineInfo.fromContent(content);
+        List<AnalysisError> errors =
+            GenerateOptionsErrorsTask.analyzeAnalysisOptions(
+                file.createSource(), content, analysisDriver.sourceFactory);
+        formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+        for (AnalysisError error in errors) {
+          allResult = allResult.max(determineProcessedSeverity(
+              error, options, _context.analysisOptions));
+        }
+      } else if (source.shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+        try {
           file_system.File file = resourceProvider.getFile(source.fullName);
           String content = file.readAsStringSync();
-          LineInfo lineInfo = new LineInfo.fromContent(content);
-          List<AnalysisError> errors =
-              GenerateOptionsErrorsTask.analyzeAnalysisOptions(
-                  file.createSource(), content, analysisDriver.sourceFactory);
-          formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
-          for (AnalysisError error in errors) {
-            allResult = allResult.max(determineProcessedSeverity(
-                error, options, _context.analysisOptions));
-          }
-        } else if (source.shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
-          try {
-            file_system.File file = resourceProvider.getFile(source.fullName);
-            String content = file.readAsStringSync();
-            YamlNode node = loadYamlNode(content);
-            if (node is YamlMap) {
-              PubspecValidator validator =
-                  new PubspecValidator(resourceProvider, file.createSource());
-              LineInfo lineInfo = new LineInfo.fromContent(content);
-              List<AnalysisError> errors = validator.validate(node.nodes);
-              formatter
-                  .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
-              for (AnalysisError error in errors) {
-                allResult = allResult.max(determineProcessedSeverity(
-                    error, options, _context.analysisOptions));
-              }
-            }
-          } catch (exception) {
-            // If the file cannot be analyzed, ignore it.
-          }
-        } else {
-          SourceKind sourceKind = analysisDriver != null
-              ? await analysisDriver.getSourceKind(source.fullName)
-              : context.computeKindOf(source);
-          if (sourceKind == SourceKind.PART) {
-            partSources.add(source);
-            continue;
-          }
-          ErrorSeverity status = await _runAnalyzer(source, options, formatter);
-          allResult = allResult.max(status);
-          libUris.add(source.uri);
-        }
-      }
-
-      // Check that each part has a corresponding source in the input list.
-      for (Source partSource in partSources) {
-        bool found = false;
-        if (analysisDriver != null) {
-          var partFile =
-              analysisDriver.fsState.getFileForPath(partSource.fullName);
-          if (libUris.contains(partFile.library?.uri)) {
-            found = true;
-          }
-        } else {
-          for (var lib in context.getLibrariesContaining(partSource)) {
-            if (libUris.contains(lib.uri)) {
-              found = true;
+          YamlNode node = loadYamlNode(content);
+          if (node is YamlMap) {
+            PubspecValidator validator =
+                new PubspecValidator(resourceProvider, file.createSource());
+            LineInfo lineInfo = new LineInfo.fromContent(content);
+            List<AnalysisError> errors = validator.validate(node.nodes);
+            formatter
+                .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+            for (AnalysisError error in errors) {
+              allResult = allResult.max(determineProcessedSeverity(
+                  error, options, _context.analysisOptions));
             }
           }
+        } catch (exception) {
+          // If the file cannot be analyzed, ignore it.
         }
-        if (!found) {
-          errorSink.writeln(
-              "${partSource.fullName} is a part and cannot be analyzed.");
-          errorSink
-              .writeln("Please pass in a library that contains this part.");
-          io.exitCode = ErrorSeverity.ERROR.ordinal;
-          allResult = allResult.max(ErrorSeverity.ERROR);
+      } else {
+        SourceKind sourceKind = analysisDriver != null
+            ? await analysisDriver.getSourceKind(source.fullName)
+            : context.computeKindOf(source);
+        if (sourceKind == SourceKind.PART) {
+          partSources.add(source);
+          continue;
         }
+        ErrorSeverity status = await _runAnalyzer(source, options, formatter);
+        allResult = allResult.max(status);
+        libUris.add(source.uri);
       }
     }
 
     formatter.flush();
+
+    // Check that each part has a corresponding source in the input list.
+    for (Source partSource in partSources) {
+      bool found = false;
+      if (analysisDriver != null) {
+        var partFile =
+            analysisDriver.fsState.getFileForPath(partSource.fullName);
+        if (libUris.contains(partFile.library?.uri)) {
+          found = true;
+        }
+      } else {
+        for (var lib in context.getLibrariesContaining(partSource)) {
+          if (libUris.contains(lib.uri)) {
+            found = true;
+          }
+        }
+      }
+      if (!found) {
+        errorSink.writeln(
+            "${partSource.fullName} is a part and cannot be analyzed.");
+        errorSink.writeln("Please pass in a library that contains this part.");
+        io.exitCode = ErrorSeverity.ERROR.ordinal;
+        allResult = allResult.max(ErrorSeverity.ERROR);
+      }
+    }
 
     if (!options.machineFormat) {
       stats.print(outSink);
@@ -611,7 +605,7 @@ class Driver implements CommandLineStarter {
 
   /// Create an analysis context that is prepared to analyze sources according
   /// to the given [options], and store it in [_context].
-  void _createContextAndAnalyze(CommandLineOptions options, String source) {
+  void _createContextAndAnalyze(CommandLineOptions options) {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
@@ -621,8 +615,7 @@ class Driver implements CommandLineStarter {
     }
 
     AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(
-            resourceProvider, options, source);
+        createAnalysisOptionsForCommandLineOptions(resourceProvider, options);
     analysisOptions.analyzeFunctionBodiesPredicate =
         _chooseDietParsingPolicy(options);
 
@@ -868,9 +861,7 @@ class Driver implements CommandLineStarter {
   }
 
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
-      ResourceProvider resourceProvider,
-      CommandLineOptions options,
-      String source) {
+      ResourceProvider resourceProvider, CommandLineOptions options) {
     if (options.analysisOptionsFile != null) {
       file_system.File file =
           resourceProvider.getFile(options.analysisOptionsFile);
@@ -884,10 +875,9 @@ class Driver implements CommandLineStarter {
     if (options.sourceFiles.isEmpty) {
       contextRoot = path.current;
     } else {
-      if (path.isAbsolute(source)) {
-        contextRoot = source;
-      } else {
-        contextRoot = path.absolute(source);
+      contextRoot = options.sourceFiles[0];
+      if (!path.isAbsolute(contextRoot)) {
+        contextRoot = path.absolute(contextRoot);
       }
     }
 
