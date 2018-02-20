@@ -101,7 +101,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
   final StringBuffer _debugCode = new StringBuffer();
   int _indent = 2;
 
-  _push() => stack.add(new _State());
+  void _push() => stack.add(new _State());
 
   void _pop(info) {
     var last = stack.removeLast();
