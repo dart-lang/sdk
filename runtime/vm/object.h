@@ -2388,9 +2388,10 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
-    return (I->strong() &&
-            (!is_static() || kind() == RawFunction::kConstructor)) ||
-           I->type_checks();
+    if (I->strong()) {
+      return !(is_static() || (kind() == RawFunction::kConstructor));
+    }
+    return I->type_checks();
   }
 
   TokenPosition token_pos() const {
