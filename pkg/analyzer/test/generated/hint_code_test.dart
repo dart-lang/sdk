@@ -266,6 +266,52 @@ m(x) {
     verify([source]);
   }
 
+  test_canBeNullAfterNullAware_after_cascade() async {
+    Source source = addSource(r'''
+m(x) {
+  x..a?.b.c;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  test_canBeNullAfterNullAware_before_cascade() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a..m();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  test_canBeNullAfterNullAware_cascade_parenthesis() async {
+    Source source = addSource(r'''
+m(x) {
+  (x?.a)..m();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  test_canBeNullAfterNullAware_several() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a
+    ..m()
+    ..m();
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
   test_deadCode_deadBlock_conditionalElse() async {
     Source source = addSource(r'''
 f() {
@@ -2535,83 +2581,6 @@ m(x) {
     verify([source]);
   }
 
-  test_nullAwareInCondition_if_conditionalAnd_first() async {
-    Source source = addSource(r'''
-m(x) {
-  if (x?.a && x.b) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
-  test_nullAwareInCondition_if_conditionalAnd_second() async {
-    Source source = addSource(r'''
-m(x) {
-  if (x.a && x?.b) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
-  test_nullAwareInCondition_if_conditionalAnd_third() async {
-    Source source = addSource(r'''
-m(x) {
-  if (x.a && x.b && x?.c) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
-  test_nullAwareInCondition_if_conditionalOr_first() async {
-    Source source = addSource(r'''
-m(x) {
-  if (x?.a || x.b) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
-  test_nullAwareInCondition_if_conditionalOr_second() async {
-    Source source = addSource(r'''
-m(x) {
-  if (x.a || x?.b) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
-  test_nullAwareInCondition_if_conditionalOr_third() async {
-    Source source = addSource(r'''
-m(x) {
-  if (x.a || x.b || x?.c) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
-  test_nullAwareInCondition_if_not() async {
-    Source source = addSource(r'''
-m(x) {
-  if (!x?.a) {}
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
-    verify([source]);
-  }
-
   test_nullAwareInCondition_if_parenthesized() async {
     Source source = addSource(r'''
 m(x) {
@@ -2631,6 +2600,160 @@ m(x) {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_conditionalAnd_first() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a && x.b;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_conditionalAnd_second() async {
+    Source source = addSource(r'''
+m(x) {
+  x.a && x?.b;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_conditionalAnd_third() async {
+    Source source = addSource(r'''
+m(x) {
+  x.a && x.b && x?.c;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_conditionalOr_first() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a || x.b;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_conditionalOr_second() async {
+    Source source = addSource(r'''
+m(x) {
+  x.a || x?.b;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_conditionalOr_third() async {
+    Source source = addSource(r'''
+m(x) {
+  x.a || x.b || x?.c;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareInLogicalOperator_not() async {
+    Source source = addSource(r'''
+m(x) {
+  !x?.a;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_minus() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a - '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.NULL_AWARE_BEFORE_OPERATOR]);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_equal_equal() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a == '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_not_equal() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a != '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_question_question() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a ?? true;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_assignment() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a = '';
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_is() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a is String;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_nullAwareBeforeOperator_ok_is_not() async {
+    Source source = addSource(r'''
+m(x) {
+  x?.a is! String;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
