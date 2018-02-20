@@ -2458,28 +2458,48 @@ class CodeGenerator extends Object
   ///   4. initialize fields not covered in 1-3
   JS.Statement _initializeFields(List<VariableDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
-    // Run field initializers if they can have side-effects.
     Set<FieldElement> ctorFields;
-    if (ctor != null) {
-      ctorFields = ctor.initializers
-          .map((c) => c is ConstructorFieldInitializer
-              ? c.fieldName.staticElement as FieldElement
-              : null)
-          .toSet()
-            ..remove(null);
-    }
-
-    var body = <JS.Statement>[];
     emitFieldInit(FieldElement f, Expression initializer, AstNode hoverInfo) {
+      ctorFields?.add(f);
       var access =
           _classProperties.virtualFields[f] ?? _declareMemberName(f.getter);
       var jsInit = _visitInitializer(initializer, f);
-      body.add(jsInit
+      return jsInit
           .toAssignExpression(js.call('this.#', [access])
             ..sourceInformation = _nodeSpan(hoverInfo))
-          .toStatement());
+          .toStatement();
     }
 
+    var body = <JS.Statement>[];
+    if (ctor != null) {
+      ctorFields = new HashSet<FieldElement>();
+
+      // Run constructor parameter initializers such as `this.foo`
+      for (var p in ctor.parameters.parameters) {
+        var element = p.element;
+        if (element is FieldFormalParameterElement) {
+          body.add(emitFieldInit(element.field, p.identifier, p.identifier));
+        }
+      }
+
+      // Run constructor field initializers such as `: foo = bar.baz`
+      for (var init in ctor.initializers) {
+        if (init is ConstructorFieldInitializer) {
+          var field = init.fieldName;
+          body.add(emitFieldInit(field.staticElement, init.expression, field));
+        } else if (init is AssertInitializer) {
+          body.add(_emitAssert(init.condition, init.message));
+        }
+      }
+    }
+
+    // Run field initializers if needed.
+    //
+    // We can skip fields where the initializer doesn't have side effects
+    // (for example, it's a literal value such as implicit `null`) and where
+    // there's another explicit initialization (either in the initializer list
+    // like `field = value`, or via a `this.field` parameter).
+    var fieldInit = <JS.Statement>[];
     for (var field in fieldDecls) {
       var f = field.element;
       if (f.isStatic) continue;
@@ -2488,30 +2508,11 @@ class CodeGenerator extends Object
           _constants.isFieldInitConstant(field)) {
         continue;
       }
-      emitFieldInit(f, field.initializer, field.name);
+      fieldInit.add(emitFieldInit(f, field.initializer, field.name));
     }
-
-    if (ctor != null) {
-      // Run constructor parameter initializers such as `this.foo`
-      for (var p in ctor.parameters.parameters) {
-        var element = p.element;
-        if (element is FieldFormalParameterElement) {
-          emitFieldInit(element.field, p.identifier, p.identifier);
-        }
-      }
-
-      // Run constructor field initializers such as `: foo = bar.baz`
-      for (var init in ctor.initializers) {
-        if (init is ConstructorFieldInitializer) {
-          var field = init.fieldName;
-          emitFieldInit(field.staticElement, init.expression, field);
-        } else if (init is AssertInitializer) {
-          body.add(_emitAssert(init.condition, init.message));
-        }
-      }
-    }
-
-    return JS.Statement.from(body);
+    // Run field initializers before the other ones.
+    fieldInit.addAll(body);
+    return JS.Statement.from(fieldInit);
   }
 
   /// Emits argument initializers, which handles optional/named args, as well
