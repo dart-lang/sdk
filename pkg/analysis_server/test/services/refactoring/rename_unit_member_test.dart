@@ -628,8 +628,4 @@ main() {
 }
 ''');
   }
-
-  String convertPath(String path) {
-    return resourceProvider.convertPath(path);
-  }
 }

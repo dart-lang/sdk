@@ -27,10 +27,6 @@ class ImportElementsComputerTest extends AbstractContextTest {
     sourcePath = resourceProvider.convertPath('/p/lib/source.dart');
   }
 
-  String convertPath(String path) {
-    return resourceProvider.convertPath(path);
-  }
-
   test_dartAsync_noPrefix() async {
     String selection = "Future<String> f = null;";
     String content = """
@@ -260,8 +256,7 @@ blankLine() {
     expect(elementsList, hasLength(1));
     ImportedElements elements = elementsList[0];
     expect(elements, isNotNull);
-    expect(elements.path,
-        resourceProvider.convertPath('/pubcache/foo/lib/foo.dart'));
+    expect(elements.path, convertPath('/pubcache/foo/lib/foo.dart'));
     expect(elements.prefix, '');
     expect(elements.elements, unorderedEquals(['A', 'B']));
   }

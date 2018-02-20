@@ -69,8 +69,8 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setAnalysisRoots_included_nonexistentFolder() async {
-    String projectA = resourceProvider.convertPath('/project_a');
-    String projectB = resourceProvider.convertPath('/project_b');
+    String projectA = convertPath('/project_a');
+    String projectB = convertPath('/project_b');
     String fileB = newFile('/project_b/b.dart', content: '// b').path;
     var response = testSetAnalysisRoots([projectA, projectB], []);
     var serverRef = server;
@@ -114,11 +114,11 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setPriorityFiles_valid() {
-    var p1 = resourceProvider.convertPath('/p1');
-    var p2 = resourceProvider.convertPath('/p2');
-    var aPath = resourceProvider.convertPath('/p1/a.dart');
-    var bPath = resourceProvider.convertPath('/p2/b.dart');
-    var cPath = resourceProvider.convertPath('/p2/c.dart');
+    var p1 = convertPath('/p1');
+    var p2 = convertPath('/p2');
+    var aPath = convertPath('/p1/a.dart');
+    var bPath = convertPath('/p2/b.dart');
+    var cPath = convertPath('/p2/c.dart');
     newFile(aPath, content: 'library a;');
     newFile(bPath, content: 'library b;');
     newFile(cPath, content: 'library c;');
@@ -354,8 +354,8 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
   String testCode;
 
   AnalysisTestHelper() {
-    projectPath = resourceProvider.convertPath('/project');
-    testFile = resourceProvider.convertPath('/project/bin/test.dart');
+    projectPath = convertPath('/project');
+    testFile = convertPath('/project/bin/test.dart');
     processRequiredPlugins();
     serverChannel = new MockServerChannel();
     // Create an SDK in the mock file system.
@@ -365,7 +365,7 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
         resourceProvider,
         new MockPackageMapProvider(),
         new AnalysisServerOptions()..previewDart2 = true,
-        new DartSdkManager(resourceProvider.convertPath('/'), false),
+        new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -614,7 +614,6 @@ main() {
   }
 
   test_afterAnalysis_packageFile_inRoot() async {
-    final convertPath = resourceProvider.convertPath;
     String pkgA = convertPath('/pkgA');
     String pkgB = convertPath('/pkgA');
     String pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
@@ -666,7 +665,7 @@ class A {}
   }
 
   test_afterAnalysis_sdkFile() async {
-    String file = resourceProvider.convertPath('/lib/core/core.dart');
+    String file = convertPath('/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially

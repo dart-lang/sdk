@@ -99,7 +99,7 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
         resourceProvider,
         packageMapProvider,
         new AnalysisServerOptions(),
-        new DartSdkManager(resourceProvider.convertPath('/'), false),
+        new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -114,10 +114,10 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
 
   Future test_serverStatusNotifications() {
     server.serverServices.add(ServerService.STATUS);
-    var pkgFolder = resourceProvider.convertPath('/pkg');
+    var pkgFolder = convertPath('/pkg');
     newFolder(pkgFolder);
-    newFolder(resourceProvider.pathContext.join(pkgFolder, 'lib'));
-    newFile(resourceProvider.pathContext.join(pkgFolder, 'lib', 'test.dart'),
+    newFolder(join(pkgFolder, 'lib'));
+    newFile(join(pkgFolder, 'lib', 'test.dart'),
         content: 'class C {}');
     server.setAnalysisRoots('0', [pkgFolder], [], {});
     // Pump the event queue to make sure the server has finished any
