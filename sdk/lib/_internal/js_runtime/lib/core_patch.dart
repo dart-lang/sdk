@@ -419,7 +419,8 @@ class String {
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int end]) {
     if (charCodes is JSArray) {
-      return _stringFromJSArray(charCodes, start, end);
+      JSArray<int> array = charCodes;
+      return _stringFromJSArray(array, start, end);
     }
     if (charCodes is NativeUint8List) {
       return _stringFromUint8List(charCodes, start, end);

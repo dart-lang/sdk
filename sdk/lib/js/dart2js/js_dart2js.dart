@@ -190,7 +190,7 @@ class JsObject {
     // the arguments list passed to apply().
     // After that, use the JavaScript 'new' operator which overrides any binding
     // of 'this' with the new instance.
-    var args = [null]..addAll(arguments.map(_convertToJS));
+    var args = <dynamic>[null]..addAll(arguments.map(_convertToJS));
     var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
     // Without this line, calling factoryFunction as a constructor throws
     JS('String', 'String(#)', factoryFunction);
@@ -503,7 +503,8 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     int length = end - start;
     if (length == 0) return;
     if (skipCount < 0) throw new ArgumentError(skipCount);
-    var args = [start, length]..addAll(iterable.skip(skipCount).take(length));
+    var args = <dynamic>[start, length]
+      ..addAll(iterable.skip(skipCount).take(length));
     callMethod('splice', args);
   }
 

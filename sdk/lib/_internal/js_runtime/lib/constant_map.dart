@@ -4,8 +4,9 @@
 
 part of _js_helper;
 
-class ConstantMapView<K, V> extends UnmodifiableMapView implements ConstantMap {
-  ConstantMapView(Map base) : super(base);
+class ConstantMapView<K, V> extends UnmodifiableMapView<K, V>
+    implements ConstantMap<K, V> {
+  ConstantMapView(Map<K, V> base) : super(base);
 }
 
 abstract class ConstantMap<K, V> implements Map<K, V> {
@@ -65,7 +66,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
   void operator []=(K key, V val) => _throwUnmodifiable();
   V putIfAbsent(K key, V ifAbsent()) => _throwUnmodifiable();
-  V remove(K key) => _throwUnmodifiable();
+  V remove(Object key) => _throwUnmodifiable();
   void clear() => _throwUnmodifiable();
   void addAll(Map<K, V> other) => _throwUnmodifiable();
 
@@ -112,7 +113,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
   final List<K> _keys;
 
   int get length => JS('JSUInt31', '#', _length);
-  List get _keysArray => JS('JSUnmodifiableArray', '#', _keys);
+  List<K> get _keysArray => JS('JSUnmodifiableArray', '#', _keys);
 
   bool containsValue(Object needle) {
     return values.any((V value) => value == needle);

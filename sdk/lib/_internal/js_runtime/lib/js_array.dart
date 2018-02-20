@@ -427,7 +427,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, 'skipCount');
 
-    List otherList;
+    List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
     if (iterable is List) {
