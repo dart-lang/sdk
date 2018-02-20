@@ -24,10 +24,7 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
 cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349
-cc/IsolateReload_DanglingGetter_Library: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Class: Fail # Issue 28349
 cc/IsolateReload_DanglingSetter_Instance: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Library: Fail # Issue 28349
 cc/IsolateReload_LiveStack: Fail # Issue 28349
 cc/IsolateReload_PendingSuperCall: Fail # Issue 28349
 cc/IsolateReload_SmiFastPathStubs: Fail # Issue 28349
@@ -214,32 +211,20 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
 cc/GenerateSource: Skip # Cannot generate source from a kernel binary. 
-cc/IsolateReload_DanglingGetter_Library: Fail
-cc/IsolateReload_DanglingSetter_Class: Fail
 cc/IsolateReload_DanglingSetter_Instance: Fail
-cc/IsolateReload_DanglingSetter_Library: Fail
 cc/IsolateReload_EnumDelete: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
 cc/IsolateReload_EnumToNotEnum: Skip
-cc/IsolateReload_ExportedLibModified: Crash
-cc/IsolateReload_ImportedLibModified: Crash
-cc/IsolateReload_ImportedMixinFunction: Crash
-cc/IsolateReload_LibraryHide: Crash
-cc/IsolateReload_LibraryShow: Crash
 cc/IsolateReload_LiveStack: Fail
-cc/IsolateReload_MainLibModified: Crash
-cc/IsolateReload_NoLibsModified: Crash
 cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
-cc/IsolateReload_PrefixImportedLibModified: Crash
 cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
 cc/IsolateReload_RunNewFieldInitializers: Skip
 cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
 cc/IsolateReload_RunNewFieldInitializersThrows: Skip
 cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
-cc/IsolateReload_ShapeChangeRetainsHash: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
@@ -290,12 +275,9 @@ dart/spawn_shutdown_test: SkipSlow
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 cc/IsolateReload_DanglingGetter_Class: Crash
 cc/IsolateReload_DanglingGetter_Instance: Crash
-cc/IsolateReload_DanglingGetter_Library: Crash
-cc/IsolateReload_DanglingSetter_Class: Crash
 cc/IsolateReload_DanglingSetter_Instance: Crash
-cc/IsolateReload_DanglingSetter_Library: Crash
 cc/IsolateReload_EnumDelete: Crash
-cc/IsolateReload_LibraryLookup: Crash
+cc/IsolateReload_LibraryLookup: Fail
 cc/IsolateReload_TearOff_AddArguments: Crash
 cc/IsolateReload_TearOff_AddArguments2: Crash
 cc/IsolateReload_TearOff_Class_Identity: Crash
@@ -314,7 +296,7 @@ cc/Parser_AllocateVariables_TwoChains: Crash
 [ $compiler == dartk && $system == linux ]
 cc/IsolateReload_DanglingGetter_Class: Fail
 cc/IsolateReload_DanglingGetter_Instance: Fail
-cc/IsolateReload_LibraryLookup: Fail
+cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_AddArguments2: Fail
 cc/IsolateReload_TearOff_Class_Identity: Fail

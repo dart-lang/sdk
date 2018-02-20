@@ -211,10 +211,6 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
-#ifndef PRODUCT
-static ThreadLocalKey kernel_reload_key = kUnsetThreadLocalKey;
-#endif
-
 bool TestCase::UsingDartFrontend() {
   return FLAG_use_dart_frontend;
 }
@@ -386,16 +382,38 @@ static Dart_Handle LoadTestScriptWithVMParser(const char* script,
   return lib;
 }
 
+static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
+                                      const char* script) {
+  ASSERT(sourcefiles != NULL);
+  ASSERT(script != NULL);
+  ASSERT(FLAG_use_dart_frontend);
+
+  intptr_t num_test_libs = 0;
+  if (test_libs_ != NULL) {
+    num_test_libs = test_libs_->length();
+  }
+
+  *sourcefiles = new Dart_SourceFile[num_test_libs + 1];
+  (*sourcefiles)[0].uri = RESOLVED_USER_TEST_URI;
+  (*sourcefiles)[0].source = script;
+  for (intptr_t i = 0; i < num_test_libs; ++i) {
+    (*sourcefiles)[i + 1].uri = test_libs_->At(i).url;
+    (*sourcefiles)[i + 1].source = test_libs_->At(i).source;
+  }
+  return num_test_libs + 1;
+}
+
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver,
                                      const char* lib_url,
                                      bool finalize_classes) {
   if (FLAG_use_dart_frontend) {
-    Dart_SourceFile sourcefiles[] = {
-        {OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_url),
-         script}};
-    return LoadTestScriptWithDFE(sizeof(sourcefiles) / sizeof(Dart_SourceFile),
-                                 sourcefiles, resolver, finalize_classes);
+    Dart_SourceFile* sourcefiles = NULL;
+    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script);
+    Dart_Handle result = LoadTestScriptWithDFE(num_sources, sourcefiles,
+                                               resolver, finalize_classes);
+    delete[] sourcefiles;
+    return result;
   } else {
     return LoadTestScriptWithVMParser(script, resolver, lib_url,
                                       finalize_classes);
@@ -411,7 +429,6 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri, const char* script) {
     EXPECT_VALID(result);
     void* kernel_pgm = NULL;
     int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
-    OS::Print("Compiling %s %d\n", sourcefiles[0].uri, sourcefiles_count);
     char* error = TestCase::CompileTestScriptWithDFE(
         sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, false);
     if (error != NULL) {
@@ -467,16 +484,6 @@ void TestCase::SetReloadTestScript(const char* script) {
   OSThread::SetThreadLocal(script_reload_key, reinterpret_cast<uword>(script));
 }
 
-void TestCase::SetReloadTestKernel(const void* kernel) {
-  if (kernel_reload_key == kUnsetThreadLocalKey) {
-    kernel_reload_key = OSThread::CreateThreadLocal();
-  }
-  ASSERT(kernel_reload_key != kUnsetThreadLocalKey);
-  ASSERT(OSThread::GetThreadLocal(kernel_reload_key) == 0);
-  // Store the new script in TLS.
-  OSThread::SetThreadLocal(kernel_reload_key, reinterpret_cast<uword>(kernel));
-}
-
 Dart_Handle TestCase::TriggerReload() {
   Isolate* isolate = Isolate::Current();
   JSONStream js;
@@ -511,9 +518,10 @@ Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
   if (FLAG_use_dart_frontend) {
-    Dart_SourceFile sourcefiles[] = {{RESOLVED_USER_TEST_URI, script}};
-    KernelIsolate::UpdateInMemorySources(
-        sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles);
+    Dart_SourceFile* sourcefiles = NULL;
+    intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
+    KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+    delete[] sourcefiles;
   } else {
     SetReloadTestScript(script);
   }
@@ -538,8 +546,6 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
-  SetReloadTestKernel(kernel);
-
   Dart_Handle result = TriggerReload();
   if (Dart_IsError(result)) {
     return result;

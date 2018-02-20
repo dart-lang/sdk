@@ -2844,7 +2844,8 @@ TEST_CASE(IsolateReload_NoLibsModified) {
 }
 
 static bool MainModifiedCallback(const char* url, int64_t since) {
-  if (strcmp(url, "test-lib") == 0) {
+  if ((strcmp(url, "test-lib") == 0) ||
+      (strcmp(url, "file:///test-lib") == 0)) {
     return true;
   }
   return false;
