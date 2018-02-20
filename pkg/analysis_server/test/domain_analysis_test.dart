@@ -365,7 +365,7 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
         resourceProvider,
         new MockPackageMapProvider(),
         new AnalysisServerOptions()..previewDart2 = true,
-        new DartSdkManager('/', false),
+        new DartSdkManager(resourceProvider.convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -614,8 +614,9 @@ main() {
   }
 
   test_afterAnalysis_packageFile_inRoot() async {
-    String pkgA = '/pkgA';
-    String pkgB = '/pkgA';
+    final convertPath = resourceProvider.convertPath;
+    String pkgA = convertPath('/pkgA');
+    String pkgB = convertPath('/pkgA');
     String pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
@@ -665,7 +666,7 @@ class A {}
   }
 
   test_afterAnalysis_sdkFile() async {
-    String file = '/lib/core/core.dart';
+    String file = resourceProvider.convertPath('/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially
