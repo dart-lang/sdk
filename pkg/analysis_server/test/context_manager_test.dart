@@ -144,6 +144,7 @@ test_pack:lib/''');
   }
 
   test_embedder_packagespec() async {
+    final convertPath = resourceProvider.convertPath;
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -171,7 +172,7 @@ test_pack:lib/''');
     expect(count, equals(1));
     var source = sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
+    expect(source.fullName, convertPath('/my/proj/sdk_ext/entry.dart'));
     // We can't find dart:core because we didn't list it in our
     // embedded_libs map.
     expect(sourceFactory.forUri('dart:core'), isNull);
@@ -199,16 +200,18 @@ test_pack:lib/''');
   }
 
   void test_isInAnalysisRoot_excluded() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String excludedFolder = '$project/excluded';
+    String project = convertPath('/project');
+    String excludedFolder = convertPath('$project/excluded');
     // set roots
     resourceProvider.newFolder(project);
     resourceProvider.newFolder(excludedFolder);
     manager.setRoots(
         <String>[project], <String>[excludedFolder], <String, String>{});
     // verify
-    expect(manager.isInAnalysisRoot('$excludedFolder/test.dart'), isFalse);
+    expect(manager.isInAnalysisRoot(convertPath('$excludedFolder/test.dart')),
+        isFalse);
   }
 
   void test_isInAnalysisRoot_inNestedContext() {
@@ -260,7 +263,8 @@ test_pack:lib/''');
     // Verify that ignored files were ignored.
     Iterable<String> filePaths = callbacks.currentFilePaths;
     expect(filePaths, hasLength(1));
-    expect(filePaths, contains('/my/proj/lib/main.dart'));
+    expect(filePaths,
+        contains(resourceProvider.convertPath('/my/proj/lib/main.dart')));
   }
 
   test_refresh_folder_with_packagespec() {
@@ -283,12 +287,13 @@ test_pack:lib/''');
   // Once http://dartbug.com/23909 is fixed, add a test for sdk extensions
   // and PackageMapDisposition.
   test_refresh_folder_with_packagespec_subfolders() {
+    final join = resourceProvider.pathContext.join;
     // Create a folder with no .packages file, containing two subfolders with
     // .packages files.
-    String subdir1Path = path.posix.join(projPath, 'subdir1');
-    String subdir2Path = path.posix.join(projPath, 'subdir2');
-    String packagespec1Path = path.posix.join(subdir1Path, '.packages');
-    String packagespec2Path = path.posix.join(subdir2Path, '.packages');
+    String subdir1Path = join(projPath, 'subdir1');
+    String subdir2Path = join(projPath, 'subdir2');
+    String packagespec1Path = join(subdir1Path, '.packages');
+    String packagespec2Path = join(subdir2Path, '.packages');
     resourceProvider.newFile(packagespec1Path, '');
     resourceProvider.newFile(packagespec2Path, '');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -324,12 +329,13 @@ test_pack:lib/''');
   }
 
   test_refresh_folder_with_pubspec_subfolders() {
+    final join = resourceProvider.pathContext.join;
     // Create a folder with no pubspec.yaml, containing two subfolders with
     // pubspec.yaml files.
-    String subdir1Path = path.posix.join(projPath, 'subdir1');
-    String subdir2Path = path.posix.join(projPath, 'subdir2');
-    String pubspec1Path = path.posix.join(subdir1Path, 'pubspec.yaml');
-    String pubspec2Path = path.posix.join(subdir2Path, 'pubspec.yaml');
+    String subdir1Path = join(projPath, 'subdir1');
+    String subdir2Path = join(projPath, 'subdir2');
+    String pubspec1Path = join(subdir1Path, 'pubspec.yaml');
+    String pubspec2Path = join(subdir2Path, 'pubspec.yaml');
     resourceProvider.newFile(pubspec1Path, 'pubspec');
     resourceProvider.newFile(pubspec2Path, 'pubspec');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -349,13 +355,15 @@ test_pack:lib/''');
   }
 
   test_refresh_oneContext() {
+    final convertPath = resourceProvider.convertPath;
+    final join = resourceProvider.pathContext.join;
     // create two contexts with pubspec.yaml files
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec1');
 
-    String proj2Path = '/my/proj2';
+    String proj2Path = convertPath('/my/proj2');
     resourceProvider.newFolder(proj2Path);
-    String pubspec2Path = path.posix.join(proj2Path, 'pubspec.yaml');
+    String pubspec2Path = join(proj2Path, 'pubspec.yaml');
     resourceProvider.newFile(pubspec2Path, 'pubspec2');
 
     List<String> roots = <String>[projPath, proj2Path];
@@ -398,11 +406,12 @@ test_pack:lib/''');
         .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
     expect(count, equals(1));
     var source = sourceFactory.forUri('dart:foobar');
-    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
+    expect(source.fullName,
+        equals(resourceProvider.convertPath('/my/proj/sdk_ext/entry.dart')));
   }
 
   void test_setRoots_addFolderWithDartFile() {
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -418,7 +427,8 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithDartFileInSubfolder() {
-    String filePath = path.posix.join(projPath, 'foo', 'bar.dart');
+    String filePath =
+        resourceProvider.pathContext.join(projPath, 'foo', 'bar.dart');
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -428,7 +438,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithDummyLink() {
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
     resourceProvider.newDummyLink(filePath);
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -436,8 +446,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithNestedPackageSpec() {
-    String examplePath = '$projPath/${ContextManagerTest.EXAMPLE_NAME}';
-    String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
+    final join = resourceProvider.pathContext.join;
+    final convertPath = resourceProvider.convertPath;
+    String examplePath =
+        convertPath('$projPath/${ContextManagerTest.EXAMPLE_NAME}');
+    String libPath = convertPath('$projPath/${ContextManagerTest.LIB_NAME}');
 
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}');
     newFile('$libPath/main.dart');
@@ -455,18 +468,21 @@ test_pack:lib/''');
     expect(callbacks.currentContextRoots, contains(projPath));
     Iterable<Source> projSources = callbacks.currentFileSources(projPath);
     expect(projSources, hasLength(1));
-    expect(projSources.first.uri.toString(), 'file:///my/proj/lib/main.dart');
+    expect(projSources.first.uri.toString(),
+        (new Uri.file(join(libPath, 'main.dart')).toString()));
 
     expect(callbacks.currentContextRoots, contains(examplePath));
     Iterable<Source> exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
     expect(exampleSources.first.uri.toString(),
-        'file:///my/proj/example/example.dart');
+        (new Uri.file(join(examplePath, 'example.dart')).toString()));
   }
 
   void test_setRoots_addFolderWithNestedPubspec() {
-    String examplePath = '$projPath/${ContextManagerTest.EXAMPLE_NAME}';
-    String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
+    final convertPath = resourceProvider.convertPath;
+    String examplePath =
+        convertPath('$projPath/${ContextManagerTest.EXAMPLE_NAME}');
+    String libPath = convertPath('$projPath/${ContextManagerTest.LIB_NAME}');
 
     newFile('$projPath/${ContextManagerImpl.PUBSPEC_NAME}');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
@@ -488,7 +504,7 @@ test_pack:lib/''');
     Iterable<Source> exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
     expect(exampleSources.first.uri.toString(),
-        'file:///my/proj/example/example.dart');
+        (new Uri.file('$examplePath/example.dart').toString()));
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
@@ -500,12 +516,13 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPackagespec() {
-    String packagespecPath = path.posix.join(projPath, '.packages');
+    final join = resourceProvider.pathContext.join;
+    final convertPath = resourceProvider.convertPath;
+    String packagespecPath = join(projPath, '.packages');
     resourceProvider.newFile(packagespecPath,
         'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    File mainFile =
-        resourceProvider.newFile(path.posix.join(libPath, 'main.dart'), '');
+    File mainFile = resourceProvider.newFile(join(libPath, 'main.dart'), '');
     Source source = mainFile.createSource();
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -518,8 +535,10 @@ test_pack:lib/''');
     Source resolvedSource =
         sourceFactory.resolveUri(source, 'package:unittest/unittest.dart');
     expect(resolvedSource, isNotNull);
-    expect(resolvedSource.fullName,
-        equals('/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
+    expect(
+        resolvedSource.fullName,
+        equals(convertPath(
+            '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
   }
 
   void test_setRoots_addFolderWithPackagespecAndPackageRoot() {
@@ -574,20 +593,21 @@ test_pack:lib/''');
     expect(sources, hasLength(4));
     List<String> uris =
         sources.map((Source source) => source.uri.toString()).toList();
-    expect(uris, contains('file://$appPath'));
+    expect(uris, contains((new Uri.file(appPath)).toString()));
     expect(uris, contains('package:proj/main.dart'));
     expect(uris, contains('package:proj/src/internal.dart'));
-    expect(uris, contains('file://$testFilePath'));
+    expect(uris, contains((new Uri.file(testFilePath)).toString()));
   }
 
   void test_setRoots_addFolderWithPubspecAndPackagespecFolders() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProjectA = '$root/sub/aaa';
-    String subProjectB = '$root/sub/sub2/bbb';
-    String subProjectA_file = '$subProjectA/bin/a.dart';
-    String subProjectB_file = '$subProjectB/bin/b.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProjectA = convertPath('$root/sub/aaa');
+    String subProjectB = convertPath('$root/sub/sub2/bbb');
+    String subProjectA_file = convertPath('$subProjectA/bin/a.dart');
+    String subProjectB_file = convertPath('$subProjectB/bin/b.dart');
     // create files
     resourceProvider.newFile('$subProjectA/pubspec.yaml', 'pubspec');
     resourceProvider.newFile('$subProjectB/pubspec.yaml', 'pubspec');
@@ -608,15 +628,16 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPubspecFolders() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String projectA = '$root/sub/aaa';
-    String projectALib = '$root/sub/aaa/lib';
-    String subProjectA_file = '$projectA/bin/a.dart';
-    String projectB = '$root/sub/sub2/bbb';
-    String projectBLib = '$root/sub/sub2/bbb/lib';
-    String subProjectB_file = '$projectB/bin/b.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String projectA = convertPath('$root/sub/aaa');
+    String projectALib = convertPath('$root/sub/aaa/lib');
+    String subProjectA_file = convertPath('$projectA/bin/a.dart');
+    String projectB = convertPath('$root/sub/sub2/bbb');
+    String projectBLib = convertPath('$root/sub/sub2/bbb/lib');
+    String subProjectB_file = convertPath('$projectB/bin/b.dart');
     // create files
     newFile('$projectA/${ContextManagerImpl.PUBSPEC_NAME}');
     newFile('$projectA/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
@@ -649,8 +670,8 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addPackageRoot() {
-    String packagePathFoo = '/package1/foo';
-    String packageRootPath = '/package2/foo';
+    String packagePathFoo = resourceProvider.convertPath('/package1/foo');
+    String packageRootPath = resourceProvider.convertPath('/package2/foo');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:file:///package1/foo');
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
@@ -681,10 +702,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_newRoot_withExcludedFile() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String file1 = '$project/file1.dart';
-    String file2 = '$project/file2.dart';
+    String project = convertPath('/project');
+    String file1 = convertPath('$project/file1.dart');
+    String file2 = convertPath('$project/file2.dart');
     // create files
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
@@ -695,12 +717,13 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_newRoot_withExcludedFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String folderA = '$project/aaa';
-    String folderB = '$project/bbb';
-    String fileA = '$folderA/a.dart';
-    String fileB = '$folderB/b.dart';
+    String project = convertPath('/project');
+    String folderA = convertPath('$project/aaa');
+    String folderB = convertPath('$project/bbb');
+    String fileA = convertPath('$folderA/a.dart');
+    String fileB = convertPath('$folderB/b.dart');
     // create files
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
@@ -711,10 +734,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_sameRoot_addExcludedFile() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String file1 = '$project/file1.dart';
-    String file2 = '$project/file2.dart';
+    String project = convertPath('/project');
+    String file1 = convertPath('$project/file1.dart');
+    String file2 = convertPath('$project/file2.dart');
     // create files
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
@@ -729,12 +753,13 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_sameRoot_addExcludedFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String folderA = '$project/aaa';
-    String folderB = '$project/bbb';
-    String fileA = '$folderA/a.dart';
-    String fileB = '$folderB/b.dart';
+    String project = convertPath('/project');
+    String folderA = convertPath('$project/aaa');
+    String folderB = convertPath('$project/bbb');
+    String fileA = convertPath('$folderA/a.dart');
+    String fileB = convertPath('$folderB/b.dart');
     // create files
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
@@ -749,10 +774,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_sameRoot_removeExcludedFile() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String file1 = '$project/file1.dart';
-    String file2 = '$project/file2.dart';
+    String project = convertPath('/project');
+    String file1 = convertPath('$project/file1.dart');
+    String file2 = convertPath('$project/file2.dart');
     // create files
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
@@ -767,10 +793,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_sameRoot_removeExcludedFile_inFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String file1 = '$project/bin/file1.dart';
-    String file2 = '$project/bin/file2.dart';
+    String project = convertPath('/project');
+    String file1 = convertPath('$project/bin/file1.dart');
+    String file2 = convertPath('$project/bin/file2.dart');
     // create files
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
@@ -785,12 +812,13 @@ test_pack:lib/''');
   }
 
   void test_setRoots_exclude_sameRoot_removeExcludedFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String folderA = '$project/aaa';
-    String folderB = '$project/bbb';
-    String fileA = '$folderA/a.dart';
-    String fileB = '$folderB/b.dart';
+    String project = convertPath('/project');
+    String folderA = convertPath('$project/aaa');
+    String folderB = convertPath('$project/bbb');
+    String fileA = convertPath('$folderA/a.dart');
+    String fileB = convertPath('$folderB/b.dart');
     // create files
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
@@ -805,10 +833,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_ignoreDocFolder() {
-    String project = '/project';
-    String fileA = '$project/foo.dart';
-    String fileB = '$project/lib/doc/bar.dart';
-    String fileC = '$project/doc/bar.dart';
+    final convertPath = resourceProvider.convertPath;
+    String project = convertPath('/project');
+    String fileA = convertPath('$project/foo.dart');
+    String fileB = convertPath('$project/lib/doc/bar.dart');
+    String fileC = convertPath('$project/doc/bar.dart');
     resourceProvider.newFile(fileA, '');
     resourceProvider.newFile(fileB, '');
     resourceProvider.newFile(fileC, '');
@@ -818,10 +847,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_nested_includedByOuter_innerFirst() {
-    String project = '/project';
-    String projectPubspec = '$project/pubspec.yaml';
-    String example = '$project/example';
-    String examplePubspec = '$example/pubspec.yaml';
+    final convertPath = resourceProvider.convertPath;
+    String project = convertPath('/project');
+    String projectPubspec = convertPath('$project/pubspec.yaml');
+    String example = convertPath('$project/example');
+    String examplePubspec = convertPath('$example/pubspec.yaml');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
@@ -846,9 +876,10 @@ test_pack:lib/''');
   }
 
   void test_setRoots_nested_includedByOuter_outerPubspec() {
-    String project = '/project';
-    String projectPubspec = '$project/pubspec.yaml';
-    String example = '$project/example';
+    final convertPath = resourceProvider.convertPath;
+    String project = convertPath('/project');
+    String projectPubspec = convertPath('$project/pubspec.yaml');
+    String example = convertPath('$project/example');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFolder(example);
@@ -868,10 +899,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_nested_includedByOuter_twoPubspecs() {
-    String project = '/project';
-    String projectPubspec = '$project/pubspec.yaml';
-    String example = '$project/example';
-    String examplePubspec = '$example/pubspec.yaml';
+    final convertPath = resourceProvider.convertPath;
+    String project = convertPath('/project');
+    String projectPubspec = convertPath('$project/pubspec.yaml');
+    String example = convertPath('$project/example');
+    String examplePubspec = convertPath('$example/pubspec.yaml');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
@@ -903,7 +935,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
-    String packagePath = '/package/foo';
+    String packagePath = resourceProvider.convertPath('/package/foo');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:file:///package/foo');
     Folder packageFolder = resourceProvider.newFolder(packagePath);
@@ -916,10 +948,11 @@ test_pack:lib/''');
   }
 
   void test_setRoots_noContext_excludedFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String excludedFolder = '$project/excluded';
-    String excludedPubspec = '$excludedFolder/pubspec.yaml';
+    String project = convertPath('/project');
+    String excludedFolder = convertPath('$project/excluded');
+    String excludedPubspec = convertPath('$excludedFolder/pubspec.yaml');
     // create files
     resourceProvider.newFile(excludedPubspec, 'name: ignore-me');
     // set "/project", and exclude "/project/excluded"
@@ -949,7 +982,8 @@ test_pack:lib/''');
   }
 
   void test_setRoots_packageResolver() {
-    String filePath = path.posix.join(projPath, 'lib', 'foo.dart');
+    String filePath =
+        resourceProvider.pathContext.join(projPath, 'lib', 'foo.dart');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:lib/');
     resourceProvider.newFile(filePath, 'contents');
@@ -964,11 +998,12 @@ test_pack:lib/''');
   }
 
   void test_setRoots_pathContainsDotFile() {
+    final convertPath = resourceProvider.convertPath;
     // If the path to a file (relative to the context root) contains a folder
     // whose name begins with '.', then the file is ignored.
-    String project = '/project';
-    String fileA = '$project/foo.dart';
-    String fileB = '$project/.pub/bar.dart';
+    String project = convertPath('/project');
+    String fileA = convertPath('$project/foo.dart');
+    String fileB = convertPath('$project/.pub/bar.dart');
     resourceProvider.newFile(fileA, '');
     resourceProvider.newFile(fileB, '');
     manager.setRoots(<String>[project], <String>[], <String, String>{});
@@ -1003,17 +1038,18 @@ test_pack:lib/''');
   }
 
   void test_setRoots_removeFolderWithPackagespecFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String projectA = '/projectA';
-    String projectB = '/projectB';
-    String subProjectA = '$projectA/sub';
-    String subProjectB = '$projectB/sub';
-    String projectA_file = '$projectA/a.dart';
-    String projectB_file = '$projectB/a.dart';
-    String subProjectA_pubspec = '$subProjectA/.packages';
-    String subProjectB_pubspec = '$subProjectB/.packages';
-    String subProjectA_file = '$subProjectA/bin/sub_a.dart';
-    String subProjectB_file = '$subProjectB/bin/sub_b.dart';
+    String projectA = convertPath('/projectA');
+    String projectB = convertPath('/projectB');
+    String subProjectA = convertPath('$projectA/sub');
+    String subProjectB = convertPath('$projectB/sub');
+    String projectA_file = convertPath('$projectA/a.dart');
+    String projectB_file = convertPath('$projectB/a.dart');
+    String subProjectA_pubspec = convertPath('$subProjectA/.packages');
+    String subProjectB_pubspec = convertPath('$subProjectB/.packages');
+    String subProjectA_file = convertPath('$subProjectA/bin/sub_a.dart');
+    String subProjectB_file = convertPath('$subProjectB/bin/sub_b.dart');
     // create files
     resourceProvider.newFile(projectA_file, '// a');
     resourceProvider.newFile(projectB_file, '// b');
@@ -1051,17 +1087,18 @@ test_pack:lib/''');
   }
 
   void test_setRoots_removeFolderWithPubspecFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String projectA = '/projectA';
-    String projectB = '/projectB';
-    String subProjectA = '$projectA/sub';
-    String subProjectB = '$projectB/sub';
-    String projectA_file = '$projectA/a.dart';
-    String projectB_file = '$projectB/a.dart';
-    String subProjectA_pubspec = '$subProjectA/pubspec.yaml';
-    String subProjectB_pubspec = '$subProjectB/pubspec.yaml';
-    String subProjectA_file = '$subProjectA/bin/sub_a.dart';
-    String subProjectB_file = '$subProjectB/bin/sub_b.dart';
+    String projectA = convertPath('/projectA');
+    String projectB = convertPath('/projectB');
+    String subProjectA = convertPath('$projectA/sub');
+    String subProjectB = convertPath('$projectB/sub');
+    String projectA_file = convertPath('$projectA/a.dart');
+    String projectB_file = convertPath('$projectB/a.dart');
+    String subProjectA_pubspec = convertPath('$subProjectA/pubspec.yaml');
+    String subProjectB_pubspec = convertPath('$subProjectB/pubspec.yaml');
+    String subProjectA_file = convertPath('$subProjectA/bin/sub_a.dart');
+    String subProjectB_file = convertPath('$subProjectB/bin/sub_b.dart');
     // create files
     resourceProvider.newFile(projectA_file, '// a');
     resourceProvider.newFile(projectB_file, '// b');
@@ -1086,8 +1123,9 @@ test_pack:lib/''');
   }
 
   void test_setRoots_removePackageRoot() {
-    String packagePathFoo = '/package1/foo';
-    String packageRootPath = '/package2/foo';
+    final convertPath = resourceProvider.convertPath;
+    String packagePathFoo = convertPath('/package1/foo');
+    String packageRootPath = convertPath('/package2/foo');
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
         content: 'foo:file:///package1/foo');
@@ -1108,8 +1146,9 @@ test_pack:lib/''');
     // If the path to the context root itself contains a folder whose name
     // begins with '.', then that is not sufficient to cause any files in the
     // context to be ignored.
-    String project = '/.pub/project';
-    String fileA = '$project/foo.dart';
+    final convertPath = resourceProvider.convertPath;
+    String project = convertPath('/.pub/project');
+    String fileA = convertPath('$project/foo.dart');
     resourceProvider.newFile(fileA, '');
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     callbacks.assertContextPaths([project]);
@@ -1130,11 +1169,12 @@ test_pack:lib/''');
   }
 
   test_watch_addFile() {
+    final join = resourceProvider.pathContext.join;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     expect(callbacks.currentFilePaths, hasLength(0));
     // add file
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = join(projPath, 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');
     // the file was added
     return pumpEventQueue().then((_) {
@@ -1145,12 +1185,13 @@ test_pack:lib/''');
   }
 
   test_watch_addFile_excluded() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String folderA = '$project/aaa';
-    String folderB = '$project/bbb';
-    String fileA = '$folderA/a.dart';
-    String fileB = '$folderB/b.dart';
+    String project = convertPath('/project');
+    String folderA = convertPath('$project/aaa');
+    String folderB = convertPath('$project/bbb');
+    String fileA = convertPath('$folderA/a.dart');
+    String fileB = convertPath('$folderB/b.dart');
     // create files
     resourceProvider.newFile(fileA, 'library a;');
     // set roots
@@ -1166,10 +1207,11 @@ test_pack:lib/''');
   }
 
   test_watch_addFile_inDocFolder_inner() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String fileA = '$project/a.dart';
-    String fileB = '$project/lib/doc/b.dart';
+    String project = convertPath('/project');
+    String fileA = convertPath('$project/a.dart');
+    String fileB = convertPath('$project/lib/doc/b.dart');
     // create files
     resourceProvider.newFile(fileA, '');
     // set roots
@@ -1185,10 +1227,11 @@ test_pack:lib/''');
   }
 
   test_watch_addFile_inDocFolder_topLevel() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String project = '/project';
-    String fileA = '$project/a.dart';
-    String fileB = '$project/doc/b.dart';
+    String project = convertPath('/project');
+    String fileA = convertPath('$project/a.dart');
+    String fileB = convertPath('$project/doc/b.dart');
     // create files
     resourceProvider.newFile(fileA, '');
     // set roots
@@ -1204,11 +1247,12 @@ test_pack:lib/''');
   }
 
   test_watch_addFile_pathContainsDotFile() async {
+    final convertPath = resourceProvider.convertPath;
     // If a file is added and the path to it (relative to the context root)
     // contains a folder whose name begins with '.', then the file is ignored.
-    String project = '/project';
-    String fileA = '$project/foo.dart';
-    String fileB = '$project/.pub/bar.dart';
+    String project = convertPath('/project');
+    String fileA = convertPath('$project/foo.dart');
+    String fileB = convertPath('$project/.pub/bar.dart');
     resourceProvider.newFile(fileA, '');
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     callbacks.assertContextPaths([project]);
@@ -1220,11 +1264,12 @@ test_pack:lib/''');
   }
 
   test_watch_addFile_rootPathContainsDotFile() async {
+    final convertPath = resourceProvider.convertPath;
     // If a file is added and the path to the context contains a folder whose
     // name begins with '.', then the file is not ignored.
-    String project = '/.pub/project';
-    String fileA = '$project/foo.dart';
-    String fileB = '$project/bar/baz.dart';
+    String project = convertPath('/.pub/project');
+    String fileA = convertPath('$project/foo.dart');
+    String fileB = convertPath('$project/bar/baz.dart');
     resourceProvider.newFile(fileA, '');
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     callbacks.assertContextPaths([project]);
@@ -1240,7 +1285,8 @@ test_pack:lib/''');
     // empty folder initially
     expect(callbacks.currentFilePaths, hasLength(0));
     // add file in subfolder
-    String filePath = path.posix.join(projPath, 'foo', 'bar.dart');
+    String filePath =
+        resourceProvider.pathContext.join(projPath, 'foo', 'bar.dart');
     resourceProvider.newFile(filePath, 'contents');
     // the file was added
     return pumpEventQueue().then((_) {
@@ -1251,10 +1297,11 @@ test_pack:lib/''');
   }
 
   test_watch_addPackagespec_toRoot() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String rootPackagespec = '$root/.packages';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String rootPackagespec = convertPath('$root/.packages');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
@@ -1273,12 +1320,13 @@ test_pack:lib/''');
   }
 
   test_watch_addPackagespec_toSubFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub/aaa';
-    String subPubspec = '$subProject/.packages';
-    String subFile = '$subProject/bin/a.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub/aaa');
+    String subPubspec = convertPath('$subProject/.packages');
+    String subFile = convertPath('$subProject/bin/a.dart');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
@@ -1297,13 +1345,14 @@ test_pack:lib/''');
   }
 
   test_watch_addPackagespec_toSubFolder_ofSubFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub';
-    String subPubspec = '$subProject/.packages';
-    String subFile = '$subProject/bin/sub.dart';
-    String subSubPubspec = '$subProject/subsub/.packages';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub');
+    String subPubspec = convertPath('$subProject/.packages');
+    String subFile = convertPath('$subProject/bin/sub.dart');
+    String subSubPubspec = convertPath('$subProject/subsub/.packages');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subPubspec, '');
@@ -1323,13 +1372,14 @@ test_pack:lib/''');
   }
 
   test_watch_addPackagespec_toSubFolder_withPubspec() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub/aaa';
-    String subPackagespec = '$subProject/.packages';
-    String subPubspec = '$subProject/pubspec.yaml';
-    String subFile = '$subProject/bin/a.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub/aaa');
+    String subPackagespec = convertPath('$subProject/.packages');
+    String subPubspec = convertPath('$subProject/pubspec.yaml');
+    String subFile = convertPath('$subProject/bin/a.dart');
     // create files
     resourceProvider.newFile(subPubspec, 'pubspec');
     resourceProvider.newFile(rootFile, 'library root;');
@@ -1352,10 +1402,11 @@ test_pack:lib/''');
   }
 
   test_watch_addPubspec_toRoot() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String rootPubspec = '$root/pubspec.yaml';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String rootPubspec = convertPath('$root/pubspec.yaml');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
@@ -1372,12 +1423,13 @@ test_pack:lib/''');
   }
 
   test_watch_addPubspec_toSubFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub/aaa';
-    String subPubspec = '$subProject/pubspec.yaml';
-    String subFile = '$subProject/bin/a.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub/aaa');
+    String subPubspec = convertPath('$subProject/pubspec.yaml');
+    String subFile = convertPath('$subProject/bin/a.dart');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
@@ -1396,13 +1448,14 @@ test_pack:lib/''');
   }
 
   test_watch_addPubspec_toSubFolder_ofSubFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub';
-    String subPubspec = '$subProject/pubspec.yaml';
-    String subFile = '$subProject/bin/sub.dart';
-    String subSubPubspec = '$subProject/subsub/pubspec.yaml';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub');
+    String subPubspec = convertPath('$subProject/pubspec.yaml');
+    String subFile = convertPath('$subProject/bin/sub.dart');
+    String subSubPubspec = convertPath('$subProject/subsub/pubspec.yaml');
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subPubspec, 'pubspec');
@@ -1422,7 +1475,7 @@ test_pack:lib/''');
   }
 
   test_watch_deleteFile() {
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
     // add root with a file
     File file = resourceProvider.newFile(filePath, 'contents');
     Folder projFolder = file.parent;
@@ -1443,7 +1496,7 @@ test_pack:lib/''');
   }
 
   test_watch_deleteFolder() {
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
     // add root with a file
     File file = resourceProvider.newFile(filePath, 'contents');
     Folder projFolder = file.parent;
@@ -1464,10 +1517,11 @@ test_pack:lib/''');
   }
 
   test_watch_deletePackagespec_fromRoot() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootPubspec = '$root/.packages';
-    String rootFile = '$root/root.dart';
+    String root = convertPath('/root');
+    String rootPubspec = convertPath('$root/.packages');
+    String rootFile = convertPath('$root/root.dart');
     // create files
     resourceProvider.newFile(rootPubspec, '');
     resourceProvider.newFile(rootFile, 'library root;');
@@ -1484,12 +1538,13 @@ test_pack:lib/''');
   }
 
   test_watch_deletePackagespec_fromSubFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub/aaa';
-    String subPubspec = '$subProject/.packages';
-    String subFile = '$subProject/bin/a.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub/aaa');
+    String subPubspec = convertPath('$subProject/.packages');
+    String subFile = convertPath('$subProject/bin/a.dart');
     // create files
     resourceProvider.newFile(subPubspec, '');
     resourceProvider.newFile(rootFile, 'library root;');
@@ -1509,6 +1564,7 @@ test_pack:lib/''');
   }
 
   test_watch_deletePackagespec_fromSubFolder_withPubspec() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths:
     //
     // root
@@ -1520,12 +1576,12 @@ test_pack:lib/''');
     //       bin
     //         a.dart
     //
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub/aaa';
-    String subPackagespec = '$subProject/.packages';
-    String subPubspec = '$subProject/pubspec.yaml';
-    String subFile = '$subProject/bin/a.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub/aaa');
+    String subPackagespec = convertPath('$subProject/.packages');
+    String subPubspec = convertPath('$subProject/pubspec.yaml');
+    String subFile = convertPath('$subProject/bin/a.dart');
     // create files
     resourceProvider.newFile(subPackagespec, '');
     resourceProvider.newFile(subPubspec, 'pubspec');
@@ -1547,10 +1603,11 @@ test_pack:lib/''');
   }
 
   test_watch_deletePubspec_fromRoot() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootPubspec = '$root/pubspec.yaml';
-    String rootFile = '$root/root.dart';
+    String root = convertPath('/root');
+    String rootPubspec = convertPath('$root/pubspec.yaml');
+    String rootFile = convertPath('$root/root.dart');
     // create files
     resourceProvider.newFile(rootPubspec, 'pubspec');
     resourceProvider.newFile(rootFile, 'library root;');
@@ -1567,12 +1624,13 @@ test_pack:lib/''');
   }
 
   test_watch_deletePubspec_fromSubFolder() {
+    final convertPath = resourceProvider.convertPath;
     // prepare paths
-    String root = '/root';
-    String rootFile = '$root/root.dart';
-    String subProject = '$root/sub/aaa';
-    String subPubspec = '$subProject/pubspec.yaml';
-    String subFile = '$subProject/bin/a.dart';
+    String root = convertPath('/root');
+    String rootFile = convertPath('$root/root.dart');
+    String subProject = convertPath('$root/sub/aaa');
+    String subPubspec = convertPath('$subProject/pubspec.yaml');
+    String subFile = convertPath('$subProject/bin/a.dart');
     // create files
     resourceProvider.newFile(subPubspec, 'pubspec');
     resourceProvider.newFile(rootFile, 'library root;');
@@ -1592,7 +1650,7 @@ test_pack:lib/''');
   }
 
   test_watch_modifyFile() {
-    String filePath = path.posix.join(projPath, 'foo.dart');
+    String filePath = resourceProvider.pathContext.join(projPath, 'foo.dart');
     // add root with a file
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1610,12 +1668,13 @@ test_pack:lib/''');
   }
 
   test_watch_modifyPackageMapDependency_fail() async {
+    final join = resourceProvider.pathContext.join;
     // create a dependency file
-    String dependencyPath = path.posix.join(projPath, 'dep');
+    String dependencyPath = join(projPath, 'dep');
     resourceProvider.newFile(dependencyPath, 'contents');
     packageMapProvider.dependencies.add(dependencyPath);
     // create a Dart file
-    String dartFilePath = path.posix.join(projPath, 'main.dart');
+    String dartFilePath = join(projPath, 'main.dart');
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1630,8 +1689,9 @@ test_pack:lib/''');
   }
 
   test_watch_modifyPackagespec() {
-    String packagesPath = '$projPath/.packages';
-    String filePath = '$projPath/bin/main.dart';
+    final convertPath = resourceProvider.convertPath;
+    String packagesPath = convertPath('$projPath/.packages');
+    String filePath = convertPath('$projPath/bin/main.dart');
 
     resourceProvider.newFile(packagesPath, '');
     resourceProvider.newFile(filePath, 'library main;');
@@ -1701,7 +1761,7 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
 
   UriResolver packageResolver = null;
 
-  String projPath = '/my/proj';
+  String projPath = null;
 
   AnalysisError missing_required_param = new AnalysisError(
       new TestSource(), 0, 1, HintCode.MISSING_REQUIRED_PARAM, [
@@ -1765,11 +1825,13 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
 
   void setUp() {
     processRequiredPlugins();
+    projPath = resourceProvider.convertPath('/my/proj');
     resourceProvider.newFolder(projPath);
     packageMapProvider = new MockPackageMapProvider();
     // Create an SDK in the mock file system.
     new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager('/', true);
+    DartSdkManager sdkManager =
+        new DartSdkManager(resourceProvider.convertPath('/'), true);
     manager = new ContextManagerImpl(
         resourceProvider,
         new FileContentOverlay(),
@@ -2274,8 +2336,9 @@ analyzer:
     Folder projectFolder = resourceProvider.newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(2));
-    expect(drivers[0].name, equals('/my/proj'));
-    expect(drivers[1].name, equals('/my/proj/lib'));
+    final convertPath = resourceProvider.convertPath;
+    expect(drivers[0].name, equals(convertPath('/my/proj')));
+    expect(drivers[1].name, equals(convertPath('/my/proj/lib')));
   }
 
   test_path_filter_recursive_wildcard_child_contexts_option() async {
@@ -2305,8 +2368,9 @@ analyzer:
     Folder projectFolder = resourceProvider.newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(2));
-    expect(drivers[0].name, equals('/my/proj'));
-    expect(drivers[1].name, equals('/my/proj/lib'));
+    final convertPath = resourceProvider.convertPath;
+    expect(drivers[0].name, equals(convertPath('/my/proj')));
+    expect(drivers[1].name, equals(convertPath('/my/proj/lib')));
   }
 
   test_path_filter_wildcard_child_contexts_option() async {
@@ -2334,15 +2398,17 @@ analyzer:
     Folder projectFolder = resourceProvider.newFolder(projPath);
     var drivers = manager.getDriversInAnalysisRoot(projectFolder);
     expect(drivers, hasLength(2));
-    expect(drivers[0].name, equals('/my/proj'));
-    expect(drivers[1].name, equals('/my/proj/lib'));
+    final convertPath = resourceProvider.convertPath;
+    expect(drivers[0].name, equals(convertPath('/my/proj')));
+    expect(drivers[1].name, equals(convertPath('/my/proj/lib')));
   }
 
   void test_setRoots_nested_excludedByOuter() {
-    String project = '/project';
-    String projectPubspec = '$project/pubspec.yaml';
-    String example = '$project/example';
-    String examplePubspec = '$example/pubspec.yaml';
+    final convertPath = resourceProvider.convertPath;
+    String project = convertPath('/project');
+    String projectPubspec = convertPath('$project/pubspec.yaml');
+    String example = convertPath('$project/example');
+    String examplePubspec = convertPath('$example/pubspec.yaml');
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
@@ -2373,10 +2439,11 @@ analyzer:
   }
 
   void test_setRoots_nested_excludedByOuter_deep() {
-    String a = '/a';
-    String c = '$a/b/c';
-    String aPubspec = '$a/pubspec.yaml';
-    String cPubspec = '$c/pubspec.yaml';
+    final convertPath = resourceProvider.convertPath;
+    String a = convertPath('/a');
+    String c = convertPath('$a/b/c');
+    String aPubspec = convertPath('$a/pubspec.yaml');
+    String cPubspec = convertPath('$c/pubspec.yaml');
     // create files
     resourceProvider.newFile(aPubspec, 'name: aaa');
     resourceProvider.newFile(cPubspec, 'name: ccc');
