@@ -69,7 +69,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit(convertPath('/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 
@@ -109,7 +109,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit(convertPath('/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 class A {
