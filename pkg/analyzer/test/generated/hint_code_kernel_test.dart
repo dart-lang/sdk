@@ -64,6 +64,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
+  test_canBeNullAfterNullAware_after_cascade() async {
+    // Expected 1 errors of type HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, found 0
+    return super.test_canBeNullAfterNullAware_after_cascade();
+  }
+
+  @failingTest
+  @override
   test_deadCode_deadBlock_else() async {
     // Expected 1 errors of type HintCode.DEAD_CODE, found 0
     return super.test_deadCode_deadBlock_else();

@@ -406,6 +406,14 @@ class HintCode extends ErrorCode {
       "but does not invoke the overridden method.");
 
   /**
+   * When the left operand of a binary expression uses '?.' operator, it can be
+   * `null`.
+   */
+  static const HintCode NULL_AWARE_BEFORE_OPERATOR = const HintCode(
+      'NULL_AWARE_BEFORE_OPERATOR',
+      "The left operand uses '?.', so its value can be null.");
+
+  /**
    * A condition in a control flow statement could evaluate to `null` because it
    * uses the null-aware '?.' operator.
    */
@@ -415,6 +423,15 @@ class HintCode extends ErrorCode {
       "in a condition.",
       "Try replacing the '?.' with a '.', testing the left-hand side for null if "
       "necessary.");
+
+  /**
+   * A condition in operands of a logical operator could evaluate to `null`
+   * because it uses the null-aware '?.' operator.
+   */
+  static const HintCode NULL_AWARE_IN_LOGICAL_OPERATOR = const HintCode(
+      'NULL_AWARE_IN_LOGICAL_OPERATOR',
+      "The value of the '?.' operator can be 'null', which isn't appropriate "
+      "as an operand of a logical operator.");
 
   /**
    * Hint for classes that override equals, but not hashCode.
