@@ -664,7 +664,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return type;
     } else if (followCall && type is InterfaceType) {
       var member = _getInterfaceMember(type.classNode, callName, false);
-      var callType = member?.getterType;
+      var callType = getCalleeType(member, type);
       if (callType is FunctionType) {
         return callType;
       }
