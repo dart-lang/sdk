@@ -115,7 +115,6 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
   Future test_serverStatusNotifications() {
     server.serverServices.add(ServerService.STATUS);
     var pkgFolder = resourceProvider.convertPath('/pkg');
-    print(pkgFolder);
     newFolder(pkgFolder);
     newFolder(resourceProvider.pathContext.join(pkgFolder, 'lib'));
     newFile(resourceProvider.pathContext.join(pkgFolder, 'lib', 'test.dart'),
