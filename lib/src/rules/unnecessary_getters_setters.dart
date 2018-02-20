@@ -7,7 +7,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
-const _desc = r'Avoid wrapping fields in getters and setters just to be "safe".';
+const _desc =
+    r'Avoid wrapping fields in getters and setters just to be "safe".';
 
 const _details = r'''
 

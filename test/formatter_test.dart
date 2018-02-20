@@ -51,17 +51,16 @@ defineTests() {
       when(info.errors).thenReturn([error]);
       var out = new CollectingSink();
 
-      var reporter = new SimpleFormatter([info], null, out,
-          fileCount: 1, elapsedMs: 13)..write();
+      var reporter =
+          new SimpleFormatter([info], null, out, fileCount: 1, elapsedMs: 13)
+            ..write();
 
       test('count', () {
         expect(reporter.errorCount, 1);
       });
 
       test('write', () {
-        expect(
-            out.buffer.toString().trim(),
-            '''/foo/bar/baz.dart 3:3 [test] MSG
+        expect(out.buffer.toString().trim(), '''/foo/bar/baz.dart 3:3 [test] MSG
 
 1 file analyzed, 1 issue found, in 13 ms.''');
       });
@@ -69,7 +68,8 @@ defineTests() {
       test('stats', () {
         out.buffer.clear();
         new SimpleFormatter([info], null, out,
-            fileCount: 1, showStatistics: true, elapsedMs: 13)..write();
+            fileCount: 1, showStatistics: true, elapsedMs: 13)
+          ..write();
         expect(out.buffer.toString(),
             startsWith('''/foo/bar/baz.dart 3:3 [test] MSG
 
@@ -114,7 +114,8 @@ mock_code                               1
 
       group('filtered', () {
         var reporter = new SimpleFormatter([info], new _RejectingFilter(), out,
-            fileCount: 1, elapsedMs: 13)..write();
+            fileCount: 1, elapsedMs: 13)
+          ..write();
 
         test('error count', () {
           expect(reporter.errorCount, 0);
@@ -134,10 +135,10 @@ mock_code                               1
         test('write', () {
           out.buffer.clear();
           new SimpleFormatter([info], null, out,
-              fileCount: 1, machineOutput: true, elapsedMs: 13)..write();
+              fileCount: 1, machineOutput: true, elapsedMs: 13)
+            ..write();
 
-          expect(
-              out.buffer.toString().trim(),
+          expect(out.buffer.toString().trim(),
               '''MockErrorCode|MockErrorType|MockError|/foo/bar/baz.dart|3|3|13|MSG
 
 1 file analyzed, 1 issue found, in 13 ms.''');

@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc =
-    r'Await future-returning functions inside async function bodies.';
+const _desc = r'Await future-returning functions inside async function bodies.';
 
 const _details = r'''
 
