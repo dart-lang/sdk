@@ -151,18 +151,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitAssertInitializer(AssertInitializer node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitAssertInitializer(node);
-  }
-
-  @override
-  Object visitAssertStatement(AssertStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitAssertStatement(node);
-  }
-
-  @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     if (operatorType == TokenType.EQ) {
@@ -201,12 +189,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitConditionalExpression(ConditionalExpression node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitConditionalExpression(node);
-  }
-
-  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     if (resolutionMap.elementDeclaredByConstructorDeclaration(node).isFactory) {
       if (node.body is BlockFunctionBody) {
@@ -218,12 +200,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  Object visitDoStatement(DoStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitDoStatement(node);
   }
 
   @override
@@ -239,12 +215,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitForStatement(ForStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitForStatement(node);
-  }
-
-  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDeprecatedMember = inDeprecatedMember;
     ExecutableElement element = node.element;
@@ -257,12 +227,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       inDeprecatedMember = wasInDeprecatedMember;
     }
-  }
-
-  @override
-  Object visitIfStatement(IfStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitIfStatement(node);
   }
 
   @override
@@ -315,8 +279,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     Expression realTarget = node.realTarget;
     _checkForAbstractSuperMemberReference(realTarget, node.methodName);
-    _checkForCanBeNullAfterNullAware(
-        realTarget, node.operator, null, node.methodName);
+    _checkForNullAwareHints(node);
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
@@ -342,8 +305,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitPropertyAccess(PropertyAccess node) {
     Expression realTarget = node.realTarget;
     _checkForAbstractSuperMemberReference(realTarget, node.propertyName);
-    _checkForCanBeNullAfterNullAware(
-        realTarget, node.operator, node.propertyName, null);
+    _checkForNullAwareHints(node);
     return super.visitPropertyAccess(node);
   }
 
@@ -371,12 +333,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitVariableDeclaration(VariableDeclaration node) {
     _checkForInvalidAssignment(node.name, node.initializer);
     return super.visitVariableDeclaration(node);
-  }
-
-  @override
-  Object visitWhileStatement(WhileStatement node) {
-    _checkForPossibleNullCondition(node.condition);
-    return super.visitWhileStatement(node);
   }
 
   /**
@@ -588,44 +544,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return problemReported;
-  }
-
-  /**
-   * Produce a hint if the given [target] could have a value of `null`, and
-   * [identifier] is not a name of a getter or a method that exists in the
-   * class [Null].
-   */
-  void _checkForCanBeNullAfterNullAware(Expression target, Token operator,
-      SimpleIdentifier propertyName, SimpleIdentifier methodName) {
-    if (operator?.type == TokenType.QUESTION_PERIOD) {
-      return;
-    }
-    bool isNullTypeMember() {
-      if (propertyName != null) {
-        String name = propertyName.name;
-        return _nullType.lookUpGetter(name, _currentLibrary) != null;
-      }
-      if (methodName != null) {
-        String name = methodName.name;
-        return _nullType.lookUpMethod(name, _currentLibrary) != null;
-      }
-      return false;
-    }
-
-    target = target?.unParenthesized;
-    if (target is MethodInvocation) {
-      if (target.operator?.type == TokenType.QUESTION_PERIOD &&
-          !isNullTypeMember()) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
-      }
-    } else if (target is PropertyAccess) {
-      if (target.operator.type == TokenType.QUESTION_PERIOD &&
-          !isNullTypeMember()) {
-        _errorReporter.reportErrorForNode(
-            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, target);
-      }
-    }
   }
 
   /**
@@ -1088,56 +1006,77 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produce a hint if the given [condition] could have a value of `null`.
+   * Produce several null-aware related hints.
    */
-  void _checkForPossibleNullCondition(Expression condition) {
-    condition = condition?.unParenthesized;
-    if (condition is BinaryExpression) {
-      _checkForPossibleNullConditionInBinaryExpression(condition);
-    } else if (condition is PrefixExpression) {
-      _checkForPossibleNullConditionInPrefixExpression(condition);
-    } else {
-      _checkForPossibleNullConditionInSimpleExpression(condition);
-    }
-  }
-
-  /**
-   * Produce a hint if any of the parts of the given binary [condition] could
-   * have a value of `null`.
-   */
-  void _checkForPossibleNullConditionInBinaryExpression(
-      BinaryExpression condition) {
-    TokenType type = condition.operator?.type;
-    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      _checkForPossibleNullCondition(condition.leftOperand);
-      _checkForPossibleNullCondition(condition.rightOperand);
-    }
-  }
-
-  /**
-   * Produce a hint if the operand of the given prefix [condition] could
-   * have a value of `null`.
-   */
-  void _checkForPossibleNullConditionInPrefixExpression(
-      PrefixExpression condition) {
-    if (condition.operator?.type == TokenType.BANG) {
-      _checkForPossibleNullCondition(condition.operand);
-    }
-  }
-
-  /**
-   * Produce a hint if the given [condition] could have a value of `null`.
-   */
-  void _checkForPossibleNullConditionInSimpleExpression(Expression condition) {
-    if (condition is MethodInvocation) {
-      if (condition.operator?.type == TokenType.QUESTION_PERIOD) {
-        _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_IN_CONDITION, condition);
+  void _checkForNullAwareHints(Expression node) {
+    if (node is MethodInvocation &&
+            node.operator?.type == TokenType.QUESTION_PERIOD ||
+        node is PropertyAccess &&
+            node.operator?.type == TokenType.QUESTION_PERIOD) {
+      // childOfParent is used to know from which branch node comes.
+      var childOfParent = node;
+      var parent = node.parent;
+      while (parent is ParenthesizedExpression) {
+        childOfParent = parent;
+        parent = parent.parent;
       }
-    } else if (condition is PropertyAccess) {
-      if (condition.operator?.type == TokenType.QUESTION_PERIOD) {
+
+      // CAN_BE_NULL_AFTER_NULL_AWARE
+      if (parent is MethodInvocation &&
+          parent.operator.type != TokenType.QUESTION_PERIOD &&
+          _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
+              null) {
         _errorReporter.reportErrorForNode(
-            HintCode.NULL_AWARE_IN_CONDITION, condition);
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+        return;
+      }
+      if (parent is PropertyAccess &&
+          parent.operator.type != TokenType.QUESTION_PERIOD &&
+          _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
+              null) {
+        _errorReporter.reportErrorForNode(
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+        return;
+      }
+      if (parent is CascadeExpression &&
+          parent.childEntities.first == childOfParent) {
+        _errorReporter.reportErrorForNode(
+            HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
+        return;
+      }
+
+      // NULL_AWARE_IN_CONDITION
+      if (parent is IfStatement && parent.condition == childOfParent ||
+          parent is ForStatement && parent.condition == childOfParent ||
+          parent is DoStatement && parent.condition == childOfParent ||
+          parent is WhileStatement && parent.condition == childOfParent ||
+          parent is ConditionalExpression &&
+              parent.condition == childOfParent ||
+          parent is AssertStatement && parent.condition == childOfParent) {
+        _errorReporter.reportErrorForNode(
+            HintCode.NULL_AWARE_IN_CONDITION, childOfParent);
+        return;
+      }
+
+      // NULL_AWARE_IN_LOGICAL_OPERATOR
+      if (parent is PrefixExpression &&
+              parent.operator.type == TokenType.BANG ||
+          parent is BinaryExpression &&
+              [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
+                  .contains(parent.operator.type)) {
+        _errorReporter.reportErrorForNode(
+            HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
+        return;
+      }
+
+      // NULL_AWARE_BEFORE_OPERATOR
+      if (parent is BinaryExpression &&
+          ![TokenType.EQ_EQ, TokenType.BANG_EQ, TokenType.QUESTION_QUESTION]
+              .contains(parent.operator.type) &&
+          parent.leftOperand == childOfParent) {
+        _errorReporter.reportErrorForNode(
+            HintCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
+        return;
       }
     }
   }
