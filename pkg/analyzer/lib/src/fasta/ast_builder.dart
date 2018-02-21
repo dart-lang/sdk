@@ -668,6 +668,12 @@ class AstBuilder extends ScopeListener {
     push(ast.block(leftBracket, statements, rightBracket));
   }
 
+  void handleInvalidTopLevelBlock(Token token) {
+    // TODO(danrubel): Consider improved recovery by adding a this block
+    // as part of a synthetic top level function.
+    pop(); // block
+  }
+
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     assert(optional('for', forKeyword));

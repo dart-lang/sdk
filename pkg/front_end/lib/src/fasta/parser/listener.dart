@@ -62,6 +62,8 @@ class Listener {
     logEvent("Block");
   }
 
+  void handleInvalidTopLevelBlock(Token token) {}
+
   void beginCascade(Token token) {}
 
   void endCascade() {

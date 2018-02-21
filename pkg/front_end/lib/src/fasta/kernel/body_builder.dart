@@ -1625,6 +1625,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(block);
   }
 
+  void handleInvalidTopLevelBlock(Token token) {
+    pop(); // block
+  }
+
   @override
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");

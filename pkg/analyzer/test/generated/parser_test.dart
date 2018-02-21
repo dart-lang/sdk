@@ -4705,7 +4705,7 @@ class Wrong<T> {
                 expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 8, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 1),
-                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 9, 1)
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 1)
               ]
             : [
                 expectedError(
@@ -5261,14 +5261,8 @@ main() {
   }
 
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
-    parseCompilationUnit("int x; ; int y;", errors: [
-      expectedError(
-          usingFastaParser
-              ? ParserErrorCode.EXPECTED_EXECUTABLE
-              : ParserErrorCode.UNEXPECTED_TOKEN,
-          7,
-          1)
-    ]);
+    parseCompilationUnit("int x; ; int y;",
+        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1)]);
   }
 
   void test_unterminatedString_at_eof() {
@@ -10371,7 +10365,6 @@ class B = Object with A {}''',
         codes: usingFastaParser
             // TODO(danrubel): Consolidate and improve error message.
             ? [
-                ParserErrorCode.EXPECTED_EXECUTABLE,
                 ParserErrorCode.EXPECTED_EXECUTABLE,
                 ParserErrorCode.EXPECTED_TOKEN
               ]

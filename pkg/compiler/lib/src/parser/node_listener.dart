@@ -640,6 +640,10 @@ class NodeListener extends ElementListener {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
   }
 
+  void handleInvalidTopLevelBlock(Token token) {
+    popNode(); // block
+  }
+
   @override
   void handleThrowExpression(Token throwToken, Token endToken) {
     Expression expression = popNode();

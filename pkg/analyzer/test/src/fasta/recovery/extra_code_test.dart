@@ -55,11 +55,8 @@ class MiscellaneousTest extends AbstractRecoveryTest {
 class B = Object with A {}
 ''',
         // TODO(danrubel): Consolidate and improve error message.
-        [
-          ParserErrorCode.EXPECTED_EXECUTABLE,
-          ParserErrorCode.EXPECTED_EXECUTABLE,
-          ParserErrorCode.EXPECTED_TOKEN
-        ], '''
+        [ParserErrorCode.EXPECTED_EXECUTABLE, ParserErrorCode.EXPECTED_TOKEN],
+        '''
 class B = Object with A;
 ''');
   }
@@ -255,7 +252,7 @@ class C {
   void test_extraSemicolon_afterLastTopLevelMember() {
     testRecovery('''
 foo() {};
-''', [ParserErrorCode.EXPECTED_EXECUTABLE], '''
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 foo() {}
 ''');
   }
@@ -301,7 +298,7 @@ class C {
     testRecovery('''
 foo() {};
 bar() {}
-''', [ParserErrorCode.EXPECTED_EXECUTABLE], '''
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 foo() {}
 bar() {}
 ''');
