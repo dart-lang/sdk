@@ -23,29 +23,80 @@ than more broadly.  This means that the following code will now have an error on
 the assignment to `y`.
 
   ```dart
-    test() {
-      Future<int> f;
-      var x = f.then<Future<List<int>>>((x) => []);
-      Future<List<int>> y = x;
-    }
-    ```
-
+  test() {
+    Future<int> f;
+    var x = f.then<Future<List<int>>>((x) => []);
+    Future<List<int>> y = x;
+  }
+  ```
 
 ### Core library changes
 
 * `dart:async`
-  * The `Zone` class was changed to be strong-mode clean. This required
-    some breaking API changes. See https://goo.gl/y9mW2x for more information.
-  * Renamed `Zone.ROOT` to `Zone.root`.
+
+  * `Stream`:
+    * Added `cast`, `castFrom`, and `retype`.
+    * Changed `firstWhere`, `lastWhere`, and `singleWhere` to return `Future<T>`
+      and added an optional `T orElse()` callback.
+  * `StreamTransformer`: added `cast`, `castFrom`, `retype`.
+  * `StreamTransformerBase`: new class.
+  * `Timer`: added `tick` property.
+  * `Zone`
+    * changed to be strong-mode clean.
+      This required some breaking API changes.
+      See https://goo.gl/y9mW2x for more information.
+    * Added `bindBinaryCallbackGuarded`, `bindCallbackGuarded`, and
+      `bindUnaryCallbackGuarded`.
+    * Renamed `Zone.ROOT` to `Zone.root`.
 
 * `dart:cli`
-  * Added function `waitFor` that suspends a stack to wait for a `Future` to
+
+  * *New* "provisional" library for CLI-specific features.
+
+  * `waitFor`: function that suspends a stack to wait for a `Future` to
     complete.
 
+* `dart:collection`
+
+  * `MapBase`: added `mapToString`.
+  * `LinkedHashMap` no longer implements `HashMap`
+  * `LinkedHashSet` no longer implements `HashSet`.
+
+* `dart:convert`
+
+  * `Base64Codec.decode` return type is now `Uint8List`.
+  * `JsonUnsupportedObjectError`: added `partialResult` property
+  * `LineSplitter` now implements `StreamTransformer<String, String>` instead of
+    `Converter`.
+    It retains `Converter` methods `convert` and `startChunkedConversion`.
+  * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
+    some common cases for faster decoding.
+  * Renamed `ASCII`, `BASE64`, `BASE64URI`, `JSON`, `LATIN1` and `UTF8` to
+    `ascii`, `base64`, `base64Uri`, `json`, `latin1` and `utf8`.
+  * Renamed the `HtmlEscapeMode` constants `UNKNOWN`, `ATTRIBUTE`,
+    `SQ_ATTRIBUTE` and `ELEMENT` to `unknown`, `attribute`, `sqAttribute` and
+    `elements`.
+
 * `dart:core`
+
+  * Deprecated the `proxy` annotation.
+  * Added `Provisional` class and `provisional` field.
+  * `RegExp` added static `escape` function.
   * The `Uri` class now correctly handles paths while running on Node.js on
     Windows.
-  * Deprecated the `proxy` annotation.
+  * Core collection changes
+      * `Iterable` added members `cast`, `castFrom`, `followedBy`, `retype` and
+        `whereType`.
+      * `Iterable.singleWhere` added `orElse` parameter.
+      * `List` added `+` operator, `first` and `last` setters, and `indexWhere`
+        and `lastIndexWhere` methods.
+      * `Map` added `fromEntries` constructor.
+      * `Map` added `addEntries`, `cast`, `entries`, `map`, `removeWhere`,
+        `retype`, `update` and `updateAll` members.
+      * `MapEntry`: new class used by `Map.entries`.
+      * *Note*: if a class extends `IterableBase`, `ListBase`, `SetBase` or
+        `MapBase` (or uses the corresponding mixins) from `dart:collection`, the
+        new members are implemented automatically.
   * Renamed `double.INFINITY`, `double.NEGATIVE_INFINITY`, `double.NAN`,
     `double.MAX_FINITE` and `double.MIN_POSITIVE`
     to `double.infinity`, `double.negativeInfinity`, `double.nan`,
@@ -70,33 +121,6 @@ the assignment to `y`.
     `SECONDS_PER_DAY` to `secondsPerDay`,
     `MINUTES_PER_DAY` to `minutesPerDay`, and
     `ZERO` to `zero`.
-  * Added `Provisional` annotation to `dart:core`.
-  * Added static `escape` function to `RegExp` class.
-  * Added members `cast`, `followedBy`, `retype` and `whereType` to `Iterable`.
-  * Added `orElse` parameter to `Iterable.singleWhere`.
-  * Added `+` operator, `first` and `last` setters, and `indexWhere`
-    and `lastIndexWhere` methods to `List`.
-  * Added `addEntries`, `cast`, `entries`, `map`, `removeWhere`, `retype`,
-    `update` and `updateAll`  members to `Map`.
-  * If a class extends `IterableBase`, `ListBase`, `SetBase` or `MapBase`
-    (or uses the corresponding mixins), the new members are implemented
-    automatically.
-  * Added constructor `Map.fromEntries`.
-  * Added `MapEntry` class used by, e.g., `Map.entries`.
-  * Changed `LinkedHashMap` to not implement `HashMap`, and `LinkedHashSet`
-    to not implement `HashSet`. The "unlinked" version is a different
-    implementation class than the linked version, not an abstract interface
-    that the two share.
-
-* `dart:convert`
-  * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
-    some common cases for faster decoding.
-  * Renamed `ASCII`, `BASE64`, `BASE64URI`, `JSON`, `LATIN1` and `UTF8` to
-    `ascii`, `base64`, `base64Uri`, `json`, `latin1` and `utf8`.
-  * Renamed the `HtmlEscapeMode` constants `UNKNOWN`, `ATTRIBUTE`,
-    `SQ_ATTRIBUTE` and `ELEMENT` to `unknown`, `attribute`, `sqAttribute` and
-    `elements`.
-  * Changed return type of `Base64Codec.decode` to `Uint8List`.
 
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
