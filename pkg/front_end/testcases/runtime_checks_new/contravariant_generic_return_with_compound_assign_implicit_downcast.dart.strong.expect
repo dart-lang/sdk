@@ -41,11 +41,17 @@ static method numToNum(core::num n) → core::num
   return 2;
 static method main() → void {
   self::D d = new self::D::•(new self::C::•<core::num>(self::numToInt));
-  let final self::D #t1 = d in #t1.{self::D::value} = let final dynamic #t2 = #t1.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:50:41: Error: A value of type '(dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.\n  d.value /*@checkReturn=(num) -> num*/ += 1;\n                                        ^";
+  let final self::D #t1 = d in #t1.{self::D::value} = let final dynamic #t2 = #t1.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:50:41: Error: A value of type '(dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.
+  d.value /*@checkReturn=(num) -> num*/ += 1;
+                                        ^";
   self::expect(d.{self::D::setValue}(0), 1);
   d = new self::D::•(new self::C::•<core::num>(self::numToNum));
   self::expectTypeError(() → core::Null {
-    let final self::D #t3 = d in #t3.{self::D::value} = let final dynamic #t4 = #t3.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:54:43: Error: A value of type '(dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.\n    d.value /*@checkReturn=(num) -> num*/ += 1;\n                                          ^";
+    let final self::D #t3 = d in #t3.{self::D::value} = let final dynamic #t4 = #t3.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:54:43: Error: A value of type '(dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::int'.
+    d.value /*@checkReturn=(num) -> num*/ += 1;
+                                          ^";
   });
   self::expect(d.{self::D::setValue}, null);
 }

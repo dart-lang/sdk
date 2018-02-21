@@ -26,5 +26,7 @@ class A extends self::__Object&M0&M1 {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/mixin_inference_unification_2.dart:19:38: Error: 'A' can't implement both '#lib1::I<dynamic, dart.core::List<dynamic>>' and '#lib1::I<dart.core::List<dynamic>, dynamic>'\nclass /*@error=AmbiguousSupertypes*/ A extends Object with M0, M1 {}\n                                     ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/mixin_inference_unification_2.dart:19:38: Error: 'A' can't implement both '#lib1::I<dynamic, dart.core::List<dynamic>>' and '#lib1::I<dart.core::List<dynamic>, dynamic>'
+class /*@error=AmbiguousSupertypes*/ A extends Object with M0, M1 {}
+                                     ^"]/* from null */;
 static method main() → dynamic {}

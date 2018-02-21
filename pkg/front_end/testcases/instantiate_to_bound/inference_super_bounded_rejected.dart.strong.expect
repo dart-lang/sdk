@@ -8,5 +8,7 @@ class B<T extends core::Comparable<self::B::T>> extends core::Object {
     ;
 }
 static field self::B<core::Comparable<dynamic>> y = new self::B::•<core::Comparable<dynamic>>();
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Can't use a super-bounded type for instance creation. Got '#lib1::B<dart.core::Comparable<dynamic>>'.\nvar y = new B();\n            ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Can't use a super-bounded type for instance creation. Got '#lib1::B<dart.core::Comparable<dynamic>>'.
+var y = new B();
+            ^"]/* from null */;
 static method main() → dynamic {}

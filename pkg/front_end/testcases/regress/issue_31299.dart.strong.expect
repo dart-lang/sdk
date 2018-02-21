@@ -13,7 +13,15 @@ class A extends core::Object {
   method foo(core::int a, core::int b) → core::int
     return a.{core::num::+}(b.{core::num::*}(this.{self::A::m}));
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31299.dart:10:3: Error: Conflicts with member 'foo'.\n  A.foo() : m = 2;\n  ^", "pkg/front_end/testcases/regress/issue_31299.dart:11:7: Error: Conflicts with constructor 'A.foo'.\n  int foo(int a, int b) => a + b * m;\n      ^", "pkg/front_end/testcases/regress/issue_31299.dart:18:7: Error: Too many positional arguments to constructor: 0 allowed, 2 given.\n  new A.foo(1, 2);\n      ^", "pkg/front_end/testcases/regress/issue_31299.dart:15:11: Error: Too few positional arguments to method: 2 required, 0 given.\n  new A().foo();\n          ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31299.dart:10:3: Error: Conflicts with member 'foo'.
+  A.foo() : m = 2;
+  ^", "pkg/front_end/testcases/regress/issue_31299.dart:11:7: Error: Conflicts with constructor 'A.foo'.
+  int foo(int a, int b) => a + b * m;
+      ^", "pkg/front_end/testcases/regress/issue_31299.dart:18:7: Error: Too many positional arguments to constructor: 0 allowed, 2 given.
+  new A.foo(1, 2);
+      ^", "pkg/front_end/testcases/regress/issue_31299.dart:15:11: Error: Too few positional arguments to method: 2 required, 0 given.
+  new A().foo();
+          ^"]/* from null */;
 static method test() → dynamic {
   new self::A::•().{self::A::foo}();
   new self::A::•().{self::A::foo}(1, 2);
