@@ -314,6 +314,12 @@ call_method_is_check_test/02: RuntimeError
 call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/01: MissingCompileTimeError
+call_method_must_not_be_field_test/02: MissingCompileTimeError
+call_method_must_not_be_field_test/03: RuntimeError
+call_method_must_not_be_getter_test/01: MissingCompileTimeError
+call_method_must_not_be_getter_test/02: MissingCompileTimeError
+call_method_must_not_be_getter_test/03: RuntimeError
 call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 covariant_override/runtime_check_test: RuntimeError

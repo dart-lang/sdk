@@ -594,6 +594,8 @@ async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -680,10 +682,6 @@ function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -960,6 +958,8 @@ async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -1058,10 +1058,6 @@ function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError

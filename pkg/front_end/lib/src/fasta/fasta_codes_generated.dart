@@ -2295,6 +2295,37 @@ const MessageCode messageImplementsBeforeWith = const MessageCode(
     tip: r"""Try moving the with clause before the implements clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateImplicitCallOfNonMethod = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Can't invoke the type '#type' because its declaration of `.call` is not a method.""",
+    tipTemplate: r"""Change .call to a method or explicitly invoke .call.""",
+    withArguments: _withArgumentsImplicitCallOfNonMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeImplicitCallOfNonMethod =
+    const Code<Message Function(DartType _type)>(
+        "ImplicitCallOfNonMethod", templateImplicitCallOfNonMethod,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeImplicitCallOfNonMethod,
+      message:
+          """Can't invoke the type '$type' because its declaration of `.call` is not a method.""",
+      tip: """Change .call to a method or explicitly invoke .call.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

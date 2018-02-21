@@ -470,7 +470,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (actualType is InterfaceType) {
       var classNode = (actualType as InterfaceType).classNode;
       var callMember = classHierarchy.getInterfaceMember(classNode, callName);
-      if (callMember != null) {
+      if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(expectedType, actualType)) {
           var parent = expression.parent;
           var tearOff = new PropertyGet(expression, callName, callMember)
@@ -1315,6 +1315,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.methodInvocationExitCall(expression, arguments, isImplicitCall,
           lastCalleeType, lastInferredSubstitution, inferredType);
     } else {
+      if (strongMode &&
+          isImplicitCall &&
+          interfaceMember != null &&
+          !(interfaceMember is Procedure &&
+              interfaceMember.kind == ProcedureKind.Method) &&
+          receiverType is! DynamicType &&
+          receiverType != typeSchemaEnvironment.rawFunctionType) {
+        var parent = expression.parent;
+        var errorNode = helper.wrapInCompileTimeError(expression,
+            templateImplicitCallOfNonMethod.withArguments(receiverType));
+        parent?.replaceChild(expression, errorNode);
+      }
       listener.methodInvocationExit(
           expression,
           arguments,

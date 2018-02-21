@@ -1957,3 +1957,8 @@ MixinInferenceNoMatchingClass:
     Type parameters could not be inferred for the mixin '#name' because
     '#name2' does not implement the mixin's supertype constraint '#type'.
   severity: ERROR
+
+ImplicitCallOfNonMethod:
+  template: "Can't invoke the type '#type' because its declaration of `.call` is not a method."
+  tip: "Change .call to a method or explicitly invoke .call."
+  severity: ERROR

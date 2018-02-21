@@ -22,7 +22,6 @@ class D {
 
 main() {
   var /*@type=int*/ callA = new A() /*@target=A::call*/ ();
-  var /*@type=dynamic*/ callB = new B() /*@target=B::call*/ ();
   var /*@type=int*/ callFieldA = new D(). /*@target=D::fieldA*/ fieldA();
   var /*@type=int*/ callGetA = new D(). /*@target=D::getA*/ getA();
   var /*@type=dynamic*/ callFieldB = new D(). /*@target=D::fieldB*/ fieldB();

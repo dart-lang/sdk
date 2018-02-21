@@ -39,6 +39,8 @@ call_method_is_check_test/02: RuntimeError
 call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/03: RuntimeError
+call_method_must_not_be_getter_test/03: RuntimeError
 call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_generic_test: RuntimeError
@@ -318,6 +320,8 @@ call_method_is_check_test/02: RuntimeError
 call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32157
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32157
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError
@@ -405,10 +409,6 @@ field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
