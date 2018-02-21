@@ -31,8 +31,9 @@ void main() {
     codegenWorldBuilder.compiledConstants
         .forEach(addConstantWithDependendencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
-      ConstantValue constant = allConstants.firstWhere((dynamic constant) {
-        return constant.isString && constant.primitiveValue == stringValue;
+      StringConstantValue constant =
+          allConstants.firstWhere((dynamic constant) {
+        return constant.isString && constant.stringValue == stringValue;
       });
       Expect.notEquals(null, outputUnitForConstant(constant),
           "Constant value ${constant.toStructuredText()} has no output unit.");

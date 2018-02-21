@@ -139,7 +139,7 @@ class IntValue extends Value {
     dynamic constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator -(dynamic other) {
@@ -149,7 +149,7 @@ class IntValue extends Value {
     dynamic constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator -() {
@@ -158,7 +158,7 @@ class IntValue extends Value {
     dynamic constant =
         constantSystem.negate.fold(constantSystem.createInt(value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator &(dynamic other) {
@@ -166,7 +166,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     dynamic constant = constantSystem.bitAnd.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value min(dynamic other) {
@@ -693,7 +693,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
     if (constantNum.isMinusZero) constantNum = new IntConstantValue(0);
-    Value value = info.newIntValue(constantNum.primitiveValue);
+
+    int intValue = constantNum is IntConstantValue
+        ? constantNum.intValue
+        : constantNum.doubleValue.toInt();
+    Value value = info.newIntValue(intValue);
     return info.newNormalizedRange(value, value);
   }
 

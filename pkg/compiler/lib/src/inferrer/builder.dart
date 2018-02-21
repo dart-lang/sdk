@@ -2297,7 +2297,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             compiler.backend.constants.getConstantValue(fieldElement.constant);
         if (value != null && value.isInt) {
           IntConstantValue intValue = value;
-          return intValue.primitiveValue;
+          return intValue.intValue;
         }
       }
     }

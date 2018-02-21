@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/constants/values.dart' show PrimitiveConstantValue;
+import 'package:compiler/src/constants/values.dart'
+    show ConstantValue, StringConstantValue;
 import 'package:expect/expect.dart';
 import '../compiler_helper.dart';
 import 'package:compiler/src/parser/partial_elements.dart'
@@ -39,9 +40,10 @@ void checkAnnotation(String name, String declaration,
         1, element.metadata.length, 'Unexpected metadata count on $element.');
     PartialMetadataAnnotation annotation = element.metadata.first;
     annotation.ensureResolved(compiler.resolution);
-    PrimitiveConstantValue value =
+    ConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
-    Expect.stringEquals('xyz', value.primitiveValue);
+    Expect.isTrue(value is StringConstantValue);
+    Expect.stringEquals('xyz', (value as StringConstantValue).stringValue);
 
     checkPosition(
         annotation, annotation.cachedNode, source1, compiler.reporter);
@@ -64,13 +66,15 @@ void checkAnnotation(String name, String declaration,
     Expect.isFalse(
         identical(annotation1, annotation2), 'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
-    PrimitiveConstantValue value1 =
+    ConstantValue value1 =
         compiler.constants.getConstantValue(annotation1.constant);
-    PrimitiveConstantValue value2 =
+    ConstantValue value2 =
         compiler.constants.getConstantValue(annotation2.constant);
     Expect.identical(value1, value2, 'expected same compile-time constant');
-    Expect.stringEquals('xyz', value1.primitiveValue);
-    Expect.stringEquals('xyz', value2.primitiveValue);
+    Expect.isTrue(value1 is StringConstantValue);
+    Expect.isTrue(value2 is StringConstantValue);
+    Expect.stringEquals('xyz', (value1 as StringConstantValue).stringValue);
+    Expect.stringEquals('xyz', (value2 as StringConstantValue).stringValue);
 
     checkPosition(
         annotation1, annotation1.cachedNode, source2, compiler.reporter);
@@ -98,9 +102,10 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(1, element.metadata.length);
     PartialMetadataAnnotation annotation = element.metadata.first;
     annotation.ensureResolved(compiler.resolution);
-    PrimitiveConstantValue value =
+    ConstantValue value =
         compiler.constants.getConstantValue(annotation.constant);
-    Expect.stringEquals('xyz', value.primitiveValue);
+    Expect.isTrue(value is StringConstantValue);
+    Expect.stringEquals('xyz', (value as StringConstantValue).stringValue);
 
     checkPosition(
         annotation, annotation.cachedNode, source3, compiler.reporter);
@@ -129,13 +134,15 @@ void checkAnnotation(String name, String declaration,
     Expect.isFalse(
         identical(annotation1, annotation2), 'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
-    PrimitiveConstantValue value1 =
+    ConstantValue value1 =
         compiler.constants.getConstantValue(annotation1.constant);
-    PrimitiveConstantValue value2 =
+    ConstantValue value2 =
         compiler.constants.getConstantValue(annotation2.constant);
     Expect.identical(value1, value2, 'expected same compile-time constant');
-    Expect.stringEquals('xyz', value1.primitiveValue);
-    Expect.stringEquals('xyz', value2.primitiveValue);
+    Expect.isTrue(value1 is StringConstantValue);
+    Expect.isTrue(value2 is StringConstantValue);
+    Expect.stringEquals('xyz', (value1 as StringConstantValue).stringValue);
+    Expect.stringEquals('xyz', (value2 as StringConstantValue).stringValue);
 
     checkPosition(
         annotation1, annotation1.cachedNode, source4, compiler.reporter);
@@ -182,9 +189,11 @@ void testLibraryTags() {
 
           PartialMetadataAnnotation annotation = metadata.first;
           annotation.ensureResolved(compiler.resolution);
-          PrimitiveConstantValue value =
+          ConstantValue value =
               compiler.constants.getConstantValue(annotation.constant);
-          Expect.stringEquals('xyz', value.primitiveValue);
+          Expect.isTrue(value is StringConstantValue);
+          Expect.stringEquals(
+              'xyz', (value as StringConstantValue).stringValue);
 
           checkPosition(
               annotation, annotation.cachedNode, source, compiler.reporter);

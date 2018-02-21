@@ -861,21 +861,20 @@ class ConstantEquivalence
   bool visitBool(
       BoolConstantExpression exp1, covariant BoolConstantExpression exp2) {
     return strategy.test(
-        exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
+        exp1, exp2, 'boolValue', exp1.boolValue, exp2.boolValue);
   }
 
   @override
   bool visitDouble(
       DoubleConstantExpression exp1, covariant DoubleConstantExpression exp2) {
     return strategy.test(
-        exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
+        exp1, exp2, 'doubleValue', exp1.doubleValue, exp2.doubleValue);
   }
 
   @override
   bool visitInt(
       IntConstantExpression exp1, covariant IntConstantExpression exp2) {
-    return strategy.test(
-        exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
+    return strategy.test(exp1, exp2, 'intValue', exp1.intValue, exp2.intValue);
   }
 
   @override
@@ -888,7 +887,7 @@ class ConstantEquivalence
   bool visitString(
       StringConstantExpression exp1, covariant StringConstantExpression exp2) {
     return strategy.test(
-        exp1, exp2, 'primitiveValue', exp1.primitiveValue, exp2.primitiveValue);
+        exp1, exp2, 'stringValue', exp1.stringValue, exp2.stringValue);
   }
 
   @override
@@ -1002,21 +1001,21 @@ class ConstantValueEquivalence
 
   @override
   bool visitBool(BoolConstantValue value1, covariant BoolConstantValue value2) {
-    return strategy.test(value1, value2, 'primitiveValue',
-        value1.primitiveValue, value2.primitiveValue);
+    return strategy.test(
+        value1, value2, 'boolValue', value1.boolValue, value2.boolValue);
   }
 
   @override
   bool visitDouble(
       DoubleConstantValue value1, covariant DoubleConstantValue value2) {
-    return strategy.test(value1, value2, 'primitiveValue',
-        value1.primitiveValue, value2.primitiveValue);
+    return strategy.test(
+        value1, value2, 'doubleValue', value1.doubleValue, value2.doubleValue);
   }
 
   @override
   bool visitInt(IntConstantValue value1, covariant IntConstantValue value2) {
-    return strategy.test(value1, value2, 'primitiveValue',
-        value1.primitiveValue, value2.primitiveValue);
+    return strategy.test(
+        value1, value2, 'intValue', value1.intValue, value2.intValue);
   }
 
   @override
@@ -1027,8 +1026,8 @@ class ConstantValueEquivalence
   @override
   bool visitString(
       StringConstantValue value1, covariant StringConstantValue value2) {
-    return strategy.test(value1, value2, 'primitiveValue',
-        value1.primitiveValue, value2.primitiveValue);
+    return strategy.test(
+        value1, value2, 'stringValue', value1.stringValue, value2.stringValue);
   }
 
   @override

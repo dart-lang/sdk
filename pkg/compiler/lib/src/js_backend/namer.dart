@@ -1888,10 +1888,10 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitInt(IntConstantValue constant, [_]) {
     // No `addRoot` since IntConstants are always inlined.
-    if (constant.primitiveValue < 0) {
-      add('m${-constant.primitiveValue}');
+    if (constant.intValue < 0) {
+      add('m${-constant.intValue}');
     } else {
-      add('${constant.primitiveValue}');
+      add('${constant.intValue}');
     }
   }
 
@@ -1908,7 +1908,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitString(StringConstantValue constant, [_]) {
     // No `addRoot` since string constants are always inlined.
-    addIdentifier(constant.primitiveValue);
+    addIdentifier(constant.stringValue);
   }
 
   @override
@@ -2078,17 +2078,17 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitInt(IntConstantValue constant, [_]) {
-    return _hashInt(constant.primitiveValue);
+    return _hashInt(constant.intValue);
   }
 
   @override
   int visitDouble(DoubleConstantValue constant, [_]) {
-    return _hashDouble(constant.primitiveValue);
+    return _hashDouble(constant.doubleValue);
   }
 
   @override
   int visitString(StringConstantValue constant, [_]) {
-    return _hashString(2, constant.primitiveValue);
+    return _hashString(2, constant.stringValue);
   }
 
   @override

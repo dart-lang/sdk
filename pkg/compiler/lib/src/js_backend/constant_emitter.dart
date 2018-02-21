@@ -120,7 +120,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
-    int primitiveValue = constant.primitiveValue;
+    int value = constant.intValue;
     // Since we are in JavaScript we can shorten long integers to their shorter
     // exponential representation, for example: "1e4" is shorter than "10000".
     //
@@ -128,12 +128,12 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // (like 1234567890123456789012345 which becomes 12345678901234568e8).
     // However, since JavaScript engines represent all numbers as doubles, these
     // digits are lost anyway.
-    String representation = primitiveValue.toString();
+    String representation = value.toString();
     String alternative = null;
     int cutoff = _options.enableMinification ? 10000 : 1e10.toInt();
-    if (primitiveValue.abs() >= cutoff) {
-      alternative = _shortenExponentialRepresentation(
-          primitiveValue.toStringAsExponential());
+    if (value.abs() >= cutoff) {
+      alternative =
+          _shortenExponentialRepresentation(value.toStringAsExponential());
     }
     if (alternative != null && alternative.length < representation.length) {
       representation = alternative;
@@ -143,7 +143,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitDouble(DoubleConstantValue constant, [_]) {
-    double value = constant.primitiveValue;
+    double value = constant.doubleValue;
     if (value.isNaN) {
       return js("0/0");
     } else if (value == double.INFINITY) {
@@ -178,7 +178,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
    */
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
-    return js.escapedString(constant.primitiveValue, ascii: true);
+    return js.escapedString(constant.stringValue, ascii: true);
   }
 
   @override
@@ -197,7 +197,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       List<jsAst.Property> properties = <jsAst.Property>[];
       for (int i = 0; i < constant.length; i++) {
         StringConstantValue key = constant.keys[i];
-        if (key.primitiveValue == JavaScriptMapConstant.PROTO_PROPERTY) {
+        if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
           continue;
         }
 
@@ -317,7 +317,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     ClassEntity element = constant.type.element;
     if (element == _commonElements.jsConstClass) {
       StringConstantValue str = constant.fields.values.single;
-      String value = str.primitiveValue;
+      String value = str.stringValue;
       return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.Expression constructor =
