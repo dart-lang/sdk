@@ -279,7 +279,9 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
         "    return 5;"
         "  }"
         "  static testMain() {"
-        "    var obj = new StackFrame2Test();"
+        "    /* Declare |obj| dynamic so that noSuchMethod can be"
+        "     * called in strong mode. */"
+        "    dynamic obj = new StackFrame2Test();"
         "    StackFrame.equals(5, obj.foo(101, 202));"
         "  }"
         "}";
@@ -314,7 +316,9 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
         "    return 5;"
         "  }"
         "  static testMain() {"
-        "    var obj = new StackFrame2Test();"
+        "    /* Declare |obj| dynamic so that noSuchMethod can be"
+        "     * called in strong mode. */"
+        "    dynamic obj = new StackFrame2Test();"
         "    StackFrame.equals(5, obj.foo(101, 202));"
         "  }"
         "}";

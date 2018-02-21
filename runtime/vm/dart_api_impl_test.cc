@@ -3287,11 +3287,8 @@ VM_UNIT_TEST_CASE(DartAPI_Isolates) {
 
 VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
   intptr_t mydata = 12345;
-  char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                         bin::core_isolate_snapshot_instructions, NULL,
-                         reinterpret_cast<void*>(mydata), &err);
+      TestCase::CreateTestIsolate(NULL, reinterpret_cast<void*>(mydata));
   EXPECT(isolate != NULL);
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateData(isolate)));
@@ -3338,13 +3335,12 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
   api_flags.enable_error_on_bad_type = true;
   api_flags.enable_error_on_bad_override = true;
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
       NULL, NULL, bin::core_isolate_snapshot_data,
       bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
   if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
+    OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
   }
   EXPECT(isolate != NULL);
@@ -5167,7 +5163,7 @@ TEST_CASE(DartAPI_InvokeClosure) {
       "    return f;\n"
       "  }\n"
       "  static Function method2(int i) {\n"
-      "    n(int j) => true + i + fld4; \n"
+      "    n(int j) { throw new Exception('I am an exception'); return 1; }\n"
       "    return n;\n"
       "  }\n"
       "  int fld1;\n"
@@ -5937,7 +5933,7 @@ TEST_CASE(DartAPI_LibraryGetClassNames) {
       "class _B {}\n"
       "abstract class _C {}\n"
       "\n"
-      "_compare(String a, String b) => a.compareTo(b);\n"
+      "int _compare(dynamic a, dynamic b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
 
   Dart_Handle lib = TestCase::LoadTestLibrary("library_url", kLibraryChars);
@@ -5986,7 +5982,7 @@ TEST_CASE(DartAPI_GetFunctionNames) {
       "  var _D2;\n"
       "}\n"
       "\n"
-      "_compare(String a, String b) => a.compareTo(b);\n"
+      "int _compare(dynamic a, dynamic b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
 
   // Get the functions from a library.
@@ -7268,13 +7264,7 @@ void BusyLoop_start(uword unused) {
   Dart_Handle lib;
   {
     MonitorLocker ml(sync);
-    char* error = NULL;
-    Dart_IsolateFlags api_flags;
-    Isolate::FlagsInitialize(&api_flags);
-    api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-    shared_isolate = Dart_CreateIsolate(
-        NULL, NULL, bin::core_isolate_snapshot_data,
-        bin::core_isolate_snapshot_instructions, &api_flags, NULL, &error);
+    TestCase::CreateTestIsolate();
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
@@ -7318,18 +7308,9 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdown) {
   Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
 
   saved_callback_data = NULL;
-
   void* my_data = reinterpret_cast<void*>(12345);
-
   // Create an isolate.
-  char* err;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, NULL, my_data, &err);
-  if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
-    free(err);
-  }
+  Dart_Isolate isolate = TestCase::CreateTestIsolate(NULL, my_data);
   EXPECT(isolate != NULL);
 
   // The shutdown callback has not been called.
@@ -7372,17 +7353,7 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
       "}\n";
 
   // Create an isolate.
-  char* err;
-  Dart_IsolateFlags api_flags;
-  Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_data,
-      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
-  if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
-    free(err);
-  }
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
   EXPECT(isolate != NULL);
 
   Isolate::SetShutdownCallback(IsolateShutdownRunDartCodeTestCallback);

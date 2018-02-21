@@ -956,7 +956,7 @@ class A<T> {
   }
 
   void _addLibraryForTestPart() {
-    newFile('$testFolder/my_lib.dart', content: '''
+    newFile(join(testFolder, 'my_lib.dart'), content: '''
 library lib;
 part 'test.dart';
     ''');

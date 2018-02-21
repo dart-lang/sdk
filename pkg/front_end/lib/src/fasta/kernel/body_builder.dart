@@ -9,13 +9,7 @@ import 'dart:core' hide MapEntry;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageNativeClauseShouldBeAnnotation,
-        messageSetterWithWrongNumberOfFormals,
-        messageSuperAsExpression;
+import '../fasta_codes.dart' show LocatedMessage, Message, Template;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -243,7 +237,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return deprecated_buildCompileTimeError(
           "A library can't be used as an expression.");
     } else if (node is SuperInitializer) {
-      return buildCompileTimeError(messageSuperAsExpression, node.fileOffset);
+      return buildCompileTimeError(
+          fasta.messageSuperAsExpression, node.fileOffset);
     } else if (node is ProblemBuilder) {
       return buildProblemExpression(node, -1);
     } else {
@@ -650,7 +645,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           body = new Block(statements)..fileOffset = charOffset;
         }
         body = wrapInCompileTimeErrorStatement(
-            body, messageSetterWithWrongNumberOfFormals);
+            body, fasta.messageSetterWithWrongNumberOfFormals);
       }
     }
     if (!builder.isExternal) {
@@ -706,8 +701,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Initializer initializer;
       Arguments arguments = new Arguments.empty();
       if (superTarget == null ||
-          !checkArguments(
-              superTarget.function, arguments, const <TypeParameter>[])) {
+          checkArguments(
+                  new FunctionTypeAccessor.fromNode(superTarget.function),
+                  arguments,
+                  CalleeDesignation.Constructor,
+                  builder.charOffset, const <TypeParameter>[]) !=
+              null) {
         String superclass = classBuilder.supertype.fullNameForErrors;
         String message = superTarget == null
             ? "'$superclass' doesn't have an unnamed constructor."
@@ -1000,7 +999,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       bool isSuper: false,
       bool isGetter: false,
       bool isSetter: false,
-      bool isStatic: false}) {
+      bool isStatic: false,
+      LocatedMessage argMessage}) {
     Message message;
     Name kernelName = new Name(name, library.library);
     LocatedMessage context;
@@ -1029,13 +1029,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           reportWarning: !constantExpressionRequired,
           context: context);
     } else {
-      // TODO(ahe): This might be a constructor, and we need to provide a
-      // better error message in that case. Currently we say "method", not
-      // "constructor" and the unnamed constructor is simply referred to as ''.
-      message = warnUnresolvedMethod(kernelName, charOffset,
-          isSuper: isSuper,
-          reportWarning: !constantExpressionRequired,
-          context: context);
+      if (argMessage != null) {
+        message = argMessage.messageObject;
+        charOffset = argMessage.charOffset;
+        addProblemErrorIfConst(message, charOffset, 1, context: context);
+      } else {
+        message = warnUnresolvedMethod(kernelName, charOffset,
+            isSuper: isSuper,
+            reportWarning: !constantExpressionRequired,
+            context: context);
+      }
     }
     if (constantExpressionRequired) {
       // TODO(ahe): Use [error] below instead of building a compile-time error,
@@ -1856,6 +1859,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (prefix is PrefixBuilder) {
         name = scopeLookup(prefix.exportScope, suffix.name, beginToken,
             isQualified: true, prefix: prefix);
+      } else if (prefix is ErrorAccessor) {
+        push(prefix.buildErroneousTypeNotAPrefix(suffix));
+        return;
       } else {
         String displayName = debugName(getNodeName(prefix), suffix.name);
         addProblem(fasta.templateNotAType.withArguments(displayName),
@@ -2380,10 +2386,19 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       assert(!target.enclosingClass.isAbstract);
       typeParameters = target.enclosingClass.typeParameters;
     }
-    if (!checkArguments(target.function, arguments, typeParameters)) {
+    CalleeDesignation calleeKind = target is Constructor
+        ? CalleeDesignation.Constructor
+        : CalleeDesignation.Method;
+    LocatedMessage argMessage = checkArguments(
+        new FunctionTypeAccessor.fromNode(target.function),
+        arguments,
+        calleeKind,
+        charOffset,
+        typeParameters);
+    if (argMessage != null) {
       return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
           target.name.name, arguments, charOffset,
-          candidate: target);
+          candidate: target, argMessage: argMessage);
     }
     if (target is Constructor) {
       if (isConst && !target.isConst) {
@@ -2414,36 +2429,79 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  bool checkArguments(FunctionNode function, Arguments arguments,
-      List<TypeParameter> typeParameters) {
-    if (arguments.positional.length < function.requiredParameterCount ||
-        arguments.positional.length > function.positionalParameters.length) {
-      return false;
-    }
-    Map<String, VariableDeclaration> names;
-    if (function.namedParameters.isNotEmpty) {
-      names = <String, VariableDeclaration>{};
-      for (VariableDeclaration parameter in function.namedParameters) {
-        names[parameter.name] = parameter;
+  LocatedMessage checkArguments(FunctionTypeAccessor function,
+      Arguments arguments, CalleeDesignation calleeKind, int offset,
+      [List<TypeParameter> typeParameters]) {
+    if (arguments.positional.length < function.requiredParameterCount) {
+      Template<Message Function(int count, int count2)> template;
+      switch (calleeKind) {
+        case CalleeDesignation.Function:
+          template = fasta.templateTooFewArgumentsToFunction;
+          break;
+        case CalleeDesignation.Method:
+          template = fasta.templateTooFewArgumentsToMethod;
+          break;
+        case CalleeDesignation.Constructor:
+          template = fasta.templateTooFewArgumentsToConstructor;
+          break;
       }
+      return template
+          .withArguments(
+              function.requiredParameterCount, arguments.positional.length)
+          .withLocation(uri, offset);
+    }
+    if (arguments.positional.length > function.positionalParameterCount) {
+      Template<Message Function(int count, int count2)> template;
+      switch (calleeKind) {
+        case CalleeDesignation.Function:
+          template = fasta.templateTooManyArgumentsToFunction;
+          break;
+        case CalleeDesignation.Method:
+          template = fasta.templateTooManyArgumentsToMethod;
+          break;
+        case CalleeDesignation.Constructor:
+          template = fasta.templateTooManyArgumentsToConstructor;
+          break;
+      }
+      return template
+          .withArguments(
+              function.positionalParameterCount, arguments.positional.length)
+          .withLocation(uri, offset);
     }
     if (arguments.named.isNotEmpty) {
-      if (names == null) return false;
+      Set<String> names = function.namedParameterNames;
       for (NamedExpression argument in arguments.named) {
-        VariableDeclaration parameter = names.remove(argument.name);
-        if (parameter == null) {
-          return false;
+        if (!names.remove(argument.name)) {
+          Template<Message Function(String name)> template;
+          switch (calleeKind) {
+            case CalleeDesignation.Function:
+              template = fasta.templateFunctionHasNoSuchNamedParameter;
+              break;
+            case CalleeDesignation.Method:
+              template = fasta.templateMethodHasNoSuchNamedParameter;
+              break;
+            case CalleeDesignation.Constructor:
+              template = fasta.templateConstructorHasNoSuchNamedParameter;
+              break;
+          }
+          return template
+              .withArguments(argument.name)
+              .withLocation(uri, argument.fileOffset);
         }
       }
     }
-    if (typeParameters.length != arguments.types.length) {
+
+    if (typeParameters != null &&
+        typeParameters.length != arguments.types.length) {
+      // TODO(paulberry): Report error in this case as well,
+      // after https://github.com/dart-lang/sdk/issues/32130 is fixed.
       arguments.types.clear();
       for (int i = 0; i < typeParameters.length; i++) {
         arguments.types.add(const DynamicType());
       }
     }
 
-    return true;
+    return null;
   }
 
   @override
@@ -3375,7 +3433,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    if (message == messageNativeClauseShouldBeAnnotation) {
+    if (message == fasta.messageNativeClauseShouldBeAnnotation) {
       // TODO(danrubel): Ignore this error until we deprecate `native` support.
       return;
     }

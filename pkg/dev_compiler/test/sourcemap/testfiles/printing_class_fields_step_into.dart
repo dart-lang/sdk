@@ -5,7 +5,7 @@
 /*nb*/
 main() {
   /*bl*/
-  Foo foo = new /*s:1*/ Foo(1, 2);
+  Foo foo = new /*sl:1*/ Foo(1, 2);
   /*s:5*/ print(foo.x);
   /*s:6*/ print(foo.y);
   /*s:7*/ print(foo.z);

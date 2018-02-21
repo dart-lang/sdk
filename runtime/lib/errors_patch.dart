@@ -41,7 +41,7 @@ class _AssertionError extends Error implements AssertionError {
       return condition;
     }
     if (condition is _Closure) {
-      return condition();
+      return condition.call();
     }
     if (condition is Function) {
       condition = condition();

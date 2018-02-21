@@ -29,7 +29,6 @@ class D extends core::Object {
 }
 static method main() → dynamic {
   dynamic callA = new self::A::•().call();
-  dynamic callB = new self::B::•().call();
   dynamic callFieldA = new self::D::•().fieldA();
   dynamic callGetA = new self::D::•().getA();
   dynamic callFieldB = new self::D::•().fieldB();

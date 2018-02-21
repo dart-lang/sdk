@@ -4,6 +4,7 @@
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
 
 [ $compiler == dartdevc ]
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
 accessor_conflict_export_test: CompileTimeError # Issue 25626
 accessor_conflict_import2_test: CompileTimeError # Issue 25626
@@ -38,6 +39,8 @@ call_method_is_check_test/02: RuntimeError
 call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/03: RuntimeError
+call_method_must_not_be_getter_test/03: RuntimeError
 call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 cascaded_forwarding_stubs_generic_test: RuntimeError
@@ -50,6 +53,7 @@ const_types_test/14: MissingCompileTimeError
 const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 default_implementation2_test: CompileTimeError # Issue 30855
+double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
@@ -269,7 +273,6 @@ abstract_getter_test/01: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -279,17 +282,12 @@ async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
-bad_named_parameters2_test/01: MissingCompileTimeError
-bad_named_parameters_test/01: MissingCompileTimeError
-bad_named_parameters_test/02: MissingCompileTimeError
-bad_named_parameters_test/03: MissingCompileTimeError
-bad_named_parameters_test/04: MissingCompileTimeError
-bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
@@ -307,6 +305,7 @@ built_in_identifier_type_annotation_test/65: MissingCompileTimeError
 built_in_identifier_type_annotation_test/66: MissingCompileTimeError
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError
+built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/01: RuntimeError
 call_method_as_cast_test/02: RuntimeError
 call_method_as_cast_test/03: RuntimeError
@@ -321,9 +320,12 @@ call_method_is_check_test/02: RuntimeError
 call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32157
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32157
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError
+cast_test/none: RuntimeError # Issue 32194
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -359,6 +361,7 @@ const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
+constant_string_interpolation2_test: RuntimeError # Issue 32194
 constants_test/05: MissingCompileTimeError
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
@@ -380,6 +383,7 @@ deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'dart.core::Iterable<dart.async::Future<dynamic>>'.
+double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -395,7 +399,6 @@ factory4_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
-field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
@@ -406,14 +409,9 @@ field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
-generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
@@ -434,7 +432,6 @@ implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instance_call_wrong_argument_count_negative_test: Fail
 instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue18628_2_test/01: MissingCompileTimeError
@@ -450,8 +447,6 @@ issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' h
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-local_function_test/01: MissingCompileTimeError
-local_function_test/02: MissingCompileTimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -566,17 +561,12 @@ multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-named_parameters_test/02: MissingCompileTimeError
-named_parameters_test/04: MissingCompileTimeError
-named_parameters_test/06: MissingCompileTimeError
-named_parameters_test/08: MissingCompileTimeError
-named_parameters_test/10: MissingCompileTimeError
 nsm5_test: MissingCompileTimeError
+null2_test: RuntimeError # Issue 32194
+null_method_test: RuntimeError # Issue 32194
 null_no_such_method_test: CompileTimeError # Issue 31533
-optional_named_parameters_test/02: MissingCompileTimeError
-optional_named_parameters_test/04: MissingCompileTimeError
-optional_named_parameters_test/06: MissingCompileTimeError
-optional_named_parameters_test/08: MissingCompileTimeError
+null_test/none: RuntimeError # Issue 32194
+null_to_string_test: RuntimeError # Issue 32194
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -616,7 +606,6 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
@@ -637,6 +626,7 @@ setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 string_interpolate_test: CompileTimeError # Issue 31533
+string_optimizations_test: RuntimeError # Issue 32194
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
@@ -663,6 +653,7 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
+tearoff_dynamic_test: RuntimeError # Issue 32194
 try_catch_test/01: MissingCompileTimeError
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
@@ -754,7 +745,6 @@ assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support n
 [ $compiler == dartdevc || $compiler == dartdevk ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
 async_star_test/02: RuntimeError

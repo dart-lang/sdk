@@ -91,7 +91,7 @@ void main(List<String> args) {
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
       '-o',
-      '$basename.js',
+      '$libRoot/$basename.js',
       entry
     ]);
   } else {
@@ -99,7 +99,7 @@ void main(List<String> args) {
       '--modules=$mod',
       '--library-root=$libRoot',
       '-o',
-      '$basename.js',
+      '$libRoot/$basename.js',
       entry
     ]);
   }

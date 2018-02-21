@@ -1842,8 +1842,7 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
   intptr_t kernel_offset_no_tag = builder_->ReaderOffset();
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-  intptr_t offset_for_type = builder_->ReaderOffset();
-  AbstractType& type = T.BuildVariableType();  // read type.
+  AbstractType& type = BuildAndVisitVariableType();
 
   // In case `declaration->IsConst()` the flow graph building will take care of
   // evaluating the constant and setting it via
@@ -1851,9 +1850,6 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
   const String& name = (H.StringSize(helper.name_index_) == 0)
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbol(helper.name_index_);
-  // We also need to visit the type.
-  builder_->SetOffset(offset_for_type);
-  VisitDartType();  // read type.
 
   Tag tag = builder_->ReadTag();  // read (first part of) initializer.
   if (tag == kSomething) {
@@ -1874,6 +1870,14 @@ void StreamingScopeBuilder::VisitVariableDeclaration() {
   scope_->AddVariable(variable);
   result_->locals.Insert(builder_->data_program_offset_ + kernel_offset_no_tag,
                          variable);
+}
+
+AbstractType& StreamingScopeBuilder::BuildAndVisitVariableType() {
+  const intptr_t offset = builder_->ReaderOffset();
+  AbstractType& type = T.BuildVariableType();
+  builder_->SetOffset(offset);  // rewind
+  VisitDartType();
+  return type;
 }
 
 void StreamingScopeBuilder::VisitDartType() {
@@ -2074,7 +2078,7 @@ void StreamingScopeBuilder::AddVariableDeclarationParameter(
   VariableDeclarationHelper helper(builder_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbol(helper.name_index_);
-  AbstractType& type = T.BuildVariableType();  // read type.
+  AbstractType& type = BuildAndVisitVariableType();  // read type.
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
 

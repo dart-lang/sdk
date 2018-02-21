@@ -867,7 +867,7 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
       "class C extends B {\n"
       "  C(name) : super(name);\n"
       "}\n"
-      "var list = [ new A('a'), new B('b'), new C('c') ];\n"
+      "var list = <dynamic>[ new A('a'), new B('b'), new C('c') ];\n"
       "main() {\n"
       "  return (list.map((x) {\n"
       "    return '${x.name} is A(${x is A})/ B(${x is B})/ C(${x is C})';\n"
@@ -2844,7 +2844,8 @@ TEST_CASE(IsolateReload_NoLibsModified) {
 }
 
 static bool MainModifiedCallback(const char* url, int64_t since) {
-  if (strcmp(url, "test-lib") == 0) {
+  if ((strcmp(url, "test-lib") == 0) ||
+      (strcmp(url, "file:///test-lib") == 0)) {
     return true;
   }
   return false;

@@ -8,12 +8,15 @@ import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         messageInvalidInitializer,
         messageLoadLibraryTakesNoArguments,
         messageSuperAsExpression,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
-        templateNotAType;
+        templateNotAPrefixInTypeAnnotation,
+        templateNotAType,
+        templateUnresolvedPrefixInTypeAnnotation;
 
 import '../messages.dart' show Message;
 
@@ -24,6 +27,8 @@ import '../problems.dart' show unhandled, unimplemented, unsupported;
 import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
 import '../type_inference/type_promotion.dart' show TypePromoter;
+
+import 'body_builder.dart' show Identifier;
 
 import 'forest.dart' show Forest;
 
@@ -125,10 +130,12 @@ abstract class BuilderHelper {
       bool isSuper,
       bool isGetter,
       bool isSetter,
-      bool isStatic});
+      bool isStatic,
+      LocatedMessage argMessage});
 
-  bool checkArguments(FunctionNode function, Arguments arguments,
-      List<TypeParameter> typeParameters);
+  LocatedMessage checkArguments(FunctionTypeAccessor function,
+      Arguments arguments, CalleeDesignation calleeKind, int offset,
+      [List<TypeParameter> typeParameters]);
 
   StaticGet makeStaticGet(Member readTarget, Token token,
       {String prefixName, int targetOffset: -1, Class targetClass});
@@ -171,6 +178,35 @@ abstract class BuilderHelper {
   Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
+}
+
+// The name used to refer to a call target kind
+enum CalleeDesignation { Function, Method, Constructor }
+
+// Abstraction over FunctionNode and FunctionType to access the
+// number and names of parameters.
+class FunctionTypeAccessor {
+  int requiredParameterCount;
+  int positionalParameterCount;
+
+  List _namedParameters;
+
+  Set<String> get namedParameterNames {
+    return new Set.from(_namedParameters.map((a) => a.name));
+  }
+
+  factory FunctionTypeAccessor.fromNode(FunctionNode node) {
+    return new FunctionTypeAccessor._(node.requiredParameterCount,
+        node.positionalParameters.length, node.namedParameters);
+  }
+
+  factory FunctionTypeAccessor.fromType(FunctionType type) {
+    return new FunctionTypeAccessor._(type.requiredParameterCount,
+        type.positionalParameters.length, type.namedParameters);
+  }
+
+  FunctionTypeAccessor._(this.requiredParameterCount,
+      this.positionalParameterCount, this._namedParameters);
 }
 
 abstract class FastaAccessor implements Accessor {
@@ -240,13 +276,15 @@ abstract class FastaAccessor implements Accessor {
       bool isSetter: false,
       bool isStatic: false,
       String name,
-      int offset}) {
+      int offset,
+      LocatedMessage argMessage}) {
     return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
         arguments, offset ?? offsetForToken(this.token),
         isGetter: isGetter,
         isSetter: isSetter,
         isSuper: isSuper,
-        isStatic: isStatic);
+        isStatic: isStatic,
+        argMessage: argMessage);
   }
 
   bool get isThisPropertyAccessor => false;
@@ -262,6 +300,8 @@ abstract class ErrorAccessor implements FastaAccessor {
   /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
+
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
 
   Name get name => unsupported("name", offsetForToken(token), uri);
 
@@ -294,7 +334,8 @@ abstract class ErrorAccessor implements FastaAccessor {
       bool isSetter: false,
       bool isStatic: false,
       String name,
-      int offset}) {
+      int offset,
+      LocatedMessage argMessage}) {
     return this;
   }
 
@@ -444,13 +485,22 @@ class ThisAccessor extends FastaAccessor {
   Initializer buildConstructorInitializer(
       int offset, Name name, Arguments arguments) {
     Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
-    if (constructor == null ||
-        !helper.checkArguments(
-            constructor.function, arguments, <TypeParameter>[])) {
+    LocatedMessage argMessage;
+    if (constructor != null) {
+      argMessage = helper.checkArguments(
+          new FunctionTypeAccessor.fromNode(constructor.function),
+          arguments,
+          CalleeDesignation.Constructor,
+          offset, <TypeParameter>[]);
+    }
+    if (constructor == null || argMessage != null) {
       return helper.buildInvalidInitializer(
           buildThrowNoSuchMethodError(
               new NullLiteral()..fileOffset = offset, arguments,
-              isSuper: isSuper, name: name.name, offset: offset),
+              isSuper: isSuper,
+              name: name.name,
+              offset: offset,
+              argMessage: argMessage),
           offset);
     } else if (isSuper) {
       return helper.buildSuperInitializer(
@@ -531,6 +581,15 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
       {bool isGetter: false, bool isSetter: false, int offset}) {
     return helper.buildCompileTimeError(
         message, offset ?? offsetForToken(this.token));
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateNotAPrefixInTypeAnnotation.withArguments(
+            token.lexeme, suffix.name),
+        offsetForToken(token));
+    return const InvalidType();
   }
 
   @override
@@ -1068,6 +1127,7 @@ class LargeIntAccessor extends kernel.DelayedErrorAccessor with FastaAccessor {
 
   LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
 
+  @override
   Expression buildError() => helper.buildCompileTimeError(
       templateIntegerLiteralIsOutOfRange.withArguments(token),
       token.charOffset);
@@ -1307,6 +1367,15 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
 
   Expression doInvocation(int charOffset, Arguments arguments) {
     return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateUnresolvedPrefixInTypeAnnotation.withArguments(
+            name.name, suffix.name),
+        offsetForToken(token));
+    return const InvalidType();
   }
 
   @override

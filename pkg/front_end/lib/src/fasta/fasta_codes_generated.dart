@@ -758,6 +758,30 @@ Message _withArgumentsConstFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name)>
+    templateConstructorHasNoSuchNamedParameter =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Constructor has no named parameter with the name '#name'.""",
+        withArguments: _withArgumentsConstructorHasNoSuchNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeConstructorHasNoSuchNamedParameter =
+    const Code<Message Function(String name)>(
+        "ConstructorHasNoSuchNamedParameter",
+        templateConstructorHasNoSuchNamedParameter,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstructorHasNoSuchNamedParameter(String name) {
+  return new Message(codeConstructorHasNoSuchNamedParameter,
+      message: """Constructor has no named parameter with the name '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConstructorNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Couldn't find constructor '#name'.""",
@@ -2067,6 +2091,27 @@ Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name)> templateFunctionHasNoSuchNamedParameter =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Function has no named parameter with the name '#name'.""",
+        withArguments: _withArgumentsFunctionHasNoSuchNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFunctionHasNoSuchNamedParameter =
+    const Code<Message Function(String name)>("FunctionHasNoSuchNamedParameter",
+        templateFunctionHasNoSuchNamedParameter,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFunctionHasNoSuchNamedParameter(String name) {
+  return new Message(codeFunctionHasNoSuchNamedParameter,
+      message: """Function has no named parameter with the name '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2248,6 +2293,37 @@ const MessageCode messageImplementsBeforeWith = const MessageCode(
     dart2jsCode: "*ignored*",
     message: r"""The with clause must be before the implements clause.""",
     tip: r"""Try moving the with clause before the implements clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateImplicitCallOfNonMethod = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Can't invoke the type '#type' because its declaration of `.call` is not a method.""",
+    tipTemplate: r"""Change .call to a method or explicitly invoke .call.""",
+    withArguments: _withArgumentsImplicitCallOfNonMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeImplicitCallOfNonMethod =
+    const Code<Message Function(DartType _type)>(
+        "ImplicitCallOfNonMethod", templateImplicitCallOfNonMethod,
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeImplicitCallOfNonMethod,
+      message:
+          """Can't invoke the type '$type' because its declaration of `.call` is not a method.""",
+      tip: """Change .call to a method or explicitly invoke .call.""",
+      arguments: {'type': _type});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImportAfterPart = messageImportAfterPart;
@@ -3211,6 +3287,27 @@ const MessageCode messageMetadataTypeArguments = const MessageCode(
     message: r"""An annotation (metadata) can't use type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name)> templateMethodHasNoSuchNamedParameter =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Method has no named parameter with the name '#name'.""",
+        withArguments: _withArgumentsMethodHasNoSuchNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMethodHasNoSuchNamedParameter =
+    const Code<Message Function(String name)>(
+        "MethodHasNoSuchNamedParameter", templateMethodHasNoSuchNamedParameter,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMethodHasNoSuchNamedParameter(String name) {
+  return new Message(codeMethodHasNoSuchNamedParameter,
+      message: """Method has no named parameter with the name '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMethodNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Method not found: '#name'.""",
@@ -3592,6 +3689,34 @@ const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
     message: r"""The part-of directive must be the only directive in a part.""",
     tip:
         r"""Try removing the other directives, or moving them to the library for which this is a part.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateNotAPrefixInTypeAnnotation = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
+    withArguments: _withArgumentsNotAPrefixInTypeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeNotAPrefixInTypeAnnotation =
+    const Code<Message Function(String name, String name2)>(
+        "NotAPrefixInTypeAnnotation", templateNotAPrefixInTypeAnnotation,
+        analyzerCode: "NOT_A_TYPE",
+        dart2jsCode: "*ignored*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotAPrefixInTypeAnnotation(String name, String name2) {
+  return new Message(codeNotAPrefixInTypeAnnotation,
+      message:
+          """'$name.$name2' can't be used as a type because '$name' doesn't refer to an import prefix.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNotAType =
@@ -4853,6 +4978,162 @@ const MessageCode messageThisAsIdentifier = const MessageCode(
     message: r"""Expected identifier, but got 'this'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooFewArgumentsToConstructor = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too few positional arguments to constructor: #count required, #count2 given.""",
+    withArguments: _withArgumentsTooFewArgumentsToConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooFewArgumentsToConstructor =
+    const Code<Message Function(int count, int count2)>(
+        "TooFewArgumentsToConstructor", templateTooFewArgumentsToConstructor,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooFewArgumentsToConstructor(int count, int count2) {
+  return new Message(codeTooFewArgumentsToConstructor,
+      message:
+          """Too few positional arguments to constructor: $count required, $count2 given.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooFewArgumentsToFunction = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too few positional arguments to function: #count required, #count2 given.""",
+    withArguments: _withArgumentsTooFewArgumentsToFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooFewArgumentsToFunction =
+    const Code<Message Function(int count, int count2)>(
+        "TooFewArgumentsToFunction", templateTooFewArgumentsToFunction,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooFewArgumentsToFunction(int count, int count2) {
+  return new Message(codeTooFewArgumentsToFunction,
+      message:
+          """Too few positional arguments to function: $count required, $count2 given.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooFewArgumentsToMethod = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too few positional arguments to method: #count required, #count2 given.""",
+    withArguments: _withArgumentsTooFewArgumentsToMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooFewArgumentsToMethod =
+    const Code<Message Function(int count, int count2)>(
+        "TooFewArgumentsToMethod", templateTooFewArgumentsToMethod,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooFewArgumentsToMethod(int count, int count2) {
+  return new Message(codeTooFewArgumentsToMethod,
+      message:
+          """Too few positional arguments to method: $count required, $count2 given.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooManyArgumentsToConstructor = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too many positional arguments to constructor: #count allowed, #count2 given.""",
+    withArguments: _withArgumentsTooManyArgumentsToConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooManyArgumentsToConstructor =
+    const Code<Message Function(int count, int count2)>(
+        "TooManyArgumentsToConstructor", templateTooManyArgumentsToConstructor,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooManyArgumentsToConstructor(int count, int count2) {
+  return new Message(codeTooManyArgumentsToConstructor,
+      message:
+          """Too many positional arguments to constructor: $count allowed, $count2 given.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooManyArgumentsToFunction = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too many positional arguments to function: #count allowed, #count2 given.""",
+    withArguments: _withArgumentsTooManyArgumentsToFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooManyArgumentsToFunction =
+    const Code<Message Function(int count, int count2)>(
+        "TooManyArgumentsToFunction", templateTooManyArgumentsToFunction,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooManyArgumentsToFunction(int count, int count2) {
+  return new Message(codeTooManyArgumentsToFunction,
+      message:
+          """Too many positional arguments to function: $count allowed, $count2 given.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooManyArgumentsToMethod = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too many positional arguments to method: #count allowed, #count2 given.""",
+    withArguments: _withArgumentsTooManyArgumentsToMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooManyArgumentsToMethod =
+    const Code<Message Function(int count, int count2)>(
+        "TooManyArgumentsToMethod", templateTooManyArgumentsToMethod,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooManyArgumentsToMethod(int count, int count2) {
+  return new Message(codeTooManyArgumentsToMethod,
+      message:
+          """Too many positional arguments to method: $count allowed, $count2 given.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTopLevelOperator = messageTopLevelOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5150,6 +5431,36 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
   return new Message(codeUnmatchedToken,
       message: """Can't find '$string' to match '$lexeme'.""",
       arguments: {'string': string, 'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateUnresolvedPrefixInTypeAnnotation = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""'#name.#name2' can't be used as a type because '#name' isn't defined.""",
+    withArguments: _withArgumentsUnresolvedPrefixInTypeAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeUnresolvedPrefixInTypeAnnotation =
+    const Code<Message Function(String name, String name2)>(
+        "UnresolvedPrefixInTypeAnnotation",
+        templateUnresolvedPrefixInTypeAnnotation,
+        analyzerCode: "NOT_A_TYPE",
+        dart2jsCode: "*ignored*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
+    String name, String name2) {
+  return new Message(codeUnresolvedPrefixInTypeAnnotation,
+      message:
+          """'$name.$name2' can't be used as a type because '$name' isn't defined.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

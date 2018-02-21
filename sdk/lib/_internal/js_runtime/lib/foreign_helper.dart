@@ -182,6 +182,8 @@ external T JS<T>(String typeDescription, String codeTemplate,
 external IsolateContext JS_CURRENT_ISOLATE_CONTEXT();
 
 abstract class IsolateContext {
+  int get id;
+
   /// Holds a (native) JavaScript instance of Isolate, see
   /// finishIsolateConstructorFunction in emitter.dart.
   get isolateStatics;

@@ -44,7 +44,7 @@ class _Serializer {
     if (x is NativeByteBuffer) return serializeByteBuffer(x);
     if (x is NativeTypedData) return serializeTypedData(x);
     if (x is JSIndexable) return serializeJSIndexable(x);
-    if (x is InternalMap) return serializeMap(x);
+    if (x is InternalMap) return serializeMap(x as dynamic);
 
     if (x is JSObject) return serializeJSObject(x);
 

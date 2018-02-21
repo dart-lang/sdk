@@ -103,5 +103,5 @@ static method main(core::List<core::String> args) → dynamic {
   core::print([@vm.inferred-type.metadata=!] yy.twoArg(1, 2, 3));
   new self::F::•();
   dynamic gg = new self::G::•();
-  core::print([@vm.inferred-type.metadata=#lib::T5] gg.{core::Object::noSuchMethod}(null, null));
+  core::print([@vm.inferred-type.metadata=#lib::T5] gg.noSuchMethod(null, null));
 }

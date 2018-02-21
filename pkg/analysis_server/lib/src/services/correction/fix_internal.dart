@@ -374,6 +374,7 @@ class FixProcessor {
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_importLibrary_withFunction();
+      await _addFix_importLibrary_withType();
       await _addFix_undefinedFunction_useSimilar();
       await _addFix_undefinedFunction_create();
     }
@@ -1847,6 +1848,10 @@ class FixProcessor {
           typeName,
           const [ElementKind.CLASS, ElementKind.FUNCTION_TYPE_ALIAS],
           TopLevelDeclarationKind.type);
+    } else if (_mayBeImplicitConstructor(node)) {
+      String typeName = (node as SimpleIdentifier).name;
+      await _addFix_importLibrary_withElement(
+          typeName, const [ElementKind.CLASS], TopLevelDeclarationKind.type);
     }
   }
 
@@ -3273,6 +3278,20 @@ class FixProcessor {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Return `true` if the given [node] is in a location where an implicit
+   * constructor invocation would be allowed.
+   */
+  static bool _mayBeImplicitConstructor(AstNode node) {
+    if (node is SimpleIdentifier) {
+      AstNode parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.realTarget == null;
+      }
+    }
+    return false;
   }
 
   /**

@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29980.dart:6:3: Error: 'x.y' isn't a type.\n  x.y z;\n  ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29980.dart:6:3: Error: 'x.y' can't be used as a type because 'x' isn't defined.\n  x.y z;\n  ^"]/* from null */;
 static method main() → dynamic {
   invalid-type z;
 }

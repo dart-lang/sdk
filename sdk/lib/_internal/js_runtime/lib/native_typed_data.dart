@@ -450,7 +450,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  num getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
+  double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat32(byteOffset, Endian.little == endian);
 
   @JSName('getFloat32')
@@ -465,7 +465,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  num getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
+  double getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat64(byteOffset, Endian.little == endian);
 
   @JSName('getFloat64')

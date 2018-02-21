@@ -655,7 +655,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
       "var x = 7;\n"
       "main() {\n"
       "  x = x * x;\n"
-      "  x = x / 13;\n"
+      "  x = (x / 13).floor();\n"
       "}";
 
   Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, NULL);
@@ -692,7 +692,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
       "var x = 7;\n"
       "main() {\n"
       "  x = x * x;\n"
-      "  x = x / 13;\n"
+      "  x = (x / 13).floor();\n"
       "}";
 
   Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback, NULL);
@@ -742,7 +742,7 @@ TEST_CASE(Service_Profile) {
       "var x = 7;\n"
       "main() {\n"
       "  x = x * x;\n"
-      "  x = x / 13;\n"
+      "  x = (x / 13).floor();\n"
       "}";
 
   Isolate* isolate = thread->isolate();

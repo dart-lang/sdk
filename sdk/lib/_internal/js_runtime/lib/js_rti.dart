@@ -82,7 +82,10 @@ class TypeVariable {
   const TypeVariable(this.owner, this.name, this.bound);
 }
 
-getMangledTypeName(TypeImpl type) => type._typeName;
+getMangledTypeName(Type t) {
+  TypeImpl type = t;
+  return type._typeName;
+}
 
 /// Sets the runtime type information on [target]. [rti] is a type
 /// representation of type 4 or 5, that is, either a JavaScript array or `null`.

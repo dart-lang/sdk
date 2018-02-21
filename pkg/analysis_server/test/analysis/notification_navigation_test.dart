@@ -229,7 +229,7 @@ main() {
   }
 
   test_annotationConstructor_importPrefix() async {
-    newFile('$testFolder/my_annotation.dart', content: r'''
+    newFile(join(testFolder, 'my_annotation.dart'), content: r'''
 library an;
 class MyAnnotation {
   const MyAnnotation();
@@ -304,7 +304,7 @@ main() {
   }
 
   test_annotationField_importPrefix() async {
-    newFile('$testFolder/mayn.dart', content: r'''
+    newFile(join(testFolder, 'mayn.dart'), content: r'''
 library an;
 const myan = new Object();
 ''');

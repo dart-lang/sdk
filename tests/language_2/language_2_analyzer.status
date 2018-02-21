@@ -1272,6 +1272,10 @@ built_in_identifier_type_annotation_test/78: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/81: MissingCompileTimeError # Issue 28813
 call_method_implicit_tear_off_implements_function_test/03: StaticWarning
 call_method_implicit_tear_off_test/03: StaticWarning
+call_method_must_not_be_field_test/01: MissingCompileTimeError # Issue 32264
+call_method_must_not_be_field_test/02: MissingCompileTimeError # Issue 32264
+call_method_must_not_be_getter_test/01: MissingCompileTimeError # Issue 32264
+call_method_must_not_be_getter_test/02: MissingCompileTimeError # Issue 32264
 call_method_override_test/01: MissingCompileTimeError
 call_method_override_test/02: MissingCompileTimeError
 call_type_literal_test: StaticWarning

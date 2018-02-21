@@ -5586,7 +5586,6 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
   }
 
   void Visit(const Script& script) {
-    objects_->Add(&Object::Handle(zone_, script_.tokens()));
     kernel_program_info_ = script_.kernel_program_info();
     if (!kernel_program_info_.IsNull()) {
       objects_->Add(
@@ -5599,6 +5598,8 @@ class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
       objects_->Add(
           &Object::Handle(zone_, kernel_program_info_.metadata_mappings()));
       objects_->Add(&Object::Handle(zone_, kernel_program_info_.constants()));
+    } else {
+      objects_->Add(&Object::Handle(zone_, script_.tokens()));
     }
   }
 

@@ -71,6 +71,7 @@ inference/instantiate_tearoff: Crash
 inference/instantiate_tearoff_after_contravariance_check: Crash
 inference/instantiate_tearoff_of_call: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
+inference/override_equals: Crash
 inference/super_initializer: Crash
 inference/super_initializer_substitution: Crash
 inference/top_level_return_and_yield: Fail
@@ -152,6 +153,7 @@ regress/issue_31198: Crash
 regress/issue_31213: Crash
 regress/issue_31299: Crash
 regress/issue_31766: Crash
+regress/issue_31846: Crash
 reorder_super: Crash
 runtime_checks/call_method_implicit_tear_off: Crash
 runtime_checks/call_method_implicit_tear_off_future_or: Crash

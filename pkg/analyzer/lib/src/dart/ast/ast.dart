@@ -4179,17 +4179,10 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
       if (parent is TypedLiteralImpl && parent.constKeyword != null) {
         // Inside an explicitly `const` list or map literal.
         return true;
-      } else if (parent is InstanceCreationExpression) {
-        if (parent.keyword?.keyword == Keyword.CONST) {
-          // Inside an explicitly `const` instance creation expression.
-          return true;
-        } else if (parent.keyword?.keyword == Keyword.NEW) {
-          // Inside an explicitly non-`const` instance creation expression.
-          return false;
-        }
-        // We need to ask the parent because it might be `const` just because
-        // it's possible for it to be.
-        return parent.isConst;
+      } else if (parent is InstanceCreationExpression &&
+          parent.keyword?.keyword == Keyword.CONST) {
+        // Inside an explicitly `const` instance creation expression.
+        return true;
       } else if (parent is Annotation) {
         // Inside an annotation.
         return true;
@@ -6568,10 +6561,43 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * can be computationally expensive.
    */
   bool canBeConst() {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
     ConstructorElement element = staticElement;
     if (element == null || !element.isConst) {
       return false;
     }
+    //
+    // Verify that all of the arguments are, or could be, constant expressions.
+    //
+    for (Expression argument in argumentList.arguments) {
+      if (argument is InstanceCreationExpression) {
+        if (!argument.isConst) {
+          return false;
+        }
+      } else if (argument is TypedLiteral) {
+        if (!argument.isConst) {
+          return false;
+        }
+      } else if (argument is LiteralImpl) {
+        if (argument is StringInterpolation) {
+          return false;
+        } else if (argument is AdjacentStrings) {
+          for (StringLiteral string in (argument as AdjacentStrings).strings) {
+            if (string is StringInterpolation) {
+              return false;
+            }
+          }
+        }
+      } else {
+        return false;
+      }
+    }
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
     Token oldKeyword = keyword;
     ConstantAnalysisErrorListener listener =
         new ConstantAnalysisErrorListener();

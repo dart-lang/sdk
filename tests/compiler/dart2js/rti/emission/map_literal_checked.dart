@@ -6,7 +6,8 @@
 /*class: global#LinkedHashMap:*/
 /*class: global#JsLinkedHashMap:checks=[$isLinkedHashMap]*/
 /*class: global#double:checks=[]*/
-/*class: global#JSDouble:checks=[$isdouble]*/
+/*class: global#JSNumber:checks=[$isdouble,$isnum]*/
+/*class: global#JSDouble:checks=[]*/
 
 main() {
   <int, double>{}[0] = 0.5;

@@ -27,12 +27,26 @@
 using dart::bin::Builtin;
 using dart::bin::DartUtils;
 
+extern "C" {
+extern const uint8_t kPlatformDill[];
+extern const uint8_t kPlatformStrongDill[];
+extern intptr_t kPlatformDillSize;
+extern intptr_t kPlatformStrongDillSize;
+}
+
 namespace dart {
+
+const uint8_t* platform_dill = kPlatformDill;
+const uint8_t* platform_strong_dill = kPlatformStrongDill;
+const intptr_t platform_dill_size = kPlatformDillSize;
+const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
 DEFINE_FLAG(bool,
             use_dart_frontend,
             false,
             "Parse scripts with Dart-to-Kernel parser");
+
+DECLARE_FLAG(bool, strong);
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
@@ -67,19 +81,50 @@ void TestCaseBase::RunAll() {
   }
 }
 
-Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
+static void NoopRelease(uint8_t* data) {}
+
+Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
+                                     intptr_t len,
+                                     const uint8_t* instr_buffer,
+                                     const char* name,
+                                     void* data) {
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
   api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-  Dart_Isolate isolate =
-      Dart_CreateIsolate(name, NULL, buffer, NULL, &api_flags, NULL, &err);
+  Dart_Isolate isolate = NULL;
+  if (len == 0) {
+    isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer,
+                                 &api_flags, data, &err);
+  } else {
+    kernel::Program* program = reinterpret_cast<kernel::Program*>(
+        Dart_ReadKernelBinary(data_buffer, len, NoopRelease));
+    if (program != NULL) {
+      isolate = Dart_CreateIsolateFromKernel(name, NULL, program, &api_flags,
+                                             data, &err);
+      delete program;
+    }
+  }
   if (isolate == NULL) {
-    OS::Print("Creation of isolate failed '%s'\n", err);
+    OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
   }
   EXPECT(isolate != NULL);
   return isolate;
+}
+
+Dart_Isolate TestCase::CreateTestIsolate(const char* name, void* data) {
+  if (FLAG_use_dart_frontend) {
+    return CreateIsolate(
+        FLAG_strong ? platform_strong_dill : platform_dill,
+        FLAG_strong ? platform_strong_dill_size : platform_dill_size,
+        NULL, /* There is no instr buffer in case of dill buffers. */
+        name, data);
+  } else {
+    return CreateIsolate(bin::core_isolate_snapshot_data,
+                         0 /* Snapshots have length encoded within them. */,
+                         bin::core_isolate_snapshot_instructions, name, data);
+  }
 }
 
 static const char* kPackageScheme = "package:";
@@ -166,10 +211,6 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
 
 static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
 
-#ifndef PRODUCT
-static ThreadLocalKey kernel_reload_key = kUnsetThreadLocalKey;
-#endif
-
 bool TestCase::UsingDartFrontend() {
   return FLAG_use_dart_frontend;
 }
@@ -203,7 +244,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          bool incrementally) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
-      url, NULL /* platform binary can be found at the default location */, 0,
+      url, FLAG_strong ? platform_strong_dill : platform_dill,
+      FLAG_strong ? platform_strong_dill_size : platform_dill_size,
       sourcefiles_count, sourcefiles, incrementally);
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
@@ -340,16 +382,38 @@ static Dart_Handle LoadTestScriptWithVMParser(const char* script,
   return lib;
 }
 
+static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
+                                      const char* script) {
+  ASSERT(sourcefiles != NULL);
+  ASSERT(script != NULL);
+  ASSERT(FLAG_use_dart_frontend);
+
+  intptr_t num_test_libs = 0;
+  if (test_libs_ != NULL) {
+    num_test_libs = test_libs_->length();
+  }
+
+  *sourcefiles = new Dart_SourceFile[num_test_libs + 1];
+  (*sourcefiles)[0].uri = RESOLVED_USER_TEST_URI;
+  (*sourcefiles)[0].source = script;
+  for (intptr_t i = 0; i < num_test_libs; ++i) {
+    (*sourcefiles)[i + 1].uri = test_libs_->At(i).url;
+    (*sourcefiles)[i + 1].source = test_libs_->At(i).source;
+  }
+  return num_test_libs + 1;
+}
+
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver,
                                      const char* lib_url,
                                      bool finalize_classes) {
   if (FLAG_use_dart_frontend) {
-    Dart_SourceFile sourcefiles[] = {
-        {OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_url),
-         script}};
-    return LoadTestScriptWithDFE(sizeof(sourcefiles) / sizeof(Dart_SourceFile),
-                                 sourcefiles, resolver, finalize_classes);
+    Dart_SourceFile* sourcefiles = NULL;
+    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script);
+    Dart_Handle result = LoadTestScriptWithDFE(num_sources, sourcefiles,
+                                               resolver, finalize_classes);
+    delete[] sourcefiles;
+    return result;
   } else {
     return LoadTestScriptWithVMParser(script, resolver, lib_url,
                                       finalize_classes);
@@ -365,7 +429,6 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri, const char* script) {
     EXPECT_VALID(result);
     void* kernel_pgm = NULL;
     int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
-    OS::Print("Compiling %s %d\n", sourcefiles[0].uri, sourcefiles_count);
     char* error = TestCase::CompileTestScriptWithDFE(
         sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, false);
     if (error != NULL) {
@@ -421,16 +484,6 @@ void TestCase::SetReloadTestScript(const char* script) {
   OSThread::SetThreadLocal(script_reload_key, reinterpret_cast<uword>(script));
 }
 
-void TestCase::SetReloadTestKernel(const void* kernel) {
-  if (kernel_reload_key == kUnsetThreadLocalKey) {
-    kernel_reload_key = OSThread::CreateThreadLocal();
-  }
-  ASSERT(kernel_reload_key != kUnsetThreadLocalKey);
-  ASSERT(OSThread::GetThreadLocal(kernel_reload_key) == 0);
-  // Store the new script in TLS.
-  OSThread::SetThreadLocal(kernel_reload_key, reinterpret_cast<uword>(kernel));
-}
-
 Dart_Handle TestCase::TriggerReload() {
   Isolate* isolate = Isolate::Current();
   JSONStream js;
@@ -465,9 +518,10 @@ Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
   if (FLAG_use_dart_frontend) {
-    Dart_SourceFile sourcefiles[] = {{RESOLVED_USER_TEST_URI, script}};
-    KernelIsolate::UpdateInMemorySources(
-        sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles);
+    Dart_SourceFile* sourcefiles = NULL;
+    intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
+    KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+    delete[] sourcefiles;
   } else {
     SetReloadTestScript(script);
   }
@@ -492,8 +546,6 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
-  SetReloadTestKernel(kernel);
-
   Dart_Handle result = TriggerReload();
   if (Dart_IsError(result)) {
     return result;

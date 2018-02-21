@@ -462,19 +462,7 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
     testUnit = await resolveSource2('/test.dart', source);
   }
 
-  void test_isConst_instanceCreation_notExplicit_notInContext() async {
-    enablePreviewDart2();
-    await resolve('''
-f() => <Object>[C()];
-class C {
-  const C();
-}
-''');
-    assertInContext("C()", true);
-  }
-
-  void
-      test_isConst_instanceCreation_notExplicit_notInContext_nonConstConstructor() async {
+  void test_isConst_implicit_notInContext_nonConstConstructor() async {
     enablePreviewDart2();
     await resolve('''
 f() => <Object>[C()];
@@ -485,8 +473,25 @@ class C {
     assertInContext("C()", false);
   }
 
-  void
-      test_isConst_instanceCreation_notExplicit_notInContext_nonConstParam() async {
+  void test_isConst_implicit_notInContext_nonConstParam_implicitNew() async {
+    enablePreviewDart2();
+    await resolve('''
+f() {
+  return A(B());
+}
+
+class A {
+  const A(B b);
+}
+
+class B {
+  B();
+}
+''');
+    assertInContext("B())", false);
+  }
+
+  void test_isConst_implicit_notInContext_nonConstParam_int() async {
     enablePreviewDart2();
     await resolve('''
 f(int i) => <Object>[C(i)];
@@ -496,6 +501,17 @@ class C {
 }
 ''');
     assertInContext("C(i)", false);
+  }
+
+  void test_isConst_notExplicit_notInContext() async {
+    enablePreviewDart2();
+    await resolve('''
+f() => <Object>[C()];
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
   }
 }
 

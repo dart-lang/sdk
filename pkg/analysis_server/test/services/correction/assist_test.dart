@@ -3257,6 +3257,28 @@ class FakeFlutter {
 ''');
   }
 
+  test_flutterWrapCenter_OK_implicitNew() async {
+    _configurePreviewDart2();
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Container();
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Center(child: Container());
+  }
+}
+''');
+  }
+
   test_flutterWrapColumn_OK_coveredByWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''
@@ -3325,6 +3347,34 @@ class FakeFlutter {
       new Text('ddd'),
     ]);
   }
+}
+''');
+  }
+
+  test_flutterWrapColumn_OK_implicitNew() async {
+    _configurePreviewDart2();
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  return Container(
+    child: /*caret*/Text('aaa'),
+  );
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+main() {
+  return Container(
+    child: /*caret*/Column(
+      children: <Widget>[
+        Text('aaa'),
+      ],
+    ),
+  );
 }
 ''');
   }
@@ -5278,6 +5328,12 @@ main() {
         offset, length, driver, new AstProviderForDriver(driver), testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
+  }
+
+  void _configurePreviewDart2() {
+    driver.configure(
+        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
+          ..previewDart2 = true);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

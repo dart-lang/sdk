@@ -25,11 +25,9 @@ abstract_factory_constructor_test/00: MissingCompileTimeError # Issue 32013.
 abstract_getter_test/01: MissingCompileTimeError # Issue 32013.
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32013.
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue 32014.
 abstract_syntax_test/00: MissingCompileTimeError # Issue 32013.
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
-additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError # Issue 32014.
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -39,12 +37,6 @@ async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
-bad_named_parameters2_test/01: MissingCompileTimeError
-bad_named_parameters_test/01: MissingCompileTimeError
-bad_named_parameters_test/02: MissingCompileTimeError
-bad_named_parameters_test/03: MissingCompileTimeError
-bad_named_parameters_test/04: MissingCompileTimeError
-bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28814
@@ -99,7 +91,6 @@ f_bounded_quantification_test/02: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
@@ -130,8 +121,6 @@ issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
-local_function_test/01: MissingCompileTimeError
-local_function_test/02: MissingCompileTimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -187,16 +176,7 @@ mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
-named_parameters_test/02: MissingCompileTimeError
-named_parameters_test/04: MissingCompileTimeError
-named_parameters_test/06: MissingCompileTimeError
-named_parameters_test/08: MissingCompileTimeError
-named_parameters_test/10: MissingCompileTimeError
 nsm5_test: MissingCompileTimeError
-optional_named_parameters_test/02: MissingCompileTimeError
-optional_named_parameters_test/04: MissingCompileTimeError
-optional_named_parameters_test/06: MissingCompileTimeError
-optional_named_parameters_test/08: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
@@ -524,9 +504,6 @@ mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
-bad_named_parameters_test/01: Crash # Issue(http://dartbug.com/31630)
-bad_named_parameters_test/02: Crash # Issue(http://dartbug.com/31630)
-bad_named_parameters_test/04: Crash # Issue(http://dartbug.com/31630)
 const_instance_field_test/01: Crash
 cyclic_type_variable_test/01: Crash
 cyclic_type_variable_test/02: Crash
@@ -534,10 +511,6 @@ cyclic_type_variable_test/03: Crash
 cyclic_type_variable_test/04: Crash
 cyclic_type_variable_test/none: Crash
 deopt_inlined_function_lazy_test: Skip
-optional_named_parameters_test/02: Crash # Issue(http://dartbug.com/31630)
-optional_named_parameters_test/04: Crash # Issue(http://dartbug.com/31630)
-optional_named_parameters_test/06: Crash # Issue(http://dartbug.com/31630)
-optional_named_parameters_test/08: Crash # Issue(http://dartbug.com/31630)
 tearoff_dynamic_test: Crash
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
@@ -621,6 +594,8 @@ async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -706,12 +681,7 @@ function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -724,7 +694,6 @@ implicit_creation/implicit_new_constructor_generic_test: Pass
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
@@ -776,7 +745,6 @@ override_inheritance_method_test/18: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
-redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -855,9 +823,6 @@ redirecting_factory_reflection_test: Crash
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
-bad_named_parameters_test/01: Crash
-bad_named_parameters_test/02: Crash
-bad_named_parameters_test/05: Crash
 const_instance_field_test/01: Crash
 cyclic_type_variable_test/01: Crash
 cyclic_type_variable_test/02: Crash
@@ -865,10 +830,6 @@ cyclic_type_variable_test/03: Crash
 cyclic_type_variable_test/04: Crash
 cyclic_type_variable_test/none: Crash
 external_test/13: Crash
-optional_named_parameters_test/02: Crash # Issue 31795
-optional_named_parameters_test/04: Crash # Issue 31795
-optional_named_parameters_test/06: Crash # Issue 31795
-optional_named_parameters_test/08: Crash # Issue 31795
 regress_29025_test: Crash
 tearoff_dynamic_test: Crash
 type_promotion_functions_test/05: Pass
@@ -931,7 +892,6 @@ function_subtype_closure1_test: Pass
 function_subtype_factory1_test: Pass
 function_subtype_inline1_test: Pass
 function_subtype_inline2_test: Pass
-function_type2_test: RuntimeError
 generic_functions_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
@@ -996,9 +956,10 @@ assertion_initializer_const_error_test/01: Pass
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-bad_named_parameters_test/04: Crash
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_operator_test: RuntimeError, OK
 call_with_no_such_method_test: RuntimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
@@ -1085,7 +1046,6 @@ external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 factory3_test/01: Pass
 field_increment_bailout_test: SkipByDesign
 field_initialization_order_test: Fail, OK
-field_method4_test: Crash
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1097,12 +1057,7 @@ function_subtype_call0_test: RuntimeError, OK
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_type2_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
@@ -1145,7 +1100,6 @@ instantiate_tearoff_of_call_test: CompileTimeError
 invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
-invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: SkipByDesign
 issue31596_super_test/01: CompileTimeError
@@ -1204,7 +1158,6 @@ override_inheritance_method_test/29: CompileTimeError
 override_inheritance_mixed_test/08: Pass # Correctly passes.
 parser_quirks_test: CompileTimeError # Issue 31533
 recursive_mixin_test: Crash
-redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: SkipByDesign
@@ -1312,7 +1265,6 @@ issue18628_2_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError

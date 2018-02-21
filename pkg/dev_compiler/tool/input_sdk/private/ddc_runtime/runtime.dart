@@ -134,7 +134,7 @@ final global_ = JS('', '''
         'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : false);
     $ignoreWhitelistedErrors(
         'ignoreWhitelistedErrors' in settings ?
-            settings.ignoreWhitelistedErrors : true);
+            settings.ignoreWhitelistedErrors : false);
 
     $ignoreAllErrors(
         'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);

@@ -6,8 +6,9 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart'
-    show loadProgramFromBytes, Library, Procedure, Program, Source;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import 'package:kernel/kernel.dart' show Library, Procedure, Program, Source;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator;
@@ -71,7 +72,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Program program;
         if (summaryBytes != null) {
           ticker.logMs("Read ${c.options.sdkSummary}");
-          program = loadProgramFromBytes(summaryBytes);
+          program = new Program();
+          new BinaryBuilder(summaryBytes, disableLazyReading: false)
+              .readProgram(program);
           ticker.logMs("Deserialized ${c.options.sdkSummary}");
           bytesLength += summaryBytes.length;
         }
@@ -87,10 +90,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               ticker.logMs("Read $bootstrapDill");
               bool bootstrapFailed = false;
               try {
-                loadProgramFromBytes(bootstrapBytes, program);
+                // We're going to output all we read here so lazy loading it
+                // doesn't make sense.
+                new BinaryBuilder(bootstrapBytes, disableLazyReading: true)
+                    .readProgram(program);
               } catch (e) {
                 bootstrapFailed = true;
-                program = loadProgramFromBytes(summaryBytes);
+                program = new Program();
+                new BinaryBuilder(summaryBytes, disableLazyReading: false)
+                    .readProgram(program);
               }
               if (!bootstrapFailed) {
                 bootstrapSuccess = true;
@@ -174,18 +182,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         // For now ensure original order of libraries to produce bit-perfect
         // output.
-        List<Library> librariesOriginalOrder =
-            new List<Library>.filled(libraries.length, null, growable: true);
-        int lastOpen = libraries.length;
-        for (Library lib in libraries) {
-          int order = importUriToOrder[lib.importUri];
-          if (order != null) {
-            librariesOriginalOrder[order] = lib;
-          } else {
-            librariesOriginalOrder[--lastOpen] = lib;
-          }
-        }
-        libraries = librariesOriginalOrder;
+        libraries.sort((a, b) {
+          int aOrder = importUriToOrder[a.importUri];
+          int bOrder = importUriToOrder[b.importUri];
+          if (aOrder != null && bOrder != null) return aOrder - bOrder;
+          if (aOrder != null) return -1;
+          if (bOrder != null) return 1;
+          return 0;
+        });
       }
 
       // This is the incremental program.

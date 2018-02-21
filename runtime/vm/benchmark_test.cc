@@ -16,13 +16,13 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
-#include "vm/unit_test.h"
 
 using dart::bin::File;
 
 namespace dart {
 
 DECLARE_FLAG(bool, use_dart_frontend);
+DECLARE_FLAG(bool, strong);
 
 Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
@@ -90,19 +90,6 @@ void Benchmark::RunAll(const char* executable) {
     benchmark->RunBenchmark();
     benchmark = benchmark->next_;
   }
-}
-
-Dart_Isolate Benchmark::CreateIsolate(const uint8_t* snapshot_data,
-                                      const uint8_t* snapshot_instructions) {
-  char* err = NULL;
-  Dart_IsolateFlags api_flags;
-  Isolate::FlagsInitialize(&api_flags);
-  api_flags.use_dart_frontend = FLAG_use_dart_frontend;
-  isolate_ = Dart_CreateIsolate(NULL, NULL, snapshot_data,
-                                snapshot_instructions, &api_flags, NULL, &err);
-  EXPECT(isolate_ != NULL);
-  free(err);
-  return isolate_;
 }
 
 //
@@ -522,13 +509,11 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
       "import 'dart:async';\n"
       "import 'dart:core';\n"
       "import 'dart:collection';\n"
-      "import 'dart:_internal';\n"
       "import 'dart:convert';\n"
       "import 'dart:math';\n"
       "import 'dart:isolate';\n"
       "import 'dart:mirrors';\n"
       "import 'dart:typed_data';\n"
-      "import 'dart:_builtin';\n"
       "import 'dart:io';\n"
       "import 'dart:cli';\n"
       "\n";

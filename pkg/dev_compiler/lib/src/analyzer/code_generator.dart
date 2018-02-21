@@ -42,7 +42,7 @@ import '../compiler/module_builder.dart' show pathToJSIdentifier;
 import '../compiler/type_utilities.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
-import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan;
+import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'ast_builder.dart';
 import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
@@ -2458,28 +2458,48 @@ class CodeGenerator extends Object
   ///   4. initialize fields not covered in 1-3
   JS.Statement _initializeFields(List<VariableDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
-    // Run field initializers if they can have side-effects.
     Set<FieldElement> ctorFields;
-    if (ctor != null) {
-      ctorFields = ctor.initializers
-          .map((c) => c is ConstructorFieldInitializer
-              ? c.fieldName.staticElement as FieldElement
-              : null)
-          .toSet()
-            ..remove(null);
-    }
-
-    var body = <JS.Statement>[];
     emitFieldInit(FieldElement f, Expression initializer, AstNode hoverInfo) {
+      ctorFields?.add(f);
       var access =
           _classProperties.virtualFields[f] ?? _declareMemberName(f.getter);
       var jsInit = _visitInitializer(initializer, f);
-      body.add(jsInit
+      return jsInit
           .toAssignExpression(js.call('this.#', [access])
             ..sourceInformation = _nodeSpan(hoverInfo))
-          .toStatement());
+          .toStatement();
     }
 
+    var body = <JS.Statement>[];
+    if (ctor != null) {
+      ctorFields = new HashSet<FieldElement>();
+
+      // Run constructor parameter initializers such as `this.foo`
+      for (var p in ctor.parameters.parameters) {
+        var element = p.element;
+        if (element is FieldFormalParameterElement) {
+          body.add(emitFieldInit(element.field, p.identifier, p.identifier));
+        }
+      }
+
+      // Run constructor field initializers such as `: foo = bar.baz`
+      for (var init in ctor.initializers) {
+        if (init is ConstructorFieldInitializer) {
+          var field = init.fieldName;
+          body.add(emitFieldInit(field.staticElement, init.expression, field));
+        } else if (init is AssertInitializer) {
+          body.add(_emitAssert(init.condition, init.message));
+        }
+      }
+    }
+
+    // Run field initializers if needed.
+    //
+    // We can skip fields where the initializer doesn't have side effects
+    // (for example, it's a literal value such as implicit `null`) and where
+    // there's another explicit initialization (either in the initializer list
+    // like `field = value`, or via a `this.field` parameter).
+    var fieldInit = <JS.Statement>[];
     for (var field in fieldDecls) {
       var f = field.element;
       if (f.isStatic) continue;
@@ -2488,30 +2508,11 @@ class CodeGenerator extends Object
           _constants.isFieldInitConstant(field)) {
         continue;
       }
-      emitFieldInit(f, field.initializer, field.name);
+      fieldInit.add(emitFieldInit(f, field.initializer, field.name));
     }
-
-    if (ctor != null) {
-      // Run constructor parameter initializers such as `this.foo`
-      for (var p in ctor.parameters.parameters) {
-        var element = p.element;
-        if (element is FieldFormalParameterElement) {
-          emitFieldInit(element.field, p.identifier, p.identifier);
-        }
-      }
-
-      // Run constructor field initializers such as `: foo = bar.baz`
-      for (var init in ctor.initializers) {
-        if (init is ConstructorFieldInitializer) {
-          var field = init.fieldName;
-          emitFieldInit(field.staticElement, init.expression, field);
-        } else if (init is AssertInitializer) {
-          body.add(_emitAssert(init.condition, init.message));
-        }
-      }
-    }
-
-    return JS.Statement.from(body);
+    // Run field initializers before the other ones.
+    fieldInit.addAll(body);
+    return JS.Statement.from(fieldInit);
   }
 
   /// Emits argument initializers, which handles optional/named args, as well
@@ -3018,10 +3019,18 @@ class CodeGenerator extends Object
   /// Emits a simple identifier, including handling an inferred generic
   /// function instantiation.
   @override
-  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
+  JS.Expression visitSimpleIdentifier(SimpleIdentifier node,
+      [SimpleIdentifier libraryPrefix]) {
     var typeArgs = _getTypeArgs(node.staticElement, node.staticType);
     var simpleId = _emitSimpleIdentifier(node)
       ..sourceInformation = _nodeSpan(node);
+    if (libraryPrefix != null &&
+        // Check that the JS AST is for a Dart property and not JS interop.
+        simpleId is JS.PropertyAccess &&
+        simpleId.receiver is JS.Identifier) {
+      // Attach the span to the library prefix.
+      simpleId.receiver.sourceInformation = _nodeSpan(libraryPrefix);
+    }
     if (typeArgs == null) return simpleId;
     return _callHelper('gbind(#, #)', [simpleId, typeArgs]);
   }
@@ -3674,7 +3683,13 @@ class CodeGenerator extends Object
           ..sourceInformation = _nodeSpan(target);
       }
     }
-    return _visitExpression(target);
+    var result = _visitExpression(target);
+    if (target == _cascadeTarget) {
+      // Don't attach source information to a cascade target, as that would
+      // result in marking the same location from different lines.
+      result.sourceInformation = null;
+    }
+    return result;
   }
 
   /// Emits the [JS.PropertyAccess] for accessors or method calls to
@@ -3687,7 +3702,13 @@ class CodeGenerator extends Object
     } else {
       result = new JS.PropertyAccess(jsTarget, jsName);
     }
-    if (node != null) result.sourceInformation = _nodeEnd(node);
+    if (node != null) {
+      // Use the full span for a cascade property so we can hover over `bar` in
+      // `..bar()` and see the `bar` method.
+      var cascade = _cascadeTarget;
+      var isCascade = cascade != null && _getTarget(node.parent) == cascade;
+      result.sourceInformation = isCascade ? _nodeSpan(node) : _nodeEnd(node);
+    }
     return result;
   }
 
@@ -4247,6 +4268,11 @@ class CodeGenerator extends Object
   JS.Statement _emitLazyFields(
       Element target, List<VariableDeclaration> fields) {
     var accessors = <JS.Method>[];
+
+    var objExpr = target is ClassElement
+        ? _emitTopLevelName(target)
+        : emitLibraryName(target);
+
     for (var node in fields) {
       var name = node.name.name;
       var element = node.element;
@@ -4260,7 +4286,9 @@ class CodeGenerator extends Object
               access,
               js.call('function() { return #; }',
                   _visitInitializer(node.initializer, node.element)) as JS.Fun,
-              isGetter: true),
+              isGetter: true)
+            ..sourceInformation = _hoverComment(
+                new JS.PropertyAccess(objExpr, access), node.name),
           _findAccessor(element, getter: true),
           node));
 
@@ -4273,10 +4301,6 @@ class CodeGenerator extends Object
             node));
       }
     }
-
-    var objExpr = target is ClassElement
-        ? _emitTopLevelName(target)
-        : emitLibraryName(target);
 
     return _callHelperStatement('defineLazy(#, { # });', [objExpr, accessors]);
   }
@@ -4309,7 +4333,8 @@ class CodeGenerator extends Object
       DartType type,
       SimpleIdentifier name,
       ArgumentList argumentList,
-      bool isConst) {
+      bool isConst,
+      [ConstructorName ctorNode]) {
     if (element == null) {
       return _throwUnsafe('unresolved constructor: ${type?.name ?? '<null>'}'
           '.${name?.name ?? '<unnamed>'}');
@@ -4354,6 +4379,7 @@ class CodeGenerator extends Object
       }
       // Native factory constructors are JS constructors - use new here.
       var ctor = _emitConstructorName(element, type);
+      if (ctorNode != null) ctor.sourceInformation = _nodeSpan(ctorNode);
       return element.isFactory && !_isJSNative(classElem)
           ? new JS.Call(ctor, args)
           : new JS.New(ctor, args);
@@ -4447,8 +4473,7 @@ class CodeGenerator extends Object
     }
 
     return _emitInstanceCreationExpression(element, getType(constructor.type),
-        name, node.argumentList, node.isConst)
-      ..sourceInformation = _nodeStart(node.constructorName);
+        name, node.argumentList, node.isConst, constructor);
   }
 
   bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
@@ -5077,13 +5102,11 @@ class CodeGenerator extends Object
       return _callHelper('loadLibrary');
     }
 
-    JS.Expression result;
     if (isLibraryPrefix(node.prefix)) {
-      result = _visitExpression(node.identifier);
+      return visitSimpleIdentifier(node.identifier, node.prefix);
     } else {
-      result = _emitAccess(node.prefix, node.identifier, node.staticType);
+      return _emitAccess(node.prefix, node.identifier, node.staticType);
     }
-    return result;
   }
 
   @override
@@ -5247,11 +5270,16 @@ class CodeGenerator extends Object
 
   /// Gets the target of a [PropertyAccess], [IndexExpression], or
   /// [MethodInvocation]. These three nodes can appear in a [CascadeExpression].
-  Expression _getTarget(node) {
-    assert(node is IndexExpression ||
-        node is PropertyAccess ||
-        node is MethodInvocation);
-    return node.isCascaded ? _cascadeTarget : node.target;
+  Expression _getTarget(Expression node) {
+    if (node is IndexExpression) {
+      return node.isCascaded ? _cascadeTarget : node.target;
+    } else if (node is PropertyAccess) {
+      return node.isCascaded ? _cascadeTarget : node.target;
+    } else if (node is MethodInvocation) {
+      return node.isCascaded ? _cascadeTarget : node.target;
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -5764,6 +5792,20 @@ class CodeGenerator extends Object
     var start = _getLocation(node.offset);
     var end = _getLocation(node.end);
     return start != null && end != null ? new NodeSpan(start, end) : null;
+  }
+
+  /// Adds a hover comment for Dart [node] using JS expression [expr], where
+  /// that expression would not otherwise not be generated into source code.
+  ///
+  /// For example, top-level and static fields are defined as lazy properties,
+  /// on the library/class, so their access expressions do not appear in the
+  /// source code.
+  HoverComment _hoverComment(JS.Expression expr, AstNode node) {
+    var start = _getLocation(node.offset);
+    var end = _getLocation(node.end);
+    return start != null && end != null
+        ? new HoverComment(expr, start, end)
+        : null;
   }
 
   SourceLocation _getLocation(int offset) {
