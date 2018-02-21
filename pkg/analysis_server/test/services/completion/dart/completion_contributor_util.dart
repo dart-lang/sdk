@@ -135,7 +135,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.element.location.startLine, isNotNull);
     }
     if (elemFile != null) {
-      expect(cs.element.location.file, elemFile);
+      expect(cs.element.location.file, convertPath(elemFile));
     }
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
