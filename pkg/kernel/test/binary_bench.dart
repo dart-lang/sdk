@@ -162,7 +162,8 @@ bool _parseArgs(List<String> args) {
 
 Program _fromBinary(List<int> bytes, {eager: true}) {
   var program = new Program();
-  new BinaryBuilder(bytes, 'filename', eager).readSingleFileProgram(program);
+  new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)
+      .readSingleFileProgram(program);
   return program;
 }
 

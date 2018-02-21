@@ -6,8 +6,9 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart'
-    show loadProgramFromBytes, Library, Procedure, Program, Source;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import 'package:kernel/kernel.dart' show Library, Procedure, Program, Source;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator;
@@ -71,7 +72,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Program program;
         if (summaryBytes != null) {
           ticker.logMs("Read ${c.options.sdkSummary}");
-          program = loadProgramFromBytes(summaryBytes);
+          program = new Program();
+          new BinaryBuilder(summaryBytes, disableLazyReading: false)
+              .readProgram(program);
           ticker.logMs("Deserialized ${c.options.sdkSummary}");
           bytesLength += summaryBytes.length;
         }
@@ -87,10 +90,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               ticker.logMs("Read $bootstrapDill");
               bool bootstrapFailed = false;
               try {
-                loadProgramFromBytes(bootstrapBytes, program);
+                // We're going to output all we read here so lazy loading it
+                // doesn't make sense.
+                new BinaryBuilder(bootstrapBytes, disableLazyReading: true)
+                    .readProgram(program);
               } catch (e) {
                 bootstrapFailed = true;
-                program = loadProgramFromBytes(summaryBytes);
+                program = new Program();
+                new BinaryBuilder(summaryBytes, disableLazyReading: false)
+                    .readProgram(program);
               }
               if (!bootstrapFailed) {
                 bootstrapSuccess = true;
