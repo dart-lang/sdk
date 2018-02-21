@@ -4866,6 +4866,7 @@ LayoutTests/fast/masking/parsing-clip-path-shape_t01: RuntimeError # Please tria
 LayoutTests/fast/masking/parsing-mask-source-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/masking/parsing-mask_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/media-query-list-syntax_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/media/media-query-list_t01: RuntimeError # Issue 32257
 LayoutTests/fast/media/media-query-serialization_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-append-delete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/mq-js-update-media_t01: RuntimeError # Please triage this failure
