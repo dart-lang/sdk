@@ -2154,11 +2154,9 @@ abstract_factory_constructor_test/00: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError
 argument_assignability_function_typed_test/04: RuntimeError
 argument_assignability_function_typed_test/05: RuntimeError
@@ -2215,12 +2213,6 @@ await_for_test: Crash # Assertion failure: Runtime type information not availabl
 await_for_use_local_test: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 await_test: RuntimeError
-bad_named_parameters2_test/01: MissingCompileTimeError
-bad_named_parameters_test/01: MissingCompileTimeError
-bad_named_parameters_test/02: MissingCompileTimeError
-bad_named_parameters_test/03: MissingCompileTimeError
-bad_named_parameters_test/04: MissingCompileTimeError
-bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
@@ -2346,7 +2338,6 @@ field3_test/01: MissingCompileTimeError
 field_increment_bailout_test: CompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
-field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
@@ -2465,7 +2456,7 @@ internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' 
 invocation_mirror2_test: CompileTimeError
 invocation_mirror_invoke_on2_test: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
-invocation_mirror_test: CompileTimeError
+invocation_mirror_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: CompileTimeError
 issue23244_test: RuntimeError
@@ -2483,8 +2474,6 @@ library_env_test/has_no_io_support: RuntimeError
 library_prefixes_test: CompileTimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
-local_function_test/01: MissingCompileTimeError
-local_function_test/02: MissingCompileTimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
 main_test/20: RuntimeError
@@ -2633,11 +2622,6 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_default_eq_test/none: RuntimeError
-named_parameters_test/02: MissingCompileTimeError
-named_parameters_test/04: MissingCompileTimeError
-named_parameters_test/06: MissingCompileTimeError
-named_parameters_test/08: MissingCompileTimeError
-named_parameters_test/10: MissingCompileTimeError
 nan_identical_test: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
@@ -2652,10 +2636,6 @@ null_test/none: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
 operator4_test: RuntimeError
-optional_named_parameters_test/02: MissingCompileTimeError
-optional_named_parameters_test/04: MissingCompileTimeError
-optional_named_parameters_test/06: MissingCompileTimeError
-optional_named_parameters_test/08: MissingCompileTimeError
 overridden_no_such_method_test: CompileTimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
@@ -2718,7 +2698,6 @@ parser_quirks_test: CompileTimeError
 recursive_generic_test: RuntimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
-redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
@@ -2834,6 +2813,7 @@ vm/regress_22480_test: RuntimeError
 vm/regress_23238_test: RuntimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_28325_test: RuntimeError
+vm/regress_32204_test: Crash
 vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/28: MissingRuntimeError
