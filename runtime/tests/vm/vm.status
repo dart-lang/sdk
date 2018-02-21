@@ -280,6 +280,10 @@ cc/Parser_AllocateVariables_MiddleChain: Crash
 cc/Parser_AllocateVariables_NestedCapturedVar: Crash
 cc/Parser_AllocateVariables_TwoChains: Crash
 
+[ $compiler == dartk && $runtime == vm && $strong ]
+cc/IsolateReload_LibraryHide: Crash
+cc/IsolateReload_LibraryShow: Crash
+
 [ $compiler == dartk && $system == linux ]
 cc/IsolateReload_DanglingGetter_Class: Fail
 cc/IsolateReload_DanglingGetter_Instance: Fail
