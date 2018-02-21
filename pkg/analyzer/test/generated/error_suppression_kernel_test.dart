@@ -8,7 +8,9 @@ import 'error_suppression_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ErrorSuppressionTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(ErrorSuppressionTest_Kernel);
   });
 }
 

@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
-import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -27,7 +26,6 @@ import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:front_end/src/fasta/target_implementation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -393,8 +391,7 @@ class _AnalyzerDietListener extends DietListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope, TypeInferenceListener listener]) {
-    InstrumentedResolutionStorer storer;
+      [Scope formalParameterScope]) {
     var fileResolutions = _resolutions[builder.fileUri];
     if (fileResolutions == null) {
       fileResolutions = <CollectedResolution>[];
@@ -402,15 +399,8 @@ class _AnalyzerDietListener extends DietListener {
     }
     var resolution = new CollectedResolution();
     fileResolutions.add(resolution);
-    storer = new InstrumentedResolutionStorer(
-        resolution.kernelDeclarations,
-        resolution.kernelReferences,
-        resolution.kernelTypes,
-        resolution.declarationOffsets,
-        resolution.referenceOffsets,
-        resolution.typeOffsets);
     return super.createListener(
-        builder, memberScope, isInstanceMember, formalParameterScope, storer);
+        builder, memberScope, isInstanceMember, formalParameterScope);
   }
 }
 

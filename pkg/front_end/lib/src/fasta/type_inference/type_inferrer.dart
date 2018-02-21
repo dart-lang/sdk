@@ -89,8 +89,6 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart' show TypeInferenceEngineImpl;
 
-import 'type_inference_listener.dart' show TypeInferenceListener;
-
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
 import 'type_schema.dart' show isKnown, UnknownType;
@@ -413,8 +411,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
-  final TypeInferenceListener listener;
-
   final InterfaceType thisType;
 
   final SourceLibraryBuilder library;
@@ -433,8 +429,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
-      this.thisType, this.library)
+  TypeInferrerImpl(
+      this.engine, this.uri, bool topLevel, this.thisType, this.library)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -1279,11 +1275,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       Name methodName,
       Arguments arguments}) {
-    listener.methodInvocationEnter(expression, typeContext);
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType =
         receiver == null ? thisType : inferExpression(receiver, null, true);
-    listener.methodInvocationBeforeArgs(expression, isImplicitCall);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1311,30 +1305,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
-    if (identical(interfaceMember, 'call')) {
-      listener.methodInvocationExitCall(expression, arguments, isImplicitCall,
-          lastCalleeType, lastInferredSubstitution, inferredType);
-    } else {
-      if (strongMode &&
-          isImplicitCall &&
-          interfaceMember != null &&
-          !(interfaceMember is Procedure &&
-              interfaceMember.kind == ProcedureKind.Method) &&
-          receiverType is! DynamicType &&
-          receiverType != typeSchemaEnvironment.rawFunctionType) {
-        var parent = expression.parent;
-        var errorNode = helper.wrapInCompileTimeError(expression,
-            templateImplicitCallOfNonMethod.withArguments(receiverType));
-        parent?.replaceChild(expression, errorNode);
-      }
-      listener.methodInvocationExit(
-          expression,
-          arguments,
-          isImplicitCall,
-          interfaceMember,
-          lastCalleeType,
-          lastInferredSubstitution,
-          inferredType);
+    if (!identical(interfaceMember, 'call') &&
+        strongMode &&
+        isImplicitCall &&
+        interfaceMember != null &&
+        !(interfaceMember is Procedure &&
+            interfaceMember.kind == ProcedureKind.Method) &&
+        receiverType is! DynamicType &&
+        receiverType != typeSchemaEnvironment.rawFunctionType) {
+      var parent = expression.parent;
+      var errorNode = helper.wrapInCompileTimeError(expression,
+          templateImplicitCallOfNonMethod.withArguments(receiverType));
+      parent?.replaceChild(expression, errorNode);
     }
     return inferredType;
   }
@@ -1359,7 +1341,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       PropertyGet desugaredGet,
       Object interfaceMember,
       Name propertyName}) {
-    listener.propertyGetEnter(expression, typeContext);
     // First infer the receiver so we can look up the getter that was invoked.
     var receiverType =
         receiver == null ? thisType : inferExpression(receiver, null, true);
@@ -1384,11 +1365,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember.kind == ProcedureKind.Method)) {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
-    }
-    if (identical(interfaceMember, 'call')) {
-      listener.propertyGetExitCall(expression, inferredType);
-    } else {
-      listener.propertyGetExit(expression, interfaceMember, inferredType);
     }
     return inferredType;
   }

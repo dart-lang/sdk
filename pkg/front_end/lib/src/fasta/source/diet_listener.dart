@@ -31,9 +31,6 @@ import '../problems.dart' show internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
-import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart' show NullValue, StackListener;
@@ -537,8 +534,7 @@ class DietListener extends StackListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope, TypeInferenceListener listener]) {
-    listener ??= new TypeInferenceListener();
+      [Scope formalParameterScope]) {
     InterfaceType thisType;
     if (builder.isClassMember) {
       // Note: we set thisType regardless of whether we are building a static
@@ -548,8 +544,7 @@ class DietListener extends StackListener {
     }
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
-        : typeInferenceEngine.createLocalTypeInferrer(
-            uri, listener, thisType, library);
+        : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
     return new BodyBuilder(library, builder, memberScope, formalParameterScope,
         hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;

@@ -115,12 +115,7 @@ abstract class BuilderHelper {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {bool isConst,
-      int charOffset,
-      Member initialTarget,
-      String prefixName,
-      int targetOffset: -1,
-      Class targetClass});
+      {bool isConst, int charOffset, Member initialTarget});
 
   Expression buildProblemExpression(ProblemBuilder builder, int offset);
 
@@ -137,8 +132,7 @@ abstract class BuilderHelper {
       Arguments arguments, CalleeDesignation calleeKind, int offset,
       [List<TypeParameter> typeParameters]);
 
-  StaticGet makeStaticGet(Member readTarget, Token token,
-      {String prefixName, int targetOffset: -1, Class targetClass});
+  StaticGet makeStaticGet(Member readTarget, Token token);
 
   Expression wrapInDeferredCheck(
       Expression expression, PrefixBuilder prefix, int charOffset);
@@ -826,16 +820,13 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   StaticAccessor(
-      BuilderHelper helper, Token token, Member readTarget, Member writeTarget,
-      {String prefixName, int targetOffset: -1, Class targetClass})
-      : super(helper, prefixName, targetOffset, targetClass, readTarget,
-            writeTarget, token) {
+      BuilderHelper helper, Token token, Member readTarget, Member writeTarget)
+      : super(helper, readTarget, writeTarget, token) {
     assert(readTarget != null || writeTarget != null);
   }
 
-  factory StaticAccessor.fromBuilder(
-      BuilderHelper helper, Builder builder, Token token, Builder builderSetter,
-      {PrefixBuilder prefix, int targetOffset: -1, Class targetClass}) {
+  factory StaticAccessor.fromBuilder(BuilderHelper helper, Builder builder,
+      Token token, Builder builderSetter) {
     if (builder is AccessErrorBuilder) {
       AccessErrorBuilder error = builder;
       builder = error.builder;
@@ -853,10 +844,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
         setter = builderSetter.target;
       }
     }
-    return new StaticAccessor(helper, token, getter, setter,
-        prefixName: prefix?.name,
-        targetOffset: targetOffset,
-        targetClass: targetClass);
+    return new StaticAccessor(helper, token, getter, setter);
   }
 
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
@@ -875,10 +863,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
           isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset,
-          prefixName: prefixName,
-          targetOffset: targetOffset,
-          targetClass: targetClass);
+          charOffset: offset);
     }
   }
 
@@ -886,7 +871,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowStaticAssignment(prefixName, targetOffset, targetClass, rhs);
+      new ShadowStaticAssignment(rhs);
 }
 
 class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
@@ -1178,7 +1163,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
               ..fileOffset = offsetForToken(token))
           ..fileOffset = offset;
       } else {
-        super.expression = new ShadowTypeLiteral(prefix?.name,
+        super.expression = new ShadowTypeLiteral(
             buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true))
           ..fileOffset = offsetForToken(token);
       }
@@ -1234,11 +1219,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         } else if (builder.isField && !builder.isFinal) {
           setter = builder;
         }
-        accessor = new StaticAccessor.fromBuilder(
-            helper, builder, send.token, setter,
-            prefix: prefix,
-            targetOffset: declarationReferenceOffset,
-            targetClass: declaration.target);
+        accessor =
+            new StaticAccessor.fromBuilder(helper, builder, send.token, setter);
       }
 
       return arguments == null

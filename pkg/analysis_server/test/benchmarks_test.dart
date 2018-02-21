@@ -38,22 +38,24 @@ void defineTests() {
             reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
       });
 
-      test('$benchmarkId-use-cfe', () {
-        ProcessResult r = Process.runSync(
-          Platform.resolvedExecutable,
-          [
-            path.join('benchmark', 'benchmarks.dart'),
-            'run',
-            '--repeat=1',
-            '--quick',
-            '--use-cfe',
-            benchmarkId
-          ],
-          workingDirectory: _serverSourcePath,
-        );
-        expect(r.exitCode, 0,
-            reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
-      });
+      // TODO(scheglov): Restore similar test coverage when the front-end API
+      // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+      // test('$benchmarkId-use-cfe', () {
+      //   ProcessResult r = Process.runSync(
+      //     Platform.resolvedExecutable,
+      //     [
+      //       path.join('benchmark', 'benchmarks.dart'),
+      //       'run',
+      //       '--repeat=1',
+      //       '--quick',
+      //       '--use-cfe',
+      //       benchmarkId
+      //     ],
+      //     workingDirectory: _serverSourcePath,
+      //   );
+      //   expect(r.exitCode, 0,
+      //       reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
+      // });
     }
   });
 }

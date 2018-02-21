@@ -1310,9 +1310,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return new ThisPropertyAccessor(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      StaticAccessor accessor = new StaticAccessor(
-          this, token, builder.target, null,
-          prefixName: prefix?.name);
+      StaticAccessor accessor =
+          new StaticAccessor(this, token, builder.target, null);
       return (prefix?.deferred == true)
           ? new DeferredAccessor(this, token, prefix, accessor)
           : accessor;
@@ -1339,9 +1338,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessor accessor = new StaticAccessor.fromBuilder(
-          this, builder, token, setter,
-          prefix: prefix);
+      StaticAccessor accessor =
+          new StaticAccessor.fromBuilder(this, builder, token, setter);
       if (constantExpressionRequired) {
         Member readTarget = accessor.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
@@ -2376,10 +2374,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isConst: false,
       int charOffset: -1,
       Member initialTarget,
-      List<DartType> targetTypeArguments,
-      String prefixName,
-      int targetOffset: -1,
-      Class targetClass}) {
+      List<DartType> targetTypeArguments}) {
     initialTarget ??= target;
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
@@ -2406,7 +2401,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Not a const constructor.", charOffset);
       }
       return new ShadowConstructorInvocation(
-          prefixName, target, targetTypeArguments, initialTarget, arguments,
+          target, targetTypeArguments, initialTarget, arguments,
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2416,13 +2411,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
         return new ShadowFactoryConstructorInvocation(
-            prefixName, target, targetTypeArguments, initialTarget, arguments,
+            target, targetTypeArguments, initialTarget, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
-        return new ShadowStaticInvocation(
-            prefixName, targetOffset, targetClass, target, arguments,
-            isConst: isConst)
+        return new ShadowStaticInvocation(target, arguments, isConst: isConst)
           ..fileOffset = charOffset;
       }
     }
@@ -2545,7 +2538,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String name = pop();
     List<DartType> typeArguments = pop();
 
-    String prefixName;
     var type = pop();
     PrefixBuilder deferredPrefix;
     int checkOffset;
@@ -2559,7 +2551,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (type is TypeDeclarationAccessor) {
       TypeDeclarationAccessor accessor = type;
       if (accessor.prefix != null) {
-        prefixName = accessor.prefix.name;
         nameToken = nameToken.next.next;
       }
       type = accessor.declaration;
@@ -2574,8 +2565,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           name,
           typeArguments,
           token.charOffset,
-          optional("const", token) || optional("@", token),
-          prefixName: prefixName);
+          optional("const", token) || optional("@", token));
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
@@ -2599,8 +2589,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String name,
       List<DartType> typeArguments,
       int charOffset,
-      bool isConst,
-      {String prefixName}) {
+      bool isConst) {
     if (arguments == null) {
       return deprecated_buildCompileTimeError(
           "No arguments.", nameToken.charOffset);
@@ -2671,7 +2660,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return buildStaticInvocation(target, arguments,
             isConst: isConst,
             charOffset: nameToken.charOffset,
-            prefixName: prefixName,
             initialTarget: initialTarget,
             targetTypeArguments: targetTypeArguments);
       } else {
@@ -3788,11 +3776,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  StaticGet makeStaticGet(Member readTarget, Token token,
-      {String prefixName, int targetOffset: -1, Class targetClass}) {
-    return new ShadowStaticGet(
-        prefixName, targetOffset, targetClass, readTarget)
-      ..fileOffset = offsetForToken(token);
+  StaticGet makeStaticGet(Member readTarget, Token token) {
+    return new ShadowStaticGet(readTarget)..fileOffset = offsetForToken(token);
   }
 
   @override
