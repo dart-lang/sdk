@@ -1175,6 +1175,95 @@ main() {
 ''');
   }
 
+  test_convertToNamedArguments_BAD_ambiguous() async {
+    await resolveTestUnit('''
+class A {
+  A({int a, int b});
+}
+
+main() {
+  new A(1, 2);
+}
+''');
+    await assertNoFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
+  }
+
+  test_convertToNamedArguments_BAD_noCompatibleParameter() async {
+    await resolveTestUnit('''
+class A {
+  A({String a});
+}
+
+main() {
+  new A(1);
+}
+''');
+    await assertNoFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
+  }
+
+  test_convertToNamedArguments_OK_instanceCreation() async {
+    await resolveTestUnit('''
+class A {
+  A({int a, double b});
+}
+
+main() {
+  new A(1.2, 3);
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS, '''
+class A {
+  A({int a, double b});
+}
+
+main() {
+  new A(b: 1.2, a: 3);
+}
+''');
+  }
+
+  test_convertToNamedArguments_OK_instanceCreation_hasPositional() async {
+    await resolveTestUnit('''
+class A {
+  A(int a, {int b});
+}
+
+main() {
+  new A(1, 2);
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS, '''
+class A {
+  A(int a, {int b});
+}
+
+main() {
+  new A(1, b: 2);
+}
+''');
+  }
+
+  test_convertToNamedArguments_OK_methodInvocation() async {
+    await resolveTestUnit('''
+class C {
+  void foo({int a}) {}
+}
+
+main(C c) {
+  c.foo(1);
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS, '''
+class C {
+  void foo({int a}) {}
+}
+
+main(C c) {
+  c.foo(a: 1);
+}
+''');
+  }
+
   test_createClass() async {
     await resolveTestUnit('''
 main() {
