@@ -264,7 +264,7 @@ cc/IsolateReload_DanglingGetter_Class: Crash
 cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_DanglingSetter_Instance: Crash
 cc/IsolateReload_EnumDelete: Crash
-cc/IsolateReload_LibraryLookup: Fail
+cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_TearOff_AddArguments: Crash
 cc/IsolateReload_TearOff_AddArguments2: Crash
 cc/IsolateReload_TearOff_Class_Identity: Crash
