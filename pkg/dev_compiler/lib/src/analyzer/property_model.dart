@@ -135,8 +135,8 @@ class _LibraryVirtualFieldModel {
     if (field.isStatic) return false;
 
     var type = field.enclosingElement;
-    var library = type.library;
-    if (library.isInSdk && library.source.uri.toString().startsWith('dart:_')) {
+    var uri = type.source.uri;
+    if (uri.scheme == 'dart' && uri.path.startsWith('_')) {
       // There should be no extensible fields in private SDK libraries.
       return false;
     }
