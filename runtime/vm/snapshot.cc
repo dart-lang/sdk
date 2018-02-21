@@ -11,6 +11,7 @@
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/longjump.h"
+#include "vm/message.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
@@ -919,11 +920,12 @@ ScriptSnapshotReader::~ScriptSnapshotReader() {
 }
 
 MessageSnapshotReader::MessageSnapshotReader(Message* message, Thread* thread)
-    : SnapshotReader(message->data(),
-                     message->len(),
+    : SnapshotReader(message->snapshot(),
+                     message->snapshot_length(),
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     thread) {}
+                     thread),
+      finalizable_data_(message->finalizable_data()) {}
 
 MessageSnapshotReader::~MessageSnapshotReader() {
   ResetBackwardReferenceTable();
@@ -1612,7 +1614,12 @@ MessageWriter::MessageWriter(bool can_send_any_object)
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
-      forward_list_(thread(), kMaxPredefinedObjectIds) {}
+      forward_list_(thread(), kMaxPredefinedObjectIds),
+      finalizable_data_(new MessageFinalizableData()) {}
+
+MessageWriter::~MessageWriter() {
+  delete finalizable_data_;
+}
 
 Message* MessageWriter::WriteMessage(const Object& obj,
                                      Dart_Port dest_port,
@@ -1631,7 +1638,10 @@ Message* MessageWriter::WriteMessage(const Object& obj,
     ThrowException(exception_type(), exception_msg());
   }
 
-  return new Message(dest_port, buffer(), BytesWritten(), priority);
+  MessageFinalizableData* finalizable_data = finalizable_data_;
+  finalizable_data_ = NULL;
+  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
+                     priority);
 }
 
 }  // namespace dart

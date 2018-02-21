@@ -117,13 +117,27 @@ class VerifyOriginId : public IsolateVisitor {
 };
 #endif
 
-// TODO(zra): Allocation of Message objects should be centralized.
 static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
   if (ApiObjectConverter::CanConvert(obj.raw())) {
     return new Message(dest_port, obj.raw(), Message::kNormalPriority);
   } else {
     MessageWriter writer(false);
     return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
+  }
+}
+
+static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
+  if (message == NULL) {
+    return Instance::null();
+  }
+  Zone* zone = thread->zone();
+  if (message->IsRaw()) {
+    return Instance::RawCast(message->raw_obj());
+  } else {
+    MessageSnapshotReader reader(message, thread);
+    const Object& obj = Object::Handle(zone, reader.ReadObject());
+    ASSERT(!obj.IsError());
+    return Instance::RawCast(obj.raw());
   }
 }
 
@@ -2771,19 +2785,6 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread_registry()->ReturnThreadLocked(is_mutator, thread);
 }
 
-static RawInstance* DeserializeObject(Thread* thread, Message* message) {
-  if (message == NULL) {
-    return Instance::null();
-  }
-  MessageSnapshotReader reader(message, thread);
-  Zone* zone = thread->zone();
-  const Object& obj = Object::Handle(zone, reader.ReadObject());
-  ASSERT(!obj.IsError());
-  Instance& instance = Instance::Handle(zone);
-  instance ^= obj.raw();  // Can't use Instance::Cast because may be null.
-  return instance.raw();
-}
-
 static const char* NewConstChar(const char* chars) {
   size_t len = strlen(chars);
   char* mem = new char[len + 1];
@@ -2969,11 +2970,11 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 }
 
 RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeObject(thread, serialized_args_);
+  return DeserializeMessage(thread, serialized_args_);
 }
 
 RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeObject(thread, serialized_message_);
+  return DeserializeMessage(thread, serialized_message_);
 }
 
 void IsolateSpawnState::DecrementSpawnCount() {

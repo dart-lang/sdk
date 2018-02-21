@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
+#include "vm/finalizable_data.h"
 #include "vm/globals.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
@@ -45,8 +46,9 @@ class Message {
   // message will be disposed by calling free() once the message object is
   // being destructed (after delivery or when the receiving port is closed).
   Message(Dart_Port dest_port,
-          uint8_t* data,
-          intptr_t len,
+          uint8_t* snapshot,
+          intptr_t snapshot_length,
+          MessageFinalizableData* finalizable_data,
           Priority priority,
           Dart_Port delivery_failure_port = kIllegalPort);
 
@@ -56,22 +58,35 @@ class Message {
           RawObject* raw_obj,
           Priority priority,
           Dart_Port delivery_failure_port = kIllegalPort);
+
   ~Message();
 
   Dart_Port dest_port() const { return dest_port_; }
-  uint8_t* data() const {
-    ASSERT(len_ > 0);
-    return data_;
+
+  uint8_t* snapshot() const {
+    ASSERT(!IsRaw());
+    return snapshot_;
   }
-  intptr_t len() const { return len_; }
+  intptr_t snapshot_length() const { return snapshot_length_; }
+
+  MessageFinalizableData* finalizable_data() { return finalizable_data_; }
+
+  intptr_t Size() const {
+    intptr_t size = snapshot_length_;
+    if (finalizable_data_ != NULL) {
+      size += finalizable_data_->external_size();
+    }
+    return size;
+  }
+
   RawObject* raw_obj() const {
-    ASSERT(len_ == 0);
-    return reinterpret_cast<RawObject*>(data_);
+    ASSERT(IsRaw());
+    return reinterpret_cast<RawObject*>(snapshot_);
   }
   Priority priority() const { return priority_; }
 
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
-  bool IsRaw() const { return len_ == 0; }
+  bool IsRaw() const { return snapshot_length_ == 0; }
 
   bool RedirectToDeliveryFailurePort();
 
@@ -85,8 +100,9 @@ class Message {
   Message* next_;
   Dart_Port dest_port_;
   Dart_Port delivery_failure_port_;
-  uint8_t* data_;
-  intptr_t len_;
+  uint8_t* snapshot_;
+  intptr_t snapshot_length_;
+  MessageFinalizableData* finalizable_data_;
   Priority priority_;
 
   DISALLOW_COPY_AND_ASSIGN(Message);

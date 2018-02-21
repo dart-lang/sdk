@@ -9,6 +9,7 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
+#include "vm/finalizable_data.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -210,11 +211,6 @@ class BaseReader {
   template <typename T>
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
-  }
-
-  intptr_t ReadRawPointerValue() {
-    int64_t value = Read<int64_t>();
-    return static_cast<intptr_t>(value);
   }
 
   classid_t ReadClassIDValue() {
@@ -493,7 +489,11 @@ class MessageSnapshotReader : public SnapshotReader {
   MessageSnapshotReader(Message* message, Thread* thread);
   ~MessageSnapshotReader();
 
+  MessageFinalizableData* finalizable_data() const { return finalizable_data_; }
+
  private:
+  MessageFinalizableData* finalizable_data_;
+
   DISALLOW_COPY_AND_ASSIGN(MessageSnapshotReader);
 };
 
@@ -508,8 +508,6 @@ class BaseWriter : public StackResource {
   void Write(T value) {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
-
-  void WriteRawPointerValue(intptr_t value) { Write<int64_t>(value); }
 
   void WriteClassIDValue(classid_t value) { Write<uint32_t>(value); }
   COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));
@@ -800,14 +798,17 @@ class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
   explicit MessageWriter(bool can_send_any_object);
-  ~MessageWriter() {}
+  ~MessageWriter();
 
   Message* WriteMessage(const Object& obj,
                         Dart_Port dest_port,
                         Message::Priority priority);
 
+  MessageFinalizableData* finalizable_data() const { return finalizable_data_; }
+
  private:
   ForwardList forward_list_;
+  MessageFinalizableData* finalizable_data_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
