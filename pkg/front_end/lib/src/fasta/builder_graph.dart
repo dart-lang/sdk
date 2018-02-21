@@ -4,11 +4,11 @@
 
 library fasta.builder_graph;
 
+import 'package:kernel/util/graph.dart' show Graph;
+
 import 'builder/builder.dart' show LibraryBuilder;
 
 import 'export.dart' show Export;
-
-import 'graph/graph.dart' show Graph;
 
 import 'import.dart' show Import;
 
