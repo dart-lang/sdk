@@ -6,6 +6,7 @@ import "dart:async";
 import "dart:developer";
 import "dart:isolate";
 import "dart:typed_data";
+import "dart:developer";
 import "package:expect/expect.dart";
 
 const large = 2 * 1024 * 1024;
@@ -20,6 +21,8 @@ void child(replyPort) {
       new ByteData(large),
     ]);
     replyPort.send("Not reached");
+  }, (e) {
+    return e.toString().contains("Illegal argument in isolate message");
   });
 
   replyPort.send("Done");
