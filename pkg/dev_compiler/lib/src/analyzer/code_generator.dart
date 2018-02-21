@@ -3019,10 +3019,18 @@ class CodeGenerator extends Object
   /// Emits a simple identifier, including handling an inferred generic
   /// function instantiation.
   @override
-  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
+  JS.Expression visitSimpleIdentifier(SimpleIdentifier node,
+      [SimpleIdentifier libraryPrefix]) {
     var typeArgs = _getTypeArgs(node.staticElement, node.staticType);
     var simpleId = _emitSimpleIdentifier(node)
       ..sourceInformation = _nodeSpan(node);
+    if (libraryPrefix != null &&
+        // Check that the JS AST is for a Dart property and not JS interop.
+        simpleId is JS.PropertyAccess &&
+        simpleId.receiver is JS.Identifier) {
+      // Attach the span to the library prefix.
+      simpleId.receiver.sourceInformation = _nodeSpan(libraryPrefix);
+    }
     if (typeArgs == null) return simpleId;
     return _callHelper('gbind(#, #)', [simpleId, typeArgs]);
   }
@@ -5094,13 +5102,11 @@ class CodeGenerator extends Object
       return _callHelper('loadLibrary');
     }
 
-    JS.Expression result;
     if (isLibraryPrefix(node.prefix)) {
-      result = _visitExpression(node.identifier);
+      return visitSimpleIdentifier(node.identifier, node.prefix);
     } else {
-      result = _emitAccess(node.prefix, node.identifier, node.staticType);
+      return _emitAccess(node.prefix, node.identifier, node.staticType);
     }
-    return result;
   }
 
   @override
