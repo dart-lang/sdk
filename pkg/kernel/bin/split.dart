@@ -11,8 +11,21 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 
+import 'util.dart';
+
+void usage() {
+  print("Split a dill file into separate dill files (one library per file).");
+  print("Dart internal libraries are not included in the output.");
+  print("");
+  print("Usage: dart <script> dillFile.dill");
+  print("The given argument should be an existing file");
+  print("that is valid to load as a dill file.");
+  exit(1);
+}
+
 main(args) async {
-  Program binary = loadProgramFromBinary(args[0]);
+  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
+  Program binary = CommandLineHelper.tryLoadDill(args[0], usage);
 
   int part = 1;
   binary.libraries.forEach((lib) => lib.isExternal = true);

@@ -70,6 +70,8 @@ class BinaryBuilder {
         byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }
 
+  int get byteOffset => _byteOffset;
+
   int readByte() => _bytes[_byteOffset++];
 
   int readUInt() {

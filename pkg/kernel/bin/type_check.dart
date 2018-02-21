@@ -6,11 +6,23 @@
 import 'dart:io';
 
 import 'package:kernel/error_formatter.dart';
-import 'package:kernel/kernel.dart';
 import 'package:kernel/naive_type_checker.dart';
 
+import 'util.dart';
+
+void usage() {
+  print("Type checker that can be used to find strong mode");
+  print("violations in the Kernel files.");
+  print("");
+  print("Usage: dart <script> dillFile.dill");
+  print("The given argument should be an existing file");
+  print("that is valid to load as a dill file.");
+  exit(1);
+}
+
 void main(List<String> args) {
-  final binary = loadProgramFromBinary(args[0]);
+  CommandLineHelper.requireExactlyOneArgument(true, args, usage);
+  final binary = CommandLineHelper.tryLoadDill(args[0], usage);
   ErrorFormatter errorFormatter = new ErrorFormatter();
   new StrongModeTypeChecker(errorFormatter, binary)..checkProgram(binary);
   if (errorFormatter.numberOfFailures > 0) {
