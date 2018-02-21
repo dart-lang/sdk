@@ -632,16 +632,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeConstructorSuggestions = true;
       optype.constructorSuggestionsFilter = (DartType dartType, int relevance) {
         DartType localTypeAssertion = null;
-        if (node.parent is VariableDeclaration) {
-          VariableDeclaration varDeclaration =
-              node.parent as VariableDeclaration;
-          localTypeAssertion = resolutionMap
-              .elementDeclaredByVariableDeclaration(varDeclaration)
-              ?.type;
-        } else if (node.parent is AssignmentExpression) {
-          AssignmentExpression assignmentExpression =
-              node.parent as AssignmentExpression;
-          localTypeAssertion = assignmentExpression.leftHandSide.staticType;
+        AstNode parent = node.parent;
+        if (parent is VariableDeclaration) {
+          localTypeAssertion = parent.element?.type;
+        } else if (parent is AssignmentExpression) {
+          localTypeAssertion = parent.leftHandSide.staticType;
+        } else if (node.staticParameterElement != null) {
+          localTypeAssertion = node.staticParameterElement.type;
+        } else if (parent is NamedExpression &&
+            parent.staticParameterElement != null) {
+          localTypeAssertion = parent.staticParameterElement.type;
         }
         if (localTypeAssertion == null ||
             dartType == null ||
