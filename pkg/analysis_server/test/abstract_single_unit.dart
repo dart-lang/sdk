@@ -118,7 +118,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<Null> resolveTestUnit(String code) async {
     addTestSource(code);
-    testAnalysisResult = await driver.getResult(testFile);
+    testAnalysisResult = await driver.getResult(convertPath(testFile));
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {

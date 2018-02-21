@@ -83,9 +83,9 @@ class Required {
   Source addSource(String path, String content, [Uri uri]) {
     File file = newFile(path, content: content);
     Source source = file.createSource(uri);
-    driver.addFile(path);
-    driver.changeFile(path);
-    _fileContentOverlay[path] = content;
+    driver.addFile(file.path);
+    driver.changeFile(file.path);
+    _fileContentOverlay[file.path] = content;
     return source;
   }
 
