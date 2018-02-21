@@ -9,11 +9,13 @@ import 'js_ast.dart';
 class NodeEnd {
   final SourceLocation end;
   NodeEnd(this.end);
+  toString() => '#<NodeEnd $end>';
 }
 
 class NodeSpan {
   final SourceLocation start, end;
   NodeSpan(this.start, this.end);
+  toString() => '#<NodeSpan $start to $end>';
 }
 
 class HoverComment {

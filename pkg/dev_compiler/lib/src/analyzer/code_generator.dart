@@ -3675,7 +3675,13 @@ class CodeGenerator extends Object
           ..sourceInformation = _nodeSpan(target);
       }
     }
-    return _visitExpression(target);
+    var result = _visitExpression(target);
+    if (target == _cascadeTarget) {
+      // Don't attach source information to a cascade target, as that would
+      // result in marking the same location from different lines.
+      result.sourceInformation = null;
+    }
+    return result;
   }
 
   /// Emits the [JS.PropertyAccess] for accessors or method calls to
@@ -3688,7 +3694,13 @@ class CodeGenerator extends Object
     } else {
       result = new JS.PropertyAccess(jsTarget, jsName);
     }
-    if (node != null) result.sourceInformation = _nodeEnd(node);
+    if (node != null) {
+      // Use the full span for a cascade property so we can hover over `bar` in
+      // `..bar()` and see the `bar` method.
+      var cascade = _cascadeTarget;
+      var isCascade = cascade != null && _getTarget(node.parent) == cascade;
+      result.sourceInformation = isCascade ? _nodeSpan(node) : _nodeEnd(node);
+    }
     return result;
   }
 
@@ -4313,7 +4325,8 @@ class CodeGenerator extends Object
       DartType type,
       SimpleIdentifier name,
       ArgumentList argumentList,
-      bool isConst) {
+      bool isConst,
+      [ConstructorName ctorNode]) {
     if (element == null) {
       return _throwUnsafe('unresolved constructor: ${type?.name ?? '<null>'}'
           '.${name?.name ?? '<unnamed>'}');
@@ -4358,6 +4371,7 @@ class CodeGenerator extends Object
       }
       // Native factory constructors are JS constructors - use new here.
       var ctor = _emitConstructorName(element, type);
+      if (ctorNode != null) ctor.sourceInformation = _nodeSpan(ctorNode);
       return element.isFactory && !_isJSNative(classElem)
           ? new JS.Call(ctor, args)
           : new JS.New(ctor, args);
@@ -4451,8 +4465,7 @@ class CodeGenerator extends Object
     }
 
     return _emitInstanceCreationExpression(element, getType(constructor.type),
-        name, node.argumentList, node.isConst)
-      ..sourceInformation = _nodeStart(node.constructorName);
+        name, node.argumentList, node.isConst, constructor);
   }
 
   bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
@@ -5251,11 +5264,16 @@ class CodeGenerator extends Object
 
   /// Gets the target of a [PropertyAccess], [IndexExpression], or
   /// [MethodInvocation]. These three nodes can appear in a [CascadeExpression].
-  Expression _getTarget(node) {
-    assert(node is IndexExpression ||
-        node is PropertyAccess ||
-        node is MethodInvocation);
-    return node.isCascaded ? _cascadeTarget : node.target;
+  Expression _getTarget(Expression node) {
+    if (node is IndexExpression) {
+      return node.isCascaded ? _cascadeTarget : node.target;
+    } else if (node is PropertyAccess) {
+      return node.isCascaded ? _cascadeTarget : node.target;
+    } else if (node is MethodInvocation) {
+      return node.isCascaded ? _cascadeTarget : node.target;
+    } else {
+      return null;
+    }
   }
 
   @override
