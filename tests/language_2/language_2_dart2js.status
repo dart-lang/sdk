@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should contain "$compiler == dart2js".
 
+[ $compiler == dart2js ]
+double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
+
 [ $compiler != dart2js ]
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 

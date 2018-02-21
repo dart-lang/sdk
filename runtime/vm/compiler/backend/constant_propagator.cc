@@ -80,6 +80,22 @@ bool ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   return false;
 }
 
+static bool IsIdenticalConstants(const Object& left, const Object& right) {
+  // This should be kept in line with Identical_comparison (identical.cc)
+  // (=> Instance::IsIdenticalTo in object.cc).
+
+  if (left.raw() == right.raw()) return true;
+  if (left.GetClassId() != right.GetClassId()) return false;
+  if (left.IsInteger()) {
+    return Integer::Cast(left).Equals(Integer::Cast(right));
+  }
+  if (left.IsDouble()) {
+    return Double::Cast(left).BitwiseEqualsToDouble(
+        Double::Cast(right).value());
+  }
+  return false;
+}
+
 // Compute the join of two values in the lattice, assign it to the first.
 void ConstantPropagator::Join(Object* left, const Object& right) {
   // Join(non-constant, X) = non-constant
@@ -94,8 +110,7 @@ void ConstantPropagator::Join(Object* left, const Object& right) {
   }
 
   // Join(X, X) = X
-  // TODO(kmillikin): support equality for doubles, mints, etc.
-  if (left->raw() == right.raw()) return;
+  if (IsIdenticalConstants(*left, right)) return;
 
   // Join(X, Y) = non-constant
   *left = non_constant_.raw();
@@ -433,7 +448,7 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
       }
     }
   } else if (IsConstant(left) && IsConstant(right)) {
-    bool result = (left.raw() == right.raw());
+    bool result = IsIdenticalConstants(left, right);
     if (instr->kind() == Token::kNE_STRICT) {
       result = !result;
     }
