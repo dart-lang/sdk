@@ -11,6 +11,7 @@ import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
@@ -158,6 +159,65 @@ class SearchDomainHandler implements protocol.RequestHandler {
     server.sendResponse(response);
   }
 
+  /**
+   * Implement the `search.getDeclarations` request.
+   */
+  Future getDeclarations(protocol.Request request) async {
+    var files = <String>[];
+    var declarations = <search.Declaration>[];
+
+    protocol.ElementKind getElementKind(search.DeclarationKind kind) {
+      switch (kind) {
+        case search.DeclarationKind.CLASS:
+          return protocol.ElementKind.CLASS;
+        case search.DeclarationKind.CLASS_TYPE_ALIAS:
+          return protocol.ElementKind.CLASS_TYPE_ALIAS;
+        case search.DeclarationKind.CONSTRUCTOR:
+          return protocol.ElementKind.CONSTRUCTOR;
+        case search.DeclarationKind.ENUM:
+          return protocol.ElementKind.ENUM;
+        case search.DeclarationKind.ENUM_CONSTANT:
+          return protocol.ElementKind.ENUM_CONSTANT;
+        case search.DeclarationKind.FIELD:
+          return protocol.ElementKind.FIELD;
+        case search.DeclarationKind.FUNCTION:
+          return protocol.ElementKind.FUNCTION;
+        case search.DeclarationKind.FUNCTION_TYPE_ALIAS:
+          return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+        case search.DeclarationKind.GETTER:
+          return protocol.ElementKind.GETTER;
+        case search.DeclarationKind.METHOD:
+          return protocol.ElementKind.METHOD;
+        case search.DeclarationKind.SETTER:
+          return protocol.ElementKind.SETTER;
+        case search.DeclarationKind.VARIABLE:
+          return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+        default:
+          return protocol.ElementKind.CLASS;
+      }
+    }
+
+    for (var driver in server.driverMap.values.toList()) {
+      var driverDeclarations = await driver.search.declarations(files);
+      declarations.addAll(driverDeclarations);
+    }
+
+    List<protocol.ElementDeclaration> elementDeclarations =
+        declarations.map((declaration) {
+      return new protocol.ElementDeclaration(
+          declaration.name,
+          getElementKind(declaration.kind),
+          declaration.fileIndex,
+          declaration.offset,
+          declaration.line,
+          declaration.column);
+    }).toList();
+
+    server.sendResponse(new protocol.SearchGetElementDeclarationsResult(
+            elementDeclarations, files)
+        .toResponse(request.id));
+  }
+
   @override
   protocol.Response handleRequest(protocol.Request request) {
     try {
@@ -173,6 +233,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
         return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_REQUEST_FIND_TOP_LEVEL_DECLARATIONS) {
         findTopLevelDeclarations(request);
+        return protocol.Response.DELAYED_RESPONSE;
+      } else if (requestName == SEARCH_REQUEST_GET_ELEMENT_DECLARATIONS) {
+        getDeclarations(request);
         return protocol.Response.DELAYED_RESPONSE;
       } else if (requestName == SEARCH_REQUEST_GET_TYPE_HIERARCHY) {
         getTypeHierarchy(request);
