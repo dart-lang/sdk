@@ -60,32 +60,61 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic) return;
-    if (node.fields.isConst) return;
-    if (!node.fields.isFinal) return;
-    if (node.fields.variables
-        .every((declaration) => _isConst(declaration.initializer))) {
-      rule.reportLint(node.fields);
-    }
+    _visitVariableDeclarationList(node.fields);
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (node.variables.isConst) return;
-    if (!node.variables.isFinal) return;
-    if (node.variables.variables
-        .every((declaration) => _isConst(declaration.initializer))) {
-      rule.reportLint(node.variables);
-    }
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+      _visitVariableDeclarationList(node.variables);
+
+  @override
+  visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+      _visitVariableDeclarationList(node.variables);
+
+  _visitVariableDeclarationList(VariableDeclarationList node) {
+    if (node.isConst) return;
+    if (!node.isFinal) return;
+    if (node.variables
+        .every((declaration) => _isConst(declaration.initializer)))
+      rule.reportLint(node);
   }
 
-  bool _isConst(Expression expression) {
-    if (expression is ParenthesizedExpression)
-      return _isConst(expression.unParenthesized);
-    return expression is NullLiteral ||
-        expression is IntegerLiteral ||
-        expression is DoubleLiteral ||
-        expression is SimpleStringLiteral ||
-        expression is InstanceCreationExpression && expression.isConst ||
-        expression is TypedLiteral && expression.isConst;
+  bool _isConst(Expression node) {
+    final cu = _getCompilationUnit(node);
+    final listener = new MyAnalysisErrorListener();
+    node.accept(new ConstantVisitor(
+        new ConstantEvaluationEngine(cu.element.context.typeProvider,
+            cu.element.context.declaredVariables),
+        new ErrorReporter(listener, cu.element.source)));
+    return !listener.hasConstError;
+  }
+
+  CompilationUnit _getCompilationUnit(AstNode node) {
+    AstNode result = node;
+    while (result is! CompilationUnit) result = result.parent;
+    return result;
+  }
+}
+
+class MyAnalysisErrorListener extends AnalysisErrorListener {
+  bool hasConstError = false;
+  @override
+  void onError(AnalysisError error) {
+    switch (error.errorCode) {
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+      case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
+      case CompileTimeErrorCode
+          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+      case CompileTimeErrorCode.INVALID_CONSTANT:
+      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        hasConstError = true;
+    }
   }
 }
