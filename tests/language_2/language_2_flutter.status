@@ -102,7 +102,6 @@ is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
 is_not_class2_test: RuntimeError
 issue21079_test: CompileTimeError
-issue_25671b_test/01: CompileTimeError
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: Pass
 list_literal_syntax_test/01: CompileTimeError

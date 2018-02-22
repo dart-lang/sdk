@@ -699,8 +699,6 @@ issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/05: RuntimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
-issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
-issue_25671b_test/01: DartkCrash
 least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
@@ -1106,8 +1104,6 @@ issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/05: RuntimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
-issue_25671a_test/01: CompileTimeError # Test assumes Dart 1.0 semantics
-issue_25671b_test/01: Crash
 least_upper_bound_expansive_test/none: RuntimeError
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_mirror_support: RuntimeError, OK
