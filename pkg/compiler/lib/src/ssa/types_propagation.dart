@@ -161,6 +161,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return instruction.operand.instructionType;
   }
 
+  TypeMask visitAbs(HAbs instruction) {
+    // TODO(sra): Can narrow to non-negative type for integers.
+    return instruction.operand.instructionType;
+  }
+
   TypeMask visitInstruction(HInstruction instruction) {
     assert(instruction.instructionType != null);
     return instruction.instructionType;
@@ -348,22 +353,28 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   TypeMask visitInvokeDynamic(HInvokeDynamic instruction) {
     if (instruction.isInterceptedCall) {
-      // We cannot do the following optimization now, because we have
-      // to wait for the type propagation to be stable. The receiver
-      // of [instruction] might move from number to dynamic.
-      pendingOptimizations.putIfAbsent(
-          instruction,
-          () => () {
-                Selector selector = instruction.selector;
-                if (selector.isOperator && selector.name != '==') {
-                  if (checkReceiver(instruction)) {
-                    addAllUsersBut(instruction, instruction.inputs[1]);
-                  }
-                  if (!selector.isUnaryOperator && checkArgument(instruction)) {
-                    addAllUsersBut(instruction, instruction.inputs[2]);
-                  }
-                }
-              });
+      // We cannot do the following optimization now, because we have to wait
+      // for the type propagation to be stable. The receiver of [instruction]
+      // might move from number to dynamic.
+      void checkInputs() {
+        Selector selector = instruction.selector;
+        if (selector.isOperator && selector.name != '==') {
+          if (checkReceiver(instruction)) {
+            addAllUsersBut(instruction, instruction.inputs[1]);
+          }
+          if (!selector.isUnaryOperator && checkArgument(instruction)) {
+            addAllUsersBut(instruction, instruction.inputs[2]);
+          }
+        } else if (selector.isCall) {
+          if (selector.name == 'abs' && selector.argumentCount == 0) {
+            if (checkReceiver(instruction)) {
+              addAllUsersBut(instruction, instruction.inputs[1]);
+            }
+          }
+        }
+      }
+
+      pendingOptimizations.putIfAbsent(instruction, () => checkInputs);
     }
 
     HInstruction receiver = instruction.getDartReceiver(closedWorld);

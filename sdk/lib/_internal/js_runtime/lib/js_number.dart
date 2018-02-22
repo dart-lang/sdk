@@ -55,6 +55,7 @@ class JSNumber extends Interceptor implements double {
     return JS('num', r'# % #', this, b);
   }
 
+  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
   JSNumber abs() => JS(
       'returns:num;effects:none;depends:none;throws:never;gvn:true',
       r'Math.abs(#)',
@@ -413,21 +414,26 @@ class JSNumber extends Interceptor implements double {
 /**
  * The interceptor class for [int]s.
  *
- * This class implements double since in JavaScript all numbers are doubles, so
- * while we want to treat `2.0` as an integer for some operations, its
- * interceptor should answer `true` to `is double`.
+ * This class implements double (indirectly through JSNumber) since in
+ * JavaScript all numbers are doubles, so while we want to treat `2.0` as an
+ * integer for some operations, its interceptor should answer `true` to `is
+ * double`.
  */
 class JSInt extends JSNumber implements int {
   const JSInt();
 
   @override
-  JSInt abs() => super.abs();
+  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  JSInt abs() => JS(
+      'returns:int;effects:none;depends:none;throws:never;gvn:true',
+      r'Math.abs(#)',
+      this);
 
   @override
-  JSInt get sign => super.sign;
+  JSInt get sign => this > 0 ? 1 : this < 0 ? -1 : this;
 
   @override
-  JSInt operator -() => -super;
+  JSInt operator -() => JS('int', r'-#', this);
 
   bool get isEven => (this & 1) == 0;
 

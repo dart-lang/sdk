@@ -437,6 +437,7 @@ class DartConstantSystem extends ConstantSystem {
   final truncatingDivide = const TruncatingDivideOperation();
   final codeUnitAt = const CodeUnitAtOperation();
   final round = const UnfoldedUnaryOperation('round');
+  final abs = const UnfoldedUnaryOperation('abs');
 
   const DartConstantSystem();
 

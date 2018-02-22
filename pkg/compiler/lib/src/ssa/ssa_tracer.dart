@@ -164,6 +164,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return '$opcode: $left $right';
   }
 
+  String visitAbs(HAbs node) {
+    String operand = temporaryId(node.operand);
+    return "Abs: $operand";
+  }
+
   String visitAdd(HAdd node) => handleInvokeBinary(node, 'Add');
 
   String visitBitAnd(HBitAnd node) => handleInvokeBinary(node, 'BitAnd');

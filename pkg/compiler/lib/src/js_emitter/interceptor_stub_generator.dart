@@ -359,6 +359,19 @@ class InterceptorStubGenerator {
               return receiver[a0] = a1;
           ''', typeCheck);
       }
+    } else if (selector.isCall) {
+      if (selector.name == 'abs' && selector.argumentCount == 0) {
+        return js.statement(r'''
+          if (typeof receiver === "number") return Math.abs(receiver);
+        ''');
+      }
+    } else if (selector.isGetter) {
+      if (selector.name == 'sign') {
+        return js.statement(r'''
+          if (typeof receiver === "number")
+             return receiver > 0 ? 1 : receiver < 0 ? -1 : receiver;
+        ''');
+      }
     }
     return null;
   }
