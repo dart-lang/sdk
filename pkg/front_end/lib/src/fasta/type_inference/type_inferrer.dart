@@ -231,16 +231,9 @@ class ClosureContext {
           : returnOrYieldContext;
       if (expectedType != null) {
         expectedType = greatestClosure(inferrer.coreTypes, expectedType);
-        DartType expectedTypeToCheck = expectedType;
-        if (!inferrer.isAssignable(expectedType, type) && isAsync) {
-          DartType unfuturedExpectedType =
-              inferrer.typeSchemaEnvironment.unfutureType(expectedType);
-          if (inferrer.isAssignable(unfuturedExpectedType, type)) {
-            expectedTypeToCheck = unfuturedExpectedType;
-          }
-        }
         if (inferrer.ensureAssignable(
-                expectedTypeToCheck, type, expression, fileOffset) !=
+                expectedType, type, expression, fileOffset,
+                isReturnFromAsync: isAsync) !=
             null) {
           type = expectedType;
         }
@@ -452,8 +445,25 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Checks whether [actualType] can be assigned to [expectedType], and inserts
   /// an implicit downcast if appropriate.
   Expression ensureAssignable(DartType expectedType, DartType actualType,
-      Expression expression, int fileOffset) {
+      Expression expression, int fileOffset,
+      {bool isReturnFromAsync = false}) {
     assert(expectedType == null || isKnown(expectedType));
+
+    DartType initialExpectedType = expectedType;
+    if (isReturnFromAsync && !isAssignable(expectedType, actualType)) {
+      // If the body of the function is async, the expected return type has the
+      // shape FutureOr<T>.  We check both branches for FutureOr here: both T
+      // and Future<T>.
+      DartType unfuturedExpectedType =
+          typeSchemaEnvironment.unfutureType(expectedType);
+      DartType futuredExpectedType = wrapFutureType(unfuturedExpectedType);
+      if (isAssignable(unfuturedExpectedType, actualType)) {
+        expectedType = unfuturedExpectedType;
+      } else if (isAssignable(futuredExpectedType, actualType)) {
+        expectedType = futuredExpectedType;
+      }
+    }
+
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
@@ -506,7 +516,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       } else {
         // Insert an implicit downcast.
         var parent = expression.parent;
-        var typeCheck = new AsExpression(expression, expectedType)
+        var typeCheck = new AsExpression(expression, initialExpectedType)
           ..isTypeError = true
           ..fileOffset = fileOffset;
         parent?.replaceChild(expression, typeCheck);
