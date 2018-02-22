@@ -89,14 +89,19 @@ class OverrideContributor implements DartCompletionContributor {
     StringBuffer displayTextBuffer = new StringBuffer();
     DartChangeBuilder builder = await _buildReplacementText(
         request.result, targetId, element, displayTextBuffer);
-    String completion =
-        builder.sourceChange.edits[0].edits[0].replacement.trim();
-    if (completion == null || completion.length == 0) {
+    String replacement = builder.sourceChange.edits[0].edits[0].replacement;
+    String completion = replacement.trim();
+    String overrideAnnotation = '@override';
+    if (_hasOverride(request.target.containingNode) &&
+        completion.startsWith(overrideAnnotation)) {
+      completion = completion.substring(overrideAnnotation.length).trim();
+    }
+    if (completion.length == 0) {
       return null;
     }
 
     SourceRange selectionRange = builder.selectionRange;
-    int offsetDelta = range.node(targetId).offset;
+    int offsetDelta = targetId.offset + replacement.indexOf(completion);
     String displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = new CompletionSuggestion(
@@ -129,26 +134,6 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Compute a selection range for the given completion.
-   */
-  SourceRange _computeSelectionRange(String completion) {
-    // TODO(pq): consider moving this into ChangeBuilder.
-    // { return null; } or => null;
-    int offset = completion.indexOf('null;');
-    if (offset != -1) {
-      return new SourceRange(offset, 4);
-    }
-    // { }
-    offset = completion.indexOf('{');
-    if (offset != -1) {
-      return new SourceRange(offset + 2, 0);
-    }
-
-    // Default.
-    return new SourceRange(0, 0);
-  }
-
-  /**
    * If the target looks like a partial identifier inside a class declaration
    * then return that identifier, otherwise return `null`.
    */
@@ -158,6 +143,17 @@ class OverrideContributor implements DartCompletionContributor {
       Object entity = target.entity;
       if (entity is FieldDeclaration) {
         NodeList<VariableDeclaration> variables = entity.fields.variables;
+        if (variables.length == 1) {
+          SimpleIdentifier targetId = variables[0].name;
+          if (targetId.name.isEmpty) {
+            return targetId;
+          }
+        }
+      }
+    } else if (node is FieldDeclaration) {
+      Object entity = target.entity;
+      if (entity is VariableDeclarationList) {
+        NodeList<VariableDeclaration> variables = entity.variables;
         if (variables.length == 1) {
           SimpleIdentifier targetId = variables[0].name;
           if (targetId.name.isEmpty) {
@@ -178,5 +174,21 @@ class OverrideContributor implements DartCompletionContributor {
         classElement.getGetter(memberName) != null ||
         classElement.getMethod(memberName) != null ||
         classElement.getSetter(memberName) != null;
+  }
+
+  /**
+   * Return `true` if the given [node] has an `override` annotation.
+   */
+  bool _hasOverride(AstNode node) {
+    if (node is AnnotatedNode) {
+      NodeList<Annotation> metadata = node.metadata;
+      for (Annotation annotation in metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
