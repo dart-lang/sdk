@@ -58,6 +58,8 @@ import '../import.dart' show Import;
 
 import '../configuration.dart' show Configuration;
 
+import '../parser.dart' show noLength;
+
 import '../problems.dart' show unhandled;
 
 import 'source_loader.dart' show SourceLoader;
@@ -164,7 +166,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri resolve(Uri baseUri, String uri, int uriOffset, {isPart: false}) {
     if (uri == null) {
-      addCompileTimeError(messageExpectedUri, uriOffset, this.uri);
+      addCompileTimeError(messageExpectedUri, uriOffset, noLength, this.uri);
       return new Uri(scheme: MALFORMED_URI_SCHEME);
     }
     Uri parsedUri;
@@ -177,6 +179,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       addCompileTimeError(
           templateCouldNotParseUri.withArguments(uri, e.message),
           uriOffset + 1 + (e.offset ?? -1),
+          1,
           this.uri);
       return new Uri(
           scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
@@ -416,7 +419,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         !builder.isSetter &&
         name == currentDeclaration.name) {
       addCompileTimeError(
-          messageMemberWithSameNameAsClass, charOffset, fileUri);
+          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
     }
     Map<String, Builder> members = isConstructor
         ? currentDeclaration.constructors
@@ -440,10 +443,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         addCompileTimeError(
             templateDeferredPrefixDuplicated.withArguments(name),
             deferred.charOffset,
+            noLength,
             fileUri);
         addCompileTimeError(
             templateDeferredPrefixDuplicatedCause.withArguments(name),
             other.charOffset,
+            noLength,
             fileUri);
       }
       return existing
@@ -453,7 +458,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         });
     } else if (isDuplicatedDefinition(existing, builder)) {
       addCompileTimeError(templateDuplicatedDefinition.withArguments(name),
-          charOffset, fileUri);
+          charOffset, noLength, fileUri);
     }
     return members[name] = builder;
   }
@@ -500,11 +505,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     scope.setters.forEach((String name, Builder setter) {
       Builder member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
-      // TODO(ahe): charOffset is missing.
       addCompileTimeError(templateConflictsWithMember.withArguments(name),
-          setter.charOffset, fileUri);
+          setter.charOffset, noLength, fileUri);
+      // TODO(ahe): Context to previous message?
       addCompileTimeError(templateConflictsWithSetter.withArguments(name),
-          member.charOffset, fileUri);
+          member.charOffset, noLength, fileUri);
     });
 
     return null;
@@ -535,12 +540,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       if (part == this) {
-        addCompileTimeError(messagePartOfSelf, -1, fileUri);
+        addCompileTimeError(messagePartOfSelf, -1, noLength, fileUri);
       } else if (seenParts.add(part.fileUri)) {
         includePart(part);
       } else {
-        addCompileTimeError(
-            templatePartTwice.withArguments(part.fileUri), -1, fileUri);
+        addCompileTimeError(templatePartTwice.withArguments(part.fileUri), -1,
+            noLength, fileUri);
       }
     }
   }
@@ -553,6 +558,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             templatePartOfUriMismatch.withArguments(
                 part.fileUri, uri, part.partOfUri),
             -1,
+            noLength,
             fileUri);
       }
     } else if (part.partOfName != null) {
@@ -563,6 +569,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
               templatePartOfLibraryNameMismatch.withArguments(
                   part.fileUri, name, part.partOfName),
               -1,
+              noLength,
               fileUri);
         }
       } else {
@@ -571,6 +578,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             templatePartOfUseUri.withArguments(
                 part.fileUri, fileUri, part.partOfName),
             -1,
+            noLength,
             fileUri);
       }
     } else {
@@ -578,8 +586,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // metadata annotations can be associated with it.
       assert(!part.isPart);
       if (uriIsValid(part.fileUri)) {
-        addCompileTimeError(
-            templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+        addCompileTimeError(templateMissingPartOf.withArguments(part.fileUri),
+            -1, noLength, fileUri);
       }
     }
     part.forEach((String name, Builder builder) {

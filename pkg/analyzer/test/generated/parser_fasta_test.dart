@@ -1861,7 +1861,7 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   Uri get fileUri => uri;
 
   @override
-  void addCompileTimeError(Message message, int charOffset, Uri uri,
+  void addCompileTimeError(Message message, int charOffset, int length, Uri uri,
       {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     fail('${message.message}');
   }

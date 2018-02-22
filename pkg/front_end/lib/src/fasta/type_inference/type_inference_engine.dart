@@ -25,7 +25,10 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
 import '../deprecated_problems.dart' show Crash;
+
 import '../messages.dart' show getLocationFromNode;
+
+import '../parser.dart' show noLength;
 
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.
@@ -56,6 +59,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
               templateCantInferTypeDueToCircularity
                   .withArguments(field.name.name),
               field.fileOffset,
+              noLength,
               field.fileUri);
           inferredType = const DynamicType();
         }

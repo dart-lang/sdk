@@ -69,6 +69,8 @@ import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
+import '../parser.dart' show lengthForToken, noLength, offsetForToken;
+
 import '../problems.dart' show internalProblem;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
@@ -159,8 +161,8 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.addCompileTimeError(
-            error.assertionMessage, token.charOffset, uri);
+        library.addCompileTimeError(error.assertionMessage,
+            offsetForToken(token), lengthForToken(token), uri);
       }
       token = token.next;
     }
@@ -468,15 +470,15 @@ class SourceLoader<L> extends Loader<L> {
             .join("', '");
         messages[templateCyclicClassHierarchy
             .withArguments(cls.fullNameForErrors, involvedString)
-            .withLocation(cls.fileUri, cls.charOffset)] = cls;
+            .withLocation(cls.fileUri, cls.charOffset, noLength)] = cls;
       });
 
       // Report all classes involved in a cycle, sorted to ensure stability as
       // [cyclicCandidates] is sensitive to if the platform (or other modules)
       // are included in [classes].
       for (LocatedMessage message in messages.keys.toList()..sort()) {
-        messages[message]
-            .addCompileTimeError(message.messageObject, message.charOffset);
+        messages[message].addCompileTimeError(
+            message.messageObject, message.charOffset, message.length);
       }
     }
     ticker.logMs("Found cycles");
@@ -496,12 +498,14 @@ class SourceLoader<L> extends Loader<L> {
         if (supertype is EnumBuilder) {
           cls.addCompileTimeError(
               templateExtendingEnum.withArguments(supertype.name),
-              cls.charOffset);
+              cls.charOffset,
+              noLength);
         } else if (!cls.library.mayImplementRestrictedTypes &&
             blackListedClasses.contains(supertype)) {
           cls.addCompileTimeError(
               templateExtendingRestricted.withArguments(supertype.name),
-              cls.charOffset);
+              cls.charOffset,
+              noLength);
         }
       }
       TypeBuilder mixedInType = cls.mixedInType;
@@ -516,11 +520,13 @@ class SourceLoader<L> extends Loader<L> {
                 cls.addCompileTimeError(
                     templateIllegalMixinDueToConstructors
                         .withArguments(builder.fullNameForErrors),
-                    cls.charOffset);
+                    cls.charOffset,
+                    noLength);
                 builder.addCompileTimeError(
                     templateIllegalMixinDueToConstructorsCause
                         .withArguments(builder.fullNameForErrors),
-                    constructory.charOffset);
+                    constructory.charOffset,
+                    noLength);
               }
             }
           }
@@ -528,7 +534,8 @@ class SourceLoader<L> extends Loader<L> {
         if (!isClassBuilder) {
           cls.addCompileTimeError(
               templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
-              cls.charOffset);
+              cls.charOffset,
+              noLength);
         }
       }
     }
@@ -599,6 +606,7 @@ class SourceLoader<L> extends Loader<L> {
         templateAmbiguousSupertypes.withArguments(
             name, a.asInterfaceType, b.asInterfaceType),
         cls.fileOffset,
+        noLength,
         cls.fileUri);
   }
 
@@ -727,14 +735,15 @@ class SourceLoader<L> extends Loader<L> {
     return target.backendTarget.throwCompileConstantError(coreTypes, error);
   }
 
-  Expression buildCompileTimeError(Message message, int offset, Uri uri) {
+  Expression buildCompileTimeError(
+      Message message, int offset, int length, Uri uri) {
     String text = target.context
-        .format(message.withLocation(uri, offset), Severity.error);
+        .format(message.withLocation(uri, offset, length), Severity.error);
     return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
   }
 
-  void recordMessage(
-      Severity severity, Message message, int charOffset, Uri fileUri,
+  void recordMessage(Severity severity, Message message, int charOffset,
+      int length, Uri fileUri,
       {LocatedMessage context}) {
     if (instrumentation == null) return;
 

@@ -11,6 +11,8 @@ import '../../scanner/token.dart' show Token;
 
 import '../names.dart' show equalsName, indexGetName, indexSetName;
 
+import '../parser.dart' show offsetForToken;
+
 import '../problems.dart' show unhandled;
 
 import 'fasta_accessors.dart' show BuilderHelper;
@@ -32,8 +34,6 @@ import 'kernel_shadow_ast.dart'
         ShadowThisExpression,
         ShadowVariableDeclaration,
         ShadowVariableGet;
-
-import 'utils.dart' show offsetForToken;
 
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is

@@ -52,6 +52,8 @@ import '../messages.dart'
         messagePatchDeclarationOrigin,
         messagePatchNonExternal;
 
+import '../parser.dart' show noLength;
+
 import '../problems.dart' show internalProblem, unexpected;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
@@ -108,8 +110,8 @@ abstract class KernelFunctionBuilder
             newBody.fileOffset, fileUri);
       }
       if (isConstructor && isConst) {
-        return library.addCompileTimeError(
-            messageConstConstructorWithBody, newBody.fileOffset, fileUri);
+        return library.addCompileTimeError(messageConstConstructorWithBody,
+            newBody.fileOffset, noLength, fileUri);
       }
     }
     actualBody = newBody;
@@ -194,7 +196,7 @@ abstract class KernelFunctionBuilder
             }
           }
           library.addProblem(
-              messageNonInstanceTypeVariableUse, charOffset, fileUri);
+              messageNonInstanceTypeVariableUse, charOffset, noLength, fileUri);
           return substitute(type, substitution);
         }
 
@@ -237,19 +239,19 @@ abstract class KernelFunctionBuilder
   bool checkPatch(KernelFunctionBuilder patch) {
     if (!isExternal) {
       patch.library.addCompileTimeError(
-          messagePatchNonExternal, patch.charOffset, patch.fileUri,
-          context:
-              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
+          context: messagePatchDeclarationOrigin.withLocation(
+              fileUri, charOffset, noLength));
       return false;
     }
     return true;
   }
 
   void reportPatchMismatch(Builder patch) {
-    library.addCompileTimeError(
-        messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
-        context:
-            messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+    library.addCompileTimeError(messagePatchDeclarationMismatch,
+        patch.charOffset, noLength, patch.fileUri,
+        context: messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength));
   }
 }
 

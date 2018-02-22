@@ -4,9 +4,13 @@
 
 library fasta.parser.util;
 
+import 'package:kernel/ast.dart' show TreeNode;
+
 import '../scanner.dart' show Token;
 
 import '../../scanner/token.dart' show BeginToken;
+
+const int noLength = 1;
 
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
@@ -15,7 +19,9 @@ bool optional(String value, Token token) {
 
 /// Returns the close brace, bracket, or parenthesis of [left]. For '<', it may
 /// return null.
-Token closeBraceTokenFor(BeginToken left) => left.endToken;
+Token closeBraceTokenFor(Token token) {
+  return token is BeginToken ? token.endGroup : null;
+}
 
 /// Returns the token before the close brace, bracket, or parenthesis
 /// associated with [left]. For '<', it may return `null`.
@@ -31,4 +37,25 @@ Token beforeCloseBraceTokenFor(BeginToken left) {
     next = token.next;
   }
   return token;
+}
+
+/// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
+/// `TreeNode.noOffset`.
+int offsetForToken(Token token) {
+  return token == null ? TreeNode.noOffset : token.offset;
+}
+
+/// A null-aware alternative to `token.length`.  If [token] is `null`, returns
+/// [noLength].
+int lengthForToken(Token token) {
+  return token == null ? 1 : token.length;
+}
+
+/// Returns the length of the span from [begin] to [end] (inclusive). If both
+/// tokens are null, return [noLength]. If one of the tokens are null, return
+/// the length of the other token.
+int lengthOfSpan(Token begin, Token end) {
+  if (begin == null) return lengthForToken(end);
+  if (end == null) return lengthForToken(begin);
+  return end.offset + end.length - begin.offset;
 }

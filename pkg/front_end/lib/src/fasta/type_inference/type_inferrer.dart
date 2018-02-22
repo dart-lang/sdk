@@ -77,6 +77,8 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../names.dart' show callName;
 
+import '../parser.dart' show noLength;
+
 import '../problems.dart' show unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -560,7 +562,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 ..fileOffset = receiver.fileOffset,
               helper.buildCompileTimeError(
                   errorTemplate.withArguments(name.name, receiverType),
-                  fileOffset))
+                  fileOffset,
+                  noLength))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1080,7 +1083,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           calleeKind,
           offset);
       if (argMessage != null) {
-        helper.addProblem(argMessage.messageObject, argMessage.charOffset);
+        helper.addProblem(
+            argMessage.messageObject, argMessage.charOffset, argMessage.length);
       } else {
         // Argument counts and names match. Compare types.
         int numPositionalArgs = arguments.positional.length;
@@ -1681,6 +1685,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
             templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
                 baseType.classNode.name, mixinSupertype.asInterfaceType),
             mixinClass.fileOffset,
+            noLength,
             mixinClass.fileUri);
         return;
       }
@@ -1728,6 +1733,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
                   baseType.classNode.name,
                   mixinSupertype.asInterfaceType),
               mixinClass.fileOffset,
+              noLength,
               mixinClass.fileUri);
           return p;
         }

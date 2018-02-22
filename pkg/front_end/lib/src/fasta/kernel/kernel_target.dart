@@ -58,6 +58,8 @@ import '../messages.dart'
         messageConstConstructorNonFinalFieldCause,
         templateSuperclassHasNoDefaultConstructor;
 
+import '../parser.dart' show noLength;
+
 import '../problems.dart' show unhandled;
 
 import '../severity.dart' show Severity;
@@ -613,7 +615,8 @@ class KernelTarget extends TargetImplementation {
             builder.addCompileTimeError(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass.name),
-                constructor.fileOffset);
+                constructor.fileOffset,
+                noLength);
             initializer = new InvalidInitializer();
           } else {
             initializer =
@@ -638,11 +641,13 @@ class KernelTarget extends TargetImplementation {
         }
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          builder.addCompileTimeError(
-              messageConstConstructorNonFinalField, constructor.fileOffset);
+          builder.addCompileTimeError(messageConstConstructorNonFinalField,
+              constructor.fileOffset, noLength);
           for (Field field in nonFinalFields) {
             builder.addCompileTimeError(
-                messageConstConstructorNonFinalFieldCause, field.fileOffset);
+                messageConstConstructorNonFinalFieldCause,
+                field.fileOffset,
+                noLength);
           }
           nonFinalFields.clear();
         }

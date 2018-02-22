@@ -15,6 +15,8 @@ import 'command_line_reporting.dart' show shouldThrowOn;
 
 import 'messages.dart' show LocatedMessage, isVerbose, templateUnspecified;
 
+import 'parser.dart' show noLength;
+
 import 'severity.dart' show Severity;
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
@@ -64,7 +66,7 @@ class deprecated_InputError {
   static LocatedMessage toMessage(deprecated_InputError error) {
     return templateUnspecified
         .withArguments(safeToString(error.error))
-        .withLocation(error.uri, error.charOffset);
+        .withLocation(error.uri, error.charOffset, noLength);
   }
 }
 

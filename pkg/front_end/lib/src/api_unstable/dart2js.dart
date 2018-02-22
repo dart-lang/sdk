@@ -4,21 +4,30 @@
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/kernel.dart' show Program;
+
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart';
-import '../api_prototype/file_system.dart';
-import '../base/processed_options.dart';
-import '../fasta/compiler_context.dart';
-import '../fasta/fasta_codes.dart';
-import '../fasta/severity.dart';
-import '../kernel_generator_impl.dart';
-import 'compiler_state.dart';
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, ErrorHandler;
 
-export 'compiler_state.dart';
+import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../base/processed_options.dart' show ProcessedOptions;
+
+import '../fasta/compiler_context.dart' show CompilerContext;
+
+import '../fasta/fasta_codes.dart' show messageMissingMain;
+
+import '../fasta/parser.dart' show noLength;
+
+import '../fasta/severity.dart' show Severity;
+
+import '../kernel_generator_impl.dart' show generateKernelInternal;
+
+import 'compiler_state.dart' show InitializedCompilerState;
+
+export 'compiler_state.dart' show InitializedCompilerState;
 
 InitializedCompilerState initializeCompiler(InitializedCompilerState oldState,
     Target target, Uri sdkUri, Uri packagesFileUri) {
@@ -58,8 +67,8 @@ Future<Program> compile(InitializedCompilerState state, bool verbose,
     Program program = compilerResult?.program;
     if (program == null) return null;
     if (program.mainMethod == null) {
-      context.options
-          .report(messageMissingMain.withLocation(input, -1), Severity.error);
+      context.options.report(
+          messageMissingMain.withLocation(input, -1, noLength), Severity.error);
       return null;
     }
     return compilerResult;

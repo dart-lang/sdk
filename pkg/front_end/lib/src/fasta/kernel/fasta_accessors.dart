@@ -22,6 +22,9 @@ import '../messages.dart' show Message;
 
 import '../names.dart' show callName, lengthName;
 
+import '../parser.dart'
+    show lengthForToken, lengthOfSpan, noLength, offsetForToken;
+
 import '../problems.dart' show unhandled, unimplemented, unsupported;
 
 import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
@@ -67,8 +70,6 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         KernelTypeBuilder;
 
-import 'utils.dart' show offsetForToken;
-
 import 'type_algorithms.dart' show calculateBoundsForDeclaration;
 
 abstract class BuilderHelper {
@@ -95,7 +96,7 @@ abstract class BuilderHelper {
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
-  Expression buildCompileTimeError(Message message, int charOffset);
+  Expression buildCompileTimeError(Message message, int charOffset, int length);
 
   Expression wrapInCompileTimeError(Expression expression, Message message);
 
@@ -117,7 +118,8 @@ abstract class BuilderHelper {
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {bool isConst, int charOffset, Member initialTarget});
 
-  Expression buildProblemExpression(ProblemBuilder builder, int offset);
+  Expression buildProblemExpression(
+      ProblemBuilder builder, int offset, int length);
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
@@ -161,7 +163,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void addProblem(Message message, int charOffset);
+  void addProblem(Message message, int charOffset, int length);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -219,7 +221,8 @@ abstract class FastaAccessor implements Accessor {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.buildCompileTimeError(messageInvalidInitializer, offset),
+        helper.buildCompileTimeError(
+            messageInvalidInitializer, offset, lengthForToken(token)),
         offset);
   }
 
@@ -258,8 +261,8 @@ abstract class FastaAccessor implements Accessor {
 
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false}) {
-    helper.addProblem(
-        templateNotAType.withArguments(token.lexeme), token.charOffset);
+    helper.addProblem(templateNotAType.withArguments(token.lexeme),
+        offsetForToken(token), lengthForToken(token));
     return const InvalidType();
   }
 
@@ -413,8 +416,8 @@ class ThisAccessor extends FastaAccessor {
     if (!isSuper) {
       return new ShadowThisExpression();
     } else {
-      return helper.buildCompileTimeError(
-          messageSuperAsExpression, offsetForToken(token));
+      return helper.buildCompileTimeError(messageSuperAsExpression,
+          offsetForToken(token), lengthForToken(token));
     }
   }
 
@@ -468,7 +471,8 @@ class ThisAccessor extends FastaAccessor {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return helper.buildCompileTimeError(messageSuperAsExpression, offset);
+      return helper.buildCompileTimeError(
+          messageSuperAsExpression, offset, noLength);
     } else {
       return helper.buildMethodInvocation(
           new ShadowThisExpression(), callName, arguments, offset,
@@ -573,8 +577,12 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
   @override
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
-    return helper.buildCompileTimeError(
-        message, offset ?? offsetForToken(this.token));
+    int length = noLength;
+    if (offset == null) {
+      offset = offsetForToken(token);
+      length = lengthForToken(token);
+    }
+    return helper.buildCompileTimeError(message, offset, length);
   }
 
   @override
@@ -582,7 +590,8 @@ class IncompleteError extends IncompleteSend with ErrorAccessor {
     helper.addProblem(
         templateNotAPrefixInTypeAnnotation.withArguments(
             token.lexeme, suffix.name),
-        offsetForToken(token));
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
     return const InvalidType();
   }
 
@@ -923,7 +932,8 @@ class DeferredAccessor extends kernel.DeferredAccessor with FastaAccessor {
             accessor.buildTypeWithBuiltArguments(arguments,
                 nonInstanceAccessIsError: nonInstanceAccessIsError),
             builder.name),
-        token.charOffset);
+        offsetForToken(token),
+        lengthForToken(token));
     return const InvalidType();
   }
 
@@ -1113,9 +1123,12 @@ class LargeIntAccessor extends kernel.DelayedErrorAccessor with FastaAccessor {
   LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
 
   @override
-  Expression buildError() => helper.buildCompileTimeError(
-      templateIntegerLiteralIsOutOfRange.withArguments(token),
-      token.charOffset);
+  Expression buildError() {
+    return helper.buildCompileTimeError(
+        templateIntegerLiteralIsOutOfRange.withArguments(token),
+        offsetForToken(token),
+        lengthForToken(token));
+  }
 
   Expression doInvocation(int offset, Arguments arguments) => buildError();
 }
@@ -1356,7 +1369,8 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
     helper.addProblem(
         templateUnresolvedPrefixInTypeAnnotation.withArguments(
             name.name, suffix.name),
-        offsetForToken(token));
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
     return const InvalidType();
   }
 
