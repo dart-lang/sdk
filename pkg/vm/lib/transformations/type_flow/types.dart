@@ -68,15 +68,6 @@ abstract class Type extends TypeExpr {
     }
   }
 
-  /// Create a type representing instances of a specific class (no subtypes
-  /// or `null` object).
-  factory Type.concrete(DartType dartType) {
-    // Catch certain unexpected types before _normalizeDartType() erases them.
-    assertx(dartType is! FunctionType);
-    assertx(dartType is! TypeParameterType);
-    return new ConcreteType(_normalizeDartType(dartType));
-  }
-
   /// Create a nullable type - union of [t] and the `null` object.
   factory Type.nullable(Type t) => new NullableType(t);
 
@@ -226,11 +217,23 @@ class AnyType extends Type {
 /// SetType is a union of concrete types T1, T2, ..., Tn, where n >= 2.
 /// It represents the set of instances which types are in the {T1, T2, ..., Tn}.
 class SetType extends Type {
-  final Set<ConcreteType> types;
+  /// List of concrete types, sorted by classId.
+  final List<ConcreteType> types;
   int _hashCode;
 
+  /// Creates a new SetType using list of concrete types sorted by classId.
   SetType(this.types) {
     assertx(types.length >= 2);
+    assertx(_isSorted(types));
+  }
+
+  static bool _isSorted(List<ConcreteType> types) {
+    for (int i = 0; i < types.length - 1; i++) {
+      if (types[i].classId.compareTo(types[i + 1].classId) >= 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -238,20 +241,24 @@ class SetType extends Type {
 
   int _computeHashCode() {
     int hash = 1237;
-    // Hash code should not depend on the order of types.
     for (var t in types) {
-      hash = (hash ^ t.hashCode) & kHashMask;
+      hash = (((hash * 31) & kHashMask) + t.classId.hashCode) & kHashMask;
     }
     return hash;
   }
 
   @override
-  bool operator ==(other) =>
-      (other is SetType) &&
-      // TODO(alexmarkov): make it more efficient
-      (types.length == other.types.length) &&
-      this.types.containsAll(other.types) &&
-      other.types.containsAll(this.types);
+  bool operator ==(other) {
+    if ((other is SetType) && (types.length == other.types.length)) {
+      for (int i = 0; i < types.length; i++) {
+        if (types[i].classId != other.types[i].classId) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
 
   @override
   String toString() => "_T ${types}";
@@ -259,17 +266,70 @@ class SetType extends Type {
   @override
   int get order => TypeOrder.Set.index;
 
+  static List<ConcreteType> _unionLists(
+      List<ConcreteType> types1, List<ConcreteType> types2) {
+    int i1 = 0;
+    int i2 = 0;
+    List<ConcreteType> types = <ConcreteType>[];
+    while ((i1 < types1.length) && (i2 < types2.length)) {
+      final t1 = types1[i1];
+      final t2 = types2[i2];
+      final relation = t1.classId.compareTo(t2.classId);
+      if (relation < 0) {
+        types.add(t1);
+        ++i1;
+      } else if (relation > 0) {
+        types.add(t2);
+        ++i2;
+      } else {
+        assertx(t1 == t2);
+        types.add(t1);
+        ++i1;
+        ++i2;
+      }
+    }
+    if (i1 < types1.length) {
+      types.addAll(types1.getRange(i1, types1.length));
+    } else if (i2 < types2.length) {
+      types.addAll(types2.getRange(i2, types2.length));
+    }
+    return types;
+  }
+
+  static List<ConcreteType> _intersectLists(
+      List<ConcreteType> types1, List<ConcreteType> types2) {
+    int i1 = 0;
+    int i2 = 0;
+    List<ConcreteType> types = <ConcreteType>[];
+    while ((i1 < types1.length) && (i2 < types2.length)) {
+      final t1 = types1[i1];
+      final t2 = types2[i2];
+      final relation = t1.classId.compareTo(t2.classId);
+      if (relation < 0) {
+        ++i1;
+      } else if (relation > 0) {
+        ++i2;
+      } else {
+        assertx(t1 == t2);
+        types.add(t1);
+        ++i1;
+        ++i2;
+      }
+    }
+    return types;
+  }
+
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
     if (other.order < this.order) {
       return other.union(this, typeHierarchy);
     }
     if (other is SetType) {
-      return new SetType(this.types.union(other.types));
+      return new SetType(_unionLists(types, other.types));
     } else if (other is ConcreteType) {
       return types.contains(other)
           ? this
-          : new SetType(new Set.from(this.types)..add(other));
+          : new SetType(_unionLists(types, <ConcreteType>[other]));
     } else if (other is ConeType) {
       return typeHierarchy
           .specializeTypeCone(other.dartType)
@@ -285,14 +345,14 @@ class SetType extends Type {
       return other.intersection(this, typeHierarchy);
     }
     if (other is SetType) {
-      Set<ConcreteType> set = this.types.intersection(other.types);
-      final size = set.length;
+      List<ConcreteType> list = _intersectLists(types, other.types);
+      final size = list.length;
       if (size == 0) {
         return const EmptyType();
       } else if (size == 1) {
-        return set.single;
+        return list.single;
       } else {
-        return new SetType(set);
+        return new SetType(list);
       }
     } else if (other is ConcreteType) {
       return types.contains(other) ? other : const EmptyType();
@@ -387,29 +447,50 @@ class ConeType extends Type {
   }
 }
 
+/// Abstract unique identifier of a Dart class.
+/// Identifiers are comparable and used to provide ordering on classes.
+abstract class ClassId<E extends ClassId<E>> implements Comparable<E> {
+  const ClassId();
+}
+
+/// Simple implementation of [ClassId] based on int.
+class IntClassId extends ClassId<IntClassId> {
+  final int id;
+
+  const IntClassId(this.id);
+
+  @override
+  int compareTo(IntClassId other) => id.compareTo(other.id);
+}
+
 /// Type representing a set of instances of a specific Dart class (no subtypes
 /// or `null` object).
-class ConcreteType extends Type {
+class ConcreteType extends Type implements Comparable<ConcreteType> {
+  final ClassId classId;
   final DartType dartType;
 
-  ConcreteType(this.dartType) {
-    assertx((dartType is FunctionType) ||
-        ((dartType is InterfaceType) &&
-            !(dartType as InterfaceType).classNode.isAbstract));
+  ConcreteType(this.classId, this.dartType) {
+    // TODO(alexmarkov): support generics & closures
+    assertx(dartType is InterfaceType);
+    assertx(!(dartType as InterfaceType).classNode.isAbstract);
+    assertx((dartType as InterfaceType)
+        .typeArguments
+        .every((t) => t == const DynamicType()));
   }
 
   @override
   Class getConcreteClass(TypeHierarchy typeHierarchy) =>
-      (dartType is InterfaceType)
-          ? (dartType as InterfaceType).classNode
-          : null;
+      (dartType as InterfaceType).classNode;
 
   @override
-  int get hashCode => (dartType.hashCode ^ 0x1234) & kHashMask;
+  int get hashCode => (classId.hashCode ^ 0x1234) & kHashMask;
 
   @override
   bool operator ==(other) =>
-      (other is ConcreteType) && (this.dartType == other.dartType);
+      (other is ConcreteType) && (this.classId == other.classId);
+
+  @override
+  int compareTo(ConcreteType other) => classId.compareTo(other.classId);
 
   @override
   String toString() => "_T (${dartType})";
@@ -426,9 +507,11 @@ class ConcreteType extends Type {
       if (this == other) {
         return this;
       } else {
-        final Set<ConcreteType> types = new Set<ConcreteType>();
-        types.add(this);
-        types.add(other);
+        assertx(this.classId != other.classId);
+        final List<ConcreteType> types =
+            (this.classId.compareTo(other.classId) < 0)
+                ? <ConcreteType>[this, other]
+                : <ConcreteType>[other, this];
         return new SetType(types);
       }
     } else {

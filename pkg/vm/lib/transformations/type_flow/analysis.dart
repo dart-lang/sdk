@@ -505,17 +505,17 @@ class _DispatchableInvocation extends _Invocation {
 /// Efficient builder of receiver type.
 ///
 /// Supports the following operations:
-/// 1) Add 1..N concrete types OR add 1 arbitrary type.
+/// 1) Add 1..N concrete types ordered by classId OR add 1 arbitrary type.
 /// 2) Make type nullable.
 class _ReceiverTypeBuilder {
   Type _type;
-  Set<ConcreteType> _set;
+  List<ConcreteType> _list;
   bool _nullable = false;
 
   /// Appends a ConcreteType. May be called multiple times.
   /// Should not be used in conjunction with [addType].
   void addConcreteType(ConcreteType type) {
-    if (_set == null) {
+    if (_list == null) {
       if (_type == null) {
         _type = type;
         return;
@@ -524,19 +524,20 @@ class _ReceiverTypeBuilder {
       assertx(_type is ConcreteType);
       assertx(_type != type);
 
-      _set = new Set<ConcreteType>();
-      _set.add(_type);
+      _list = new List<ConcreteType>();
+      _list.add(_type);
 
       _type = null;
     }
 
-    _set.add(type);
+    assertx(_list.last.classId.compareTo(type.classId) < 0);
+    _list.add(type);
   }
 
   /// Appends an arbitrary Type. May be called only once.
   /// Should not be used in conjunction with [addConcreteType].
   void addType(Type type) {
-    assertx(_type == null && _set == null);
+    assertx(_type == null && _list == null);
     _type = type;
   }
 
@@ -549,13 +550,13 @@ class _ReceiverTypeBuilder {
   Type toType() {
     Type t = _type;
     if (t == null) {
-      if (_set == null) {
+      if (_list == null) {
         t = const EmptyType();
       } else {
-        t = new SetType(_set);
+        t = new SetType(_list);
       }
     } else {
-      assertx(_set == null);
+      assertx(_list == null);
     }
 
     if (_nullable) {
@@ -661,7 +662,8 @@ class _DynamicTargetSet extends _DependencyTracker {
   _DynamicTargetSet(this.selector, this.isObjectMember);
 }
 
-class _ClassData extends _DependencyTracker {
+class _ClassData extends _DependencyTracker implements ClassId<_ClassData> {
+  final int _id;
   final Class class_;
   final Set<_ClassData> supertypes; // List of super-types including this.
   final Set<_ClassData> allocatedSubtypes = new Set<_ClassData>();
@@ -671,9 +673,22 @@ class _ClassData extends _DependencyTracker {
   /// Lazy initialized by _ClassHierarchyCache.hasNonTrivialNoSuchMethod().
   bool hasNonTrivialNoSuchMethod;
 
-  _ClassData(this.class_, this.supertypes) {
+  _ClassData(this._id, this.class_, this.supertypes) {
     supertypes.add(this);
   }
+
+  ConcreteType _concreteType;
+  ConcreteType get concreteType =>
+      _concreteType ??= new ConcreteType(this, class_.rawType);
+
+  @override
+  int get hashCode => _id;
+
+  @override
+  bool operator ==(other) => (other is _ClassData) && (this._id == other._id);
+
+  @override
+  int compareTo(_ClassData other) => this._id.compareTo(other._id);
 
   @override
   String toString() => "_C $class_";
@@ -697,6 +712,9 @@ class _ClassHierarchyCache implements TypeHierarchy {
   /// targets of invocations may appear.
   /// It also means that there is no need to add dependencies on classes.
   bool _sealed = false;
+
+  int _classIdCounter = 0;
+
   final Map<DynamicSelector, _DynamicTargetSet> _dynamicTargets =
       <DynamicSelector, _DynamicTargetSet>{};
 
@@ -716,15 +734,16 @@ class _ClassHierarchyCache implements TypeHierarchy {
     for (var sup in c.supers) {
       supertypes.addAll(getClassData(sup.classNode).supertypes);
     }
-    return new _ClassData(c, supertypes);
+    return new _ClassData(++_classIdCounter, c, supertypes);
   }
 
-  void addAllocatedClass(Class cl) {
+  ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
     assertx(!_sealed);
 
+    final _ClassData classData = getClassData(cl);
+
     if (allocatedClasses.add(cl)) {
-      final _ClassData classData = getClassData(cl);
       classData.allocatedSubtypes.add(classData);
       classData.invalidateDependentInvocations(_typeFlowAnalysis.workList);
 
@@ -737,6 +756,8 @@ class _ClassHierarchyCache implements TypeHierarchy {
         _addDynamicTarget(cl, targetSet);
       }
     }
+
+    return classData.concreteType;
   }
 
   void seal() {
@@ -829,12 +850,14 @@ class _ClassHierarchyCache implements TypeHierarchy {
     if (numSubTypes == 0) {
       return new Type.empty();
     } else if (numSubTypes == 1) {
-      return new Type.concrete(allocatedSubtypes.single.class_.rawType);
+      return allocatedSubtypes.single.concreteType;
     } else {
-      Set<ConcreteType> types = new Set<ConcreteType>();
+      List<ConcreteType> types = new List<ConcreteType>();
       for (var sub in allocatedSubtypes) {
-        types.add(new Type.concrete(sub.class_.rawType));
+        types.add(sub.concreteType);
       }
+      // TODO(alexmarkov): cache result of specialization or keep allocatedSubtypes sorted
+      types.sort();
       return new SetType(types);
     }
   }
@@ -1089,17 +1112,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   }
 
   @override
-  void addAllocatedClass(Class c) {
+  ConcreteType addAllocatedClass(Class c) {
     debugPrint("ADD ALLOCATED CLASS: $c");
-    hierarchyCache.addAllocatedClass(c);
-  }
-
-  @override
-  void addAllocatedType(InterfaceType type) {
-    tracePrint("ADD ALLOCATED TYPE: $type");
-
-    // TODO(alexmarkov): take type arguments into account.
-
-    hierarchyCache.addAllocatedClass(type.classNode);
+    return hierarchyCache.addAllocatedClass(c);
   }
 }
