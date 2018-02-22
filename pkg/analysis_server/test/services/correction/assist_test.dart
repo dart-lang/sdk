@@ -3258,7 +3258,7 @@ class FakeFlutter {
   }
 
   test_flutterWrapCenter_OK_implicitNew() async {
-    _configurePreviewDart2();
+    configurePreviewDart2();
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -3352,7 +3352,7 @@ class FakeFlutter {
   }
 
   test_flutterWrapColumn_OK_implicitNew() async {
-    _configurePreviewDart2();
+    configurePreviewDart2();
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -5328,12 +5328,6 @@ main() {
         offset, length, driver, new AstProviderForDriver(driver), testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
-  }
-
-  void _configurePreviewDart2() {
-    driver.configure(
-        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
-          ..previewDart2 = true);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

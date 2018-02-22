@@ -2381,6 +2381,36 @@ class B extends A {
     assertNotSuggested('int');
   }
 
+  test_implicitCreation() async {
+    configurePreviewDart2();
+    addSource('/a.dart', '''
+class A {
+  A.a1();
+  A.a2();
+}
+class B {
+  B.b1();
+  B.b2();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  ^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestClass('A');
+    assertSuggestConstructor('A.a1');
+    assertSuggestConstructor('A.a2');
+
+    assertSuggestClass('B');
+    assertSuggestConstructor('B.b1');
+    assertSuggestConstructor('B.b2');
+  }
+
   test_ImportDirective_dart() async {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''

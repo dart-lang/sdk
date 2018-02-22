@@ -125,6 +125,16 @@ class OpType {
         target.containingNode.getAncestor((p) => p is MethodDeclaration);
     optype.inStaticMethodBody =
         mthDecl is MethodDeclaration && mthDecl.isStatic;
+
+    // If a value should be suggested, suggest also constructors.
+    if (optype.includeReturnValueSuggestions) {
+      CompilationUnitElement unitElement = target.unit.element;
+      if (unitElement != null &&
+          unitElement.context.analysisOptions.previewDart2) {
+        optype.includeConstructorSuggestions = true;
+      }
+    }
+
     return optype;
   }
 

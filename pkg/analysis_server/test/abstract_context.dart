@@ -89,6 +89,12 @@ class Required {
     return source;
   }
 
+  void configurePreviewDart2() {
+    driver.configure(
+        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions)
+          ..previewDart2 = true);
+  }
+
   void processRequiredPlugins() {
     AnalysisEngine.instance.processRequiredPlugins();
   }

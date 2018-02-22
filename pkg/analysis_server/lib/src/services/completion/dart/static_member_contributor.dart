@@ -68,6 +68,13 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   @override
+  visitConstructorElement(ConstructorElement element) {
+    if (element.context.analysisOptions.previewDart2) {
+      _addSuggestion(element);
+    }
+  }
+
+  @override
   visitFieldElement(FieldElement element) {
     if (element.isStatic) {
       _addSuggestion(element);
