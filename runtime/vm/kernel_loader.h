@@ -192,6 +192,8 @@ class KernelLoader {
 
   void CheckForInitializer(const Field& field);
 
+  void FixCoreLibraryScriptUri(const Library& library, const Script& script);
+
   Class& LoadClass(const Library& library,
                    const Class& toplevel_class,
                    intptr_t class_end);

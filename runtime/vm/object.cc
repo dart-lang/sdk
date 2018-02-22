@@ -22658,35 +22658,7 @@ static void PrintStackTraceFrame(Zone* zone,
     }
   }
 
-  // Workaround for http://dartbug.com/32087: currently Kernel front-end
-  // embeds absolute build-time paths to core library sources into Kernel
-  // binaries this introduces discrepancy between how stack traces were
-  // looked like in legacy pipeline and how they look in Dart 2 pipeline and
-  // breaks users' code that attempts to pattern match and filter various
-  // irrelevant frames (e.g. frames from dart:async).
-  // To work around this issue we reformat urls of scripts belonging to
-  // dart:-scheme libraries to look like they looked like in legacy pipeline:
-  //
-  //               dart:libname/filename.dart
-  //
   const char* url_string = url.ToCString();
-  if (script.kernel_program_info() != KernelProgramInfo::null()) {
-    const Class& owner = Class::Handle(function.Owner());
-    const Library& lib = Library::Handle(owner.library());
-    if (lib.is_dart_scheme()) {
-      // Search backwards until '/' is found. That gives us the filename.
-      intptr_t pos = strlen(url_string) - 1;
-      while (pos >= 0 && url_string[pos] != '/') {
-        pos--;
-      }
-      const char* filename = url_string + (pos + 1);
-
-      // Glue together canonic library url (e.g. dart:async) and filename.
-      url_string = zone->PrintToString(
-          "%s/%s", String::Handle(lib.url()).ToCString(), filename);
-    }
-  }
-
   if (column >= 0) {
     buffer->Printf("#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n", frame_index,
                    function_name.ToCString(), url_string, line, column);

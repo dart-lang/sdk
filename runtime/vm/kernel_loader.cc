@@ -14,6 +14,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/reusable_handles.h"
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 
@@ -967,6 +968,44 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_abstract_) klass->set_is_abstract();
 }
 
+// Workaround for http://dartbug.com/32087: currently Kernel front-end
+// embeds absolute build-time paths to core library sources into Kernel
+// binaries this introduces discrepancy between how stack traces were
+// looked like in legacy pipeline and how they look in Dart 2 pipeline and
+// breaks users' code that attempts to pattern match and filter various
+// irrelevant frames (e.g. frames from dart:async).
+// This also breaks debugging experience in external debuggers because
+// debugger attempts to open files that don't exist in the local file
+// system.
+// To work around this issue we reformat urls of scripts belonging to
+// dart:-scheme libraries to look like they looked like in legacy pipeline:
+//
+//               dart:libname/filename.dart
+//
+void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
+                                           const Script& script) {
+  if (library.is_dart_scheme()) {
+    REUSABLE_STRING_HANDLESCOPE(thread_);
+    String& url = thread_->StringHandle();
+    url = script.url();
+    if (!url.StartsWith(Symbols::DartScheme())) {
+      // Search backwards until '/' is found. That gives us the filename.
+      // Note: can't use reusable handle in the code below because
+      // concat also needs it.
+      String& new_url = String::Handle(zone_, url.raw());
+      intptr_t pos = new_url.Length() - 1;
+      while (pos >= 0 && new_url.CharAt(pos) != '/') {
+        pos--;
+      }
+
+      new_url = String::SubString(new_url, pos + 1);
+      new_url = String::Concat(Symbols::Slash(), new_url);
+      new_url = String::Concat(String::Handle(zone_, library.url()), new_url);
+      script.set_url(new_url);
+    }
+  }
+}
+
 Class& KernelLoader::LoadClass(const Library& library,
                                const Class& toplevel_class,
                                intptr_t class_end) {
@@ -987,6 +1026,7 @@ Class& KernelLoader::LoadClass(const Library& library,
     const Script& script =
         Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
     klass.set_script(script);
+    FixCoreLibraryScriptUri(library, script);
   }
   if (klass.token_pos() == TokenPosition::kNoSource) {
     class_helper.ReadUntilIncluding(ClassHelper::kPosition);
@@ -1345,6 +1385,7 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     patch_class ^= patch_classes_.At(source_uri_index);
     if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
       ASSERT(!library_kernel_data_.IsNull());
+      FixCoreLibraryScriptUri(Library::Handle(klass.library()), correct_script);
       patch_class = PatchClass::New(klass, correct_script);
       patch_class.set_library_kernel_data(library_kernel_data_);
       patch_class.set_library_kernel_offset(library_kernel_offset_);
