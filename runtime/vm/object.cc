@@ -12264,8 +12264,6 @@ RawError* Library::CompileAll() {
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
-      func.ClearICDataArray();
-      func.ClearCode();
     }
   }
   return Error::null();
