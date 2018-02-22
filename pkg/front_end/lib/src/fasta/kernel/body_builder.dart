@@ -1770,7 +1770,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(beginToken),
             lengthOfSpan(beginToken, closeBraceTokenFor(beginToken)));
-      } else {
+      } else if (library.loader.target.strongMode) {
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     }
@@ -1818,9 +1818,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             offsetForToken(beginToken),
             lengthOfSpan(beginToken, closeBraceTokenFor(beginToken)));
       } else {
-        keyType = instantiateToBounds(typeArguments[0], coreTypes.objectClass);
-        valueType =
-            instantiateToBounds(typeArguments[1], coreTypes.objectClass);
+        if (library.loader.target.strongMode) {
+          keyType =
+              instantiateToBounds(typeArguments[0], coreTypes.objectClass);
+          valueType =
+              instantiateToBounds(typeArguments[1], coreTypes.objectClass);
+        } else {
+          keyType = typeArguments[0];
+          valueType = typeArguments[1];
+        }
       }
     }
 
