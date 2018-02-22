@@ -180,9 +180,8 @@ class C extends A {}
 ''');
     await waitForTasksFinished();
     // configure roots
-    Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath, '/packages/pkgA'], [])
-            .toRequest('0');
+    Request request = new AnalysisSetAnalysisRootsParams(
+        [projectPath, convertPath('/packages/pkgA')], []).toRequest('0');
     handleSuccessfulRequest(request);
     // test A type hierarchy
     List<TypeHierarchyItem> items = await _getTypeHierarchy('A {}');
