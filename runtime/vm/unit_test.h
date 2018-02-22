@@ -326,7 +326,9 @@ class TestCase : TestCaseBase {
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
                                     bool finalize = true);
-  static Dart_Handle LoadTestLibrary(const char* lib_uri, const char* script);
+  static Dart_Handle LoadTestLibrary(const char* lib_uri,
+                                     const char* script,
+                                     Dart_NativeEntryResolver resolver = NULL);
   static Dart_Handle LoadTestScriptWithDFE(
       int sourcefiles_count,
       Dart_SourceFile sourcefiles[],
@@ -335,6 +337,7 @@ class TestCase : TestCaseBase {
       bool incrementally = true);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
+
   static Dart_Handle lib();
   static const char* url();
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
