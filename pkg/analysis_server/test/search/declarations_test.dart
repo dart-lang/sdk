@@ -22,11 +22,12 @@ main() {
 class DeclarationsTest extends AbstractSearchDomainTest {
   SearchGetElementDeclarationsResult declarationsResult;
 
-  void assertHas(String name, ElementKind kind) {
+  void assertHas(String name, ElementKind kind, {String className}) {
     declarationsResult.declarations.singleWhere((d) =>
         declarationsResult.files[d.fileIndex] == testFile &&
         d.name == name &&
-        d.kind == kind);
+        d.kind == kind &&
+        d.className == className);
   }
 
   test_class() async {
@@ -43,11 +44,11 @@ class C {
     await _getDeclarations();
 
     assertHas('C', ElementKind.CLASS);
-    assertHas('f', ElementKind.FIELD);
-    assertHas('named', ElementKind.CONSTRUCTOR);
-    assertHas('g', ElementKind.GETTER);
-    assertHas('s', ElementKind.SETTER);
-    assertHas('m', ElementKind.METHOD);
+    assertHas('f', ElementKind.FIELD, className: 'C');
+    assertHas('named', ElementKind.CONSTRUCTOR, className: 'C');
+    assertHas('g', ElementKind.GETTER, className: 'C');
+    assertHas('s', ElementKind.SETTER, className: 'C');
+    assertHas('m', ElementKind.METHOD, className: 'C');
   }
 
   test_enum() async {

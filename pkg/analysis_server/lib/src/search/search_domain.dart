@@ -210,7 +210,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
           declaration.fileIndex,
           declaration.offset,
           declaration.line,
-          declaration.column);
+          declaration.column,
+          className: declaration.className);
     }).toList();
 
     server.sendResponse(new protocol.SearchGetElementDeclarationsResult(
