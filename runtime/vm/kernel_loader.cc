@@ -985,23 +985,20 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
 void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
                                            const Script& script) {
   if (library.is_dart_scheme()) {
-    REUSABLE_STRING_HANDLESCOPE(thread_);
-    String& url = thread_->StringHandle();
-    url = script.url();
+    String& url = String::Handle(zone_, script.url());
     if (!url.StartsWith(Symbols::DartScheme())) {
       // Search backwards until '/' is found. That gives us the filename.
       // Note: can't use reusable handle in the code below because
       // concat also needs it.
-      String& new_url = String::Handle(zone_, url.raw());
-      intptr_t pos = new_url.Length() - 1;
-      while (pos >= 0 && new_url.CharAt(pos) != '/') {
+      intptr_t pos = url.Length() - 1;
+      while (pos >= 0 && url.CharAt(pos) != '/') {
         pos--;
       }
 
-      new_url = String::SubString(new_url, pos + 1);
-      new_url = String::Concat(Symbols::Slash(), new_url);
-      new_url = String::Concat(String::Handle(zone_, library.url()), new_url);
-      script.set_url(new_url);
+      url = String::SubString(url, pos + 1);
+      url = String::Concat(Symbols::Slash(), url);
+      url = String::Concat(String::Handle(zone_, library.url()), url);
+      script.set_url(url);
     }
   }
 }
