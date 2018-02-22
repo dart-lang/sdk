@@ -2486,6 +2486,44 @@ main() {new ^ String x = "hello";}''');
     assertNotSuggested('math');
   }
 
+  test_InstanceCreationExpression_abstractClass() async {
+    addSource('/a.dart', '''
+abstract class A {
+  A();
+  A.generative();
+  factory A.factory() => null;
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  new ^;
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+    assertNotSuggested('A.generative');
+    assertSuggestConstructor('A.factory');
+  }
+
+  test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
+    addSource('/a.dart', '''
+abstract class A {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  new ^;
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+  }
+
   test_InstanceCreationExpression_imported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource('/testA.dart', '''

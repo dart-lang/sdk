@@ -2289,6 +2289,36 @@ main() {new ^ String x = "hello";}''');
     expect(suggestion.hasNamedParameters, true);
   }
 
+  test_InstanceCreationExpression_abstractClass() async {
+    addTestSource('''
+abstract class A {
+  A();
+  A.generative();
+  factory A.factory() => null;
+}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+    assertNotSuggested('A.generative');
+    assertSuggestConstructor('A.factory');
+  }
+
+  test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
+    addTestSource('''
+abstract class A {}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+  }
+
   test_InstanceCreationExpression_assignment_expression_filter() async {
     addTestSource('''
 class A {} class B extends A {} class C implements A {} class D {}
