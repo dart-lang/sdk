@@ -221,6 +221,10 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
+  const char* ToCString() {
+    return member != NULL ? member->ToCString() : klass->ToCString();
+  }
+
   // The current enclosing class (or the library top-level class).
   const Class* klass;
 
