@@ -418,10 +418,10 @@ mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: RuntimeError # Deferred loading kernel issue 28335.
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: RuntimeError # Deferred loading kernel issue 28335.
 mirrors/library_imports_deferred_test: RuntimeError
 mirrors/library_imports_hidden_test: RuntimeError
 mirrors/library_imports_metadata_test: RuntimeError
@@ -429,7 +429,7 @@ mirrors/library_imports_prefixed_show_hide_test: RuntimeError
 mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
-mirrors/load_library_test: CompileTimeError
+mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash
 mirrors/metadata_scope_test/none: RuntimeError
@@ -470,7 +470,7 @@ mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
-mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: RuntimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_in_signature_test: RuntimeError
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError

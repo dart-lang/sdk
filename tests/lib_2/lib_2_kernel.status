@@ -94,9 +94,7 @@ mirrors/constructor_private_name_test: RuntimeError
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: Crash # 31916
 mirrors/deferred_mirrors_metadata_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_test: Crash # 31916
-mirrors/deferred_mirrors_update_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -120,10 +118,10 @@ mirrors/intercepted_object_test: RuntimeError # Issue 31402 (Invocation argument
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_enumeration_deferred_loading_test: CompileTimeError
+mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError, Crash, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_shown_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: RuntimeError # Deferred loading kernel issue 28335.
 mirrors/library_imports_bad_metadata_test/none: Crash
 mirrors/library_imports_deferred_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_hidden_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -132,7 +130,7 @@ mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 31402 (Inv
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_shown_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_metadata_test: RuntimeError
-mirrors/load_library_test: CompileTimeError
+mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash, RuntimeError
 mirrors/metadata_scope_test/none: RuntimeError

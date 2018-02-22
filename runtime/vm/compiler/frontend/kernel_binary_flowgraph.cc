@@ -1541,6 +1541,10 @@ void StreamingScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kLoadLibrary:
+    case kCheckLibraryIsLoaded:
+      builder_->ReadUInt();  // library index
+      break;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -4846,6 +4850,10 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildConstantExpression(position);
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
+    case kLoadLibrary:
+    case kCheckLibraryIsLoaded:
+      ReadUInt();  // skip library index
+      return BuildFutureNullValue(position);
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -5397,6 +5405,10 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       return;
     case kConstantExpression:
       SkipConstantReference();
+      return;
+    case kLoadLibrary:
+    case kCheckLibraryIsLoaded:
+      ReadUInt();  // skip library index
       return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
@@ -7900,6 +7912,23 @@ Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
+    TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+  const Class& future = Class::Handle(Z, I->object_store()->future_class());
+  ASSERT(!future.IsNull());
+  const Function& constructor =
+      Function::ZoneHandle(Z, future.LookupFunction(Symbols::FutureValue()));
+  ASSERT(!constructor.IsNull());
+
+  Fragment instructions;
+  instructions += BuildNullLiteral(position);
+  instructions += PushArgument();
+  instructions += StaticCall(TokenPosition::kNoSource, constructor,
+                             /* argument_count = */ 1, ICData::kStatic);
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVectorCreation(

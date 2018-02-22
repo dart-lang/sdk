@@ -272,12 +272,10 @@ Language/Expressions/Constants/bitwise_operators_t06: Crash
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Constants/math_operators_t04: Crash
 Language/Expressions/Constants/math_operators_t05: Crash
-Language/Expressions/Instance_Creation/New/evaluation_t19: CompileTimeError # Issue 31938
-Language/Expressions/Instance_Creation/New/evaluation_t20: CompileTimeError # Issue 31938
+Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Issue 31938
+Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Issue 31938
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: CompileTimeError
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Deferred loading kernel issue 28335.
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 Language/Metadata/before_export_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
@@ -294,7 +292,6 @@ Language/Metadata/before_param_t08: RuntimeError # Issue 28434: Kernel IR misses
 Language/Metadata/before_param_t09: RuntimeError # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_typedef_t01: RuntimeError # Issue 28434: Kernel IR misses these annotations.
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
-Language/Types/Dynamic_Type_System/deferred_type_error_t01: CompileTimeError
 Language/Types/Type_Void/syntax_t01: Pass # Issue 30470
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip

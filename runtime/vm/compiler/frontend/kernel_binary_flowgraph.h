@@ -1304,6 +1304,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildDoubleLiteral(TokenPosition* position);
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
+  Fragment BuildFutureNullValue(TokenPosition* position);
   Fragment BuildVectorCreation(TokenPosition* position);
   Fragment BuildVectorGet(TokenPosition* position);
   Fragment BuildVectorSet(TokenPosition* position);
