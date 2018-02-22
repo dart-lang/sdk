@@ -17,6 +17,7 @@ issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 kill_self_synchronously_test: SkipByDesign #  Unsupported operation: Platform._resolvedExecutable
+large_byte_data_leak_test: RuntimeError
 message3_test/constInstance: RuntimeError # Issue 21817
 message3_test/constList: RuntimeError # Issue 21817
 message3_test/constList_identical: RuntimeError # Issue 21817
