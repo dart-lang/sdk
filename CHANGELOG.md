@@ -79,6 +79,7 @@ the assignment to `y`.
 
 * `dart:core`
 
+  * `BigInt` class added to support integers greater than 64-bits.
   * Deprecated the `proxy` annotation.
   * Added `Provisional` class and `provisional` field.
   * `RegExp` added static `escape` function.
@@ -123,19 +124,35 @@ the assignment to `y`.
     `ZERO` to `zero`.
 
 * `dart:developer`
+
+  * `Flow` class added.
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
     parameter `flow` of type `Flow`. The `flow` parameter is used to generate
     flow timeline events that are enclosed by the slice described by
     `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
 
+<!--
+Still need entries for all changes to dart:html since 1.x
+-->
+
 * `dart:io`
+
+  * `HttpStatus` added `UPGRADE_REQUIRED`.
+  * `IOOverrides` and `HttpOverrides` added to aid in writing tests that wish to
+    mock varios `dart:io` objects.
+  * `Platform.operatingSystemVersion` added  that gives a platform-specific
+    String describing the version of the operating system.
+  * `ProcessStartMode.INHERIT_STDIO` added, which allows a child process to
+    inherit the parent's stdio handles.
+  * `RawZLibFilter` added  for low-level access to compression and
+    decompression routines.
   * Unified backends for `SecureSocket`, `SecurityContext`, and
     `X509Certificate` to be consistent across all platforms. All
     `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
     methods are now supported on iOS and OSX.
-  * Deprecated `SecurityContext.alpnSupported` as ALPN is now supported on all
+  * `SecurityContext.alpnSupported` deprecated as ALPN is now supported on all
     platforms.
-  * Added `withTrustedRoots` named optional parameter to `SecurityContext`
+  * `SecurityContext`: added `withTrustedRoots` named optional parameter
     constructor, which defaults to false.
   * Added a `timeout` parameter to `Socket.connect`, `RawSocket.connect`,
     `SecureSocket.connect` and `RawSecureSocket.connect`. If a connection attempt
@@ -143,34 +160,43 @@ the assignment to `y`.
     will be thrown. Note: if the duration specified in `timeout` is greater than
     the OS level timeout, a timeout may occur sooner than specified in
     `timeout`.
-  * Added `Platform.operatingSystemVersion` that gives a platform-specific
-    String describing the version of the operating system.
-  * Added `RawZLibFilter` for low-level access to compression and
-    decompression routines.
-  * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
-    mock varios `dart:io` objects.
-  * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
-  * Added `ProcessStartMode.INHERIT_STDIO`, which allows a child process to
-    inherit the parent's stdio handles.
+  * `Stdin.hasTerminal` added, which is true if stdin is attached to a terminal.
+  * `WebSocket` added static `userAgent` property.
 
 * `dart:isolate`
-  * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
-    `beforeNextEvent`.
+
   * Make `Isolate.spawn` take a type parameter representing the argument type
     of the provided function. This allows functions with arguments types other
     than `Object` in strong mode.
+  * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
+    `beforeNextEvent`.
+
+<!--
+Still need entries for all changes to dart:js since 1.x
+-->
 
 * `dart.math`
+
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
     to `e`, `ln10`, `ln`, `log2e`, `log10e`, `pi`, `sqrt1_2` and `sqrt2`.
 
+<!--
+Still need entries for all changes to dart:svg since 1.x
+-->
+
 * `dart:typed_data`
+
+  * Added `Unmodifiable` view classes over all `List` types.
   * Renamed `BYTES_PER_ELEMENT` to `bytesPerElement` on all typed data lists.
   * Renamed constants `XXXX` through `WWWW` on `Float32x4` and `Int32x4` to
     lower-case `xxxx` through `wwww`.
   * Renamed `Endinanness` to `Endian` and its constants from
     `BIG_ENDIAN`, `LITTLE_ENDIAN` and `HOST_ENDIAN` to
     `little`, `big` and `host`.
+
+<!--
+Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
+-->
 
 ### Dart VM
 
