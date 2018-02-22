@@ -86,7 +86,7 @@ bool test() {
 
     String fileContent = testCode;
     if (target != null) {
-      expect(target, fileEdits.first.file);
+      expect(fileEdits.first.file, convertPath(target));
       fileContent = getFile(target).readAsStringSync();
     }
 
@@ -140,7 +140,7 @@ bool test() {
   }
 
   Future<List<AnalysisError>> _computeErrors() async {
-    return (await driver.getResult(testFile)).errors;
+    return (await driver.getResult(convertPath(testFile))).errors;
   }
 
   /**
@@ -1175,6 +1175,95 @@ main() {
 ''');
   }
 
+  test_convertToNamedArguments_BAD_ambiguous() async {
+    await resolveTestUnit('''
+class A {
+  A({int a, int b});
+}
+
+main() {
+  new A(1, 2);
+}
+''');
+    await assertNoFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
+  }
+
+  test_convertToNamedArguments_BAD_noCompatibleParameter() async {
+    await resolveTestUnit('''
+class A {
+  A({String a});
+}
+
+main() {
+  new A(1);
+}
+''');
+    await assertNoFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
+  }
+
+  test_convertToNamedArguments_OK_instanceCreation() async {
+    await resolveTestUnit('''
+class A {
+  A({int a, double b});
+}
+
+main() {
+  new A(1.2, 3);
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS, '''
+class A {
+  A({int a, double b});
+}
+
+main() {
+  new A(b: 1.2, a: 3);
+}
+''');
+  }
+
+  test_convertToNamedArguments_OK_instanceCreation_hasPositional() async {
+    await resolveTestUnit('''
+class A {
+  A(int a, {int b});
+}
+
+main() {
+  new A(1, 2);
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS, '''
+class A {
+  A(int a, {int b});
+}
+
+main() {
+  new A(1, b: 2);
+}
+''');
+  }
+
+  test_convertToNamedArguments_OK_methodInvocation() async {
+    await resolveTestUnit('''
+class C {
+  void foo({int a}) {}
+}
+
+main(C c) {
+  c.foo(1);
+}
+''');
+    await assertHasFix(DartFixKind.CONVERT_TO_NAMED_ARGUMENTS, '''
+class C {
+  void foo({int a}) {}
+}
+
+main(C c) {
+  c.foo(a: 1);
+}
+''');
+  }
+
   test_createClass() async {
     await resolveTestUnit('''
 main() {
@@ -1223,7 +1312,7 @@ main() {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/lib.dart');
+    expect(fileEdit.file, convertPath('/lib.dart'));
     expect(SourceEdit.applySequence(libCode, fileEdit.edits), r'''
 library my.lib;
 
@@ -2093,7 +2182,7 @@ import 'my_file.dart';
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/my/project/bin/my_file.dart');
+    expect(fileEdit.file, convertPath('/my/project/bin/my_file.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement, contains('library my_file;'));
@@ -2130,7 +2219,8 @@ import 'a/bb/c_cc/my_lib.dart';
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/projects/my_package/lib/a/bb/c_cc/my_lib.dart');
+    expect(fileEdit.file,
+        convertPath('/projects/my_package/lib/a/bb/c_cc/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement,
@@ -2150,7 +2240,8 @@ import 'a/bb/my_lib.dart';
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/projects/my_package/test/misc/a/bb/my_lib.dart');
+    expect(fileEdit.file,
+        convertPath('/projects/my_package/test/misc/a/bb/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement,
@@ -2158,7 +2249,7 @@ import 'a/bb/my_lib.dart';
   }
 
   test_createFile_forPart() async {
-    testFile = '/my/project/bin/test.dart';
+    testFile = convertPath('/my/project/bin/test.dart');
     await resolveTestUnit('''
 library my.lib;
 part 'my_part.dart';
@@ -2170,7 +2261,7 @@ part 'my_part.dart';
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/my/project/bin/my_part.dart');
+    expect(fileEdit.file, convertPath('/my/project/bin/my_part.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
@@ -2192,7 +2283,7 @@ part 'my_part.dart';
     SourceFactory sourceFactory = new SourceFactory(
         [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
     driver.configure(sourceFactory: sourceFactory);
-    testUnit = (await driver.getResult(testFile)).unit;
+    testUnit = (await driver.getResult(convertPath(testFile))).unit;
     // prepare fix
     AnalysisError error = await _findErrorToFix();
     fix = await _assertHasFix(DartFixKind.CREATE_FILE, error);
@@ -2201,7 +2292,7 @@ part 'my_part.dart';
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/my/lib/my_part.dart');
+    expect(fileEdit.file, convertPath('/my/lib/my_part.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
@@ -5368,7 +5459,7 @@ main(aaa.D d, aaa.E e) {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/test2.dart');
+    expect(fileEdit.file, convertPath('/test2.dart'));
     expect(SourceEdit.applySequence(code2, fileEdit.edits), r'''
 library test2;
 import 'test3.dart' as bbb;
@@ -5401,7 +5492,7 @@ main(test2.D d, test2.E e) {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, '/test2.dart');
+    expect(fileEdit.file, convertPath('/test2.dart'));
     expect(SourceEdit.applySequence(code2, fileEdit.edits), r'''
 library test2;
 class D {

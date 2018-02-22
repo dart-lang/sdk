@@ -105,7 +105,8 @@ class AnalyzerOptions {
           help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
               'library.dart as the source for an import of of "libraryUri".',
           allowMultiple: true,
-          splitCommas: false);
+          splitCommas: false,
+          hide: hide);
   }
 
   static Map<String, String> _parseUrlMappings(Iterable argument) {

@@ -635,7 +635,7 @@ String readAnnotationName(
     return null;
   } else if (fields.single is StringConstantValue) {
     StringConstantValue specStringConstant = fields.single;
-    return specStringConstant.primitiveValue;
+    return specStringConstant.stringValue;
   } else if (defaultValue != null && fields.single is NullConstantValue) {
     return defaultValue;
   } else {

@@ -304,25 +304,29 @@ class CompilerOptions {
 
   static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
-      ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
+      ..addFlag('summarize',
+          help: 'emit an API summary file', defaultsTo: true, hide: hide)
       ..addOption('summary-extension',
           help: 'file extension for Dart summary files',
           defaultsTo: 'sum',
           hide: hide)
-      ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
+      ..addFlag('source-map',
+          help: 'emit source mapping', defaultsTo: true, hide: hide)
       ..addFlag('source-map-comment',
           help: 'adds a sourceMappingURL comment to the end of the JS,\n'
               'disable if using X-SourceMap header',
           defaultsTo: true,
           hide: hide)
       ..addFlag('inline-source-map',
-          help: 'emit source mapping inline', defaultsTo: false)
+          help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('emit-metadata',
           help: 'emit metadata annotations queriable via mirrors',
-          defaultsTo: false)
+          defaultsTo: false,
+          hide: hide)
       ..addFlag('closure-experimental',
           help: 'emit Closure Compiler-friendly code (experimental)',
-          defaultsTo: false)
+          defaultsTo: false,
+          hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',

@@ -113,6 +113,9 @@ int_parse_radix_bad_handler_test: Pass
 [ $compiler == dart2analyzer && !$strong ]
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
 
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk ]
+bigint_js_test: SkipByDesign # JavaScript-specific test
+
 # All static_tests have expected compile-time errors.
 [ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $strong ]
 core_runtime_types_static_test: MissingCompileTimeError

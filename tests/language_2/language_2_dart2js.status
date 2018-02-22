@@ -941,16 +941,14 @@ call_method_is_check_test/02: RuntimeError
 call_method_is_check_test/03: RuntimeError
 call_method_is_check_test/04: RuntimeError
 call_method_is_check_test/05: RuntimeError
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 call_with_no_such_method_test: RuntimeError
 callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 extract_type_arguments_test: Crash # Issue 31371
 function_propagation_test: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/none: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 implicit_downcast_during_constructor_invocation_test: RuntimeError

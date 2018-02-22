@@ -92,22 +92,22 @@ class ConstantSerializer
 
   @override
   void visitBool(BoolConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setBool(Key.VALUE, exp.primitiveValue);
+    encoder.setBool(Key.VALUE, exp.boolValue);
   }
 
   @override
   void visitInt(IntConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setInt(Key.VALUE, exp.primitiveValue);
+    encoder.setInt(Key.VALUE, exp.intValue);
   }
 
   @override
   void visitDouble(DoubleConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setDouble(Key.VALUE, exp.primitiveValue);
+    encoder.setDouble(Key.VALUE, exp.doubleValue);
   }
 
   @override
   void visitString(StringConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setString(Key.VALUE, exp.primitiveValue);
+    encoder.setString(Key.VALUE, exp.stringValue);
   }
 
   @override

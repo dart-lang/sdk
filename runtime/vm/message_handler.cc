@@ -135,7 +135,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
             "\tlen:        %" Pd "\n\tsource:     (%" Pd64
             ") %s\n\tdest:       %s\n"
             "\tdest_port:  %" Pd64 "\n",
-            message->len(), static_cast<int64_t>(source_isolate->main_port()),
+            message->Size(), static_cast<int64_t>(source_isolate->main_port()),
             source_isolate->name(), name(), message->dest_port());
       } else {
         OS::Print(
@@ -144,7 +144,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
             "\n\tsource:     <native code>\n"
             "\tdest:       %s\n"
             "\tdest_port:  %" Pd64 "\n",
-            message->len(), name(), message->dest_port());
+            message->Size(), name(), message->dest_port());
       }
     }
 
@@ -212,7 +212,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
                                             : Message::kOOBPriority);
   Message* message = DequeueMessage(min_priority);
   while (message != NULL) {
-    intptr_t message_len = message->len();
+    intptr_t message_len = message->Size();
     if (FLAG_trace_isolates) {
       OS::Print(
           "[<] Handling message:\n"

@@ -8,7 +8,9 @@ import 'static_type_analyzer_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StaticTypeAnalyzer2Test_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(StaticTypeAnalyzer2Test_Kernel);
   });
 }
 

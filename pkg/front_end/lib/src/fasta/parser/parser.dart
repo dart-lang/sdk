@@ -68,6 +68,8 @@ import 'formal_parameter_kind.dart'
         isMandatoryFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
+import 'forwarding_listener.dart' show ForwardingListener;
+
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'listener.dart' show Listener;
@@ -465,7 +467,7 @@ class Parser {
       }
       return parseTopLevelKeywordDeclaration(
           token, beforeAbstractToken, directiveState);
-    } else if (next.isIdentifier || next.keyword != null) {
+    } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
       directiveState?.checkDeclaration();
@@ -489,7 +491,7 @@ class Parser {
     }
     // Ignore any preceding modifiers and just report the unexpected token
     listener.beginTopLevelMember(next);
-    return reportInvalidTopLevelDeclaration(next);
+    return parseInvalidTopLevelDeclaration(token);
   }
 
   // Report an error for the given modifier preceding a top level keyword
@@ -1026,21 +1028,8 @@ class Parser {
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
-    Token semicolon = token.next;
-    if (optional(';', semicolon)) {
-      token = semicolon;
-    } else {
-      // Recovery
-      token = semicolon = ensureSemicolon(token);
-      if (optional('{', token.next) && token.next.endGroup != null) {
-        // Looks like a typedef and function declaration collided.
-        // TODO(danrubel) Consider better error message and recovery.
-        reportRecoverableErrorWithToken(
-            token.next, fasta.templateExpectedDeclaration);
-        token = token.next.endGroup;
-      }
-    }
-    listener.endFunctionTypeAlias(typedefKeyword, equals, semicolon);
+    token = ensureSemicolon(token);
+    listener.endFunctionTypeAlias(typedefKeyword, equals, token);
     return token;
   }
 
@@ -3057,7 +3046,7 @@ class Parser {
           // ensureIdentifier will report the error.
         } else if (token == beforeStart) {
           // Ensure we make progress.
-          return reportInvalidTopLevelDeclaration(next);
+          return parseInvalidTopLevelDeclaration(token);
         } else {
           // Looks like a declaration missing an identifier.
           // Insert synthetic identifier and fall through.
@@ -5872,6 +5861,19 @@ class Parser {
     return token;
   }
 
+  Token parseInvalidBlock(Token token) {
+    Token begin = token.next;
+    assert(optional('{', begin));
+    // Parse and report the invalid block, but suppress errors
+    // because an error has already been reported by the caller.
+    Listener originalListener = listener;
+    listener = new ForwardingListener(listener)..forwardErrors = false;
+    token = parseBlock(token);
+    listener = originalListener;
+    listener.handleInvalidTopLevelBlock(begin);
+    return token;
+  }
+
   /// ```
   /// awaitExpression:
   ///   'await' unaryExpression
@@ -6452,10 +6454,18 @@ class Parser {
     return nextToken;
   }
 
-  Token reportInvalidTopLevelDeclaration(Token token) {
-    reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
-    listener.handleInvalidTopLevelDeclaration(token);
-    return token;
+  Token parseInvalidTopLevelDeclaration(Token token) {
+    Token next = token.next;
+    reportRecoverableErrorWithToken(
+        next,
+        optional(';', next)
+            ? fasta.templateUnexpectedToken
+            : fasta.templateExpectedDeclaration);
+    if (optional('{', next)) {
+      next = parseInvalidBlock(token);
+    }
+    listener.handleInvalidTopLevelDeclaration(next);
+    return next;
   }
 
   Token reportUnmatchedToken(BeginToken token) {

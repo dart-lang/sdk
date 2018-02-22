@@ -157,6 +157,7 @@ cc/Service_TokenStream: Crash
 cc/StackTraceMallocHookLengthTest: Fail # Please triage.
 
 [ $compiler == dartk && $mode == release && $runtime == vm ]
+cc/CorelibIsolateStartup: Timeout, Pass
 cc/InjectNativeFields1: Fail
 cc/Service_TokenStream: Fail
 
@@ -311,12 +312,12 @@ cc/IsolateReload_TearOff_List_Set: Crash
 cc/IsolateReload_TypeIdentity: Crash
 cc/IsolateReload_TypeIdentityGeneric: Crash
 cc/IsolateReload_TypeIdentityParameter: Crash
-cc/Profiler_BasicSourcePosition: Fail
-cc/Profiler_CodeTicks: Fail
+cc/Profiler_BasicSourcePosition: Fail, Pass
+cc/Profiler_CodeTicks: Fail, Pass
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
-cc/Profiler_FunctionTicks: Fail
-cc/Profiler_ToggleRecordAllocation: Fail
-cc/Profiler_TrivialRecordAllocation: Fail
+cc/Profiler_FunctionTicks: Fail, Pass
+cc/Profiler_ToggleRecordAllocation: Fail, Pass
+cc/Profiler_TrivialRecordAllocation: Fail, Pass
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
@@ -332,7 +333,7 @@ cc/FullSnapshot1: Crash # Issue 32190
 cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
 cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
 cc/IsolateReload_LibraryLookup: Crash # Issue 32190
-cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail # Issue 32190
+cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Fail, Crash # Issue 32190
 cc/StackMapGC: Crash # Issue 32190
 dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
 dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586

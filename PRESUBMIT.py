@@ -115,6 +115,7 @@ def _CheckNewTests(input_api, output_api):
       ("tests/corelib/",        "tests/corelib_2/"),
       ("tests/lib/",            "tests/lib_2/"),
       ("tests/html/",           "tests/lib_2/html/"),
+      ("tests/isolate/",        "tests/lib_2/isolate/")
   ]
 
   result = []

@@ -17,7 +17,7 @@ class BitNotOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      return DART_CONSTANT_SYSTEM.createInt(~intConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createInt(~intConstant.intValue);
     }
     return null;
   }
@@ -29,11 +29,11 @@ class NegateOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      return DART_CONSTANT_SYSTEM.createInt(-intConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createInt(-intConstant.intValue);
     }
     if (constant.isDouble) {
       DoubleConstantValue doubleConstant = constant;
-      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.doubleValue);
     }
     return null;
   }
@@ -45,7 +45,7 @@ class NotOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isBool) {
       BoolConstantValue boolConstant = constant;
-      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.primitiveValue);
+      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.boolValue);
     }
     return null;
   }
@@ -60,8 +60,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
     if (left.isInt && right.isInt) {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
-      int resultValue =
-          foldInts(leftInt.primitiveValue, rightInt.primitiveValue);
+      int resultValue = foldInts(leftInt.intValue, rightInt.intValue);
       if (resultValue == null) return null;
       return DART_CONSTANT_SYSTEM.createInt(resultValue);
     }
@@ -122,8 +121,7 @@ abstract class BinaryBoolOperation implements BinaryOperation {
     if (left.isBool && right.isBool) {
       BoolConstantValue leftBool = left;
       BoolConstantValue rightBool = right;
-      bool resultValue =
-          foldBools(leftBool.primitiveValue, rightBool.primitiveValue);
+      bool resultValue = foldBools(leftBool.boolValue, rightBool.boolValue);
       return DART_CONSTANT_SYSTEM.createBool(resultValue);
     }
     return null;
@@ -154,9 +152,11 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
       NumConstantValue rightNum = right;
       num foldedValue;
       if (left.isInt && right.isInt) {
-        foldedValue = foldInts(leftNum.primitiveValue, rightNum.primitiveValue);
+        IntConstantValue leftInt = leftNum;
+        IntConstantValue rightInt = rightNum;
+        foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
       } else {
-        foldedValue = foldNums(leftNum.primitiveValue, rightNum.primitiveValue);
+        foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
       }
       // A division by 0 means that we might not have a folded value.
       if (foldedValue == null) return null;
@@ -243,17 +243,17 @@ class AddOperation implements BinaryOperation {
     if (left.isInt && right.isInt) {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
-      int result = leftInt.primitiveValue + rightInt.primitiveValue;
+      int result = leftInt.intValue + rightInt.intValue;
       return DART_CONSTANT_SYSTEM.createInt(result);
     } else if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
-      double result = leftNum.primitiveValue + rightNum.primitiveValue;
+      double result = leftNum.doubleValue + rightNum.doubleValue;
       return DART_CONSTANT_SYSTEM.createDouble(result);
     } else if (left.isString && right.isString) {
       StringConstantValue leftString = left;
       StringConstantValue rightString = right;
-      String result = leftString.primitiveValue + rightString.primitiveValue;
+      String result = leftString.stringValue + rightString.stringValue;
       return DART_CONSTANT_SYSTEM.createString(result);
     } else {
       return null;
@@ -267,20 +267,28 @@ abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (!left.isNum || !right.isNum) return null;
-    NumConstantValue leftNum = left;
-    NumConstantValue rightNum = right;
-    bool foldedValue =
-        foldNums(leftNum.primitiveValue, rightNum.primitiveValue);
+    bool foldedValue;
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      foldedValue = foldInts(leftInt.intValue, rightInt.intValue);
+    } else {
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      foldedValue = foldNums(leftNum.doubleValue, rightNum.doubleValue);
+    }
     assert(foldedValue != null);
     return DART_CONSTANT_SYSTEM.createBool(foldedValue);
   }
 
+  bool foldInts(int left, int right);
   bool foldNums(num left, num right);
 }
 
 class LessOperation extends RelationalNumOperation {
   final String name = '<';
   const LessOperation();
+  bool foldInts(int left, int right) => left < right;
   bool foldNums(num left, num right) => left < right;
   apply(left, right) => left < right;
 }
@@ -288,6 +296,7 @@ class LessOperation extends RelationalNumOperation {
 class LessEqualOperation extends RelationalNumOperation {
   final String name = '<=';
   const LessEqualOperation();
+  bool foldInts(int left, int right) => left <= right;
   bool foldNums(num left, num right) => left <= right;
   apply(left, right) => left <= right;
 }
@@ -295,6 +304,7 @@ class LessEqualOperation extends RelationalNumOperation {
 class GreaterOperation extends RelationalNumOperation {
   final String name = '>';
   const GreaterOperation();
+  bool foldInts(int left, int right) => left > right;
   bool foldNums(num left, num right) => left > right;
   apply(left, right) => left > right;
 }
@@ -302,6 +312,7 @@ class GreaterOperation extends RelationalNumOperation {
 class GreaterEqualOperation extends RelationalNumOperation {
   final String name = '>=';
   const GreaterEqualOperation();
+  bool foldInts(int left, int right) => left >= right;
   bool foldNums(num left, num right) => left >= right;
   apply(left, right) => left >= right;
 }
@@ -310,14 +321,22 @@ class EqualsOperation implements BinaryOperation {
   final String name = '==';
   const EqualsOperation();
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (left.isNum && right.isNum) {
-      // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
-      // and 1 == 1.0.
-      NumConstantValue leftNum = left;
-      NumConstantValue rightNum = right;
-      bool result = leftNum.primitiveValue == rightNum.primitiveValue;
+    // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
+    // and 1 == 1.0.
+    if (left.isInt && right.isInt) {
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      bool result = leftInt.intValue == rightInt.intValue;
       return DART_CONSTANT_SYSTEM.createBool(result);
     }
+
+    if (left.isNum && right.isNum) {
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      bool result = leftNum.doubleValue == rightNum.doubleValue;
+      return DART_CONSTANT_SYSTEM.createBool(result);
+    }
+
     if (left.isConstructedObject) {
       // Unless we know that the user-defined object does not implement the
       // equality operator we cannot fold here.
@@ -367,8 +386,8 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
     if (left.isString && right.isInt) {
       StringConstantValue stringConstant = left;
       IntConstantValue indexConstant = right;
-      String string = stringConstant.primitiveValue;
-      int index = indexConstant.primitiveValue;
+      String string = stringConstant.stringValue;
+      int index = indexConstant.intValue;
       if (index < 0 || index >= string.length) return null;
       int value = string.codeUnitAt(index);
       return DART_CONSTANT_SYSTEM.createInt(value);

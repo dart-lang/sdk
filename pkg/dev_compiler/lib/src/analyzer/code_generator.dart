@@ -280,10 +280,7 @@ class CodeGenerator extends Object
   List<int> _summarizeModule(List<CompilationUnit> units) {
     if (!options.summarizeApi) return null;
 
-    if (!units.any((u) => resolutionMap
-        .elementDeclaredByCompilationUnit(u)
-        .librarySource
-        .isInSystemLibrary)) {
+    if (!units.any((u) => u.element.source.isInSystemLibrary)) {
       var sdk = context.sourceFactory.dartSdk;
       summaryData.addBundle(
           null,
@@ -2822,7 +2819,7 @@ class CodeGenerator extends Object
         // []= methods need to return the value. We could also address this at
         // call sites, but it's cleaner to instead transform the operator method.
         code = JS.alwaysReturnLastParameter(code, formals.last);
-      } else if (element.name == '==' && !element.library.isInSdk) {
+      } else if (element.name == '==' && !element.source.isInSystemLibrary) {
         // In Dart `operator ==` methods are not called with a null argument.
         // This is handled before calling them. For performance reasons, we push
         // this check inside the method, to simplify our `equals` helper.
@@ -3632,9 +3629,7 @@ class CodeGenerator extends Object
     var result = _emitForeignJS(node, e);
     if (result != null) return result;
 
-    if (e?.name == 'extensionSymbol' &&
-        e.library.isInSdk &&
-        e.library.source.uri.toString() == 'dart:_runtime') {
+    if (e?.name == 'extensionSymbol' && isSdkInternalRuntime(e.library)) {
       var args = node.argumentList.arguments;
       var firstArg = args.length == 1 ? args[0] : null;
       if (firstArg is StringLiteral) {
@@ -4347,7 +4342,7 @@ class CodeGenerator extends Object
 
     JS.Expression emitNew() {
       var args = _emitArgumentList(argumentList);
-      if (argumentList.arguments.isEmpty && element.library.isInSdk) {
+      if (argumentList.arguments.isEmpty && element.source.isInSystemLibrary) {
         // Skip the slow SDK factory constructors when possible.
         switch (classElem.name) {
           case 'Map':
@@ -6428,7 +6423,7 @@ bool _annotatedNullCheck(Element e) =>
 
 bool _reifyGeneric(Element e) =>
     e == null ||
-    !e.library.isInSdk ||
+    !e.source.isInSystemLibrary ||
     findAnnotation(
             e, (a) => isBuiltinAnnotation(a, '_js_helper', 'NoReifyGeneric')) ==
         null;
@@ -6436,7 +6431,7 @@ bool _reifyGeneric(Element e) =>
 bool _reifyFunctionType(Element e) {
   if (e == null) return true;
   var library = e.library;
-  if (!library.isInSdk) return true;
+  if (!library.source.isInSystemLibrary) return true;
   // SDK libraries can skip reification if they request it.
   reifyFunctionTypes(DartObjectImpl a) =>
       isBuiltinAnnotation(a, '_js_helper', 'ReifyFunctionTypes');

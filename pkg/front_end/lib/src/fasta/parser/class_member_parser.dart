@@ -44,4 +44,7 @@ class ClassMemberParser extends Parser {
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     return skipFunctionBody(token, isExpression, allowAbstract);
   }
+
+  @override
+  Token parseInvalidBlock(Token token) => skipBlock(token);
 }

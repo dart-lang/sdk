@@ -15,6 +15,9 @@ class C<T extends core::Object> extends core::Object {
 }
 static method test() → dynamic {
   self::C<core::int> x = self::C::•<core::int>(42);
-  x.{self::C::t} = let final dynamic #t1 = "hello" in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:56: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';\n                                                       ^";
+  x.{self::C::t} = let final dynamic #t1 = "hello" in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:56: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
+                                                       ^";
 }
 static method main() → dynamic {}

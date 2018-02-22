@@ -8,6 +8,7 @@ import '../scanner.dart';
 
 class ForwardingListener implements Listener {
   Listener listener;
+  bool forwardErrors = true;
 
   ForwardingListener([this.listener]);
 
@@ -1028,6 +1029,10 @@ class ForwardingListener implements Listener {
     listener?.handleInvalidTypeReference(token);
   }
 
+  void handleInvalidTopLevelBlock(Token token) {
+    listener?.handleInvalidTopLevelBlock(token);
+  }
+
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     listener?.handleInvalidTopLevelDeclaration(endToken);
@@ -1203,7 +1208,9 @@ class ForwardingListener implements Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    listener?.handleRecoverableError(message, startToken, endToken);
+    if (forwardErrors) {
+      listener?.handleRecoverableError(message, startToken, endToken);
+    }
   }
 
   @override

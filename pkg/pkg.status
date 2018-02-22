@@ -52,7 +52,6 @@ vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
-typed_mock/test/typed_mock_test: StaticWarning
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow

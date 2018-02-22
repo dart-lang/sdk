@@ -2534,7 +2534,15 @@ class _BigIntImpl implements BigInt {
     return (this & (signMask - one)) - (this & signMask);
   }
 
-  bool get isValidInt => this == new _BigIntImpl._fromInt(toInt());
+  // Maximum number of digits that always fit in mantissa.
+  static const _simpleValidIntDigits = 53 ~/ _digitBits;
+
+  bool get isValidInt {
+    if (_used <= _simpleValidIntDigits) return true;
+    var asInt = toInt();
+    if (!asInt.toDouble().isFinite) return false;
+    return this == new _BigIntImpl._fromInt(asInt);
+  }
 
   int toInt() {
     var result = 0;

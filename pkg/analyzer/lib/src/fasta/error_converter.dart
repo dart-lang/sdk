@@ -509,13 +509,8 @@ class FastaErrorReporter {
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
-        if (text == ';') {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
-        } else {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [text]);
-        }
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [text]);
         return;
       case "UNTERMINATED_MULTI_LINE_COMMENT":
         errorReporter?.reportErrorForOffset(

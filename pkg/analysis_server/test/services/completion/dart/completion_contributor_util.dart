@@ -135,7 +135,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.element.location.startLine, isNotNull);
     }
     if (elemFile != null) {
-      expect(cs.element.location.file, elemFile);
+      expect(cs.element.location.file, convertPath(elemFile));
     }
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
@@ -456,7 +456,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions({int times = 200}) async {
-    AnalysisResult analysisResult = await driver.getResult(testFile);
+    AnalysisResult analysisResult =
+        await driver.getResult(convertPath(testFile));
     testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,

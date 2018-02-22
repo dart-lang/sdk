@@ -897,7 +897,7 @@ abstract class BehaviorBuilder {
             'Annotations needs one string: ${value.toStructuredText()}');
       }
       StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.primitiveValue;
+      String specString = specStringConstant.stringValue;
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(typeString, lookupType);
         if (types == null) types = [];

@@ -31,14 +31,18 @@ main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
-    defineReflectiveTests(ExitCodesTest_UseCFE);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
     defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
-    defineReflectiveTests(OptionsTest_UseCFE);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(OptionsTest_UseCFE);
   }, name: 'Driver');
 }
 

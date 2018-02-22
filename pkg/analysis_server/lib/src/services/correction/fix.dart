@@ -145,6 +145,8 @@ class DartFixKind {
       'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
+  static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(
+      'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',
       51, "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT1 =

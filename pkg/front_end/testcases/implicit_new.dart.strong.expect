@@ -24,7 +24,11 @@ class IndexTester extends core::Object {
     return null;
   operator []=(dynamic _a, dynamic _b) → void {}
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/implicit_new.dart:18:18: Error: Method not found: 'Bar'.\n  var y = prefix.Bar();\n                 ^", "pkg/front_end/testcases/implicit_new.dart:19:10: Error: Method not found: 'Bar'.\n  prefix.Bar();\n         ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/implicit_new.dart:18:18: Error: Method not found: 'Bar'.
+  var y = prefix.Bar();
+                 ^", "pkg/front_end/testcases/implicit_new.dart:19:10: Error: Method not found: 'Bar'.
+  prefix.Bar();
+         ^"]/* from null */;
 static method testNSM() → dynamic {
   dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));

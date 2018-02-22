@@ -21,8 +21,14 @@ static method test() → dynamic {
   self::takeIIO(math::max<core::int>);
   self::takeDDO(math::max<core::double>);
   self::takeOOI((math::max<core::Object>) as{TypeError} (core::Object, core::Object) → core::int);
-  self::takeIDI(let final dynamic #t1 = math::max<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.\n      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);\n                                                                        ^");
-  self::takeDID(let final dynamic #t2 = math::max<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.\n      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);\n                                                                        ^");
+  self::takeIDI(let final dynamic #t1 = math::max<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+                                                                        ^");
+  self::takeDID(let final dynamic #t2 = math::max<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+                                                                        ^");
   self::takeOON((math::max<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
   self::takeOOO((math::max<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
   self::takeIII(math::min<core::int>);
@@ -35,8 +41,14 @@ static method test() → dynamic {
   self::takeIIO(math::min<core::int>);
   self::takeDDO(math::min<core::double>);
   self::takeOOI((math::min<core::Object>) as{TypeError} (core::Object, core::Object) → core::int);
-  self::takeIDI(let final dynamic #t3 = math::min<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.\n  takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);\n                                                                       ^");
-  self::takeDID(let final dynamic #t4 = math::min<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.\n  takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);\n                                                                       ^");
+  self::takeIDI(let final dynamic #t3 = math::min<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+  takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
+                                                                       ^");
+  self::takeDID(let final dynamic #t4 = math::min<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+  takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
+                                                                       ^");
   self::takeOON((math::min<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
   self::takeOOO((math::min<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
   self::takeIII(new self::C::•().{self::C::m}<core::int>);
@@ -51,8 +63,14 @@ static method test() → dynamic {
   self::takeOON((new self::C::•().{self::C::m}<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
   self::takeOOO((new self::C::•().{self::C::m}<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
   self::takeOOI((new self::C::•().{self::C::m}<core::Object>) as{TypeError} (core::Object, core::Object) → core::int);
-  self::takeIDI(let final dynamic #t5 = new self::C::•().{self::C::m}<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.\n          . /*@target=C::m*/ m);\n                             ^");
-  self::takeDID(let final dynamic #t6 = new self::C::•().{self::C::m}<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.\n          . /*@target=C::m*/ m);\n                             ^");
+  self::takeIDI(let final dynamic #t5 = new self::C::•().{self::C::m}<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+          . /*@target=C::m*/ m);
+                             ^");
+  self::takeDID(let final dynamic #t6 = new self::C::•().{self::C::m}<core::num> in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: A value of type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to a variable of type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+          . /*@target=C::m*/ m);
+                             ^");
 }
 static method takeIII((core::int, core::int) → core::int fn) → void {}
 static method takeDDD((core::double, core::double) → core::double fn) → void {}

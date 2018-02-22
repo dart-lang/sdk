@@ -2289,6 +2289,36 @@ main() {new ^ String x = "hello";}''');
     expect(suggestion.hasNamedParameters, true);
   }
 
+  test_InstanceCreationExpression_abstractClass() async {
+    addTestSource('''
+abstract class A {
+  A();
+  A.generative();
+  factory A.factory() => null;
+}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+    assertNotSuggested('A.generative');
+    assertSuggestConstructor('A.factory');
+  }
+
+  test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
+    addTestSource('''
+abstract class A {}
+
+main() {
+  new ^;
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('A');
+  }
+
   test_InstanceCreationExpression_assignment_expression_filter() async {
     addTestSource('''
 class A {} class B extends A {} class C implements A {} class D {}
@@ -2356,6 +2386,38 @@ class C {foo(){var f; {var x;} new ^}}''');
     assertNotSuggested('F2');
     assertNotSuggested('T1');
     assertNotSuggested('T2');
+  }
+
+  test_InstanceCreationExpression_invocationArgument() async {
+    addTestSource('''
+class A {} class B extends A {} class C {}
+void foo(A a) {}
+main() {
+  foo(new ^);
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B', elemOffset: -1);
+    assertNotSuggested('C');
+  }
+
+  test_InstanceCreationExpression_invocationArgument_named() async {
+    addTestSource('''
+class A {} class B extends A {} class C {}
+void foo({A a}) {}
+main() {
+  foo(a: new ^);
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B', elemOffset: -1);
+    assertNotSuggested('C');
   }
 
   test_InstanceCreationExpression_unimported() async {

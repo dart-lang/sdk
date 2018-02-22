@@ -36,5 +36,8 @@ class F extends self::D {
     ;
   method f(self::B x) → void {}
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/override_check_after_inference.dart:24:53: Error: The parameter 'x' of the method 'F::f' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).\nChange to a supertype of #lib1::A (or, for a covariant parameter, a subtype).\n  void f(B /*@error=OverrideTypeMismatchParameter*/ x) {}\n                                                    ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/override_check_after_inference.dart:24:53: Error: The parameter 'x' of the method 'F::f' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
+Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+  void f(B /*@error=OverrideTypeMismatchParameter*/ x) {}
+                                                    ^"]/* from null */;
 static method main() → dynamic {}

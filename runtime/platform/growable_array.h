@@ -130,6 +130,14 @@ class BaseGrowableArray : public B {
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
 
+  void StealBuffer(T** buffer, intptr_t* length) {
+    *buffer = data_;
+    *length = length_;
+    data_ = NULL;
+    length_ = 0;
+    capacity_ = 0;
+  }
+
  private:
   intptr_t length_;
   intptr_t capacity_;

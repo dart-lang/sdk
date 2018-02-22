@@ -48,7 +48,7 @@ class ApiMessageReader : public BaseReader {
   // Allocation of all C Heap objects is done in the zone associated with
   // the enclosing ApiNativeScope.
   explicit ApiMessageReader(Message* message);
-  ~ApiMessageReader() {}
+  ~ApiMessageReader();
 
   Dart_CObject* ReadMessage();
 
@@ -148,6 +148,9 @@ class ApiMessageReader : public BaseReader {
 
   Dart_CObject type_arguments_marker;
   Dart_CObject dynamic_type_marker;
+
+  MessageFinalizableData* finalizable_data_;
+
   static _Dart_CObject* singleton_uint32_typed_data_;
 };
 
@@ -190,6 +193,7 @@ class ApiMessageWriter : public BaseWriter {
   Dart_CObject** forward_list_;
   intptr_t forward_list_length_;
   intptr_t forward_id_;
+  MessageFinalizableData* finalizable_data_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiMessageWriter);
 };

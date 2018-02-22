@@ -101,7 +101,6 @@ test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 testing:pkg/testing/lib
 tuple:third_party/pkg/tuple/lib
 typed_data:third_party/pkg/typed_data/lib
-typed_mock:pkg/typed_mock/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 utf:third_party/pkg/utf/lib

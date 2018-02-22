@@ -9,9 +9,11 @@ import 'strong_mode_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StrongModeLocalInferenceTest_Kernel);
-    defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test_Kernel);
-    defineReflectiveTests(StrongModeTypePropagationTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(StrongModeLocalInferenceTest_Kernel);
+    // defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test_Kernel);
+    // defineReflectiveTests(StrongModeTypePropagationTest_Kernel);
   });
 }
 

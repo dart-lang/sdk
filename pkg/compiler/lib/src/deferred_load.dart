@@ -134,9 +134,10 @@ abstract class DeferredLoadTask extends CompilerTask {
   final ImportSetLattice importSets = new ImportSetLattice();
 
   final Compiler compiler;
-  DeferredLoadTask(Compiler compiler)
-      : compiler = compiler,
-        super(compiler.measurer) {
+
+  bool get disableProgramSplit => compiler.options.disableProgramSplit;
+
+  DeferredLoadTask(this.compiler) : super(compiler.measurer) {
     mainOutputUnit = new OutputUnit(true, 'main', new Set<ImportEntity>());
     importSets.mainSet.unit = mainOutputUnit;
     allOutputUnits.add(mainOutputUnit);
@@ -162,6 +163,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   void registerConstantDeferredUse(
       DeferredConstantValue constant, ImportEntity import) {
+    if (!isProgramSplit || disableProgramSplit) return;
     var newSet = importSets.singleton(import);
     assert(
         _constantToSet[constant] == null || _constantToSet[constant] == newSet);
@@ -639,7 +641,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// work item (e.g. we might converge faster if we pick first the update that
   /// contains a bigger delta.)
   OutputUnitData run(FunctionEntity main, ClosedWorld closedWorld) {
-    if (!isProgramSplit || main == null) return _buildResult();
+    if (!isProgramSplit || main == null || disableProgramSplit) {
+      return _buildResult();
+    }
 
     work() {
       var queue = new WorkQueue(this.importSets);
@@ -689,9 +693,6 @@ abstract class DeferredLoadTask extends CompilerTask {
         addDeferredMirrorElements(queue);
         emptyQueue();
       }
-
-      _createOutputUnits();
-      _setupHunksToLoad();
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
@@ -703,6 +704,8 @@ abstract class DeferredLoadTask extends CompilerTask {
   }
 
   OutputUnitData _buildResult() {
+    _createOutputUnits();
+    _setupHunksToLoad();
     Map<Entity, OutputUnit> entityMap = <Entity, OutputUnit>{};
     Map<ConstantValue, OutputUnit> constantMap = <ConstantValue, OutputUnit>{};
     _elementToSet.forEach((entity, s) => entityMap[entity] = s.unit);
@@ -711,8 +714,8 @@ abstract class DeferredLoadTask extends CompilerTask {
     _elementToSet = null;
     _constantToSet = null;
     cleanup();
-    return new OutputUnitData(this.isProgramSplit, this.mainOutputUnit,
-        entityMap, constantMap, importSets);
+    return new OutputUnitData(this.isProgramSplit && !disableProgramSplit,
+        this.mainOutputUnit, entityMap, constantMap, importSets);
   }
 
   /// Frees up strategy-specific temporary data.

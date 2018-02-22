@@ -108,6 +108,11 @@ class CompilerOptions implements DiagnosticOptions {
   // TODO(sigmund): negate, so all flags are positive
   final bool disableInlining;
 
+  /// Disable deferred loading, instead generate everything in one output unit.
+  /// Note: the resulting program still correctly checks that loadLibrary &
+  /// checkLibrary calls are correct.
+  final bool disableProgramSplit;
+
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
   final bool fatalWarnings;
 
@@ -308,6 +313,7 @@ class CompilerOptions implements DiagnosticOptions {
         shownPackageWarnings:
             _extractOptionalCsvOption(options, Flags.showPackageWarnings),
         disableInlining: _hasOption(options, Flags.disableInlining),
+        disableProgramSplit: _hasOption(options, Flags.disableProgramSplit),
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
         disableRtiOptimization:
             _hasOption(options, Flags.disableRtiOptimization),
@@ -382,6 +388,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool suppressHints: false,
       List<String> shownPackageWarnings: null,
       bool disableInlining: false,
+      bool disableProgramSplit: false,
       bool disableTypeInference: false,
       bool disableRtiOptimization: false,
       bool dumpInfo: false,
@@ -464,6 +471,7 @@ class CompilerOptions implements DiagnosticOptions {
         suppressHints: suppressHints,
         shownPackageWarnings: shownPackageWarnings,
         disableInlining: disableInlining,
+        disableProgramSplit: disableProgramSplit,
         disableTypeInference: disableTypeInference,
         disableRtiOptimization: disableRtiOptimization,
         dumpInfo: dumpInfo,
@@ -520,6 +528,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.suppressHints: false,
       List<String> shownPackageWarnings: null,
       this.disableInlining: false,
+      this.disableProgramSplit: false,
       this.disableTypeInference: false,
       this.disableRtiOptimization: false,
       this.dumpInfo: false,
@@ -582,6 +591,7 @@ class CompilerOptions implements DiagnosticOptions {
       suppressHints,
       List<String> shownPackageWarnings,
       disableInlining,
+      disableProgramSplit,
       disableTypeInference,
       disableRtiOptimization,
       dumpInfo,
@@ -644,6 +654,7 @@ class CompilerOptions implements DiagnosticOptions {
         shownPackageWarnings:
             shownPackageWarnings ?? options._shownPackageWarnings,
         disableInlining: disableInlining ?? options.disableInlining,
+        disableProgramSplit: disableProgramSplit ?? options.disableProgramSplit,
         disableTypeInference:
             disableTypeInference ?? options.disableTypeInference,
         disableRtiOptimization:

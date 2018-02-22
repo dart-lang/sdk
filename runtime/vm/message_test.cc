@@ -29,7 +29,7 @@ TEST_CASE(MessageQueue_BasicOperations) {
   const char* str6 = "msg6";
 
   // Add two messages.
-  Message* msg1 = new Message(port, AllocMsg(str1), strlen(str1) + 1,
+  Message* msg1 = new Message(port, AllocMsg(str1), strlen(str1) + 1, NULL,
                               Message::kNormalPriority);
   queue.Enqueue(msg1, false);
   EXPECT(queue.Length() == 1);
@@ -39,7 +39,7 @@ TEST_CASE(MessageQueue_BasicOperations) {
   EXPECT(it.Next() == msg1);
   EXPECT(!it.HasNext());
 
-  Message* msg2 = new Message(port, AllocMsg(str2), strlen(str2) + 1,
+  Message* msg2 = new Message(port, AllocMsg(str2), strlen(str2) + 1, NULL,
                               Message::kNormalPriority);
   queue.Enqueue(msg2, false);
   EXPECT(queue.Length() == 2);
@@ -61,7 +61,7 @@ TEST_CASE(MessageQueue_BasicOperations) {
   // Remove message 1
   Message* msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   it.Reset(&queue);
@@ -71,47 +71,47 @@ TEST_CASE(MessageQueue_BasicOperations) {
   // Remove message 2
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(queue.IsEmpty());
 
   Message* msg3 = new Message(Message::kIllegalPort, AllocMsg(str3),
-                              strlen(str3) + 1, Message::kNormalPriority);
+                              strlen(str3) + 1, NULL, Message::kNormalPriority);
   queue.Enqueue(msg3, true);
   EXPECT(!queue.IsEmpty());
 
   Message* msg4 = new Message(Message::kIllegalPort, AllocMsg(str4),
-                              strlen(str4) + 1, Message::kNormalPriority);
+                              strlen(str4) + 1, NULL, Message::kNormalPriority);
   queue.Enqueue(msg4, true);
   EXPECT(!queue.IsEmpty());
 
-  Message* msg5 = new Message(port, AllocMsg(str5), strlen(str5) + 1,
+  Message* msg5 = new Message(port, AllocMsg(str5), strlen(str5) + 1, NULL,
                               Message::kNormalPriority);
   queue.Enqueue(msg5, false);
   EXPECT(!queue.IsEmpty());
 
   Message* msg6 = new Message(Message::kIllegalPort, AllocMsg(str6),
-                              strlen(str6) + 1, Message::kNormalPriority);
+                              strlen(str6) + 1, NULL, Message::kNormalPriority);
   queue.Enqueue(msg6, true);
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ(str3, reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str3, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ(str4, reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str4, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ(str6, reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str6, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
-  EXPECT_STREQ(str5, reinterpret_cast<char*>(msg->data()));
+  EXPECT_STREQ(str5, reinterpret_cast<char*>(msg->snapshot()));
   EXPECT(queue.IsEmpty());
 
   delete msg1;
@@ -131,10 +131,10 @@ TEST_CASE(MessageQueue_Clear) {
   const char* str2 = "msg2";
 
   // Add two messages.
-  Message* msg1 = new Message(port1, AllocMsg(str1), strlen(str1) + 1,
+  Message* msg1 = new Message(port1, AllocMsg(str1), strlen(str1) + 1, NULL,
                               Message::kNormalPriority);
   queue.Enqueue(msg1, false);
-  Message* msg2 = new Message(port2, AllocMsg(str2), strlen(str2) + 1,
+  Message* msg2 = new Message(port2, AllocMsg(str2), strlen(str2) + 1, NULL,
                               Message::kNormalPriority);
   queue.Enqueue(msg2, false);
 

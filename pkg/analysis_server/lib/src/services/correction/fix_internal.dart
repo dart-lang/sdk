@@ -330,6 +330,10 @@ class FixProcessor {
       await _addFix_createClass();
       await _addFix_undefinedClass_useSimilar();
     }
+    if (errorCode ==
+        StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
+      await _addFix_convertToNamedArgument();
+    }
     if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED) {
       await _addFix_createConstructor_forUninitializedFinalFields();
     }
@@ -839,6 +843,74 @@ class FixProcessor {
           _addFixFromBuilder(builder, DartFixKind.CONVERT_FLUTTER_CHILDREN);
         }
       }
+    }
+  }
+
+  Future<Null> _addFix_convertToNamedArgument() async {
+    var argumentList = this.node;
+    if (argumentList is ArgumentList) {
+      // Prepare ExecutableElement.
+      ExecutableElement executable;
+      var parent = argumentList.parent;
+      if (parent is InstanceCreationExpression) {
+        executable = parent.staticElement;
+      } else if (parent is MethodInvocation) {
+        executable = parent.methodName.staticElement;
+      }
+      if (executable == null) {
+        return;
+      }
+
+      // Prepare named parameters.
+      int numberOfPositionalParameters = 0;
+      var namedParameters = <ParameterElement>[];
+      for (var parameter in executable.parameters) {
+        if (parameter.parameterKind == ParameterKind.NAMED) {
+          namedParameters.add(parameter);
+        } else {
+          numberOfPositionalParameters++;
+        }
+      }
+      if (argumentList.arguments.length <= numberOfPositionalParameters) {
+        return;
+      }
+
+      // Find named parameters for extra arguments.
+      var argumentToParameter = <Expression, ParameterElement>{};
+      Iterable<Expression> extraArguments =
+          argumentList.arguments.skip(numberOfPositionalParameters);
+      for (var argument in extraArguments) {
+        if (argument is! NamedExpression) {
+          ParameterElement uniqueNamedParameter = null;
+          for (var namedParameter in namedParameters) {
+            if (typeSystem.isSubtypeOf(
+                argument.staticType, namedParameter.type)) {
+              if (uniqueNamedParameter == null) {
+                uniqueNamedParameter = namedParameter;
+              } else {
+                uniqueNamedParameter = null;
+                break;
+              }
+            }
+          }
+          if (uniqueNamedParameter != null) {
+            argumentToParameter[argument] = uniqueNamedParameter;
+            namedParameters.remove(uniqueNamedParameter);
+          }
+        }
+      }
+      if (argumentToParameter.isEmpty) {
+        return;
+      }
+
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        for (var argument in argumentToParameter.keys) {
+          var parameter = argumentToParameter[argument];
+          builder.addSimpleInsertion(argument.offset, '${parameter.name}: ');
+        }
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
   }
 

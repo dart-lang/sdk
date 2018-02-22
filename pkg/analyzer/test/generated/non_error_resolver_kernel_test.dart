@@ -8,7 +8,9 @@ import 'non_error_resolver_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonErrorResolverTest_Kernel);
+    // TODO(scheglov): Restore similar test coverage when the front-end API
+    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+    // defineReflectiveTests(NonErrorResolverTest_Kernel);
   });
 }
 

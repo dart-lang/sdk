@@ -12,18 +12,21 @@
 namespace dart {
 
 Message::Message(Dart_Port dest_port,
-                 uint8_t* data,
-                 intptr_t len,
+                 uint8_t* snapshot,
+                 intptr_t snapshot_length,
+                 MessageFinalizableData* finalizable_data,
                  Priority priority,
                  Dart_Port delivery_failure_port)
     : next_(NULL),
       dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
-      data_(data),
-      len_(len),
+      snapshot_(snapshot),
+      snapshot_length_(snapshot_length),
+      finalizable_data_(finalizable_data),
       priority_(priority) {
   ASSERT((priority == kNormalPriority) ||
          (delivery_failure_port == kIllegalPort));
+  ASSERT(!IsRaw());
 }
 
 Message::Message(Dart_Port dest_port,
@@ -33,19 +36,22 @@ Message::Message(Dart_Port dest_port,
     : next_(NULL),
       dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
-      data_(reinterpret_cast<uint8_t*>(raw_obj)),
-      len_(0),
+      snapshot_(reinterpret_cast<uint8_t*>(raw_obj)),
+      snapshot_length_(0),
+      finalizable_data_(NULL),
       priority_(priority) {
   ASSERT(!raw_obj->IsHeapObject() || raw_obj->IsVMHeapObject());
   ASSERT((priority == kNormalPriority) ||
          (delivery_failure_port == kIllegalPort));
+  ASSERT(IsRaw());
 }
 
 Message::~Message() {
   ASSERT(delivery_failure_port_ == kIllegalPort);
-  if (len_ > 0) {
-    free(data_);
+  if (!IsRaw()) {
+    free(snapshot_);
   }
+  delete finalizable_data_;
 }
 
 bool Message::RedirectToDeliveryFailurePort() {
@@ -221,7 +227,7 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
     message.AddProperty("type", "Message");
     message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
     message.AddPropertyF("messageObjectId", "messages/%" Px "", current->Id());
-    message.AddProperty("size", current->len());
+    message.AddProperty("size", current->Size());
     message.AddProperty("index", depth++);
     message.AddPropertyF("_destinationPort", "%" Pd64 "",
                          static_cast<int64_t>(current->dest_port()));
