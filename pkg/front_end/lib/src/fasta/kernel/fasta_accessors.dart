@@ -58,6 +58,7 @@ import 'kernel_ast_api.dart';
 import 'kernel_builder.dart'
     show
         Builder,
+        BuiltinTypeBuilder,
         FunctionTypeAliasBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
@@ -1255,6 +1256,9 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         expected = declaration.target.typeParameters.length;
       } else if (declaration is KernelTypeVariableBuilder) {
         // Type arguments on a type variable - error reported elsewhere.
+      } else if (declaration is BuiltinTypeBuilder) {
+        // Type arguments on a built-in type, for example, dynamic or void.
+        expected = 0;
       } else {
         return unhandled(
             "${declaration.runtimeType}",

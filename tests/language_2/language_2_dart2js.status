@@ -910,7 +910,6 @@ type_check_const_function_typedef2_test: MissingCompileTimeError
 [ $compiler == dart2js && $dart2js_with_kernel ]
 async_error_timing_test: Crash
 bug31436_test: RuntimeError
-built_in_identifier_type_annotation_test/22: Crash # Issue 28815
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/54: MissingCompileTimeError # Issue 28815
@@ -3267,6 +3266,10 @@ instantiate_type_variable_test/01: MissingCompileTimeError
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 integer_division_by_zero_test: RuntimeError # Issue 8301
 interface_test/00: MissingCompileTimeError
+invalid_type_argument_count_test/01: MissingCompileTimeError
+invalid_type_argument_count_test/02: MissingCompileTimeError
+invalid_type_argument_count_test/03: MissingCompileTimeError
+invalid_type_argument_count_test/04: MissingCompileTimeError
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 issue31596_override_test/05: MissingCompileTimeError
 issue31596_override_test/06: MissingCompileTimeError

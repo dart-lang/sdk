@@ -56,6 +56,10 @@ interface_injection2_negative_test: CompileTimeError
 interface_static_method_negative_test: CompileTimeError
 interface_static_non_final_fields_negative_test: Fail # Issue 11594
 interface_test/00: MissingCompileTimeError
+invalid_type_argument_count_test/01: MissingCompileTimeError
+invalid_type_argument_count_test/02: MissingCompileTimeError
+invalid_type_argument_count_test/03: MissingCompileTimeError
+invalid_type_argument_count_test/04: MissingCompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
 issue1578_negative_test: CompileTimeError

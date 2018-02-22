@@ -593,7 +593,6 @@ async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_operator_test: RuntimeError, OK
@@ -955,7 +954,6 @@ async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
 call_operator_test: RuntimeError, OK
@@ -1209,7 +1207,6 @@ vm/optimized_stacktrace_test: Crash
 vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27671_test: Skip # Unsupported
-vm/regress_27671_test: Crash
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
@@ -1299,7 +1296,7 @@ bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-built_in_identifier_type_annotation_test/22: Crash # Issue 28814
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
@@ -1590,6 +1587,10 @@ invalid_cast_test/08: MissingCompileTimeError
 invalid_cast_test/09: MissingCompileTimeError
 invalid_cast_test/10: MissingCompileTimeError
 invalid_cast_test/11: MissingCompileTimeError
+invalid_type_argument_count_test/01: MissingCompileTimeError
+invalid_type_argument_count_test/02: MissingCompileTimeError
+invalid_type_argument_count_test/03: MissingCompileTimeError
+invalid_type_argument_count_test/04: MissingCompileTimeError
 issue31596_override_test/05: MissingCompileTimeError
 issue31596_override_test/06: MissingCompileTimeError
 least_upper_bound_expansive_test/01: MissingCompileTimeError
@@ -2031,3 +2032,4 @@ unresolved_top_level_var_test: MissingCompileTimeError
 [ $compiler == dartk || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
+

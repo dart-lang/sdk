@@ -1337,4 +1337,8 @@ type_parameter_test/05: MissingCompileTimeError
 [ $compiler != dartk && $runtime == vm || $compiler != dartkp && $runtime == dart_precompiled ]
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
+invalid_type_argument_count_test/01: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/02: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/03: MissingCompileTimeError # Error only in strong mode
+invalid_type_argument_count_test/04: MissingCompileTimeError # Error only in strong mode
 

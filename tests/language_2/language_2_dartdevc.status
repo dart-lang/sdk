@@ -86,6 +86,10 @@ instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
+invalid_type_argument_count_test/01: MissingCompileTimeError
+invalid_type_argument_count_test/02: MissingCompileTimeError
+invalid_type_argument_count_test/03: MissingCompileTimeError
+invalid_type_argument_count_test/04: MissingCompileTimeError
 issue15606_test/none: CompileTimeError
 issue31596_implement_covariant_test: CompileTimeError
 issue31596_override_test/01: CompileTimeError
@@ -288,7 +292,6 @@ bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
-built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
 built_in_identifier_type_annotation_test/54: MissingCompileTimeError
