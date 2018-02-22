@@ -16,10 +16,10 @@ class B extends self::A {
     return 1.{core::num::+}([@vm.inferred-type.metadata=#lib::B] self::knownResult().foo() as{TypeError} core::num) as{TypeError} core::int;
 }
 class C extends core::Object implements self::A {
-  synthetic constructor •() → void
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::C::";
-  method foo() → core::int
+[@vm.unreachable.metadata=]  method foo() → core::int
     throw "TFA Error: #lib::C::foo";
 }
 class Base extends core::Object {
@@ -35,7 +35,7 @@ class TearOffSuperMethod extends self::Base {
   synthetic constructor •() → void
     : super self::Base::•()
     ;
-  method foo() → core::int
+[@vm.unreachable.metadata=]  method foo() → core::int
     throw "TFA Error: #lib::TearOffSuperMethod::foo";
   method bar() → core::int
     return [@vm.direct-call.metadata=#lib::Base::doCall] this.{self::Base::doCall}(super.{self::Base::foo});

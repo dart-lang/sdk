@@ -10,13 +10,13 @@ class _Vector extends core::Object {
   constructor •([@vm.inferred-type.metadata=!] core::int size) → void
     : self::_Vector::_offset = 0, self::_Vector::_length = size, self::_Vector::_elements = [@vm.inferred-type.metadata=dart.typed_data::_Float64List] typ::Float64List::•(size), super core::Object::•()
     ;
-  constructor fromVOL(core::List<core::double> values, core::int offset, core::int length) → void
+[@vm.unreachable.metadata=]  constructor fromVOL(core::List<core::double> values, core::int offset, core::int length) → void
     : self::_Vector::_offset = offset, self::_Vector::_length = length, self::_Vector::_elements = values, super core::Object::•()
     throw "TFA Error: #lib::_Vector::fromVOL";
   operator [](core::int i) → core::double
     return [@vm.direct-call.metadata=dart.typed_data::_Float64List::[]] [@vm.inferred-type.metadata=dart.core::_Double] [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements}.{core::List::[]}(i.{core::num::+}([@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset}));
   operator []=([@vm.inferred-type.metadata=!] core::int i, core::double value) → void {
-    [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements}.{core::List::[]=}(i.{core::num::+}([@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset}), value);
+    [@vm.unreachable.metadata=] [@vm.direct-call.metadata=#lib::_Vector::_elements] [@vm.inferred-type.metadata=dart.typed_data::_Float64List] this.{self::_Vector::_elements}.{core::List::[]=}([@vm.unreachable.metadata=] i.{core::num::+}([@vm.direct-call.metadata=#lib::_Vector::_offset] [@vm.inferred-type.metadata=!] this.{self::_Vector::_offset}), value);
   }
   operator *([@vm.inferred-type.metadata=#lib::_Vector] self::_Vector a) → core::double {
     core::double result = 0.0;

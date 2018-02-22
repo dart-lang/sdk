@@ -26,7 +26,7 @@ class B extends self::A {
     return new self::T1::•();
 }
 abstract class C extends core::Object implements self::B {
-  synthetic constructor •() → void
+[@vm.unreachable.metadata=]  synthetic constructor •() → void
     : super core::Object::•()
     throw "TFA Error: #lib::C::";
 }
