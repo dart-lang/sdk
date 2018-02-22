@@ -2607,10 +2607,7 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
     return;
   }
 
-  H.ReportError(
-      builder_->script(), TokenPosition::kNoSource,
-      "Unbound type parameter found in %s.  Please report this at dartbug.com.",
-      active_class_->ToCString());
+  H.ReportError("Unexpected input. Please report this at dartbug.com.");
 }
 
 const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(

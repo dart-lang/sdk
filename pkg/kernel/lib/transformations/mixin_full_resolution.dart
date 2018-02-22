@@ -152,9 +152,6 @@ class MixinFullResolution {
       // application.  They should not be copied.
       if (procedure.isForwardingStub) continue;
 
-      // Factory constructors are not cloned.
-      if (procedure.isFactory) continue;
-
       Procedure clone = cloner.clone(procedure);
       // Linear search for a forwarding stub with the same name.
       for (int i = 0; i < originalLength; ++i) {
