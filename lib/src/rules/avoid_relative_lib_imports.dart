@@ -4,17 +4,15 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r'Avoid relative imports for files in `lib/`.';
 
 const _details = r'''*DO* avoid relative imports for files in `lib/`.
 
-When mixing relative and absolute imports it's possible to create confusion 
-where the same member gets imported in two different ways.  An easy way to avoid 
-that is to ensure you have no relative imports that include `lib/` in their 
+When mixing relative and absolute imports it's possible to create confusion
+where the same member gets imported in two different ways.  An easy way to avoid
+that is to ensure you have no relative imports that include `lib/` in their
 paths.
 
 **GOOD:**
