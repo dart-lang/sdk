@@ -163,6 +163,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   void registerConstantDeferredUse(
       DeferredConstantValue constant, ImportEntity import) {
+    if (!isProgramSplit || disableProgramSplit) return;
     var newSet = importSets.singleton(import);
     assert(
         _constantToSet[constant] == null || _constantToSet[constant] == newSet);
