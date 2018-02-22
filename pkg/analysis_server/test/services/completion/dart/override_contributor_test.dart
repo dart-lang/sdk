@@ -76,8 +76,8 @@ class C extends B {
   test_fromPart() async {
     addSource('/myLib.dart', '''
 library myLib;
-part '$testFile'
-part '/otherPart.dart'
+part '${convertPathForImport(testFile)}'
+part '${convertPathForImport('/otherPart.dart')}'
 class A {
   A suggested1(int x) => null;
   B suggested2(String y) => null;
