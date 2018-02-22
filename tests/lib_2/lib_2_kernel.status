@@ -52,6 +52,8 @@ mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter
 
 [ $compiler == dartk && $mode == debug && $strong ]
 mirrors/instance_members_unimplemented_interface_test: Crash
+mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
+mirrors/load_library_test: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
