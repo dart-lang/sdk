@@ -465,7 +465,7 @@ main() {
     change = assist.change;
     // verify
     {
-      var testFileEdit = change.getFileEdit('/app.dart');
+      var testFileEdit = change.getFileEdit(convertPath('/app.dart'));
       var resultCode = SourceEdit.applySequence(appCode, testFileEdit.edits);
       expect(resultCode, '''
 library my_app;
@@ -476,7 +476,7 @@ part 'test.dart';
 ''');
     }
     {
-      var testFileEdit = change.getFileEdit('/test.dart');
+      var testFileEdit = change.getFileEdit(convertPath('/test.dart'));
       var resultCode = SourceEdit.applySequence(testCode, testFileEdit.edits);
       expect(resultCode, '''
 part of my_app;
