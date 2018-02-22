@@ -56,7 +56,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertFileChangeResult(String path, String expectedCode) {
     // prepare FileEdit
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(convertPath(path));
     expect(fileEdit, isNotNull, reason: 'No file edit for $path');
     // validate resulting code
     File file = getFile(path);
