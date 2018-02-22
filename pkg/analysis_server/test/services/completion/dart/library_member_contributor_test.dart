@@ -91,7 +91,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     addSource(libFile, '''
         library testA;
         import "dart:async" deferred as bar;
-        part "$testFile";''');
+        part "${convertPathForImport(testFile)}";''');
     addTestSource('part of testA; foo() {bar.^}');
     // Assume that libraries containing has been computed for part files
     await computeLibrariesContaining();
@@ -105,10 +105,11 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     addSource('/libA.dart', 'library libA; class A { }');
     addSource('/libB.dart', '''
         library libB;
-        export "/libA.dart";
+        export "${convertPathForImport("/libA.dart")}";
         class B { }
         @deprecated class B1 { }''');
-    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    addTestSource(
+        'import "${convertPathForImport("/libB.dart")}" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
     assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
@@ -124,7 +125,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertPathForImport("/testB.dart")}" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -151,8 +152,8 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class Y { }''');
     addSource(libFile, '''
         library testA;
-        import "/testB.dart" as b;
-        part "$testFile";
+        import "${convertPathForImport("/testB.dart")}" as b;
+        part "${convertPathForImport(testFile)}";
         var T2;
         class A { }''');
     addTestSource('''
@@ -181,7 +182,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertPathForImport("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -206,7 +207,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertPathForImport("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -231,7 +232,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "${convertPathForImport("/testB.dart")}";
         foo(X x) {x.^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -243,7 +244,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "/testA.dart";
+        import "${convertPathForImport("/testA.dart")}";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();
