@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "dart:developer";
-import "dart:isolate";
-import "dart:typed_data";
-import "dart:developer";
+import "dart:developer" show UserTag;
+import "dart:isolate" show Isolate, ReceivePort;
+import "dart:typed_data" show ByteData;
 import "package:expect/expect.dart";
 
 const large = 2 * 1024 * 1024;
@@ -35,12 +34,8 @@ Future<void> main(List<String> args) async {
 
   ReceivePort port = new ReceivePort();
   Isolate.spawn(child, port.sendPort);
-  StreamIterator<dynamic> incoming = new StreamIterator<dynamic>(port);
 
-  Expect.isTrue(await incoming.moveNext());
-  dynamic x = incoming.current;
-  Expect.equals("Done", x);
+  Expect.equals("Done", await port.first);
 
-  port.close();
   print("Parent done");
 }

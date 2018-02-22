@@ -763,6 +763,7 @@ isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
 isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
+isolate/large_byte_data_leak_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
