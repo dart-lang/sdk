@@ -3660,7 +3660,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  dynamic deprecated_addCompileTimeError(int charOffset, String message,
+  void deprecated_addCompileTimeError(int charOffset, String message,
       {bool wasHandled: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
     // avoid a long list of errors.
