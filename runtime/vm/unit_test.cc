@@ -175,24 +175,17 @@ const char* TestCase::GetTestLib(const char* url) {
 }
 
 #ifndef PRODUCT
-static const char* kIsolateReloadTestLibSource =
-    "void reloadTest() native 'Reload_Test';\n";
-
-static const char* IsolateReloadTestLibUri() {
-  return FLAG_use_dart_frontend ? "test:isolate_reload_helper"
-                                : "file:///test:isolate_reload_helper";
-}
-
 static bool IsIsolateReloadTestLib(const char* url_name) {
+  const char* kIsolateReloadTestLibUri = "test:isolate_reload_helper";
   static const intptr_t kIsolateReloadTestLibUriLen =
-      strlen(IsolateReloadTestLibUri());
-  return (strncmp(url_name, IsolateReloadTestLibUri(),
+      strlen(kIsolateReloadTestLibUri);
+  return (strncmp(url_name, kIsolateReloadTestLibUri,
                   kIsolateReloadTestLibUriLen) == 0);
 }
 
 static Dart_Handle IsolateReloadTestLibSource() {
   // Special library with one function.
-  return DartUtils::NewString(kIsolateReloadTestLibSource);
+  return DartUtils::NewString("void reloadTest() native 'Reload_Test';\n");
 }
 
 static void ReloadTest(Dart_NativeArguments native_args) {
@@ -204,12 +197,6 @@ static Dart_NativeFunction IsolateReloadTestNativeResolver(
     int num_of_arguments,
     bool* auto_setup_scope) {
   return ReloadTest;
-}
-
-static Dart_Handle LoadIsolateReloadTestLib() {
-  return TestCase::LoadTestLibrary(IsolateReloadTestLibUri(),
-                                   kIsolateReloadTestLibSource,
-                                   IsolateReloadTestNativeResolver);
 }
 #endif  // !PRODUCT
 
@@ -421,12 +408,6 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      const char* lib_url,
                                      bool finalize_classes) {
   if (FLAG_use_dart_frontend) {
-#ifndef PRODUCT
-    if (strstr(script, IsolateReloadTestLibUri()) != NULL) {
-      Dart_Handle result = LoadIsolateReloadTestLib();
-      EXPECT_VALID(result);
-    }
-#endif  // ifndef PRODUCT
     Dart_SourceFile* sourcefiles = NULL;
     intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script);
     Dart_Handle result = LoadTestScriptWithDFE(num_sources, sourcefiles,
@@ -439,26 +420,23 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   }
 }
 
-Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
-                                      const char* script,
-                                      Dart_NativeEntryResolver resolver) {
+Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri, const char* script) {
   if (FLAG_use_dart_frontend) {
     const char* prefixed_lib_uri =
         OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
     Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
+    Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
+    EXPECT_VALID(result);
     void* kernel_pgm = NULL;
     int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
     char* error = TestCase::CompileTestScriptWithDFE(
-        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, true);
+        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, false);
     if (error != NULL) {
       return Dart_NewApiError(error);
     }
     Dart_Handle url = NewString(prefixed_lib_uri);
-    Dart_Handle lib = Dart_LoadLibrary(
-        url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
-    EXPECT_VALID(lib);
-    Dart_SetNativeResolver(lib, resolver, NULL);
-    return lib;
+    return Dart_LoadLibrary(url, Dart_Null(),
+                            reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
   } else {
     Dart_Handle url = NewString(lib_uri);
     Dart_Handle source = NewString(script);
@@ -497,20 +475,13 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 #ifndef PRODUCT
 
 void TestCase::SetReloadTestScript(const char* script) {
-  if (FLAG_use_dart_frontend) {
-    Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
-    KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
-  } else {
-    if (script_reload_key == kUnsetThreadLocalKey) {
-      script_reload_key = OSThread::CreateThreadLocal();
-    }
-    ASSERT(script_reload_key != kUnsetThreadLocalKey);
-    ASSERT(OSThread::GetThreadLocal(script_reload_key) == 0);
-    // Store the new script in TLS.
-    OSThread::SetThreadLocal(script_reload_key,
-                             reinterpret_cast<uword>(script));
+  if (script_reload_key == kUnsetThreadLocalKey) {
+    script_reload_key = OSThread::CreateThreadLocal();
   }
+  ASSERT(script_reload_key != kUnsetThreadLocalKey);
+  ASSERT(OSThread::GetThreadLocal(script_reload_key) == 0);
+  // Store the new script in TLS.
+  OSThread::SetThreadLocal(script_reload_key, reinterpret_cast<uword>(script));
 }
 
 Dart_Handle TestCase::TriggerReload() {
