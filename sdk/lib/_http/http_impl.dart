@@ -376,7 +376,7 @@ class _HttpClientResponse extends _HttpInboundMessage
       _httpRequest._httpClientConnection.destroy();
       return new Stream<List<int>>.empty().listen(null, onDone: onDone);
     }
-    var stream = _incoming;
+    Stream<List<int>> stream = _incoming;
     if (_httpClient.autoUncompress &&
         headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
       stream = stream.transform(GZIP.decoder);
