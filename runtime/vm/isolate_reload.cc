@@ -157,22 +157,29 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   }
 
   TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
-  String& initializing_expression = String::Handle();
-  Function& eval_func = Function::Handle();
-  Object& result = Object::Handle();
-  Class& owning_class = Class::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  String& initializing_expression = String::Handle(zone);
+  Function& eval_func = Function::Handle(zone);
+  Object& result = Object::Handle(zone);
+  Class& owning_class = Class::Handle(zone);
   // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    owning_class ^= field->Owner();
-    ASSERT(!owning_class.IsNull());
-    // Extract the initializing expression.
-    initializing_expression = field->InitializingExpression();
-    TIR_Print("New `%s` has initializing expression `%s`\n", field->ToCString(),
-              initializing_expression.ToCString());
-    eval_func ^= Function::EvaluateHelper(owning_class, initializing_expression,
-                                          Array::empty_array(), true);
+    if (field->kernel_offset() > 0) {
+      eval_func ^= kernel::CreateFieldInitializerFunction(thread, zone, *field);
+    } else {
+      owning_class ^= field->Owner();
+      ASSERT(!owning_class.IsNull());
+      // Extract the initializing expression.
+      initializing_expression = field->InitializingExpression();
+      TIR_Print("New `%s` has initializing expression `%s`\n",
+                field->ToCString(), initializing_expression.ToCString());
+      eval_func ^= Function::EvaluateHelper(
+          owning_class, initializing_expression, Array::empty_array(), true);
+    }
+
     for (intptr_t j = 0; j < after_->length(); j++) {
       const Instance* instance = after_->At(j);
       TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,

@@ -1579,16 +1579,19 @@ RawFunction::Kind KernelLoader::GetFunctionType(
   return static_cast<RawFunction::Kind>(lookuptable[kind]);
 }
 
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
-  Thread* thread = Thread::Current();
-
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field) {
   String& init_name = String::Handle(zone, field.name());
   init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
 
   // Create a static initializer.
   const Object& owner = Object::Handle(field.RawOwner());
-  const Function& initializer_fun = Function::ZoneHandle(
-      zone, Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
+  const Function& initializer_fun = Function::Handle(
+      zone, Function::New(init_name,
+                          // TODO(alexmarkov): Consider creating a separate
+                          // function kind for field initializers.
+                          RawFunction::kImplicitStaticFinalGetter,
                           true,   // is_static
                           false,  // is_const
                           false,  // is_abstract
@@ -1600,6 +1603,15 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
   initializer_fun.set_is_debuggable(false);
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);
+  return initializer_fun.raw();
+}
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
+  Thread* thread = Thread::Current();
+
+  const Function& initializer_fun = Function::ZoneHandle(
+      zone, CreateFieldInitializerFunction(thread, zone, field));
+
   return new (zone) ParsedFunction(thread, initializer_fun);
 }
 

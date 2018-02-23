@@ -207,12 +207,6 @@ cc/IsolateReload_LiveStack: Fail
 cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_PendingSuperCall: Fail
-cc/IsolateReload_RunNewFieldInitialiazersSuperClass: Skip
-cc/IsolateReload_RunNewFieldInitializers: Skip
-cc/IsolateReload_RunNewFieldInitializersMutateStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersReferenceStaticField: Skip
-cc/IsolateReload_RunNewFieldInitializersThrows: Skip
-cc/IsolateReload_RunNewFieldInitializersWithConsts: Skip
 cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail

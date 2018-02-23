@@ -18,7 +18,7 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-static bool IsStaticInitializer(const Function& function, Zone* zone) {
+static bool IsFieldInitializer(const Function& function, Zone* zone) {
   return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
          String::Handle(zone, function.name())
              .StartsWith(Symbols::InitPrefix());
@@ -1003,7 +1003,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
       ASSERT(builder_->PeekTag() == kField);
-      if (IsStaticInitializer(function, Z)) {
+      if (IsFieldInitializer(function, Z)) {
         VisitNode();
         break;
       }
@@ -3737,10 +3737,9 @@ bool StreamingFlowGraphBuilder::optimizing() {
   return flow_graph_builder_->optimizing_;
 }
 
-FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfStaticFieldInitializer() {
+FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   FieldHelper field_helper(this);
   field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-  ASSERT(field_helper.IsStatic());
 
   Tag initializer_tag = ReadTag();  // read first part of initializer.
   if (initializer_tag != kSomething) {
@@ -4755,8 +4754,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticFinalGetter:
     case RawFunction::kImplicitSetter: {
-      return IsStaticInitializer(function, Z)
-                 ? BuildGraphOfStaticFieldInitializer()
+      return IsFieldInitializer(function, Z)
+                 ? BuildGraphOfFieldInitializer()
                  : BuildGraphOfFieldAccessor(scopes()->setter_value);
     }
     case RawFunction::kMethodExtractor:

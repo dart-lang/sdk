@@ -1034,7 +1034,7 @@ class StreamingFlowGraphBuilder {
 
   bool optimizing();
 
-  FlowGraph* BuildGraphOfStaticFieldInitializer();
+  FlowGraph* BuildGraphOfFieldInitializer();
   FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
   void SetupDefaultParameterValues();
   Fragment BuildFieldInitializer(NameIndex canonical_name);

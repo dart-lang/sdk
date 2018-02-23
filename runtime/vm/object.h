@@ -3076,7 +3076,7 @@ class Field : public Object {
 
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return NULL;
+    return 0;
 #else
     return raw_ptr()->kernel_offset_;
 #endif
