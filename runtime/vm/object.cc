@@ -12545,8 +12545,10 @@ void ObjectPool::DebugPrint() const {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
-    } else if (TypeAt(i) == kNativeEntry) {
-      THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
+    } else if (TypeAt(i) == kNativeFunction) {
+      THR_Print("0x%" Px " (native function)\n", RawValueAt(i));
+    } else if (TypeAt(i) == kNativeFunctionWrapper) {
+      THR_Print("0x%" Px " (native function wrapper)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }

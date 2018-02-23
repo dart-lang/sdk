@@ -1926,11 +1926,9 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->Write<intptr_t>(entry.raw_value_);
             break;
           }
-          case ObjectPool::kNativeEntry: {
-// Write nothing. Will initialize with the lazy link entry.
-#if defined(TARGET_ARCH_DBC)
-            UNREACHABLE();  // DBC does not support lazy native call linking.
-#endif
+          case ObjectPool::kNativeFunction:
+          case ObjectPool::kNativeFunctionWrapper: {
+            // Write nothing. Will initialize with the lazy link entry.
             break;
           }
           default:
@@ -1982,16 +1980,20 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           case ObjectPool::kImmediate:
             entry.raw_value_ = d->Read<intptr_t>();
             break;
-          case ObjectPool::kNativeEntry: {
-#if !defined(TARGET_ARCH_DBC)
+          case ObjectPool::kNativeFunction: {
             // Read nothing. Initialize with the lazy link entry.
             uword new_entry = NativeEntry::LinkNativeCallEntry();
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
-#else
-            UNREACHABLE();  // DBC does not support lazy native call linking.
-#endif
             break;
           }
+#if defined(TARGET_ARCH_DBC)
+          case ObjectPool::kNativeFunctionWrapper: {
+            // Read nothing. Initialize with the lazy link entry.
+            uword new_entry = NativeEntry::BootstrapNativeCallWrapperEntry();
+            entry.raw_value_ = static_cast<intptr_t>(new_entry);
+            break;
+          }
+#endif
           default:
             UNREACHABLE();
         }

@@ -69,17 +69,23 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       native_function_pool_index_(-1),
-      target_code_pool_index_(-1) {
-  UNIMPLEMENTED();
+      trampoline_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(end_));
+  const uword call_pc = end_ - sizeof(Instr);
+  Instr call_instr = Bytecode::At(call_pc);
+  ASSERT(Bytecode::DecodeOpcode(call_instr) == Bytecode::kNativeCall);
+  native_function_pool_index_ = Bytecode::DecodeB(call_instr);
+  trampoline_pool_index_ = Bytecode::DecodeA(call_instr);
 }
 
-RawCode* NativeCallPattern::target() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_code_pool_index_));
+NativeFunctionWrapper NativeCallPattern::target() const {
+  return reinterpret_cast<NativeFunctionWrapper>(
+      object_pool_.ObjectAt(trampoline_pool_index_));
 }
 
-void NativeCallPattern::set_target(const Code& new_target) const {
-  object_pool_.SetObjectAt(target_code_pool_index_, new_target);
+void NativeCallPattern::set_target(NativeFunctionWrapper new_target) const {
+  object_pool_.SetRawValueAt(trampoline_pool_index_,
+                             reinterpret_cast<uword>(new_target));
   // No need to flush the instruction cache, since the code is not modified.
 }
 

@@ -372,7 +372,10 @@ class ObjectPoolWrapper : public ValueObject {
                       Patchability patchable = kNotPatchable);
   intptr_t FindObject(const Object& obj, const Object& equivalence);
   intptr_t FindImmediate(uword imm);
-  intptr_t FindNativeEntry(const ExternalLabel* label, Patchability patchable);
+  intptr_t FindNativeFunction(const ExternalLabel* label,
+                              Patchability patchable);
+  intptr_t FindNativeFunctionWrapper(const ExternalLabel* label,
+                                     Patchability patchable);
 
   RawObjectPool* MakeObjectPool();
 

@@ -4051,7 +4051,8 @@ class ObjectPool : public Object {
   enum EntryType {
     kTaggedObject,
     kImmediate,
-    kNativeEntry,
+    kNativeFunction,
+    kNativeFunctionWrapper,
   };
 
   struct Entry {

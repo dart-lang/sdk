@@ -6612,8 +6612,6 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
     intptr_t* isolate_snapshot_instructions_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("Snapshots with code are not supported on DBC.");
 #elif defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
 #else
@@ -6671,8 +6669,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_instructions_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("Snapshots with code are not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("Snapshots with code are not supported on DBC.");
 #elif defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("JIT app snapshots cannot be taken from an AOT runtime");
 #else
