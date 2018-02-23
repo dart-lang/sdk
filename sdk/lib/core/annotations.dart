@@ -166,6 +166,16 @@ class _Proxy {
 }
 
 /**
+ * This annotation is deprecated and will be removed in Dart 2.
+ *
+ * Dart 2 has a more restrictive type system than Dart 1, and it requires
+ * method access to be either through a known interface or by using
+ * dynamic invocations. The original intent of `@proxy` (to implement a class
+ * that isn't known statically, as documented at the end of this text),
+ * is not supported by Dart 2.
+ * To continue to perform dynamic invocations on an object,
+ * it should be accessed through a reference of type `dynamic`.
+ *
  * The annotation `@proxy` marks a class as implementing members dynamically
  * through `noSuchMethod`.
  *
@@ -173,8 +183,7 @@ class _Proxy {
  * superclass and interfaces.
  *
  * If a class is annotated with `@proxy`, or it implements any class that is
- * annotated, then the class is considered to implement any member with regard
- * to static type analysis.
+ * annotated, then all member accesses are allowed on an object of that type.
  * As such, it is not a static type warning to access any member of the object
  * which is not implemented by the class, or to call a method with a different
  * number of parameters than it is declared with.
