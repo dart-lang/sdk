@@ -635,10 +635,11 @@ class AssistProcessor {
     String libraryPath = unitLibraryElement.source.fullName;
     String partPath = unit.element.source.fullName;
     String relativePath = relative(libraryPath, from: dirname(partPath));
+    String uri = new Uri.file(relativePath).toString();
     SourceRange replacementRange = range.node(directive.libraryName);
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(replacementRange, "'$relativePath'");
+      builder.addSimpleReplacement(replacementRange, "'$uri'");
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_PART_OF_TO_URI);
   }
