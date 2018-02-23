@@ -107,12 +107,6 @@ parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
-partial_tearoff_instantiation_test/01: MissingCompileTimeError
-partial_tearoff_instantiation_test/03: MissingCompileTimeError
-partial_tearoff_instantiation_test/05: MissingCompileTimeError
-partial_tearoff_instantiation_test/06: MissingCompileTimeError
-partial_tearoff_instantiation_test/07: MissingCompileTimeError
-partial_tearoff_instantiation_test/08: MissingCompileTimeError
 prefix11_negative_test: Fail # Issue 11964
 prefix12_negative_test: Fail # Issue 11962
 prefix1_negative_test: Fail # Issue 11962
@@ -1593,6 +1587,12 @@ object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError
 override_inheritance_no_such_method_test/05: MissingCompileTimeError
+partial_tearoff_instantiation_test/01: MissingCompileTimeError
+partial_tearoff_instantiation_test/03: MissingCompileTimeError
+partial_tearoff_instantiation_test/05: MissingCompileTimeError
+partial_tearoff_instantiation_test/06: MissingCompileTimeError
+partial_tearoff_instantiation_test/07: MissingCompileTimeError
+partial_tearoff_instantiation_test/08: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 prefix13_negative_test: CompileTimeError, OK
