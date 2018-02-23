@@ -748,6 +748,29 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    Link<Node> modifiers = const Link<Node>();
+    if (varFinalOrConst != null) {
+      modifiers = modifiers.prepend(new Identifier(varFinalOrConst));
+    }
+    if (covariantToken != null) {
+      modifiers = modifiers.prepend(new Identifier(covariantToken));
+    }
+    if (staticToken != null) {
+      modifiers = modifiers.prepend(new Identifier(staticToken));
+    }
+    if (externalToken != null) {
+      modifiers = modifiers.prepend(new Identifier(externalToken));
+    }
+    if (modifiers.isEmpty) {
+      pushNode(Modifiers.EMPTY);
+    } else {
+      pushNode(new Modifiers(new NodeList(null, modifiers, null, ' ')));
+    }
+  }
+
+  @override
   void endMethod(
       Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
     Statement body = popNode();

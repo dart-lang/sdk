@@ -18,6 +18,7 @@ import '../fasta_codes.dart'
         messageExpectedBlockToSkip,
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
+        messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
@@ -26,7 +27,17 @@ import '../fasta_codes.dart'
         templateOperatorParameterMismatch1,
         templateOperatorParameterMismatch2;
 
-import '../modifier.dart' show abstractMask, externalMask, Modifier;
+import '../modifier.dart'
+    show
+        Const,
+        Covariant,
+        External,
+        Final,
+        Modifier,
+        Static,
+        Var,
+        abstractMask,
+        externalMask;
 
 import '../operator.dart'
     show
@@ -507,7 +518,34 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginMethod() {
+  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
+      Token varFinalOrConst, Token name) {
+    List<Modifier> modifiers = <Modifier>[];
+    if (externalToken != null) {
+      modifiers.add(External);
+    }
+    if (staticToken != null) {
+      if (name?.lexeme == library.currentDeclaration.name) {
+        handleRecoverableError(
+            messageStaticConstructor, staticToken, staticToken);
+      } else {
+        modifiers.add(Static);
+      }
+    }
+    if (covariantToken != null) {
+      modifiers.add(Covariant);
+    }
+    if (varFinalOrConst != null) {
+      String lexeme = varFinalOrConst.lexeme;
+      if (identical('var', lexeme)) {
+        modifiers.add(Var);
+      } else if (identical('final', lexeme)) {
+        modifiers.add(Final);
+      } else {
+        modifiers.add(Const);
+      }
+    }
+    push(modifiers);
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
 

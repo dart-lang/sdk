@@ -91,7 +91,6 @@ Language/Classes/Superinterfaces/no_member_t05: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/declarations_t06: MissingCompileTimeError
 Language/Classes/declarations_t08: MissingCompileTimeError
-Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/definition_t23: CompileTimeError
 Language/Classes/method_definition_t03: MissingCompileTimeError
 Language/Classes/method_definition_t04: MissingCompileTimeError

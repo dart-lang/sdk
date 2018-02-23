@@ -23,6 +23,12 @@ class A {
   int foo(int a, int b) => a + b * m;
 }
 
+class B {
+  // Constructor may not be static.
+  static B(){} // //# 07: compile-time error
+}
+
 main() {
   new A();
+  new B();
 }

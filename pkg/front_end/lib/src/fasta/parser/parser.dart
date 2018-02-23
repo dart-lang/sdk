@@ -3814,49 +3814,39 @@ class Parser {
       Token beforeName) {
     bool isOperator = getOrSet == null && optional('operator', beforeName.next);
 
-    int modifierCount = 0;
-    if (externalToken != null) {
-      listener.handleModifier(externalToken);
-      ++modifierCount;
-    }
     if (staticToken != null) {
-      if (!isOperator) {
-        listener.handleModifier(staticToken);
-        ++modifierCount;
-      } else {
+      if (isOperator) {
         reportRecoverableError(staticToken, fasta.messageStaticOperator);
         staticToken = null;
       }
     } else if (covariantToken != null) {
-      if (getOrSet != null && !optional('get', getOrSet)) {
-        listener.handleModifier(covariantToken);
-        ++modifierCount;
-      } else {
+      if (getOrSet == null || optional('get', getOrSet)) {
         reportRecoverableError(covariantToken, fasta.messageCovariantMember);
         covariantToken = null;
       }
     }
     if (varFinalOrConst != null) {
       if (optional('const', varFinalOrConst)) {
-        if (getOrSet == null) {
-          listener.handleModifier(varFinalOrConst);
-          ++modifierCount;
-        } else {
+        if (getOrSet != null) {
           reportRecoverableErrorWithToken(
               varFinalOrConst, fasta.templateExtraneousModifier);
           varFinalOrConst = null;
         }
       } else if (optional('var', varFinalOrConst)) {
         reportRecoverableError(varFinalOrConst, fasta.messageVarReturnType);
+        varFinalOrConst = null;
       } else {
         assert(optional('final', varFinalOrConst));
         reportRecoverableErrorWithToken(
             varFinalOrConst, fasta.templateExtraneousModifier);
+        varFinalOrConst = null;
       }
     }
-    // TODO(danrubel): Move beginMethod event before handleModifier events
-    listener.beginMethod();
-    listener.handleModifiers(modifierCount);
+
+    // TODO(danrubel): Consider parsing the name before calling beginMethod
+    // rather than passing the name token into beginMethod.
+    listener.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, beforeName.next);
 
     if (beforeType == null) {
       listener.handleNoType(beforeName);

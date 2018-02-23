@@ -79,7 +79,6 @@ Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
-Language/Classes/declarations_t33: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: MissingCompileTimeError
