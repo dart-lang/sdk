@@ -1641,7 +1641,9 @@ const Template<Message Function(Token token)> templateExpectedType =
 const Code<Message Function(Token token)> codeExpectedType =
     const Code<Message Function(Token token)>(
         "ExpectedType", templateExpectedType,
-        analyzerCode: "EXPECTED_TYPE_NAME", dart2jsCode: "*fatal*");
+        analyzerCode: "EXPECTED_TYPE_NAME",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedType(Token token) {

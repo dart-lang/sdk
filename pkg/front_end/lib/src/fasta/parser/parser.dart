@@ -2722,8 +2722,16 @@ class Parser {
               beforeToken = beforeNameToken;
               token = nameToken;
             }
-          } else if (nameToken.isIdentifier) {
-            nameContext = IdentifierContext.formalParameterDeclaration;
+          } else if (nameToken.isKeywordOrIdentifier) {
+            if (untyped) {
+              // Type is required in a function type but name is not.
+              untyped = false;
+              nameContext = null;
+              beforeNameToken = nameToken;
+              nameToken = nameToken.next;
+            } else {
+              nameContext = IdentifierContext.formalParameterDeclaration;
+            }
           } else {
             // No name required in a function type.
             nameContext = null;

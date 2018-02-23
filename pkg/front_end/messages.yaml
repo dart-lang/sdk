@@ -267,6 +267,7 @@ ExpectedToken:
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
+  severity: ERROR
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 

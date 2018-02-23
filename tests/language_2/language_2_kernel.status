@@ -39,22 +39,6 @@ async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
-built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/54: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/55: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/57: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/58: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/59: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/60: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/61: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/62: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/63: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/64: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28814
-built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28814
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 check_member_static_test/01: MissingCompileTimeError

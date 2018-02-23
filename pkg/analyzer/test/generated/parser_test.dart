@@ -3534,6 +3534,21 @@ class Foo {
         errors: [expectedError(ParserErrorCode.FINAL_TYPEDEF, 0, 5)]);
   }
 
+  void test_functionTypedField_invalidType_abstract() {
+    if (usingFastaParser) {
+      parseCompilationUnit("Function(abstract) x = null;", errors: [
+        expectedError(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 9, 8)
+      ]);
+    }
+  }
+
+  void test_functionTypedField_invalidType_class() {
+    if (usingFastaParser) {
+      parseCompilationUnit("Function(class) x = null;",
+          errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5)]);
+    }
+  }
+
   void test_functionTypedParameter_const() {
     parseCompilationUnit("void f(const x()) {}",
         errors: usingFastaParser
