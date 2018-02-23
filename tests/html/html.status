@@ -40,11 +40,6 @@ indexeddb_3_test: Pass, Timeout # Roll 50 failure
 indexeddb_4_test: Pass, Timeout # Roll 50 failure
 indexeddb_5_test: Pass, Timeout # Roll 50 failure
 input_element_test/attributes: Fail # Issue 21555
-js_interop_constructor_name_test/HTMLDivElement-types-erroneous1: Fail # Issue 26838
-js_interop_constructor_name_test/HTMLDivElement-types-erroneous2: Fail # Issue 26838
-js_type_test/dynamic-String-not-Foo: Fail # Issue 26838
-js_type_test/dynamic-String-not-dynamic-Foo: Fail # Issue 26838
-js_type_test/dynamic-null-not-Foo: Fail # Issue 26838
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 mirrors_js_typed_interop_test: Pass, Slow

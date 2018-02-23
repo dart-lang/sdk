@@ -137,8 +137,6 @@ html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_extend_class_test: RuntimeError
-html/js_interop_constructor_name_error1_test: Fail # Issue 26838
-html/js_interop_constructor_name_error2_test: Fail # Issue 26838
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 html/audiocontext_test/functional: Pass, Fail
