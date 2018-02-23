@@ -32,6 +32,9 @@ const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
 const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
 const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
+// Number of bytes per BigInt digit.
+const intptr_t kBytesPerBigIntDigit = 4;
+
 // The default old gen heap size in MB, where 0 == unlimited.
 const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 
