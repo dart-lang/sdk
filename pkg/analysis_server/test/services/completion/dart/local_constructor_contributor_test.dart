@@ -2330,11 +2330,13 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('D');
   }
 
@@ -2349,11 +2351,13 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('D');
   }
 
@@ -2399,8 +2403,10 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
-    assertSuggestConstructor('B', elemOffset: -1);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('C');
   }
 
@@ -2415,8 +2421,10 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
-    assertSuggestConstructor('B', elemOffset: -1);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('C');
   }
 
@@ -2442,11 +2450,13 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('D');
   }
 
@@ -2460,11 +2470,13 @@ main() {
 
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('D');
   }
 

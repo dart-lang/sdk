@@ -121,11 +121,13 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     // A is suggested with a higher relevance
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     // D is sorted out
     assertNotSuggested('D');
 
@@ -170,11 +172,13 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     // A is suggested with a higher relevance
     assertSuggestConstructor('A',
         elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestConstructor('B',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestConstructor('C',
-        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
     // D is sorted out
     assertNotSuggested('D');
 

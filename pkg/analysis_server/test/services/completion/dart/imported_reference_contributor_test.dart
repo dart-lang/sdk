@@ -2554,6 +2554,35 @@ main() {
     assertNotSuggested('A');
   }
 
+  test_InstanceCreationExpression_filter() async {
+    configurePreviewDart2();
+    addSource('/a.dart', '''
+class A {}
+class B extends A {}
+class C implements A {}
+class D {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  A a = new ^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestConstructor('B',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('C',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertNotSuggested('D');
+  }
+
   test_InstanceCreationExpression_imported() async {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource('/testA.dart', '''

@@ -356,10 +356,12 @@ void main() {boo(){} bar(inc: ^);}''');
     assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_INCREMENT);
+        relevance:
+            DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestFunction('boo', 'dynamic',
         kind: CompletionSuggestionKind.IDENTIFIER,
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_INCREMENT);
+        relevance:
+            DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_BOOST_SUBTYPE);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
@@ -469,14 +471,14 @@ void main() {expect(foo: ^)}''');
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestTopLevelVar('a', 'A',
-        relevance:
-            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE +
+            DART_RELEVANCE_BOOST_TYPE);
     assertSuggestTopLevelVar('b', 'B',
-        relevance:
-            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE +
+            DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestTopLevelVar('c', 'C',
-        relevance:
-            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE +
+            DART_RELEVANCE_BOOST_SUBTYPE);
     assertSuggestTopLevelVar('d', 'D',
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     assertSuggestTopLevelVar('e', 'E',
@@ -801,7 +803,8 @@ main() async {A a; await ^}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('a', 'int');
+    assertSuggestLocalVariable('a', 'int',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE + DART_RELEVANCE_BOOST_TYPE);
     assertNotSuggested('Object');
     assertNotSuggested('b');
     assertNotSuggested('==');
@@ -2152,29 +2155,24 @@ main() {^}
   }
 
   test_enum_filter() async {
-    // SimpleIdentifier  NamedExpression  ArgumentList
-    // InstanceCreationExpression
     addTestSource('''
-        enum E { one, two }
-        enum F { three, four }
-        class A {}
-        class B {
-          B({E someE});
-        }
-        A a = new A();
-        B b = new B(someE: ^);
-  ''');
+enum E { one, two }
+enum F { three, four }
+
+void foo({E e}) {}
+
+main() {
+  foo(e: ^);
+}
+''');
     await computeSuggestions();
 
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
     assertSuggestEnumConst('E.one',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestEnumConst('E.two',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
-    assertNotSuggested('a');
-    assertNotSuggested('F.three');
-    assertNotSuggested('F.four');
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
   }
 
   test_ExpressionStatement_identifier() async {

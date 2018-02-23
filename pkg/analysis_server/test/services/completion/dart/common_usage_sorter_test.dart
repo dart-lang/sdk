@@ -61,9 +61,9 @@ main() {
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'E');
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e1',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e2',
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
   }
 
   test_PrefixedIdentifier_field() async {
