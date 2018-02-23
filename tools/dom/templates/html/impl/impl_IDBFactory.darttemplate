@@ -17,8 +17,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   @DomName('IDBFactory.open')
   Future<Database> open(String name,
-      {int version, void onUpgradeNeeded(VersionChangeEvent),
-      void onBlocked(Event)}) {
+      {int version, void onUpgradeNeeded(VersionChangeEvent event),
+      void onBlocked(Event event)}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
