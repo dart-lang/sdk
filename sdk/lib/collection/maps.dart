@@ -138,8 +138,8 @@ abstract class MapMixin<K, V> implements Map<K, V> {
     return result;
   }
 
-  void addEntries(Iterable<MapEntry<K, V>> entries) {
-    for (var entry in entries) {
+  void addEntries(Iterable<MapEntry<K, V>> newEntries) {
+    for (var entry in newEntries) {
       this[entry.key] = entry.value;
     }
   }

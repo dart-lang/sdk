@@ -173,7 +173,7 @@ external ClassMirror reflectClass(Type key);
  *
  * Optionally takes a list of [typeArguments] for generic classes. If the list
  * is provided, then the [key] must be a generic class type, and the number of
- * the provided type arguments must be equal to the number of type variables 
+ * the provided type arguments must be equal to the number of type variables
  * declared by the class.
  *
  * Note that since one cannot obtain a [Type] object from another isolate, this
@@ -452,7 +452,7 @@ abstract class ObjectMirror implements Mirror {
   InstanceMirror setField(Symbol fieldName, Object value);
 
   /**
-   * Performs [invocation] on [reflectee].
+   * Performs [invocation] on the reflectee of this [ObjectMirror].
    *
    * Equivalent to
    *
