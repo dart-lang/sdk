@@ -910,22 +910,6 @@ type_check_const_function_typedef2_test: MissingCompileTimeError
 [ $compiler == dart2js && $dart2js_with_kernel ]
 async_error_timing_test: Crash
 bug31436_test: RuntimeError
-built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/54: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/55: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/57: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/58: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/59: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/60: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/61: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/62: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/63: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/64: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28815
-built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
 call_method_as_cast_test/01: RuntimeError
 call_method_as_cast_test/02: RuntimeError
 call_method_as_cast_test/03: RuntimeError
