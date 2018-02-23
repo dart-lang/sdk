@@ -44,12 +44,12 @@ import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'ast_builder.dart';
-import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'element_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
 import 'js_typeref_codegen.dart' show JSTypeRefCodegen;
 import 'js_typerep.dart' show JSTypeRep, JSType;
+import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
 import 'reify_coercions.dart' show CoercionReifier;
@@ -457,7 +457,7 @@ class CodeGenerator extends Object
   bool _isExternal(Element e) =>
       e is ExecutableElement && e.isExternal ||
       e is PropertyInducingElement &&
-          (e.getter?.isExternal ?? false || e.setter?.isExternal ?? false);
+          ((e.getter?.isExternal ?? false) || (e.setter?.isExternal ?? false));
 
   bool _isJSElement(Element e) =>
       e?.library != null &&

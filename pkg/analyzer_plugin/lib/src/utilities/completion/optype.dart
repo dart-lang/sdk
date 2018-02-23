@@ -1015,7 +1015,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
-    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ?? false) {
+    if (entity is AstNode &&
+        (entity.beginToken.previous?.isSynthetic ?? false)) {
       return true;
     }
     return false;
