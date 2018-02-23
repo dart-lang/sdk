@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Common AST helpers.
+
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/utils.dart';
+import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {
@@ -256,4 +259,60 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
       element.visitChildren(this);
     }
   }
+}
+
+bool hasErrorWithConstantVerifier(AstNode node) {
+  final cu = _getCompilationUnit(node);
+  final listener = new HasConstErrorListener();
+  node.accept(new ConstantVerifier(
+      new ErrorReporter(listener, cu.element.source),
+      cu.element.library,
+      cu.element.context.typeProvider,
+      cu.element.context.declaredVariables));
+  return listener.hasConstError;
+}
+
+bool hasErrorWithConstantVisitor(AstNode node) {
+  final cu = _getCompilationUnit(node);
+  final listener = new HasConstErrorListener();
+  node.accept(new ConstantVisitor(
+      new ConstantEvaluationEngine(cu.element.context.typeProvider,
+          cu.element.context.declaredVariables),
+      new ErrorReporter(listener, cu.element.source)));
+  return listener.hasConstError;
+}
+
+CompilationUnit _getCompilationUnit(AstNode node) {
+  AstNode result = node;
+  while (result is! CompilationUnit) result = result.parent;
+  return result;
+}
+
+class HasConstErrorListener extends AnalysisErrorListener {
+  HasConstErrorListener();
+
+  bool hasConstError = false;
+
+  @override
+  void onError(AnalysisError error) {
+    hasConstError = errorCodes.contains(error.errorCode);
+  }
+
+  static const List<CompileTimeErrorCode> errorCodes = const [
+    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+    CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+    CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
+    CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+    CompileTimeErrorCode.INVALID_CONSTANT,
+    CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
+    CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
+    CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+    CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
+    CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+    CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+  ];
 }

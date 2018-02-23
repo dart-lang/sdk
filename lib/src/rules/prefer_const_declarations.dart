@@ -6,6 +6,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/ast.dart';
 
 const _desc = r'Prefer const over final for declarations.';
 
@@ -74,47 +75,8 @@ class _Visitor extends SimpleAstVisitor {
   _visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.isConst) return;
     if (!node.isFinal) return;
-    if (node.variables
-        .every((declaration) => _isConst(declaration.initializer)))
+    if (node.variables.every(
+        (declaration) => !hasErrorWithConstantVisitor(declaration.initializer)))
       rule.reportLint(node);
-  }
-
-  bool _isConst(Expression node) {
-    final cu = _getCompilationUnit(node);
-    final listener = new MyAnalysisErrorListener();
-    node.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(cu.element.context.typeProvider,
-            cu.element.context.declaredVariables),
-        new ErrorReporter(listener, cu.element.source)));
-    return !listener.hasConstError;
-  }
-
-  CompilationUnit _getCompilationUnit(AstNode node) {
-    AstNode result = node;
-    while (result is! CompilationUnit) result = result.parent;
-    return result;
-  }
-}
-
-class MyAnalysisErrorListener extends AnalysisErrorListener {
-  bool hasConstError = false;
-  @override
-  void onError(AnalysisError error) {
-    switch (error.errorCode) {
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-      case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
-      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
-      case CompileTimeErrorCode
-          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-      case CompileTimeErrorCode.INVALID_CONSTANT:
-      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
-        hasConstError = true;
-    }
   }
 }

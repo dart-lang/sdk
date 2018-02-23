@@ -50,6 +50,11 @@ class E {
   static E m1(int i) => new E('$i'); // OK
   static E m2() => new E('adjacent' 'string'); // LINT
   static E m3(int i) => new E('adjacent' '$i'); // OK
+  static E m4(String s) => new E(s); // OK
+  static void m5() {
+    final String s = '';
+    E e = new E(s); // OK
+  }
 }
 
 class F {
