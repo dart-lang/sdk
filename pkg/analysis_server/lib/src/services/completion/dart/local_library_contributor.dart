@@ -61,6 +61,21 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         _addConstructorSuggestions(element, relevance);
       }
     }
+    if (optype.includeReturnValueSuggestions) {
+      if (element.isEnum) {
+        String enumName = element.displayName;
+        int relevance = optype.returnValueSuggestionsFilter(
+            element.type, DART_RELEVANCE_DEFAULT);
+        for (var field in element.fields) {
+          if (field.isEnumConstant) {
+            addSuggestion(field,
+                prefix: prefix,
+                relevance: relevance,
+                elementCompletion: '$enumName.${field.name}');
+          }
+        }
+      }
+    }
   }
 
   @override

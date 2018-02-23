@@ -1849,6 +1849,33 @@ int myFunc() {}
     assertNotSuggested('two');
   }
 
+  test_enum_filter() async {
+    addSource('/a.dart', '''
+enum E { one, two }
+enum F { three, four }
+''');
+    addTestSource('''
+import 'a.dart';
+
+void foo({E e}) {}
+
+main() {
+  foo(e: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('E.two',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
     resolveSource('/testA.dart', '''

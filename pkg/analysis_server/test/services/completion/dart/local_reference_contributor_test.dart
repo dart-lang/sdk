@@ -2167,10 +2167,13 @@ main() {
 ''');
     await computeSuggestions();
 
+    assertSuggestEnum('E');
     assertSuggestEnumConst('E.one',
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
     assertSuggestEnumConst('E.two',
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+
+    assertSuggestEnum('F');
     assertSuggestEnumConst('F.three');
     assertSuggestEnumConst('F.four');
   }
