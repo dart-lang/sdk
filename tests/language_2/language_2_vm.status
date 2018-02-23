@@ -1341,4 +1341,4 @@ invalid_type_argument_count_test/01: MissingCompileTimeError # Error only in str
 invalid_type_argument_count_test/02: MissingCompileTimeError # Error only in strong mode
 invalid_type_argument_count_test/03: MissingCompileTimeError # Error only in strong mode
 invalid_type_argument_count_test/04: MissingCompileTimeError # Error only in strong mode
-
+partial_tearoff_instantiation_test/none: CompiletimeError

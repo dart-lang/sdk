@@ -980,6 +980,13 @@ mixin_type_parameter_inference_test/12: CompileTimeError
 mixin_type_parameter_inference_test/13: CompileTimeError
 mixin_type_parameter_inference_test/16: CompileTimeError
 mixin_type_parameter_inference_test/none: CompileTimeError
+partial_tearoff_instantiation_test/02: CompileTimeError
+partial_tearoff_instantiation_test/04: CompileTimeError
+partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/none: CompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup && $strong ]
 assertion_initializer_const_error2_test/none: CompileTimeError
@@ -3566,6 +3573,14 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
 part2_test/01: MissingCompileTimeError
+partial_tearoff_instantiation_test/01: MissingCompileTimeError
+partial_tearoff_instantiation_test/02: MissingRuntimeError
+partial_tearoff_instantiation_test/03: MissingCompileTimeError
+partial_tearoff_instantiation_test/04: MissingRuntimeError
+partial_tearoff_instantiation_test/05: MissingCompileTimeError
+partial_tearoff_instantiation_test/06: MissingCompileTimeError
+partial_tearoff_instantiation_test/07: MissingCompileTimeError
+partial_tearoff_instantiation_test/08: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 prefix16_test/00: MissingCompileTimeError

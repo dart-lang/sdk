@@ -872,6 +872,7 @@ class StreamingConstantEvaluator {
   void EvaluateListLiteralInternal();
   void EvaluateMapLiteralInternal();
   void EvaluateLet();
+  void EvaluatePartialTearoffInstantiation();
   void EvaluateBigIntLiteral();
   void EvaluateStringLiteral();
   void EvaluateIntLiteral(uint8_t payload);
