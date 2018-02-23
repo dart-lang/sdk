@@ -312,6 +312,7 @@ class TestCase : TestCaseBase {
   TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
   static bool UsingDartFrontend();
+  static bool UsingStrongMode();
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
@@ -355,8 +356,10 @@ class TestCase : TestCaseBase {
 
   // Initiates the reload.
   static Dart_Handle TriggerReload();
-  // Gets the result of a reload.
-  static Dart_Handle GetReloadErrorOrRootLibrary();
+
+  // Returns the root library if the last reload was successful, otherwise
+  // returns Dart_Null().
+  static Dart_Handle GetReloadLibrary();
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
@@ -376,6 +379,11 @@ class TestCase : TestCaseBase {
                                     const uint8_t* instr_buffer,
                                     const char* name,
                                     void* data = NULL);
+
+  // Gets the result of a reload. This touches state in IsolateReloadContext
+  // that is zone allocated and should not be used if a reload is triggered
+  // using reloadTest() from package:isolate_reload_helper.
+  static Dart_Handle GetReloadErrorOrRootLibrary();
 
   RunEntry* const run_;
 };
@@ -655,6 +663,24 @@ class CompilerTest : public AllStatic {
     } else {                                                                   \
       dart::Expect(__FILE__, __LINE__)                                         \
           .Fail("expected True, but was '%s'\n", #handle);                     \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_NULL(handle)                                                    \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (!Dart_IsNull(tmp_handle)) {                                            \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected '%s' to be a null handle.\n", #handle);              \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_NON_NULL(handle)                                                \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (Dart_IsNull(tmp_handle)) {                                             \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected '%s' to be a non-null handle.\n", #handle);          \
     }                                                                          \
   } while (0)
 

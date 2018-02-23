@@ -972,8 +972,8 @@ TEST_CASE(IsolateReload_LiveStack) {
 
   EXPECT_EQ(107, SimpleInvoke(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_EQ(105, SimpleInvoke(lib, "main"));
 }
 
@@ -1215,8 +1215,8 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
 
   EXPECT_STREQ("instance", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("instance", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1254,8 +1254,8 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
 
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1303,8 +1303,8 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
 
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1352,8 +1352,8 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
 
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1398,8 +1398,8 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
 
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1444,8 +1444,8 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
 
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
   EXPECT_STREQ("static", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1526,8 +1526,8 @@ TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
 
   EXPECT_STREQ("new new true false", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_Class_Identity) {
@@ -1564,8 +1564,8 @@ TEST_CASE(IsolateReload_TearOff_Class_Identity) {
 
   EXPECT_STREQ("new new true true", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_Library_Identity) {
@@ -1598,8 +1598,8 @@ TEST_CASE(IsolateReload_TearOff_Library_Identity) {
 
   EXPECT_STREQ("new new true true", SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_List_Set) {
@@ -1661,10 +1661,13 @@ TEST_CASE(IsolateReload_TearOff_List_Set) {
   EXPECT_STREQ("new new true true true new true true true",
                SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
+// TODO(bkonyi): This test has been modified since it was written and no longer
+// tests functionality that it did originally. It needs to be either re-written
+// or removed.
 TEST_CASE(IsolateReload_DanglingGetter_Instance) {
   const char* kScript =
       "import 'test:isolate_reload_helper';\n"
@@ -1719,10 +1722,17 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
       "NoSuchMethodError: Class 'int' has no instance method 'call'.",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  if (TestCase::UsingDartFrontend() && TestCase::UsingStrongMode()) {
+    EXPECT_NULL(lib);
+  } else {
+    EXPECT_NON_NULL(lib);
+  }
 }
 
+// TODO(bkonyi): This test has been modified since it was written and no longer
+// tests functionality that it did originally. It needs to be either re-written
+// or removed.
 TEST_CASE(IsolateReload_DanglingGetter_Class) {
   const char* kScript =
       "import 'test:isolate_reload_helper';\n"
@@ -1779,8 +1789,12 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
       "NoSuchMethodError: Class 'int' has no instance method 'call'.",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  if (TestCase::UsingDartFrontend() && TestCase::UsingStrongMode()) {
+    EXPECT_NULL(lib);
+  } else {
+    EXPECT_NON_NULL(lib);
+  }
 }
 
 TEST_CASE(IsolateReload_TearOff_AddArguments) {
@@ -1836,8 +1850,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
       "'foo' with matching arguments.",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_TearOff_AddArguments2) {
@@ -1891,8 +1905,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
       "function 'C.foo'",
       SimpleInvokeStr(lib, "main"));
 
-  lib = TestCase::GetReloadErrorOrRootLibrary();
-  EXPECT_VALID(lib);
+  lib = TestCase::GetReloadLibrary();
+  EXPECT_NON_NULL(lib);
 }
 
 TEST_CASE(IsolateReload_EnumEquality) {

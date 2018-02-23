@@ -215,6 +215,10 @@ bool TestCase::UsingDartFrontend() {
   return FLAG_use_dart_frontend;
 }
 
+bool TestCase::UsingStrongMode() {
+  return FLAG_strong;
+}
+
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
                                          void** kernel_pgm,
@@ -502,6 +506,16 @@ Dart_Handle TestCase::TriggerReload() {
   } else {
     return Dart_Null();
   }
+}
+
+Dart_Handle TestCase::GetReloadLibrary() {
+  Isolate* isolate = Isolate::Current();
+
+  if (isolate->reload_context() != NULL &&
+      isolate->reload_context()->reload_aborted()) {
+    return Dart_Null();
+  }
+  return Dart_RootLibrary();
 }
 
 Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
