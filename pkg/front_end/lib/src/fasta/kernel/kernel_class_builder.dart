@@ -479,10 +479,20 @@ abstract class KernelClassBuilder
               .withLocation(interfaceMember.fileUri, interfaceMember.fileOffset,
                   noLength));
     }
+    int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
+      return p0.name.compareTo(p1.name);
+    }
+
+    List<VariableDeclaration> sortedFromDeclared =
+        new List.from(declaredFunction.namedParameters)
+          ..sort(compareNamedParameters);
+    List<VariableDeclaration> sortedFromInterface =
+        new List.from(interfaceFunction.namedParameters)
+          ..sort(compareNamedParameters);
     Iterator<VariableDeclaration> declaredNamedParameters =
-        declaredFunction.namedParameters.iterator;
+        sortedFromDeclared.iterator;
     Iterator<VariableDeclaration> interfaceNamedParameters =
-        interfaceFunction.namedParameters.iterator;
+        sortedFromInterface.iterator;
     outer:
     while (declaredNamedParameters.moveNext() &&
         interfaceNamedParameters.moveNext()) {

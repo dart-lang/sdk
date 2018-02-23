@@ -711,8 +711,6 @@ override_inheritance_field_test/06: CompileTimeError # Issue 31616
 override_inheritance_field_test/26: CompileTimeError # Issue 31616
 override_inheritance_field_test/29: CompileTimeError # Issue 31616
 override_inheritance_generic_test/02: CompileTimeError
-override_inheritance_method_test/17: CompileTimeError
-override_inheritance_method_test/18: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
