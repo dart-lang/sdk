@@ -6,22 +6,72 @@ library fasta.fangorn;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' show DartType, MapEntry;
-
-import 'package:kernel/ast.dart' as kernel;
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        DartType,
+        Expression,
+        MapEntry,
+        NamedExpression,
+        Statement,
+        TreeNode;
 
 import '../parser.dart' show offsetForToken;
 
 import '../scanner.dart' show Token;
 
-import 'kernel_shadow_ast.dart';
+import 'kernel_shadow_ast.dart'
+    show
+        ShadowArguments,
+        ShadowBoolLiteral,
+        ShadowDoubleLiteral,
+        ShadowIntLiteral,
+        ShadowListLiteral,
+        ShadowMapLiteral,
+        ShadowNullLiteral,
+        ShadowStringLiteral,
+        ShadowSymbolLiteral,
+        ShadowTypeLiteral;
 
 import 'forest.dart' show Forest;
 
 /// A shadow tree factory.
-class Fangorn extends Forest<ShadowExpression, ShadowStatement, Token> {
+class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
-  ShadowStringLiteral asLiteralString(ShadowExpression value) => value;
+  ShadowArguments arguments(List<Expression> positional, Token token,
+      {List<DartType> types, List<NamedExpression> named}) {
+    return new ShadowArguments(positional, types: types, named: named)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  ShadowArguments argumentsEmpty(Token token) {
+    return arguments(<Expression>[], token);
+  }
+
+  @override
+  List<NamedExpression> argumentsNamed(Arguments arguments) {
+    return arguments.named;
+  }
+
+  @override
+  List<Expression> argumentsPositional(Arguments arguments) {
+    return arguments.positional;
+  }
+
+  @override
+  List<DartType> argumentsTypes(Arguments arguments) {
+    return arguments.types;
+  }
+
+  @override
+  void argumentsSetExplicitArgumentTypes(
+      Arguments arguments, List<DartType> types) {
+    ShadowArguments.setExplicitArgumentTypes(arguments, types);
+  }
+
+  @override
+  ShadowStringLiteral asLiteralString(Expression value) => value;
 
   @override
   ShadowBoolLiteral literalBool(bool value, Token token) {
@@ -39,8 +89,8 @@ class Fangorn extends Forest<ShadowExpression, ShadowStatement, Token> {
   }
 
   @override
-  ShadowExpression literalList(covariant typeArgument,
-      List<kernel.Expression> expressions, bool isConst, Token token) {
+  ShadowListLiteral literalList(covariant typeArgument,
+      List<Expression> expressions, bool isConst, Token token) {
     return new ShadowListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = offsetForToken(token);
@@ -75,7 +125,7 @@ class Fangorn extends Forest<ShadowExpression, ShadowStatement, Token> {
   }
 
   @override
-  MapEntry mapEntry(ShadowExpression key, ShadowExpression value, Token token) {
+  MapEntry mapEntry(Expression key, Expression value, Token token) {
     return new MapEntry(key, value)..fileOffset = offsetForToken(token);
   }
 
@@ -83,4 +133,7 @@ class Fangorn extends Forest<ShadowExpression, ShadowStatement, Token> {
   List<MapEntry> mapEntryList(int length) {
     return new List<MapEntry>.filled(length, null, growable: true);
   }
+
+  @override
+  int readOffset(TreeNode node) => node.fileOffset;
 }

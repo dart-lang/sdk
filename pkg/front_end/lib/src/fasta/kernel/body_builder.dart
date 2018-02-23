@@ -83,9 +83,13 @@ import 'kernel_ast_api.dart';
 
 import 'kernel_builder.dart';
 
-final Forest<Expression, Statement, Token> _forest = new Fangorn();
+final Forest _forest = new Fangorn();
 
-class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
+// TODO(ahe): Remove this and ensure all nodes have a location.
+const noLocation = null;
+
+class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
+    implements BuilderHelper<Arguments> {
   @override
   final KernelLibraryBuilder library;
 
@@ -203,7 +207,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         super(scope);
 
   @override
-  Forest<Expression, Statement, Token> get forest => _forest;
+  Forest<Expression, Statement, Token, Arguments> get forest => _forest;
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 
@@ -574,7 +578,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       initializer = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
       initializer = buildSuperInitializer(
-          false, node.target, node.arguments, token.charOffset);
+          false,
+          node.target,
+          node.arguments
+              as dynamic, // TODO(ahe): Remove this cast when buildSuperInitializer is moved to [Forest].
+          token.charOffset);
     } else {
       Expression value = toValue(node);
       if (node is! Throw) {
@@ -703,7 +711,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       /// >unless the enclosing class is class Object.
       Constructor superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
-      Arguments arguments = new Arguments.empty();
+      Arguments arguments = forest.argumentsEmpty(noLocation);
       if (superTarget == null ||
           checkArguments(
                   new FunctionTypeAccessor.fromNode(superTarget.function),
@@ -795,10 +803,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           named = new List<NamedExpression>.from(seenNames.values);
         }
       }
-      push(new ShadowArguments(positional, named: named)
-        ..fileOffset = beginToken.charOffset);
+      push(forest.arguments(positional, beginToken, named: named));
     } else {
-      push(new ShadowArguments(arguments)..fileOffset = beginToken.charOffset);
+      push(forest.arguments(arguments, beginToken));
     }
   }
 
@@ -816,8 +823,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List<DartType> typeArguments = pop();
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
-      assert(arguments.types.isEmpty);
-      ShadowArguments.setExplicitArgumentTypes(arguments, typeArguments);
+      assert(forest.argumentsTypes(arguments).isEmpty);
+      forest.argumentsSetExplicitArgumentTypes(arguments, typeArguments);
     } else {
       assert(typeArguments == null);
     }
@@ -931,7 +938,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           "Not an operator: '$operator'.", token.charOffset);
     } else {
       Expression result = buildMethodInvocation(a, new Name(operator),
-          new ShadowArguments(<Expression>[b]), token.charOffset,
+          forest.arguments(<Expression>[b], noLocation), token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
@@ -1054,7 +1061,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           context: context);
     } else {
       Expression error = library.loader.instantiateNoSuchMethodError(
-          receiver, name, arguments, charOffset,
+          receiver, name, forest.castArguments(arguments), charOffset,
           isMethod: !isGetter && !isSetter,
           isGetter: isGetter,
           isSetter: isSetter,
@@ -2279,7 +2286,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         receiverValue = toValue(receiver);
       }
       push(buildMethodInvocation(receiverValue, new Name(operator),
-          new Arguments.empty(), token.charOffset,
+          forest.argumentsEmpty(noLocation), token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [receiver].
           isConstantExpression: !isSuper,
@@ -2433,8 +2440,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      return new ShadowConstructorInvocation(
-          target, targetTypeArguments, initialTarget, arguments,
+      return new ShadowConstructorInvocation(target, targetTypeArguments,
+          initialTarget, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2443,12 +2450,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return deprecated_buildCompileTimeError(
             "Not a const factory.", charOffset);
       } else if (procedure.isFactory) {
-        return new ShadowFactoryConstructorInvocation(
-            target, targetTypeArguments, initialTarget, arguments,
+        return new ShadowFactoryConstructorInvocation(target,
+            targetTypeArguments, initialTarget, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
-        return new ShadowStaticInvocation(target, arguments, isConst: isConst)
+        return new ShadowStaticInvocation(
+            target, forest.castArguments(arguments),
+            isConst: isConst)
           ..fileOffset = charOffset;
       }
     }
@@ -2458,7 +2467,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   LocatedMessage checkArguments(FunctionTypeAccessor function,
       Arguments arguments, CalleeDesignation calleeKind, int offset,
       [List<TypeParameter> typeParameters]) {
-    if (arguments.positional.length < function.requiredParameterCount) {
+    if (forest.argumentsPositional(arguments).length <
+        function.requiredParameterCount) {
       Template<Message Function(int count, int count2)> template;
       switch (calleeKind) {
         case CalleeDesignation.Function:
@@ -2472,11 +2482,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           break;
       }
       return template
-          .withArguments(
-              function.requiredParameterCount, arguments.positional.length)
+          .withArguments(function.requiredParameterCount,
+              forest.argumentsPositional(arguments).length)
           .withLocation(uri, offset, noLength);
     }
-    if (arguments.positional.length > function.positionalParameterCount) {
+    if (forest.argumentsPositional(arguments).length >
+        function.positionalParameterCount) {
       Template<Message Function(int count, int count2)> template;
       switch (calleeKind) {
         case CalleeDesignation.Function:
@@ -2490,13 +2501,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           break;
       }
       return template
-          .withArguments(
-              function.positionalParameterCount, arguments.positional.length)
+          .withArguments(function.positionalParameterCount,
+              forest.argumentsPositional(arguments).length)
           .withLocation(uri, offset, noLength);
     }
-    if (arguments.named.isNotEmpty) {
+    List named = forest.argumentsNamed(arguments);
+    if (named.isNotEmpty) {
       Set<String> names = function.namedParameterNames;
-      for (NamedExpression argument in arguments.named) {
+      for (NamedExpression argument in named) {
         if (!names.remove(argument.name)) {
           Template<Message Function(String name)> template;
           switch (calleeKind) {
@@ -2517,13 +2529,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
 
-    if (typeParameters != null &&
-        typeParameters.length != arguments.types.length) {
+    List types = forest.argumentsTypes(arguments);
+    if (typeParameters != null && typeParameters.length != types.length) {
       // TODO(paulberry): Report error in this case as well,
       // after https://github.com/dart-lang/sdk/issues/32130 is fixed.
-      arguments.types.clear();
+      types.clear();
       for (int i = 0; i < typeParameters.length; i++) {
-        arguments.types.add(const DynamicType());
+        types.add(const DynamicType());
       }
     }
 
@@ -2567,7 +2579,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
     Token nameToken = token.next;
-    ShadowArguments arguments = pop();
+    Arguments arguments = pop();
     String name = pop();
     List<DartType> typeArguments = pop();
 
@@ -2626,8 +2638,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
 
     if (typeArguments != null) {
-      assert(arguments.types.isEmpty);
-      ShadowArguments.setExplicitArgumentTypes(arguments, typeArguments);
+      assert(forest.argumentsTypes(arguments).isEmpty);
+      forest.argumentsSetExplicitArgumentTypes(arguments, typeArguments);
     }
 
     String errorName;
@@ -3519,11 +3531,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
     return new Throw(buildStaticInvocation(
         library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
-        new Arguments(<Expression>[
+        forest.arguments(<Expression>[
           storeOffset(forest.literalString("${location?.file ?? uri}", null),
               charOffset),
           storeOffset(forest.literalInt(location?.line ?? 0, null), charOffset),
-        ]),
+        ], noLocation),
         charOffset: charOffset));
   }
 
@@ -3535,9 +3547,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(
         constructor.target,
-        new ShadowArguments(<Expression>[
+        forest.arguments(<Expression>[
           storeOffset(forest.literalString(className, null), charOffset)
-        ])));
+        ], noLocation)));
   }
 
   Statement deprecated_buildCompileTimeErrorStatement(error,
@@ -3609,9 +3621,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return buildInvalidInitializer(
             new Throw(buildStaticInvocation(
                 constructor.target,
-                new Arguments(<Expression>[
+                forest.arguments(<Expression>[
                   storeOffset(forest.literalString(name, null), offset)
-                ]),
+                ], noLocation),
                 charOffset: offset)),
             offset);
       } else {
@@ -3638,7 +3650,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new ShadowSuperInitializer(constructor, arguments)
+    return new ShadowSuperInitializer(
+        constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }
@@ -3648,7 +3661,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new ShadowRedirectingInitializer(constructor, arguments)
+    return new ShadowRedirectingInitializer(
+        constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset;
   }
 
@@ -3720,8 +3734,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Arguments arguments, Expression expression) {
     if (arguments == null) return expression;
     List<Expression> expressions =
-        new List<Expression>.from(arguments.positional);
-    for (NamedExpression named in arguments.named) {
+        new List<Expression>.from(forest.argumentsPositional(arguments));
+    for (NamedExpression named in forest.argumentsNamed(arguments)) {
       expressions.add(named.value);
     }
     for (Expression argument in expressions.reversed) {
@@ -3763,14 +3777,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
               offset,
               name.name.length);
         }
-        return new ShadowSuperMethodInvocation(name, arguments, target)
+        return new ShadowSuperMethodInvocation(
+            name, forest.castArguments(arguments), target)
           ..fileOffset = offset;
       }
 
       receiver = new ShadowSuperPropertyGet(name, target)..fileOffset = offset;
-      return new ShadowMethodInvocation(receiver, callName, arguments,
+      return new ShadowMethodInvocation(
+          receiver, callName, forest.castArguments(arguments),
           isImplicitCall: true)
-        ..fileOffset = arguments.fileOffset;
+        ..fileOffset = forest.readOffset(arguments);
     }
 
     if (isNullAware) {
@@ -3780,14 +3796,15 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
               storeOffset(forest.literalNull(null), offset),
-              new MethodInvocation(
-                  new VariableGet(variable), name, arguments, interfaceTarget)
+              new MethodInvocation(new VariableGet(variable), name,
+                  forest.castArguments(arguments), interfaceTarget)
                 ..fileOffset = offset,
               null)
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
-      return new ShadowMethodInvocation(receiver, name, arguments,
+      return new ShadowMethodInvocation(
+          receiver, name, forest.castArguments(arguments),
           isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
     }
@@ -3836,8 +3853,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  TreeNode storeOffset(TreeNode node, int offset) {
-    return node..fileOffset = offset;
+  T storeOffset<T>(T object, int offset) {
+    TreeNode node = object as TreeNode;
+    node.fileOffset = offset;
+    return object;
   }
 }
 
@@ -3878,7 +3897,7 @@ class Label {
   String toString() => "label($name)";
 }
 
-abstract class ContextAccessor extends FastaAccessor {
+abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments> {
   final BuilderHelper helper;
 
   final FastaAccessor accessor;
@@ -3942,7 +3961,7 @@ abstract class ContextAccessor extends FastaAccessor {
   }
 }
 
-class DelayedAssignment extends ContextAccessor {
+class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
   final Expression value;
 
   final String assignmentOperator;
@@ -4020,7 +4039,7 @@ class DelayedAssignment extends ContextAccessor {
   }
 }
 
-class DelayedPostfixIncrement extends ContextAccessor {
+class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
   final Name binaryOperator;
 
   final Procedure interfaceTarget;

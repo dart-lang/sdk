@@ -4,8 +4,25 @@
 
 library fasta.forest;
 
+// TODO(ahe): Remove this import.
+import 'package:kernel/ast.dart' as kernel show Arguments;
+
 /// A tree factory.
-abstract class Forest<Expression, Statement, Location> {
+abstract class Forest<Expression, Statement, Location, Arguments> {
+  Arguments arguments(List<Expression> positional, Location location,
+      {covariant List types, covariant List named});
+
+  Arguments argumentsEmpty(Location location);
+
+  List argumentsNamed(Arguments arguments);
+
+  List<Expression> argumentsPositional(Arguments arguments);
+
+  List argumentsTypes(Arguments arguments);
+
+  void argumentsSetExplicitArgumentTypes(
+      Arguments arguments, covariant List types);
+
   Expression asLiteralString(Expression value);
 
   Expression literalBool(bool value, Location location);
@@ -31,4 +48,12 @@ abstract class Forest<Expression, Statement, Location> {
   Object mapEntry(Expression key, Expression value, Location location);
 
   List mapEntryList(int length);
+
+  int readOffset(covariant node);
+
+  // TODO(ahe): Remove this method when all users are moved here.
+  kernel.Arguments castArguments(Arguments arguments) {
+    dynamic a = arguments;
+    return a;
+  }
 }

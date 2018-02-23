@@ -8,7 +8,6 @@ library fasta.kernel_ast_api;
 
 export 'package:kernel/ast.dart'
     show
-        Arguments,
         AssertStatement,
         AsyncMarker,
         Block,
@@ -61,7 +60,6 @@ export 'package:kernel/ast.dart'
 
 export 'kernel_shadow_ast.dart'
     show
-        ShadowArguments,
         ShadowAsExpression,
         ShadowAssertInitializer,
         ShadowAssertStatement,
