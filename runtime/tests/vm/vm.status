@@ -25,7 +25,6 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
 cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349
-cc/IsolateReload_DanglingSetter_Instance: Fail # Issue 28349
 cc/IsolateReload_LiveStack: Fail # Issue 28349
 cc/IsolateReload_PendingSuperCall: Fail # Issue 28349
 cc/IsolateReload_SmiFastPathStubs: Fail # Issue 28349
@@ -200,15 +199,11 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
 cc/GenerateSource: Skip # Cannot generate source from a kernel binary. 
-cc/IsolateReload_DanglingSetter_Instance: Fail
 cc/IsolateReload_EnumDelete: Fail
 cc/IsolateReload_EnumReorderIdentical: Fail
 cc/IsolateReload_EnumToNotEnum: Skip
-cc/IsolateReload_LiveStack: Fail
 cc/IsolateReload_NotEnumToEnum: Skip
 cc/IsolateReload_NotTypedefToTypedef: Fail
-cc/IsolateReload_PendingSuperCall: Fail
-cc/IsolateReload_SmiFastPathStubs: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Fail
 cc/Parser_AllocateVariables_CapturedVar: Fail
@@ -256,20 +251,11 @@ dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
-cc/IsolateReload_DanglingGetter_Class: Crash
-cc/IsolateReload_DanglingGetter_Instance: Crash
-cc/IsolateReload_DanglingSetter_Instance: Crash
 cc/IsolateReload_EnumDelete: Crash
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/IsolateReload_TearOff_AddArguments: Crash
-cc/IsolateReload_TearOff_AddArguments2: Crash
-cc/IsolateReload_TearOff_Class_Identity: Crash
-cc/IsolateReload_TearOff_Instance_Equality: Crash
-cc/IsolateReload_TearOff_Library_Identity: Crash
-cc/IsolateReload_TearOff_List_Set: Crash
-cc/IsolateReload_TypeIdentity: Crash
-cc/IsolateReload_TypeIdentityGeneric: Crash
-cc/IsolateReload_TypeIdentityParameter: Crash
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
 cc/Parser_AllocateVariables_CaptureLoopVar: Crash
 cc/Parser_AllocateVariables_Issue7681: Crash
 cc/Parser_AllocateVariables_MiddleChain: Crash
@@ -281,34 +267,18 @@ cc/IsolateReload_LibraryHide: Crash
 cc/IsolateReload_LibraryShow: Crash
 
 [ $compiler == dartk && $system == linux ]
-cc/IsolateReload_DanglingGetter_Class: Fail
-cc/IsolateReload_DanglingGetter_Instance: Fail
 cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
-cc/IsolateReload_TearOff_AddArguments2: Fail
-cc/IsolateReload_TearOff_Class_Identity: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
-cc/IsolateReload_TearOff_Library_Identity: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
-cc/IsolateReload_TypeIdentity: Fail
-cc/IsolateReload_TypeIdentityGeneric: Fail
-cc/IsolateReload_TypeIdentityParameter: Fail
 
 [ $compiler == dartk && $system == windows ]
-cc/IsolateReload_DanglingGetter_Class: Crash
-cc/IsolateReload_DanglingGetter_Instance: Crash
 cc/IsolateReload_LibraryLookup: Crash
-cc/IsolateReload_TearOff_AddArguments: Crash
-cc/IsolateReload_TearOff_AddArguments2: Crash
-cc/IsolateReload_TearOff_Class_Identity: Crash
-cc/IsolateReload_TearOff_Instance_Equality: Crash
-cc/IsolateReload_TearOff_Library_Identity: Crash
-cc/IsolateReload_TearOff_List_Set: Crash
-cc/IsolateReload_TypeIdentity: Crash
-cc/IsolateReload_TypeIdentityGeneric: Crash
-cc/IsolateReload_TypeIdentityParameter: Crash
-cc/Profiler_BasicSourcePosition: Fail, Pass
-cc/Profiler_CodeTicks: Fail, Pass
+cc/IsolateReload_TearOff_AddArguments: Fail
+cc/IsolateReload_TearOff_Instance_Equality: Fail
+cc/IsolateReload_TearOff_List_Set: Fail
+cc/Profiler_BasicSourcePosition: Fail
+cc/Profiler_CodeTicks: Fail
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass
