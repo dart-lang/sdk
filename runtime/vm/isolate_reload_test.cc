@@ -3375,6 +3375,46 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
   EXPECT_STREQ("true true true true", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
+  const char* kScript =
+      "class Foo<T> {\n"
+      "  T x;\n"
+      "}\n"
+      "Foo value1;\n"
+      "Foo value2;\n"
+      "main() {\n"
+      "  value1 = new Foo<String>();\n"
+      "  value2 = new Foo<int>();\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class Foo<T> {\n"
+      "  T x;\n"
+      "  List<T> y = new List<T>();"
+      "  dynamic z = <T,T>{};"
+      "}\n"
+      "Foo value1;\n"
+      "Foo value2;\n"
+      "main() {\n"
+      "  return '${value1.y.runtimeType} ${value1.z.runtimeType}'"
+      "      ' ${value2.y.runtimeType} ${value2.z.runtimeType}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances and
+  // correct type arguments were used.
+  EXPECT_STREQ(
+      "List<String> _InternalLinkedHashMap<String, String> List<int> "
+      "_InternalLinkedHashMap<int, int>",
+      SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_TypedefToNotTypedef) {
   const char* kScript =
       "typedef bool Predicate(dynamic x);\n"
