@@ -460,7 +460,7 @@ abstract class ObjectMirror implements Mirror {
    *       return this.getField(invocation.memberName).reflectee;
    *     } else if (invocation.isSetter) {
    *       return this.setField(invocation.memberName,
-   *                            invocation.positionArguments[0]).reflectee;
+   *                            invocation.positionalArguments[0]).reflectee;
    *     } else {
    *       return this.invoke(invocation.memberName,
    *                          invocation.positionalArguments,
