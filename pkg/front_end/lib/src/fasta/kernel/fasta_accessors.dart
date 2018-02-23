@@ -209,6 +209,8 @@ class FunctionTypeAccessor {
 abstract class FastaAccessor implements Accessor {
   BuilderHelper get helper;
 
+  Forest<Expression, Statement> get forest => helper.forest;
+
   String get plainNameForRead;
 
   Uri get uri => helper.uri;
@@ -229,14 +231,13 @@ abstract class FastaAccessor implements Accessor {
 
   Expression makeInvalidRead() {
     return buildThrowNoSuchMethodError(
-        new NullLiteral()..fileOffset = offsetForToken(token),
-        new Arguments.empty(),
+        forest.literalNull(offsetForToken(token)), new Arguments.empty(),
         isGetter: true);
   }
 
   Expression makeInvalidWrite(Expression value) {
     return buildThrowNoSuchMethodError(
-        new NullLiteral()..fileOffset = offsetForToken(token),
+        forest.literalNull(offsetForToken(token)),
         new ShadowArguments(<Expression>[value]),
         isSetter: true);
   }
@@ -359,7 +360,7 @@ abstract class ErrorAccessor implements FastaAccessor {
     // TODO(ahe): For the Analyzer, we probably need to build a prefix
     // increment node that wraps an error.
     return buildError(
-        new ShadowArguments(<Expression>[helper.forest.literalInt(1, offset)]),
+        new ShadowArguments(<Expression>[forest.literalInt(1, offset)]),
         isGetter: true);
   }
 
@@ -371,7 +372,7 @@ abstract class ErrorAccessor implements FastaAccessor {
     // TODO(ahe): For the Analyzer, we probably need to build a post increment
     // node that wraps an error.
     return buildError(
-        new ShadowArguments(<Expression>[helper.forest.literalInt(1, offset)]),
+        new ShadowArguments(<Expression>[forest.literalInt(1, offset)]),
         isGetter: true);
   }
 
@@ -494,8 +495,7 @@ class ThisAccessor extends FastaAccessor {
     }
     if (constructor == null || argMessage != null) {
       return helper.buildInvalidInitializer(
-          buildThrowNoSuchMethodError(
-              new NullLiteral()..fileOffset = offset, arguments,
+          buildThrowNoSuchMethodError(forest.literalNull(offset), arguments,
               isSuper: isSuper,
               name: name.name,
               offset: offset,
@@ -1172,14 +1172,13 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
-        super.expression = new Throw(
-            new StringLiteral(declaration.message.message)
-              ..fileOffset = offsetForToken(token))
+        super.expression = new Throw(forest.literalString(
+            declaration.message.message, offsetForToken(token)))
           ..fileOffset = offset;
       } else {
-        super.expression = new ShadowTypeLiteral(
-            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true))
-          ..fileOffset = offsetForToken(token);
+        super.expression = forest.literalType(
+            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+            offsetForToken(token));
       }
     }
     return super.expression;
@@ -1187,7 +1186,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
 
   Expression makeInvalidWrite(Expression value) {
     return buildThrowNoSuchMethodError(
-        new NullLiteral()..fileOffset = offsetForToken(token),
+        forest.literalNull(offsetForToken(token)),
         new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
         isSetter: true);
   }
@@ -1382,8 +1381,8 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
-    return helper.throwNoSuchMethodError(new NullLiteral()..fileOffset = offset,
-        plainNameForRead, arguments, offset,
+    return helper.throwNoSuchMethodError(
+        forest.literalNull(offset), plainNameForRead, arguments, offset,
         isGetter: isGetter, isSetter: isSetter);
   }
 }

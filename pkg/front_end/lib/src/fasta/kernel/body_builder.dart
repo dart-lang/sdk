@@ -615,8 +615,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         bool hasMore = formalBuilders.moveNext();
         assert(hasMore);
         VariableDeclaration realParameter = formalBuilders.current.target;
-        Expression initializer =
-            parameter.initializer ?? new ShadowNullLiteral();
+        Expression initializer = parameter.initializer ?? forest.literalNull(
+            // TODO(ahe): Should be: realParameter.fileOffset
+            // https://github.com/dart-lang/sdk/issues/32289
+            -1);
         realParameter.initializer = initializer..parent = realParameter;
         _typeInferrer.inferParameterInitializer(
             this, initializer, realParameter.type);
@@ -1261,7 +1263,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
-        return new ShadowNullLiteral()..fileOffset = charOffset;
+        return forest.literalNull(charOffset);
       } else {
         return new UnresolvedAccessor(this, n, token);
       }
@@ -1396,7 +1398,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (interpolationCount == 0) {
       Token token = pop();
       String value = unescapeString(token.lexeme);
-      push(new ShadowStringLiteral(value)..fileOffset = offsetForToken(token));
+      push(forest.literalString(value, offsetForToken(token)));
     } else {
       List parts = popList(1 + interpolationCount * 2);
       Token first = parts.first;
@@ -1407,8 +1409,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (first.lexeme.length > 1) {
         String value = unescapeFirstStringPart(first.lexeme, quote);
         if (value.isNotEmpty) {
-          expressions.add(new ShadowStringLiteral(value)
-            ..fileOffset = offsetForToken(first));
+          expressions.add(forest.literalString(value, offsetForToken(first)));
         }
       }
       for (int i = 1; i < parts.length - 1; i++) {
@@ -1416,8 +1417,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (part is Token) {
           if (part.lexeme.length != 0) {
             String value = unescape(part.lexeme, quote);
-            expressions.add(new ShadowStringLiteral(value)
-              ..fileOffset = offsetForToken(part));
+            expressions.add(forest.literalString(value, offsetForToken(part)));
           }
         } else {
           expressions.add(toValue(part));
@@ -1427,8 +1427,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (last.lexeme.length > 1) {
         String value = unescapeLastStringPart(last.lexeme, quote);
         if (value.isNotEmpty) {
-          expressions.add(new ShadowStringLiteral(value)
-            ..fileOffset = offsetForToken(last));
+          expressions.add(forest.literalString(value, offsetForToken(last)));
         }
       }
       push(new ShadowStringConcatenation(expressions)
@@ -1440,8 +1439,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
     if (hasName) {
-      var ignoredNativeName = pop();
-      assert(ignoredNativeName is ShadowStringLiteral);
+      forest.asLiteralString(pop());
     }
   }
 
@@ -1588,7 +1586,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("NoFieldInitializer");
     if (constantExpressionRequired) {
       // Creating a null value to prevent the Dart VM from crashing.
-      push(new ShadowNullLiteral()..fileOffset = offsetForToken(token));
+      push(forest.literalNull(offsetForToken(token)));
     } else {
       push(NullValue.FieldInitializer);
     }
@@ -1774,10 +1772,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     }
-    push(new ShadowListLiteral(expressions,
-        typeArgument: typeArgument,
-        isConst: constKeyword != null || constantExpressionRequired)
-      ..fileOffset = offsetForToken(constKeyword ?? beginToken));
+    push(forest.literalList(
+        typeArgument,
+        expressions,
+        constKeyword != null || constantExpressionRequired,
+        offsetForToken(constKeyword ?? beginToken)));
   }
 
   @override
@@ -1785,27 +1784,28 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralBool");
     bool value = optional("true", token);
     assert(value || optional("false", token));
-    push(new ShadowBoolLiteral(value)..fileOffset = offsetForToken(token));
+    push(forest.literalBool(value, offsetForToken(token)));
   }
 
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(new ShadowDoubleLiteral(double.parse(token.lexeme))
-      ..fileOffset = offsetForToken(token));
+    push(forest.literalDouble(
+        double.parse(token.lexeme), offsetForToken(token)));
   }
 
   @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(new ShadowNullLiteral()..fileOffset = offsetForToken(token));
+    push(forest.literalNull(offsetForToken(token)));
   }
 
   @override
   void handleLiteralMap(
       int count, Token beginToken, Token constKeyword, Token endToken) {
     debugEvent("LiteralMap");
-    List<MapEntry> entries = popList(count) ?? <MapEntry>[];
+    List entries = forest.mapEntryList(count);
+    popList(count, entries);
     List<DartType> typeArguments = pop();
     DartType keyType;
     DartType valueType;
@@ -1830,11 +1830,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
 
-    push(new ShadowMapLiteral(entries,
-        keyType: keyType,
-        valueType: valueType,
-        isConst: constKeyword != null || constantExpressionRequired)
-      ..fileOffset = constKeyword?.charOffset ?? offsetForToken(beginToken));
+    push(forest.literalMap(
+        keyType,
+        valueType,
+        entries,
+        constKeyword != null || constantExpressionRequired,
+        constKeyword?.charOffset ?? offsetForToken(beginToken)));
   }
 
   @override
@@ -1842,7 +1843,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
     Expression key = popForValue();
-    push(new MapEntry(key, value));
+    push(forest.mapEntry(key, value, colon.offset));
   }
 
   String symbolPartToString(name) {
@@ -1868,8 +1869,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         value += ".${symbolPartToString(parts[i])}";
       }
     }
-    push(
-        new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hashToken));
+    push(forest.literalSymbol(value, offsetForToken(hashToken)));
   }
 
   @override
@@ -2421,7 +2421,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         charOffset,
         typeParameters);
     if (argMessage != null) {
-      return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
+      return throwNoSuchMethodError(forest.literalNull(charOffset),
           target.name.name, arguments, charOffset,
           candidate: target, argMessage: argMessage);
     }
@@ -2602,11 +2602,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (type is ErrorAccessor) {
       push(type.buildError(arguments));
     } else {
-      push(throwNoSuchMethodError(
-          new NullLiteral()..fileOffset = token.charOffset,
-          debugName(getNodeName(type), name),
-          arguments,
-          nameToken.charOffset));
+      push(throwNoSuchMethodError(forest.literalNull(token.charOffset),
+          debugName(getNodeName(type), name), arguments, nameToken.charOffset));
     }
     constantExpressionRequired = savedConstantExpressionRequired;
   }
@@ -2699,8 +2696,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       errorName = debugName(getNodeName(type), name);
     }
     errorName ??= name;
-    return throwNoSuchMethodError(new NullLiteral()..fileOffset = charOffset,
-        errorName, arguments, nameToken.charOffset);
+    return throwNoSuchMethodError(forest.literalNull(charOffset), errorName,
+        arguments, nameToken.charOffset);
   }
 
   @override
@@ -3517,7 +3514,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new Throw(buildStaticInvocation(
         library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
         new Arguments(<Expression>[
-          new StringLiteral("${location?.file ?? uri}"),
+          forest.literalString("${location?.file ?? uri}", charOffset),
           forest.literalInt(location?.line ?? 0, charOffset),
         ]),
         charOffset: charOffset));
@@ -3528,8 +3525,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       [int charOffset = -1]) {
     addProblemErrorIfConst(message, charOffset, className.length);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
-    return new Throw(buildStaticInvocation(constructor.target,
-        new ShadowArguments(<Expression>[new StringLiteral(className)])));
+    return new Throw(buildStaticInvocation(
+        constructor.target,
+        new ShadowArguments(
+            <Expression>[forest.literalString(className, charOffset)])));
   }
 
   Statement deprecated_buildCompileTimeErrorStatement(error,
@@ -3600,7 +3599,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             library.loader.getDuplicatedFieldInitializerError();
         return buildInvalidInitializer(
             new Throw(buildStaticInvocation(constructor.target,
-                new Arguments(<Expression>[new StringLiteral(name)]),
+                new Arguments(<Expression>[forest.literalString(name, offset)]),
                 charOffset: offset)),
             offset);
       } else {
@@ -3768,7 +3767,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           variable,
           new ConditionalExpression(
               buildIsNull(new VariableGet(variable), offset),
-              new NullLiteral(),
+              forest.literalNull(offset),
               new MethodInvocation(
                   new VariableGet(variable), name, arguments, interfaceTarget)
                 ..fileOffset = offset,
