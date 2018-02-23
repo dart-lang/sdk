@@ -5528,12 +5528,8 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   isolate->heap()->Verify();
 #endif
 
-  {
-    NOT_IN_PRODUCT(TimelineDurationScope tds(
-        thread(), Timeline::GetIsolateStream(), "PostLoad"));
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->PostLoad(refs, kind_, zone_);
-    }
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i]->PostLoad(refs, kind_, zone_);
   }
 
   // Setup native resolver for bootstrap impl.

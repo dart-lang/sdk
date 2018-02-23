@@ -102,6 +102,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
     return result;
@@ -120,6 +121,7 @@ DART_EXPORT Dart_Handle Dart_ParseAll() {
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
     return result;
