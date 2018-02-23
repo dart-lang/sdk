@@ -1205,3 +1205,30 @@ shared_library("sample_extension") {
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
   }
 }
+
+compiled_action("precompiler_entry_points_json") {
+  # Printing precompiler entry points is folded into precompilation, so dart_bootstrap is invoked
+  # with correct arguments to generate app-aot snapshot.
+
+  # Dart script to precompile (any valid script would suffice).
+  input = "../vm/snapshot_test.dart"
+
+  # Output snapshot for precompilation.
+  snapshot = "$target_gen_dir/dummy.snapshot"
+
+  output = "$target_gen_dir/precompiler_entry_points.json"
+  tool = ":dart_bootstrap"
+  inputs = [
+    input,
+  ]
+  outputs = [
+    output,
+  ]
+  args = [
+    "--print-precompiler-entry-points=" + rebase_path(output),
+    "--snapshot=" + rebase_path(snapshot),
+    "--snapshot-kind=app-aot",
+    "--use-blobs",
+    rebase_path(input),
+  ]
+}

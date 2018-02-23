@@ -30,7 +30,10 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('sync-async', help: 'Start `async` functions synchronously')
   ..addFlag('embed-sources',
       help: 'Embed source files in the generated kernel program',
-      defaultsTo: true);
+      defaultsTo: true)
+  ..addOption('entry-points',
+      help: 'Path to JSON file with the list of entry points',
+      allowMultiple: true);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -67,6 +70,14 @@ Future<int> compile(List<String> arguments) async {
   final bool aot = options['aot'];
   final bool syncAsync = options['sync-async'];
 
+  final List<String> entryPoints = options['entry-points'] ?? <String>[];
+  if (entryPoints.isEmpty) {
+    entryPoints.addAll([
+      'pkg/vm/lib/transformations/type_flow/entry_points.json',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+    ]);
+  }
+
   ErrorDetector errorDetector = new ErrorDetector();
 
   final CompilerOptions compilerOptions = new CompilerOptions()
@@ -81,7 +92,7 @@ Future<int> compile(List<String> arguments) async {
 
   Program program = await compileToKernel(
       Uri.base.resolve(filename), compilerOptions,
-      aot: aot);
+      aot: aot, entryPoints: entryPoints);
 
   if (errorDetector.hasCompilationErrors || (program == null)) {
     return _compileTimeErrorExitCode;

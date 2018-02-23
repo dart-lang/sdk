@@ -27,7 +27,6 @@ import 'utils.dart';
 // === Correctness ===
 // * Verify incremental re-calculation by fresh analysis starting with known
 //   allocated classes.
-// * Auto-generate entry_points.json during build.
 //
 // === Precision ===
 // * Handle '==' with null.

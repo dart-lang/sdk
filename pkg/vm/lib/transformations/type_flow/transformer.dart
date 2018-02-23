@@ -30,12 +30,12 @@ const bool kDumpClassHierarchy =
 
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program,
-    // TODO(alexmarkov): Pass entry points descriptors from command line.
-    {List<String> entryPointsJSONFiles: const [
-      'pkg/vm/lib/transformations/type_flow/entry_points.json',
-      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
-    ]}) {
+Program transformProgram(
+    CoreTypes coreTypes, Program program, List<String> entryPoints) {
+  if ((entryPoints == null) || entryPoints.isEmpty) {
+    throw 'Error: unable to perform global type flow analysis without entry points.';
+  }
+
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(program,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
@@ -52,7 +52,7 @@ Program transformProgram(CoreTypes coreTypes, Program program,
   final analysisStopWatch = new Stopwatch()..start();
 
   final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
-      entryPointsJSONFiles: entryPointsJSONFiles);
+      entryPointsJSONFiles: entryPoints);
 
   Procedure main = program.mainMethod;
   final Selector mainSelector = new DirectSelector(main);
