@@ -1541,7 +1541,12 @@ DeferredPrefixDuplicatedCause:
 
 TypeArgumentsOnTypeVariable:
   template: "Can't use type arguments with type variable '#name'."
+  tip: "Try removing the type arguments."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_ARGUMENTS_ON_TYPE_VARIABLE
+  dart2jsCode: "*fatal*"
+  script:
+    - "dynamic<T>(x) => 0"
 
 DuplicatedDefinition:
   template: "Duplicated definition of '#name'."

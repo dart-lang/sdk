@@ -15662,8 +15662,22 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
       for (Keyword keyword in Keyword.values) {
         if (keyword.isBuiltIn || keyword.isPseudo) {
           String lexeme = keyword.lexeme;
-          parseCompilationUnit('$lexeme<T>(x) => 0;');
-          parseCompilationUnit('class C {$lexeme<T>(x) => 0;}');
+          List<ExpectedError> expectedErrors = [];
+          if (lexeme == 'dynamic') {
+            expectedErrors = [
+              expectedError(
+                  ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE, 7, 1)
+            ];
+          }
+          parseCompilationUnit('$lexeme<T>(x) => 0;', errors: expectedErrors);
+          if (lexeme == 'dynamic') {
+            expectedErrors = [
+              expectedError(
+                  ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE, 16, 1)
+            ];
+          }
+          parseCompilationUnit('class C {$lexeme<T>(x) => 0;}',
+              errors: expectedErrors);
         }
       }
     }

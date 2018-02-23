@@ -25,9 +25,12 @@ class FastaErrorReporter {
     String stringOrTokenLexeme() {
       var text = arguments['string'];
       if (text == null) {
-        Token token = arguments['token'];
-        if (token != null) {
-          text = token.lexeme;
+        text = arguments['name'];
+        if (text == null) {
+          Token token = arguments['token'];
+          if (token != null) {
+            text = token.lexeme;
+          }
         }
       }
       return text;
@@ -490,6 +493,14 @@ class FastaErrorReporter {
       case "TOP_LEVEL_OPERATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
+        return;
+      case "TYPE_ARGUMENTS_ON_TYPE_VARIABLE":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
+            offset,
+            length,
+            [text]);
         return;
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(

@@ -944,6 +944,12 @@ class ParserErrorCode extends ErrorCode {
       "moving it to a class, or "
       "converting it to be a function.");
 
+  static const ParserErrorCode TYPE_ARGUMENTS_ON_TYPE_VARIABLE =
+      const ParserErrorCode(
+          'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
+          "Can't use type arguments with type variable '{0}'.",
+          "Try removing the type arguments.");
+
   static const ParserErrorCode TYPEDEF_IN_CLASS = const ParserErrorCode(
       'TYPEDEF_IN_CLASS',
       "Typedefs can't be declared inside classes.",

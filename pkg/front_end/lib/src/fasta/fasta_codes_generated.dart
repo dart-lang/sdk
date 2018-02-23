@@ -5184,18 +5184,22 @@ const Template<Message Function(String name)>
     const Template<Message Function(String name)>(
         messageTemplate:
             r"""Can't use type arguments with type variable '#name'.""",
+        tipTemplate: r"""Try removing the type arguments.""",
         withArguments: _withArgumentsTypeArgumentsOnTypeVariable);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     const Code<Message Function(String name)>(
         "TypeArgumentsOnTypeVariable", templateTypeArgumentsOnTypeVariable,
+        analyzerCode: "TYPE_ARGUMENTS_ON_TYPE_VARIABLE",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
   return new Message(codeTypeArgumentsOnTypeVariable,
       message: """Can't use type arguments with type variable '$name'.""",
+      tip: """Try removing the type arguments.""",
       arguments: {'name': name});
 }
 

@@ -473,6 +473,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
   ParserErrorCode.TOP_LEVEL_OPERATOR,
   ParserErrorCode.TYPEDEF_IN_CLASS,
+  ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
   ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
   ParserErrorCode.UNEXPECTED_TOKEN,
   ParserErrorCode.VAR_AND_TYPE,
