@@ -32,7 +32,14 @@ DartType _normalizeDartType(DartType type) {
     return const DynamicType();
   } else if (type is TypeParameterType) {
     // TODO(alexmarkov): instantiate type parameters if possible
-    return _normalizeDartType(type.bound);
+    final bound = type.bound;
+    // Protect against infinite recursion in case of cyclic type parameters
+    // like 'T extends T'. As of today, front-end doesn't report errors in such
+    // cases yet.
+    if (bound is TypeParameterType) {
+      return const DynamicType();
+    }
+    return _normalizeDartType(bound);
   }
   return type;
 }
@@ -71,12 +78,15 @@ abstract class Type extends TypeExpr {
   /// Create a nullable type - union of [t] and the `null` object.
   factory Type.nullable(Type t) => new NullableType(t);
 
+  /// Create a type representing arbitrary nullable object (`dynamic`).
+  factory Type.nullableAny() => new NullableType(const AnyType());
+
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
   factory Type.fromStatic(DartType dartType) {
     dartType = _normalizeDartType(dartType);
     if ((dartType == const DynamicType()) || (dartType == const VoidType())) {
-      return new Type.nullable(const AnyType());
+      return new Type.nullableAny();
     } else if (dartType == const BottomType()) {
       return new Type.nullable(new Type.empty());
     }

@@ -50,8 +50,12 @@ main() {
     expect(new Type.nullable(new Type.cone(t1)),
         equals(new NullableType(new ConeType(t1))));
 
+    expect(new Type.nullableAny(), equals(new NullableType(new AnyType())));
+
     expect(new Type.fromStatic(const DynamicType()),
         equals(new NullableType(new AnyType())));
+    expect(new Type.fromStatic(const DynamicType()),
+        equals(new Type.nullableAny()));
     expect(new Type.fromStatic(const BottomType()),
         equals(new NullableType(new EmptyType())));
     expect(new Type.fromStatic(t1), equals(new NullableType(new ConeType(t1))));

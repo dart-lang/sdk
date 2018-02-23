@@ -39,7 +39,7 @@ class B extends self::A {
   synthetic constructor •() → void
     : super self::A::•()
     ;
-  method noSuchMethod([@vm.inferred-type.metadata=dart.core::_InvocationMirror?] core::Invocation invocation) → dynamic {
+  method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T1::•();
   }
 }
@@ -47,7 +47,7 @@ class C extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method noSuchMethod([@vm.inferred-type.metadata=dart.core::_InvocationMirror?] core::Invocation invocation) → dynamic {
+  method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T2::•();
   }
 }
@@ -62,7 +62,7 @@ class E extends core::Object implements self::A {
     ;
 [@vm.unreachable.metadata=]  method foo() → dynamic
     throw "TFA Error: #lib::E::foo";
-  method noSuchMethod([@vm.inferred-type.metadata=dart.core::_InvocationMirror?] core::Invocation invocation) → dynamic {
+  method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T4::•();
   }
 }
@@ -72,7 +72,7 @@ class F extends core::Object {
     ;
 [@vm.unreachable.metadata=]  method twoArg(dynamic a1, dynamic a2) → dynamic
     throw "TFA Error: #lib::F::twoArg";
-  method noSuchMethod([@vm.inferred-type.metadata=dart.core::_InvocationMirror?] core::Invocation invocation) → dynamic {
+  method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T2::•();
   }
 }
@@ -80,7 +80,7 @@ class G extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method noSuchMethod([@vm.inferred-type.metadata=dart.core::_InvocationMirror?] core::Invocation invocation) → dynamic {
+  method noSuchMethod(core::Invocation invocation) → dynamic {
     return new self::T5::•();
   }
 }

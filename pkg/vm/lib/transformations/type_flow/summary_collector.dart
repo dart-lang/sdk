@@ -346,8 +346,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           final function = member.function;
           assertx(function != null);
 
-          for (var decl in function.positionalParameters) {
-            args.add(new Type.fromStatic(decl.type));
+          for (int i = 0; i < function.positionalParameters.length; i++) {
+            args.add(new Type.nullableAny());
           }
 
           // TODO(alexmarkov): take named parameters into account
@@ -358,7 +358,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
 
       case CallKind.PropertySet:
-        args.add(new Type.fromStatic(member.setterType));
+        args.add(new Type.nullableAny());
         break;
 
       case CallKind.FieldInitializer:

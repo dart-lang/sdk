@@ -163,7 +163,7 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
-        return new Type.fromStatic(const DynamicType());
+        return new Type.nullableAny();
 
       case CallKind.FieldInitializer:
         assertx(args.values.isEmpty);
@@ -197,7 +197,7 @@ class _DirectInvocation extends _Invocation {
         // TODO(alexmarkov): capture receiver type
         assertx((member is Procedure) && !member.isGetter && !member.isSetter);
         typeFlowAnalysis.addRawCall(new DirectSelector(member));
-        return new Type.fromStatic(const DynamicType());
+        return new Type.nullableAny();
       } else {
         // Call via getter.
         // TODO(alexmarkov): capture receiver type
@@ -206,7 +206,7 @@ class _DirectInvocation extends _Invocation {
             member.isGetter);
         typeFlowAnalysis.addRawCall(
             new DirectSelector(member, callKind: CallKind.PropertyGet));
-        return new Type.fromStatic(const DynamicType());
+        return new Type.nullableAny();
       }
     }
   }
@@ -308,7 +308,7 @@ class _DispatchableInvocation extends _Invocation {
     // TODO(alexmarkov): handle closures more precisely
     if ((selector is DynamicSelector) && (selector.name.name == "call")) {
       tracePrint("Possible closure call, result is dynamic");
-      result = new Type.fromStatic(const DynamicType());
+      result = new Type.nullableAny();
     }
 
     return result;
@@ -588,10 +588,11 @@ class _InvocationsCache {
 
 class _FieldValue extends _DependencyTracker {
   final Field field;
+  final Type staticType;
   Type value;
   _DirectInvocation _initializerInvocation;
 
-  _FieldValue(this.field) {
+  _FieldValue(this.field) : staticType = new Type.fromStatic(field.type) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
       value = new Type.nullable(const EmptyType());
     } else {
@@ -642,7 +643,9 @@ class _FieldValue extends _DependencyTracker {
   }
 
   void setValue(Type newValue, TypeFlowAnalysis typeFlowAnalysis) {
-    final Type newType = value.union(newValue, typeFlowAnalysis.hierarchyCache);
+    final Type newType = value.union(
+        newValue.intersection(staticType, typeFlowAnalysis.hierarchyCache),
+        typeFlowAnalysis.hierarchyCache);
     if (newType != value) {
       tracePrint("Set field $field value $newType");
       invalidateDependentInvocations(typeFlowAnalysis.workList);
