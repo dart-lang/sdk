@@ -133,7 +133,8 @@ class OpType {
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
-      CompilationUnitElement unitElement = target.unit.element;
+      // Careful: in angular plugin, `target.unit` may be null!
+      CompilationUnitElement unitElement = target.unit?.element;
       if (unitElement != null &&
           unitElement.context.analysisOptions.previewDart2) {
         optype.includeConstructorSuggestions = true;
