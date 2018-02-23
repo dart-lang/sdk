@@ -5,30 +5,30 @@
 library fasta.forest;
 
 /// A tree factory.
-abstract class Forest<Expression, Statement> {
+abstract class Forest<Expression, Statement, Location> {
   Expression asLiteralString(Expression value);
 
-  Expression literalBool(bool value, int offset);
+  Expression literalBool(bool value, Location location);
 
-  Expression literalDouble(double value, int offset);
+  Expression literalDouble(double value, Location location);
 
-  Expression literalInt(int value, int offset);
+  Expression literalInt(int value, Location location);
 
   Expression literalList(covariant typeArgument, List<Expression> expressions,
-      bool isConst, int offset);
+      bool isConst, Location location);
 
   Expression literalMap(covariant keyType, covariant valueType,
-      covariant List entries, bool isConst, int offset);
+      covariant List entries, bool isConst, Location location);
 
-  Expression literalNull(int offset);
+  Expression literalNull(Location location);
 
-  Expression literalString(String value, int offset);
+  Expression literalString(String value, Location location);
 
-  Expression literalSymbol(String value, int offset);
+  Expression literalSymbol(String value, Location location);
 
-  Expression literalType(covariant type, int offset);
+  Expression literalType(covariant type, Location location);
 
-  Object mapEntry(Expression key, Expression value, int offset);
+  Object mapEntry(Expression key, Expression value, Location location);
 
   List mapEntryList(int length);
 }

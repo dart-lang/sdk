@@ -84,7 +84,7 @@ abstract class BuilderHelper {
 
   bool get constantExpressionRequired;
 
-  Forest<Expression, Statement> get forest;
+  Forest<Expression, Statement, Token> get forest;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -175,6 +175,8 @@ abstract class BuilderHelper {
   Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
+
+  TreeNode storeOffset(TreeNode node, int offset);
 }
 
 // The name used to refer to a call target kind
@@ -209,7 +211,7 @@ class FunctionTypeAccessor {
 abstract class FastaAccessor implements Accessor {
   BuilderHelper get helper;
 
-  Forest<Expression, Statement> get forest => helper.forest;
+  Forest<Expression, Statement, Token> get forest => helper.forest;
 
   String get plainNameForRead;
 
@@ -218,6 +220,10 @@ abstract class FastaAccessor implements Accessor {
   String get plainNameForWrite => plainNameForRead;
 
   bool get isInitializer => false;
+
+  TreeNode storeOffset(TreeNode node, int offset) {
+    return helper.storeOffset(node, offset);
+  }
 
   Expression buildForEffect() => buildSimpleRead();
 
@@ -231,14 +237,13 @@ abstract class FastaAccessor implements Accessor {
 
   Expression makeInvalidRead() {
     return buildThrowNoSuchMethodError(
-        forest.literalNull(offsetForToken(token)), new Arguments.empty(),
+        forest.literalNull(token), new Arguments.empty(),
         isGetter: true);
   }
 
   Expression makeInvalidWrite(Expression value) {
     return buildThrowNoSuchMethodError(
-        forest.literalNull(offsetForToken(token)),
-        new ShadowArguments(<Expression>[value]),
+        forest.literalNull(token), new ShadowArguments(<Expression>[value]),
         isSetter: true);
   }
 
@@ -360,7 +365,8 @@ abstract class ErrorAccessor implements FastaAccessor {
     // TODO(ahe): For the Analyzer, we probably need to build a prefix
     // increment node that wraps an error.
     return buildError(
-        new ShadowArguments(<Expression>[forest.literalInt(1, offset)]),
+        new ShadowArguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)]),
         isGetter: true);
   }
 
@@ -372,7 +378,8 @@ abstract class ErrorAccessor implements FastaAccessor {
     // TODO(ahe): For the Analyzer, we probably need to build a post increment
     // node that wraps an error.
     return buildError(
-        new ShadowArguments(<Expression>[forest.literalInt(1, offset)]),
+        new ShadowArguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)]),
         isGetter: true);
   }
 
@@ -495,7 +502,8 @@ class ThisAccessor extends FastaAccessor {
     }
     if (constructor == null || argMessage != null) {
       return helper.buildInvalidInitializer(
-          buildThrowNoSuchMethodError(forest.literalNull(offset), arguments,
+          buildThrowNoSuchMethodError(
+              storeOffset(forest.literalNull(null), offset), arguments,
               isSuper: isSuper,
               name: name.name,
               offset: offset,
@@ -1172,21 +1180,20 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
-        super.expression = new Throw(forest.literalString(
-            declaration.message.message, offsetForToken(token)))
-          ..fileOffset = offset;
+        super.expression =
+            new Throw(forest.literalString(declaration.message.message, token))
+              ..fileOffset = offset;
       } else {
         super.expression = forest.literalType(
             buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
-            offsetForToken(token));
+            token);
       }
     }
     return super.expression;
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return buildThrowNoSuchMethodError(
-        forest.literalNull(offsetForToken(token)),
+    return buildThrowNoSuchMethodError(forest.literalNull(token),
         new Arguments(<Expression>[value])..fileOffset = value.fileOffset,
         isSetter: true);
   }
@@ -1382,8 +1389,12 @@ class UnresolvedAccessor extends FastaAccessor with ErrorAccessor {
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
     return helper.throwNoSuchMethodError(
-        forest.literalNull(offset), plainNameForRead, arguments, offset,
-        isGetter: isGetter, isSetter: isSetter);
+        storeOffset(forest.literalNull(null), offset),
+        plainNameForRead,
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
   }
 }
 

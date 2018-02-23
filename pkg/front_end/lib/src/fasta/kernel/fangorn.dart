@@ -10,69 +10,73 @@ import 'package:kernel/ast.dart' show DartType, MapEntry;
 
 import 'package:kernel/ast.dart' as kernel;
 
+import '../parser.dart' show offsetForToken;
+
+import '../scanner.dart' show Token;
+
 import 'kernel_shadow_ast.dart';
 
 import 'forest.dart' show Forest;
 
 /// A shadow tree factory.
-class Fangorn extends Forest<ShadowExpression, ShadowStatement> {
+class Fangorn extends Forest<ShadowExpression, ShadowStatement, Token> {
   @override
   ShadowStringLiteral asLiteralString(ShadowExpression value) => value;
 
   @override
-  ShadowBoolLiteral literalBool(bool value, int offset) {
-    return new ShadowBoolLiteral(value)..fileOffset = offset;
+  ShadowBoolLiteral literalBool(bool value, Token token) {
+    return new ShadowBoolLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowDoubleLiteral literalDouble(double value, int offset) {
-    return new ShadowDoubleLiteral(value)..fileOffset = offset;
+  ShadowDoubleLiteral literalDouble(double value, Token token) {
+    return new ShadowDoubleLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowIntLiteral literalInt(int value, int offset) {
-    return new ShadowIntLiteral(value)..fileOffset = offset;
+  ShadowIntLiteral literalInt(int value, Token token) {
+    return new ShadowIntLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
   ShadowExpression literalList(covariant typeArgument,
-      List<kernel.Expression> expressions, bool isConst, int offset) {
+      List<kernel.Expression> expressions, bool isConst, Token token) {
     return new ShadowListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
   ShadowMapLiteral literalMap(DartType keyType, DartType valueType,
-      List<MapEntry> entries, bool isConst, int offset) {
+      List<MapEntry> entries, bool isConst, Token token) {
     return new ShadowMapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
-      ..fileOffset = offset;
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowNullLiteral literalNull(int offset) {
-    return new ShadowNullLiteral()..fileOffset = offset;
+  ShadowNullLiteral literalNull(Token token) {
+    return new ShadowNullLiteral()..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowStringLiteral literalString(String value, int offset) {
-    return new ShadowStringLiteral(value)..fileOffset = offset;
+  ShadowStringLiteral literalString(String value, Token token) {
+    return new ShadowStringLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowSymbolLiteral literalSymbol(String value, int offset) {
-    return new ShadowSymbolLiteral(value)..fileOffset = offset;
+  ShadowSymbolLiteral literalSymbol(String value, Token token) {
+    return new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowTypeLiteral literalType(DartType type, int offset) {
-    return new ShadowTypeLiteral(type)..fileOffset = offset;
+  ShadowTypeLiteral literalType(DartType type, Token token) {
+    return new ShadowTypeLiteral(type)..fileOffset = offsetForToken(token);
   }
 
   @override
-  MapEntry mapEntry(ShadowExpression key, ShadowExpression value, int offset) {
-    return new MapEntry(key, value)..fileOffset = offset;
+  MapEntry mapEntry(ShadowExpression key, ShadowExpression value, Token token) {
+    return new MapEntry(key, value)..fileOffset = offsetForToken(token);
   }
 
   @override
