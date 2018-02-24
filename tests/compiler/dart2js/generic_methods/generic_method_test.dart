@@ -92,6 +92,12 @@ class Class3 {
   }
 }
 
+// Nested generic local function.
+outside<T>() {
+  nested<T>(T t) => '';
+  return nested;
+}
+
 main(args) {
   method1<int>(0);
   method2<String, double>(0.5, 'foo');
@@ -109,6 +115,7 @@ main(args) {
     print('noSuchMethod: Class2.method6<int>');
     print('');
   }
+  outside();
 }
 ''';
 
@@ -162,7 +169,7 @@ main(List<String> args) {
     }, options: [
       Flags.useKernel,
       Flags.strongMode,
-      Flags.disableRtiOptimization
+      Flags.disableRtiOptimization,
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

@@ -847,10 +847,11 @@ class TypeVariableTypeWithContext implements ir.Node {
   final TypeVariableKind kind;
   final ir.TreeNode typeDeclaration;
 
+  /// [context] can be either an ir.Member or a ir.FunctionDeclaration or
+  /// ir.FunctionExpression.
   factory TypeVariableTypeWithContext(
-      ir.TypeParameterType type, ir.Member memberContext) {
+      ir.TypeParameterType type, ir.TreeNode context) {
     TypeVariableKind kind;
-    ir.TreeNode context = memberContext;
     ir.TreeNode typeDeclaration = type.parameter.parent;
     if (typeDeclaration == null) {
       // We have a function type variable, like `T` in `void Function<T>(int)`.
