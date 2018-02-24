@@ -129,6 +129,7 @@ class AssistProcessor {
     await _addProposal_convertDocumentationIntoLine();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
+    await _addProposal_convertToDoubleQuotedString();
     await _addProposal_convertToExpressionFunctionBody();
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertToForIndexLoop();
@@ -138,6 +139,7 @@ class AssistProcessor {
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToNormalParameter();
+    await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
@@ -718,6 +720,10 @@ class AssistProcessor {
         changeBuilder, DartAssistKind.CONVERT_INTO_BLOCK_BODY);
   }
 
+  Future<Null> _addProposal_convertToDoubleQuotedString() async {
+    await _convertQuotes(false, DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
   Future<Null> _addProposal_convertToExpressionFunctionBody() async {
     // prepare current body
     FunctionBody body = getEnclosingFunctionBody();
@@ -1157,6 +1163,10 @@ class AssistProcessor {
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.CONVERT_TO_NORMAL_PARAMETER);
     }
+  }
+
+  Future<Null> _addProposal_convertToSingleQuotedString() async {
+    await _convertQuotes(true, DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
   }
 
   Future<Null> _addProposal_encapsulateField() async {
@@ -2902,6 +2912,60 @@ class AssistProcessor {
     });
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  Future<Null> _convertQuotes(bool fromDouble, AssistKind kind) async {
+    if (node is SimpleStringLiteral) {
+      SimpleStringLiteral literal = node;
+      if (fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
+        String newQuote = literal.isMultiline
+            ? (fromDouble ? "'''" : '"""')
+            : (fromDouble ? "'" : '"');
+        int quoteLength = literal.isMultiline ? 3 : 1;
+        String lexeme = literal.literal.lexeme;
+        if (lexeme.indexOf(newQuote) < 0) {
+          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+            builder.addSimpleReplacement(
+                new SourceRange(
+                    literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
+                newQuote);
+            builder.addSimpleReplacement(
+                new SourceRange(literal.end - quoteLength, quoteLength),
+                newQuote);
+          });
+          _addAssistFromBuilder(changeBuilder, kind);
+        }
+      }
+    } else if (node is InterpolationString) {
+      StringInterpolation parent = node.parent;
+      if (fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
+        String newQuote = parent.isMultiline
+            ? (fromDouble ? "'''" : '"""')
+            : (fromDouble ? "'" : '"');
+        int quoteLength = parent.isMultiline ? 3 : 1;
+        NodeList<InterpolationElement> elements = parent.elements;
+        for (int i = 0; i < elements.length; i++) {
+          InterpolationElement element = elements[i];
+          if (element is InterpolationString) {
+            String lexeme = element.contents.lexeme;
+            if (lexeme.indexOf(newQuote) >= 0) {
+              return;
+            }
+          }
+        }
+        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addSimpleReplacement(
+              new SourceRange(
+                  parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
+              newQuote);
+          builder.addSimpleReplacement(
+              new SourceRange(parent.end - quoteLength, quoteLength), newQuote);
+        });
+        _addAssistFromBuilder(changeBuilder, kind);
+      }
+    }
   }
 
   /// Return the [ClassElement] with the given [className] that is exported

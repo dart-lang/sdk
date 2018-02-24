@@ -67,6 +67,10 @@ class DartAssistKind {
       'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'");
   static const CONVERT_PART_OF_TO_URI = const AssistKind(
       'dart.assist.convert.partOfToPartUri', 30, "Convert to use a URI");
+  static const CONVERT_TO_DOUBLE_QUOTED_STRING = const AssistKind(
+      'dart.assist.convert.toDoubleQuotedString',
+      30,
+      "Convert to double quoted string");
   static const CONVERT_TO_FIELD_PARAMETER = const AssistKind(
       'dart.assist.convert.toConstructorFieldParameter',
       30,
@@ -75,6 +79,10 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorNormalParameter',
       30,
       "Convert to normal parameter");
+  static const CONVERT_TO_SINGLE_QUOTED_STRING = const AssistKind(
+      'dart.assist.convert.toSingleQuotedString',
+      30,
+      "Convert to single quoted string");
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =

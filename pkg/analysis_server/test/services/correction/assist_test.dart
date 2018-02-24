@@ -1195,6 +1195,138 @@ class A {
 ''');
   }
 
+  test_convertToDoubleQuotedString_BAD_one_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print('a"b"c');
+}
+''');
+    await assertNoAssistAt(
+        "'a", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_one_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("abc");
+}
+''');
+    await assertNoAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_three_embeddedTarget() async {
+    await resolveTestUnit("""
+main() {
+  print('''a""\"c''');
+}
+""");
+    await assertNoAssistAt(
+        "'a", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_BAD_three_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("""abc""");
+}
+''');
+    await assertNoAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING);
+  }
+
+  test_convertToDoubleQuotedString_OK_one_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b-${c} d');
+}
+''');
+    await assertHasAssistAt(
+        r"'a $b", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b-${c} d");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_one_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r'abc');
+}
+''');
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print(r"abc");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_one_simple() async {
+    await resolveTestUnit('''
+main() {
+  print('abc');
+}
+''');
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print("abc");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_interpolation() async {
+    await resolveTestUnit(r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''a $b-${c} d''');
+}
+""");
+    await assertHasAssistAt(
+        r"'a $b", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""a $b-${c} d""");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_raw() async {
+    await resolveTestUnit("""
+main() {
+  print(r'''abc''');
+}
+""");
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print(r"""abc""");
+}
+''');
+  }
+
+  test_convertToDoubleQuotedString_OK_three_simple() async {
+    await resolveTestUnit("""
+main() {
+  print('''abc''');
+}
+""");
+    await assertHasAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_DOUBLE_QUOTED_STRING, '''
+main() {
+  print("""abc""");
+}
+''');
+  }
+
   test_convertToExpressionBody_BAD_already() async {
     await resolveTestUnit('''
 fff() => 42;
@@ -2234,6 +2366,138 @@ class A {
   A(int bbb) : aaa = 1.0, bbb = bbb;
 }
 ''');
+  }
+
+  test_convertToSingleQuotedString_BAD_one_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("a'b'c");
+}
+''');
+    await assertNoAssistAt(
+        '"a', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_one_enclosingTarget() async {
+    await resolveTestUnit('''
+main() {
+  print('abc');
+}
+''');
+    await assertNoAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_three_embeddedTarget() async {
+    await resolveTestUnit('''
+main() {
+  print("""a''\'bc""");
+}
+''');
+    await assertNoAssistAt(
+        '"a', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_BAD_three_enclosingTarget() async {
+    await resolveTestUnit("""
+main() {
+  print('''abc''');
+}
+""");
+    await assertNoAssistAt(
+        "'ab", DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
+  test_convertToSingleQuotedString_OK_one_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("a $b-${c} d");
+}
+''');
+    await assertHasAssistAt(
+        r'"a $b', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('a $b-${c} d');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_one_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r"abc");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, '''
+main() {
+  print(r'abc');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_one_simple() async {
+    await resolveTestUnit('''
+main() {
+  print("abc");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, '''
+main() {
+  print('abc');
+}
+''');
+  }
+
+  test_convertToSingleQuotedString_OK_three_interpolation() async {
+    await resolveTestUnit(r'''
+main() {
+  var b = 'b';
+  var c = 'c';
+  print("""a $b-${c} d""");
+}
+''');
+    await assertHasAssistAt(
+        r'"a $b', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, r"""
+main() {
+  var b = 'b';
+  var c = 'c';
+  print('''a $b-${c} d''');
+}
+""");
+  }
+
+  test_convertToSingleQuotedString_OK_three_raw() async {
+    await resolveTestUnit('''
+main() {
+  print(r"""abc""");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, """
+main() {
+  print(r'''abc''');
+}
+""");
+  }
+
+  test_convertToSingleQuotedString_OK_three_simple() async {
+    await resolveTestUnit('''
+main() {
+  print("""abc""");
+}
+''');
+    await assertHasAssistAt(
+        '"ab', DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING, """
+main() {
+  print('''abc''');
+}
+""");
   }
 
   test_encapsulateField_BAD_alreadyPrivate() async {
