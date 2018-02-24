@@ -2779,8 +2779,8 @@ main() {
   new Column(
     children: <Widget>[
       new Text('aaa'),
-      /*caret*/new Text('bbb'),
-      new Text('ccc'),
+      /*caret*/new Text('bbbbbb'),
+      new Text('ccccccccc'),
     ],
   );
 }
@@ -2792,12 +2792,13 @@ main() {
   new Column(
     children: <Widget>[
       new Text('aaa'),
-      /*caret*/new Text('ccc'),
-      new Text('bbb'),
+      /*caret*/new Text('ccccccccc'),
+      new Text('bbbbbb'),
     ],
   );
 }
 ''');
+    _assertExitPosition(before: "new Text('bbbbbb')");
   }
 
   test_flutterMoveWidgetUp_BAD_first() async {
@@ -2840,8 +2841,8 @@ main() {
   new Column(
     children: <Widget>[
       new Text('aaa'),
-      /*caret*/new Text('bbb'),
-      new Text('ccc'),
+      /*caret*/new Text('bbbbbb'),
+      new Text('ccccccccc'),
     ],
   );
 }
@@ -2852,13 +2853,14 @@ import 'package:flutter/material.dart';
 main() {
   new Column(
     children: <Widget>[
-      new Text('bbb'),
+      new Text('bbbbbb'),
       /*caret*/new Text('aaa'),
-      new Text('ccc'),
+      new Text('ccccccccc'),
     ],
   );
 }
 ''');
+    _assertExitPosition(before: "new Text('bbbbbb')");
   }
 
   test_flutterRemoveWidget_BAD_childrenMultipleIntoChild() async {
@@ -5134,7 +5136,7 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['condition);']);
-    _assertExitPosition('condition);');
+    _assertExitPosition(after: 'condition);');
   }
 
   test_surroundWith_for() async {
@@ -5161,7 +5163,7 @@ main() {
     _assertLinkedGroup(change.linkedEditGroups[1], ['init;']);
     _assertLinkedGroup(change.linkedEditGroups[2], ['condition;']);
     _assertLinkedGroup(change.linkedEditGroups[3], ['increment']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_forIn() async {
@@ -5186,7 +5188,7 @@ main() {
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['item']);
     _assertLinkedGroup(change.linkedEditGroups[1], ['iterable']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_if() async {
@@ -5210,7 +5212,7 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
   test_surroundWith_tryCatch() async {
@@ -5238,7 +5240,7 @@ main() {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Exception']);
     _assertLinkedGroup(change.linkedEditGroups[1], ['e) {']);
     _assertLinkedGroup(change.linkedEditGroups[2], ['// TODO']);
-    _assertExitPosition('// TODO');
+    _assertExitPosition(after: '// TODO');
   }
 
   test_surroundWith_tryFinally() async {
@@ -5264,7 +5266,7 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['// TODO']);
-    _assertExitPosition('// TODO');
+    _assertExitPosition(after: '// TODO');
   }
 
   test_surroundWith_while() async {
@@ -5288,14 +5290,20 @@ main() {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['condition']);
-    _assertExitPosition('  }');
+    _assertExitPosition(after: '  }');
   }
 
-  void _assertExitPosition(String after) {
+  void _assertExitPosition({String before, String after}) {
     Position exitPosition = change.selection;
     expect(exitPosition, isNotNull);
     expect(exitPosition.file, testFile);
-    expect(exitPosition.offset, resultCode.indexOf(after) + after.length);
+    if (before != null) {
+      expect(exitPosition.offset, resultCode.indexOf(before));
+    } else if (after != null) {
+      expect(exitPosition.offset, resultCode.indexOf(after) + after.length);
+    } else {
+      fail("One of 'before' or 'after' expected.");
+    }
   }
 
   /**

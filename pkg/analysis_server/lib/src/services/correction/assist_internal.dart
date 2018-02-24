@@ -1436,6 +1436,10 @@ class AssistProcessor {
 
           builder.addSimpleReplacement(nextRange, widgetText);
           builder.addSimpleReplacement(widgetRange, nextText);
+
+          int lengthDelta = nextRange.length - widgetRange.length;
+          int newWidgetOffset = nextRange.offset + lengthDelta;
+          changeBuilder.setSelection(new Position(file, newWidgetOffset));
         });
         _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_DOWN);
       }
@@ -1464,6 +1468,9 @@ class AssistProcessor {
 
           builder.addSimpleReplacement(previousRange, widgetText);
           builder.addSimpleReplacement(widgetRange, previousText);
+
+          int newWidgetOffset = previousRange.offset;
+          changeBuilder.setSelection(new Position(file, newWidgetOffset));
         });
         _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_UP);
       }
