@@ -37,7 +37,7 @@ html/client_rect_test: Pass, RuntimeError # Issue 31019
 html/css_test: Pass, RuntimeError # Issue 31019
 
 [ $system == windows && ($compiler == dartdevc || $compiler == dartdevk) ]
-html/xhr_test/xhr: Skip # Times out. Issue 21527
+html/xhr_test: Skip # Times out. Issue 21527
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922
@@ -127,4 +127,3 @@ typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 typed_data/unmodifiable_typed_data_test: RuntimeError # Issue 10275
-

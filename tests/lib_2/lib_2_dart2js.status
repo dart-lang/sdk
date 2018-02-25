@@ -266,6 +266,9 @@ isolate/message_test: Skip # Issue 12627
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
+[ $compiler == dart2js && $system == windows ]
+html/xhr_test: RuntimeError
+
 [ $compiler == dart2js && $browser ]
 html/custom/created_callback_test: RuntimeError
 html/fontface_loaded_test: Fail # Support for promises.
@@ -768,4 +771,3 @@ isolate/large_byte_data_leak_test: RuntimeError
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.
-
