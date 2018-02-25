@@ -25,7 +25,7 @@ html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
-html/xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
+html/xhr_test: Pass, Slow
 isolate/browser/issue_12474_test: CompileTimeError # Issue 22529
 isolate/enum_const_test/02: RuntimeError # Issue 21817
 isolate/error_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
@@ -174,7 +174,6 @@ html/text_event_test: Fail # Issue 17893
 html/touchevent_test: Fail
 html/webgl_1_test: Pass, Fail # Issue 8219
 html/websql_test: Fail
-html/xhr_test/xhr: Pass, Fail # Issue 11602
 isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
@@ -260,6 +259,7 @@ html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
 html/js_mock_test: RuntimeError # Issue 32286
+html/xhr_test: RuntimeError
 isolate/cross_isolate_message_test: Skip # Issue 12627
 isolate/message_test: Skip # Issue 12627
 
