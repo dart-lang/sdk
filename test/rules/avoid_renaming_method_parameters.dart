@@ -9,6 +9,9 @@ abstract class A {
   m2(a);
   m3(String a, int b);
   m4([a]);
+  m5(a);
+  m6(a, {b});
+  m7(a, {b});
 }
 
 abstract class B extends A {
@@ -16,6 +19,9 @@ abstract class B extends A {
   m2(a); // OK
   m3(Object a, num b); // OK
   m4([a]); // OK
+  m5(a, [b]); // OK
+  m6(a, {b}); // OK
+  m7(a, {b}); // OK
 }
 
 abstract class C extends A {
@@ -26,4 +32,40 @@ abstract class C extends A {
     num bb, // LINT
   );
   m4([aa]); // LINT
+  m5(aa, [b]); // LINT
+  m6(aa, {b}); // LINT
+  m7(a, {c, b}); // OK
+}
+
+abstract class D extends A {
+  /// doc comments
+  m1(); // OK
+  /// doc comments
+  m2(aa); // OK
+  /// doc comments
+  m3(
+    Object aa, // OK
+    num bb, // OK
+  );
+  /// doc comments
+  m4([aa]); // OK
+  /// doc comments
+  m5(aa, [b]); // OK
+  /// doc comments
+  m6(aa, {b}); // OK
+  /// doc comments
+  m7(a, {c, b}); // OK
+}
+
+abstract class _E extends A {
+  m1(); // OK
+  m2(aa); // OK
+  m3(
+    Object aa, // OK
+    num bb, // OK
+  );
+  m4([aa]); // OK
+  m5(aa, [b]); // OK
+  m6(aa, {b}); // OK
+  m7(a, {c, b}); // OK
 }
