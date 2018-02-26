@@ -127,42 +127,23 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   /**
-   * Implement the `search.getTypeHierarchy` request.
-   */
-  Future getTypeHierarchy(protocol.Request request) async {
-    var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
-    String file = params.file;
-    // prepare element
-    Element element = await server.getElementAtOffset(file, params.offset);
-    if (element == null) {
-      _sendTypeHierarchyNull(request);
-      return;
-    }
-    // maybe supertype hierarchy only
-    if (params.superOnly == true) {
-      TypeHierarchyComputer computer =
-          new TypeHierarchyComputer(searchEngine, element);
-      List<protocol.TypeHierarchyItem> items = computer.computeSuper();
-      protocol.Response response =
-          new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-              .toResponse(request.id);
-      server.sendResponse(response);
-      return;
-    }
-    // prepare type hierarchy
-    TypeHierarchyComputer computer =
-        new TypeHierarchyComputer(searchEngine, element);
-    List<protocol.TypeHierarchyItem> items = await computer.compute();
-    protocol.Response response =
-        new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
-            .toResponse(request.id);
-    server.sendResponse(response);
-  }
-
-  /**
    * Implement the `search.getDeclarations` request.
    */
   Future getDeclarations(protocol.Request request) async {
+    var params =
+        new protocol.SearchGetElementDeclarationsParams.fromRequest(request);
+
+    RegExp regExp;
+    if (params.pattern != null) {
+      try {
+        regExp = new RegExp(params.pattern);
+      } on FormatException catch (exception) {
+        server.sendResponse(new protocol.Response.invalidParameter(
+            request, 'pattern', exception.message));
+        return;
+      }
+    }
+
     var files = <String>[];
     var declarations = <search.Declaration>[];
 
@@ -197,9 +178,18 @@ class SearchDomainHandler implements protocol.RequestHandler {
       }
     }
 
+    int remainingMaxResults = params.maxResults;
     for (var driver in server.driverMap.values.toList()) {
-      var driverDeclarations = await driver.search.declarations(files);
+      var driverDeclarations =
+          await driver.search.declarations(regExp, remainingMaxResults, files);
       declarations.addAll(driverDeclarations);
+
+      if (remainingMaxResults != null) {
+        remainingMaxResults -= driverDeclarations.length;
+        if (remainingMaxResults <= 0) {
+          break;
+        }
+      }
     }
 
     List<protocol.ElementDeclaration> elementDeclarations =
@@ -219,6 +209,39 @@ class SearchDomainHandler implements protocol.RequestHandler {
     server.sendResponse(new protocol.SearchGetElementDeclarationsResult(
             elementDeclarations, files)
         .toResponse(request.id));
+  }
+
+  /**
+   * Implement the `search.getTypeHierarchy` request.
+   */
+  Future getTypeHierarchy(protocol.Request request) async {
+    var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
+    String file = params.file;
+    // prepare element
+    Element element = await server.getElementAtOffset(file, params.offset);
+    if (element == null) {
+      _sendTypeHierarchyNull(request);
+      return;
+    }
+    // maybe supertype hierarchy only
+    if (params.superOnly == true) {
+      TypeHierarchyComputer computer =
+          new TypeHierarchyComputer(searchEngine, element);
+      List<protocol.TypeHierarchyItem> items = computer.computeSuper();
+      protocol.Response response =
+          new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+              .toResponse(request.id);
+      server.sendResponse(response);
+      return;
+    }
+    // prepare type hierarchy
+    TypeHierarchyComputer computer =
+        new TypeHierarchyComputer(searchEngine, element);
+    List<protocol.TypeHierarchyItem> items = await computer.compute();
+    protocol.Response response =
+        new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+            .toResponse(request.id);
+    server.sendResponse(response);
   }
 
   @override

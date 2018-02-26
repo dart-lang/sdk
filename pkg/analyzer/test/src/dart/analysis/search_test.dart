@@ -110,7 +110,8 @@ class C {
 }
 ''');
     var files = <String>[];
-    List<Declaration> declarations = await driver.search.declarations(files);
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
     _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS,
         offset: 6, codeOffset: 0, codeLength: 91);
     _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
@@ -132,7 +133,8 @@ enum E {
 }
 ''');
     var files = <String>[];
-    List<Declaration> declarations = await driver.search.declarations(files);
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
     _assertHasDeclaration(declarations, 'E', DeclarationKind.ENUM,
         offset: 5, codeOffset: 0, codeLength: 23);
     _assertHasDeclaration(declarations, 'a', DeclarationKind.ENUM_CONSTANT,
@@ -141,6 +143,34 @@ enum E {
         offset: 14, codeOffset: 14, codeLength: 2);
     _assertHasDeclaration(declarations, 'ccc', DeclarationKind.ENUM_CONSTANT,
         offset: 18, codeOffset: 18, codeLength: 3);
+  }
+
+  test_declarations_maxResults() async {
+    await _resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(null, 2, files);
+    expect(declarations, hasLength(2));
+  }
+
+  test_declarations_regExp() async {
+    await _resolveTestUnit('''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var files = <String>[];
+    List<Declaration> declarations =
+        await driver.search.declarations(new RegExp(r'[A-C]'), null, files);
+    _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'B', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS);
+    _assertNoDeclaration(declarations, 'D');
   }
 
   test_declarations_top() async {
@@ -153,7 +183,8 @@ typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var files = <String>[];
-    List<Declaration> declarations = await driver.search.declarations(files);
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
     _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
         offset: 8, codeOffset: 0, codeLength: 15);
     _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER,
@@ -1275,9 +1306,9 @@ class NoMatchABCDE {}
     for (var declaration in declarations) {
       if (declaration.name == name &&
           declaration.kind == kind &&
-          declaration.offset == offset &&
-          declaration.codeOffset == codeOffset &&
-          declaration.codeLength == codeLength &&
+          (offset == null || declaration.offset == offset) &&
+          (codeOffset == null || declaration.codeOffset == codeOffset) &&
+          (codeLength == null || declaration.codeLength == codeLength) &&
           declaration.className == className) {
         return;
       }

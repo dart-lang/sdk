@@ -32,6 +32,14 @@ class DeclarationsTest extends AbstractSearchDomainTest {
             d.className == className)));
   }
 
+  void assertNo(String name) {
+    expect(
+        declarationsResult.declarations,
+        isNot(contains(predicate((ElementDeclaration d) =>
+            declarationsResult.files[d.fileIndex] == testFile &&
+            d.name == name))));
+  }
+
   test_class() async {
     addTestFile(r'''
 class C {
@@ -67,24 +75,44 @@ enum E {
     assertHas('c', ElementKind.ENUM_CONSTANT);
   }
 
+  test_maxResults() async {
+    newFile(join(testFolder, 'a.dart'), content: r'''
+class A {}
+class B {}
+''').path;
+    newFile(join(testFolder, 'b.dart'), content: r'''
+class C {}
+class D {}
+''').path;
+
+    // Limit to exactly one file.
+    await _getDeclarations(pattern: r'[A-D]', maxResults: 2);
+    expect(declarationsResult.declarations, hasLength(2));
+
+    // Limit in the middle of the second file.
+    await _getDeclarations(pattern: r'[A-D]', maxResults: 3);
+    expect(declarationsResult.declarations, hasLength(3));
+
+    // No limit.
+    await _getDeclarations(pattern: r'[A-D]');
+    expect(declarationsResult.declarations, hasLength(4));
+  }
+
   test_multipleFiles() async {
     var a = newFile(join(testFolder, 'a.dart'), content: 'class A {}').path;
     var b = newFile(join(testFolder, 'b.dart'), content: 'class B {}').path;
 
-    Request request = new SearchGetElementDeclarationsParams().toRequest('0');
-    Response response = await waitResponse(request);
+    await _getDeclarations();
 
-    var result = new SearchGetElementDeclarationsResult.fromResponse(response);
-
-    expect(result.files, contains(a));
-    expect(result.files, contains(b));
+    expect(declarationsResult.files, contains(a));
+    expect(declarationsResult.files, contains(b));
 
     {
       ElementDeclaration declaration =
-          result.declarations.singleWhere((d) => d.name == 'A');
+          declarationsResult.declarations.singleWhere((d) => d.name == 'A');
       expect(declaration.name, 'A');
       expect(declaration.kind, ElementKind.CLASS);
-      expect(result.files[declaration.fileIndex], a);
+      expect(declarationsResult.files[declaration.fileIndex], a);
       expect(declaration.offset, 6);
       expect(declaration.line, 1);
       expect(declaration.column, 7);
@@ -92,11 +120,26 @@ enum E {
 
     {
       ElementDeclaration declaration =
-          result.declarations.singleWhere((d) => d.name == 'B');
+          declarationsResult.declarations.singleWhere((d) => d.name == 'B');
       expect(declaration.name, 'B');
       expect(declaration.kind, ElementKind.CLASS);
-      expect(result.files[declaration.fileIndex], b);
+      expect(declarationsResult.files[declaration.fileIndex], b);
     }
+  }
+
+  test_regExp() async {
+    addTestFile(r'''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    await _getDeclarations(pattern: r'[A-C]');
+
+    assertHas('A', ElementKind.CLASS);
+    assertHas('B', ElementKind.CLASS);
+    assertHas('C', ElementKind.CLASS);
+    assertNo('D');
   }
 
   test_top() async {
@@ -118,8 +161,10 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     assertHas('tf2', ElementKind.FUNCTION_TYPE_ALIAS);
   }
 
-  Future<Null> _getDeclarations() async {
-    Request request = new SearchGetElementDeclarationsParams().toRequest('0');
+  Future<Null> _getDeclarations({String pattern, int maxResults}) async {
+    Request request = new SearchGetElementDeclarationsParams(
+            pattern: pattern, maxResults: maxResults)
+        .toRequest('0');
     Response response = await waitResponse(request);
 
     declarationsResult =
