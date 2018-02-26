@@ -35,7 +35,8 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
   Future test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     Request request =
-        new EditOrganizeDirectivesParams('/no/such/file.dart').toRequest('0');
+        new EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
+            .toRequest('0');
     Response response = await waitResponse(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
