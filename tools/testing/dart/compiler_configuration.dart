@@ -709,8 +709,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneosly.
   Command computeRemoveKernelFileCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = 'rm';
-    var args = [tempKernelFile(tempDir)];
+    String exec;
+    List<String> args;
+
+    if (Platform.isWindows) {
+      exec = 'cmd.exe';
+      args = <String>['/c', 'del', tempKernelFile(tempDir)];
+    } else {
+      exec = 'rm';
+      args = <String>[tempKernelFile(tempDir)];
+    }
 
     return Command.compilation('remove_kernel_file', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
@@ -1045,14 +1053,18 @@ abstract class VMKernelCompilerMixin {
   bool get _isStrong;
   bool get _isAot;
 
+  String get executableScriptSuffix;
+
   List<Uri> bootstrapDependencies();
 
-  String tempKernelFile(String tempDir) => '$tempDir/out.dill';
+  String tempKernelFile(String tempDir) =>
+      new Path('$tempDir/out.dill').toNativePath();
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final genKernel =
-        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+    final genKernel = Platform.script
+        .resolve('../../../pkg/vm/tool/gen_kernel${executableScriptSuffix}')
+        .toFilePath();
 
     final kernelBinariesFolder = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'

@@ -84,14 +84,17 @@ Future<int> compile(List<String> arguments) async {
     ..strongMode = strongMode
     ..target = new VmTarget(
         new TargetFlags(strongMode: strongMode, syncAsync: syncAsync))
-    ..linkedDependencies = <Uri>[Uri.base.resolve(platformKernel)]
-    ..packagesFileUri = packages != null ? Uri.base.resolve(packages) : null
+    ..linkedDependencies = <Uri>[
+      Uri.base.resolveUri(new Uri.file(platformKernel))
+    ]
+    ..packagesFileUri =
+        packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
     ..reportMessages = true
     ..onError = errorDetector
     ..embedSourceText = options['embed-sources'];
 
   Program program = await compileToKernel(
-      Uri.base.resolve(filename), compilerOptions,
+      Uri.base.resolveUri(new Uri.file(filename)), compilerOptions,
       aot: aot, entryPoints: entryPoints);
 
   if (errorDetector.hasCompilationErrors || (program == null)) {
