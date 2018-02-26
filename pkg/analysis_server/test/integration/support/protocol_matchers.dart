@@ -332,6 +332,8 @@ final Matcher isElement =
  *   "offset": int
  *   "line": int
  *   "column": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "className": optional String
  * }
  */
@@ -342,7 +344,9 @@ final Matcher isElementDeclaration =
           "fileIndex": isInt,
           "offset": isInt,
           "line": isInt,
-          "column": isInt
+          "column": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
         }, optionalFields: {
           "className": isString
         }));

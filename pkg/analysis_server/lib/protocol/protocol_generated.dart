@@ -8733,6 +8733,8 @@ class EditSortMembersResult implements ResponseResult {
  *   "offset": int
  *   "line": int
  *   "column": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "className": optional String
  * }
  *
@@ -8750,6 +8752,10 @@ class ElementDeclaration implements HasToJson {
   int _line;
 
   int _column;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   String _className;
 
@@ -8832,6 +8838,32 @@ class ElementDeclaration implements HasToJson {
   }
 
   /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
+  }
+
+  /**
    * The name of the class enclosing this declaration. If the declaration is
    * not a class member, this field will be absent.
    */
@@ -8846,7 +8878,7 @@ class ElementDeclaration implements HasToJson {
   }
 
   ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
-      int line, int column,
+      int line, int column, int codeOffset, int codeLength,
       {String className}) {
     this.name = name;
     this.kind = kind;
@@ -8854,6 +8886,8 @@ class ElementDeclaration implements HasToJson {
     this.offset = offset;
     this.line = line;
     this.column = column;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.className = className;
   }
 
@@ -8901,12 +8935,27 @@ class ElementDeclaration implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "column");
       }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
+      }
       String className;
       if (json.containsKey("className")) {
         className = jsonDecoder.decodeString(
             jsonPath + ".className", json["className"]);
       }
-      return new ElementDeclaration(name, kind, fileIndex, offset, line, column,
+      return new ElementDeclaration(
+          name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
           className: className);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ElementDeclaration", json);
@@ -8922,6 +8971,8 @@ class ElementDeclaration implements HasToJson {
     result["offset"] = offset;
     result["line"] = line;
     result["column"] = column;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
     if (className != null) {
       result["className"] = className;
     }
@@ -8940,6 +8991,8 @@ class ElementDeclaration implements HasToJson {
           offset == other.offset &&
           line == other.line &&
           column == other.column &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
           className == other.className;
     }
     return false;
@@ -8954,6 +9007,8 @@ class ElementDeclaration implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, line.hashCode);
     hash = JenkinsSmiHash.combine(hash, column.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

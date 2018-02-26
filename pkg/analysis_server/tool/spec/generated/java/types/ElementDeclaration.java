@@ -66,6 +66,16 @@ public class ElementDeclaration {
   private final int column;
 
   /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  private final int codeOffset;
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  private final int codeLength;
+
+  /**
    * The name of the class enclosing this declaration. If the declaration is not a class member, this
    * field will be absent.
    */
@@ -74,13 +84,15 @@ public class ElementDeclaration {
   /**
    * Constructor for {@link ElementDeclaration}.
    */
-  public ElementDeclaration(String name, String kind, int fileIndex, int offset, int line, int column, String className) {
+  public ElementDeclaration(String name, String kind, int fileIndex, int offset, int line, int column, int codeOffset, int codeLength, String className) {
     this.name = name;
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
     this.line = line;
     this.column = column;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.className = className;
   }
 
@@ -95,6 +107,8 @@ public class ElementDeclaration {
         other.offset == offset &&
         other.line == line &&
         other.column == column &&
+        other.codeOffset == codeOffset &&
+        other.codeLength == codeLength &&
         ObjectUtilities.equals(other.className, className);
     }
     return false;
@@ -107,8 +121,10 @@ public class ElementDeclaration {
     int offset = jsonObject.get("offset").getAsInt();
     int line = jsonObject.get("line").getAsInt();
     int column = jsonObject.get("column").getAsInt();
+    int codeOffset = jsonObject.get("codeOffset").getAsInt();
+    int codeLength = jsonObject.get("codeLength").getAsInt();
     String className = jsonObject.get("className") == null ? null : jsonObject.get("className").getAsString();
-    return new ElementDeclaration(name, kind, fileIndex, offset, line, column, className);
+    return new ElementDeclaration(name, kind, fileIndex, offset, line, column, codeOffset, codeLength, className);
   }
 
   public static List<ElementDeclaration> fromJsonArray(JsonArray jsonArray) {
@@ -129,6 +145,20 @@ public class ElementDeclaration {
    */
   public String getClassName() {
     return className;
+  }
+
+  /**
+   * The length of the declaration code in the file.
+   */
+  public int getCodeLength() {
+    return codeLength;
+  }
+
+  /**
+   * The offset of the first character of the declaration code in the file.
+   */
+  public int getCodeOffset() {
+    return codeOffset;
   }
 
   /**
@@ -182,6 +212,8 @@ public class ElementDeclaration {
     builder.append(offset);
     builder.append(line);
     builder.append(column);
+    builder.append(codeOffset);
+    builder.append(codeLength);
     builder.append(className);
     return builder.toHashCode();
   }
@@ -194,6 +226,8 @@ public class ElementDeclaration {
     jsonObject.addProperty("offset", offset);
     jsonObject.addProperty("line", line);
     jsonObject.addProperty("column", column);
+    jsonObject.addProperty("codeOffset", codeOffset);
+    jsonObject.addProperty("codeLength", codeLength);
     if (className != null) {
       jsonObject.addProperty("className", className);
     }
@@ -216,6 +250,10 @@ public class ElementDeclaration {
     builder.append(line + ", ");
     builder.append("column=");
     builder.append(column + ", ");
+    builder.append("codeOffset=");
+    builder.append(codeOffset + ", ");
+    builder.append("codeLength=");
+    builder.append(codeLength + ", ");
     builder.append("className=");
     builder.append(className);
     builder.append("]");

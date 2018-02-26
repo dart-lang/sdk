@@ -35,10 +35,12 @@ class Declaration {
   final int offset;
   final int line;
   final int column;
+  final int codeOffset;
+  final int codeLength;
   final String className;
 
   Declaration(this.fileIndex, this.name, this.kind, this.offset, this.line,
-      this.column, this.className);
+      this.column, this.codeOffset, this.codeLength, this.className);
 }
 
 /**
@@ -126,6 +128,7 @@ class Search {
       int fileIndex;
 
       void addDeclaration(String name, DeclarationKind kind, int offset,
+          int codeOffset, int codeLength,
           [String className]) {
         if (fileIndex == null) {
           fileIndex = files.length;
@@ -135,8 +138,16 @@ class Search {
           name = name.substring(0, name.length - 1);
         }
         var location = file.lineInfo.getLocation(offset);
-        declarations.add(new Declaration(fileIndex, name, kind, offset,
-            location.lineNumber, location.columnNumber, className));
+        declarations.add(new Declaration(
+            fileIndex,
+            name,
+            kind,
+            offset,
+            location.lineNumber,
+            location.columnNumber,
+            codeOffset,
+            codeLength,
+            className));
       }
 
       for (var class_ in file.unlinked.classes) {
@@ -146,11 +157,13 @@ class Search {
             class_.isMixinApplication
                 ? DeclarationKind.CLASS_TYPE_ALIAS
                 : DeclarationKind.CLASS,
-            class_.nameOffset);
+            class_.nameOffset,
+            class_.codeRange.offset,
+            class_.codeRange.length);
 
         for (var field in class_.fields) {
-          addDeclaration(
-              field.name, DeclarationKind.FIELD, field.nameOffset, className);
+          addDeclaration(field.name, DeclarationKind.FIELD, field.nameOffset,
+              field.codeRange.offset, field.codeRange.length, className);
         }
 
         for (var executable in class_.executables) {
@@ -159,32 +172,47 @@ class Search {
                 executable.name,
                 getExecutableKind(executable, false),
                 executable.nameOffset,
+                executable.codeRange.offset,
+                executable.codeRange.length,
                 className);
           }
         }
       }
 
       for (var enum_ in file.unlinked.enums) {
-        addDeclaration(enum_.name, DeclarationKind.ENUM, enum_.nameOffset);
+        addDeclaration(enum_.name, DeclarationKind.ENUM, enum_.nameOffset,
+            enum_.codeRange.offset, enum_.codeRange.length);
         for (var value in enum_.values) {
-          addDeclaration(
-              value.name, DeclarationKind.ENUM_CONSTANT, value.nameOffset);
+          addDeclaration(value.name, DeclarationKind.ENUM_CONSTANT,
+              value.nameOffset, value.nameOffset, value.name.length);
         }
       }
 
       for (var executable in file.unlinked.executables) {
-        addDeclaration(executable.name, getExecutableKind(executable, true),
-            executable.nameOffset);
+        addDeclaration(
+            executable.name,
+            getExecutableKind(executable, true),
+            executable.nameOffset,
+            executable.codeRange.offset,
+            executable.codeRange.length);
       }
 
       for (var typedef_ in file.unlinked.typedefs) {
-        addDeclaration(typedef_.name, DeclarationKind.FUNCTION_TYPE_ALIAS,
-            typedef_.nameOffset);
+        addDeclaration(
+            typedef_.name,
+            DeclarationKind.FUNCTION_TYPE_ALIAS,
+            typedef_.nameOffset,
+            typedef_.codeRange.offset,
+            typedef_.codeRange.length);
       }
 
       for (var variable in file.unlinked.variables) {
         addDeclaration(
-            variable.name, DeclarationKind.VARIABLE, variable.nameOffset);
+            variable.name,
+            DeclarationKind.VARIABLE,
+            variable.nameOffset,
+            variable.codeRange.offset,
+            variable.codeRange.length);
       }
     }
 

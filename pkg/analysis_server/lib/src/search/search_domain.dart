@@ -211,6 +211,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
           declaration.offset,
           declaration.line,
           declaration.column,
+          declaration.codeOffset,
+          declaration.codeLength,
           className: declaration.className);
     }).toList();
 

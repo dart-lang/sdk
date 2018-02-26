@@ -23,11 +23,13 @@ class DeclarationsTest extends AbstractSearchDomainTest {
   SearchGetElementDeclarationsResult declarationsResult;
 
   void assertHas(String name, ElementKind kind, {String className}) {
-    declarationsResult.declarations.singleWhere((d) =>
-        declarationsResult.files[d.fileIndex] == testFile &&
-        d.name == name &&
-        d.kind == kind &&
-        d.className == className);
+    expect(
+        declarationsResult.declarations,
+        contains(predicate((ElementDeclaration d) =>
+            declarationsResult.files[d.fileIndex] == testFile &&
+            d.name == name &&
+            d.kind == kind &&
+            d.className == className)));
   }
 
   test_class() async {
