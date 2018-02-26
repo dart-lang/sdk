@@ -444,12 +444,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             templateDeferredPrefixDuplicated.withArguments(name),
             deferred.charOffset,
             noLength,
-            fileUri);
-        addCompileTimeError(
-            templateDeferredPrefixDuplicatedCause.withArguments(name),
-            other.charOffset,
-            noLength,
-            fileUri);
+            fileUri,
+            context: templateDeferredPrefixDuplicatedCause
+                .withArguments(name)
+                .withLocation(fileUri, other.charOffset, noLength));
       }
       return existing
         ..exportScope.merge(builder.exportScope,

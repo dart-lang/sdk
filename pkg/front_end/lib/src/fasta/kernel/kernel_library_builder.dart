@@ -233,12 +233,11 @@ class KernelLibraryBuilder
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
         addCompileTimeError(messageTypeVariableDuplicatedName, tv.charOffset,
-            tv.name.length, fileUri);
-        addCompileTimeError(
-            templateTypeVariableDuplicatedNameCause.withArguments(tv.name),
-            existing.charOffset,
-            existing.name.length,
-            fileUri);
+            tv.name.length, fileUri,
+            context: templateTypeVariableDuplicatedNameCause
+                .withArguments(tv.name)
+                .withLocation(
+                    fileUri, existing.charOffset, existing.name.length));
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {

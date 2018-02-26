@@ -15,6 +15,7 @@ import '../combinator.dart' show Combinator;
 import '../fasta_codes.dart'
     show
         Message,
+        LocatedMessage,
         messageExpectedBlockToSkip,
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
@@ -786,12 +787,11 @@ class OutlineBuilder extends UnhandledListener {
           addCompileTimeError(
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
-              formals[1].name.length);
-          addCompileTimeError(
-              templateDuplicatedParameterNameCause
-                  .withArguments(formals[1].name),
-              formals[0].charOffset,
-              formals[0].name.length);
+              formals[1].name.length,
+              context: templateDuplicatedParameterNameCause
+                  .withArguments(formals[1].name)
+                  .withLocation(
+                      uri, formals[0].charOffset, formals[0].name.length));
         }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
@@ -1102,12 +1102,15 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset, int length) {
-    library.addCompileTimeError(message, charOffset, length, uri);
+  void addCompileTimeError(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addCompileTimeError(message, charOffset, length, uri,
+        context: context);
   }
 
-  void addProblem(Message message, int charOffset, int length) {
-    library.addProblem(message, charOffset, length, uri);
+  void addProblem(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addProblem(message, charOffset, length, uri, context: context);
   }
 
   /// Return the documentation comment for the entity that starts at the

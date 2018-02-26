@@ -248,7 +248,7 @@ severity: $severity
     target.context
         .report(message.withLocation(fileUri, charOffset, length), severity);
     if (context != null) {
-      target.context.report(context, severity);
+      target.context.report(context, Severity.context);
     }
     recordMessage(severity, message, charOffset, length, fileUri,
         context: context);

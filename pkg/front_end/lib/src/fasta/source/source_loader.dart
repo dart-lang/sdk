@@ -521,12 +521,11 @@ class SourceLoader<L> extends Loader<L> {
                     templateIllegalMixinDueToConstructors
                         .withArguments(builder.fullNameForErrors),
                     cls.charOffset,
-                    noLength);
-                builder.addCompileTimeError(
-                    templateIllegalMixinDueToConstructorsCause
-                        .withArguments(builder.fullNameForErrors),
-                    constructory.charOffset,
-                    noLength);
+                    noLength,
+                    context: templateIllegalMixinDueToConstructorsCause
+                        .withArguments(builder.fullNameForErrors)
+                        .withLocation(constructory.fileUri,
+                            constructory.charOffset, noLength));
               }
             }
           }
@@ -781,6 +780,10 @@ class SourceLoader<L> extends Loader<L> {
         // Should have been resolved to either error or warning at this point.
         // Use a property name expressing that, in case it slips through.
         severityString = "unresolved severity";
+        break;
+
+      case Severity.context:
+        severityString = "context";
         break;
     }
     instrumentation.record(

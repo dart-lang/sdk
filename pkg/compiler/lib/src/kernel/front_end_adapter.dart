@@ -99,6 +99,9 @@ void reportFrontEndMessage(
     case fe.Severity.nit:
       reporter.reportHintMessage(span, kind, {'text': message.message});
       break;
+    case fe.Severity.context:
+      reporter.reportInfo(span, kind, {'text': message.message});
+      break;
     default:
       throw new UnimplementedError('unhandled severity ${message.severity}');
   }

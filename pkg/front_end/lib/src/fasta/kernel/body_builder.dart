@@ -3613,12 +3613,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             fasta.templateFinalInstanceVariableAlreadyInitialized
                 .withArguments(name),
             offset,
-            noLength);
-        addProblem(
-            fasta.templateFinalInstanceVariableAlreadyInitializedCause
-                .withArguments(name),
-            builder.charOffset,
-            noLength);
+            noLength,
+            context: fasta.templateFinalInstanceVariableAlreadyInitializedCause
+                .withArguments(name)
+                .withLocation(uri, builder.charOffset, noLength));
         Builder constructor =
             library.loader.getDuplicatedFieldInitializerError();
         return buildInvalidInitializer(
@@ -3814,13 +3812,16 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset, int length) {
-    library.addCompileTimeError(message, charOffset, length, uri);
+  void addCompileTimeError(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addCompileTimeError(message, charOffset, length, uri,
+        context: context);
   }
 
   @override
-  void addProblem(Message message, int charOffset, int length) {
-    library.addProblem(message, charOffset, length, uri);
+  void addProblem(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    library.addProblem(message, charOffset, length, uri, context: context);
   }
 
   @override
@@ -3830,7 +3831,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
     if (constantExpressionRequired) {
-      addCompileTimeError(message, charOffset, length);
+      addCompileTimeError(message, charOffset, length, context: context);
     } else {
       library.addProblem(message, charOffset, length, uri, context: context);
     }

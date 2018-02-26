@@ -288,6 +288,7 @@ const Code<Null> codeCandidateFound = messageCandidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCandidateFound = const MessageCode("CandidateFound",
+    severity: Severity.context,
     message: r"""Found this candidate, but the arguments don't match.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -302,9 +303,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeCandidateFoundIsDefaultConstructor =
     const Code<Message Function(String name)>(
-  "CandidateFoundIsDefaultConstructor",
-  templateCandidateFoundIsDefaultConstructor,
-);
+        "CandidateFoundIsDefaultConstructor",
+        templateCandidateFoundIsDefaultConstructor,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
@@ -635,7 +636,7 @@ const Code<Null> codeConflictsWithTypeVariableCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     "ConflictsWithTypeVariableCause",
-    severity: Severity.error,
+    severity: Severity.context,
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -709,6 +710,7 @@ const Code<Null> codeConstConstructorNonFinalFieldCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
     "ConstConstructorNonFinalFieldCause",
+    severity: Severity.context,
     message: r"""Field isn't final, but constructor is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -984,9 +986,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDeferredPrefixDuplicatedCause =
     const Code<Message Function(String name)>(
-  "DeferredPrefixDuplicatedCause",
-  templateDeferredPrefixDuplicatedCause,
-);
+        "DeferredPrefixDuplicatedCause", templateDeferredPrefixDuplicatedCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
@@ -1292,9 +1293,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDuplicatedParameterNameCause =
     const Code<Message Function(String name)>(
-  "DuplicatedParameterNameCause",
-  templateDuplicatedParameterNameCause,
-);
+        "DuplicatedParameterNameCause", templateDuplicatedParameterNameCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterNameCause(String name) {
@@ -2083,7 +2083,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "FinalInstanceVariableAlreadyInitializedCause",
         templateFinalInstanceVariableAlreadyInitializedCause,
-        severity: Severity.errorLegacyWarning);
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
@@ -2263,9 +2263,9 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)>
     codeIllegalMixinDueToConstructorsCause =
     const Code<Message Function(String name)>(
-  "IllegalMixinDueToConstructorsCause",
-  templateIllegalMixinDueToConstructorsCause,
-);
+        "IllegalMixinDueToConstructorsCause",
+        templateIllegalMixinDueToConstructorsCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
@@ -3867,9 +3867,8 @@ const Template<Message Function(String name)> templateOverriddenMethodCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeOverriddenMethodCause =
     const Code<Message Function(String name)>(
-  "OverriddenMethodCause",
-  templateOverriddenMethodCause,
-);
+        "OverriddenMethodCause", templateOverriddenMethodCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverriddenMethodCause(String name) {
@@ -4262,6 +4261,7 @@ const Code<Null> codePatchClassOrigin = messagePatchClassOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchClassOrigin = const MessageCode(
     "PatchClassOrigin",
+    severity: Severity.context,
     message: r"""This is the origin class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4288,6 +4288,7 @@ const Code<Null> codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchDeclarationOrigin = const MessageCode(
     "PatchDeclarationOrigin",
+    severity: Severity.context,
     message: r"""This is the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5239,10 +5240,9 @@ const Template<Message Function(String name)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeTypeVariableDuplicatedNameCause =
-    const Code<Message Function(String name)>(
-  "TypeVariableDuplicatedNameCause",
-  templateTypeVariableDuplicatedNameCause,
-);
+    const Code<Message Function(String name)>("TypeVariableDuplicatedNameCause",
+        templateTypeVariableDuplicatedNameCause,
+        severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeVariableDuplicatedNameCause(String name) {

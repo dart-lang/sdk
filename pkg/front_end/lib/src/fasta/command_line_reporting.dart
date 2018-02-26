@@ -12,7 +12,7 @@ import 'dart:io' show exitCode;
 
 import 'package:kernel/ast.dart' show Location;
 
-import 'colors.dart' show cyan, magenta, red;
+import 'colors.dart' show cyan, green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -68,6 +68,10 @@ String formatInternal(
           text = magenta(text);
           break;
 
+        case Severity.context:
+          text = green(text);
+          break;
+
         default:
           return unexpected("$severity", "formatInternal", -1, null);
       }
@@ -115,6 +119,7 @@ bool isHidden(Severity severity) {
   switch (severity) {
     case Severity.error:
     case Severity.internalProblem:
+    case Severity.context:
       return false;
 
     case Severity.nit:
@@ -144,6 +149,9 @@ bool shouldThrowOn(Severity severity) {
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
 
+    case Severity.context:
+      return false;
+
     default:
       return unexpected("$severity", "shouldThrowOn", -1, null);
   }
@@ -163,6 +171,9 @@ String severityName(Severity severity, {bool capitalized: false}) {
 
     case Severity.warning:
       return capitalized ? "Warning" : "warning";
+
+    case Severity.context:
+      return capitalized ? "Context" : "context";
 
     default:
       return unexpected("$severity", "severityName", -1, null);
@@ -204,6 +215,7 @@ bool isCompileTimeError(Severity severity) {
 
     case Severity.nit:
     case Severity.warning:
+    case Severity.context:
       return false;
   }
   return unexpected("$severity", "isCompileTimeError", -1, null);

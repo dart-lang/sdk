@@ -643,6 +643,8 @@ class KernelTarget extends TargetImplementation {
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addCompileTimeError(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength);
+          // TODO(askesc): Put as context argument when multiple contexts
+          // are supported.
           for (Field field in nonFinalFields) {
             builder.addCompileTimeError(
                 messageConstConstructorNonFinalFieldCause,

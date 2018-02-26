@@ -102,6 +102,9 @@ abstract class Compiler {
           case Severity.warning:
             if (!suppressWarnings) stderr.writeln(formatted);
             break;
+          case Severity.context:
+            stderr.writeln(formatted);
+            break;
         }
       };
   }
