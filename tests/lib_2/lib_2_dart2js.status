@@ -104,7 +104,7 @@ html/js_transferrables_test: RuntimeError
 html/js_typed_interop_lazy_test/none: RuntimeError
 html/js_typed_interop_rename_static_test: RuntimeError
 html/no_linked_scripts_htmltest: Timeout, Pass # Issue 32262
-html/worker_test/functional/functional: RuntimeError # Issue 32261
+html/worker_test/functional: RuntimeError # Issue 32261
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 html/audiobuffersourcenode_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
