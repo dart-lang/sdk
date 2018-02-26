@@ -323,7 +323,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   return isolate;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 // Returns newly created Kernel Isolate on success, NULL on failure.
 // For now we only support the kernel isolate coming up from an
 // application snapshot or from a .dill file.
@@ -382,7 +382,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   return IsolateSetupHelper(isolate, false, uri, package_root, packages_config,
                             true, isolate_run_app_snapshot, error, exit_code);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 
 // Returns newly created Service Isolate on success, NULL on failure.
 // For now we only support the service isolate coming up from sources
@@ -609,13 +609,13 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   }
 
   int exit_code = 0;
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
     return CreateAndSetupKernelIsolate(script_uri, main, package_root,
                                        package_config, flags, error,
                                        &exit_code);
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
     return CreateAndSetupServiceIsolate(script_uri, main, package_root,
                                         package_config, flags, error,
