@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/ast.dart';
 
 const _desc = r'Prefer declare const constructors on `@immutable` classes.';
 
@@ -117,23 +118,18 @@ class Visitor extends SimpleAstVisitor {
   }
 
   bool _hasOnlyConstExpressionsInIntializerList(ConstructorDeclaration node) {
-    final typeProvider = node.element.context.typeProvider;
-    final declaredVariables = node.element.context.declaredVariables;
+    bool hasConstError;
 
-    final listener = new MyAnalysisErrorListener();
-
-    // put a fake const keyword to use ConstantVerifier
+    // put a fake const keyword and check if there's const error
     node.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     try {
-      final errorReporter = new ErrorReporter(listener, rule.reporter.source);
-      node.accept(new ConstantVerifier(errorReporter, node.element.library,
-          typeProvider, declaredVariables));
+      hasConstError = hasErrorWithConstantVerifier(node);
     } finally {
       // restore const keyword
       node.constKeyword = null;
     }
 
-    return !listener.hasConstError;
+    return !hasConstError;
   }
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
@@ -141,26 +137,6 @@ class Visitor extends SimpleAstVisitor {
     while (current != null) {
       yield current;
       current = current.superclass;
-    }
-  }
-}
-
-class MyAnalysisErrorListener extends AnalysisErrorListener {
-  bool hasConstError = false;
-  @override
-  void onError(AnalysisError error) {
-    switch (error.errorCode) {
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
-      case CompileTimeErrorCode
-          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-      case CompileTimeErrorCode.INVALID_CONSTANT:
-        hasConstError = true;
     }
   }
 }

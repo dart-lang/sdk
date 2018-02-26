@@ -6,9 +6,8 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/ast.dart';
 
 const _desc = r'Prefer const with constant constructors.';
 
@@ -80,52 +79,27 @@ class _Visitor extends SimpleAstVisitor {
         node.staticElement != null &&
         node.staticElement.isConst) {
       final typeProvider = node.staticElement.context.typeProvider;
-      final declaredVariables = node.staticElement.context.declaredVariables;
 
       if (node.staticElement.enclosingElement.type == typeProvider.objectType) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }
 
-      final listener = new MyAnalysisErrorListener();
+      bool hasConstError;
 
-      // put a fake const keyword to use ConstantVerifier
+      // put a fake const keyword and check if there's const error
       final oldKeyword = node.keyword;
       node.keyword = new KeywordToken(Keyword.CONST, node.offset);
       try {
-        final errorReporter = new ErrorReporter(listener, rule.reporter.source);
-        node.accept(new ConstantVerifier(errorReporter,
-            node.staticElement.library, typeProvider, declaredVariables));
+        hasConstError = hasErrorWithConstantVerifier(node);
       } finally {
         // restore old keyword
         node.keyword = oldKeyword;
       }
 
-      if (!listener.hasConstError) {
+      if (!hasConstError) {
         rule.reportLint(node);
       }
-    }
-  }
-}
-
-class MyAnalysisErrorListener extends AnalysisErrorListener {
-  bool hasConstError = false;
-  @override
-  void onError(AnalysisError error) {
-    switch (error.errorCode) {
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-      case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-      case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-      case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-      case CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER:
-      case CompileTimeErrorCode
-          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-      case CompileTimeErrorCode.INVALID_CONSTANT:
-      case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
-        hasConstError = true;
     }
   }
 }
