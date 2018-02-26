@@ -182,7 +182,7 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
     // map the file
     ExecutionMapUriResult result = _mapUri(file: path);
     expect(result.file, isNull);
-    expect(result.uri, 'file:///a/b.dart');
+    expect(result.uri, new Uri.file(path).toString());
   }
 
   void test_mapUri_file_dartUriKind() {
@@ -196,11 +196,10 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   }
 
   void test_mapUri_uri() {
-    String path = '/a/b.dart';
-    newFile(path);
+    String path = newFile('/a/b.dart').path;
     // map the uri
-    ExecutionMapUriResult result = _mapUri(uri: 'file://$path');
-    expect(result.file, '/a/b.dart');
+    ExecutionMapUriResult result = _mapUri(uri: new Uri.file(path).toString());
+    expect(result.file, convertPath('/a/b.dart'));
     expect(result.uri, isNull);
   }
 
