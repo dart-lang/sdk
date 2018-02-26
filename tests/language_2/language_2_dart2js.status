@@ -1624,7 +1624,7 @@ generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
-generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node U.
+generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
@@ -2363,7 +2363,7 @@ function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_async_star_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
-generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node U.
+generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
