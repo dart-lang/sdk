@@ -15301,28 +15301,114 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 /**
  * search.getElementDeclarations params
  *
+ * {
+ *   "pattern": optional String
+ *   "maxResults": optional int
+ * }
+ *
  * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetElementDeclarationsParams implements RequestParams {
+  String _pattern;
+
+  int _maxResults;
+
+  /**
+   * The regular expression used to match the names of declarations. If this
+   * field is missing, return all declarations.
+   */
+  String get pattern => _pattern;
+
+  /**
+   * The regular expression used to match the names of declarations. If this
+   * field is missing, return all declarations.
+   */
+  void set pattern(String value) {
+    this._pattern = value;
+  }
+
+  /**
+   * The maximum number of declarations to return. If this field is missing,
+   * return all matching declarations.
+   */
+  int get maxResults => _maxResults;
+
+  /**
+   * The maximum number of declarations to return. If this field is missing,
+   * return all matching declarations.
+   */
+  void set maxResults(int value) {
+    this._maxResults = value;
+  }
+
+  SearchGetElementDeclarationsParams({String pattern, int maxResults}) {
+    this.pattern = pattern;
+    this.maxResults = maxResults;
+  }
+
+  factory SearchGetElementDeclarationsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String pattern;
+      if (json.containsKey("pattern")) {
+        pattern =
+            jsonDecoder.decodeString(jsonPath + ".pattern", json["pattern"]);
+      }
+      int maxResults;
+      if (json.containsKey("maxResults")) {
+        maxResults =
+            jsonDecoder.decodeInt(jsonPath + ".maxResults", json["maxResults"]);
+      }
+      return new SearchGetElementDeclarationsParams(
+          pattern: pattern, maxResults: maxResults);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "search.getElementDeclarations params", json);
+    }
+  }
+
+  factory SearchGetElementDeclarationsParams.fromRequest(Request request) {
+    return new SearchGetElementDeclarationsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (pattern != null) {
+      result["pattern"] = pattern;
+    }
+    if (maxResults != null) {
+      result["maxResults"] = maxResults;
+    }
+    return result;
+  }
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.getElementDeclarations", null);
+    return new Request(id, "search.getElementDeclarations", toJson());
   }
+
+  @override
+  String toString() => JSON.encode(toJson());
 
   @override
   bool operator ==(other) {
     if (other is SearchGetElementDeclarationsParams) {
-      return true;
+      return pattern == other.pattern && maxResults == other.maxResults;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 653510116;
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    hash = JenkinsSmiHash.combine(hash, maxResults.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 

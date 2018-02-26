@@ -1578,6 +1578,22 @@
     <p>
       Return top-level and class member declarations.
     </p>
+    <params>
+      <field name="pattern" optional="true">
+        <ref>String</ref>
+        <p>
+          The regular expression used to match the names of declarations.
+          If this field is missing, return all declarations.
+        </p>
+      </field>
+      <field name="maxResults" optional="true">
+        <ref>int</ref>
+        <p>
+          The maximum number of declarations to return.
+          If this field is missing, return all matching declarations.
+        </p>
+      </field>
+    </params>
     <result>
       <field name="declarations">
         <list>

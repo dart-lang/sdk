@@ -1199,6 +1199,18 @@ abstract class IntegrationTestMixin {
   /**
    * Return top-level and class member declarations.
    *
+   * Parameters
+   *
+   * pattern: String (optional)
+   *
+   *   The regular expression used to match the names of declarations. If this
+   *   field is missing, return all declarations.
+   *
+   * maxResults: int (optional)
+   *
+   *   The maximum number of declarations to return. If this field is missing,
+   *   return all matching declarations.
+   *
    * Returns
    *
    * declarations: List<ElementDeclaration>
@@ -1209,9 +1221,12 @@ abstract class IntegrationTestMixin {
    *
    *   The list of the paths of files with declarations.
    */
-  Future<SearchGetElementDeclarationsResult>
-      sendSearchGetElementDeclarations() async {
-    var result = await server.send("search.getElementDeclarations", null);
+  Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations(
+      {String pattern, int maxResults}) async {
+    var params = new SearchGetElementDeclarationsParams(
+            pattern: pattern, maxResults: maxResults)
+        .toJson();
+    var result = await server.send("search.getElementDeclarations", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new SearchGetElementDeclarationsResult.fromJson(
         decoder, 'result', result);
