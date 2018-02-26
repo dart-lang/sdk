@@ -490,6 +490,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   final bool requireConstant;
   final KernelToElementMapBaseMixin elementMap;
   ir.TreeNode failNode;
+  final Map<ir.VariableDeclaration, ConstantExpression> _initializerLocals =
+      <ir.VariableDeclaration, ConstantExpression>{};
 
   Constantifier(this.elementMap, {this.requireConstant: true});
 
@@ -557,6 +559,10 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitVariableGet(ir.VariableGet node) {
+    ConstantExpression constant = _initializerLocals[node.variable];
+    if (constant != null) {
+      return constant;
+    }
     if (node.variable.parent is ir.FunctionNode) {
       ir.FunctionNode function = node.variable.parent;
       int index = function.positionalParameters.indexOf(node.variable);
@@ -902,19 +908,20 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
             {'constructorName': constructorName});
         return new ErroneousConstantConstructor();
       } else if (initializer is ir.LocalInitializer) {
-        // TODO(johnniwinther): Support this where it makes sense. Currently
-        // invalid initializers are currently encoded as local initializers with
-        // a throwing initializer.
-        // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
-        // `ssa/builder_kernel.dart` to identify erroneous initializer.
-        // TODO(johnniwinther) Handle local initializers that are valid as
-        // constants, if any.
-        String constructorName = '${cls.name}.${node.name}';
-        elementMap.reporter.reportErrorMessage(
-            computeSourceSpanFromTreeNode(initializer),
-            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
-            {'constructorName': constructorName});
-        return new ErroneousConstantConstructor();
+        ir.VariableDeclaration variable = initializer.variable;
+        ConstantExpression constant = visit(variable.initializer);
+        if (constant != null) {
+          _initializerLocals[variable] = constant;
+        } else {
+          // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
+          // `ssa/builder_kernel.dart` to identify erroneous initializer.
+          String constructorName = '${cls.name}.${node.name}';
+          elementMap.reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(initializer),
+              MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
+              {'constructorName': constructorName});
+          return new ErroneousConstantConstructor();
+        }
       } else {
         throw new UnsupportedError(
             'Unexpected initializer $initializer (${initializer.runtimeType})');

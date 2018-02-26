@@ -784,7 +784,6 @@ call_function_apply_test: RuntimeError
 call_nonexistent_constructor_test/01: RuntimeError
 call_type_literal_test/01: RuntimeError
 canonical_const2_test: RuntimeError
-canonical_const3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -1112,7 +1111,6 @@ call_function_apply_test: RuntimeError
 call_nonexistent_constructor_test/01: RuntimeError
 call_type_literal_test/01: RuntimeError
 canonical_const2_test: RuntimeError
-canonical_const3_test: CompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
