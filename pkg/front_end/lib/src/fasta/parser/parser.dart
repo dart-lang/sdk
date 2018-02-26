@@ -1412,17 +1412,7 @@ class Parser {
       next = token.next;
       if (next.type != TokenType.IDENTIFIER) {
         String value = next.stringValue;
-        if (identical(value, 'get') || identical(value, 'set')) {
-          // Found a type reference, but missing an identifier after the period.
-          rewriteAndRecover(
-              token,
-              fasta.templateExpectedIdentifier.withArguments(next),
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', next.charOffset, 0));
-          // Return the newly inserted synthetic token
-          // as the end of the type reference.
-          return token.next;
-        } else if (identical(value, '<')) {
+        if (identical(value, '<')) {
           // Found a type reference, but missing an identifier after the period.
           rewriteAndRecover(
               token,
