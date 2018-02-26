@@ -1021,14 +1021,16 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       Uri uri = candidate.location.file;
       int offset = candidate.fileOffset;
       Message message;
+      int length = noLength;
       if (offset == -1 && candidate is Constructor) {
         offset = candidate.enclosingClass.fileOffset;
         message = fasta.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);
       } else {
+        length = name.length;
         message = fasta.messageCandidateFound;
       }
-      context = message.withLocation(uri, offset, noLength);
+      context = message.withLocation(uri, offset, length);
     }
 
     if (isGetter) {
@@ -1045,7 +1047,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       if (argMessage != null) {
         message = argMessage.messageObject;
         charOffset = argMessage.charOffset;
-        addProblemErrorIfConst(message, charOffset, 1, context: context);
+        addProblemErrorIfConst(message, charOffset, argMessage.length,
+            context: context);
       } else {
         message = warnUnresolvedMethod(kernelName, charOffset,
             isSuper: isSuper,
