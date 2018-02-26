@@ -51,6 +51,6 @@ main() {
   // Annotation argument.
   // (Cannot check that it's const, just that it's accepted).
   @C(prefix.C<int>(42))
-  void foo() {}
-  foo(); // avoid "unused" hints.
+  var foo = null;
+  foo; // avoid "unused" hints.
 }
