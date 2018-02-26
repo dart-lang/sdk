@@ -45,7 +45,6 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
-        messageConstConstructorWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
@@ -108,10 +107,6 @@ abstract class KernelFunctionBuilder
       if (isAbstract) {
         return internalProblem(messageInternalProblemBodyOnAbstractMethod,
             newBody.fileOffset, fileUri);
-      }
-      if (isConstructor && isConst) {
-        return library.addCompileTimeError(messageConstConstructorWithBody,
-            newBody.fileOffset, noLength, fileUri);
       }
     }
     actualBody = newBody;

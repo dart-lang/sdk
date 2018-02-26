@@ -40,14 +40,15 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart'
     show
         messageExpectedUri,
-        messagePartOfSelf,
         messageMemberWithSameNameAsClass,
+        messagePartOfSelf,
         templateConflictsWithMember,
         templateConflictsWithSetter,
         templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
         templateDuplicatedDefinition,
+        templateIllegalMethodName,
         templateMissingPartOf,
         templatePartOfLibraryNameMismatch,
         templatePartOfUriMismatch,
@@ -190,6 +191,32 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     } else {
       return baseUri.resolveUri(parsedUri);
     }
+  }
+
+  String computeAndValidateConstructorName(Object name, int charOffset) {
+    String className = currentDeclaration.name;
+    String prefix;
+    String suffix;
+    if (name is QualifiedName) {
+      prefix = name.prefix;
+      suffix = name.suffix;
+    } else {
+      prefix = name;
+      suffix = null;
+    }
+    if (prefix == className) {
+      return suffix ?? "";
+    }
+    if (suffix == null) {
+      // A legal name for a regular method, but not for a constructor.
+      return null;
+    }
+    addCompileTimeError(
+        templateIllegalMethodName.withArguments("$name", "$className.$suffix"),
+        charOffset,
+        noLength,
+        fileUri);
+    return suffix;
   }
 
   void addExport(
@@ -341,12 +368,26 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
+  void addConstructor(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T returnType,
+      final Object name,
+      String constructorName,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String nativeMethodName);
+
   void addProcedure(
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
-      Object name,
+      String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,

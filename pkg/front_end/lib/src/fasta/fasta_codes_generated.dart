@@ -719,7 +719,10 @@ const Code<Null> codeConstConstructorWithBody = messageConstConstructorWithBody;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorWithBody = const MessageCode(
     "ConstConstructorWithBody",
-    message: r"""A const constructor can't have a body.""");
+    analyzerCode: "CONST_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*fatal*",
+    message: r"""A const constructor can't have a body.""",
+    tip: r"""Try removing either the 'const' keyword or the body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstFactory = messageConstFactory;
@@ -758,6 +761,17 @@ Message _withArgumentsConstFieldWithoutInitializer(String name) {
           """Try adding an initializer ('= <expression>') to the declaration.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstMethod = messageConstMethod;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstMethod = const MessageCode("ConstMethod",
+    analyzerCode: "CONST_METHOD",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Getters, setters and methods can't be declared to be 'const'.""",
+    tip: r"""Try removing the 'const' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -801,6 +815,18 @@ Message _withArgumentsConstructorNotFound(String name) {
       message: """Couldn't find constructor '$name'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorWithReturnType =
+    messageConstructorWithReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorWithReturnType = const MessageCode(
+    "ConstructorWithReturnType",
+    analyzerCode: "CONSTRUCTOR_WITH_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    message: r"""Constructors can't have a return type.""",
+    tip: r"""Try removing the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
@@ -1996,6 +2022,19 @@ const MessageCode messageFastaUsageShort =
 
   -o <file> Generate the output into <file>.
   -h        Display this message (add -v for information about all options).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFieldInitializerOutsideConstructor =
+    messageFieldInitializerOutsideConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
+    "FieldInitializerOutsideConstructor",
+    analyzerCode: "FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Field formal parameters can only be used in a constructor.""",
+    tip:
+        r"""Try replacing the field formal parameter with a normal parameter.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;

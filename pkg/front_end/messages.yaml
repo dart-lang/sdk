@@ -394,6 +394,22 @@ ConstAfterFactory:
   script:
     - "class C { factory const C() = prefix.B.foo; }"
 
+ConstConstructorWithBody:
+  template: "A const constructor can't have a body."
+  tip: "Try removing either the 'const' keyword or the body."
+  analyzerCode: CONST_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { const C() {} }"
+
+ConstMethod:
+  template: "Getters, setters and methods can't be declared to be 'const'."
+  tip: "Try removing the 'const' keyword."
+  analyzerCode: CONST_METHOD
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { const C() {} }"
+
 CovariantAfterFinal:
   template: "The modifier 'covariant' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
@@ -917,6 +933,22 @@ ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
   severity: ERROR_LEGACY_WARNING
 
+ConstructorWithReturnType:
+  template: "Constructors can't have a return type."
+  tip: "Try removing the return type."
+  analyzerCode: CONSTRUCTOR_WITH_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { T C() {} }"
+
+FieldInitializerOutsideConstructor:
+  template: "Field formal parameters can only be used in a constructor."
+  tip: "Try replacing the field formal parameter with a normal parameter."
+  analyzerCode: FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { void m(this.x); }"
+
 RedirectionTargetNotFound:
   template: "Redirection constructor target not found: '#name'"
   severity: ERROR_LEGACY_WARNING
@@ -1361,9 +1393,6 @@ OverrideTypeMismatchReturnType:
 IllegalMethodName:
   template: "'#name' isn't a legal method name."
   tip: "Did you mean '#name2'?"
-
-ConstConstructorWithBody:
-  template: "A const constructor can't have a body."
 
 PartOfSelf:
   template: "A file can't be a part of itself."

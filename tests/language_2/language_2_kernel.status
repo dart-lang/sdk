@@ -47,7 +47,6 @@ closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
-const_factory_with_body_test/01: MissingCompileTimeError # Fasta bug: Const factory with body.
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field.
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.

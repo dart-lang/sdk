@@ -93,14 +93,26 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, offset, length);
         return;
+      case "CONST_CONSTRUCTOR_WITH_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, offset, length);
+        return;
       case "CONST_FACTORY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_FACTORY, offset, length);
+        return;
+      case "CONST_METHOD":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_METHOD, offset, length);
         return;
       case "CONST_NOT_INITIALIZED":
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
+        return;
+      case "CONSTRUCTOR_WITH_RETURN_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, offset, length);
         return;
       case "CONTINUE_OUTSIDE_OF_LOOP":
         errorReporter?.reportErrorForOffset(
@@ -236,6 +248,12 @@ class FastaErrorReporter {
       case "FACTORY_TOP_LEVEL_DECLARATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, offset, length);
+        return;
+      case "FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+            offset,
+            length);
         return;
       case "FINAL_AND_COVARIANT":
         errorReporter?.reportErrorForOffset(

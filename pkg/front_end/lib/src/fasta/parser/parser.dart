@@ -3965,9 +3965,9 @@ class Parser {
       token = parseFunctionBody(token, false, true);
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
-        // TODO(danrubel): report error to fix
-        // test_constFactory in parser_fasta_test.dart
-        //reportRecoverableError(constToken, fasta.messageConstFactory);
+        if (optional('const', varFinalOrConst)) {
+          reportRecoverableError(varFinalOrConst, fasta.messageConstFactory);
+        }
       }
       token = parseFunctionBody(token, false, false);
     }

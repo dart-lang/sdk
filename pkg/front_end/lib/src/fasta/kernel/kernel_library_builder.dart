@@ -24,7 +24,6 @@ import '../fasta_codes.dart'
         templateDuplicatedImport,
         templateDuplicatedImportInType,
         templateExportHidesExport,
-        templateIllegalMethodName,
         templateImportHidesImport,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
@@ -79,7 +78,6 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
-        QualifiedName,
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
@@ -559,30 +557,40 @@ class KernelLibraryBuilder
         ?.setDocumentationComment(builder.target, documentationComment);
   }
 
-  String computeAndValidateConstructorName(Object name, int charOffset) {
-    String className = currentDeclaration.name;
-    String prefix;
-    String suffix;
-    if (name is QualifiedName) {
-      prefix = name.prefix;
-      suffix = name.suffix;
-    } else {
-      prefix = name;
-      suffix = null;
-    }
-    if (prefix == className) {
-      return suffix ?? "";
-    }
-    if (suffix == null) {
-      // A legal name for a regular method, but not for a constructor.
-      return null;
-    }
-    addCompileTimeError(
-        templateIllegalMethodName.withArguments("$name", "$className.$suffix"),
+  void addConstructor(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      KernelTypeBuilder returnType,
+      final Object name,
+      String constructorName,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      String nativeMethodName) {
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
+    ProcedureBuilder procedure = new KernelConstructorBuilder(
+        metadata,
+        modifiers & ~abstractMask,
+        returnType,
+        constructorName,
+        typeVariables,
+        formals,
+        this,
         charOffset,
-        noLength,
-        fileUri);
-    return suffix;
+        charOpenParenOffset,
+        charEndOffset,
+        nativeMethodName);
+    metadataCollector?.setDocumentationComment(
+        procedure.target, documentationComment);
+    metadataCollector?.setConstructorNameOffset(procedure.target, name);
+    checkTypeVariables(typeVariables, procedure);
+    addBuilder(constructorName, procedure, charOffset);
+    if (nativeMethodName != null) {
+      addNativeMethod(procedure);
+    }
   }
 
   void addProcedure(
@@ -590,7 +598,7 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
-      final Object name,
+      String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -599,55 +607,24 @@ class KernelLibraryBuilder
       int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel}) {
-    // Nested declaration began in `OutlineBuilder.beginMethod` or
-    // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration("#method").resolveTypes(typeVariables, this);
-    String procedureName;
-    ProcedureBuilder procedure;
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    String constructorName = isTopLevel ||
-            kind == ProcedureKind.Getter ||
-            kind == ProcedureKind.Setter
-        ? null
-        : computeAndValidateConstructorName(name, charOffset);
-    if (constructorName != null) {
-      procedureName = constructorName;
-      procedure = new KernelConstructorBuilder(
-          metadata,
-          modifiers & ~abstractMask,
-          returnType,
-          constructorName,
-          typeVariables,
-          formals,
-          this,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          nativeMethodName);
-      metadataCollector?.setDocumentationComment(
-          procedure.target, documentationComment);
-      metadataCollector?.setConstructorNameOffset(procedure.target, name);
-    } else {
-      assert(name is String);
-      procedureName = name;
-      procedure = new KernelProcedureBuilder(
-          metadata,
-          modifiers,
-          returnType,
-          name,
-          typeVariables,
-          formals,
-          kind,
-          this,
-          charOffset,
-          charOpenParenOffset,
-          charEndOffset,
-          nativeMethodName);
-      metadataCollector?.setDocumentationComment(
-          procedure.target, documentationComment);
-    }
+    ProcedureBuilder procedure = new KernelProcedureBuilder(
+        metadata,
+        modifiers,
+        returnType,
+        name,
+        typeVariables,
+        formals,
+        kind,
+        this,
+        charOffset,
+        charOpenParenOffset,
+        charEndOffset,
+        nativeMethodName);
+    metadataCollector?.setDocumentationComment(
+        procedure.target, documentationComment);
     checkTypeVariables(typeVariables, procedure);
-    addBuilder(procedureName, procedure, charOffset);
+    addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }

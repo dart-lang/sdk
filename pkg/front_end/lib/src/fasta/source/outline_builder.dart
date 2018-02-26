@@ -14,8 +14,11 @@ import '../combinator.dart' show Combinator;
 
 import '../fasta_codes.dart'
     show
-        Message,
         LocatedMessage,
+        Message,
+        messageConstConstructorWithBody,
+        messageConstMethod,
+        messageConstructorWithReturnType,
         messageExpectedBlockToSkip,
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
@@ -38,6 +41,7 @@ import '../modifier.dart'
         Static,
         Var,
         abstractMask,
+        constMask,
         externalMask;
 
 import '../operator.dart'
@@ -462,6 +466,9 @@ class OutlineBuilder extends UnhandledListener {
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
     checkEmpty(beginToken.charOffset);
+    library
+        .endNestedDeclaration("#method")
+        .resolveTypes(typeVariables, library);
     library.addProcedure(
         documentationComment,
         metadata,
@@ -546,6 +553,7 @@ class OutlineBuilder extends UnhandledListener {
         modifiers.add(Const);
       }
     }
+    push(varFinalOrConst ?? NullValue.VarFinalOrConstToken);
     push(modifiers);
     library.beginNestedDeclaration("#method", hasMembers: false);
   }
@@ -626,22 +634,71 @@ class OutlineBuilder extends UnhandledListener {
     if ((modifiers & externalMask) != 0) {
       modifiers &= ~abstractMask;
     }
+    Token varFinalOrConst = pop(NullValue.VarFinalOrConstToken);
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
-    library.addProcedure(
-        documentationComment,
-        metadata,
-        modifiers,
-        returnType,
-        name,
-        typeVariables,
-        formals,
-        kind,
-        charOffset,
-        formalsOffset,
-        endToken.charOffset,
-        nativeMethodName,
-        isTopLevel: false);
+    library
+        .endNestedDeclaration("#method")
+        .resolveTypes(typeVariables, library);
+    String constructorName =
+        kind == ProcedureKind.Getter || kind == ProcedureKind.Setter
+            ? null
+            : library.computeAndValidateConstructorName(name, charOffset);
+    if (constructorName != null) {
+      if (varFinalOrConst != null) {
+        if (optional('const', varFinalOrConst) &&
+            (endToken != null && !optional(';', endToken))) {
+          handleRecoverableError(messageConstConstructorWithBody,
+              varFinalOrConst, varFinalOrConst);
+          varFinalOrConst = null;
+          modifiers &= ~constMask;
+        }
+      }
+      if (returnType != null) {
+        // TODO(danrubel): Report this error on the return type
+        handleRecoverableError(
+            messageConstructorWithReturnType, beginToken, beginToken);
+        returnType = null;
+      }
+      library.addConstructor(
+          documentationComment,
+          metadata,
+          modifiers,
+          returnType,
+          name,
+          constructorName,
+          typeVariables,
+          formals,
+          charOffset,
+          formalsOffset,
+          endToken.charOffset,
+          nativeMethodName);
+    } else {
+      if (varFinalOrConst != null) {
+        if (optional('const', varFinalOrConst)) {
+          handleRecoverableError(
+              messageConstMethod, varFinalOrConst, varFinalOrConst);
+          varFinalOrConst = null;
+          modifiers &= ~constMask;
+        }
+      }
+      // TODO(danrubel): report messageFieldInitializerOutsideConstructor
+      // for any parameter of the form `this.fieldName`.
+      library.addProcedure(
+          documentationComment,
+          metadata,
+          modifiers,
+          returnType,
+          name,
+          typeVariables,
+          formals,
+          kind,
+          charOffset,
+          formalsOffset,
+          endToken.charOffset,
+          nativeMethodName,
+          isTopLevel: false);
+    }
     nativeMethodName = null;
   }
 

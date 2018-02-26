@@ -33,7 +33,11 @@ import 'package:front_end/src/fasta/messages.dart'
     show
         Message,
         codeExpectedFunctionBody,
+        messageConstConstructorWithBody,
+        messageConstMethod,
+        messageConstructorWithReturnType,
         messageDirectiveAfterDeclaration,
+        messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
@@ -1354,8 +1358,8 @@ class AstBuilder extends ScopeListener {
       // TODO(danrubel): The fasta parser does not have enough context to
       // report this error. Consider moving it to the resolution phase
       // or at least to common location that can be shared by all listeners.
-      parser.reportRecoverableError(
-          expression.endToken, messageMissingAssignableSelector);
+      handleRecoverableError(messageMissingAssignableSelector,
+          expression.endToken, expression.endToken);
     }
     push(ast.prefixExpression(operator, expression));
   }
@@ -1369,8 +1373,8 @@ class AstBuilder extends ScopeListener {
       // TODO(danrubel): The fasta parser does not have enough context to
       // report this error. Consider moving it to the resolution phase
       // or at least to common location that can be shared by all listeners.
-      parser.reportRecoverableError(
-          operator, messageIllegalAssignmentToNonAssignable);
+      handleRecoverableError(
+          messageIllegalAssignmentToNonAssignable, operator, operator);
     }
     push(ast.postfixExpression(expression, operator));
   }
@@ -2066,7 +2070,8 @@ class AstBuilder extends ScopeListener {
       assert(staticToken.isModifier);
       if (name?.lexeme == classDeclaration.name.name) {
         // This error is also reported in OutlineBuilder.beginMethod
-        parser.reportRecoverableError(staticToken, messageStaticConstructor);
+        handleRecoverableError(
+            messageStaticConstructor, staticToken, staticToken);
       } else {
         modifiers.staticKeyword = staticToken;
       }
@@ -2140,14 +2145,27 @@ class AstBuilder extends ScopeListener {
     }
 
     void constructor(
-        SimpleIdentifier returnType, Token period, SimpleIdentifier name) {
+        SimpleIdentifier prefixOrName, Token period, SimpleIdentifier name) {
+      if (modifiers?.constKeyword != null &&
+          body != null &&
+          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+        // This error is also reported in BodyBuilder.finishFunction
+        Token bodyToken = body.beginToken ?? modifiers.constKeyword;
+        handleRecoverableError(
+            messageConstConstructorWithBody, bodyToken, bodyToken);
+      }
+      if (returnType != null) {
+        // This error is also reported in OutlineBuilder.endMethod
+        handleRecoverableError(messageConstructorWithReturnType,
+            returnType.beginToken, returnType.beginToken);
+      }
       classDeclaration.members.add(ast.constructorDeclaration(
           comment,
           metadata,
           modifiers?.externalKeyword,
           modifiers?.finalConstOrVarKeyword,
           null, // TODO(paulberry): factoryKeyword
-          ast.simpleIdentifier(returnType.token),
+          ast.simpleIdentifier(prefixOrName.token),
           period,
           name,
           parameters,
@@ -2158,6 +2176,23 @@ class AstBuilder extends ScopeListener {
     }
 
     void method(Token operatorKeyword, SimpleIdentifier name) {
+      if (modifiers?.constKeyword != null &&
+          body != null &&
+          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+        // This error is also reported in OutlineBuilder.endMethod
+        handleRecoverableError(
+            messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
+      }
+      if (parameters?.parameters != null) {
+        parameters.parameters.forEach((FormalParameter param) {
+          if (param is FieldFormalParameter) {
+            // Added comment in OutlineBuilder.endMethod at the location
+            // where this error could be reported.
+            handleRecoverableError(messageFieldInitializerOutsideConstructor,
+                param.thisKeyword, param.thisKeyword);
+          }
+        });
+      }
       classDeclaration.members.add(ast.methodDeclaration(
           comment,
           metadata,
@@ -2880,5 +2915,12 @@ class _Modifiers {
       }
     }
     return firstToken;
+  }
+
+  /// Return the `const` keyword or `null`.
+  Token get constKeyword {
+    return identical('const', finalConstOrVarKeyword?.lexeme)
+        ? finalConstOrVarKeyword
+        : null;
   }
 }
