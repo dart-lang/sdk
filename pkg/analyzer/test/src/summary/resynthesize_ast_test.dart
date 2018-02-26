@@ -62,6 +62,10 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;
 
+  @failingTest // See dartbug.com/32290
+  test_const_constructor_inferred_args() =>
+      test_const_constructor_inferred_args();
+
   @override
   @failingTest
   test_instantiateToBounds_functionTypeAlias_simple() async {
