@@ -94,7 +94,7 @@ void updateRuleRegistry(String ruleName) {
 }
 
 String _generateClass(String ruleName, String className) => """
-// Copyright (c)  $_thisYear, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -141,7 +141,7 @@ class Visitor extends SimpleAstVisitor {
 """;
 
 String _generateTest(String libName, String className) => '''
-// Copyright (c) $_thisYear, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
