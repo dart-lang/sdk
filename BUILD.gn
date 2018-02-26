@@ -48,6 +48,8 @@ group("runtime") {
   ]
 }
 
+target_supports_aot = target_cpu == "arm" || target_cpu == "arm64" || target_cpu == "x64"
+
 group("runtime_kernel") {
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
@@ -55,13 +57,16 @@ group("runtime_kernel") {
   }
   deps = [
     ":runtime",
-    "runtime/bin:precompiler_entry_points_json",
     "runtime/vm:kernel_platform_files($host_toolchain)",
 
     # TODO(rmacnak): Link this into 'dart'.
     "utils/kernel-service:copy_kernel_service_snapshot",
     "utils/kernel-service:kernel-service",
   ]
+
+  if (target_supports_aot) {
+    deps += ["runtime/bin:precompiler_entry_points_json"]
+  }
 }
 
 group("runtime_precompiled") {
