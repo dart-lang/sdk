@@ -277,8 +277,6 @@ cc/IsolateReload_LibraryLookup: Crash
 cc/IsolateReload_TearOff_AddArguments: Fail
 cc/IsolateReload_TearOff_Instance_Equality: Fail
 cc/IsolateReload_TearOff_List_Set: Fail
-cc/Profiler_BasicSourcePosition: Fail
-cc/Profiler_CodeTicks: Fail
 cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass
