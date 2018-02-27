@@ -274,15 +274,22 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 * Pub will now automatically retry HTTP requests that fail with a 502, 503, of
   504 error code ([issue 1556][pub#1556]).
 
+* Pub now caches compiled packages and snapshots in the `.dart_tool/pub`
+  directory, rather than the `.pub` directory ([issue 1795][pub#1795]).
+
 * Emit exit code 66 when a path dependency doesn't exist ([issue 1747][pub#1747]).
 
 * `pub publish` throws a more explicit error if the `publish_to` field isn't an
   absolute URL ([issue 1769][pub#1769]).
 
+* `pub publish` provides more detailed information if the package is too large
+  to upload.
+
 [pub#1556]: https://github.com/dart-lang/pub/issues/1556
 [pub#1747]: https://github.com/dart-lang/pub/issues/1747
 [pub#1769]: https://github.com/dart-lang/pub/issues/1769
 [pub#1775]: https://github.com/dart-lang/pub/issues/1775
+[pub#1795]: https://github.com/dart-lang/pub/issues/1795
 
 ##### Bug Fixes
 
