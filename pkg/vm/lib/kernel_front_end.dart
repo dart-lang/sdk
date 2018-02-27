@@ -74,8 +74,7 @@ class ErrorDetector {
   ErrorDetector({this.previousErrorHandler});
 
   void call(CompilationMessage message) {
-    if ((message.severity != Severity.nit) &&
-        (message.severity != Severity.warning)) {
+    if (message.severity == Severity.error) {
       hasCompilationErrors = true;
     }
 
