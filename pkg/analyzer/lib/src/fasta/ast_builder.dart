@@ -20,6 +20,7 @@ import 'package:front_end/src/fasta/parser.dart'
         optional,
         Parser;
 import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
     show
         StringToken,
@@ -1831,9 +1832,13 @@ class AstBuilder extends ScopeListener {
       return;
     }
     debugEvent("Error: ${message.message}");
-    int offset = startToken.offset;
-    int length = endToken.end - offset;
-    addCompileTimeError(message, offset, length);
+    if (message.code.analyzerCode == null && startToken is ErrorToken) {
+      translateErrorToken(startToken, errorReporter.reportScannerError);
+    } else {
+      int offset = startToken.offset;
+      int length = endToken.end - offset;
+      addCompileTimeError(message, offset, length);
+    }
   }
 
   @override

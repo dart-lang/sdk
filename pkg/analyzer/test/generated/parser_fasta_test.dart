@@ -789,13 +789,9 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
   void test_method_invalidTypeParameterExtendsComment() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 2 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
-    // 2 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_FUNCTION_BODY, found 0
-    super.test_method_invalidTypeParameterExtendsComment();
+    // Fasta no longer supports type comment based syntax
+    // super.test_method_invalidTypeParameterExtendsComment();
   }
 
   @override
@@ -946,22 +942,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_STATEMENT, found 0
     super.test_missingStatement_afterVoid();
-  }
-
-  @override
-  @failingTest
-  void test_missingTerminatorForParameterGroup_named() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_missingTerminatorForParameterGroup_named();
-  }
-
-  @override
-  @failingTest
-  void test_missingTerminatorForParameterGroup_optional() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_missingTerminatorForParameterGroup_optional();
   }
 
   @override

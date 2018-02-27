@@ -451,7 +451,7 @@ abstract class ScannerTestBase {
         new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
       ]);
       expectedErrors.addAll([
-        new TestError(5, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+        new TestError(10, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
       ]);
     } else {
       expectedTokens.addAll([
@@ -823,7 +823,7 @@ abstract class ScannerTestBase {
       expect(openBracket.endToken, same(closeBracket));
       expect(openParen.endToken, same(closeParen));
       listener.assertErrors([
-        new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+        new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [')']),
       ]);
     } else {
       var closeBracket = openParen.next;
@@ -855,7 +855,7 @@ abstract class ScannerTestBase {
       expect(openBracket.endToken, closeBracket);
       expect(openParen.endToken, closeParen);
       listener.assertErrors([
-        new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [']']),
+        new TestError(2, ScannerErrorCode.EXPECTED_TOKEN, [']']),
       ]);
     } else {
       var closeParen = openBracket.next;
@@ -1095,7 +1095,7 @@ abstract class ScannerTestBase {
         new SyntheticStringToken(TokenType.STRING, "'''", 9, 0),
       ]);
       expectedErrors.addAll([
-        new TestError(3, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+        new TestError(9, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
       ]);
     } else {
       expectedTokens.addAll([
@@ -1369,7 +1369,7 @@ abstract class ScannerTestBase {
         new SyntheticStringToken(TokenType.STRING, "'", 7, 0),
       ]);
       expectedErrors.addAll([
-        new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+        new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
       ]);
     } else {
       expectedTokens.addAll([
