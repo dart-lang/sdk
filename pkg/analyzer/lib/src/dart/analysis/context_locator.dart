@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,11 +7,13 @@ import 'dart:collection';
 import 'package:analyzer/context/context_root.dart' as old;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart'
     show ContextBuilder, ContextBuilderOptions;
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -68,18 +70,22 @@ class ContextLocatorImpl implements ContextLocator {
   String get _defaultSdkPath =>
       FolderBasedDartSdk.defaultSdkDirectory(resourceProvider).path;
 
+  @deprecated
   @override
   List<AnalysisContext> locateContexts(
       {@required List<String> includedPaths,
       List<String> excludedPaths: null,
+      String optionsFile: null,
       String packagesFile: null,
       String sdkPath: null}) {
-    if (includedPaths == null || includedPaths.isEmpty) {
-      throw new ArgumentError('There must be at least one included path');
+    List<ContextRoot> roots = locateRoots(
+        includedPaths: includedPaths,
+        excludedPaths: excludedPaths,
+        optionsFile: optionsFile,
+        packagesFile: packagesFile);
+    if (roots.isEmpty) {
+      return const <AnalysisContext>[];
     }
-    List<AnalysisContext> contextList = <AnalysisContext>[];
-    List<ContextRoot> roots =
-        locateRoots(includedPaths, excludedPaths: excludedPaths);
     PerformanceLog performanceLog = new PerformanceLog(new StringBuffer());
     AnalysisDriverScheduler scheduler =
         new AnalysisDriverScheduler(performanceLog);
@@ -97,33 +103,33 @@ class ContextLocatorImpl implements ContextLocator {
     builder.byteStore = new MemoryByteStore();
     builder.fileContentOverlay = new FileContentOverlay();
     builder.performanceLog = performanceLog;
+    List<AnalysisContext> contextList = <AnalysisContext>[];
     for (ContextRoot root in roots) {
       old.ContextRoot contextRoot =
-          new old.ContextRoot(root.root.path, root.excludedPaths);
+          new old.ContextRoot(root.root.path, root.excludedPaths.toList());
       AnalysisDriver driver = builder.buildDriver(contextRoot);
       DriverBasedAnalysisContext context =
           new DriverBasedAnalysisContext(resourceProvider, driver);
-      context.includedPaths = root.includedPaths;
-      context.excludedPaths = root.excludedPaths;
+      context.includedPaths = root.includedPaths.toList();
+      context.excludedPaths = root.excludedPaths.toList();
       contextList.add(context);
     }
     return contextList;
   }
 
-  /**
-   * Return a list of the context roots that should be used to analyze the files
-   * that are included by the list of [includedPaths] and not excluded by the
-   * list of [excludedPaths].
-   */
-  @visibleForTesting
-  List<ContextRoot> locateRoots(List<String> includedPaths,
-      {List<String> excludedPaths}) {
+  @override
+  List<ContextRoot> locateRoots(
+      {@required List<String> includedPaths,
+      List<String> excludedPaths: null,
+      String optionsFile: null,
+      String packagesFile: null}) {
     //
     // Compute the list of folders and files that are to be included.
     //
     List<Folder> includedFolders = <Folder>[];
     List<File> includedFiles = <File>[];
-    _resourcesFromPaths(includedPaths, includedFolders, includedFiles);
+    _resourcesFromPaths(
+        includedPaths ?? const <String>[], includedFolders, includedFiles);
     //
     // Compute the list of folders and files that are to be excluded.
     //
@@ -151,19 +157,42 @@ class ContextLocatorImpl implements ContextLocator {
     // analyzed. For each, walk the directory structure and figure out where to
     // create context roots.
     //
+    File defaultOptionsFile;
+    if (optionsFile != null) {
+      defaultOptionsFile = resourceProvider.getFile(optionsFile);
+      if (!defaultOptionsFile.exists) {
+        defaultOptionsFile = null;
+      }
+    }
+    File defaultPackagesFile;
+    if (packagesFile != null) {
+      defaultPackagesFile = resourceProvider.getFile(packagesFile);
+      if (!defaultPackagesFile.exists) {
+        defaultPackagesFile = null;
+      }
+    }
     List<ContextRoot> roots = <ContextRoot>[];
     for (Folder folder in includedFolders) {
-      _createContextRoots(roots, folder, excludedFolders, null);
+      ContextRootImpl root = new ContextRootImpl(folder);
+      root.packagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
+      root.optionsFile = defaultOptionsFile ?? _findOptionsFile(folder);
+      root.included.add(folder);
+      roots.add(root);
+      _createContextRootsIn(roots, folder, excludedFolders, root,
+          defaultOptionsFile, defaultPackagesFile);
     }
+    Map<Folder, ContextRoot> rootMap = <Folder, ContextRoot>{};
     for (File file in includedFiles) {
       Folder parent = file.parent;
-      ContextRoot root = new ContextRoot(file);
-      root.packagesFile = _findPackagesFile(parent);
-      root.optionsFile = _findOptionsFile(parent);
+      ContextRoot root = rootMap.putIfAbsent(parent, () {
+        ContextRootImpl root = new ContextRootImpl(parent);
+        root.packagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
+        root.optionsFile = defaultOptionsFile ?? _findOptionsFile(parent);
+        roots.add(root);
+        return root;
+      });
       root.included.add(file);
-      roots.add(root);
     }
-
     return roots;
   }
 
@@ -174,31 +203,74 @@ class ContextLocatorImpl implements ContextLocator {
   bool _containedInAny(Iterable<Folder> folders, Resource resource) =>
       folders.any((Folder folder) => folder.contains(resource.path));
 
-  void _createContextRoots(List<ContextRoot> roots, Folder folder,
-      List<Folder> excludedFolders, ContextRoot containingRoot) {
+  /**
+   * If the given [folder] should be the root of a new analysis context, then
+   * create a new context root for it and add it to the list of context [roots].
+   * The [containingRoot] is the context root from an enclosing directory and is
+   * used to inherit configuration information that isn't overridden.
+   *
+   * If either the [optionsFile] or [packagesFile] is non-`null` then the given
+   * file will be used even if there is a local version of the file.
+   *
+   * For each directory within the given [folder] that is not in the list of
+   * [excludedFolders], recursively search for nested context roots.
+   */
+  void _createContextRoots(
+      List<ContextRoot> roots,
+      Folder folder,
+      List<Folder> excludedFolders,
+      ContextRoot containingRoot,
+      File optionsFile,
+      File packagesFile) {
     //
-    // Create a context root for the given [folder] is appropriate.
+    // If the options and packages files are allowed to be locally specified,
+    // then look to see whether they are.
     //
-    if (containingRoot == null) {
-      ContextRoot root = new ContextRoot(folder);
-      root.packagesFile = _findPackagesFile(folder);
-      root.optionsFile = _findOptionsFile(folder);
+    File localOptionsFile;
+    if (optionsFile == null) {
+      localOptionsFile = _getOptionsFile(folder);
+    }
+    File localPackagesFile;
+    if (packagesFile == null) {
+      localPackagesFile = _getPackagesFile(folder);
+    }
+    //
+    // Create a context root for the given [folder] if at least one of the
+    // options and packages file is locally specified.
+    //
+    if (localPackagesFile != null || localOptionsFile != null) {
+      if (optionsFile != null) {
+        localOptionsFile = optionsFile;
+      }
+      if (packagesFile != null) {
+        localPackagesFile = packagesFile;
+      }
+      ContextRootImpl root = new ContextRootImpl(folder);
+      root.packagesFile = localPackagesFile ?? containingRoot.packagesFile;
+      root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
       root.included.add(folder);
+      containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
-    } else {
-      File packagesFile = _getPackagesFile(folder);
-      File optionsFile = _getOptionsFile(folder);
-      if (packagesFile != null || optionsFile != null) {
-        ContextRoot root = new ContextRoot(folder);
-        root.packagesFile = packagesFile ?? containingRoot.packagesFile;
-        root.optionsFile = optionsFile ?? containingRoot.optionsFile;
-        root.included.add(folder);
-        containingRoot.excluded.add(folder);
-        roots.add(root);
-        containingRoot = root;
-      }
     }
+    _createContextRootsIn(roots, folder, excludedFolders, containingRoot,
+        optionsFile, packagesFile);
+  }
+
+  /**
+   * For each directory within the given [folder] that is not in the list of
+   * [excludedFolders], recursively search for nested context roots.
+   *
+   * If either the [optionsFile] or [packagesFile] is non-`null` then the given
+   * file will be used even if there is a local version of the file.
+   */
+  void _createContextRootsIn(
+      List<ContextRoot> roots,
+      Folder folder,
+      List<Folder> excludedFolders,
+      ContextRoot containingRoot,
+      File optionsFile,
+      File packagesFile) {
     //
     // Check each of the subdirectories to see whether a context root needs to
     // be added for it.
@@ -211,7 +283,8 @@ class ContextLocatorImpl implements ContextLocator {
               folder.shortName == PACKAGES_DIR_NAME) {
             containingRoot.excluded.add(folder);
           } else {
-            _createContextRoots(roots, child, excludedFolders, containingRoot);
+            _createContextRoots(roots, child, excludedFolders, containingRoot,
+                optionsFile, packagesFile);
           }
         }
       }
@@ -309,30 +382,5 @@ class ContextLocatorImpl implements ContextLocator {
     List<String> sortedPaths = uniquePaths.toList();
     sortedPaths.sort((a, b) => a.length - b.length);
     return sortedPaths;
-  }
-}
-
-@visibleForTesting
-class ContextRoot {
-  final Resource root;
-  final List<Resource> included = <Resource>[];
-  final List<Resource> excluded = <Resource>[];
-  File packagesFile;
-  File optionsFile;
-
-  ContextRoot(this.root);
-
-  List<String> get excludedPaths =>
-      excluded.map((Resource folder) => folder.path).toList();
-
-  @override
-  int get hashCode => root.path.hashCode;
-
-  List<String> get includedPaths =>
-      included.map((Resource folder) => folder.path).toList();
-
-  @override
-  bool operator ==(Object other) {
-    return other is ContextRoot && root.path == other.root.path;
   }
 }
