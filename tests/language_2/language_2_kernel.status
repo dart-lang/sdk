@@ -466,6 +466,13 @@ await_test: RuntimeError
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
 export_ambiguous_main_test: MissingCompileTimeError
 
+[ $arch == simdbc64 && $compiler == dartk && $mode == debug && $strong ]
+partial_tearoff_instantiation_test/05: Crash # Issue http://dartbug.com/32340
+partial_tearoff_instantiation_test/06: Crash # Issue http://dartbug.com/32340
+partial_tearoff_instantiation_test/07: Crash # Issue http://dartbug.com/32340
+partial_tearoff_instantiation_test/08: Crash # Issue http://dartbug.com/32340
+partial_tearoff_instantiation_test/none: Crash # Issue http://dartbug.com/32340
+
 [ $compiler != dart2js && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
