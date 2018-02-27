@@ -271,6 +271,9 @@ class ProcedureHelper {
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
     kForwardingStub = 1 << 4,
+
+    // TODO(29841): Remove this line after the issue is resolved.
+    kRedirectingFactoryConstructor = 1 << 7,
   };
 
   explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
@@ -292,6 +295,9 @@ class ProcedureHelper {
   bool IsExternal() { return (flags_ & kExternal) != 0; }
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
+  bool IsRedirectingFactoryConstructor() {
+    return (flags_ & kRedirectingFactoryConstructor) != 0;
+  }
 
   NameIndex canonical_name_;
   TokenPosition position_;

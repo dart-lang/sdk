@@ -62,10 +62,10 @@ dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
-cc/DartAPI_New: Crash
+cc/DartAPI_New: Fail
 cc/DartAPI_TypeGetParameterizedTypes: Crash
-dart/redirection_type_shuffling_test/00: Crash
-dart/redirection_type_shuffling_test/none: Crash
+dart/redirection_type_shuffling_test/00: RuntimeError
+dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: Skip
@@ -164,8 +164,6 @@ cc/Service_TokenStream: Fail
 [ $compiler == dartk && $runtime == vm ]
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
-cc/CorelibCompileAll: Crash
-cc/CorelibCompilerStats: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
 cc/DartAPI_InjectNativeFields1: Skip
 cc/DartAPI_InvokeNoSuchMethod: Fail
@@ -234,7 +232,7 @@ cc/SourcePosition_WhileContinueBreak: Crash
 cc/SourceReport_CallSites_PolymorphicCall: Fail
 cc/SourceReport_CallSites_SimpleCall: Fail
 cc/SourceReport_Coverage_AllFunctions: Fail
-cc/SourceReport_Coverage_AllFunctions_ForceCompile: Crash
+cc/SourceReport_Coverage_AllFunctions_ForceCompile: Fail
 cc/SourceReport_Coverage_ForceCompile: Fail
 cc/SourceReport_Coverage_NestedFunctions: Fail
 cc/SourceReport_Coverage_NoCalls: Fail

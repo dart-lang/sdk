@@ -1228,6 +1228,10 @@ void KernelLoader::LoadProcedure(const Library& library,
   ProcedureHelper procedure_helper(&builder_);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
+  if (procedure_helper.IsRedirectingFactoryConstructor()) {
+    builder_.SetOffset(procedure_end);
+    return;
+  }
   const String& name = H.DartProcedureName(procedure_helper.canonical_name_);
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();

@@ -615,6 +615,7 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
   @override
   Procedure build(SourceLibraryBuilder library) {
     Procedure result = super.build(library);
+    result.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
       typeArguments =
           new List<DartType>(redirectionTarget.typeArguments.length);
