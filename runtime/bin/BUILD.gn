@@ -751,27 +751,20 @@ source_set("dart_snapshot_cc") {
   deps = [
     ":isolate_snapshot_data_assembly",
     ":isolate_snapshot_instructions_assembly",
+    ":kernel_service_dill_cc",
+    ":platform_dill_cc",
+    ":platform_strong_dill_cc",
     ":vm_snapshot_data_assembly",
     ":vm_snapshot_instructions_assembly",
   ]
   sources = [
+    "$root_gen_dir/kernel_service.dill.cc",
     "$target_gen_dir/isolate_snapshot_data.S",
     "$target_gen_dir/isolate_snapshot_instructions.S",
-    "$target_gen_dir/vm_snapshot_data.S",
-    "$target_gen_dir/vm_snapshot_instructions.S",
-  ]
-}
-
-source_set("dart_kernel_platform_cc") {
-  deps = [
-    ":kernel_service_dill_cc",
-    ":platform_dill_cc",
-    ":platform_strong_dill_cc",
-  ]
-  sources = [
-    "$root_gen_dir/kernel_service.dill.cc",
     "$target_gen_dir/vm_platform.dill.cc",
     "$target_gen_dir/vm_platform_strong.dill.cc",
+    "$target_gen_dir/vm_snapshot_data.S",
+    "$target_gen_dir/vm_snapshot_instructions.S",
   ]
 }
 
@@ -879,9 +872,6 @@ dart_executable("dart") {
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
   }
-  if (!is_product) {
-    extra_deps += [ ":dart_kernel_platform_cc" ]
-  }
   extra_sources = [
     "builtin_nolib.cc",
     "dfe.cc",
@@ -941,9 +931,6 @@ dart_executable("dart_bootstrap") {
     ":generate_web_sql_cc_file",
     "..:libdart_nosnapshot_with_precompiler",
   ]
-  if (!is_product) {
-    extra_deps += [ ":dart_kernel_platform_cc" ]
-  }
   extra_defines = [ "NO_OBSERVATORY" ]
   extra_sources = [
     "builtin.cc",
@@ -1121,7 +1108,6 @@ executable("run_vm_tests") {
   }
 
   deps = [
-    ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":generate_snapshot_test_dat_file",
     ":libdart_builtin",

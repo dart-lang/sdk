@@ -13,21 +13,12 @@
 #include "vm/kernel.h"
 
 extern "C" {
-#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 extern const uint8_t kKernelServiceDill[];
 extern intptr_t kKernelServiceDillSize;
 extern const uint8_t kPlatformDill[];
 extern intptr_t kPlatformDillSize;
 extern const uint8_t kPlatformStrongDill[];
 extern intptr_t kPlatformStrongDillSize;
-#else
-const uint8_t* kKernelServiceDill = NULL;
-intptr_t kKernelServiceDillSize = 0;
-const uint8_t* kPlatformDill = NULL;
-intptr_t kPlatformDillSize = 0;
-const uint8_t* kPlatformStrongDill = NULL;
-intptr_t kPlatformStrongDillSize = 0;
-#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 }
 
 namespace dart {
