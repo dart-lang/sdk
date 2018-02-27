@@ -23,16 +23,16 @@ class C<U> = Object with M<List<U>>;
 /*class: D:checks=[$asM]*/
 class D<V> = Object with C<Set<V>>;
 
-/*class: E:checks=[$asM]*/
+/*class: E:checks=[$asM],instance*/
 class E extends A<num> {}
 
-/*class: F:checks=[$asM]*/
+/*class: F:checks=[$asM],instance*/
 class F extends B<String> {}
 
-/*class: G:checks=[]*/
+/*class: G:checks=[],instance*/
 class G<T> extends C<T> {}
 
-/*class: H:checks=[$asM]*/
+/*class: H:checks=[$asM],instance*/
 class H<T> extends D<Map<String, T>> {}
 
 main() {

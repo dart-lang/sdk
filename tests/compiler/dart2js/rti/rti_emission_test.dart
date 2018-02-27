@@ -11,6 +11,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/kernel/element_map.dart';
@@ -23,6 +24,7 @@ import '../helpers/program_lookup.dart';
 
 main(List<String> args) {
   asyncTest(() async {
+    cacheRtiDataForTesting = true;
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(
@@ -43,6 +45,10 @@ main(List<String> args) {
 
 class Tags {
   static const String isChecks = 'checks';
+  static const String instance = 'instance';
+  static const String checkedInstance = 'checkedInstance';
+  static const String typeArgument = 'typeArgument';
+  static const String checkedTypeArgument = 'checkedTypeArgument';
 }
 
 void computeAstRtiMemberEmission(
@@ -67,6 +73,9 @@ abstract class ComputeValueMixin<T> {
   Compiler get compiler;
   ProgramLookup lookup;
 
+  RuntimeTypesImpl get checksBuilder =>
+      compiler.backend.rtiChecksBuilderForTesting;
+
   String getClassValue(ClassEntity element) {
     lookup ??= new ProgramLookup(compiler);
     Class cls = lookup.getClass(element);
@@ -75,6 +84,21 @@ abstract class ComputeValueMixin<T> {
       features.addElement(Tags.isChecks);
       for (StubMethod stub in cls.isChecks) {
         features.addElement(Tags.isChecks, stub.name.key);
+      }
+    }
+    ClassUse classUse = checksBuilder.classUseMapForTesting[element];
+    if (classUse != null) {
+      if (classUse.instance) {
+        features.add(Tags.instance);
+      }
+      if (classUse.checkedInstance) {
+        features.add(Tags.checkedInstance);
+      }
+      if (classUse.typeArgument) {
+        features.add(Tags.typeArgument);
+      }
+      if (classUse.checkedTypeArgument) {
+        features.add(Tags.checkedTypeArgument);
       }
     }
     return features.getText();

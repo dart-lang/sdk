@@ -8,10 +8,11 @@ import 'dart:_js_helper' show Native;
 // ignore: import_internal_library
 import 'dart:_foreign_helper' show JS;
 
-/*class: Purple:checks=[$isPurple]*/
+/*class: Purple:checkedInstance,checks=[$isPurple],instance*/
 @Native('PPPP')
 class Purple {}
 
+/*class: Q:instance*/
 @Native('QQQQ')
 class Q {}
 

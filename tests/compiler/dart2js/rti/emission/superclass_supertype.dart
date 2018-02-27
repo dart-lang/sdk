@@ -7,10 +7,10 @@ import 'package:meta/dart2js.dart';
 /*class: A:checks=[]*/
 class A {}
 
-/*class: B:*/
+/*class: B:checkedInstance*/
 class B {}
 
-/*class: C:checks=[$isB]*/
+/*class: C:checks=[$isB],instance*/
 class C extends A implements B {}
 
 @noInline

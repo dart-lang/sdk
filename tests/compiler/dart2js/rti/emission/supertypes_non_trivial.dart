@@ -4,13 +4,13 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A:checks=[]*/
+/*class: A:checkedInstance,checks=[]*/
 class A<T> {}
 
-/*class: B:checks=[$asA]*/
+/*class: B:checks=[$asA],instance*/
 class B<S, T> extends A<T> {} // Non-trivial substitution of A.
 
-/*class: C:checks=[$asA,$isA]*/
+/*class: C:checks=[$asA,$isA],instance*/
 class C<S, T> implements B<S, T> {} // Non-trivial substitution of A
 
 @noInline

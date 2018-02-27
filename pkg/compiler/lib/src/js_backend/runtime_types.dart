@@ -24,6 +24,8 @@ import '../world.dart' show ClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 
+bool cacheRtiDataForTesting = false;
+
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
   /// Get the set of checks required for class [element].
@@ -1399,6 +1401,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   @override
   TypeChecks get _requiredChecks => cachedRequiredChecks;
 
+  Map<ClassEntity, ClassUse> classUseMapForTesting;
+
   @override
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound) {
@@ -1414,6 +1418,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
+    if (cacheRtiDataForTesting) {
+      classUseMapForTesting = classUseMap;
+    }
 
     Set<ClassEntity> checkedClasses = new Set<ClassEntity>();
     Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();

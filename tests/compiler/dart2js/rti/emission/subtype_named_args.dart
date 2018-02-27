@@ -6,25 +6,25 @@
 
 import 'package:expect/expect.dart';
 
-/*class: A:checks=[]*/
+/*class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*class: A1:checks=[]*/
+/*class: A1:checkedTypeArgument,checks=[],typeArgument*/
 class A1 {}
 
-/*class: A2:checks=[]*/
+/*class: A2:checkedTypeArgument,checks=[],typeArgument*/
 class A2 {}
 
-/*class: B:checks=[$isA,$isA1,$isA2]*/
+/*class: B:checkedTypeArgument,checks=[$isA,$isA1,$isA2],typeArgument*/
 class B implements A, A1, A2 {}
 
-/*class: C:checks=[$isA,$isA1,$isA2,$isB]*/
+/*class: C:checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB],typeArgument*/
 class C implements B {}
 
-/*class: D:checks=[$isA,$isA1,$isA2,$isB,$isC]*/
+/*class: D:checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB,$isC],typeArgument*/
 class D implements C {}
 
-/*class: G:checks=[]*/
+/*class: G:checkedTypeArgument,checks=[],typeArgument*/
 class G<T, S, U, W> {}
 
 typedef classesFunc({A a, B b, C c, D d});
@@ -45,35 +45,46 @@ typedef okWithDynamicFunc_1({A x, G y, mixFunc z, var v});
 typedef okWithDynamicFunc_2({int x, bool y, List<Map> z, classesFunc v});
 
 main() {
-  Expect.isTrue(/*checks=[]*/ ({D a, B b, C c, A d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[]*/ ({A a, A b, A c, A d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[]*/ ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[]*/ ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[]*/ ({D a, D b, D c, D d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[]*/ ({var a, var b, var c, var d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[]*/ ({Object a, Object b, Object c, Object d}) {}
-      is classesFunc);
+  Expect
+      .isTrue(/*checks=[],instance*/ ({D a, B b, C c, A d}) {} is classesFunc);
+  Expect
+      .isTrue(/*checks=[],instance*/ ({A a, A b, A c, A d}) {} is classesFunc);
+  Expect.isTrue(
+      /*checks=[],instance*/ ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
+  Expect.isTrue(
+      /*checks=[],instance*/ ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
+  Expect
+      .isTrue(/*checks=[],instance*/ ({D a, D b, D c, D d}) {} is classesFunc);
+  Expect.isTrue(
+      /*checks=[],instance*/ ({var a, var b, var c, var d}) {} is classesFunc);
+  Expect.isTrue(/*checks=[],instance*/ (
+      {Object a, Object b, Object c, Object d}) {} is classesFunc);
 
-  Expect.isTrue(/*checks=[]*/ (
+  Expect.isTrue(/*checks=[],instance*/ (
       {Map<num, num> m,
       List<List<A1>> l,
       G<A, A1, A1, A1> g}) {} is genericsFunc);
   Expect.isTrue(
-      /*checks=[]*/ ({Map<int, int> m, List<List<D>> l, G<D, D, D, D> g}) {}
-          is genericsFunc);
-  Expect.isTrue(/*checks=[]*/ ({var m, var l, var g}) {} is genericsFunc);
+      /*checks=[],instance*/ (
+          {Map<int, int> m,
+          List<List<D>> l,
+          G<D, D, D, D> g}) {} is genericsFunc);
   Expect.isTrue(
-      /*checks=[]*/ ({Object m, Object l, Object g}) {} is genericsFunc);
+      /*checks=[],instance*/ ({var m, var l, var g}) {} is genericsFunc);
+  Expect.isTrue(
+      /*checks=[],instance*/ ({Object m, Object l, Object g}) {}
+          is genericsFunc);
 
-  Expect.isTrue(/*checks=[]*/ ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
-  Expect.isTrue(/*checks=[]*/ ({int x, bool y, List<Map> z, classesFunc v}) {}
-      is dynamicFunc);
+  Expect.isTrue(
+      /*checks=[],instance*/ ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
+  Expect.isTrue(/*checks=[],instance*/ (
+      {int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
-  Expect.isTrue(/*checks=[]*/ (
+  Expect.isTrue(/*checks=[],instance*/ (
       {okWithClassesFunc_1 f1,
       okWithGenericsFunc_1 f2,
       okWithDynamicFunc_1 f3}) {} is funcFunc);
-  Expect.isTrue(/*checks=[]*/ (
+  Expect.isTrue(/*checks=[],instance*/ (
       {okWithClassesFunc_2 f1,
       okWithGenericsFunc_2 f2,
       okWithDynamicFunc_2 f3}) {} is funcFunc);

@@ -4,13 +4,13 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A:checks=[]*/
+/*class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A<T> {}
 
-/*class: B:checks=[]*/
+/*class: B:checkedInstance,checks=[]*/
 class B<T> {}
 
-/*class: C:checks=[$asB]*/
+/*class: C:checks=[$asB],instance*/
 class C<T> extends B<A<T>> {}
 
 @noInline

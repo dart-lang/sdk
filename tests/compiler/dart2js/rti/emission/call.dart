@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
-/*class: A:checks=[$isFunction]*/
+/*class: A:checks=[$isFunction],instance*/
 class A {
   call() {}
 }

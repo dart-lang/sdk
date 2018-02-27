@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
+/*class: A:checkedInstance*/
 class A {}
 
 /*class: B:checks=[]*/
@@ -13,7 +14,7 @@ class B implements A {}
 /*class: C:checks=[$isA]*/
 class C = Object with B;
 
-/*class: D:checks=[]*/
+/*class: D:checks=[],instance*/
 class D extends C {}
 
 @noInline
