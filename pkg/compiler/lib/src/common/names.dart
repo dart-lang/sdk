@@ -40,6 +40,9 @@ class Identifiers {
 
   /// The name of the getter returning the size of containers and strings.
   static const String length = 'length';
+
+  /// The name of the signature function in closure classes.
+  static const String signature = 'signature';
 }
 
 /// [Name]s commonly used.
@@ -75,6 +78,9 @@ class Names {
   static const Name runtimeType_ = const PublicName(Identifiers.runtimeType_);
 
   static const Name genericInstantiation = const PublicName('instantiate');
+
+  /// The name of the signature function in closure classes.
+  static const Name signature = const PublicName(Identifiers.signature);
 }
 
 /// [Selector]s commonly used.
