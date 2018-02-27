@@ -48,9 +48,11 @@ group("runtime") {
   ]
 }
 
-target_supports_aot = target_cpu == "arm" || target_cpu == "arm64" || target_cpu == "x64"
-
 group("runtime_kernel") {
+  import("runtime/runtime_args.gni")
+
+  target_supports_aot = dart_target_arch == "arm" || dart_target_arch == "arm64" || dart_target_arch == "x64"
+
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
