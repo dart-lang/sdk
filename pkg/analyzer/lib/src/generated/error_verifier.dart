@@ -6206,6 +6206,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       NamedCompilationUnitMember node, WithClause withClause) {
     if (withClause == null) return;
     if (!_options.enableSuperMixins) return;
+    if (!_options.strongMode) return;
     ClassElement classElement = node.element;
     var type = classElement.type;
     var supertype = classElement.supertype;

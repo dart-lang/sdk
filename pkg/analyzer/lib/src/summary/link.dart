@@ -671,7 +671,9 @@ class ClassElementForLink_Class extends ClassElementForLink
         var mixin = _computeInterfaceType(entity);
         var mixinElement = mixin.element;
         var slot = entity.refinedSlot;
-        if (slot != 0 && mixinElement.typeParameters.isNotEmpty) {
+        if (slot != 0 &&
+            mixinElement.typeParameters.isNotEmpty &&
+            library._linker.strongMode) {
           CompilationUnitElementForLink enclosingElement =
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {

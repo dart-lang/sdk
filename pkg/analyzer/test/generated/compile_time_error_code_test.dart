@@ -4019,6 +4019,7 @@ class C extends Object with M1, M2 {}
   test_mixinInference_noMatchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4034,6 +4035,7 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4049,6 +4051,7 @@ class C extends Object with M implements A<B> {}
   test_mixinInference_noMatchingClass_namedMixinApplication() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4064,6 +4067,7 @@ class C = Object with M;
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4078,6 +4082,7 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_typeParametersSupplied() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
+    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
