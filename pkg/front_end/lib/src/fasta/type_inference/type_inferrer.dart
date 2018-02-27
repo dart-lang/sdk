@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         BottomType,
         Class,
+        ConditionalExpression,
         ConstructorInvocation,
         DartType,
         DispatchCategory,
@@ -28,6 +29,7 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
+        NullLiteral,
         Procedure,
         ProcedureKind,
         PropertyGet,
@@ -64,6 +66,8 @@ import '../fasta_codes.dart';
 
 import '../kernel/fasta_accessors.dart'
     show BuilderHelper, CalleeDesignation, FunctionTypeAccessor;
+
+import '../kernel/frontend_accessors.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
@@ -480,12 +484,21 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var callMember = classHierarchy.getInterfaceMember(classNode, callName);
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(expectedType, actualType)) {
+          // Replace expression with:
+          // `let t = expression in t == null ? null : t.call`
           var parent = expression.parent;
-          var tearOff = new PropertyGet(expression, callName, callMember)
+          var t = new VariableDeclaration.forValue(expression, type: actualType)
             ..fileOffset = fileOffset;
-          parent?.replaceChild(expression, tearOff);
-          expression = tearOff;
+          var nullCheck = buildIsNull(new VariableGet(t), fileOffset);
+          var tearOff =
+              new PropertyGet(new VariableGet(t), callName, callMember)
+                ..fileOffset = fileOffset;
           actualType = getCalleeType(callMember, actualType);
+          var conditional = new ConditionalExpression(nullCheck,
+              new NullLiteral()..fileOffset = fileOffset, tearOff, actualType);
+          var let = new Let(t, conditional);
+          parent?.replaceChild(expression, let);
+          expression = conditional;
         }
       }
     }
