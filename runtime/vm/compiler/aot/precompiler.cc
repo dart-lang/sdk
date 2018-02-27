@@ -3387,6 +3387,10 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
   PreventRenaming("library");
   PreventRenaming("io");
   PreventRenaming("html");
+
+  // Looked up by name via "DartUtils::GetDartType".
+  PreventRenaming("_RandomAccessFileOpsImpl");
+  PreventRenaming("_NamespaceImpl");
 }
 
 RawString* Obfuscator::ObfuscationState::RenameImpl(const String& name,

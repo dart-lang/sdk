@@ -189,6 +189,9 @@ LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
 
+[ $compiler == dartkp && $minified ]
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/no_such_method_t01: RuntimeError # Compares new Symbol with noSuchMethod actual name.
+
 # dartk and dartkp are by default run in strong mode and co19 tests are not
 # strong mode clean, so we are skipping them.
 [ $compiler == dartk || $compiler == dartkp ]

@@ -57,7 +57,7 @@ class SimpleExpressionConverter {
         return true;
       }
       case kStringLiteral:
-        simple_value_ = &H.DartSymbol(
+        simple_value_ = &H.DartSymbolPlain(
             builder_->ReadStringReference());  // read index into string table.
         return true;
       case kSpecialIntLiteral:
@@ -467,7 +467,7 @@ RawString* KernelLoader::DetectExternalName() {
 
   Tag tag = builder_.ReadTag();
   ASSERT(tag == kStringLiteral);
-  String& result = H.DartSymbol(
+  String& result = H.DartSymbolPlain(
       builder_.ReadStringReference());  // read index into string table.
 
   // List of named.
@@ -734,7 +734,7 @@ void KernelLoader::LoadLibrary(intptr_t index) {
   intptr_t procedure_count = library_index.procedure_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
-  library.SetName(H.DartSymbol(library_helper.name_index_));
+  library.SetName(H.DartSymbolObfuscate(library_helper.name_index_));
 
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
@@ -878,7 +878,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
       uint8_t flags = builder_.ReadFlags();
       intptr_t name_count = builder_.ReadListLength();
       for (intptr_t n = 0; n < name_count; ++n) {
-        String& show_hide_name = H.DartSymbol(builder_.ReadStringReference());
+        String& show_hide_name =
+            H.DartSymbolObfuscate(builder_.ReadStringReference());
         if (flags & LibraryDependencyHelper::Show) {
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
@@ -905,7 +906,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
         target_library.url() == Symbols::DartMirrors().raw()) {
       H.ReportError("import of dart:mirrors with --enable-mirrors=false");
     }
-    String& prefix = H.DartSymbol(dependency_helper.name_index_);
+    String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
     if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
       library->AddExport(ns);
@@ -1534,7 +1535,7 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
 Library& KernelLoader::LookupLibrary(NameIndex library) {
   Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const String& url = H.DartSymbol(H.CanonicalNameString(library));
+    const String& url = H.DartString(H.CanonicalNameString(library));
     handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
     if (handle->IsNull()) {
       *handle = Library::New(url);

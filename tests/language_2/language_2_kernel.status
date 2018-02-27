@@ -1151,6 +1151,12 @@ void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 
+[ $compiler == dartkp && $minified ]
+no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
+recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
+tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
+type_variable_promotion_test: RuntimeError # Compares runtime type to the string "List<B>"
+
 [ $compiler == fasta && $strong ]
 deferred_super_dependency_test/01: MissingCompileTimeError
 

@@ -379,9 +379,10 @@ class TranslationHelper {
                      intptr_t len,
                      Heap::Space space);
 
-  const String& DartSymbol(const char* content) const;
-  String& DartSymbol(StringIndex string_index) const;
-  String& DartSymbol(const uint8_t* utf8_array, intptr_t len) const;
+  const String& DartSymbolPlain(const char* content) const;
+  String& DartSymbolPlain(StringIndex string_index) const;
+  const String& DartSymbolObfuscate(const char* content) const;
+  String& DartSymbolObfuscate(StringIndex string_index) const;
 
   const String& DartClassName(NameIndex kernel_class);
 
@@ -438,10 +439,12 @@ class TranslationHelper {
   // to get the import URI of the library where the name is visible.
   String& ManglePrivateName(NameIndex parent,
                             String* name_to_modify,
-                            bool symbolize = true);
+                            bool symbolize = true,
+                            bool obfuscate = true);
   String& ManglePrivateName(const Library& library,
                             String* name_to_modify,
-                            bool symbolize = true);
+                            bool symbolize = true,
+                            bool obfuscate = true);
 
   Thread* thread_;
   Zone* zone_;
