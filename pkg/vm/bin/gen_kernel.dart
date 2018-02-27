@@ -31,6 +31,10 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('embed-sources',
       help: 'Embed source files in the generated kernel program',
       defaultsTo: true)
+  ..addFlag('tfa',
+      help:
+          'Enable global type flow analysis and related transformations in AOT mode.',
+      defaultsTo: false)
   ..addOption('entry-points',
       help: 'Path to JSON file with the list of entry points',
       allowMultiple: true);
@@ -69,12 +73,14 @@ Future<int> compile(List<String> arguments) async {
   final bool strongMode = options['strong-mode'];
   final bool aot = options['aot'];
   final bool syncAsync = options['sync-async'];
+  final bool tfa = options['tfa'];
 
   final List<String> entryPoints = options['entry-points'] ?? <String>[];
   if (entryPoints.isEmpty) {
     entryPoints.addAll([
       'pkg/vm/lib/transformations/type_flow/entry_points.json',
       'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json',
     ]);
   }
 
@@ -95,7 +101,7 @@ Future<int> compile(List<String> arguments) async {
 
   Program program = await compileToKernel(
       Uri.base.resolveUri(new Uri.file(filename)), compilerOptions,
-      aot: aot, entryPoints: entryPoints);
+      aot: aot, useGlobalTypeFlowAnalysis: tfa, entryPoints: entryPoints);
 
   if (errorDetector.hasCompilationErrors || (program == null)) {
     return _compileTimeErrorExitCode;

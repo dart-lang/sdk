@@ -6,6 +6,7 @@ import("../../build/compiled_action.gni")
 import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../../sdk/lib/cli/cli_sources.gni")
+import("../../utils/generate_entry_points_json.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/vm_sources.gni")
@@ -1206,29 +1207,10 @@ shared_library("sample_extension") {
   }
 }
 
-compiled_action("precompiler_entry_points_json") {
-  # Printing precompiler entry points is folded into precompilation, so dart_bootstrap is invoked
-  # with correct arguments to generate app-aot snapshot.
-
+generate_entry_points_json_with_dart_bootstrap(
+    "precompiler_entry_points_json") {
   # Dart script to precompile (any valid script would suffice).
-  input = "../vm/snapshot_test.dart"
-
-  # Output snapshot for precompilation.
-  snapshot = "$target_gen_dir/dummy.snapshot"
+  input = "../tests/vm/dart/hello_world_test.dart"
 
   output = "$target_gen_dir/precompiler_entry_points.json"
-  tool = ":dart_bootstrap"
-  inputs = [
-    input,
-  ]
-  outputs = [
-    output,
-  ]
-  args = [
-    "--print-precompiler-entry-points=" + rebase_path(output),
-    "--snapshot=" + rebase_path(snapshot),
-    "--snapshot-kind=app-aot",
-    "--use-blobs",
-    rebase_path(input),
-  ]
 }
