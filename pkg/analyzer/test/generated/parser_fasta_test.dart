@@ -512,14 +512,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_invalidLiteralInConfiguration() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, found 0
-    super.test_invalidLiteralInConfiguration();
-  }
-
-  @override
-  @failingTest
   void test_invalidOperatorAfterSuper_primaryExpression() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: true

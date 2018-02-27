@@ -295,6 +295,10 @@ class FastaErrorReporter {
             length,
             [type1, type2]);
         return;
+      case "INVALID_LITERAL_IN_CONFIGURATION":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, offset, length);
+        return;
       case "INVALID_AWAIT_IN_FOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_AWAIT_IN_FOR, offset, length);

@@ -2788,6 +2788,8 @@ const Code<Null> codeInterpolationInUri = messageInterpolationInUri;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInterpolationInUri = const MessageCode(
     "InterpolationInUri",
+    analyzerCode: "INVALID_LITERAL_IN_CONFIGURATION",
+    dart2jsCode: "*fatal*",
     message: r"""Can't use string interpolation in a URI.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

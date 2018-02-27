@@ -1831,6 +1831,8 @@ ExpectedUri:
 
 InterpolationInUri:
   template: "Can't use string interpolation in a URI."
+  analyzerCode: INVALID_LITERAL_IN_CONFIGURATION
+  dart2jsCode: "*fatal*"
 
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."

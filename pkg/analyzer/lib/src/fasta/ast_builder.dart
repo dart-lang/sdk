@@ -40,6 +40,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageDirectiveAfterDeclaration,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
+        messageInterpolationInUri,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor;
@@ -1584,6 +1585,16 @@ class AstBuilder extends ScopeListener {
 
     StringLiteral libraryUri = pop();
     StringLiteral value = popIfNotNull(equalSign);
+    if (value is StringInterpolation) {
+      for (var child in value.childEntities) {
+        if (child is InterpolationExpression) {
+          // This error is reported in OutlineBuilder.endLiteralString
+          handleRecoverableError(
+              messageInterpolationInUri, child.beginToken, child.endToken);
+          break;
+        }
+      }
+    }
     DottedName name = pop();
     push(ast.configuration(ifKeyword, leftParen, name, equalSign, value,
         leftParen?.endGroup, libraryUri));

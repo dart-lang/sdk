@@ -3829,7 +3829,7 @@ class Wrong<T> {
     Configuration configuration = parser.parseConfiguration();
     expectNotNullIfNoErrors(configuration);
     listener.assertErrors([
-      expectedError(ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, 9, 9)
+      expectedError(ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, 12, 2)
     ]);
   }
 
