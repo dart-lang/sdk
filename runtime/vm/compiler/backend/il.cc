@@ -2055,7 +2055,12 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) {
+  // Must not remove Redifinitions without uses until LICM, even though
+  // Redefinition might not have any uses itself it can still be dominating
+  // uses of the value it redefines and must serve as a barrier for those
+  // uses. RenameUsesDominatedByRedefinitions would normalize the graph and
+  // route those uses through this redefinition.
+  if (!HasUses() && !flow_graph->is_licm_allowed()) {
     return NULL;
   }
   if ((constrained_type() != NULL) &&
