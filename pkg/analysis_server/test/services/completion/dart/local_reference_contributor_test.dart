@@ -2178,6 +2178,52 @@ main() {
     assertSuggestEnumConst('F.four');
   }
 
+  test_enum_filter_binaryEquals() async {
+    addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+main(E e) {
+  e == ^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('E.two',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
+  test_enum_filter_switchCase() async {
+    addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+main(E e) {
+  switch (e) {
+    case ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertSuggestEnumConst('E.two',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+
+    assertSuggestEnum('F');
+    assertSuggestEnumConst('F.three');
+    assertSuggestEnumConst('F.four');
+  }
+
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource('/testA.dart', '''

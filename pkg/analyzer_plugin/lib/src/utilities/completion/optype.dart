@@ -183,7 +183,14 @@ class OpType {
    */
   void _computeRequiredTypeAndFilters(CompletionTarget target) {
     var node = target.containingNode;
-    if (node is Expression) {
+    if (node is BinaryExpression && node.operator.type == TokenType.EQ_EQ) {
+      _requiredType = node.leftOperand?.staticType;
+    } else if (node is SwitchCase && node.expression == target.entity) {
+      AstNode parent = node.parent;
+      if (parent is SwitchStatement) {
+        _requiredType = parent.expression?.staticType;
+      }
+    } else if (node is Expression) {
       AstNode parent = node.parent;
       if (parent is VariableDeclaration) {
         _requiredType = parent.element?.type;
