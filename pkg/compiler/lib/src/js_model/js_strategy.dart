@@ -523,7 +523,8 @@ class JsClosedWorldBuilder {
       JLibrary enclosingLibrary,
       Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      KernelToLocalsMap localsMap) {
+      KernelToLocalsMap localsMap,
+      {bool needsSignature}) {
     ClassEntity superclass = _commonElements.closureClass;
 
     KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
@@ -533,7 +534,8 @@ class JsClosedWorldBuilder {
         boxedVariables,
         info,
         localsMap,
-        new InterfaceType(superclass, const []));
+        new InterfaceType(superclass, const []),
+        needsSignature: needsSignature);
 
     // Tell the hierarchy that this is the super class. then we can use
     // .getSupertypes(class)

@@ -2455,7 +2455,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       Map<Local, JRecordField> recordFieldsVisibleInScope,
       KernelScopeInfo info,
       KernelToLocalsMap localsMap,
-      InterfaceType supertype) {
+      InterfaceType supertype,
+      {bool needsSignature}) {
     InterfaceType memberThisType = member.enclosingClass != null
         ? _elementEnvironment.getThisType(member.enclosingClass)
         : null;
@@ -2524,7 +2525,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         localsMap, recordFieldsVisibleInScope, memberMap);
 
-    if (options.strongMode) {
+    if (needsSignature) {
       _constructSignatureMethod(closureClassInfo, memberMap, node,
           memberThisType, location, typeVariableAccess);
     }

@@ -1610,7 +1610,7 @@ function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
-function_type2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in (local(B.#)) for j:signature(B_closure.$signature).
+function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
@@ -1951,7 +1951,6 @@ regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 regress_31591_test: RuntimeError
-regress_32012_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
@@ -2067,7 +2066,6 @@ vm/regress_22480_test: RuntimeError
 vm/regress_23238_test: RuntimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_28325_test: RuntimeError
-vm/regress_32204_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (local(A.#v), local(A.#f)) for j:signature(A_f.$signature).
 vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/28: MissingRuntimeError
@@ -2348,7 +2346,7 @@ function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_subtype_simple2_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
-function_type2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(B.T) in (local(B.#)) for j:signature(B_closure.$signature).
+function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
@@ -2682,7 +2680,6 @@ regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 regress_31591_test: RuntimeError
-regress_32012_test: Crash # Issue 32078
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
@@ -2776,7 +2773,6 @@ vm/regress_22480_test: RuntimeError
 vm/regress_23238_test: RuntimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_28325_test: RuntimeError
-vm/regress_32204_test: Crash
 vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/28: MissingRuntimeError
